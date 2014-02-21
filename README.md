@@ -1,5 +1,12 @@
 # Cross Agent Tests
 
+### Data Policy
+
+None of these tests should contain customer data such as SQL strings.
+Please be careful when adding new tests from real world failures.
+
+### Tests
+
 | Test Files    | Description   |
 | ------------- |-------------|
 | [rum_loader_insertion_location](rum_loader_insertion_location) | Describe where the RUM loader (formerly known as header) should be inserted. |
