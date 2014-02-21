@@ -3,7 +3,7 @@
 | Test Files    | Description   |
 | ------------- |-------------|
 | [rum_loader_insertion_location](rum_loader_insertion_location) | Describe where the RUM loader (formerly known as header) should be inserted. |
-| [rum_footer_insertion_location](rum_footer_insertion_location) | Describe where the RUM footer should be inserted. |
+| [rum_footer_insertion_location](rum_footer_insertion_location) | Describe where the RUM footer (aka "client config") should be inserted.  These tests do not apply to agents which insert the footer directly after the loader. |
 | [rules.json](rules.json) | Describe how url/metric/txn-name rules should be applied. |
 | [rum_client_config.json](rum_client_config.json) | These tests dictate the format and contents of the browser monitoring client configuration.  For more information see: [SPEC](https://newrelic.atlassian.net/wiki/display/eng/JavaScript+Agent+Auto-Instrumentation) |
 | [rum_cookie.json](rum_cookie.json)      | These tests indicate the format requirements of a valid RUM cookie. |
