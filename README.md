@@ -18,5 +18,6 @@ Please be careful when adding new tests from real world failures.
 | [url_clean.json](url_clean.json) | These tests show how URLs should be cleaned before putting them into a trace segment's parameter hash (under the key 'uri'). |
 | [url_domain_extraction.json](url_domain_extraction.json) | These tests show how the domain of a URL should be extracted (for the purpose of creating external metrics). |
 | [postgres_explain_obfuscation](postgres_explain_obfuscation) | These tests show how plain-text explain plan output from PostgreSQL should be obfuscated when SQL obfuscation is enabled. |
+| [sql_obfuscation](sql_obfuscation) | Describe how agents should obfuscate SQL queries before transmission to the collector. |
 | [attribute_configuration](attribute_configuration.json) | These tests show how agents should respond to the various attribute configuration settings.  For more information see: [Attributes SPEC](https://newrelic.atlassian.net/wiki/display/eng/Agent+Attributes) |
 | [cat_map](cat_map.json) | These tests cover the new Dirac attributes that are added for the CAT Map project. See the [CAT Map Spec](https://newrelic.jiveon.com/docs/DOC-1798) for details.|
