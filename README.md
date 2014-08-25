@@ -20,5 +20,25 @@ Please be careful when adding new tests from real world failures.
 | [postgres_explain_obfuscation](postgres_explain_obfuscation) | These tests show how plain-text explain plan output from PostgreSQL should be obfuscated when SQL obfuscation is enabled. |
 | [sql_obfuscation](sql_obfuscation) | Describe how agents should obfuscate SQL queries before transmission to the collector. |
 | [attribute_configuration](attribute_configuration.json) | These tests show how agents should respond to the various attribute configuration settings.  For more information see: [Attributes SPEC](https://newrelic.atlassian.net/wiki/display/eng/Agent+Attributes) |
-| [cat_map](cat_map.json) | These tests cover the new Dirac attributes that are added for the CAT Map project. See the [CAT Map Spec](https://newrelic.jiveon.com/docs/DOC-1798) for details.|
+| [cat_map](cat_map.json) | These tests cover the new Dirac attributes that are added for the CAT Map project. See the [CAT Map Spec](https://newrelic.jiveon.com/docs/DOC-1798) and the section below for details.|
 | [labels](labels.json) | These tests cover the Labels for Language Agents project. See the [Labels for Language Agents Spec](https://newrelic.atlassian.net/wiki/display/eng/Labels+for+Language+Agents+-+draft+spec) for details.|
+
+### CAT Map test details
+
+The CAT map test cases in `cat_map.json` are meant to be used to verify the
+attributes that agents collect and attach to analytics transaction events for
+the CAT map project.
+
+Each test case should correspond to a simulated transaction in the agent under
+test. Here's what the various fields in each test case mean:
+
+| Name | Meaning |
+| ---- | ------- |
+| `name` | A human-meaningful name for the test case. |
+| `appName` | The name of the New Relic application for the simulated transaction. |
+| `transactionName` | The final name of the simulated transaction. |
+| `transactionGuid` | The GUID of the simulated transaction. |
+| `referringPayload` | The (non-serialized) contents of the `X-NewRelic-Transaction` HTTP request header on the simulated transaction. Note that this value should be serialized to JSON, obfuscated using the CAT obfuscation algorithm, and Base64-encoded before being used in the header value. Note also that the `X-NewRelic-ID` header should be set on the simulated transaction, though its value is not specified in these tests. |
+| `expectedAttributes` | A set of key-value pairs that are expected to be present in the analytics event generated for the simulated transaction. |
+| `nonExpectedAttributes` | An array of attribute names that should *not* be present in the analytics event generated for the simulated transaction. |
+| `outgoingTxnNames` | An array of transaction names used by the simulated transaction to make outgoing HTTP calls. For test cases that include this attribute, one outgoing HTTP request per entry in the array should be simulated in the context of the simulated transaction. The transaction name of the simulated transaction should be set prior to each outgoing call, simulating the transaction name (potentially) changing between outgoing HTTP requests. |
