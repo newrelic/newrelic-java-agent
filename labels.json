@@ -142,13 +142,13 @@
     "name":        "trailing_semicolons",
     "labelString": "foo:bar;;",
     "warning":     false,
-    "expected":    []
+    "expected":    [ { "label_type": "foo", "label_value": "bar" } ]
   },
   {
     "name":        "leading_semicolons",
     "labelString": ";;foo:bar",
     "warning":     false,
-    "expected":    []
+    "expected":    [ { "label_type": "foo", "label_value": "bar" } ]
   },
   {
     "name":        "empty_label",
