@@ -137,5 +137,53 @@
       { "label_type": "50", "label_value": "50" }, { "label_type": "51", "label_value": "51" }, { "label_type": "52", "label_value": "52" }, { "label_type": "53", "label_value": "53" }, { "label_type": "54", "label_value": "54" },
       { "label_type": "55", "label_value": "55" }, { "label_type": "56", "label_value": "56" }, { "label_type": "57", "label_value": "57" }, { "label_type": "58", "label_value": "58" }, { "label_type": "59", "label_value": "59" },
       { "label_type": "60", "label_value": "60" }, { "label_type": "61", "label_value": "61" }, { "label_type": "62", "label_value": "62" }, { "label_type": "63", "label_value": "63" } ]
+  },
+  {
+    "name":        "trailing_semicolons",
+    "labelString": "foo:bar;;",
+    "warning":     false,
+    "expected":    [ { "label_type": "foo", "label_value": "bar" } ]
+  },
+  {
+    "name":        "leading_semicolons",
+    "labelString": ";;foo:bar",
+    "warning":     false,
+    "expected":    [ { "label_type": "foo", "label_value": "bar" } ]
+  },
+  {
+    "name":        "empty_label",
+    "labelString": "foo:bar;;zip:zap",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "trailing_colons",
+    "labelString": "foo:bar;:",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "leading_colons",
+    "labelString": ":;foo:bar",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "empty_pair",
+    "labelString": " : ",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "empty_pair_in_middle_of_string",
+    "labelString": "foo:bar; : ;zip:zap",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name": "long_multibyte_utf8",
+    "labelString": "foo:€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€",
+    "warning": false,
+    "expected": [ { "label_type": "foo", "label_value": "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€" } ]
   }
 ]
