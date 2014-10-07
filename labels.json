@@ -53,7 +53,7 @@
   {
     "name":        "truncation",
     "labelString": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK:VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
-    "warning":     false,
+    "warning":     true,
     "expected":    [ {
       "label_type":  "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
       "label_value": "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"
@@ -62,7 +62,7 @@
   {
     "name":        "single_label_key_to_be_truncated_with_leading_and_trailing_whitespaces",
     "labelString": "           123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345TTTTT       :value",
-    "warning":     false,
+    "warning":     true,
     "expected":    [
         { "label_type": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345", "label_value": "value" }
     ]
@@ -70,7 +70,7 @@
   {
     "name":        "single_label_value_to_be_truncated_with_leading_and_trailing_whitespaces",
     "labelString": "key:           123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345TTTTT       ",
-    "warning":     false,
+    "warning":     true,
     "expected":    [
         { "label_type": "key", "label_value": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345" }
     ]
@@ -183,13 +183,13 @@
   {
     "name": "long_multibyte_utf8",
     "labelString": "foo:€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€",
-    "warning": false,
+    "warning": true,
     "expected": [ { "label_type": "foo", "label_value": "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€" } ]
   },
   {
     "name": "long_4byte_utf8",
     "labelString": "foo:𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆",
-    "warning": false,
+    "warning": true,
     "expected": [ { "label_type": "foo", "label_value": "𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆"}]
   }
 ]
