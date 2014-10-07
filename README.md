@@ -32,6 +32,8 @@ The CAT map test cases in `cat_map.json` are meant to be used to verify the
 attributes that agents collect and attach to analytics transaction events for
 the CAT map project.
 
+**NOTE** currently `nr.apdexPerfZone` is not covered by these tests, make sure you test for this yourself until it is added to these tests.
+
 Each test case should correspond to a simulated transaction in the agent under
 test. Here's what the various fields in each test case mean:
 
