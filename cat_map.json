@@ -488,6 +488,50 @@
     ]
   },
   {
+    "name": "new_cat_corrupt_path_hash",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/Custom/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "inboundPayload": [
+      "b854df4feb2b1f06",
+      false,
+      "7e249074f277923d",
+	  "ZXYQEDABC"
+    ],
+    "expectedIntrinsicFields": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "7e249074f277923d",
+      "nr.pathHash": "3b0939af",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06",
+      "nr.referringPathHash": "ZXYQEDABC"
+    },
+    "nonExpectedIntrinsicFields": [
+      "nr.alternatePathHashes"
+    ]
+  },
+  {
+    "name": "new_cat_malformed_trip_id",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/Custom/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "inboundPayload": [
+      "b854df4feb2b1f06",
+      false,
+	  ["scrambled"],
+      "5d2957be"
+    ],
+    "expectedIntrinsicFields": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "9323dc260548ed0e",
+      "nr.pathHash": "815b96d3",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06",
+      "nr.referringPathHash": "5d2957be"
+    },
+    "nonExpectedIntrinsicFields": [
+      "nr.alternatePathHashes"
+    ]
+  },
+  {
     "name": "new_cat_missing_trip_id",
     "appName": "testAppName",
     "transactionName": "WebTransaction/Custom/testTxnName",
