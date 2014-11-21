@@ -44,6 +44,28 @@
     ]
   },
   {
+    "name": "new_cat_path_hash_with_unicode_name",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/Custom/txn\u221a\u221a\u221a",
+    "transactionGuid": "9323dc260548ed0e",
+    "inboundPayload": [
+      "b854df4feb2b1f06",
+    false,
+    "7e249074f277923d",
+    "5d2957be"
+      ],
+    "expectedIntrinsicFields": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "7e249074f277923d",
+      "nr.pathHash": "3d015d23",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06",
+      "nr.referringPathHash": "5d2957be"
+    },
+    "nonExpectedIntrinsicFields": [
+      "nr.alternatePathHashes"
+      ]
+  },
+  {
     "name": "new_cat_no_referring_payload",
     "appName": "testAppName",
     "transactionName": "WebTransaction/Custom/testTxnName",
