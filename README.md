@@ -25,6 +25,7 @@ Please be careful when adding new tests from real world failures.
 | [proc_meminfo](proc_meminfo) | These test correct processing of `/proc/meminfo` output on Linux hosts. |
 | [transaction_segment_terms.json](transaction_segment_terms.json) | These tests cover agent implementations of the `transaction_segment_terms` transaction renaming rules introduced in collector protocol 14. See [the spec](https://newrelic.atlassian.net/wiki/display/eng/Language+agent+transaction+segment+terms+rules) for details. |
 | [synthetics](synthetics) | These tests cover agent support for Synthetics. For details, see [Agent Support for Synthetics: Forced Transaction Traces and Analytic Events](https://newrelic.atlassian.net/wiki/display/eng/Agent+Support+for+Synthetics%3A+Forced+Transaction+Traces+and+Analytic+Events). |
+| [docker_container_id](docker_container_id) | These tests cover parsing of Docker container IDs from `/proc/*/cgroup` on Linux hosts. |
 
 ### CAT Map test details
 
