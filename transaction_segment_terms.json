@@ -53,29 +53,14 @@
         "terms": ["one", "two", "three"]
       },
       {
-        "prefix": "WebTransaction/Foo/one",
+        "prefix": "WebTransaction/Foo",
         "terms": ["one", "two"]
       }
     ],
     "tests": [
       {
         "input": "WebTransaction/Foo/one/two/three/four",
-        "expected": "WebTransaction/Foo/one/two/three/*"
-      }
-    ]
-  },
-  {
-    "testname": "rule_with_prefix_not_ending_in_segment_boundary",
-    "transaction_segment_terms": [
-      {
-        "prefix": "WebTrans",
-        "terms": ["one", "two"]
-      }
-    ],
-    "tests": [
-      {
-        "input": "WebTransaction/Foo/one/two",
-        "expected": "WebTrans*/one/two"
+        "expected": "WebTransaction/Foo/one/two/*"
       }
     ]
   },
@@ -83,18 +68,75 @@
     "testname": "terms_are_order_independent",
     "transaction_segment_terms": [
       {
-        "prefix": "Foo",
+        "prefix": "WebTransction/Foo",
         "terms": ["one", "two", "three"]
       }
     ],
     "tests": [
       {
-        "input": "Foo/bar/one/three/two",
-        "expected": "Foo/*/one/three/two"
+        "input": "WebTransction/Foo/bar/one/three/two",
+        "expected": "WebTransction/Foo/*/one/three/two"
       },
       {
-        "input": "Foo/three/one/one/two/three",
-        "expected": "Foo/three/one/one/two/three"
+        "input": "WebTransction/Foo/three/one/one/two/three",
+        "expected": "WebTransction/Foo/three/one/one/two/three"
+      }
+    ]
+  },
+  {
+    "testname": "invalid_rule_not_enough_prefix_segments",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransction",
+        "terms": ["one", "two"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransction/Foo/bar/one/three/two",
+        "expected": "WebTransction/Foo/bar/one/three/two"
+      },
+      {
+        "input": "WebTransction/Foo/three/one/one/two/three",
+        "expected": "WebTransction/Foo/three/one/one/two/three"
+      }
+    ]
+  },
+  {
+    "testname": "invalid_rule_not_enough_prefix_segments_ending_in_slash",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransction/",
+        "terms": ["one", "two"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransction/Foo/bar/one/three/two",
+        "expected": "WebTransction/Foo/bar/one/three/two"
+      },
+      {
+        "input": "WebTransction/Foo/three/one/one/two/three",
+        "expected": "WebTransction/Foo/three/one/one/two/three"
+      }
+    ]
+  },
+  {
+    "testname": "invalid_rule_too_many_prefix_segments",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransction/Foo/bar",
+        "terms": ["one", "two"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransction/Foo/bar/one/three/two",
+        "expected": "WebTransction/Foo/bar/one/three/two"
+      },
+      {
+        "input": "WebTransction/Foo/three/one/one/two/three",
+        "expected": "WebTransction/Foo/three/one/one/two/three"
       }
     ]
   }
