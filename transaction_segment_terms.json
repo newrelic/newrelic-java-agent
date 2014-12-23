@@ -141,6 +141,57 @@
     ]
   },
   {
+    "testname": "invalid_rule_null_prefix",
+    "transaction_segment_terms": [
+      {
+        "terms": ["one", "two", "three"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Custom/one/two/seven/user/nine/account",
+        "expected": "WebTransaction/Custom/one/two/seven/user/nine/account"
+      }
+    ]
+  },
+  {
+    "testname": "invalid_rule_null_terms",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom"
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Custom/one/two/seven/user/nine/account",
+        "expected": "WebTransaction/Custom/one/two/seven/user/nine/account"
+      }
+    ]
+  },
+  {
+    "testname": "empty_terms",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom",
+        "terms": []
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Custom/one/two/seven/user/nine/account",
+        "expected": "WebTransaction/Custom/*"
+      },
+      {
+        "input": "WebTransaction/Custom/",
+        "expected": "WebTransaction/Custom/"
+      },
+      {
+        "input": "WebTransaction/Custom",
+        "expected": "WebTransaction/Custom"
+      }
+    ]
+  },
+  {
     "testname": "two_segment_transaction_name",
     "transaction_segment_terms": [
       {
