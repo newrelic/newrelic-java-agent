@@ -155,33 +155,25 @@
     ]
   },
   {
-    "testname": "empty_terms",
+    "testname": "invalid_rule_null_terms",
     "transaction_segment_terms": [
       {
-        "prefix": "WebTransaction/Custom",
-        "terms": []
+        "prefix": "WebTransaction/Custom"
       }
     ],
     "tests": [
       {
         "input": "WebTransaction/Custom/one/two/seven/user/nine/account",
-        "expected": "WebTransaction/Custom/*"
-      },
-      {
-        "input": "WebTransaction/Custom/",
-        "expected": "WebTransaction/Custom/"
-      },
-      {
-        "input": "WebTransaction/Custom",
-        "expected": "WebTransaction/Custom"
+        "expected": "WebTransaction/Custom/one/two/seven/user/nine/account"
       }
     ]
   },
   {
-    "testname": "null_terms",
+    "testname": "empty_terms",
     "transaction_segment_terms": [
       {
-        "prefix": "WebTransaction/Custom"
+        "prefix": "WebTransaction/Custom",
+        "terms": []
       }
     ],
     "tests": [
