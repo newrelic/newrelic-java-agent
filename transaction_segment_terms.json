@@ -4,7 +4,7 @@
     "transaction_segment_terms": [
       {
         "prefix": "WebTransaction/Custom",
-        "terms":  ["one", "two", "three"]
+        "terms": ["one", "two", "three"]
       },
       {
         "prefix": "WebTransaction/Uri",
@@ -38,6 +38,52 @@
       {
         "input": "WebTransaction/Custom/a/b/c",
         "expected": "WebTransaction/Custom/a/b/*"
+      },
+      {
+        "input": "WebTransaction/Customer/a/b/c",
+        "expected": "WebTransaction/Customer/a/b/c"
+      }
+    ]
+  },
+  {
+    "testname": "prefix_with_trailing_spaces_and_then_slash",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom    /",
+        "terms": ["a", "b"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Custom    /a/b/c",
+        "expected": "WebTransaction/Custom    /a/b/*"
+      },
+      {
+        "input": "WebTransaction/Customer  /a/b/c",
+        "expected": "WebTransaction/Customer  /a/b/c"
+      },
+      {
+        "input": "WebTransaction/Customer/a/b/c",
+        "expected": "WebTransaction/Customer/a/b/c"
+      }
+    ]
+  },
+  {
+    "testname": "prefix_with_trailing_spaces",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom    ",
+        "terms": ["a", "b"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Custom    /a/b/c",
+        "expected": "WebTransaction/Custom    /a/b/*"
+      },
+      {
+        "input": "WebTransaction/Customer  /a/b/c",
+        "expected": "WebTransaction/Customer  /a/b/c"
       },
       {
         "input": "WebTransaction/Customer/a/b/c",
@@ -137,6 +183,36 @@
       {
         "input": "WebTransaction/Foo/three/one/one/two/three",
         "expected": "WebTransaction/Foo/three/one/one/two/three"
+      }
+    ]
+  },
+  {
+    "testname": "invalid_rule_prefix_with_trailing_slash_and_then_space",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom/    ",
+        "terms": ["a", "b"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Customer/a/b/c",
+        "expected": "WebTransaction/Customer/a/b/c"
+      }
+    ]
+  },
+  {
+    "testname": "invalid_rule_prefix_with_multiple_trailing_slashes",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom////",
+        "terms": ["a", "b"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Customer/a/b/c",
+        "expected": "WebTransaction/Customer/a/b/c"
       }
     ]
   },
