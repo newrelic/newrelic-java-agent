@@ -367,5 +367,23 @@
         "expected": "WebTransaction/Uri/*/seven/*/nine/*"
       }
     ]
+  },
+  {
+    "testname": "one_bad_matching_rule_at_end_does_not_scrap_other_matching_rules",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Uri",
+        "terms": ["seven", "eight", "nine"]
+      },
+      {
+        "prefix": "WebTransaction/Uri"
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Uri/one/two/seven/user/nine/account",
+        "expected": "WebTransaction/Uri/*/seven/*/nine/*"
+      }
+    ]
   }
 ]
