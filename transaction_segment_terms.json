@@ -330,5 +330,24 @@
         "expected": "WebTransaction"
       }
     ]
+  },
+  {
+    "testname": "prefix_must_match_first_two_segments",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Zip",
+        "terms": ["a", "b"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Zip/a/b/c",
+        "expected": "WebTransaction/Zip/a/b/*"
+      },
+      {
+        "input": "WebTransaction/ZipZap/a/b/c",
+        "expected": "WebTransaction/ZipZap/a/b/c"
+      }
+    ]
   }
 ]
