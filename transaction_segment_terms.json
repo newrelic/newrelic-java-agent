@@ -92,7 +92,7 @@
     ]
   },
   {
-    "testname": "overlapping_prefix_last_one_wins",
+    "testname": "overlapping_prefix_last_one_only_applied",
     "transaction_segment_terms": [
       {
         "prefix": "WebTransaction/Foo",
@@ -100,13 +100,13 @@
       },
       {
         "prefix": "WebTransaction/Foo",
-        "terms": ["one", "two"]
+        "terms": ["one", "two", "zero"]
       }
     ],
     "tests": [
       {
-        "input": "WebTransaction/Foo/one/two/three/four",
-        "expected": "WebTransaction/Foo/one/two/*"
+        "input": "WebTransaction/Foo/zero/one/two/three/four",
+        "expected": "WebTransaction/Foo/zero/one/two/*"
       }
     ]
   },
