@@ -349,5 +349,23 @@
         "expected": "WebTransaction/ZipZap/a/b/c"
       }
     ]
+  },
+  {
+    "testname": "one_bad_rule_does_not_scrap_all_rules",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/MissingTerms"
+      },
+      {
+        "prefix": "WebTransaction/Uri",
+        "terms": ["seven", "eight", "nine"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Uri/one/two/seven/user/nine/account",
+        "expected": "WebTransaction/Uri/*/seven/*/nine/*"
+      }
+    ]
   }
 ]
