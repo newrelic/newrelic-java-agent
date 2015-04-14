@@ -453,7 +453,7 @@
     "pathological": true
   },
   {
-    "name": "oracle alternate quotes: q'[...]'",
+    "name": "oracle_bracket_quote",
     "sql": "select * from foo where bar=q'[baz's]' and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -463,7 +463,7 @@
     ]
   },
   {
-    "name": "oracle alternate quotes: q'{...}'",
+    "name": "oracle_brace_quote",
     "sql": "select * from foo where bar=q'{baz's}' and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -473,7 +473,7 @@
     ]
   },
   {
-    "name": "oracle alternate quotes: q'<...>'",
+    "name": "oracle_angle_quote",
     "sql": "select * from foo where bar=q'<baz's>' and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -483,7 +483,7 @@
     ]
   },
   {
-    "name": "oracle alternate quotes: q'(...)'",
+    "name": "oracle_paren_quote",
     "sql": "select * from foo where bar=q'(baz's)' and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -493,7 +493,7 @@
     ]
   },
   {
-    "name": "cassandra blobs",
+    "name": "cassandra_blobs",
     "sql": "select * from foo where bar=0xabcdef123 and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -503,7 +503,7 @@
     ]
   },
   {
-    "name": "hex literals",
+    "name": "hex_literals",
     "sql": "select * from foo where bar=0x2F and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -513,7 +513,7 @@
     ]
   },
   {
-    "name": "exponential literals",
+    "name": "exponential_literals",
     "sql": "select * from foo where bar=1.234e-5 and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -537,7 +537,7 @@
     ]
   },
   {
-    "name": "uuid with braces",
+    "name": "uuid_with_braces",
     "sql": "select * from foo where bar={01234567-89ab-cdef-0123-456789abcdef} and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -547,7 +547,7 @@
     ]
   },
   {
-    "name": "uuid no dashes",
+    "name": "uuid_no_dashes",
     "sql": "select * from foo where bar=0123456789abcdef0123456789abcdef and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
@@ -557,7 +557,7 @@
     ]
   },
   {
-    "name": "uuid random dashes",
+    "name": "uuid_random_dashes",
     "sql": "select * from foo where bar={012-345678-9abc-def012345678-9abcdef} and x=5",
     "obfuscated": [
       "select * from foo where bar=? and x=?"
