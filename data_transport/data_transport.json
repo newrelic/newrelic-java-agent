@@ -223,8 +223,7 @@
           "event_custom_event": {
             "payload": {
               "intrinsic_attributes": {
-                "type": "myType",
-                "timestamp": 12345
+                "type": "myType"
               },
               "user_attributes": {
                 "my_attribute": "my_value"
@@ -244,7 +243,7 @@
                 [
                   {
                     "type": "myType",
-                    "timestamp": 12345
+                    "timestamp": "__ANY_FLOAT__"
                   },
                   {
                     "my_attribute": "my_value"
@@ -414,10 +413,20 @@
               "sql_id": 123,
               "sql": "SELECT * FROM foo",
               "database_metric_name": "Datastore/statement/Postgres/MyTable/select",
-              "call_count": 2,
-              "total_call_time": 9002,
-              "min_call_time": 1,
-              "max_call_time": 9001,
+              "call_time": 1,
+              "parameter_data": {}
+            }
+          }
+        },
+        {
+          "event_sql_trace": {
+            "payload": {
+              "transaction_name": "WebTransaction/Action/FooBar",
+              "uri": "http://localhost/MyApp/FooBar",
+              "sql_id": 123,
+              "sql": "SELECT * FROM foo",
+              "database_metric_name": "Datastore/statement/Postgres/MyTable/select",
+              "call_time": 9001,
               "parameter_data": {}
             }
           }
