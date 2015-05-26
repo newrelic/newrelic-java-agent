@@ -75,7 +75,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -99,7 +98,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -107,8 +105,7 @@
         {
           "event_metric": {
             "payload": {
-              "name": "DotNet/DefaultController/FooBar",
-              "scope": "WebTransaction/Action/FooBar",
+              "name": "DotNet/DefaultController/ApplePie",
               "time": 2
             }
           }
@@ -139,8 +136,7 @@
                 ],
                 [
                   {
-                    "name": "DotNet/DefaultController/FooBar",
-                    "scope": "WebTransaction/Action/FooBar"
+                    "name": "DotNet/DefaultController/ApplePie"
                   },
                   [
                     1,
@@ -468,7 +464,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -508,8 +503,7 @@
         {
           "event_metric": {
             "payload": {
-              "name": "DotNet/DefaultController/FooBar",
-              "scope": "WebTransaction/Action/FooBar",
+              "name": "DotNet/DefaultController/ApplePie",
               "time": 2
             }
           }
@@ -528,8 +522,7 @@
               [
                 [
                   {
-                    "name": "DotNet/DefaultController/FooBar",
-                    "scope": "WebTransaction/Action/FooBar"
+                    "name": "DotNet/DefaultController/ApplePie"
                   },
                   [
                     1,
@@ -557,7 +550,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -578,8 +570,7 @@
         {
           "event_metric": {
             "payload": {
-              "name": "DotNet/DefaultController/FooBar",
-              "scope": "WebTransaction/Action/FooBar",
+              "name": "DotNet/DefaultController/ApplePie",
               "time": 2
             }
           }
@@ -603,7 +594,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -654,6 +644,7 @@
             "command": "agent_command_results",
             "agent_run_id": "agentRunId2",
             "payload": [
+              "agentRunId2",
               {
                 "1": null
               }
@@ -663,8 +654,7 @@
         {
           "event_metric": {
             "payload": {
-              "name": "DotNet/DefaultController/FooBar",
-              "scope": "WebTransaction/Action/FooBar",
+              "name": "DotNet/DefaultController/ApplePie",
               "time": 2
             }
           }
@@ -683,8 +673,7 @@
               [
                 [
                   {
-                    "name": "DotNet/DefaultController/FooBar",
-                    "scope": "WebTransaction/Action/FooBar"
+                    "name": "DotNet/DefaultController/ApplePie"
                   },
                   [
                     1,
@@ -712,7 +701,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -742,8 +730,7 @@
         {
           "event_metric": {
             "payload": {
-              "name": "DotNet/DefaultController/FooBar",
-              "scope": "WebTransaction/Action/FooBar",
+              "name": "DotNet/DefaultController/ApplePie",
               "time": 2
             }
           }
@@ -767,7 +754,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -802,8 +788,7 @@
         {
           "event_metric": {
             "payload": {
-              "name": "DotNet/DefaultController/FooBar",
-              "scope": "WebTransaction/Action/FooBar",
+              "name": "DotNet/DefaultController/ApplePie",
               "time": 2
             }
           }
@@ -822,8 +807,7 @@
               [
                 [
                   {
-                    "name": "DotNet/DefaultController/FooBar",
-                    "scope": "WebTransaction/Action/FooBar"
+                    "name": "DotNet/DefaultController/ApplePie"
                   },
                   [
                     1,
@@ -851,7 +835,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -1220,7 +1203,91 @@
     {
       "title": "metric_ids",
       "comment": "Verifies that metrics given a metric ID are sent up using that ID at next harvest",
-      "steps": []
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "payload": [
+              "agentRunId1",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  {
+                    "name": "DotNet/DefaultController/FooBar"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ],
+            "response_payload": {
+              "return_value": [
+                [
+                  {
+                    "name": "DotNet/DefaultController/FooBar"
+                  },
+                  42
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "payload": [
+              "agentRunId1",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  42,
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ]
+          }
+        }
+      ]
     },
     {
       "title": "thread_profiler",
@@ -1233,7 +1300,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -1264,6 +1330,7 @@
           "expect_request": {
             "command": "agent_command_results",
             "payload": [
+              "agentRunId1",
               {
                 "1": null
               }
@@ -1296,6 +1363,7 @@
           "expect_request": {
             "command": "agent_command_results",
             "payload": [
+              "agentRunId1",
               {
                 "2": null
               }
@@ -1335,7 +1403,6 @@
           "event_metric": {
             "payload": {
               "name": "DotNet/DefaultController/FooBar",
-              "scope": "",
               "time": 2
             }
           }
@@ -1368,8 +1435,7 @@
         {
           "event_metric": {
             "payload": {
-              "name": "DotNet/DefaultController/FooBar",
-              "scope": "WebTransaction/Action/FooBar",
+              "name": "DotNet/DefaultController/ApplePie",
               "time": 2
             }
           }
@@ -1388,8 +1454,7 @@
               [
                 [
                   {
-                    "name": "DotNet/DefaultController/FooBar",
-                    "scope": "WebTransaction/Action/FooBar"
+                    "name": "DotNet/DefaultController/ApplePie"
                   },
                   [
                     1,
