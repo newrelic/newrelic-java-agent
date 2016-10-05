@@ -6,7 +6,7 @@ The datastore instance tests provide attributes similar to what an agent could e
 |---|---|---|
 | system_hostname | always | the hostname of the machine |
 | db_hostname | sometimes | the hostname reported by the database adapter |
-| adapter | always | the database adapter for this configuration
+| product | always | the database product for this configuration
 | port | sometimes | the port reported by the database adapter |
 | unix_socket | sometimes |the path to a unix domain socket reported by a database adapter |
 | db_path | sometimes |the path to a filesystem database |
