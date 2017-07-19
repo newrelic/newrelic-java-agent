@@ -11,3 +11,16 @@ The Utilization tests ensure that the appropriate information is being gathered 
   - input_aws_zone: The aws zone determined by the agent.
   - input_environment_variables: Any environment variables which have been set.
   - expected_output_json: The expected JSON output from the agent for the utilization hash.
+
+New fields for Google Cloud Platform (gcp), Pivotal Cloud Foundry (pcf), and Azure added as of [Utilization spec version 7](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md):
+  - input_gcp_id: The gcp id determined by the agent.
+  - input_gcp_type: The gcp machineType determined by the agent.
+  - input_gcp_name: The gcp name determined by the agent.
+  - input_gcp_zone: The gcp zone determined by the agent.
+  - input_pcf_guid: The pcf cf_instance_guid determined by the agent.
+  - input_pcf_ip: The pcf cf_instance_ip determined by the agent.
+  - input_pcf_mem_limit: The pcf memory_limit determined by the agent.
+  - input_azure_location: The azure location determined by the agent.
+  - input_azure_name: The azure name determined by the agent.
+  - input_azure_id: The azure vmId determined by the agent.
+  - input_azure_size: The azure vmSize determined by the agent.
