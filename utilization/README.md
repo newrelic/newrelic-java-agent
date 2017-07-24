@@ -12,7 +12,7 @@ The Utilization tests ensure that the appropriate information is being gathered 
   - input_environment_variables: Any environment variables which have been set.
   - expected_output_json: The expected JSON output from the agent for the utilization hash.
 
-New fields for Google Cloud Platform (gcp), Pivotal Cloud Foundry (pcf), Azure, and boot_id added as of [Utilization spec version 7](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md):
+New fields for Google Cloud Platform (gcp), Pivotal Cloud Foundry (pcf), Azure, and boot_id added as of [Utilization spec version 7](https://source.datanerd.us/agents/agent-specs/blob/c78cddeaa5fa23dce892b8c6da95b9f900636c35/Utilization.md):
   - input_gcp_id: The gcp id determined by the agent.
   - input_gcp_type: The gcp machineType determined by the agent.
   - input_gcp_name: The gcp name determined by the agent.
