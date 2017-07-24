@@ -276,33 +276,5 @@
         }
       }
     }
-  },
-  {
-    "testname": "only agent derived data with valid boot_id",
-    "input_total_ram_mib": 1024,
-    "input_logical_processors": 8,
-    "input_hostname": "myhost",
-    "input_boot_id": "8e84c4ab-943d-46c2-8675-fdf0ab61e1c4",
-    "expected_output_json": {
-      "metadata_version": 3,
-      "logical_processors": 8,
-      "total_ram_mib": 1024,
-      "hostname": "myhost",
-      "boot_id": "8e84c4ab-943d-46c2-8675-fdf0ab61e1c4"
-    }
-  },
-  {
-    "testname": "only agent derived data with invalid boot_id",
-    "input_total_ram_mib": 1024,
-    "input_logical_processors": 8,
-    "input_hostname": "myhost",
-    "input_boot_id": null,
-    "expected_output_json": {
-      "metadata_version": 3,
-      "logical_processors": 8,
-      "total_ram_mib": 1024,
-      "hostname": "myhost",
-      "boot_id": null
-    }
   }
 ]
