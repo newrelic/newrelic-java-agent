@@ -566,6 +566,20 @@
     ]
   },
   {
+    "name": "negative_integer_literals",
+    "sql": "select * from foo where bar=-1.234e-5 and x=-5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres",
+      "oracle",
+      "cassandra",
+      "sqlite"
+    ]
+  },
+  {
     "name": "uuid",
     "sql": "select * from foo where bar=01234567-89ab-cdef-0123-456789abcdef and x=5",
     "obfuscated": [
@@ -608,9 +622,9 @@
   },
   {
     "name": "booleans",
-    "sql": "select * from foo where bar=true and x=FALSE",
+    "sql": "select * from truestory where bar=true and x=FALSE",
     "obfuscated": [
-      "select * from foo where bar=? and x=?"
+      "select * from truestory where bar=? and x=?"
     ],
     "dialects": [
       "mysql",
