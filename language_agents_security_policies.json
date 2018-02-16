@@ -1,0 +1,209 @@
+[{
+  "name": "should respect record_sql policy",
+  "required_features": ["record_sql"],
+  "starting_policy_settings": [
+    {"name": "record_sql", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "record_sql", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "record_sql", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "record_sql", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect attributes_include policy",
+  "required_features": ["attributes_include"],
+  "starting_policy_settings": [
+    {"name": "attributes_include", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "attributes_include", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "attributes_include", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "attributes_include", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect strip_exception_messages policy",
+  "required_features": ["strip_exception_messages"],
+  "starting_policy_settings": [
+    {"name": "strip_exception_messages", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "strip_exception_messages", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "strip_exception_messages", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "strip_exception_messages", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect custom_events policy",
+  "required_features": ["custom_events"],
+  "starting_policy_settings": [
+    {"name": "custom_events", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "custom_events", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "custom_events", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "custom_events", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect request_parameters policy",
+  "required_features": ["request_parameters"],
+  "starting_policy_settings": [
+    {"name": "request_parameters", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "request_parameters", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "request_parameters", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "request_parameters", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect custom_parameters policy",
+  "required_features": ["custom_parameters"],
+  "starting_policy_settings": [
+    {"name": "custom_parameters", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "custom_parameters", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "custom_parameters", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "custom_parameters", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect live_instrumentation policy",
+  "required_features": ["live_instrumentation"],
+  "starting_policy_settings": [
+    {"name": "live_instrumentation", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "live_instrumentation", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "live_instrumentation", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "live_instrumentation", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect message_parameters policy",
+  "required_features": ["message_parameters"],
+  "starting_policy_settings": [
+    {"name": "message_parameters", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "message_parameters", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "message_parameters", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "message_parameters", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should respect job_arguments policy",
+  "required_features": ["job_arguments"],
+  "starting_policy_settings": [
+    {"name": "job_arguments", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "job_arguments", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "job_arguments", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "job_arguments", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should only respond with listed policies",
+  "required_features": ["record_sql", "attributes_include"],
+  "starting_policy_settings": [
+    {"name": "record_sql", "enabled": true},
+    {"name": "attributes_include", "enabled": true}
+  ],
+  "security_policies": [
+    {"name": "record_sql", "enabled": false, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "record_sql", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "record_sql", "enabled": false},
+    {"name": "attributes_include", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should not respond with unknown policies",
+  "required_features": ["record_sql"],
+  "starting_policy_settings": [
+    {"name": "record_sql", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "record_sql", "enabled": true, "required": false},
+    {"name": "some_new_feature", "enabled": true, "required": false}
+  ],
+  "expected_connect_policies": [
+    {"name": "record_sql", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "record_sql", "enabled": true}
+  ],
+  "should_log": false,
+  "should_shutdown": false
+}, {
+  "name": "should shutdown for required but unknown policies",
+  "required_features": ["record_sql"],
+  "starting_policy_settings": [
+    {"name": "record_sql", "enabled": false}
+  ],
+  "security_policies": [
+    {"name": "record_sql", "enabled": true, "required": false},
+    {"name": "some_new_feature", "enabled": true, "required": true}
+  ],
+  "expected_connect_policies": [
+    {"name": "record_sql", "enabled": true}
+  ],
+  "ending_policy_settings": [
+    {"name": "record_sql", "enabled": true}
+  ],
+  "should_log": true,
+  "should_shutdown": true
+}]
