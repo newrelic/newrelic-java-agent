@@ -101,19 +101,19 @@
   "should_log": false,
   "should_shutdown": false
 }, {
-  "name": "should respect live_instrumentation policy",
-  "required_features": ["live_instrumentation"],
+  "name": "should respect custom_instrumentation_editor policy",
+  "required_features": ["custom_instrumentation_editor"],
   "starting_policy_settings": {
-    "live_instrumentation": {"enabled": false}
+    "custom_instrumentation_editor": {"enabled": false}
   },
   "security_policies": {
-    "live_instrumentation": {"enabled": true, "required": false}
+    "custom_instrumentation_editor": {"enabled": true, "required": false}
   },
   "expected_connect_policies": {
-    "live_instrumentation": {"enabled": true}
+    "custom_instrumentation_editor": {"enabled": true}
   },
   "ending_policy_settings": {
-    "live_instrumentation": {"enabled": true}
+    "custom_instrumentation_editor": {"enabled": true}
   },
   "should_log": false,
   "should_shutdown": false
