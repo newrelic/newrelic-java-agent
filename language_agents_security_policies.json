@@ -33,19 +33,19 @@
   "should_log": false,
   "should_shutdown": false
 }, {
-  "name": "should respect strip_exception_messages policy",
-  "required_features": ["strip_exception_messages"],
+  "name": "should respect allow_raw_exception_messages policy",
+  "required_features": ["allow_raw_exception_messages"],
   "starting_policy_settings": {
-    "strip_exception_messages": {"enabled": false}
+    "allow_raw_exception_messages": {"enabled": true}
   },
   "security_policies": {
-    "strip_exception_messages": {"enabled": true, "required": false}
+    "allow_raw_exception_messages": {"enabled": false, "required": false}
   },
   "expected_connect_policies": {
-    "strip_exception_messages": {"enabled": true}
+    "allow_raw_exception_messages": {"enabled": false}
   },
   "ending_policy_settings": {
-    "strip_exception_messages": {"enabled": true}
+    "allow_raw_exception_messages": {"enabled": false}
   },
   "should_log": false,
   "should_shutdown": false
@@ -63,23 +63,6 @@
   },
   "ending_policy_settings": {
     "custom_events": {"enabled": true}
-  },
-  "should_log": false,
-  "should_shutdown": false
-}, {
-  "name": "should respect request_parameters policy",
-  "required_features": ["request_parameters"],
-  "starting_policy_settings": {
-    "request_parameters": {"enabled": false}
-  },
-  "security_policies": {
-    "request_parameters": {"enabled": true, "required": false}
-  },
-  "expected_connect_policies": {
-    "request_parameters": {"enabled": true}
-  },
-  "ending_policy_settings": {
-    "request_parameters": {"enabled": true}
   },
   "should_log": false,
   "should_shutdown": false
