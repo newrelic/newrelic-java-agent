@@ -6,7 +6,7 @@ The Utilization tests ensure that the appropriate information is being gathered 
   - `input_logical_processors`: The number of logical processors calculated by the agent.
   - `input_hostname`: The `hostname` calculated by the agent.
   - `input_long_hostname`: The `long_hostname` calculated by the agent.
-  - `input_ip_address`: The `ip_address` calculated by the agent.
+  - `input_ip_address`: A string array containing all the values in `ip_address` calculated by the agent.
   - `input_aws_id`: The aws `id` determined by the agent.
   - `input_aws_type`: The aws `type` determined by the agent.
   - `input_aws_zone`: The aws `zone` determined by the agent.

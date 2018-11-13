@@ -5,14 +5,14 @@
     "input_logical_processors": 8,
     "input_hostname": "myhost",
     "input_long_hostname": "myhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4", "1.2.3.5"],
     "expected_output_json": {
       "metadata_version": 3,
       "logical_processors": 8,
       "total_ram_mib": 1024,
       "hostname": "myhost",
       "long_hostname": "myhost.com",
-      "ip_address": "1.2.3.4"
+      "ip_address": ["1.2.3.4", "1.2.3.5"]
     }
   },
   {
@@ -21,14 +21,14 @@
     "input_logical_processors": null,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "2001:0db8:0000:0042:0000:8a2e:0370:7334",
+    "input_ip_address": ["2001:0db8:0000:0042:0000:8a2e:0370:7334"],
     "expected_output_json": {
       "metadata_version": 3,
       "logical_processors": null,
       "total_ram_mib": null,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "2001:0db8:0000:0042:0000:8a2e:0370:7334"
+      "ip_address": ["2001:0db8:0000:0042:0000:8a2e:0370:7334"]
     }
   },
   {
@@ -37,7 +37,7 @@
     "input_logical_processors": null,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "::FFFF:129.144.52.38",
+    "input_ip_address": ["::FFFF:129.144.52.38"],
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 8,
       "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": 2048
@@ -48,7 +48,7 @@
       "total_ram_mib": null,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "::FFFF:129.144.52.38",
+      "ip_address": ["::FFFF:129.144.52.38"],
       "config": {
         "logical_processors": 8,
         "total_ram_mib": 2048
@@ -61,7 +61,7 @@
     "input_logical_processors": 2,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "8.8.8.8",
+    "input_ip_address": ["8.8.8.8"],
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 16,
       "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": 4096,
@@ -73,7 +73,7 @@
       "total_ram_mib": 1,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "8.8.8.8",
+      "ip_address": ["8.8.8.8"],
       "config": {
         "logical_processors": 16,
         "total_ram_mib": 4096,
@@ -87,7 +87,7 @@
     "input_logical_processors": 4,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "2001:0db8:0000:0042:0000:8a2e:0370:7334",
+    "input_ip_address": ["2001:0db8:0000:0042:0000:8a2e:0370:7334"],
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": "abc",
       "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": 4096,
@@ -99,7 +99,7 @@
       "total_ram_mib": 1024,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "2001:0db8:0000:0042:0000:8a2e:0370:7334",
+      "ip_address": ["2001:0db8:0000:0042:0000:8a2e:0370:7334"],
       "config": {
         "total_ram_mib": 4096,
         "hostname": "localhost"
@@ -112,7 +112,7 @@
     "input_logical_processors": 4,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "2001:0db8:0000:0042:0000:8a2e:0370:7334",
+    "input_ip_address": ["2001:0db8:0000:0042:0000:8a2e:0370:7334"],
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 8,
       "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": "notgood",
@@ -124,7 +124,7 @@
       "total_ram_mib": 1024,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "2001:0db8:0000:0042:0000:8a2e:0370:7334",
+      "ip_address": ["2001:0db8:0000:0042:0000:8a2e:0370:7334"],
       "config": {
         "logical_processors": 8,
         "hostname": "localhost"
@@ -137,7 +137,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_aws_id": "8BADFOOD",
     "input_aws_type": "t2.micro",
     "input_aws_zone": "us-west-1",
@@ -147,7 +147,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4",
+      "ip_address": ["1.2.3.4"],
       "vendors": {
         "aws": {
           "instanceId": "8BADFOOD",
@@ -163,7 +163,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_aws_id": null,
     "input_aws_type": "t2.micro",
     "input_aws_zone": "us-west-1",
@@ -173,7 +173,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4"
+      "ip_address": ["1.2.3.4"]
     }
   },
   {
@@ -182,7 +182,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_gcp_id": "3161347020215157000",
     "input_gcp_type": "projects/492690098729/machineTypes/custom-1-1024",
     "input_gcp_name": "aef-default-20170501t160547-7gh8",
@@ -193,7 +193,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4",
+      "ip_address": ["1.2.3.4"],
       "vendors": {
         "gcp": {
           "id": "3161347020215157000",
@@ -210,7 +210,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_gcp_id": "3161347020215157000",
     "input_gcp_type": "projects/492690098729/machineTypes/custom-1-1024",
     "input_gcp_name": null,
@@ -221,7 +221,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4"
+      "ip_address": ["1.2.3.4"]
     }
   },
   {
@@ -230,7 +230,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_pcf_guid": "b977d090-83db-4bdb-793a-bb77",
     "input_pcf_ip": "10.10.147.130",
     "input_pcf_mem_limit": "1024m",
@@ -240,7 +240,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4",
+      "ip_address": ["1.2.3.4"],
       "vendors": {
         "pcf": {
           "cf_instance_guid": "b977d090-83db-4bdb-793a-bb77",
@@ -256,7 +256,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_pcf_guid": null,
     "input_pcf_ip": "10.10.147.130",
     "input_pcf_mem_limit": "1024m",
@@ -266,7 +266,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4"
+      "ip_address": ["1.2.3.4"]
     }
   },
   {
@@ -275,7 +275,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_azure_location": "CentralUS",
     "input_azure_name": "IMDSCanary",
     "input_azure_id": "5c08b38e-4d57-4c23-ac45-aca61037f084",
@@ -286,7 +286,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4",
+      "ip_address": ["1.2.3.4"],
       "vendors": {
         "azure": {
           "location": "CentralUS",
@@ -303,7 +303,7 @@
     "input_logical_processors": 8,
     "input_hostname": "myotherhost",
     "input_long_hostname": "myotherhost.com",
-    "input_ip_address": "1.2.3.4",
+    "input_ip_address": ["1.2.3.4"],
     "input_azure_location": "CentralUS",
     "input_azure_name": "IMDSCanary",
     "input_azure_id": null,
@@ -314,7 +314,7 @@
       "total_ram_mib": 2048,
       "hostname": "myotherhost",
       "long_hostname": "myotherhost.com",
-      "ip_address": "1.2.3.4"
+      "ip_address": ["1.2.3.4"]
     }
   }
 ]
