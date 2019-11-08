@@ -51,52 +51,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
-    ]
-  },
-  {
-    "test_name": "multiple_accept_calls",
-    "trusted_account_key": "33",
-    "account_id": "33",
-    "web_transaction": true,
-    "raises_exception": false,
-    "force_sampled_true": true,
-    "span_events_enabled": true,
-    "transport_type": "HTTP",
-    "inbound_headers": [
-      {
-        "traceparent": "00-4f9031d32d5e890397ccc1e2b936907b-7d3efb1b173fecfa-00",
-        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-0-0.123456-1518469636035"
-      },
-      {
-        "traceparent": "00-25418af305d624cb239e82e753303fbb-b4a07f08064ee8f9-01",
-        "tracestate": "33@nr=0-0-33-2097282-b4a07f08064ee8f9-23cb0b7a48407caf-1-1.234567-1530549828110"
-      }
-    ],
-    "intrinsics": {
-      "target_events": ["Transaction"],
-      "common":{
-        "expected": ["guid"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
-      },
-      "Transaction": {
-        "exact": {
-          "parent.type": "App",
-          "parent.app": "2827902",
-          "parent.account": "33",
-          "parent.transportType": "HTTP",
-          "parentId": "e8b91a159289ff74",
-          "traceId": "4f9031d32d5e890397ccc1e2b936907b",
-          "priority": 0.123456,
-          "sampled": false
-        },
-        "expected": ["parent.transportDuration", "guid"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
-      }
-    },
-    "expected_metrics": [
-      ["Supportability/TraceContext/Accept/Ignored/Multiple", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -140,7 +96,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -201,7 +158,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -271,10 +229,11 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
- {
+  {
     "test_name": "spans_disabled_root",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -386,7 +345,8 @@
       ["ErrorsByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -439,7 +399,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allOther", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allOther", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -494,7 +455,8 @@
       ["DurationByCaller/Mobile/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/Mobile/33/2827902/HTTP/all", 1],
       ["TransportDuration/Mobile/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -548,7 +510,8 @@
       ["DurationByCaller/App/33/2827902/Unknown/allWeb", 1],
       ["TransportDuration/App/33/2827902/Unknown/all", 1],
       ["TransportDuration/App/33/2827902/Unknown/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -625,7 +588,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1],
       ["Supportability/TraceContext/Create/Success", 1]
     ]
   },
@@ -723,7 +687,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1],
       ["Supportability/TraceContext/Create/Success", 2]
     ]
   },
@@ -801,7 +766,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -964,7 +930,8 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   },
   {
@@ -1001,7 +968,8 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/Parse/Exception", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Parse/Exception", 1]
     ]
   },
   {
@@ -1027,7 +995,8 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/Parse/Exception", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Parse/Exception", 1]
     ]
   },
   {
@@ -1053,7 +1022,8 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/Parse/Exception", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Parse/Exception", 1]
     ]
   },
   {
@@ -1079,7 +1049,8 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/Parse/Exception", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Parse/Exception", 1]
     ]
   },
   {
@@ -1130,7 +1101,8 @@
     "expected_metrics": [
       ["DurationByCaller/App/33/2827902/HTTP/all", 1],
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1]
     ]
@@ -1158,7 +1130,7 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/Parse/Exception", 1]
+      ["Supportability/TraceContext/TraceParent/Parse/Exception", 1]
     ]
   },
   {
@@ -1184,7 +1156,8 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/Parse/Exception", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Parse/Exception", 1]
     ]
   },
   {
@@ -1505,7 +1478,8 @@
     "expected_metrics": [
       ["DurationByCaller/App/33/2827902/HTTP/all", 1],
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
+      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
     ]
   }
 ]
