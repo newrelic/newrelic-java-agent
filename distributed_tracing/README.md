@@ -9,7 +9,7 @@ the agent under test. Here's what the various fields in each test case mean:
 
 | Name | Meaning |
 | ---- | ------- |
-| `name` | A human-meaningful name for the test case. |
+| `test_name` | A human-meaningful name for the test case. |
 | `trusted_account_key` | The account ids the agent can trust. |
 | `account_id` | The account id the agent would receive on connect. |
 | `web_transaction` | Whether the transaction that's tested is a web transaction or not. |
