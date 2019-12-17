@@ -20,6 +20,7 @@ the agent under test. Here's what the various fields in each test case mean:
 | `outbound_payloads` | The exact/expected/unexpected values for outbound headers. |
 | `intrinsics` | The exact/expected/unexpected attributes for events. |
 | `expected_metrics` | The expected metrics and associated counts as a result of the test. |
+| `span_events_enabled` | Whether span events are enabled in the agent or not. |
 
 The `outbound_payloads` and `intrinsics` field can have nested values, for example:
 ```javascript
