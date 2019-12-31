@@ -1209,9 +1209,10 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "exact": {
+          "sampled": true,
           "traceId": "5f2796876f44a3c898994ce2668e2222"
         },
-        "expected": ["guid"],
+        "expected": ["guid", "priority"],
         "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
       },
       "Transaction": {
@@ -1288,9 +1289,10 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "exact": {
-          "traceId": "5f2796876f44a3c898994ce2668e2222"
+          "traceId": "5f2796876f44a3c898994ce2668e2222",
+          "sampled": true
         },
-        "expected": ["guid"],
+        "expected": ["guid", "priority"],
         "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
       },
       "Transaction": {
