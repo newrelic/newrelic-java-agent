@@ -783,12 +783,13 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "7d3efb1b173fecfa"
         },
+        "expected": ["parent.transportType"],
         "unexpected": ["parentId"]
       },
       "Span": {
@@ -821,12 +822,13 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "7d3efb1b173fecfa"
         },
+        "expected": ["parent.transportType"],
         "unexpected": ["parentId"]
       },
       "Span": {
@@ -944,12 +946,13 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
+        "expected": ["parent.transportType"],
         "unexpected": ["parentId"]
       },
       "Span": {
@@ -985,8 +988,8 @@
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1015,8 +1018,8 @@
         "exact": {
           "parentSpanId": "7d3efb1b173fecfa"
         },
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1045,8 +1048,8 @@
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1156,8 +1159,8 @@
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1219,13 +1222,12 @@
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
-        "expected": [],
+        "expected": ["parent.transportType"],
         "unexpected": [
           "parent.transportDuration",
           "parent.type",
           "parent.app",
           "parent.account",
-          "parent.transportType",
           "parentId"
         ]
       },
@@ -1299,13 +1301,12 @@
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
-        "expected": [],
+        "expected": ["parent.transportType"],
         "unexpected": [
           "parent.transportDuration",
           "parent.type",
           "parent.app",
           "parent.account",
-          "parent.transportType",
           "parentId"
         ]
       },
