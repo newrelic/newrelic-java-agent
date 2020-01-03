@@ -1600,5 +1600,75 @@
     "expected_metrics": [
       ["Supportability/TraceContext/TraceParent/Accept/Success", 1]
     ]
+  },
+  {
+    "test_name": "trace_id_is_left_padded_and_priority_rounded",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "force_sampled_true": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "inbound_headers": [
+      {
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":1.123432,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
+      }
+    ],
+    "outbound_payloads": [
+      {
+        "exact": {
+          "traceparent.version": "00",
+          "traceparent.trace_id": "00000000000000006e2fea0b173fdad0",
+          "traceparent.trace_flags": "01",
+          "tracestate.tenant_id": "33",
+          "tracestate.version": 0,
+          "tracestate.parent_type": 0,
+          "tracestate.parent_account_id": "33",
+          "tracestate.sampled": true,
+          "tracestate.priority": 1.12343
+        },
+        "expected": [
+          "traceparent.parent_id",
+          "tracestate.timestamp",
+          "tracestate.parent_application_id",
+          "tracestate.span_id",
+          "tracestate.transaction_id"
+        ]
+      }
+    ],
+    "intrinsics": {
+      "target_events": ["Transaction", "Span"],
+      "common":{
+        "exact": {
+          "traceId": "6e2fea0b173fdad0",
+          "sampled": true,
+          "priority": 1.123432
+        },
+        "expected": ["guid"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+      },
+      "Transaction": {
+        "exact": {
+          "parent.type": "App",
+          "parent.account": 33,
+          "parent.app": 51424,
+          "parent.transportType": "HTTP",
+          "parentSpanId": "5f474d64b9cc9b2a",
+          "parentId": "27856f70d3d314b7"
+        },
+        "expected": ["parent.transportDuration"]
+      },
+      "Span": {
+        "exact": {
+          "parentId": "5f474d64b9cc9b2a"
+        },
+        "expected": ["transactionId"],
+        "unexpected": ["tracingVendors"]
+      }
+    },
+    "expected_metrics": [
+      ["Supportability/TraceContext/TraceParent/Accept/Success", 1]
+    ]
   }
 ]
