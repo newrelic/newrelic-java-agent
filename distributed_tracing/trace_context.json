@@ -11,7 +11,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01",
-        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
@@ -19,7 +19,7 @@
       "common":{
         "exact": {
           "traceId": "da8bc8cc6d062849b0efcf3c169afb5a",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -39,11 +39,10 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -87,7 +86,8 @@
       },
       "Transaction": {
         "exact": {
-          "parentId": "e8b91a159289ff74"
+          "parentId": "e8b91a159289ff74",
+          "parentSpanId": "b4a07f08064ee8f9"
         }
       }
     },
@@ -117,7 +117,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-7a933b0e517e8c1f6bc6a7466be6f2a0-e8b91a159289ff74-01",
-        "tracestate": "33@nr=0-0-33-2827902-5093db371f0ba945-3ac44d37ece29bd2-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-5093db371f0ba945-3ac44d37ece29bd2-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
@@ -125,7 +125,7 @@
       "common":{
         "exact": {
           "traceId": "7a933b0e517e8c1f6bc6a7466be6f2a0",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -145,11 +145,10 @@
       "Span": {
         "exact": {
           "parentId": "e8b91a159289ff74",
-          "trustedParentId": "5093db371f0ba945",
-          "tracingVendors": ""
+          "trustedParentId": "5093db371f0ba945"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
 
       }
     },
@@ -174,7 +173,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-2c7a33d956d44531b48ec6f2e535e5c4-7d3efb1b173fecfa-01",
-        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "outbound_payloads": [
@@ -185,12 +184,12 @@
           "traceparent.trace_flags": "01",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.span_id": "7d3efb1b173fecfa",
           "tracestate.transaction_id": "e8b91a159289ff74",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.234567
+          "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
@@ -211,7 +210,7 @@
           "parent.account": "33",
           "parent.transportType": "HTTP",
           "traceId": "2c7a33d956d44531b48ec6f2e535e5c4",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["parent.transportDuration", "guid"],
@@ -331,11 +330,10 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -361,7 +359,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-7aa2a2cf20e3326bd1334b7dc7cf3ff8-7d3efb1b173fecfa-00",
-        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
@@ -369,7 +367,7 @@
       "common":{
         "exact": {
           "traceId": "7aa2a2cf20e3326bd1334b7dc7cf3ff8",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -389,9 +387,9 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
-        }
+          "trustedParentId": "7d3efb1b173fecfa"
+        },
+        "unexpected": ["tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -443,11 +441,10 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -500,9 +497,9 @@
       "Span": {
         "exact": {
           "parentId": "f4a5ff268f63d62a",
-          "trustedParentId": "f4a5ff268f63d62a",
-          "tracingVendors": ""
-        }
+          "trustedParentId": "f4a5ff268f63d62a"
+        },
+        "unexpected": ["tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -526,7 +523,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-e22175eb1d68b6de32bf70e38458ccc3-7d3efb1b173fecfa-01",
-        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "outbound_payloads": [
@@ -537,10 +534,10 @@
           "traceparent.trace_flags": "01",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.234567
+          "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
@@ -556,7 +553,7 @@
       "common":{
         "exact": {
           "traceId": "e22175eb1d68b6de32bf70e38458ccc3",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -576,11 +573,10 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -605,7 +601,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-099ae207600a34ecdd5902aba9c8c6c3-7d3efb1b173fecfa-01",
-        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "outbound_payloads": [
@@ -616,10 +612,10 @@
           "traceparent.trace_flags": "01",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.234567
+          "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
@@ -636,10 +632,10 @@
           "traceparent.trace_flags": "01",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.234567
+          "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
@@ -655,7 +651,7 @@
       "common":{
         "exact": {
           "traceId": "099ae207600a34ecdd5902aba9c8c6c3",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -675,11 +671,10 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -704,7 +699,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-44673569f54fad422c3795b6cd4aef69-7d3efb1b173fecfa-00",
-        "tracestate": "65@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "65@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "outbound_payloads": [
@@ -715,10 +710,10 @@
           "traceparent.trace_flags": "01",
           "tracestate.tenant_id": "65",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "11",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.234567
+          "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
@@ -734,7 +729,7 @@
       "common":{
         "exact": {
           "traceId": "44673569f54fad422c3795b6cd4aef69",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -754,11 +749,10 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -789,22 +783,22 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "7d3efb1b173fecfa"
         },
+        "expected": ["parent.transportType"],
         "unexpected": ["parentId"]
       },
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": null,
           "tracingVendors": "44@nr"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "trustedParentId"]
       }
     },
     "expected_metrics": []
@@ -828,22 +822,22 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "7d3efb1b173fecfa"
         },
+        "expected": ["parent.transportType"],
         "unexpected": ["parentId"]
       },
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": null,
           "tracingVendors": "44@nr"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "trustedParentId"]
       }
     },
     "expected_metrics": [
@@ -868,7 +862,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-ccaa36c833b26ce54bafa6c4102fd740-7d3efb1b173fecfa-01",
-        "tracestate": "33@nr=1-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035-other-new-fields"
+        "tracestate": "33@nr=1-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035-other-new-fields"
       }
     ],
     "outbound_payloads": [
@@ -879,10 +873,10 @@
           "traceparent.trace_flags": "01",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.234567
+          "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
@@ -898,7 +892,7 @@
       "common":{
         "exact": {
           "traceId": "ccaa36c833b26ce54bafa6c4102fd740",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -918,11 +912,10 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "trustedParentId": "7d3efb1b173fecfa",
-          "tracingVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -946,25 +939,27 @@
     "inbound_headers": [
       {
         "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
-        "tracestate": "33@nr=-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
       "target_events": ["Transaction", "Span"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
+        "expected": ["parent.transportType"],
         "unexpected": ["parentId"]
       },
       "Span": {
         "exact": {
           "parentId": "b4a146e3237b4df1"
-        }
+        },
+        "unexpected": ["trustedParentId", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -984,14 +979,17 @@
     "inbound_headers": [
       {
         "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
-        "tracestate": "33@nr=0-0--2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0--2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
       "target_events": ["Transaction"],
       "common":{
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "exact": {
+          "parentSpanId": "b4a146e3237b4df1"
+        },
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1011,14 +1009,17 @@
     "inbound_headers": [
       {
         "traceparent": "00-5f2796876f44a3c898994ce2668e2222-7d3efb1b173fecfa-01",
-        "tracestate": "33@nr=0-0-33--7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33--7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
       "target_events": ["Transaction"],
       "common":{
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "exact": {
+          "parentSpanId": "7d3efb1b173fecfa"
+        },
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1038,14 +1039,17 @@
     "inbound_headers": [
       {
         "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
-        "tracestate": "33@nr=0--33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0--33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
       "target_events": ["Transaction"],
       "common":{
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "exact": {
+          "parentSpanId": "b4a146e3237b4df1"
+        },
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1065,7 +1069,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-5f2796876f44a3c898994ce2668e2222-7d3efb1b173fecfa-01",
-        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa--1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa--1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
@@ -1073,7 +1077,7 @@
       "common":{
         "exact": {
           "traceId": "5f2796876f44a3c898994ce2668e2222",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
@@ -1092,10 +1096,11 @@
       },
       "Span": {
         "exact": {
-          "parentId": "7d3efb1b173fecfa"
+          "parentId": "7d3efb1b173fecfa",
+          "trustedParentId": "7d3efb1b173fecfa"
         },
         "expected": ["transactionId"],
-        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
       }
     },
     "expected_metrics": [
@@ -1119,7 +1124,7 @@
     "inbound_headers": [
       {
         "traceparent": "00--b4a146e3237b4df1-01",
-        "tracestate": "33@nr=0-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+        "tracestate": "33@nr=0-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
     "intrinsics": {
@@ -1145,14 +1150,17 @@
     "inbound_headers": [
       {
         "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
-        "tracestate": "33@nr=0-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-"
+        "tracestate": "33@nr=0-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.23456-"
       }
     ],
     "intrinsics": {
       "target_events": ["Transaction"],
       "common":{
-        "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "exact": {
+          "parentSpanId": "b4a146e3237b4df1"
+        },
+        "expected": ["guid", "traceId", "priority", "sampled", "parent.transportType"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1182,7 +1190,7 @@
           "traceparent.trace_id": "5f2796876f44a3c898994ce2668e2222",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App"
+          "tracestate.parent_type": 0
         },
         "expected": [
           "traceparent.trace_flags",
@@ -1204,22 +1212,22 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "exact": {
+          "sampled": true,
           "traceId": "5f2796876f44a3c898994ce2668e2222"
         },
-        "expected": ["guid"],
+        "expected": ["guid", "priority"],
         "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
-        "expected": [],
+        "expected": ["parent.transportType"],
         "unexpected": [
           "parent.transportDuration",
           "parent.type",
           "parent.app",
           "parent.account",
-          "parent.transportType",
           "parentId"
         ]
       },
@@ -1264,7 +1272,7 @@
           "traceparent.trace_id": "5f2796876f44a3c898994ce2668e2222",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33"
         },
         "expected": [
@@ -1283,22 +1291,22 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "exact": {
-          "traceId": "5f2796876f44a3c898994ce2668e2222"
+          "traceId": "5f2796876f44a3c898994ce2668e2222",
+          "sampled": true
         },
-        "expected": ["guid"],
+        "expected": ["guid", "priority"],
         "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
       },
       "Transaction": {
         "exact": {
           "parentSpanId": "b4a146e3237b4df1"
         },
-        "expected": [],
+        "expected": ["parent.transportType"],
         "unexpected": [
           "parent.transportDuration",
           "parent.type",
           "parent.app",
           "parent.account",
-          "parent.transportType",
           "parentId"
         ]
       },
@@ -1312,7 +1320,9 @@
           "parent.type",
           "parent.app",
           "parent.account",
-          "parent.transportType"
+          "parent.transportType",
+          "tracingVendors",
+          "trustedParentId"
         ]
       }
     },
@@ -1341,7 +1351,7 @@
           "traceparent.version": "00",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33"
         },
         "expected": [
@@ -1382,7 +1392,7 @@
           "traceparent.version": "00",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33"
         },
         "expected": [
@@ -1415,7 +1425,7 @@
     "inbound_headers": [
       {
         "traceparent": "00-87b1c9a429205b25e5b687d890d4821f-afe162ae3117a892-00",
-        "tracestate": "44@nr=0-0-11-30299-afe162ae3117a892-0b752e7f02c85205-0-0.123456-1518469636035,33@nr=0-0-33-2827902-7d3efb1b173fecfa-b79e301bd0ffed87-1-1.234567-1518469636025"
+        "tracestate": "44@nr=0-0-11-30299-afe162ae3117a892-0b752e7f02c85205-0-0.123456-1518469636035,33@nr=0-0-33-2827902-7d3efb1b173fecfa-b79e301bd0ffed87-1-1.23456-1518469636025"
       }
     ],
     "outbound_payloads": [
@@ -1425,10 +1435,10 @@
           "traceparent.trace_id": "87b1c9a429205b25e5b687d890d4821f",
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
-          "tracestate.parent_type": "App",
+          "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "99",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.234567
+          "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.trace_flags",
@@ -1448,7 +1458,7 @@
       "common":{
         "exact": {
           "traceId": "87b1c9a429205b25e5b687d890d4821f",
-          "priority": 1.234567,
+          "priority": 1.23456,
           "sampled": true
         },
         "expected": ["guid"],
