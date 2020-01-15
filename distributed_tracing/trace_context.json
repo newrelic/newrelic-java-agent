@@ -1525,8 +1525,7 @@
       ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
       ["TransportDuration/App/33/2827902/HTTP/all", 1],
       ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
-      ["Supportability/TraceContext/TraceParent/Accept/Success", 1],
-      ["Supportability/TraceContext/TraceState/Accept/Success", 1]
+      ["Supportability/TraceContext/Accept/Success", 1]
     ]
   },
   {
@@ -1555,7 +1554,9 @@
         "expected": ["transactionId"]
       }
     },
-    "expected_metrics": []
+    "expected_metrics": [
+      ["Supportability/TraceContext/TraceParent/Parse/Exception", 1]
+    ]
   },
   {
     "test_name": "w3c_and_newrelc_headers_present_error_parsing_tracestate",
@@ -1598,7 +1599,7 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/TraceParent/Accept/Success", 1]
+      ["Supportability/TraceContext/TraceState/InvalidNrEntry", 1]
     ]
   },
   {
@@ -1667,8 +1668,6 @@
         "unexpected": ["tracingVendors"]
       }
     },
-    "expected_metrics": [
-      ["Supportability/TraceContext/TraceParent/Accept/Success", 1]
-    ]
+    "expected_metrics": []
   }
 ]
