@@ -1555,6 +1555,8 @@
       }
     },
     "expected_metrics": [
+      ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/all", 1],
+      ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb", 1],
       ["Supportability/TraceContext/TraceParent/Parse/Exception", 1]
     ]
   },
@@ -1599,6 +1601,10 @@
       }
     },
     "expected_metrics": [
+      ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/all", 1],
+      ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb", 1],
+      ["TransportDuration/Unknown/Unknown/Unknown/Unknown/all", 1],
+      ["TransportDuration/Unknown/Unknown/Unknown/Unknown/allWeb", 1],
       ["Supportability/TraceContext/TraceState/InvalidNrEntry", 1]
     ]
   },
@@ -1668,6 +1674,12 @@
         "unexpected": ["tracingVendors"]
       }
     },
-    "expected_metrics": []
+    "expected_metrics": [
+      ["DurationByCaller/App/33/51424/HTTP/all", 1],
+      ["DurationByCaller/App/33/51424/HTTP/allWeb", 1],
+      ["TransportDuration/App/33/51424/HTTP/all", 1],
+      ["TransportDuration/App/33/51424/HTTP/allWeb", 1],
+      ["Supportability/DistributedTrace/AcceptPayload/Success", 1]
+    ]
   }
 ]
