@@ -1601,10 +1601,8 @@
       }
     },
     "expected_metrics": [
-      ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/all", 1],
-      ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb", 1],
-      ["TransportDuration/Unknown/Unknown/Unknown/Unknown/all", 1],
-      ["TransportDuration/Unknown/Unknown/Unknown/Unknown/allWeb", 1],
+      ["DurationByCaller/Unknown/Unknown/Unknown/HTTP/all", 1],
+      ["DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb", 1],
       ["Supportability/TraceContext/TraceState/InvalidNrEntry", 1]
     ]
   },
@@ -1657,8 +1655,8 @@
       "Transaction": {
         "exact": {
           "parent.type": "App",
-          "parent.account": 33,
-          "parent.app": 51424,
+          "parent.account": "33",
+          "parent.app": "51424",
           "parent.transportType": "HTTP",
           "parentSpanId": "5f474d64b9cc9b2a",
           "parentId": "27856f70d3d314b7"
