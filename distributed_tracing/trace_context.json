@@ -183,15 +183,14 @@
           "tracestate.version": 0,
           "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
-          "tracestate.span_id": "7d3efb1b173fecfa",
-          "tracestate.transaction_id": "e8b91a159289ff74",
           "tracestate.sampled": true,
           "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
           "tracestate.timestamp",
-          "tracestate.parent_application_id"
+          "tracestate.parent_application_id",
+          "tracestate.transaction_id"
         ],
         "notequal": {
           "traceparent.parent_id": "7d3efb1b173fecfa"
