@@ -17,7 +17,8 @@ the agent under test. Here's what the various fields in each test case mean:
 | `force_sampled_true` | Whether to force a transaction to be sampled or not. |
 | `transport_type` | The transport type for the inbound request. |
 | `inbound_headers` | The headers you should mock coming into the agent. |
-| `outbound_payloads` | The exact/expected/unexpected values for outbound headers. |
+| `outbound_payloads` | The exact/expected/unexpected values for outbound `w3c` headers. |
+| `outbound_newrelic_payloads` | The exact/expected/unexpected values for outbound `newrelic` headers. |
 | `intrinsics` | The exact/expected/unexpected attributes for events. |
 | `expected_metrics` | The expected metrics and associated counts as a result of the test. |
 | `span_events_enabled` | Whether span events are enabled in the agent or not. |
@@ -64,3 +65,25 @@ have a `guid`, both have `da8bc8cc6d062849b0efcf3c169afb5a` as the `traceId`, an
 The `Transaction` block means anything in there should only apply to the transaction object. Same for the `Span` block.
 
 The same idea goes for the `outbound_payloads` block but will apply specifically for the outbound `traceparent` header and `tracestate` header.
+
+`outbound_newrelic_payloads` are targeted at `newrelic` headers and follow same basic structure as `outbound_payloads`, for example:
+```javascript
+...
+    "outbound_newrelic_payloads": [
+      {
+        "exact": {
+          "v": [0, 1],
+          "d.ty": "App",
+          "d.ac": "33",
+          "d.ap": "2827902",
+          "d.sa": true
+        },
+        "notequal": {
+          "d.tr": "6e2fea0b173fdad0"
+        },
+        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id", "d.tr"],
+        "unexpected": ["d.tk"]
+      }
+    ],
+    ...
+```
