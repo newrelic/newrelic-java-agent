@@ -18,7 +18,6 @@ the agent under test. Here's what the various fields in each test case mean:
 | `transport_type` | The transport type for the inbound request. |
 | `inbound_headers` | The headers you should mock coming into the agent. |
 | `outbound_payloads` | The exact/expected/unexpected values for outbound `w3c` headers. |
-| `outbound_newrelic_payloads` | The exact/expected/unexpected values for outbound `newrelic` headers. |
 | `intrinsics` | The exact/expected/unexpected attributes for events. |
 | `expected_metrics` | The expected metrics and associated counts as a result of the test. |
 | `span_events_enabled` | Whether span events are enabled in the agent or not. |
@@ -66,24 +65,42 @@ The `Transaction` block means anything in there should only apply to the transac
 
 The same idea goes for the `outbound_payloads` block but will apply specifically for the outbound `traceparent` header and `tracestate` header.
 
-`outbound_newrelic_payloads` are targeted at `newrelic` headers and follow same basic structure as `outbound_payloads`, for example:
+`outbound_payloads` may also target `newrelic` headers and follow same basic structure inline with trace context headers, for example:
 ```javascript
-...
-    "outbound_newrelic_payloads": [
-      {
-        "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.sa": true
-        },
-        "notequal": {
-          "d.tr": "6e2fea0b173fdad0"
-        },
-        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id", "d.tr"],
-        "unexpected": ["d.tk"]
-      }
-    ],
-    ...
+  ...
+  "outbound_payloads": [
+    {
+      "exact": {
+        "traceparent.version": "00",
+        "traceparent.trace_id": "00000000000000006e2fea0b173fdad0",
+        "traceparent.trace_flags": "01",
+        "tracestate.tenant_id": "33",
+        "tracestate.version": 0,
+        "tracestate.parent_type": 0,
+        "tracestate.parent_account_id": "33",
+        "tracestate.sampled": true,
+        "tracestate.priority": 1.123432,
+        "newrelic.v": [0, 1],
+        "newrelic.d.ty": "App",
+        "newrelic.d.ac": "33",
+        "newrelic.d.ap": "2827902",
+        "newrelic.d.tr": "6E2fEA0B173FDAD0",
+        "newrelic.d.sa": true,
+        "newrelic.d.pr": 1.1234321
+      },
+      "expected": [
+        "traceparent.parent_id",
+        "tracestate.timestamp",
+        "tracestate.parent_application_id",
+        "tracestate.span_id",
+        "tracestate.transaction_id",
+        "newrelic.d.ap", 
+        "newrelic.d.tx", 
+        "newrelic.d.ti", 
+        "newrelic.d.id"
+      ],
+      "unexpected": ["newrelic.d.tk"]
+    }
+  ],
+  ...
 ```
