@@ -171,6 +171,7 @@
     "raises_exception": false,
     "force_sampled_true": false,
     "span_events_enabled": true,
+    "transaction_events_enabled": true,
     "transport_type": "HTTP",
     "inbound_headers": [
       {
@@ -1606,16 +1607,15 @@
           "newrelic.v": [0, 1],
           "newrelic.d.ty": "App",
           "newrelic.d.ac": "33",
-          "newrelic.d.ap": "2827902",
           "newrelic.d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
           "newrelic.d.pr": 1.23456,
           "newrelic.d.sa": true
         },
         "expected": [
-          "newrelic.d.pr", 
-          "newrelic.d.ap", 
-          "newrelic.d.tx", 
-          "newrelic.d.ti", 
+          "newrelic.d.pr",
+          "newrelic.d.ap",
+          "newrelic.d.tx",
+          "newrelic.d.ti",
           "newrelic.d.id"],
         "unexpected": ["newrelic.d.tk"]
       }
@@ -1687,18 +1687,17 @@
           "newrelic.v": [0, 1],
           "newrelic.d.ty": "App",
           "newrelic.d.ac": "33",
-          "newrelic.d.ap": "2827902",
           "newrelic.d.sa": true
         },
         "notequal": {
           "newrelic.d.tr": "6e2fea0b173fdad0"
         },
         "expected": [
-          "newrelic.d.pr", 
-          "newrelic.d.ap", 
-          "newrelic.d.tx", 
-          "newrelic.d.ti", 
-          "newrelic.d.id", 
+          "newrelic.d.pr",
+          "newrelic.d.ap",
+          "newrelic.d.tx",
+          "newrelic.d.ti",
+          "newrelic.d.id",
           "newrelic.d.tr"
         ],
         "unexpected": ["newrelic.d.tk"]
@@ -1743,15 +1742,14 @@
           "newrelic.v": [0, 1],
           "newrelic.d.ty": "App",
           "newrelic.d.ac": "33",
-          "newrelic.d.ap": "2827902",
           "newrelic.d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
           "newrelic.d.sa": true
         },
         "expected": [
-          "newrelic.d.pr", 
-          "newrelic.d.ap", 
-          "newrelic.d.tx", 
-          "newrelic.d.ti", 
+          "newrelic.d.pr",
+          "newrelic.d.ap",
+          "newrelic.d.tx",
+          "newrelic.d.ti",
           "newrelic.d.id"
         ],
         "unexpected": ["newrelic.d.tk"]
@@ -1824,10 +1822,8 @@
           "newrelic.v": [0, 1],
           "newrelic.d.ty": "App",
           "newrelic.d.ac": "33",
-          "newrelic.d.ap": "2827902",
           "newrelic.d.tr": "6E2fEA0B173FDAD0",
-          "newrelic.d.sa": true,
-          "newrelic.d.pr": 1.1234321
+          "newrelic.d.sa": true
         },
         "expected": [
           "traceparent.parent_id",
@@ -1835,10 +1831,11 @@
           "tracestate.parent_application_id",
           "tracestate.span_id",
           "tracestate.transaction_id",
-          "newrelic.d.ap", 
-          "newrelic.d.tx", 
-          "newrelic.d.ti", 
-          "newrelic.d.id"
+          "newrelic.d.ap",
+          "newrelic.d.tx",
+          "newrelic.d.ti",
+          "newrelic.d.id",
+          "newrelic.d.pr"
         ],
         "unexpected": ["newrelic.d.tk"]
       }
