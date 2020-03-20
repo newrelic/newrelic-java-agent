@@ -1584,6 +1584,72 @@
     ]
   },
   {
+    "test_name": "priority_not_converted_to_scientific_notation",
+    "trusted_account_key": "33",
+    "account_id": "99",
+    "web_transaction": true,
+    "raises_exception": false,
+    "force_sampled_true": false,
+    "span_events_enabled": true,
+    "transaction_events_enabled": true,
+    "transport_type": "HTTP",
+    "inbound_headers": [
+      {
+        "traceparent": "00-87b1c9a429205b25e5b687d890d4821f-afe162ae3117a892-00",
+        "tracestate": "33@nr=0-0-11-30299-afe162ae3117a892-0b752e7f02c85205-0-0.000012-1518469636035"
+      }
+    ],
+    "outbound_payloads": [
+      {
+        "exact": {
+          "traceparent.version": "00",
+          "traceparent.trace_id": "87b1c9a429205b25e5b687d890d4821f",
+          "tracestate.tenant_id": "33",
+          "tracestate.version": 0,
+          "tracestate.parent_type": 0,
+          "tracestate.parent_account_id": "99",
+          "tracestate.sampled": false,
+          "tracestate.priority": 0.000012
+        },
+        "expected": [
+          "traceparent.trace_flags",
+          "traceparent.parent_id",
+          "tracestate.span_id",
+          "tracestate.transaction_id",
+          "tracestate.parent_application_id",
+          "tracestate.timestamp"
+        ]      }
+    ],
+    "intrinsics": {
+      "target_events": ["Transaction"],
+      "common":{
+        "exact": {
+          "traceId": "87b1c9a429205b25e5b687d890d4821f",
+          "priority": 0.000012,
+          "sampled": false
+        },
+        "expected": ["guid"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+      },
+      "Transaction": {
+        "exact": {
+          "parent.type": "App",
+          "parent.app": "30299",
+          "parent.account": "11",
+          "parent.transportType": "HTTP",
+          "parentId": "0b752e7f02c85205",
+          "parentSpanId": "afe162ae3117a892"
+        },
+        "expected": ["parent.transportDuration"]
+      }
+    },
+    "expected_metrics": [
+      ["DurationByCaller/App/11/30299/HTTP/all", 1],
+      ["DurationByCaller/App/11/30299/HTTP/allWeb", 1],
+      ["Supportability/TraceContext/Accept/Success", 1]
+    ]
+  },
+  {
     "test_name": "w3c_and_newrelic_headers_present",
     "comment": "outbound newrelic headers are built from w3c headers, ignoring inbound newrelic headers",
     "trusted_account_key": "33",
