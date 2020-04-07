@@ -70,6 +70,28 @@
         "tracestate": "33@nr=0-0-33-2827902-b4a07f08064ee8f9-e8b91a159289ff74-0-0.123456-1518469636035"
       }
     ],
+    "outbound_payloads": [
+      {
+        "exact": {
+          "traceparent.version": "00",
+          "traceparent.trace_id": "37375fc353f345b5801b166e31b76136",
+          "traceparent.trace_flags": "00",
+          "tracestate.tenant_id": "33",
+          "tracestate.version": 0,
+          "tracestate.parent_type": 0,
+          "tracestate.parent_account_id": "33",
+          "tracestate.sampled": false,
+          "tracestate.priority": 0.123456
+        },
+        "expected": [
+          "traceparent.parent_id",
+          "tracestate.span_id",
+          "tracestate.transaction_id",
+          "tracestate.timestamp",
+          "tracestate.parent_application_id"
+        ]
+      }
+    ],
     "intrinsics": {
       "target_events": ["Transaction"],
       "common":{
