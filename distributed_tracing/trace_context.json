@@ -2256,5 +2256,63 @@
       ["Supportability/TraceContext/Create/Success", 1],
       ["Supportability/DistributedTrace/CreatePayload/Success", 1]
     ]
+  },
+  {
+    "test_name": "inbound_payload_from_agent_in_serverless_mode",
+    "comment": [
+        "Test a payload that originates from a serverless agent. The only",
+        "difference in the payload between a serverless and non-serverless agent",
+        "is the `appId` in the tracestate header will be 'Unknown'."
+    ],
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "force_sampled_true": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "inbound_headers": [
+      {
+        "traceparent": "00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01",
+        "tracestate": "33@nr=0-0-33-Unknown-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
+      }
+    ],
+    "intrinsics": {
+      "target_events": ["Transaction", "Span"],
+      "common":{
+        "exact": {
+          "traceId": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "priority": 1.23456,
+          "sampled": true
+        },
+        "expected": ["guid"],
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+      },
+      "Transaction": {
+        "exact": {
+          "parent.type": "App",
+          "parent.app": "Unknown",
+          "parent.account": "33",
+          "parent.transportType": "HTTP",
+          "parentId": "e8b91a159289ff74",
+          "parentSpanId": "7d3efb1b173fecfa"
+        },
+        "expected": ["parent.transportDuration"]
+      },
+      "Span": {
+        "exact": {
+          "parentId": "7d3efb1b173fecfa",
+          "trustedParentId": "7d3efb1b173fecfa"
+        },
+        "expected": ["transactionId"],
+        "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "tracingVendors"]
+      }
+    },
+    "expected_metrics": [
+      ["DurationByCaller/App/33/Unknown/HTTP/all", 1],
+      ["DurationByCaller/App/33/Unknown/HTTP/allWeb", 1],
+      ["TransportDuration/App/33/Unknown/HTTP/all", 1],
+      ["TransportDuration/App/33/Unknown/HTTP/allWeb", 1]
+    ]
   }
 ]
