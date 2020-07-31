@@ -1,0 +1,29 @@
+subprojects {
+
+    // the version of all instrumentation projects.
+    version = 1.0
+
+    // pull in shared instrumentation build logic
+    apply from: "$rootProject.projectDir/gradle/script/instrumentation.gradle"
+
+    tasks.withType(Test).each { task ->
+        task.enabled = !project.hasProperty('noInstrumentation')
+    }
+
+    jar {
+        manifest {
+            attributes 'Implementation-Vendor': 'New Relic', 'Implementation-Version': project.version
+        }
+    }
+
+    dependencies {
+        testImplementation(project(":instrumentation-test"))
+    }
+
+}
+
+task test {
+    dependsOn subprojects.collect {
+        it.tasks.getByName 'test'
+    }
+}

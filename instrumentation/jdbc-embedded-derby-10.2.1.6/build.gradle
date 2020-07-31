@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("org.apache.derby:derby:10.6.1.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-embedded-derby-10.2.1.6' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.derby:derby:[10.2.1.6,10.9.1.0]'
+    exclude    'org.apache.derby:derby:10.5.3.0' // Bad version
+}
+
+site {
+    title 'Embedded Derby'
+    type 'Datastore'
+}

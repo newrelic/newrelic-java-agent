@@ -1,0 +1,58 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.3.31" apply false
+    id "com.newrelic.gradle-verify-instrumentation-plugin" version "3.2" apply false
+    id "com.newrelic.gradle-compatibility-doc-plugin" version "1.1" apply false
+}
+
+allprojects {
+    apply plugin: 'idea'
+
+    group = 'com.newrelic.agent.java'
+    version = agentVersion
+
+    idea.module {
+        outputDir file('build/classes/main')
+        testOutputDir file('build/classes/test')
+    }
+
+    if (project.convention.findPlugin(JavaPluginConvention)) {
+        // Change the output directory for the main and test source sets back to the old path
+        sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+        sourceSets.test.output.classesDir = new File(buildDir, "classes/test")
+    }
+
+    tasks.withType(Copy) {
+        includeEmptyDirs = false
+    }
+}
+
+// This fixes an issue with intellij where the test output build path is incorrect for the top-level java_agent module
+idea.module {
+    testOutputDir = file('test')
+    excludeDirs += file("automation")
+}
+
+subprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    def isJavaProject = ![
+            'agent-integration-tests', // the test apps have their independent build processes.
+            'instrumentation',  // is a parent project
+            'instrumentation-build', // is a build utility
+            'newrelic-java', // this is a project used exclusively for bundling the zip file.
+            'infinite-tracing', // has its own plans
+    ].contains(project.name)
+    if (isJavaProject) {
+        project.ext.javaProject = true
+
+        apply from: "$rootProject.projectDir/gradle/script/java.gradle"
+    } else {
+        // This fixes an issue with intellij where the test output build path is incorrect for non-java projects
+        idea.module {
+            testOutputDir = file('test')
+        }
+    }
+}

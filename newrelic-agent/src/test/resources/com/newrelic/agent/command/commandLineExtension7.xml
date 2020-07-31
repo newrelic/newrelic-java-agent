@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<extension xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="test1">
+	<instrumentation>
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.extension.beans.Extension
+			</className>
+			<method>
+				<name>setInstrumentation</name>
+				<parameters>
+					<type>com.newrelic.agent.extension.beans.Instrumentation
+					</type>
+				</parameters>
+			</method>
+		</pointcut>
+
+		<pointcut transactionStartPoint="true">
+			<interfaceName>com.newrelic.agent.Agent
+			</interfaceName>
+			<method>
+				<name>premain</name>
+				<parameters>
+					<type>java.lang.String
+					</type>
+					<type>java.lang.instrument.Instrumentation  </type>
+					<type>long</type>
+				</parameters>
+			</method>
+			<method>
+				<name>doStart  </name>
+
+			</method>
+		</pointcut>
+	</instrumentation>
+</extension>

@@ -1,0 +1,10 @@
+
+dependencies {
+    implementation(project(":newrelic-weaver-api"))
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'New Relic Scala Weaver API', 'Implementation-Version': project.version
+    }
+}

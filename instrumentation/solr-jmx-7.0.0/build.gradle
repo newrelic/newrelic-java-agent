@@ -1,0 +1,26 @@
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://repo.spring.io/plugins-release'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+
+    implementation("org.apache.lucene:lucene-core:7.0.0")
+    implementation("org.apache.solr:solr-core:7.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.solr-jmx-7.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.solr:solr-core:[7.0.0,7.4.0)'
+
+    excludeRegex 'org.apache.solr:solr-core:.*(ALPHA|BETA)+$'
+}

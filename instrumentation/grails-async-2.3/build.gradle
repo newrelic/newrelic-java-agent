@@ -1,0 +1,11 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.grails:grails-async:2.3.0")
+    implementation("org.grails:grails-plugin-async:2.3.0")
+    implementation("org.codehaus.groovy:groovy:2.3.6")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.grails-async-2.3', 'Enabled': 'false' }
+}
+

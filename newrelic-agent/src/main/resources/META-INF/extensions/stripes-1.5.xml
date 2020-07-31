@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension
+    xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	name="com.newrelic.agent.instrumentation.stripes-1.5"
+	version="1.0">
+	<instrumentation>
+		<pointcut>
+			<interfaceName>net.sourceforge.stripes.action.Resolution</interfaceName>
+			<method>
+				<name>execute</name>
+				<parameters>
+					<type>javax.servlet.http.HttpServletRequest</type>
+					<type>javax.servlet.http.HttpServletResponse</type>
+				</parameters>
+			</method>
+		</pointcut>
+		<pointcut>
+		    <nameTransaction/>
+			<interfaceName>net.sourceforge.stripes.action.ActionBean</interfaceName>
+			<method>
+				<returnType>net.sourceforge.stripes.action.Resolution</returnType>
+			</method>
+		</pointcut>
+
+		<pointcut>
+		    <nameTransaction/>
+			<methodAnnotation>net.sourceforge.stripes.action.DefaultHandler</methodAnnotation>
+		</pointcut>
+		<pointcut>
+		    <nameTransaction/>
+			<methodAnnotation>net.sourceforge.stripes.action.HandlesEvent</methodAnnotation>
+		</pointcut>
+		<pointcut>
+			<methodAnnotation>net.sourceforge.stripes.validation.ValidationMethod</methodAnnotation>
+		</pointcut>
+	</instrumentation>
+</extension>

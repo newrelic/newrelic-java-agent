@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation("org.apache.cxf:cxf-api:2.7.11")
+    implementation("org.apache.cxf:cxf-rt-bindings-soap:2.7.11")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.cxf-2.7' }
+}
+
+verifyInstrumentation {
+    passes 'org.apache.cxf:cxf-rt-bindings-soap:[2.1.3,)'
+}
+
+site {
+    title 'CXF'
+    type 'Framework'
+}

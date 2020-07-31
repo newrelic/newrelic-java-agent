@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The agent sets its logging configuration within the code. -->
+<configuration scan="false" shutdownHook="disable">
+	<Loggers>
+		<Root level="info" />
+
+		<!-- Prevent this agent dependency from logging anything -->
+		<Logger name="com.newrelic.agent.deps.org.reflections" level="off" />
+	</Loggers>
+</configuration>

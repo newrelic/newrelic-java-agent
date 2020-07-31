@@ -1,0 +1,180 @@
+[
+	{"testname" : "Background Eight threads - all registered by the first thread",
+	 "tracers" : [
+	     { "async_unit": "async1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "BACKGROUND", "register_async" : [["2",2], ["3",2], ["4",2], ["5",2], ["6",2], ["7",2], ["8",2]]},
+	     { "async_unit": "async2", "name" : "secondRootTracer", "start": 2, "duration" : 11, "start_async" : "2" },
+	     { "async_unit": "async3", "name" : "thirdRootTracer", "start": 2, "duration" : 12, "start_async" : "3"},
+	     { "async_unit": "async4", "name" : "fourthRootTracer", "start": 2, "duration" : 9, "start_async" : "4"},
+	     { "async_unit": "async5", "name" : "fifthRootTracer", "start": 2, "duration" : 2, "start_async" : "5"},
+	     { "async_unit": "async6", "name" : "sixthRootTracer", "start": 2, "duration" : 2, "start_async" : "6"},
+	     { "async_unit": "async7", "name" : "seventhRootTracer", "start": 2, "duration" : 4, "start_async" : "7"},
+	      { "async_unit": "async8", "name" : "eigthRootTracer", "start": 2, "duration" : 5, "start_async" : "8"},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 10, 10, 2],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 11, 11, 0],
+	      ["Java/java.lang.Object/thirdRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 12, 12, 12],
+	      ["Java/java.lang.Object/fourthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 9, 9, 0],
+	      ["Java/java.lang.Object/fifthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 2, 0],
+	      ["Java/java.lang.Object/sixthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 2, 0],
+	      ["Java/java.lang.Object/seventhRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 4, 4, 0],
+	      ["Java/java.lang.Object/eigthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 0],
+	  ],
+  	 "transaction_trace" : { "duration": 14, "scope": "OtherTransaction/Java/java.lang.Object/mainRootTracer", "segments":
+  	     [0, 14, "ROOT",  {"async_context":"*", "exclusive_duration_millis":10.0, "async_wait":true}, [
+  	       [0, 10, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":10.0, "async_wait":true}, [
+  	         [2, 13, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":11.0}, [], "clazz", "secondRootTracer"],
+  	         [2, 14, "Java/java.lang.Object/thirdRootTracer", {"async_context":"*", "exclusive_duration_millis":12.0}, [], "clazz", "thirdRootTracer"],
+  	         [2, 11, "Java/java.lang.Object/fourthRootTracer", {"async_context":"*", "exclusive_duration_millis":9.0}, [], "clazz", "fourthRootTracer"],
+  	         [2, 4, "Java/java.lang.Object/fifthRootTracer", {"async_context":"*", "exclusive_duration_millis":2.0}, [], "clazz", "fifthRootTracer"],
+  	         [2, 4, "Java/java.lang.Object/sixthRootTracer", {"async_context":"*", "exclusive_duration_millis":2.0}, [], "clazz", "sixthRootTracer"],
+  	         [2, 6, "Java/java.lang.Object/seventhRootTracer", {"async_context":"*", "exclusive_duration_millis":4.0}, [], "clazz", "seventhRootTracer"],
+  	         [2, 7, "Java/java.lang.Object/eigthRootTracer", {"async_context":"*", "exclusive_duration_millis":5.0}, [], "clazz", "eigthRootTracer"]
+  	       ], "clazz", "mainRootTracer"]
+	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.055, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 14, "total_time" : 55}
+    },
+	{"testname" : "Web Eight threads - all registered by the first thread",
+	 "tracers" : [
+	     { "async_unit": "async1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB", "register_async" : [["2",2], ["3",2], ["4",2], ["5",2], ["6",2], ["7",2], ["8",2]]},
+	     { "async_unit": "async2", "name" : "secondRootTracer", "start": 2, "duration" : 11, "start_async" : "2" },
+	     { "async_unit": "async3", "name" : "thirdRootTracer", "start": 2, "duration" : 12, "start_async" : "3"},
+	     { "async_unit": "async4", "name" : "fourthRootTracer", "start": 2, "duration" : 9, "start_async" : "4"},
+	     { "async_unit": "async5", "name" : "fifthRootTracer", "start": 2, "duration" : 2, "start_async" : "5"},
+	     { "async_unit": "async6", "name" : "sixthRootTracer", "start": 2, "duration" : 2, "start_async" : "6"},
+	     { "async_unit": "async7", "name" : "seventhRootTracer", "start": 2, "duration" : 4, "start_async" : "7", "lastByteOnTxa": true },
+	      { "async_unit": "async8", "name" : "eigthRootTracer", "start": 2, "duration" : 5, "start_async" : "8"},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 10, 10, 2],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 11, 11, 0],
+	      ["Java/java.lang.Object/thirdRootTracer", "WebTransaction/Uri/Unknown", 1, 12, 12, 12],
+	      ["Java/java.lang.Object/fourthRootTracer", "WebTransaction/Uri/Unknown", 1, 9, 9, 0],
+	      ["Java/java.lang.Object/fifthRootTracer", "WebTransaction/Uri/Unknown", 1, 2, 2, 0],
+	      ["Java/java.lang.Object/sixthRootTracer", "WebTransaction/Uri/Unknown", 1, 2, 2, 0],
+	      ["Java/java.lang.Object/seventhRootTracer", "WebTransaction/Uri/Unknown", 1, 4, 4, 0],
+	      ["Java/java.lang.Object/eigthRootTracer", "WebTransaction/Uri/Unknown", 1, 5, 5, 0],
+	  ],
+  	 "transaction_trace" : { "duration": 6, "scope": "WebTransaction/Uri/Unknown", "segments":
+  	     [0, 14, "ROOT",  {"async_context":"*", "exclusive_duration_millis":10.0, "async_wait":true}, [
+  	       [0, 10, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":10.0, "async_wait":true}, [
+  	         [2, 13, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":11.0}, [], "clazz", "secondRootTracer"],
+  	         [2, 14, "Java/java.lang.Object/thirdRootTracer", {"async_context":"*", "exclusive_duration_millis":12.0}, [], "clazz", "thirdRootTracer"],
+  	         [2, 11, "Java/java.lang.Object/fourthRootTracer", {"async_context":"*", "exclusive_duration_millis":9.0}, [], "clazz", "fourthRootTracer"],
+  	         [2, 4, "Java/java.lang.Object/fifthRootTracer", {"async_context":"*", "exclusive_duration_millis":2.0}, [], "clazz", "fifthRootTracer"],
+  	         [2, 4, "Java/java.lang.Object/sixthRootTracer", {"async_context":"*", "exclusive_duration_millis":2.0}, [], "clazz", "sixthRootTracer"],
+  	         [2, 6, "Java/java.lang.Object/seventhRootTracer", {"async_context":"*", "exclusive_duration_millis":4.0}, [], "clazz", "seventhRootTracer"],
+  	         [2, 7, "Java/java.lang.Object/eigthRootTracer", {"async_context":"*", "exclusive_duration_millis":5.0}, [], "clazz", "eigthRootTracer"]
+  	       ], "clazz", "mainRootTracer"]
+		 ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.055, "cpuTime":"*", "priority":"*"}
+  	   },
+  	 "transaction_event" : {"duration": 6, "total_time" : 55}
+  	 },
+	{"testname" : "Background Eight threads - all registered by the previous thread",
+	 "tracers" : [
+	     { "async_unit": "async1", "name" : "mainRootTracer", "start": 0, "duration" : 1, "tracer_type" : "BACKGROUND", "register_async" : ["a2", 1]},
+	     { "async_unit": "async2", "name" : "secondRootTracer", "start": 1, "duration" : 1, "start_async" : "a2", "register_async" : ["a3", 2] },
+	     { "async_unit": "async3", "name" : "thirdRootTracer", "start": 2, "duration" : 1, "start_async" : "a3", "register_async" : ["a4", 3]},
+	     { "async_unit": "async4", "name" : "fourthRootTracer", "start": 3, "duration" : 1, "start_async" : "a4", "register_async" : ["a5", 4]},
+	     { "async_unit": "async5", "name" : "fifthRootTracer", "start": 4, "duration" : 1, "start_async" : "a5", "register_async" : ["a6", 5]},
+	     { "async_unit": "async6", "name" : "sixthRootTracer", "start": 5, "duration" : 1, "start_async" : "a6", "register_async" : ["a7", 6]},
+	     { "async_unit": "async7", "name" : "seventhRootTracer", "start": 6, "duration" : 1, "start_async" : "a7", "register_async" : ["a8", 7]},
+	      { "async_unit": "async8", "name" : "eigthRootTracer", "start": 7, "duration" : 5, "start_async" : "a8"},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/thirdRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/fourthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/fifthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/sixthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/seventhRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/eigthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 5],
+	  ],
+  	 "transaction_trace" : { "duration": 12, "scope": "OtherTransaction/Java/java.lang.Object/mainRootTracer", "segments":
+  	     [0, 12, "ROOT",  {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	       [0, 1, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	         [1, 2, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	           [2, 3, "Java/java.lang.Object/thirdRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	             [3, 4, "Java/java.lang.Object/fourthRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	               [4, 5, "Java/java.lang.Object/fifthRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	                 [5, 6, "Java/java.lang.Object/sixthRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	                   [6, 7, "Java/java.lang.Object/seventhRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	                     [7,12, "Java/java.lang.Object/eigthRootTracer", {"async_context":"*", "exclusive_duration_millis":5.0}, [], "clazz", "eigthRootTracer"]
+  	                   ], "clazz", "seventhRootTracer"]
+  	                 ], "clazz", "sixthRootTracer"]
+  	               ], "clazz", "fifthRootTracer"]
+  	             ], "clazz", "fourthRootTracer"]
+  	           ], "clazz", "thirdRootTracer"]
+  	         ], "clazz", "secondRootTracer"]
+  	       ], "clazz", "mainRootTracer"]
+  	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.012, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 12, "total_time" : 12}
+	},
+		{"testname" : "Web Eight threads - all registered by the previous thread",
+	 "tracers" : [
+	     { "async_unit": "async1", "name" : "mainRootTracer", "start": 0, "duration" : 1, "tracer_type" : "WEB", "register_async" : ["a2", 1]},
+	     { "async_unit": "async2", "name" : "secondRootTracer", "start": 1, "duration" : 1, "start_async" : "a2", "register_async" : ["a3", 2] },
+	     { "async_unit": "async3", "name" : "thirdRootTracer", "start": 2, "duration" : 1, "start_async" : "a3", "register_async" : ["a4", 3]},
+	     { "async_unit": "async4", "name" : "fourthRootTracer", "start": 3, "duration" : 1, "start_async" : "a4", "register_async" : ["a5", 4]},
+	     { "async_unit": "async5", "name" : "fifthRootTracer", "start": 4, "duration" : 1, "start_async" : "a5", "register_async" : ["a6", 5], "lastByteOnTxa": true},
+	     { "async_unit": "async6", "name" : "sixthRootTracer", "start": 5, "duration" : 1, "start_async" : "a6", "register_async" : ["a7", 6]},
+	     { "async_unit": "async7", "name" : "seventhRootTracer", "start": 6, "duration" : 1, "start_async" : "a7", "register_async" : ["a8", 7]},
+	      { "async_unit": "async8", "name" : "eigthRootTracer", "start": 7, "duration" : 5, "start_async" : "a8"},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/thirdRootTracer", "WebTransaction/Uri/Unknown", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/fourthRootTracer", "WebTransaction/Uri/Unknown", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/fifthRootTracer", "WebTransaction/Uri/Unknown", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/sixthRootTracer", "WebTransaction/Uri/Unknown", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/seventhRootTracer", "WebTransaction/Uri/Unknown", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/eigthRootTracer", "WebTransaction/Uri/Unknown", 1, 5, 5, 5],
+	  ],
+  	 "transaction_trace" : { "duration": 5, "scope": "WebTransaction/Uri/Unknown", "segments":
+  	     [0, 12, "ROOT",  {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	       [0, 1, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	         [1, 2, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	           [2, 3, "Java/java.lang.Object/thirdRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	             [3, 4, "Java/java.lang.Object/fourthRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	               [4, 5, "Java/java.lang.Object/fifthRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	                 [5, 6, "Java/java.lang.Object/sixthRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	                   [6, 7, "Java/java.lang.Object/seventhRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0, "async_wait":true}, [
+  	                     [7,12, "Java/java.lang.Object/eigthRootTracer", {"async_context":"*", "exclusive_duration_millis":5.0}, [], "clazz", "eigthRootTracer"]
+  	                   ], "clazz", "seventhRootTracer"]
+  	                 ], "clazz", "sixthRootTracer"]
+  	               ], "clazz", "fifthRootTracer"]
+  	             ], "clazz", "fourthRootTracer"]
+  	           ], "clazz", "thirdRootTracer"]
+  	         ], "clazz", "secondRootTracer"]
+  	       ], "clazz", "mainRootTracer"]
+  	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.012, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 5, "total_time" : 12}
+	},
+	{"testname" : "Eight threads - all registered by the previous thread different times",
+	 "tracers" : [
+	     { "async_unit": "async1", "name" : "mainRootTracer", "start": 0, "duration" : 1, "tracer_type" : "BACKGROUND", "register_async" : ["a2", 1]},
+	     { "async_unit": "async2", "name" : "secondRootTracer", "start": 1, "duration" : 1, "start_async" : "a2", "register_async" : ["a3", 2] },
+	     { "async_unit": "async3", "name" : "thirdRootTracer", "start": 2, "duration" : 1, "start_async" : "a3", "register_async" : ["a4", 3]},
+	     { "async_unit": "async4", "name" : "fourthRootTracer", "start": 3, "duration" : 1, "start_async" : "a4", "register_async" : ["a5", 4]},
+	     { "async_unit": "async5", "name" : "fifthRootTracer", "start": 4, "duration" : 1, "start_async" : "a5", "register_async" : ["a6", 5]},
+	     { "async_unit": "async6", "name" : "sixthRootTracer", "start": 5, "duration" : 2, "start_async" : "a6", "register_async" : ["a7", 6]},
+	     { "async_unit": "async7", "name" : "seventhRootTracer", "start": 6, "duration" : 3, "start_async" : "a7", "register_async" : ["a8", 7]},
+	      { "async_unit": "async8", "name" : "eigthRootTracer", "start": 7, "duration" : 5, "start_async" : "a8"},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/thirdRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/fourthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/fifthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/sixthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 2, 1],
+	      ["Java/java.lang.Object/seventhRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 3, 3, 1],
+	      ["Java/java.lang.Object/eigthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 5],
+	  ]
+	}
+]

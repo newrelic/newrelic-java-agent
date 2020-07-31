@@ -1,0 +1,35 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("software.amazon.awssdk:sqs:2.1.0")
+    testImplementation("org.apache.httpcomponents:httpclient:4.5.10")
+    testImplementation("org.elasticmq:elasticmq-rest-sqs_2.13:0.15.3")
+}
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileJava.options.bootstrapClasspath = null
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-sqs-2.1.0' }
+}
+
+verifyInstrumentation {
+    passes 'software.amazon.awssdk:sqs:[2.1.0,)'
+}
+
+site {
+    title 'AWS SQS'
+    type 'Messaging'
+}

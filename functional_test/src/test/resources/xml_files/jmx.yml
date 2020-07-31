@@ -1,0 +1,14 @@
+name: Custom WebSphere JMX
+version: 1.0
+enabled: true
+
+jmx:
+  - object_name: WebSphere:type=JDBCProvider,j2eeType=JDBCResource,node=*,process=*,name=*,*
+    metrics:
+      - attributes: stats
+  - object_name: WebSphere:type=ORB,node=*,process=*,name=*,*
+    metrics:
+      - attributes: stats
+  - object_name: WebSphere:type=DynaCache,process=*,*
+    metrics:
+      - attributes: stats

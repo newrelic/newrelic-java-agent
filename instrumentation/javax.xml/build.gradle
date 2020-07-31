@@ -1,0 +1,11 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+// This instrumentation module should not use the bootstrap classpath
+compileJava.options.bootstrapClasspath = null
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.javax.xml' }
+}

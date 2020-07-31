@@ -1,0 +1,20 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("javax.servlet:javax.servlet-api:3.0.1")
+    implementation("io.undertow:undertow-core:1.0.0.Final")
+    implementation("org.jboss.logging:jboss-logging:3.1.0.GA")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.wildfly-8-CAT' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.undertow:undertow-core:[1.0.0.Beta31,)'
+}
+
+site {
+    title 'Wildfly'
+    type 'Appserver'
+    versionOverride '[8.0.0.Final,)'
+}

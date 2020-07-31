@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test3">
+	<urn:instrumentation>
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>com.newrelic.HelloApp</urn:className>
+			<urn:method>
+				<urn:name>run</urn:name>
+				<urn:parameters>
+					<urn:type>java.util.List
+					</urn:type>
+					<urn:type>int
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:type>float</urn:type>
+			</urn:method>
+		</urn:pointcut>
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className></urn:className>
+			<urn:method>
+				<urn:name>type</urn:name>
+				<urn:parameters>
+					<urn:type>java.util.Map
+					</urn:type>
+					<urn:type>boolean
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>finish</urn:name>
+				<urn:parameters>
+					<urn:type>int</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>com.newrelic.SecondApp</urn:className>
+			<urn:method>
+				<urn:name>run</urn:name>
+				<urn:parameters>
+					<urn:type>java.util.List
+					</urn:type>
+					<urn:type>boolean
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>finish</urn:name>
+				<urn:parameters>
+					<urn:type>float</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+	</urn:instrumentation>
+</urn:extension>

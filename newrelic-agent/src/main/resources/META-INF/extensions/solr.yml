@@ -1,0 +1,28 @@
+name: Solr
+version: 1.0
+enabled: true
+   
+instrumentation:
+  metric_prefix: Solr
+  pointcuts:
+    - class_matcher: 'org/apache/solr/update/DirectUpdateHandler2$CommitTracker'
+      method_matcher: !exact_method_matcher [ "run", "()V" ]
+      dispatcher: true
+      metric_name_format: OtherTransaction/Solr/UpdateHandler/autocommit
+     
+    - class_matcher: 'org/apache/solr/search/SolrIndexSearcher'
+      method_matcher: 
+      - !exact_method_matcher [ "getDocSet", "(Lorg/apache/lucene/search/Query;)Lorg/apache/solr/search/DocSet;", "(Ljava/util/List;)Lorg/apache/solr/search/DocSet;", "(Lorg/apache/lucene/search/Query;Lorg/apache/solr/search/DocSet;)Lorg/apache/solr/search/DocSet;" ]
+
+    - class_matcher: 'org/apache/solr/search/SolrIndexSearcher'
+      method_matcher: 
+      - !exact_method_matcher [ "search", "(Lorg/apache/solr/search/SolrIndexSearcher$QueryResult;Lorg/apache/solr/search/SolrIndexSearcher$QueryCommand;)Lorg/apache/solr/search/SolrIndexSearcher$QueryResult;", "(Lorg/apache/lucene/search/Query;Lorg/apache/lucene/search/Filter;Lorg/apache/lucene/search/Sort;)Lorg/apache/lucene/search/Hits;" ]
+
+    - class_matcher: 'org/apache/solr/search/SolrIndexSearcher'
+      dispatcher: true
+      method_matcher: 
+      - !exact_method_matcher [ "warm", "(Lorg/apache/solr/search/SolrIndexSearcher;)V" ]
+
+    - class_matcher: 'org/apache/solr/core/SolrCore'
+      method_matcher: 
+      - !exact_method_matcher [ "getSearcher", "(ZZ[Ljava/util/concurrent/Future;)Lorg/apache/solr/util/RefCounted;" ]

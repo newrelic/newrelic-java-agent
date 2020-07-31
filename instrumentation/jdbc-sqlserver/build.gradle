@@ -1,0 +1,22 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-sqlserver' }
+}
+
+verifyInstrumentation {
+    passes("com.microsoft.sqlserver:mssql-jdbc:[0,)")
+    excludeRegex(".*jre9.*")
+    excludeRegex(".*jre1\\d.*")
+    excludeRegex(".*preview.*")
+    verifyClasspath = false
+}
+
+site {
+    title 'SQLServer'
+    type 'Datastore'
+    versionOverride '[jdk6,)'
+}

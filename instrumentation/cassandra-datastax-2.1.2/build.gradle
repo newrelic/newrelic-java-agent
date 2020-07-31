@@ -1,0 +1,40 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.cassandra-datastax-2.1.2' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+
+    implementation("com.datastax.cassandra:cassandra-driver-core:2.1.3")
+
+    testImplementation("com.github.jbellis:jamm:0.3.2")
+    testImplementation("org.cassandraunit:cassandra-unit:2.2.2.1")
+}
+
+// This pulls in the cross agent test json files so we can test cassandra obfuscation here
+task copySqlObfuscationTest(type: Copy) {
+    from new File(rootProject.rootDir, 'newrelic-agent/src/test/resources/com/newrelic/agent/cross_agent_tests/sql_obfuscation/')
+    into file('build/sql_obfuscation_test')
+}
+
+sourceSets.test.resources.srcDir 'build/sql_obfuscation_test'
+test.dependsOn copySqlObfuscationTest
+
+verifyInstrumentation {
+    passes 'com.datastax.cassandra:cassandra-driver-core:[2.1.2,3.0.0-beta1)'
+}
+
+test {
+    onlyIf {
+        // test is incompatible with version of java greater than 1.8
+        project.hasProperty('test7') || project.hasProperty("test8")
+    }
+}
+
+site {
+    title 'Cassandra'
+    type 'Datastore'
+}

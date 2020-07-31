@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="test1">
+	<instrumentation>
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.xml.XmlInstrumentOptions
+            </className>
+			<method>
+				<name>validateAndAddParameter</name>
+				<parameters>
+					<type>com.newrelic.agent.xml.XmlInstrumentParams
+                    </type>
+					<type>java.lang.String[] </type>
+					<type>java.lang.String </type>
+				</parameters>
+			</method>
+		</pointcut>
+
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.xml.XmlInstrumentOptions
+            </className>
+			<method>
+				<name>getFlagName</name>
+				<parameters>
+				</parameters>
+			</method>
+			<method>
+				<name>isArgRequired</name>
+				<parameters>
+				</parameters>
+			</method>
+		</pointcut>
+
+		<!--  Hey, it's really not cool that this test matches agent classes that might change.  It'd be better to create a test class and use that -->
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.instrumentation.methodmatchers.ExactParamsMethodMatcher
+			</className>
+			<method>
+				<name>matches</name>
+				<parameters>
+				    <type>int</type>
+					<type>java.lang.String</type>
+					<type>java.lang.String</type>
+					<type>java.util.Set</type>
+				</parameters>
+			</method>
+			<method>
+				<name>createExactParamsMethodMatcher  </name>
+				<parameters>
+					<type>java.lang.String   </type>
+					<type> java.lang.String
+					</type>
+				</parameters>
+			</method>
+		</pointcut>
+	</instrumentation>
+</extension>

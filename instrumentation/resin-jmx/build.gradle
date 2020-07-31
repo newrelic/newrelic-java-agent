@@ -1,0 +1,13 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.caucho:resin:4.0.62")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.resin-jmx', 
+    'Implementation-Title-Alias': 'resin_instrumentation'}
+}
+
+verifyInstrumentation {
+    passesOnly('com.caucho:resin:[3.0.10,)')
+}

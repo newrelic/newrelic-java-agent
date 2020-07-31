@@ -1,0 +1,40 @@
+apply plugin: 'scala'
+
+compileJava.options.bootstrapClasspath = null
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation("org.scala-lang:scala-library:2.11.12")
+    implementation("com.typesafe.play:play-ws_2.11:2.6.0")
+    testImplementation("com.typesafe.play:play-ahc-ws_2.11:2.6.0")
+    testImplementation("com.typesafe.play:play-ahc-ws-standalone_2.11:1.1.2")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.play-ws-2.6.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'com.typesafe.play:play-ws_2.12:[2.6.0,)'
+    passesOnly 'com.typesafe.play:play-ws_2.11:[2.6.0,)'
+
+    excludeRegex '.*-RC[0-9]*'
+}
+
+test {
+    executable = jdk8 + '/bin/java'
+}
+
+site {
+    title 'Play WS'
+    type 'Messaging'
+}

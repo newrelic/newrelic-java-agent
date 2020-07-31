@@ -1,0 +1,14 @@
+
+version = 1.0
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(':functional_test:weave_test_impl'))
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Weave Test', 'Implementation-Version': project.version
+    }
+}

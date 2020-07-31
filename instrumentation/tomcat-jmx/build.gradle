@@ -1,0 +1,17 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.tomcat:tomcat-catalina:7.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.tomcat-jmx' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.tomcat:tomcat-catalina:[7.0.0,)'
+}
+
+site {
+    title 'Apache Tomcat'
+    type 'Appserver'
+}

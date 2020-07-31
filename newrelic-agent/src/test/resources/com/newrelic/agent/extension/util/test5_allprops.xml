@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test5"
+	version="4.55" isEnabled="true">
+	<urn:instrumentation metricPrefix="NOT_CUSTOM">
+		<urn:pointcut transactionStartPoint="false"
+			metricNameFormat="hello" skipTransactionTrace="true"
+			ignoreTransaction="true">
+			<urn:className>com.newrelic.HelloApp</urn:className>
+			<urn:method>
+				<urn:name>run</urn:name>
+				<urn:parameters>
+					<urn:type>java.util.List
+					</urn:type>
+					<urn:type>int
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>theMethod</urn:name>
+				<urn:parameters>
+					<urn:type>float</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+	</urn:instrumentation>
+</urn:extension>

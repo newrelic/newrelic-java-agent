@@ -1,0 +1,18 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.hibernate:hibernate-core:4.2.0.Final")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.hibernate-4.2' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.hibernate:hibernate-core:[4.2.0.CR2,4.3.0.CR1)'
+}
+
+site {
+    title 'Hibernate'
+    type 'Framework'
+}

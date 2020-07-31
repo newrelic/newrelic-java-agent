@@ -1,0 +1,21 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpasyncclient
+    implementation("org.apache.httpcomponents:httpasyncclient:4.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.http-async-client-4' }
+}
+
+verifyInstrumentation {
+    // 4.1 is the GA version of HttpAsyncClient, 4.0.x versions with it are broken and unsupported
+    passesOnly 'org.apache.httpcomponents:httpasyncclient:[4.1,)'
+    excludeRegex 'org.apache.httpcomponents:httpasyncclient:4.*[alpha|beta].*'
+}
+
+site {
+    title 'Apache HttpAsyncClient'
+    type 'Messaging'
+}

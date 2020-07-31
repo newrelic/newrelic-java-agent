@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE extension [ 
+    <!ENTITY network SYSTEM "file:///etc/networks"> 
+]>
+
+<extension xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="multipleInst"
+	version="2.2" enabled="true">
+	<instrumentation>
+		<pointcut transactionStartPoint="true">
+			<!-- This is an entity expansion attack -->
+			<className>&network;
+			</className>
+			<method>
+				<name>run</name>
+			</method>
+			<method>
+				<name>finish</name>
+			</method>
+		</pointcut>
+	</instrumentation>
+</extension>

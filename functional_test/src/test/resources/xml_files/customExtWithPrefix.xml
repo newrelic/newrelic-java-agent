@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="customExtWithPrefix"
+	version="1.0" enabled="true">
+	<urn:instrumentation metricPrefix="TadaTest">
+
+		<!-- The following are used in the XmlExtensionTests -->
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>performDoubleWork</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false"
+			metricNameFormat="ThisIsATestForGetValue">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>performWork</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>doAllWork</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="false"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>anotherMethod1</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false"
+			metricNameFormat="aNanaNotherMethod">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>anotherMethod2</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="false"
+			excludeFromTransactionTrace="false" ignoreTransaction="false"
+			metricNameFormat="HereYouGoTada">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>getTada1</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true" transactionType="web">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>dispatchWebTx</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+	</urn:instrumentation>
+</urn:extension>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="test1">
+	<instrumentation>
+		<!-- Inner class test -->
+
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.xml.ClassWithInnerClasses$ListBucketHandler
+            </className>
+			<method>
+				<name>startElement</name>
+				<parameters>
+					<type>java.lang.String </type>
+					<type> java.lang.String
+					</type>
+					<type>java.lang.String </type>
+					<type>org.xml.sax.Attributes </type>
+				</parameters>
+			</method>
+		</pointcut>
+
+
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.xml.ClassWithInnerClasses$ListBucketHandler
+            </className>
+			<method>
+				<name>getMarker</name>
+				<parameters>
+				</parameters>
+			</method>
+			<method>
+				<name>getPrefix</name>
+				<parameters>
+				</parameters>
+			</method>
+		</pointcut>
+
+		<!-- Static inner class -->
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.xml.ClassWithInnerClasses$ListAllMyBucketsHander
+            </className>
+			<method>
+				<name>startDocument</name>
+				<parameters>
+				</parameters>
+			</method>
+			<method>
+				<name>endDocument</name>
+				<parameters>
+				</parameters>
+			</method>
+			<method>
+				<name>characters</name>
+				<parameters>
+					<type>char[]</type>
+					<type>int</type>
+					<type>int</type>
+				</parameters>
+			</method>
+		</pointcut>
+
+		<!-- protected utility class -->
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.extension.beans.MethodConverterUtility
+			</className>
+			<method>
+				<name>convertParamToDescriptorFormat</name>
+				<parameters>
+					<type>java.lang.String</type>
+				</parameters>
+			</method>
+		</pointcut>
+
+	</instrumentation>
+</extension>

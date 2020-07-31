@@ -1,0 +1,132 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package com.newrelic.agent.bridge;
+
+import java.util.Map;
+
+import com.newrelic.api.agent.Request;
+import com.newrelic.api.agent.Response;
+
+class NoOpPublicApi implements PublicApi {
+
+    @Override
+    public void noticeError(Throwable throwable, Map<String, ?> params) {
+
+    }
+
+    @Override
+    public void noticeError(Throwable throwable) {
+
+    }
+
+    @Override
+    public void noticeError(String message, Map<String, ?> params) {
+
+    }
+
+    @Override
+    public void noticeError(String message) {
+
+    }
+
+    @Override
+    public void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
+
+    }
+
+    @Override
+    public void noticeError(Throwable throwable, boolean expected) {
+
+    }
+
+    @Override
+    public void noticeError(String message, Map<String, ?> params, boolean expected) {
+
+    }
+
+    @Override
+    public void noticeError(String message, boolean expected) {
+
+    }
+
+    @Override
+    public void addCustomParameter(String key, Number value) {
+
+    }
+
+    @Override
+    public void addCustomParameter(String key, String value) {
+
+    }
+
+    @Override
+    public void addCustomParameters(Map<String, Object> params) {
+
+    }
+
+    @Override
+    public void setTransactionName(String category, String name) {
+
+    }
+
+    @Override
+    public void ignoreTransaction() {
+
+    }
+
+    @Override
+    public void ignoreApdex() {
+
+    }
+
+    @Override
+    public void setRequestAndResponse(Request request, Response response) {
+
+    }
+
+    @Override
+    public String getBrowserTimingHeader() {
+
+        return "";
+    }
+
+    @Override
+    public String getBrowserTimingFooter() {
+
+        return "";
+    }
+
+    @Override
+    public void setUserName(String name) {
+
+    }
+
+    @Override
+    public void setAccountName(String name) {
+
+    }
+
+    @Override
+    public void setProductName(String name) {
+
+    }
+
+    @Override
+    public void setAppServerPort(int port) {
+
+    }
+
+    @Override public void setServerInfo(String dispatcherName, String version) {
+
+    }
+
+    @Override public void setInstanceName(String instanceName) {
+
+    }
+
+}

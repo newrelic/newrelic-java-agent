@@ -1,0 +1,108 @@
+non_ignore_error_test:
+
+  error_collector:
+    ignore_classes:
+      -
+        class_name: "test.newrelic.test.agent.HelpMe"
+
+
+ignore_error_test:
+
+  apdex_t: 0.5
+
+  error_collector:
+    ignore_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+
+
+ignore_error_bad_message_test:
+
+  error_collector:
+    ignore_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+        message: "wrong"
+
+
+ignore_error_good_message_test:
+
+  error_collector:
+    ignore_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+        message: "right"
+
+    ignore_status_codes: "450-475,520"
+
+
+non_ignore_status_code_test:
+
+  error_collector:
+    ignore_status_codes: 421
+
+
+ignore_status_code_test:
+
+  error_collector:
+    ignore_status_codes: 420
+
+
+ignore_status_code_range_test:
+
+  error_collector:
+    ignore_status_codes: "420-666"
+
+
+ignore_and_ignored_test:
+
+  error_collector:
+    ignore_errors:
+      "test.newrelic.test.agent.ExpectedError"
+
+  ignore_classes:
+    -
+      class_name: "test.newrelic.test.agent.ExpectedError"
+
+ignore_classes_fallback_test:
+
+  error_collector:
+    ignore_classes:
+      - "test.newrelic.test.agent.ExpectedError"
+      - "test.newrelic.test.agent.IgnoredError"
+
+ignore_messages_fallback_test:
+
+  error_collector:
+    ignore_messages:
+      test.newrelic.test.agent.ExpectedError:
+        - "message 1"
+        - "message 2"
+      test.newrelic.test.agent.IgnoredError:
+        - "ignore"
+
+ignore_class_messages_fallback_test:
+
+  error_collector:
+    ignore_classes:
+      - "test.newrelic.test.agent.IgnoredError"
+    ignore_messages:
+      test.newrelic.test.agent.ExpectedError:
+        - "message 1"
+        - "message 2"
+      test.newrelic.test.agent.IgnoredError:
+        - "ignore"
+
+ignore_superclass_messages_test:
+
+  error_collector:
+    ignore_messages:
+      java.lang.Exception:
+      - "ignore"
+
+ignore_interface_messages_test:
+
+  error_collector:
+    ignore_messages:
+      test.newrelic.test.agent.IgnoredErrorInterface:
+      - "ignore"

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test1">
+	<urn:instrumentation>
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>test.network.TestViewer</urn:className>
+			<urn:className>test.network.APICaller</urn:className>
+			<urn:className>com.read.set.Go</urn:className>
+			<urn:method>
+				<urn:name>run</urn:name>
+				<urn:parameters>
+					<urn:type>java.util.List[][]
+					</urn:type>
+					<urn:type>double
+                    </urn:type>
+					<urn:type>int
+					</urn:type>
+
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>timer</urn:name>
+				<urn:parameters>
+				<urn:type>java.util.List&lt;java.util.String&gt;
+				</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>noParamMethod</urn:name>
+				<urn:parameters></urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+	</urn:instrumentation>
+</urn:extension>

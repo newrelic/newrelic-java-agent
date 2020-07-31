@@ -1,0 +1,82 @@
+
+<script>
+	var messages = [];
+
+	function issueInHere(cmsId, previewSelector) {
+
+		var html = $.ajax({
+			timeout : 1000,
+		});
+
+		if ((html != undefined) && (html.responseText != undefined)) {
+			var doc = document.getElementById(name).contentWindow.document;
+			doc.open();
+			doc.write("<html><body><div id='theid'>" + html.responseText
+					+ "</div></body></html>");
+			doc.close();
+		} else {
+			var doc = document.getElementById(name).contentWindow.document;
+			doc.open();
+			doc.write("<html><body><div id='theid'>&nbsp;</div></body></html>");
+			doc.close();
+		}
+
+	}
+
+	function issueInThere(cmsId, previewSelector) {
+
+		var html = $.ajax({
+			timeout : 1000,
+		});
+
+		if ((html != undefined) && (html.responseText != undefined)) {
+			var doc = document.getElementById(name).contentWindow.document;
+			doc.open();
+			doc.write("<html><body><div id='theid'>" + html.responseText
+					+ "</div></body></html>");
+			doc.close();
+		} else {
+			var doc = document.getElementById(name).contentWindow.document;
+			doc.open();
+			doc.write("<html><body><div id='theid'>&nbsp;</div></body></html>");
+			doc.close();
+		}
+
+	}
+
+	function whereIsIssue(cmsId, previewSelector) {
+
+		var html = $.ajax({
+			timeout : 1000,
+		});
+
+		if ((html != undefined) && (html.responseText != undefined)) {
+			var doc = document.getElementById(name).contentWindow.document;
+			doc.open();
+			doc.write("<html><body><div id='theid'>" + html.responseText
+					+ "</div></body></html>");
+			doc.close();
+		} else {
+			var doc = document.getElementById(name).contentWindow.document;
+			doc.open();
+			doc.write("<html><body><div id='theid'>&nbsp;</div></body></html>");
+			doc.close();
+		}
+
+	}
+</script>
+
+<div class="css-stuff">
+	<div class="title bla">Messages</div>
+	<div class="subtitle bla">Message Here</div>
+</div>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>EXPECTED_RUM_HEADER_LOCATION
+</head>
+<body>EXPECTED_RUM_FOOTER_LOCATION
+</body>
+</html>

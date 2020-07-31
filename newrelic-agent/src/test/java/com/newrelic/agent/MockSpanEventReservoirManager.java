@@ -1,0 +1,78 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package com.newrelic.agent;
+
+import com.google.common.collect.ComparisonChain;
+import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.SpanEventsConfig;
+import com.newrelic.agent.interfaces.ReservoirManager;
+import com.newrelic.agent.interfaces.SamplingPriorityQueue;
+import com.newrelic.agent.model.SpanEvent;
+import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
+import com.newrelic.api.agent.Logger;
+
+import java.util.Comparator;
+
+public class MockSpanEventReservoirManager implements ReservoirManager<SpanEvent> {
+    private final ConfigService configService;
+    private SamplingPriorityQueue<SpanEvent> reservoir;
+    private volatile int maxSamplesStored;
+
+    public MockSpanEventReservoirManager(ConfigService configService) {
+        this.configService = configService;
+        this.maxSamplesStored = configService.getDefaultAgentConfig().getSpanEventsConfig().getMaxSamplesStored();
+    }
+
+    @Override
+    public SamplingPriorityQueue<SpanEvent> getOrCreateReservoir() {
+        if (reservoir == null) {
+            reservoir = createDistributedSamplingReservoir(0);
+        }
+        return reservoir;
+    }
+
+    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(int decidedLast) {
+        String appName = configService.getDefaultAgentConfig().getApplicationName();
+        SpanEventsConfig spanEventsConfig = configService.getDefaultAgentConfig().getSpanEventsConfig();
+        int target = spanEventsConfig.getTargetSamplesStored();
+        return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, decidedLast, target, SPAN_EVENT_COMPARATOR);
+    }
+
+
+    @Override
+    public void clearReservoir() {
+        getOrCreateReservoir().clear();
+    }
+
+    @Override
+    public HarvestResult attemptToSendReservoir(String appName, EventSender<SpanEvent> eventSender, Logger logger) {
+        return null;
+    }
+
+    @Override
+    public int getMaxSamplesStored() {
+        return maxSamplesStored;
+    }
+
+    @Override
+    public void setMaxSamplesStored(int newMax) {
+        this.maxSamplesStored = newMax;
+        this.reservoir = createDistributedSamplingReservoir(0);
+    }
+
+    // This is where you can add secondary sorting for Span Events
+    private static final Comparator<SpanEvent> SPAN_EVENT_COMPARATOR = new Comparator<SpanEvent>() {
+        @Override
+        public int compare(SpanEvent left, SpanEvent right) {
+            return ComparisonChain.start()
+                    .compare(right.getPriority(), left.getPriority()) // Take highest priority first
+                    .result();
+        }
+    };
+
+}

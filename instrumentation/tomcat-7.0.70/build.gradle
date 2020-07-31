@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:7.0.70")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.tomcat-7.0.70' }
+}
+
+// This module matches 7.0.70 - 7.0.*  and  8.0.35 - 8.0.*   due to how tomcat backports fixes
+verifyInstrumentation {
+    passesOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0.70,8.0.0-RC1)'
+    passesOnly 'org.apache.tomcat.embed:tomcat-embed-core:[8.0.35,8.5.0)'
+}
+
+site {
+    title 'Apache Tomcat'
+    type 'Appserver'
+}

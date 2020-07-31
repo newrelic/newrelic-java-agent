@@ -1,0 +1,26 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-api"))
+    implementation("org.glassfish.jersey.core:jersey-client:2.26")
+    testImplementation("org.glassfish.jersey.inject:jersey-hk2:2.26")
+    testImplementation("org.glassfish.jersey.core:jersey-common:2.26")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jersey-client-2.26' }
+}
+
+verifyInstrumentation {
+    passesOnly('org.glassfish.jersey.core:jersey-client:[2.26-b04,3.0.0-M1)')
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Jersey Client'
+    type 'Framework'
+}

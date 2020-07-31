@@ -1,0 +1,50 @@
+apply plugin: 'scala'
+
+repositories {
+    maven {
+        url 'https://dl.bintray.com/typesafe/maven-releases/'
+    }
+}
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation("org.scala-lang:scala-library:2.10.7")
+    implementation("com.typesafe.play:anorm_2.10:2.4.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.anorm-2.4' }
+}
+
+/*
+ * This list is derived from the versions available in:
+ *   http://dl.bintray.com/typesafe/maven-releases/com/typesafe/play/anorm_2.10/
+ *   http://dl.bintray.com/typesafe/maven-releases/com/typesafe/play/anorm_2.11/
+ *
+ * We need to support as many as we can, but generally we want to focus only on
+ * releases, not point builds.
+ */
+verifyInstrumentation {
+    // compiled with scala 2.10
+    passes 'com.typesafe.play:anorm_2.10:[2.4.0-RC1,2.5)'
+    // 2.4.0-M2 drops the third parameter (a boolean) from the compiled asTry[T] method, which seems to be
+    // a temporary change, or a bug in the 2.10 compiler?
+    exclude 'com.typesafe.play:anorm_2.10:2.4.0-M2'
+    // We don't care about nightly pre-release builds.
+    excludeRegex 'com.typesafe.play:anorm_2.10:2.4-2014-.*'
+
+    // compiled with scala 2.11
+    passes 'com.typesafe.play:anorm_2.11:[2.4.0-M1,2.5)'
+    exclude 'com.typesafe.play:anorm_2.11:2.4.0-M2'
+    // We don't care about nightly pre-release builds.
+    excludeRegex 'com.typesafe.play:anorm_2.11:2.4-2014-.*'
+
+}
+
+site {
+    title 'Anorm'
+    type 'Datastore'
+}

@@ -1,0 +1,28 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.amazonaws:aws-java-sdk-sns:1.11.676")
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+}
+compileJava.options.bootstrapClasspath = null
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-sns'
+    }
+}
+
+verifyInstrumentation {
+    // We verified that this also passes at aws-java-sdk version 1.11.12
+    passes 'com.amazonaws:aws-java-sdk-sns:[1.11.12,)'
+}
+
+site {
+    title 'AWS SNS'
+    type 'Messaging'
+}

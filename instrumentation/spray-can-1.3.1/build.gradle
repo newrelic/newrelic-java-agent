@@ -1,0 +1,26 @@
+apply plugin: 'scala'
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spray-can-1.3.1' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.scala-lang:scala-library:2.10.7")
+    implementation("io.spray:spray-can_2.10:1.3.3")
+    implementation("com.typesafe.akka:akka-actor_2.10:2.3.14")
+}
+
+verifyInstrumentation {
+    passesOnly('io.spray:spray-can_2.11:[1.3.1,)'){
+        compile("com.typesafe.akka:akka-actor_2.11:2.3.14")
+    }
+    passesOnly('io.spray:spray-can_2.10:[1.3.1,)'){
+        compile("com.typesafe.akka:akka-actor_2.10:2.3.14")
+    }
+}
+
+site {
+    title 'Spray-can'
+    type 'Messaging'
+}

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="CustomExtensionTest"
+	version="1.0" enabled="true">
+	<urn:instrumentation>
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>test.CustomExtensionTest$1</urn:className>
+			<urn:method>
+				<urn:name>run</urn:name>
+				<urn:parameters></urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+		<urn:pointcut>
+			<urn:className>test.AbstractCustomExtensionTest</urn:className>
+			<urn:method>
+				<urn:name>abstractTest1</urn:name>
+				<urn:parameters></urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>abstractTest2</urn:name>
+				<urn:parameters></urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+		<urn:pointcut>
+			<urn:className>test.CustomExtensionTest</urn:className>
+			<urn:method>
+				<urn:name>test2</urn:name>
+				<urn:parameters>
+					<urn:type attributeName="stringParam">java.lang.String
+					</urn:type>
+					<urn:type attributeName="longParam">long
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>test4</urn:name>
+				<urn:parameters></urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>abstractTest1</urn:name>
+				<urn:parameters></urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+	</urn:instrumentation>
+</urn:extension>

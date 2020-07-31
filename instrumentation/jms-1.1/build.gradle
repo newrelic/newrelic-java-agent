@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("javax.jms:jms-api:1.1-rev-1")
+
+    testImplementation("org.apache.activemq:activemq-broker:5.8.0")
+    testImplementation("org.hornetq:hornetq-core-client:2.3.0.Final")
+    testImplementation("org.hornetq:hornetq-jms-client:2.3.0.Final")
+    testImplementation("org.hornetq:hornetq-jms-server:2.3.0.Final") {
+        exclude(group: "org.jboss.naming", module: "jnpserver")
+    }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jms-1.1' }
+}
+
+site {
+    title 'JMS'
+    type 'Messaging'
+    versionOverride '[1.1,)'
+}

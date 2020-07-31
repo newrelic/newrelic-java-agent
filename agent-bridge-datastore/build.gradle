@@ -1,0 +1,7 @@
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":agent-bridge"))
+
+    testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
+}

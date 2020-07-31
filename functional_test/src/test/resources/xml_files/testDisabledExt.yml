@@ -1,0 +1,15 @@
+name: TestYml2
+version: 1.0
+enabled: false
+
+instrumentation:
+  pointcuts:  
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ run()V ]
+      dispatcher: true
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ goToSleep()V ]
+      dispatcher: true
+      metric_name_format: ThisIsATestForSleeping

@@ -1,0 +1,99 @@
+non_expected_error_test:
+
+  error_collector:
+    expected_classes:
+      -
+        class_name: "test.newrelic.test.agent.HelpMe"
+
+
+expected_error_test:
+
+  apdex_t: 0.5
+
+  error_collector:
+    expected_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+
+
+expected_error_bad_message_test:
+
+  error_collector:
+    expected_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+        message: "wrong"
+    ignore_classes:
+      -
+        class_name: "test.newrelic.test.agent.IgnoreError"
+
+expected_error_good_message_test:
+
+  error_collector:
+    expected_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+        message: "right"
+
+    expected_status_codes: "450-475,520"
+
+
+non_expected_status_code_test:
+
+  error_collector:
+    expected_status_codes: 421
+
+
+expected_status_code_test:
+
+  error_collector:
+    expected_status_codes: 420
+
+
+expected_status_code_range_test:
+
+  error_collector:
+    expected_status_codes: "420-666"
+
+
+expected_and_ignored_test:
+
+  error_collector:
+    ignore_errors:
+      "test.newrelic.test.agent.ExpectedError"
+
+    expected_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+
+
+expected_classes_fallback_test:
+
+  error_collector:
+    expected_classes:
+      - "test.newrelic.test.agent.ExpectedError"
+      - "test.newrelic.test.agent.IgnoredError"
+
+expected_messages_fallback_test:
+
+  error_collector:
+    expected_messages:
+      test.newrelic.test.agent.ExpectedError:
+        - "expected"
+      test.newrelic.test.agent.IgnoredError:
+        - "message 1"
+        - "message 2"
+
+expected_class_messages_fallback_test:
+
+  error_collector:
+    expected_classes:
+      -
+        "test.newrelic.test.agent.ExpectedError"
+    expected_messages:
+      test.newrelic.test.agent.ExpectedError:
+        - "message 1"
+        - "message 2"
+    ignore_messages:
+      test.newrelic.test.agent.IgnoredError:
+        - "ignore 1"

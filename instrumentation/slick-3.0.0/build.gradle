@@ -1,0 +1,35 @@
+apply plugin: 'scala'
+
+dependencies {
+  implementation(project(":newrelic-api"))
+  implementation(project(":agent-bridge"))
+  implementation(project(":newrelic-weaver-api"))
+  implementation(project(":newrelic-weaver-scala-api"))
+  implementation("org.scala-lang:scala-library:2.10.7")
+  implementation("com.typesafe.slick:slick_2.10:3.0.0")
+
+  testImplementation("com.h2database:h2:1.4.190")
+  testImplementation(project(":instrumentation:jdbc-h2")){ transitive = false }
+  testImplementation(project(":instrumentation:jdbc-generic")){ transitive = false }
+}
+
+jar {
+  manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.slick-3.0.0' }
+}
+
+verifyInstrumentation {
+  passesOnly 'com.typesafe.slick:slick_2.10:[3.0.0,)'
+  exclude 'com.typesafe.slick:slick_2.10:3.0.0-RC1'
+  exclude 'com.typesafe.slick:slick_2.10:3.0.0-RC2'
+  exclude 'com.typesafe.slick:slick_2.10:3.0.0-RC3'
+
+  passesOnly 'com.typesafe.slick:slick_2.11:[3.0.0,3.2.0-M2)'
+  exclude 'com.typesafe.slick:slick_2.11:3.0.0-RC1'
+  exclude 'com.typesafe.slick:slick_2.11:3.0.0-RC2'
+  exclude 'com.typesafe.slick:slick_2.11:3.0.0-RC3'
+}
+
+site {
+    title 'Slick'
+    type 'Datastore'
+}

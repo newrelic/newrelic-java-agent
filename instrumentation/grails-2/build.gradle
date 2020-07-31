@@ -1,0 +1,25 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.grails:grails-web:2.2.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.grails-2' }
+}
+
+verifyInstrumentation {
+    excludeRegex '.*.RC[0-9]'
+    excludeRegex '.*.M[0-9]'
+    passesOnly('org.grails:grails-web:[2.0,3.0.0.RC1)'){
+      compile("org.codehaus.groovy:groovy-all:2.0.5")
+    }
+
+    // Version 1.2-M2 has an invalid POM file.  It is missing Spring dependencies.  Exclude from verification.
+    exclude 'org.grails:grails-web:1.2-M2'
+}
+
+site {
+    title 'Grails'
+    type 'Framework'
+}

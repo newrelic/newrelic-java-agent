@@ -1,0 +1,27 @@
+common: &default_settings
+  transaction_naming_scheme: resource_based
+  transaction_tracer:
+    enabled: true
+    explain_enabled: false
+    explain_threshold: 0.6
+    transaction_threshold: 0.006
+    record_sql: "off"
+    stack_trace_threshold: 0.6
+    log_sql: true
+  error_collector:
+    enabled: false
+    collect_error_events: false
+    ignore_status_codes: [405]
+  trusted_account_ids: [12345]
+  error_beacon: some_beacon
+  apdex_t: 0.6
+  custom_insights_events:
+    collect_custom_events: false
+  thread_profiler:
+    enabled: false
+  slow_sql:
+    enabled: false
+  agent_enabled: false
+  attributes:
+    enabled: true
+    include: message.parameters.*, some.other.parameter, message.parameters.newrelic, message

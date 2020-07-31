@@ -1,0 +1,11 @@
+
+
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation("org.eclipse.jetty:jetty-servlet:9.0.3.v20130506")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jetty-servlet-9' }
+}

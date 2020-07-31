@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.ning:async-http-client:1.9.30")
+    testImplementation("org.nanohttpd:nanohttpd-websocket:2.2.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.ning-async-http-client-1.6.1' }
+}
+
+verifyInstrumentation {
+    passesOnly 'com.ning:async-http-client:[1.6.1,2.0.0)'
+    excludeRegex ".*1.9.0-BETA.*"
+}
+
+site {
+    title 'Ning AsyncHttpClient'
+    type 'Messaging'
+}

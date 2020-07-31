@@ -1,0 +1,41 @@
+name: Solr
+version: 1.0
+enabled: true
+
+jmx:
+  - object_name: solr*:type=queryResultCache,*
+    metrics:
+      - attributes: lookups, hits, inserts, evictions, cumulative_lookups, cumulative_hits, cumulative_inserts, cumulative_evictions
+        type: monotonically_increasing
+      - attributes: hitratio, size, cumulative_hitratio
+
+  - object_name: solr*:type=filterCache,*
+    metrics:
+      - attributes: lookups, hits, inserts, evictions, cumulative_lookups, cumulative_hits, cumulative_inserts, cumulative_evictions
+      - attributes: hitratio, size, cumulative_hitratio
+        type: simple
+
+  - object_name: solr*:type=documentCache,*
+    metrics:
+
+  - object_name: solr*:type==empty,*
+
+  - object_name: solr*:type=updateHandler,*
+    metrics:
+      - attribute: docsPending
+        type: simple
+      - attributes: expungeDeletes, rollbacks, optimizes, autocommits, commits, errors, adds, deletesById, deletesByQuery
+      - attributes: cumulative_adds, cumulative_deletesById, cumulative_deletesByQuery, cumulative_errors
+      
+  - object_name: solr*:type=yay
+    enabled: false
+    metrics:
+      - attributes: hitratio, size, cumulative_hitratio
+        type: simple
+        
+  - object_name: solr*:type=rara
+    enabled: true
+    metrics:
+      - attributes: hitratio, size, cumulative_hitratio
+        type: simple
+      

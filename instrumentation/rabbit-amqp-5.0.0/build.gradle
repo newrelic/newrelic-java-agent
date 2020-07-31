@@ -1,0 +1,35 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.rabbitmq:amqp-client:5.0.0")
+
+    testImplementation("io.arivera.oss:embedded-rabbitmq:1.4.0")
+    testImplementation("org.slf4j:slf4j-simple:1.7.30")
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.rabbit-amqp-5.0.0' }
+}
+
+verifyInstrumentation {
+    excludeRegex '.*.RC[0-9]'
+    passesOnly 'com.rabbitmq:amqp-client:[5.0.0,)'
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'RabbitAMQP'
+    type 'Messaging'
+}

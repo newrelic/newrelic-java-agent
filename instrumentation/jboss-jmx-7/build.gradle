@@ -1,0 +1,15 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation("org.jboss.modules:jboss-modules:1.0.0.GA")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jboss-jmx-7', 
+    'Implementation-Title-Alias': 'jboss_instrumentation'}
+}
+
+verifyInstrumentation {
+    passes('org.jboss.modules:jboss-modules:[0,)')
+    excludeRegex(".*Beta.*")
+}

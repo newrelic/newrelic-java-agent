@@ -1,0 +1,18 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.openejb:openejb-core:3.1.4")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.openejb-3.0' }
+}
+
+verifyInstrumentation {
+    passes 'org.apache.openejb:openejb-core:[3.0,)'
+}
+
+site {
+    title 'OpenEJB'
+    type 'Other'
+}

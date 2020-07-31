@@ -1,0 +1,102 @@
+[
+	{"testname" : "Single thread background 1",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "rootTracer", "start": 0, "duration" : 10},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 2, "duration" : 3},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 7, "duration" : 1}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/rootTracer", "OtherTransaction/Java/java.lang.Object/rootTracer", 1, 10, 6, 6],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/rootTracer", 1, 3, 3, 3],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/rootTracer", 1, 1, 1, 1]
+	  ],
+  	 "transaction_event" : {"duration": 10, "total_time" : 10}
+	},
+	{"testname" : "Single thread background 2",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "rootTracer", "start": 0, "duration" : 10},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 2, "duration" : 8},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 5, "duration" : 2}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/rootTracer", "OtherTransaction/Java/java.lang.Object/rootTracer", 1, 10, 2, 2],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/rootTracer", 1, 8, 6, 6],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/rootTracer", 1, 2, 2, 2]
+	  ],
+  	 "transaction_event" : {"duration": 10, "total_time" : 10}
+	},
+	{"testname" : "Single web thread",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "rootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 2, "duration" : 8},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 5, "duration" : 2}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/rootTracer", "WebTransaction/Uri/Unknown", 1, 10, 2, 2],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 8, 6, 6],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 2, 2, 2]
+	  ],
+  	 "transaction_event" : {"duration": 10, "total_time" : 10}
+	},
+	{"testname" : "Single web thread - end early",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "rootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB",  "lastByte": 7}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/rootTracer", "WebTransaction/Uri/Unknown", 1, 10, 10, 7]
+	  ]
+	},
+	{"testname" : "Single web thread - end tx nested",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "rootTracer", "start": 0, "duration" : 12, "tracer_type" : "WEB"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 2, "duration" : 8, "lastByte" : 9},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 4, "duration" : 3},
+	     { "async_unit": "asyncwork1", "name" : "t3", "start": 5, "duration" : 2},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/rootTracer", "WebTransaction/Uri/Unknown", 1, 12, 4, 2],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 8, 5, 4],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 3, 1, 1],
+	      ["Java/java.lang.Object/t3", "WebTransaction/Uri/Unknown", 1, 2, 2, 2]
+	  ],
+  	 "transaction_event" : {"duration": 12, "total_time" : 12, "ttlb":9}
+	},
+	{"testname" : "Single web thread - end tx more nested",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "rootTracer", "start": 0, "duration" : 12, "tracer_type" : "WEB"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 2, "duration" : 8},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 4, "duration" : 3},
+	     { "async_unit": "asyncwork1", "name" : "t3", "start": 5, "duration" : 2, "firstByte" : 6},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/rootTracer", "WebTransaction/Uri/Unknown", 1, 12, 4, 2],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 8, 5, 2],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 3, 1, 1],
+	      ["Java/java.lang.Object/t3", "WebTransaction/Uri/Unknown", 1, 2, 2, 1]
+	  ],
+  	 "transaction_event" : {"duration": 12, "total_time" : 12, "ttfb": 6}
+	},
+	{"testname" : "Single web thread - some tracers not in critical path",
+     "tracers" : [
+      { "async_unit": "asyncwork1", "name" : "rootTracer", "start": 0, "duration" : 12, "tracer_type" : "WEB"},
+      { "async_unit": "asyncwork1", "name" : "t1", "start": 2, "duration" : 8, "firstByte" : 3},
+      { "async_unit": "asyncwork1", "name" : "t2", "start": 4, "duration" : 3},
+      { "async_unit": "asyncwork1", "name" : "t3", "start": 5, "duration" : 2},
+    ],
+      "scoped_metric_solution" : [
+        ["Java/java.lang.Object/rootTracer", "WebTransaction/Uri/Unknown", 1, 12, 4, 2],
+        ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 8, 5, 1],
+        ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 3, 1, 0],
+        ["Java/java.lang.Object/t3", "WebTransaction/Uri/Unknown", 1, 2, 2, 0]
+  	],     
+  	"unscoped_metric_solution" : [
+        ["WebTransaction", "", 1, 12, 12, 0],
+        ["WebTransaction/Uri/Unknown", "", 1, 12, 12, 0],
+        ["WebTransactionTotalTime", "", 1, 12, 12, 0],
+        ["WebTransactionTotalTime/Uri/Unknown", "", 1, 12, 12, 0],
+        ["HttpDispatcher", "", 1, 12, 12, 0]
+  	],
+  	 "transaction_event" : {"duration": 12, "total_time" : 12, "ttfb": 3}
+  }
+	
+]

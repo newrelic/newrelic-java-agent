@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test2"
+	version="2.2" enabled="false">
+	<urn:instrumentation metricPrefix="special">
+		<urn:pointcut transactionStartPoint="true"
+			metricNameFormat="/Hello" excludeFromTransactionTrace="true"
+			leaf="true" ignoreTransaction="false">
+			<urn:className> test.CustomExampleTest$1</urn:className>
+			<urn:method>
+				<urn:name>run</urn:name>
+				<urn:parameters>
+					<urn:type>java.lang.String
+					</urn:type>
+					<urn:type>java.lang.String[]
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>finish</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="false"
+			metricNameFormat="/Yikes/End" excludeFromTransactionTrace="false"
+			leaf="false" ignoreTransaction="true">
+			<urn:className>com.sample.Validator</urn:className>
+			<urn:method>
+				<urn:name>runner</urn:name>
+				<urn:parameters>
+					<urn:type>int
+					</urn:type>
+					<urn:type>java.util.List  </urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>startup   </urn:name>
+				<urn:parameters>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+	</urn:instrumentation>
+</urn:extension>

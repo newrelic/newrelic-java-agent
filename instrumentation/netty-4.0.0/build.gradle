@@ -1,0 +1,18 @@
+dependencies {
+  implementation(project(":agent-bridge"))
+  implementation("io.netty:netty-all:4.0.0.Final")
+}
+
+jar {
+  manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.netty-4.0.0',
+          'Implementation-Title-Alias': 'netty_instrumentation' }
+}
+
+verifyInstrumentation {
+  passesOnly 'io.netty:netty-all:[4.0.0.Final,4.0.8.Final)'
+}
+
+site {
+    title 'Netty'
+    type 'Appserver'
+}

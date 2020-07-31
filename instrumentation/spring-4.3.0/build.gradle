@@ -1,0 +1,26 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework:spring-context:4.3.0.RELEASE")
+    implementation("org.springframework:spring-web:4.3.0.RELEASE")
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.31")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-4.3.0',
+            'Implementation-Title-Alias': 'spring_annotations' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.springframework:spring-web:[4.3.0.RELEASE,)'
+
+    excludeRegex 'org.springframework:spring-web:.*(RC|SEC|M)[0-9]*$'
+}
+
+site {
+    title 'Spring'
+    type 'Framework'
+}

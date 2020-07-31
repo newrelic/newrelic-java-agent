@@ -1,0 +1,38 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.vertx-core-3.4.1'
+    }
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileJava.options.bootstrapClasspath = null
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.vertx:vertx-core:3.4.1")
+    testImplementation("io.vertx:vertx-core:3.4.2")
+}
+
+verifyInstrumentation {
+    passesOnly 'io.vertx:vertx-web:[3.4.1,3.6.0)'
+    excludeRegex '.*CR[0-9]*'
+}
+
+test {
+    // instrumentation is incompatible with version of java less than 1.8
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Vertx'
+    type 'Framework'
+}

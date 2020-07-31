@@ -1,0 +1,19 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("javax:javaee-api:6.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.ejb-3.0' }
+}
+
+verifyInstrumentation {
+    excludeRegex '.*-RC[0-9]+$'
+    passesOnly 'javax:javaee-api:[6.0,)'
+}
+
+site {
+    title 'EJB'
+    type 'Framework'
+}

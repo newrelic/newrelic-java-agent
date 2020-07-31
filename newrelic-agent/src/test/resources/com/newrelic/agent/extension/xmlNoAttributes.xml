@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd ">
+	<urn:instrumentation>
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>com.newrelic.Conversion</urn:className>
+			<urn:method>
+				<urn:name>running</urn:name>
+				<urn:parameters></urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+		<urn:pointcut>
+			<urn:className>com.newrelic.Utility</urn:className>
+			<urn:method>
+				<urn:name>switchType</urn:name>
+				<urn:parameters>
+					<urn:type>int
+					</urn:type>
+					<urn:type>java.lang.String
+					</urn:type>
+					<urn:type>long
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>getVersionNumber</urn:name>
+				<urn:parameters>
+					<urn:type>java.lang.String
+					</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+	</urn:instrumentation>
+</urn:extension>

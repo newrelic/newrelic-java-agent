@@ -1,0 +1,21 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("javax.servlet:servlet-api:2.4")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.servlet-user', 'Enabled': 'false' }
+}
+
+verifyInstrumentation {
+
+    passesOnly 'javax.servlet:servlet-api:[2.3,)'
+
+    exclude 'javax.servlet:servlet-api:2.4.public_draft'
+}
+
+site {
+    title 'Servlet'
+    type 'Framework'
+}

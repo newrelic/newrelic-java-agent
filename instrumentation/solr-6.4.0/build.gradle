@@ -1,0 +1,35 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+
+    implementation("org.apache.lucene:lucene-core:6.4.0")
+
+    implementation("org.apache.solr:solr-core:6.4.0") {
+        transitive = false
+    }
+    implementation("org.apache.solr:solr-solrj:6.4.0") {
+        transitive = false
+    }
+    implementation("org.apache.httpcomponents:httpclient:4.3.1") {
+        transitive = false
+    }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.solr-6.4.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.solr:solr-core:[6.4.0,7.0.0)'
+
+    exclude 'org.apache.solr:solr-core:[0,1.4.0)'
+
+    excludeRegex 'org.apache.solr:solr-core:.*(ALPHA|BETA)+$'
+}
+
+site {
+    title 'Solr'
+    type 'Datastore'
+}

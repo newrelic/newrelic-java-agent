@@ -1,0 +1,36 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework:spring-webflux:5.0.0.RELEASE")
+    testImplementation("io.projectreactor.ipc:reactor-netty:0.7.9.RELEASE")
+
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileJava.options.bootstrapClasspath = null
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-webclient-5.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.springframework:spring-webflux:[5.0.0.RELEASE,)'
+    excludeRegex 'org.springframework:spring-webflux:.*(RC|SEC|M)[0-9]*$'
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Spring webclient'
+    type 'Messaging'
+}

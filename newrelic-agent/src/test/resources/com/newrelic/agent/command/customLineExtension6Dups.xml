@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test1">
+	<urn:instrumentation>
+
+		<!-- Duplicate point cut. -->
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>test.newrelic.test.agent.DelegatingPreparedStatement
+			</urn:className>
+			<urn:method>
+				<urn:name>setAsciiStream</urn:name>
+				<urn:parameters>
+					<urn:type>int</urn:type>
+					<urn:type>java.io.InputStream</urn:type>
+					<urn:type>long</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+
+		<!-- Duplicate point cut. -->
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>test.newrelic.test.agent.DelegatingPreparedStatement
+			</urn:className>
+			<urn:method>
+				<urn:name>setAsciiStream</urn:name>
+				<urn:parameters>
+					<urn:type>int</urn:type>
+					<urn:type>java.io.InputStream</urn:type>
+					<urn:type>long</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+
+	</urn:instrumentation>
+</urn:extension>

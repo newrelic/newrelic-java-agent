@@ -1,0 +1,12 @@
+name: Hibernate
+version: 1.0
+
+instrumentation:
+  metric_prefix: Hibernate
+  pointcuts:  
+    - class_matcher: 
+      - org/hibernate/transaction/CMTTransaction
+      - org/hibernate/transaction/JDBCTransaction
+      - org/hibernate/transaction/JTATransaction
+      method_matcher: [ commit()V, rollback()V ]
+    - org/hibernate/impl/SessionImpl.flush()V

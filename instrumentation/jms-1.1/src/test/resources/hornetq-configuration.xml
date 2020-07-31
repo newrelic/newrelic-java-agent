@@ -1,0 +1,20 @@
+<configuration xmlns="urn:hornetq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:hornetq ../schemas/hornetq-configuration.xsd ">
+    <acceptors>
+        <acceptor name="acceptor">
+            <factory-class>org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory</factory-class>
+        </acceptor>
+    </acceptors>
+    <connectors>
+        <connector name="connector">
+            <factory-class>org.hornetq.core.remoting.impl.netty.NettyConnectorFactory</factory-class>
+        </connector>
+    </connectors>
+    <journal-directory>build/hornetq/journal</journal-directory>
+    <large-messages-directory>build/hornetq/large-messages-directory</large-messages-directory>
+    <bindings-directory>build/hornetq/bindings</bindings-directory>
+    <paging-directory>build/hornetq/paging</paging-directory>
+    <persistence-enabled>false</persistence-enabled>
+    <security-enabled>false</security-enabled>
+</configuration>

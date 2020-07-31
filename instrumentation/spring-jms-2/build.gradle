@@ -1,0 +1,29 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("javax.jms:jms-api:1.1-rev-1")
+    implementation("org.springframework:spring-jms:2.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-jms-2' }
+}
+
+verifyInstrumentation {
+    // we'll verify against spring-jms 2.0 anyway, but we can't verify against the classpath (yet) because
+    // classpath verification adds jms-1.1 project to the classpath and the weaver doesn't allow redefining
+    // existing classes - it only allows weaving them - so these utility classes throw some API violations:
+    //   WeaveViolation{type=ILLEGAL_CLASS_NAME, clazz=com/nr/agent/instrumentation/jms11/JmsMetricUtil}
+    //   WeaveViolation{type=ILLEGAL_CLASS_NAME, clazz=com/nr/agent/instrumentation/jms11/InboundWrapper}
+    // ...I think this is desired, but we may want to revisit in the future.  for now set verifyClasspath=false
+    verifyClasspath = false
+    exclude    'org.springframework:spring-jms:3.2.0.BUILD'
+    // This is a bad artifact on artifactory
+    excludeRegex    'org.springframework:spring-jms:5.0.0.(RC)[0-9]*$'
+    passesOnly 'org.springframework:spring-jms:[0,)'
+}
+
+site {
+    title 'Spring JMS'
+    type 'Messaging'
+}

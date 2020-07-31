@@ -1,0 +1,15 @@
+name: Tomcat
+version: 1.0
+enabled: false
+
+jmx:
+  - object_name: Catalina:type=Manager,path=*,host=*
+    metrics:
+      - attribute: sessionCounter
+  - object_name: Catalina:type=DataSource,path=*,host=*,class=*,name=*
+    metrics:
+      - attributes: maxActive, maxIdle, numActive, numIdle
+        type: simple
+  - object_name: Catalina:type=JspMonitor,name=jsp,WebModule=*,J2EEApplication=*,J2EEServer=*
+    metrics:
+      - attributes: jspCount, jspReloadCount

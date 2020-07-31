@@ -1,0 +1,83 @@
+^com/newrelic/(weave|agent/deps|agent/tracers|org/apache)/.*
+^(org/objectweb/asm/|javax/xml/|org/apache/juli/)(.*)
+# Don't instrument agent threads
+^com/newrelic/agent/.*AgentThread.*
+.*ByCGLIB\$\$.*
+.*\$Proxy.*
+.*\$\$EnhancerByProxool\$\$.*
+.*\$\$EnhancerByGuice\$\$.*
+^weblogic/jdbc/wrapper/.*
+# java.lang.ClassCircularityError in JBoss
+^org/jboss/vfs/VFSUtils
+# Instrumentation of Spring security classes breaks webapps
+^org/springframework/security.*
+# AJP timeouts when Agent instruments JServ
+^org/apache/jserv.*
+# Instrumentation of AttribuesMap is breaking Jetty 9.  The specific error is that the Java 7 class verifier complains about the
+# instrumented bytecodes.
+^org/eclipse/jetty/util/AttributesMap
+# Instrumentation of WebSocketFrame is giving a verification error with Java 7. Currently we do not
+# provide any instrumentation for Web Sockets.
+^org/eclipse/jetty/websocket/common/WebSocketFrame
+# Don't instrument JDBC proxy or delegator classes since they provide no added value
+# Excluding these classes also allows us collect the correct host and port for instance level reporting
+^com/mchange/v2/c3p0/impl/NewProxyPreparedStatement.*
+^com/mchange/v2/c3p0/impl/NewProxyStatement.*
+^org/apache/tomcat/dbcp/dbcp/Delegating.*
+^org/apache/commons/dbcp/Delegating.*
+^oracle/jdbc/OracleConnectionWrapper.*
+## StatementProxy, PreparedStatementProxy, etc.
+^com/zaxxer/hikari/pool/.*Proxy.*
+^com/zaxxer/hikari/proxy.*
+## DelegatingStatement, DelegatingCallableStatement, DelegatingPreparedStatement
+^org.apache.commons.dbcp2.Delegating.*
+## PoolableCallable, PoolablePreparedStatement
+^org.apache.commons.dbcp2.Poolable.*
+## DelegatingPreparedStatement, DelegatingStatement
+^org.apache.commons.dbcp2.Delegating.*
+## StatementProxy, PreparedStatementProxy, CallableStatementProxy
+^com.jolbox.bonecp.proxy.*
+# exclude DataNucleus wrappers - see https://newrelic.zendesk.com/agent/tickets/257133
+^org/datanucleus/store/rdbms/.*PreparedStatement
+^org/datanucleus/store/rdbms/datasource/dbcp2/Delegating.*
+## StatementHandle, PreparedStatementHandle, CallableStatementHandle, Statement
+^com.jolbox.bonecp.*Handle
+## JBoss JDBC Wrappers https://newrelic.zendesk.com/agent/tickets/254533 (also 277981, 273545, JAVASUP-625, 353133)
+^org/jboss/jca/adapters/jdbc/.*(Wrapped|Wrapper|Cached).*
+## Exclude Wildfly datasource classes which were causing LinkageErrors: https://newrelic.zendesk.com/agent/tickets/281504
+^org/jboss/as/connector/subsystems/datasources/.*
+## JRunStatement, JRunPreparedStatement, JRunCallableStatement
+^coldfusion/server/j2ee/sql/JRun.*Statement
+## CFDataSource, CFDataSourceProxy
+^coldfusion/sql/CFDataSource.*
+# adding exclusions for obfuscated jar - see ticket 197106
+^asposewobfuscated/.*
+^com/aspose/words/.*
+# saxon xlst classes - see ticket 195949
+^net/sf/saxon.*
+# exclude java.security and sun.reflect classes from transformation
+^java/security/.*
+^sun/reflect/.*
+# exclude lambdas by excluding java.lang.invoke.* classes
+^java/lang/invoke/.*
+# exclude some internal netty classes that prevent transactions from finishing
+^io/netty/bootstrap/ServerBootstrap\$ServerBootstrapAcceptor.*
+^io/netty/channel/DefaultChannelPipeline\$HeadContext.*
+^io/netty/channel/DefaultChannelPipeline\$TailContext.*
+^io/netty/channel/DefaultChannelPipeline\$HeadHandler.*
+^io/netty/channel/DefaultChannelPipeline\$TailHandler.*
+^play/core/server/Server
+## Glassfish JDBC wrappers
+^com/sun/gjc/spi/.*
+# Spring JDBC datasource proxies
+^org/springframework/jdbc/datasource/TransactionAwareDataSourceProxy.*
+^org/springframework/jdbc/datasource/LazyConnectionDataSourceProxy.*
+^scalikejdbc/DBConnectionAttributesWiredPreparedStatement.*
+^sun/net/www/protocol/https/HttpsURLConnectionImpl.*
+# exclude to prevent deadlocks
+^sun/nio/cs/.*
+# instrumenting neo4j jdbc driver causes jvm crash
+^org/neo4j/jdbc/bolt/.*
+# These duplicate kafka serialize/deserialize metrics
+^org/apache/kafka/common/serialization/ExtendedSerializer\$Wrapper.*
+^org/apache/kafka/common/serialization/ExtendedDeserializer\$Wrapper.*

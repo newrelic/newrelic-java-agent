@@ -1,0 +1,24 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("commons-httpclient:commons-httpclient:3.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.httpclient-3.1' }
+}
+
+verifyInstrumentation {
+    excludeRegex '.*-atlassian-[0-9]'
+
+    // These are pulled from the mule repo, so we can exlcude them
+    excludeRegex '.*-jbossorg-[0-9]'
+    excludeRegex '.*-osgi'
+    excludeRegex '.*-jenkins.*'
+
+    passesOnly 'commons-httpclient:commons-httpclient:[3.1-rc1,3.1]'
+}
+
+site {
+    title 'Apache Httpclient'
+    type 'Messaging'
+}

@@ -1,0 +1,22 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("mysql:mysql-connector-java:6.0.2")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-mysql-connection-6.0.2' }
+}
+
+verifyInstrumentation {
+    passesOnly 'mysql:mysql-connector-java:[6.0.2,8.0.9]'
+    // these versions are bad and they should feel bad
+    exclude 'mysql:mysql-connector-java:8.0.7'
+    exclude 'mysql:mysql-connector-java:8.0.8'
+    exclude 'mysql:mysql-connector-java:8.0.9'
+}
+
+site {
+    title 'MySQL'
+    type 'Datastore'
+}

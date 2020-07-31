@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test1">
+	<urn:instrumentation>
+
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>com.newrelic.agent.instrumentation.methodmatchers.ExactParamsMethodMatcher
+			</urn:className>
+			<urn:method>
+				<urn:name>ExactParamsMethodMatcher</urn:name>
+				<urn:parameters>
+					<urn:type>java.lang.String</urn:type>
+					<urn:type>java.lang.String</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>createExactParamsMethodMatcher  </urn:name>
+				<urn:parameters>
+					<urn:type>java.lang.String   </urn:type>
+					<urn:type> java.lang.String
+					</urn:type>
+					<urn:type>java.lang.String
+					</urn:type>
+					<urn:type>java.util.Map&lt;String, MethodMapper&gt; </urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+	</urn:instrumentation>
+</urn:extension>

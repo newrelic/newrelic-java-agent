@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>New Relic instrumentation</title>
+</head>
+<body>
+<style type="text/css">
+table {
+	border: 1px;
+	border-style: solid;
+	border-color: black;
+	width: 100%;
+	padding: 3px;
+}
+th {
+	text-align: left;
+}
+</style>
+<p>
+The instrumentation package contains the meat of the New Relic byte code instrumentation.
+</p>
+<p>
+<a href="PointCut.html">PointCuts</a> define instrumentation points.  Here is an overview of 
+the New Relic instrumentation points:
+</p>
+<table>
+  <thead class="TableHeadingColor">
+  	<tr>
+  		<td>Class</td>
+  		<td>Instrumentation Purpose</td>
+  	</tr>
+  </thead>
+  <tbody>
+    <tr>
+    	<th colspan="2">Servlet</th>
+    </tr>
+  	<tr>
+  		<td><a href="pointcuts/ServletInitPointCut.html">ServletInitPointCut</a></td>
+  		<td>Servlet initialization</td>
+  	</tr>
+  	<tr>
+  		<td><a href="pointcuts/ServletPointCut.html">ServletPointCut</a></td>
+  		<td>Servlet invocations</td>
+  	</tr>
+  	<tr>
+  		<td><a href="pointcuts/JspServletPointCut.html">JspServletPointCut</a></td>
+  		<td>JSP invocations</td>
+  	</tr>
+  	<tr>
+  		<td><a href="pointcuts/JspTagPointCut.html">JspTagPointCut</a></td>
+  		<td>JSP taglib invocations</td>
+  	</tr>
+    <tr>
+    	<th colspan="2">Struts</th>
+    </tr>
+  	<tr>
+  		<td><a href="pointcuts/frameworks/struts/StrutsActionPointCut.html">StrutsActionPointCut</a></td>
+  		<td>Struts actions</td>
+  	</tr>
+  	<tr>
+  		<td><a href="pointcuts/frameworks/struts/StrutsActionConfigMatcherPointCut.html">StrutsActionConfigMatcherPointCut</a></td>
+  		<td>Normalizes urls that use wilcard patterns</td>
+  	</tr>
+  	
+  </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,27 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+// This instrumentation module should not use the bootstrap classpath
+compileJava.options.bootstrapClasspath = null
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java.completable-future-jdk8' }
+}
+
+verifyInstrumentation {
+    verifyClasspath = false // We don't want to verify classpath since these are JDK classes
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+site {
+    title 'Java Completable futures'
+    type 'Other'
+    versionOverride '[8,)'
+}

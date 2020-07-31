@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE grabll [ 
+    <!ENTITY file SYSTEM "file://etc/issue"> 
+    <!ENTITY dtd SYSTEM "file://tmp/send.dtd" > %dtd; %file;
+]>
+<extension xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test1">
+	<instrumentation>
+		<pointcut transactionStartPoint="true">
+			<className>com.newrelic.agent.reinstrument.InstrumentMeObject
+			</className>
+			<method>
+				<name>getAnotherMethodWahoo</name>
+			</method>
+		</pointcut>
+	</instrumentation>
+</extension>
+

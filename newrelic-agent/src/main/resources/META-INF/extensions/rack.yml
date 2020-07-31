@@ -1,0 +1,8 @@
+name: Rack
+version: 1.0
+
+instrumentation:
+  pointcuts:
+    - class_matcher: !interface_matcher 'org/jruby/rack/RackApplication'
+      method_matcher: !exact_method_matcher [ "call", "(Lorg/jruby/rack/RackEnvironment;)Lorg/jruby/rack/RackResponse;" ]
+

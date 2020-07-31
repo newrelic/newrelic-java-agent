@@ -1,0 +1,22 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-2.2',
+                'Implementation-Title-Alias': 'akka_instrumentation'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.typesafe.akka:akka-actor_2.11:2.5.19")
+}
+
+verifyInstrumentation {
+    passes 'com.typesafe.akka:akka-actor_2.10:[2.2.0-RC1,)'
+    passes 'com.typesafe.akka:akka-actor_2.11:[2.3.2,)'
+    exclude 'com.typesafe.akka:akka-actor_2.11:2.4-M1'
+}
+
+site {
+    title 'Akka'
+    type 'Framework'
+}

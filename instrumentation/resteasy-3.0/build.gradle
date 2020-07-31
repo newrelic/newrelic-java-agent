@@ -1,0 +1,19 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.jboss.resteasy:resteasy-jaxrs:3.0.0.Final")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.resteasy-3.0' }
+}
+
+verifyInstrumentation {
+
+    passesOnly 'org.jboss.resteasy:resteasy-jaxrs:[3.0-beta-1,)'
+}
+
+site {
+    title 'RESTEasy'
+    type 'Framework'
+}

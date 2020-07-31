@@ -1,0 +1,24 @@
+apply plugin: 'java'
+
+dependencies {
+    implementation("net.spy:spymemcached:2.12.0")
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.spymemcached-2.12.0'
+        attributes 'Implementation-Vendor': 'com.newrelic', 'Implementation-Version': 1.0
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'net.spy:spymemcached:[2.11,)'
+}
+
+site {
+    title 'Spymemcached'
+    type 'Messaging'
+}

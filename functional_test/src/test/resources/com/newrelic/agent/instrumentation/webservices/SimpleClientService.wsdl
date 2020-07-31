@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<definitions
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:wsp1_2="http://schemas.xmlsoap.org/ws/2004/09/policy"
+	xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:tns="http://webservices.instrumentation.agent.newrelic.com/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="http://webservices.instrumentation.agent.newrelic.com/"
+	name="SimpleClientService">
+	<types />
+	<message name="getHelloWorld">
+		<part name="arg0" type="xsd:string" />
+	</message>
+	<message name="getHelloWorldResponse">
+		<part name="return" type="xsd:string" />
+	</message>
+	<portType name="SimpleClient">
+		<operation name="getHelloWorld">
+			<input
+				wsam:Action="http://webservices.instrumentation.agent.newrelic.com/HelloWorld/getHelloWorldRequest"
+				message="tns:getHelloWorld" />
+			<output
+				wsam:Action="http://webservices.instrumentation.agent.newrelic.com/HelloWorld/getHelloWorldResponse"
+				message="tns:getHelloWorldResponse" />
+		</operation>
+	</portType>
+	<binding name="SimpleClientPortBinding" type="tns:SimpleClient">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http"
+			style="rpc" />
+		<operation name="getHelloWorld">
+			<soap:operation soapAction="" />
+			<input>
+				<soap:body use="literal"
+					namespace="http://webservices.instrumentation.agent.newrelic.com/" />
+			</input>
+			<output>
+				<soap:body use="literal"
+					namespace="http://webservices.instrumentation.agent.newrelic.com/" />
+			</output>
+		</operation>
+	</binding>
+	<service name="SimpleClientService">
+		<port name="SimpleClientPort" binding="tns:SimpleClientPortBinding">
+			<soap:address location="http://localhost:8675/ws/hello" />
+		</port>
+	</service>
+</definitions>

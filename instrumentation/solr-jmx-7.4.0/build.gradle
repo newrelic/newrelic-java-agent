@@ -1,0 +1,22 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+
+    implementation("org.apache.lucene:lucene-core:7.4.0")
+    implementation("org.apache.solr:solr-core:7.4.0") {
+        exclude(group: "org.restlet.jee", module: "org.restlet")
+        exclude(group: "org.restlet.jee", module: "org.restlet.ext.servlet")
+    }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.solr-jmx-7.4.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.solr:solr-core:[7.4.0,)'
+
+    excludeRegex 'org.apache.solr:solr-core:.*(ALPHA|BETA)+$'
+}

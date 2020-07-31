@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# Installs our NR-specific hooks via soft links
+#
+HOOKS="applypatch-msg pre-applypatch post-applypatch pre-commit prepare-commit-msg commit-msg post-commit pre-rebase post-checkout post-merge pre-receive update post-receive post-update pre-auto-gc"
+TOPLEVEL=$(git rev-parse --show-toplevel)
+HOOK_DIR=${TOPLEVEL}/.git/hooks
+# NR_HOOK_DIR is used for soft links.  It is the relative path from .git/hooks to dev-tools/git-hooks/hooks
+NR_HOOK_DIR=../../dev-tools/git-hooks/hooks
+if [ ! -d ${HOOK_DIR} ]
+ then
+  mkdir -p ${HOOK_DIR}
+ fi
+cd ${HOOK_DIR}
+for hook in ${HOOKS}
+ do
+ 	# We have a version of this hook
+ 	OUR_VERSION=${NR_HOOK_DIR}/${hook}
+ 	if [ -f ${OUR_VERSION} -a -x ${OUR_VERSION} ]
+ 	 then
+	  # Hook already exists and is a file
+	  if [ -f ${hook} ]
+	   then
+	    mv ${hook} ${hook}.orig
+	   fi
+	   ln -s ${OUR_VERSION} ${hook}
+     fi
+ done

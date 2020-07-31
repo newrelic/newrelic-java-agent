@@ -1,0 +1,64 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+configurations {
+    shadowIntoJar
+}
+
+configurations.compile.extendsFrom(configurations.shadowIntoJar)
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("org.postgresql:postgresql:9.4.1208")
+
+    shadowIntoJar('com.googlecode.json-simple:json-simple:1.1.1') {
+        transitive = false
+    }
+}
+
+/**
+ * We have to shadow dependencies into instrumentation modules
+ * so they're accessible. We try not to rely on the agent dependencies
+ * otherwise.
+ */
+shadowJar {
+    setConfigurations([project.configurations.shadowIntoJar])
+    from(sourceSets.main.output.classesDirs)
+    relocate("org.json.simple", "com.nr.agent.deps.org.json.simple")
+}
+
+/**
+ * shadowJar takes care of dependencies, but the jar task is what
+ * the agent build wants, so we copy the shadowJar contents.
+ */
+jar {
+    dependsOn("shadowJar")
+    from(zipTree(project.tasks["shadowJar"].archiveFile.get().asFile.path))
+
+    // The default jar task re-includes the original classes files, which we don't want.
+    exclude {
+        sourceSets.main.output.classesDirs.any {dir ->
+            it.getFile().getPath().startsWith(dir.getPath())
+        }
+    }
+
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-postgresql-9.4.1208' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.postgresql:postgresql:[9.4.1208,)'
+}
+
+site {
+    title 'PostgreSQL'
+    type 'Datastore'
+}

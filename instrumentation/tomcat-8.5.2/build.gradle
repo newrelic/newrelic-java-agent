@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:8.5.2")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.tomcat-8.5.2' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.tomcat.embed:tomcat-embed-core:[8.5.2,10.0.0-M1)'
+
+    excludeRegex 'org.apache.tomcat.embed:tomcat-embed-core:9.0.0.M.*'
+}
+
+site {
+    title 'Apache Tomcat'
+    type 'Appserver'
+}

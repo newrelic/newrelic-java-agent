@@ -1,0 +1,20 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("org.hsqldb:hsqldb:2.2.9")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-hsqldb-2.2.9' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.hsqldb:hsqldb:[2.2.9,)'
+
+    excludeRegex '.*SNAPSHOT.*'
+}
+
+site {
+    title 'HSQLDB'
+    type 'Datastore'
+}

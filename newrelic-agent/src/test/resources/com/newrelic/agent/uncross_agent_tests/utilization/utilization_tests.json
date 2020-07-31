@@ -1,0 +1,69 @@
+[
+  {
+    "testname": "user configured data",
+    "input_total_ram_mib": 1,
+    "input_logical_processors": 2,
+    "input_hostname": "myotherhost",
+    "input_configured": {
+      "total_ram_mib": 666,
+      "logical_processors": 7,
+      "billing_hostname": "fred"
+    },
+    "expected_output_json": {
+      "metadata_version": 5,
+      "logical_processors": 2,
+      "total_ram_mib": 1,
+      "hostname": "myotherhost",
+      "config": {
+        "logical_processors": 7,
+        "total_ram_mib": 666,
+        "hostname": "fred"
+      }
+    }
+  },
+  {
+    "testname": "test partial config",
+    "input_total_ram_mib": 1,
+    "input_logical_processors": 2,
+    "input_hostname": "myotherhost",
+    "input_configured": {
+      "billing_hostname": "fred"
+    },
+    "expected_output_json": {
+      "metadata_version": 5,
+      "logical_processors": 2,
+      "total_ram_mib": 1,
+      "hostname": "myotherhost",
+      "config": {
+        "hostname": "fred"
+      }
+    }
+  },
+  {
+    "testname": "test env var overrides config",
+    "input_total_ram_mib": 1,
+    "input_logical_processors": 2,
+    "input_hostname": "myotherhost",
+    "input_configured": {
+      "total_ram_mib": 666,
+      "logical_processors": 7,
+      "billing_hostname": "fred"
+    },
+    "input_environment_variables": {
+      "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 8,
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": 99,
+      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME": "george"
+    },
+    "expected_output_json": {
+      "metadata_version": 5,
+      "logical_processors": 2,
+      "total_ram_mib": 1,
+      "hostname": "myotherhost",
+      "config": {
+        "logical_processors": 8,
+        "total_ram_mib": 99,
+        "hostname": "george"
+      }
+    }
+  }
+]

@@ -1,0 +1,81 @@
+all_enabled_test:
+  
+  cross_application_tracer: 
+    enabled: true 
+    
+    cross_process_id: abcdefg#12345
+
+  distributed_tracing:
+    enabled: true
+  
+  span_events:
+    enabled: true
+
+cross_process_only_test:
+
+  cross_application_tracer:
+    enabled: true
+
+    cross_process_id: abcdefg#12345
+
+  distributed_tracing:
+    enabled: true
+
+  span_events:
+    enabled: true
+    cross_process_only: true
+
+cross_application_disabled_test:
+
+  cross_application_tracer:
+    enabled: false
+
+  distributed_tracing:
+    enabled: true
+
+  span_events:
+    enabled: true
+
+transaction_events_enabled_attribute_filtering:
+
+  distributed_tracing:
+    enabled: true
+
+  attributes:
+    exclude: txAttrib2
+
+  #  The purpose of the settings below are for filtering excluded attributes from a span. They usually are in
+  #  this format:
+  #
+  #  span_events:
+  #    attributes:
+  #      enabled: true
+  #      exclude: txAttrib5, spanAttrib1
+  #
+  #  In a functional test, the yml settings above are merged into a base agent config
+  #  by the EnvironmentHolder.  The holder merges the settings and converts them to ServerProps type.
+  #
+  #  ServerProps are not flattened before being added to flattenProperties (AgentConfigImpl). Because they
+  #  are not flat, the spanEventFilter will fail at building its attribute exclude list with
+  #  txAttrib5 and spanAttrib1. Spans will not be filtered correctly.
+  #
+  #  This is why these settings are pre-flattened.
+
+  span_events.attributes.enabled: true
+
+  span_events.attributes.exclude: txAttrib5,spanAttrib1
+
+transaction_events_disabled_attribute_filtering:
+
+  distributed_tracing:
+    enabled: true
+
+  attributes:
+    exclude: txAttrib2
+
+  transaction_events:
+    enabled: false
+
+  span_events.attributes.enabled: true
+
+  span_events.attributes.exclude: txAttrib5,spanAttrib1

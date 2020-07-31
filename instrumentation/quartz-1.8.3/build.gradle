@@ -1,0 +1,14 @@
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.quartz-scheduler:quartz:1.8.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.quartz-1.8.3',
+            'Implementation-Title-Alias': 'quartz_job'}
+}
+
+verifyInstrumentation {
+    passesOnly 'org.quartz-scheduler:quartz:[1.7.2,2.0.0)'
+}

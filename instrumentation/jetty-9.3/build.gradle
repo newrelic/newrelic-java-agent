@@ -1,0 +1,21 @@
+
+
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation("org.eclipse.jetty:jetty-server:9.3.0.M1")
+    implementation("org.eclipse.jetty:jetty-start:9.3.0.M1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jetty-9.3' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.eclipse.jetty.aggregate:jetty-all:[9.3.0.M1,10.0.0-alpha1)'
+}
+
+site {
+    title 'Jetty'
+    type 'Appserver'
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension xmlns="https://newrelic.com/docs/java/xsd/v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="" name="extension-example" version="1.0" enabled="true">
+    <instrumentation>
+        <pointcut transactionStartPoint="true">
+            <nameTransaction/>
+            <className>com.nr.Client.impl.OkClient</className>
+            <method>
+                <name>myMethod</name>
+                <parameters>
+                    <type attributeName="string">java.lang.String</type>
+                    <type attributeName="requestCount">long</type>
+                </parameters>
+            </method>
+        </pointcut>
+    </instrumentation>
+</extension>

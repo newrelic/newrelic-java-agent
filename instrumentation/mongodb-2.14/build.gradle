@@ -1,0 +1,22 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.mongodb-2.14' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.mongodb:mongo-java-driver:2.14.0")
+
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.2")
+}
+
+verifyInstrumentation {
+    passesOnly 'org.mongodb:mongo-java-driver:[2.14.0-rc0,3.0.0-beta1)'
+}
+
+site {
+    title 'MongoDB'
+    type 'Datastore'
+}

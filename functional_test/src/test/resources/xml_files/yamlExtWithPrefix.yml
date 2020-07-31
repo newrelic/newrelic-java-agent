@@ -1,0 +1,35 @@
+name: TestYmlWithPrefix
+version: 1.0
+enabled: true
+
+instrumentation:
+  metric_prefix: TadaTest
+  pointcuts:  
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ performDoubleWork()V ]
+      dispatcher: true
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ performWork()V ]
+      dispatcher: true
+      metric_name_format: ThisIsATestForGetValue
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ doAllWork()V ]
+      dispatcher: true
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ anotherMethod1()V ]
+      dispatcher: false
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ anotherMethod2()V ]
+      dispatcher: true
+      metric_name_format: aNanaNotherMethod
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ getTada1()Ljava/lang/String; ]
+      dispatcher: false
+      metric_name_format: HereYouGoTada

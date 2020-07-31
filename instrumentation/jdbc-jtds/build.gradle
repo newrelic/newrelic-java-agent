@@ -1,0 +1,18 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("net.sourceforge.jtds:jtds:1.2.7")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-jtds' }
+}
+
+verifyInstrumentation {
+    passesOnly 'net.sourceforge.jtds:jtds:[1.2,)'
+}
+
+site {
+    title 'jTDS'
+    type 'Datastore'
+}

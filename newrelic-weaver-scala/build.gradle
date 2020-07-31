@@ -1,0 +1,38 @@
+evaluationDependsOn(":newrelic-agent") // This is important because we need newrelic-agent to be configured before this project so the correct ("unversioned") jar name gets used
+
+apply plugin: 'scala'
+
+configurations {
+    compileFirst
+}
+
+dependencies {
+    compileFirst project(path: ":newrelic-agent", configuration: "finalArtifact")
+    implementation("org.scala-lang:scala-library:2.11.1")
+
+    testImplementation("org.ow2.asm:asm:7.3.1")
+    testImplementation("org.ow2.asm:asm-util:7.3.1")
+    testImplementation("org.ow2.asm:asm-tree:7.3.1")
+    testImplementation("com.google.guava:guava:28.2-android") {
+        transitive = false
+    }
+
+    testImplementation(project(":newrelic-weaver-api"))
+    testImplementation(project(":newrelic-weaver-scala-api"))
+    testImplementation(project(":instrumentation-test"))
+
+    // import test utils from newrelic-weaver project
+    testImplementation(project(path: ':newrelic-weaver', configuration: 'testClasses'))
+}
+
+sourceSets.test.compileClasspath = configurations.compileFirst + sourceSets.test.compileClasspath
+sourceSets.test.runtimeClasspath = configurations.compileFirst + sourceSets.test.runtimeClasspath
+
+test.dependsOn project(':newrelic-weaver').compileTestJava
+test.dependsOn project(":newrelic-agent").getTasksByName("newrelicJar", false)
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'New Relic Scala Weaver', 'Implementation-Version': project.version
+    }
+}

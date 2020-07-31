@@ -1,0 +1,22 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("javax.cache:cache-api:1.0.0")
+}
+
+jar {
+    // JMH benchmarks revealed jcache-datastore causes considerable overhead. As a result
+    // we disable this module by default. A separate jcache module traces the same methods but
+    // doesn't collect datastore metrics.
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jcache-datastore-1.0.0', 'Enabled': 'false' }
+}
+
+verifyInstrumentation {
+    passes 'javax.cache:cache-api:[1.0.0,)'
+}
+
+site {
+    title 'JCache API'
+    type 'Framework'
+}

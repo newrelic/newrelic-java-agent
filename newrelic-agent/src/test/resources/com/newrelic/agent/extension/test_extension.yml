@@ -1,0 +1,9 @@
+name: Test
+version: 1.0
+enabled: true
+instrumentation:
+  metric_prefix: Test
+  pointcuts:  
+    - class_matcher: 
+      - some/Clazz
+      method_matcher: [ commit()V, rollback()V ]

@@ -1,0 +1,9 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.glassfish.main.common:common-util:4.1.2")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.glassfish-jmx',
+    'Implementation-Title-Alias': 'glassfish_instrumentation'}
+}

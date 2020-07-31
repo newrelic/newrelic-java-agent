@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("com.oracle.database.jdbc:ojdbc8:12.2.0.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-ojdbc7-12.1.0.2' }
+}
+
+verifyInstrumentation {
+    passes("com.oracle.database.jdbc:ojdbc8:[0,)")
+    fails("com.oracle.database.jdbc:ojdbc6:[0,)")
+    fails("com.oracle.database.jdbc:ojdbc5:[0,)")
+}
+
+site {
+    title 'Oracle JDBC'
+    type 'Datastore'
+    versionOverride '[12.1.0.2.0,)'
+}

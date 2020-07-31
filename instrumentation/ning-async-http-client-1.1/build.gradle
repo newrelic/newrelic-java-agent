@@ -1,0 +1,17 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.ning:async-http-client:1.1.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.ning-async-http-client-1.1' }
+}
+
+verifyInstrumentation {
+    passesOnly 'com.ning:async-http-client:[1.1,1.6.1)'
+}
+
+site {
+    title 'Ning AsyncHttpClient'
+    type 'Messaging'
+}

@@ -1,0 +1,14 @@
+name: Jasper
+version: 1.0
+
+instrumentation:
+  pointcuts:
+    - class_matcher: org/apache/jasper/compiler/Generator$GenerateVisitor
+      method_matcher: visit(Lorg/apache/jasper/compiler/Node$TemplateText;)V
+      tracer_factory: com.newrelic.agent.tracers.jasper.GeneratorVisitTracerFactory
+    - class_matcher: org/apache/jasper/compiler/Node$Visitor
+      method_matcher: visitBody(Lorg/apache/jasper/compiler/Node;)V
+      tracer_factory: com.newrelic.agent.tracers.jasper.GeneratorVisitBodyTracerFactory
+    - class_matcher: org/apache/jasper/JspC
+      method_matcher: processFile(Ljava/lang/String;)V
+      dispatcher: true

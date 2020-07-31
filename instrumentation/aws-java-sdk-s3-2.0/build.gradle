@@ -1,0 +1,38 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-s3-2.0' }
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileJava.options.bootstrapClasspath = null
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+
+    implementation("software.amazon.awssdk:s3:2.10.14")
+    testImplementation("io.findify:s3mock_2.12:0.2.5")
+
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+verifyInstrumentation {
+    passes 'software.amazon.awssdk:s3:[2.1.0,)'
+    excludeRegex ".*preview.*"
+}
+
+site {
+    title 'AWS S3'
+    type 'Framework'
+}

@@ -1,0 +1,42 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package com.nr.agent.instrumentation.mongodb;
+
+import com.mongodb.MongoClientOptions;
+import com.mongodb.event.CommandListener;
+import com.newrelic.agent.introspec.InstrumentationTestConfig;
+import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import com.newrelic.test.marker.Java7IncompatibleTest;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
+@Category({ Java7IncompatibleTest.class })
+@RunWith(InstrumentationTestRunner.class)
+@InstrumentationTestConfig(includePrefixes = "com.mongodb")
+public class MongoClientOptionsTest {
+
+    @Test
+    public void testMultiBuildOneListener() throws Exception {
+        MongoClientOptions.Builder builder = MongoClientOptions.builder();
+
+        MongoClientOptions options1 = builder.build();
+        MongoClientOptions options2 = builder.build();
+
+        List<CommandListener> commandListeners1 = options1.getCommandListeners();
+        List<CommandListener> commandListeners2 = options2.getCommandListeners();
+        assertEquals(1, commandListeners1.size());
+        assertEquals(1, commandListeners2.size());
+        assertSame(commandListeners1.get(0), commandListeners2.get(0));
+    }
+}

@@ -1,0 +1,18 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.thrift:libthrift:0.8.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.thrift-0.8' }
+}
+
+verifyInstrumentation {
+    passes 'org.apache.thrift:libthrift:[0.8.0,)'
+}
+
+site {
+    title 'Thrift'
+    type 'Framework'
+}

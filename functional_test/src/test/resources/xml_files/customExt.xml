@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="customExtensions"
+	version="1.0" enabled="true">
+	<urn:instrumentation>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.ClassRetransformMultipleTimesTest$ClassToRetransformObject
+			</urn:className>
+			<urn:method>
+				<urn:name>getTripleValue</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true" transactionType="web">
+			<urn:className>com.newrelic.agent.instrumentation.CustomWebDispatcher</urn:className>
+			<urn:method>
+				<urn:name>dispatch</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+        <!-- Test that the default for transactionType doesn't mark the transaction as a web transaction. -->
+        <urn:pointcut transactionStartPoint="true">
+            <urn:className>com.newrelic.agent.instrumentation.CustomBackgroundTest$CustomBackgroundDefaultTest</urn:className>
+            <urn:method>
+                <urn:name>testDefault</urn:name>
+            </urn:method>
+        </urn:pointcut>
+
+		<!-- reproduce case for JAVA-2520 -->
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>com.newrelic.agent.instrumentation.CustomAttributesTest$ClassToAddCustomAttributes</urn:className>
+			<urn:method>
+				<urn:name>read</urn:name>
+				<urn:parameters>
+					<urn:type attributeName="string">String</urn:type>
+					<urn:type attributeName="number">Long</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+
+        <urn:pointcut transactionStartPoint="true" transactionType="background">
+            <urn:className>com.newrelic.agent.instrumentation.CustomBackgroundTest$CustomBackgroundStringTest</urn:className>
+            <urn:method>
+                <urn:name>testBackgroundString</urn:name>
+            </urn:method>
+        </urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>javax.activation.MimeType</urn:className>
+			<urn:method>
+				<urn:name>getParameter</urn:name>
+				<urn:parameters>
+					<urn:type attributeName="theKey">java.lang.String</urn:type>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>com.newrelic.agent.instrumentation.serialization.WithSerialMatchStartupObject
+			</urn:className>
+			<urn:method>
+				<urn:name>getDoubleValue</urn:name>
+				<urn:parameters>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true">
+			<urn:className>com.newrelic.agent.instrumentation.serialization.NoSerialMatchStartupObject
+			</urn:className>
+			<urn:method>
+				<urn:name>getDoubleValue</urn:name>
+				<urn:parameters>
+				</urn:parameters>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.CustomExtensionTest$ClassToRetransformObject
+			</urn:className>
+			<urn:method>
+				<urn:name>methodNoParams</urn:name>
+			</urn:method>
+			<urn:method>
+				<urn:name>methodWithParams</urn:name>
+				<urn:parameters>
+				<urn:type attributeName="dollarz">int</urn:type>
+				</urn:parameters>
+			</urn:method>
+			<urn:method>
+				<urn:name>methodWithSameName</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+
+		<!-- The following are used in the XmlExtensionTests -->
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>doubleValue</urn:name>
+			</urn:method>
+			<urn:method>
+				<urn:name>stringValue</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false"
+			metricNameFormat="ThisIsATestForGetValue">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>getValue</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>doMoreWork</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+
+		<urn:pointcut transactionStartPoint="false"
+			excludeFromTransactionTrace="false" ignoreTransaction="true">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>shouldBeIgnored</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>doMoreWorkYaya</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="true">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>shouldBeIgnoredYaya</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>theMain</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="false"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>methodA</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut>
+		    <urn:nameTransaction/>
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>nameThisThing</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>methodB</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="false"
+			metricNameFormat="OtherTransaction/ccmethod"
+			excludeFromTransactionTrace="false" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>methodC</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="true"
+			excludeFromTransactionTrace="true" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>methodD</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="false"
+			excludeFromTransactionTrace="true" ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>methodE</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+		<urn:pointcut transactionStartPoint="false"
+			metricNameFormat="/ffmethod" excludeFromTransactionTrace="false"
+			ignoreTransaction="false">
+			<urn:className>com.newrelic.agent.instrumentation.extension.XmlExtensionTest$TheInnerClass
+			</urn:className>
+			<urn:method>
+				<urn:name>methodF</urn:name>
+			</urn:method>
+		</urn:pointcut>
+
+
+	</urn:instrumentation>
+</urn:extension>

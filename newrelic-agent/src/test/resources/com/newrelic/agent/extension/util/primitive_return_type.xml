@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<extension
+    xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	name="test1">
+	<instrumentation>
+		<pointcut>
+			<interfaceName>com.company.SomeInterface</interfaceName>
+			<method>
+				<returnType>boolean</returnType>
+			</method>			
+		</pointcut>
+	</instrumentation>
+</extension>

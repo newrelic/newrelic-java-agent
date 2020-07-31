@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Verify the commit message contains a Jira id
+
+msg=$(<$1)
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+shopt -s nocasematch
+
+# If our message is going to fail...
+if [[ ! "$msg" =~ ^(JAVA-[0-9]+|merge) ]]; then
+	# Get the JAVA-XXXX jira ticket from the branch name
+	jnum=$(echo ${branch} | sed -E -e "s/^(JAVA-[0-9]+).*$/\1/")
+	# If we like the format of the jnum, then swizzle commit message
+	if [[  "$jnum" =~ ^(JAVA-[0-9]+$) ]]; then
+		newmsg="${jnum} ⭑ ${msg}"
+		echo "${newmsg}" > $1
+		echo "Fixed commit message to: ${newmsg}"
+		msg="${newmsg}"
+	fi
+fi
+
+if [[ ! "$msg" =~ ^(JAVA-[0-9]+|merge) ]]; then
+  echo "Aborting commit. Your commit message is missing either a JIRA Issue ('JAVA-1111') or 'Merge'"
+  exit 1
+fi

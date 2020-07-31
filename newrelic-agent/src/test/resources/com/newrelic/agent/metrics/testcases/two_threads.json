@@ -1,0 +1,251 @@
+[
+	{"testname" : "1: Two threads - first registers the second and second ends before the first",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "BACKGROUND"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",3]},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 3, "duration" : 4, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 4, "duration" : 1}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 9, 9, 9],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 4, 3, 0],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 0]
+	  ],
+  	 "transaction_trace" : { "duration": 10, "scope": "OtherTransaction/Java/java.lang.Object/mainRootTracer", "segments": 
+  	     [0, 10, "ROOT",  {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	       [0, 10, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	         [1, 10, "Java/java.lang.Object/t1", {"exclusive_duration_millis":9.0, "async_wait":true}, [
+  	           [3, 7, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":3.0}, [
+  	             [4, 5, "Java/java.lang.Object/t2", {"exclusive_duration_millis":1.0}, [], "clazz","t2"]
+  	           ], "clazz","secondRootTracer"]
+  	         ], "clazz","t1"]
+  	       ], "clazz", "mainRootTracer"]
+  	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.014, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 10, "total_time" : 14}
+	},
+		{"testname" : "2: Two threads - first registers the second with large gap between first end and second start",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "BACKGROUND"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345", 10]},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 15, "duration" : 5, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 16, "duration" : 1}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 9, 9, 9],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 4, 4],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1]
+	  ],
+  	 "transaction_trace" : { "duration": 20, "scope": "OtherTransaction/Java/java.lang.Object/mainRootTracer", "segments": 
+  	     [0, 20, "ROOT",  {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	       [0, 10, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	         [1, 10, "Java/java.lang.Object/t1", {"exclusive_duration_millis":9.0, "async_wait":true}, [
+  	           [15, 20, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":4.0}, [
+  	             [16, 17, "Java/java.lang.Object/t2", {"exclusive_duration_millis":1.0}, [], "clazz","t2"]
+  	           ], "clazz","secondRootTracer"]
+  	         ], "clazz","t1"]
+  	       ], "clazz", "mainRootTracer"]
+  	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.015, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 20, "total_time" : 15}
+	},
+	{"testname" : "3: Two threads - first registers the second and then ends before second ends",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "BACKGROUND"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",5]},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 5, "duration" : 15, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 6, "duration" : 5}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 9, 9, 4],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 15, 10, 10],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 5]
+	  ],
+  	 "transaction_event" : {"duration": 20, "total_time" : 25}
+	},	
+	{"testname" : "4: Two threads - web transaction - first registers the second and then ends before second ends",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB", "firstByte": 9, "lastByte": 10},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",5]},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 5, "duration" : 15, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 6, "duration" : 5}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 9, 9, 4],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 15, 10, 10],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 5, 5, 5]
+	  ],     
+  	"unscoped_metric_solution" : [
+        ["WebTransaction", "", 1, 20, 20, 0],
+        ["WebTransaction/Uri/Unknown", "", 1, 20, 20, 0],
+        ["WebTransactionTotalTime", "", 1, 25, 25, 0],
+        ["WebTransactionTotalTime/Uri/Unknown", "", 1, 25, 25, 0],
+        ["HttpDispatcher", "", 1, 20, 20, 0],
+        ["WebTransactionTimeToLastByte", "", 1, 10, 10, 0],
+        ["WebTransactionTimeToLastByte/Uri/Unknown", "", 1, 10, 10, 0],
+        ["WebTransactionTimeToFirstByte", "", 1, 9, 9, 0],
+        ["WebTransactionTimeToFirstByte/Uri/Unknown", "", 1, 9, 9, 0]
+  	]
+	},
+	{"testname" : "5: Two threads - web transaction - ends on second",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",5]},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 5, "duration" : 15, "start_async" : "12345", "firstByte": 14, "lastByte": 16, "lastByteOnTxa": true },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 6, "duration" : 5}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 9, 9, 4],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 15, 10, 10],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 5, 5, 5]
+	  ],     
+  	"unscoped_metric_solution" : [
+        ["WebTransaction", "", 1, 20, 20, 0],
+        ["WebTransaction/Uri/Unknown", "", 1, 20, 20, 0],
+        ["WebTransactionTotalTime", "", 1, 25, 25, 0],
+        ["WebTransactionTotalTime/Uri/Unknown", "", 1, 25, 25, 0],
+        ["HttpDispatcher", "", 1, 20, 20, 0],
+        ["WebTransactionTimeToLastByte", "", 1, 16, 16, 0],
+        ["WebTransactionTimeToLastByte/Uri/Unknown", "", 1, 16, 16, 0],
+        ["WebTransactionTimeToFirstByte", "", 1, 14, 14, 0],
+        ["WebTransactionTimeToFirstByte/Uri/Unknown", "", 1, 14, 14, 0]
+  	 ],
+  	 "transaction_event" : {"duration": 20, "total_time" : 25, "ttlb":16}
+	},
+	{"testname" : "6: Two threads - web transaction - ends at end of second",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",5]},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 5, "duration" : 15, "start_async" : "12345", "firstByte": 14, "lastByteOnTxa": true },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 6, "duration" : 5}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 9, 9, 4],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 15, 10, 10],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 5, 5, 5]
+	  ],     
+  	"unscoped_metric_solution" : [
+        ["WebTransaction", "", 1, 20, 20, 0],
+        ["WebTransaction/Uri/Unknown", "", 1, 20, 20, 0],
+        ["WebTransactionTotalTime", "", 1, 25, 25, 0],
+        ["WebTransactionTotalTime/Uri/Unknown", "", 1, 25, 25, 0],
+        ["HttpDispatcher", "", 1, 20, 20, 0],
+        ["WebTransactionTimeToFirstByte", "", 1, 14, 14, 0],
+        ["WebTransactionTimeToFirstByte/Uri/Unknown", "", 1, 14, 14, 0]
+  	 ],
+  	 "transaction_event" : {"duration": 20, "total_time" : 25, "ttfb": 14}
+	},
+	{"testname" : "7: Two threads - web transaction - ends at end of first thread",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB", "firstByte": 8, "lastByteOnTxa": true },
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",5]},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 5, "duration" : 15, "start_async" : "12345"},
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 6, "duration" : 5}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 9, 9, 4],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 15, 10, 10],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 5, 5, 5]
+	  ],     
+  	"unscoped_metric_solution" : [
+        ["WebTransaction", "", 1, 10, 10, 0],
+        ["WebTransaction/Uri/Unknown", "", 1, 10, 10, 0],
+        ["WebTransactionTotalTime", "", 1, 25, 25, 0],
+        ["WebTransactionTotalTime/Uri/Unknown", "", 1, 25, 25, 0],
+        ["HttpDispatcher", "", 1, 10, 10, 0],
+        ["WebTransactionTimeToFirstByte", "", 1, 8, 8, 0],
+        ["WebTransactionTimeToFirstByte/Uri/Unknown", "", 1, 8, 8, 0]
+  	 ],
+  	 "transaction_trace" : { "duration": 10, "scope": "WebTransaction/Uri/Unknown", "segments": 
+  	     [0, 20, "ROOT",  {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	       [0, 10, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	         [1, 10, "Java/java.lang.Object/t1", {"exclusive_duration_millis":9.0, "async_wait":true}, [
+  	           [5, 20, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":10.0}, [
+  	             [6, 11, "Java/java.lang.Object/t2", {"exclusive_duration_millis":5.0}, [], "clazz","t2"]
+  	           ], "clazz","secondRootTracer"]
+  	         ], "clazz","t1"]
+  	       ], "clazz", "mainRootTracer"]
+  	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.025, "timeToFirstByte":0.008, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 10, "total_time" : 25, "ttfb": 8}
+	},
+	{"testname" : "8: finish first thread early",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",5], "firstByte": 7, "lastByte": 8},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 5, "duration" : 15, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 6, "duration" : 5}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 9, 9, 4],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 15, 10, 10],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 5, 5, 5]
+	  ],     
+  	"unscoped_metric_solution" : [
+        ["WebTransaction", "", 1, 20, 20, 0],
+        ["WebTransaction/Uri/Unknown", "", 1, 20, 20, 0],
+        ["WebTransactionTotalTime", "", 1, 25, 25, 0],
+        ["WebTransactionTotalTime/Uri/Unknown", "", 1, 25, 25, 0],
+        ["HttpDispatcher", "", 1, 20, 20, 0],
+        ["WebTransactionTimeToLastByte", "", 1, 8, 8, 0],
+        ["WebTransactionTimeToLastByte/Uri/Unknown", "", 1, 8, 8, 0],
+        ["WebTransactionTimeToFirstByte", "", 1, 7, 7, 0],
+        ["WebTransactionTimeToFirstByte/Uri/Unknown", "", 1, 7, 7, 0]
+  	 ],
+  	 "transaction_trace" : { "duration": 20, "scope": "WebTransaction/Uri/Unknown", "segments": 
+  	     [0, 20, "ROOT",  {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	       [0, 10, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	         [1, 10, "Java/java.lang.Object/t1", {"exclusive_duration_millis":9.0, "async_wait":true}, [
+  	           [5, 20, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":10.0}, [
+  	             [6, 11, "Java/java.lang.Object/t2", {"exclusive_duration_millis":5.0}, [], "clazz","t2"]
+  	           ], "clazz","secondRootTracer"]
+  	         ], "clazz","t1"]
+  	       ], "clazz", "mainRootTracer"]
+  	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.025, "timeToFirstByte":0.007, "timeToLastByte":0.008, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 20, "total_time" : 25, "ttlb": 8, "ttfb": 7}
+  	},
+  		{"testname" : "9: finish first thread early with no first byte",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 10, "tracer_type" : "WEB"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 9, "register_async" : ["12345",5], "lastByte": 9},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 5, "duration" : 15, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 6, "duration" : 5}
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "WebTransaction/Uri/Unknown", 1, 10, 1, 1],
+	      ["Java/java.lang.Object/t1", "WebTransaction/Uri/Unknown", 1, 9, 9, 4],
+	      ["Java/java.lang.Object/secondRootTracer", "WebTransaction/Uri/Unknown", 1, 15, 10, 10],
+	      ["Java/java.lang.Object/t2", "WebTransaction/Uri/Unknown", 1, 5, 5, 5]
+	  ],     
+  	"unscoped_metric_solution" : [
+        ["WebTransaction", "", 1, 20, 20, 0],
+        ["WebTransaction/Uri/Unknown", "", 1, 20, 20, 0],
+        ["WebTransactionTotalTime", "", 1, 25, 25, 0],
+        ["WebTransactionTotalTime/Uri/Unknown", "", 1, 25, 25, 0],
+        ["HttpDispatcher", "", 1, 20, 20, 0],
+        ["WebTransactionTimeToLastByte", "", 1, 9, 9, 0],
+        ["WebTransactionTimeToLastByte/Uri/Unknown", "", 1, 9, 9, 0]
+  	 ],
+  	 "transaction_trace" : { "duration": 20, "scope": "WebTransaction/Uri/Unknown", "segments": 
+  	     [0, 20, "ROOT",  {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	       [0, 10, "Java/java.lang.Object/mainRootTracer", {"async_context":"*", "exclusive_duration_millis":1.0}, [
+  	         [1, 10, "Java/java.lang.Object/t1", {"exclusive_duration_millis":9.0, "async_wait":true}, [
+  	           [5, 20, "Java/java.lang.Object/secondRootTracer", {"async_context":"*", "exclusive_duration_millis":10.0}, [
+  	             [6, 11, "Java/java.lang.Object/t2", {"exclusive_duration_millis":5.0}, [], "clazz","t2"]
+  	           ], "clazz","secondRootTracer"]
+  	         ], "clazz","t1"]
+  	       ], "clazz", "mainRootTracer"]
+  	     ], "clazz", "mainRootTracer" ], "intrinsics":{"totalTime":0.025, "timeToLastByte":0.009, "cpuTime":"*", "priority":"*"}
+  	 },
+  	 "transaction_event" : {"duration": 20, "total_time" : 25, "ttlb": 9}
+  	}
+]

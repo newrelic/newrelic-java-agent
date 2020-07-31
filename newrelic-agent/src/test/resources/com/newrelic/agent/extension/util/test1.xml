@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+	this. -->
+<urn:extension xmlns:urn="newrelic-extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="newrelic-extension extension.xsd " name="test1">
+<!-- This is used for junit testing. -->
+	<urn:instrumentation metricPrefix="PREFIX">
+<!-- This is used for junit testing. -->
+		<urn:pointcut transactionStartPoint="true">
+<!-- This is used for junit testing. -->
+			<urn:className>test.CustomExampleTest</urn:className>
+<!-- This is used for junit testing. -->
+			<urn:method>
+<!-- This is used for junit testing. -->
+				<urn:name>run</urn:name>
+<!-- This is used for junit testing. -->
+				<urn:parameters>
+<!-- This is used for junit testing. -->
+					<urn:type>java.lang.String
+<!-- This is used for junit testing. -->
+					</urn:type>
+<!-- This is used for junit testing. -->
+					<urn:type>java.lang.String
+<!-- This is used for junit testing. -->
+					</urn:type>
+<!-- This is used for junit testing. -->
+				</urn:parameters>
+<!-- This is used for junit testing. -->
+			</urn:method>
+<!-- This is used for junit testing. -->
+			<urn:method>
+<!-- This is used for junit testing. -->
+				<urn:name>finish</urn:name>
+<!-- This is used for junit testing. -->
+				<urn:parameters>
+<!-- This is used for junit testing. -->
+					<urn:type>float</urn:type>
+<!-- This is used for junit testing. -->
+				</urn:parameters>
+<!-- This is used for junit testing. -->
+			</urn:method>
+<!-- This is used for junit testing. -->
+		</urn:pointcut>
+<!-- This is used for junit testing. -->
+	</urn:instrumentation>
+<!-- This is used for junit testing. -->
+</urn:extension>
+<!-- This is used for junit testing. -->

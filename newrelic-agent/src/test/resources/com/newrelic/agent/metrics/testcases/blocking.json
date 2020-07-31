@@ -1,0 +1,135 @@
+[
+	{"testname" : "Blocking - Two threads - first registers the second and second ends before the first",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 11, "tracer_type" : "BACKGROUND", "register_async" : ["12345",4]},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 5, "duration" : 5, "block_on": "12345"},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 4, "duration" : 6, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 5, "duration" : 2},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 11, 6, 5, 11, 11],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 0, 5, 5],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 6, 4, 4, 6, 6],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 2, 2, 2, 2]
+	  ]
+	},
+	{"testname" : "Four threads - first registers the other three and blocks on each till they finish",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 20, "tracer_type" : "BACKGROUND", "register_async" : [["2",2], ["3",3], ["4",4]]},
+	     { "async_unit": "asyncwork1", "name" : "t1.2", "start": 5, "duration" : 5, "block_on": "2"},
+	     { "async_unit": "asyncwork1", "name" : "t1.3", "start": 11, "duration" : 5, "block_on": "3"},
+	     { "async_unit": "asyncwork1", "name" : "t1.4", "start": 17, "duration" : 1, "block_on": "4"},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 4, "duration" : 4, "start_async" : "2" },
+	     { "async_unit": "asyncwork2", "name" : "t2", "start": 5, "duration" : 2},
+	     { "async_unit": "asyncwork3", "name" : "thirdRootTracer", "start": 5, "duration" : 10, "start_async" : "3" },
+	     { "async_unit": "asyncwork3", "name" : "t3", "start": 6, "duration" : 3},
+	     { "async_unit": "asyncwork4", "name" : "fourthRootTracer", "start": 6, "duration" : 6, "start_async" : "4" },
+	     { "async_unit": "asyncwork4", "name" : "t4", "start": 7, "duration" : 5},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 20, 9, 6, 20, 20],
+	      ["Java/java.lang.Object/t1.2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 0, 5, 5],
+	      ["Java/java.lang.Object/t1.3", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 0, 5, 5],
+	      ["Java/java.lang.Object/t1.4", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1, 1, 1],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 4, 2, 0, 4, 4],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 2, 0, 2, 2],
+	      ["Java/java.lang.Object/thirdRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 10, 7, 7, 10, 10],
+	      ["Java/java.lang.Object/t3", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 3, 3, 3, 3, 3],
+	      ["Java/java.lang.Object/fourthRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 6, 1, 0, 6, 6],
+	      ["Java/java.lang.Object/t4", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 5, 5, 0, 5 ,5 ]
+	  ]
+	},
+	{"testname" : "Blocking - Two deeply nested threads",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 20, "tracer_type" : "BACKGROUND"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 16},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 2, "duration" : 13, "register_async" : ["11",3] },
+	     { "async_unit": "asyncwork1", "name" : "t3", "start": 5, "duration" : 4,  },
+	     { "async_unit": "asyncwork1", "name" : "t4", "start": 10, "duration" : 2, }
+	     { "async_unit": "asyncwork1", "name" : "t5", "start": 11, "duration" : 1, "block_on": "11" },
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 4, "duration" : 8, "start_async" : "11" },
+	     { "async_unit": "asyncwork2", "name" : "t6", "start": 8, "duration" : 2},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 20, 4, 4],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 16, 3, 3],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 13, 7, 4],
+	      ["Java/java.lang.Object/t3", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 4, 4, 0],
+	      ["Java/java.lang.Object/t4", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 1, 0],
+	      ["Java/java.lang.Object/t5", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 0],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 8, 6, 6],
+	      ["Java/java.lang.Object/t6", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 2, 2]
+	  ]
+	},	
+	{"testname" : "Blocking - Same method names",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 20, "tracer_type" : "BACKGROUND"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 16},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 2, "duration" : 13, "register_async" : ["11",3] },
+	     { "async_unit": "asyncwork1", "name" : "t3", "start": 5, "duration" : 4,  },
+	     { "async_unit": "asyncwork1", "name" : "t4", "start": 10, "duration" : 2, }
+	     { "async_unit": "asyncwork1", "name" : "t5", "start": 11, "duration" : 1, "block_on": "11" },
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 4, "duration" : 8, "start_async" : "11" },
+	     { "async_unit": "asyncwork2", "name" : "t4", "start": 8, "duration" : 2},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 20, 4, 4, 20, 20],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 16, 3, 3, 16, 16],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 13, 7, 4, 13, 13],
+	      ["Java/java.lang.Object/t3", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 4, 4, 0, 4, 4],
+	      ["Java/java.lang.Object/t4", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 2, 4, 3, 2, 2, 2],
+	      ["Java/java.lang.Object/t5", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 0, 1, 1],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 8, 6, 6, 8, 8]
+	  ]
+	},
+	{"testname" : "Blocking - not really blocking",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 20, "tracer_type" : "BACKGROUND"},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 1, "duration" : 16},
+	     { "async_unit": "asyncwork1", "name" : "t2", "start": 2, "duration" : 13, "register_async" : ["11",3] },
+	     { "async_unit": "asyncwork1", "name" : "t3", "start": 5, "duration" : 4,  },
+	     { "async_unit": "asyncwork1", "name" : "t4", "start": 10, "duration" : 2, }
+	     { "async_unit": "asyncwork1", "name" : "t5", "start": 11, "duration" : 1, "block_on": "11" },
+	     { "async_unit": "asyncwork1", "name" : "t6", "start": 13, "duration" : 1, "block_on": "11" },
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 4, "duration" : 6, "start_async" : "11" },
+	     { "async_unit": "asyncwork2", "name" : "t7", "start": 6, "duration" : 2},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 20, 4, 4],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 16, 3, 3],
+	      ["Java/java.lang.Object/t2", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 13, 6, 6],
+	      ["Java/java.lang.Object/t3", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 4, 4, 4],
+	      ["Java/java.lang.Object/t4", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 1, 1],
+	      ["Java/java.lang.Object/t5", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/t6", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 1, 1, 1],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 6, 4, 0],
+	      ["Java/java.lang.Object/t7", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 2, 2, 0]
+	  ]
+	},
+		{"testname" : "Blocking - Two Threads - same metric names",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 11, "tracer_type" : "BACKGROUND", "register_async" : ["12345",4]},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 5, "duration" : 5, "block_on": "12345"},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 4, "duration" : 6, "start_async" : "12345" },
+	     { "async_unit": "asyncwork2", "name" : "t1", "start": 5, "duration" : 2},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 11, 6, 5, 11, 11],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 2, 7, 7, 2, 2, 5],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 6, 4, 4, 6, 6]
+	  ]
+	},
+		{"testname" : "Blocking - Two Threads - same metric names - end early",
+	 "tracers" : [
+	     { "async_unit": "asyncwork1", "name" : "mainRootTracer", "start": 0, "duration" : 11, "tracer_type" : "BACKGROUND", "register_async" : ["12345",4]},
+	     { "async_unit": "asyncwork1", "name" : "t1", "start": 5, "duration" : 5, "block_on": "12345"},
+	     { "async_unit": "asyncwork2", "name" : "secondRootTracer", "start": 4, "duration" : 6, "start_async" : "12345", "lastByte" : 8 },
+	     { "async_unit": "asyncwork2", "name" : "t1", "start": 5, "duration" : 2},
+	  ],
+	  "scoped_metric_solution" : [
+	      ["Java/java.lang.Object/mainRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 11, 6, 4, 11, 11],
+	      ["Java/java.lang.Object/t1", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 2, 7, 7, 2, 2, 5],
+	      ["Java/java.lang.Object/secondRootTracer", "OtherTransaction/Java/java.lang.Object/mainRootTracer", 1, 6, 4, 2, 6, 6]
+	  ]
+	}
+]

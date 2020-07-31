@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is used for junit testing. Remember to change the test if you change 
+    this. -->
+<extension xmlns="https://newrelic.com/docs/java/xsd/v1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="test1">
+    <instrumentation metricPrefix="PREFIX">
+        <pointcut transactionStartPoint="true">
+            <className>test.CustomExampleTest</className>
+            <method>
+                <name>run</name>
+                <parameters>
+                    <type>java.lang.String
+                    </type>
+                    <type>java.lang.String
+                    </type>
+                </parameters>
+            </method>
+            <method>
+                <name>finish</name>
+                <parameters>
+                    <type>float</type>
+                </parameters>
+            </method>
+        </pointcut>
+    </instrumentation>
+</extension>

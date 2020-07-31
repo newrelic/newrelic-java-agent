@@ -1,0 +1,15 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java-io', 'Enabled': 'false' }
+}
+
+verifyInstrumentation {
+    // verifier works without Instrumentation class
+    // weave package wants to load java.net* into bootstrap - this doesn't work
+    // disable verification
+    verifyClasspath = false
+}

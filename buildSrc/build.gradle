@@ -1,0 +1,25 @@
+plugins {
+    id "java"
+}
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    // This is how we do our NR-specific patching. That is, moving Log4jPlugins,
+    // changing Logger.getLogger, and checking for unmapped dependencies.
+    implementation("org.ow2.asm:asm:7.3.1")
+    implementation("org.ow2.asm:asm-commons:7.3.1")
+
+    // Shadow is used here because several classes implement the Transformer interface
+    implementation("com.github.jengelman.gradle.plugins:shadow:6.0.0")
+
+    // Reflections and GSON are used for building the manifest of annotated classes.
+    implementation("org.reflections:reflections:0.9.11")
+    implementation("com.google.code.gson:gson:2.8.6")
+}

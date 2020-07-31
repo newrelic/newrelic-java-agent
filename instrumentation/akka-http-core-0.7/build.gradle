@@ -1,0 +1,28 @@
+apply plugin: 'scala'
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-core-0.7' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.typesafe.akka:akka-http-core-experimental_2.11:0.7")
+    implementation("com.typesafe.akka:akka-actor_2.11:2.3.14")
+}
+
+verifyInstrumentation {
+    passesOnly('com.typesafe.akka:akka-http-core-experimental_2.11:[0.7,1.0)'){
+        compile("com.typesafe.akka:akka-actor_2.11:2.3.14")
+    }
+    passesOnly('com.typesafe.akka:akka-http-core-experimental_2.10:[0.7,1.0)'){
+        compile("com.typesafe.akka:akka-actor_2.10:2.3.14")
+    }
+
+    exclude 'com.typesafe.akka:akka-http-core-experimental_2.11:[1.0-M1,1.0-RC4]'
+    exclude 'com.typesafe.akka:akka-http-core-experimental_2.10:[1.0-M1,1.0-RC4]'
+}
+
+site {
+    title 'Akka Http Core'
+    type 'Framework'
+}

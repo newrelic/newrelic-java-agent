@@ -1,0 +1,18 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.openjpa:openjpa:2.4.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.openjpa-1.0.0' }
+}
+
+verifyInstrumentation {
+    passes 'org.apache.openjpa:openjpa:[1.0,)'
+}
+
+site {
+    title 'OpenJPA'
+    type 'Other'
+}

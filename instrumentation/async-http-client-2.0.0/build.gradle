@@ -1,0 +1,24 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.asynchttpclient:async-http-client:2.0.0")
+    testImplementation("org.nanohttpd:nanohttpd-websocket:2.2.0")
+    testImplementation("org.asynchttpclient:async-http-client:2.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.async-http-client-2.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.asynchttpclient:async-http-client:[2.0.0-RC1,2.1.0)'
+    excludeRegex ".*(alpha|RC).*"
+}
+
+test {
+    executable = jdk8 + '/bin/java'
+}
+
+site {
+    title 'Async Http Client'
+    type 'Messaging'
+}

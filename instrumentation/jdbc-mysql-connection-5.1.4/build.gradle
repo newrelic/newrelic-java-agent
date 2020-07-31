@@ -1,0 +1,18 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("mysql:mysql-connector-java:5.1.4")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-mysql-connection-5.1.4' }
+}
+
+verifyInstrumentation {
+    passesOnly 'mysql:mysql-connector-java:[5.1.4,6.0.2)'
+}
+
+site {
+    title 'MySQL'
+    type 'Datastore'
+}

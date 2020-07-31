@@ -1,0 +1,19 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation("org.hibernate:hibernate-jmx:3.5.0-Final")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.hibernate-3.5' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.hibernate:hibernate-jmx:[3.5,3.7)'
+}
+
+site {
+    title 'Hibernate'
+    type 'Framework'
+}

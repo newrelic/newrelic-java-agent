@@ -1,0 +1,9 @@
+name: CustomExtensionTest
+version: 1.0
+enabled: true
+
+instrumentation:
+  pointcuts:
+    - class_matcher: 'java.lang.instrument.Instrumentation.Agent'
+      method_matcher: ['getVersion', '()Ljava/lang/String;']
+      dispatcher: true

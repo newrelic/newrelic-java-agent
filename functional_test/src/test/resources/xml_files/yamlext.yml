@@ -1,0 +1,75 @@
+name: TestYml
+version: 1.0
+enabled: true
+
+instrumentation:
+  pointcuts:  
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ doubleValue()I, stringValue()Ljava/lang/String; ]
+      dispatcher: true
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ getValue()I ]
+      dispatcher: true
+      metric_name_format: ThisIsATestForGetValue
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ doMoreWork()V ]
+      dispatcher: true
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ shouldBeIgnored()V ]
+      dispatcher: true
+      ignore_transaction: true
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ doMoreWorkYaya()V ]
+      dispatcher: true
+      
+    - class_matcher: 'com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass'
+      method_matcher:  [ shouldBeIgnoredYaya()V ]
+      dispatcher: true
+      ignore_transaction: true
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ theMain()V ]
+      dispatcher: true
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ methodA()V ]
+      dispatcher: false
+
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ methodB()V ]
+      dispatcher: true
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ methodC()V ]
+      dispatcher: false
+      metric_name_format: OtherTransaction/ccmethod
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ methodD()V ]
+      dispatcher: true
+      skip_transaction_trace: true
+
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ methodE()V ]
+      dispatcher: false
+      skip_transaction_trace: true
+      
+    - class_matcher: 
+      - com/newrelic/agent/instrumentation/extension/YmlExtensionTest$TheYamlInnerClass
+      method_matcher: [ methodF()V ]
+      dispatcher: false
+      skip_transaction_trace: false
+      metric_name_format: /ffmethod

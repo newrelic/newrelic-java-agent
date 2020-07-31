@@ -1,0 +1,19 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-api"))
+    implementation("com.sun.jersey:jersey-server:1.0.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jersey-1' }
+}
+
+verifyInstrumentation {
+    passesOnly 'com.sun.jersey:jersey-server:[1.0.1,2.0)'
+}
+
+site {
+    title 'Jersey'
+    type 'Framework'
+}
