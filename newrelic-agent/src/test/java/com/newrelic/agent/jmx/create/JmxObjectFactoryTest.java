@@ -15,6 +15,7 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.extension.Extension;
 import com.newrelic.agent.extension.ExtensionService;
+import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.extension.YamlExtension;
 import com.newrelic.agent.jmx.values.GlassfishJmxValues;
 import com.newrelic.agent.jmx.values.JavaLangJmxMetrics;
@@ -29,7 +30,6 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,11 +54,11 @@ public class JmxObjectFactoryTest {
     public void setUpAgent() {
         serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);
-        AgentConfig config = AgentConfigImpl.createAgentConfig(Collections.EMPTY_MAP);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(Collections.<String, Object>emptyMap());
 
-        ConfigService configService = ConfigServiceFactory.createConfigService(config, Collections.EMPTY_MAP);
+        ConfigService configService = ConfigServiceFactory.createConfigService(config, Collections.<String, Object>emptyMap());
         serviceManager.setConfigService(configService);
-        serviceManager.setExtensionService(new ExtensionService(configService));
+        serviceManager.setExtensionService(new ExtensionService(configService, ExtensionsLoadedListener.NOOP));
     }
 
     @Test

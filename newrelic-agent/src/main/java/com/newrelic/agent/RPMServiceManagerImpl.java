@@ -34,13 +34,13 @@ public class RPMServiceManagerImpl extends AbstractService implements RPMService
     private final ConnectionConfigListener connectionConfigListener;
     private final List<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
     private final ConnectionListener connectionListener;
-    private final AgentConnectionEstablishedListener agentConnectionEstablishedListener;
+    private final AgentConnectionEstablishedListener[] agentConnectionEstablishedListener;
     // for efficiency: an unmodifiable list of all RPM services
     private volatile List<IRPMService> rpmServices;
 
-    public RPMServiceManagerImpl(AgentConnectionEstablishedListener agentConnectionEstablishedListener) {
+    public RPMServiceManagerImpl(AgentConnectionEstablishedListener... agentConnectionEstablishedListeners) {
         super(RPMServiceManager.class.getSimpleName());
-        this.agentConnectionEstablishedListener = agentConnectionEstablishedListener;
+        this.agentConnectionEstablishedListener = agentConnectionEstablishedListeners;
         connectionConfigListener = new ConnectionConfigListener() {
             @Override
             public AgentConfig connected(IRPMService rpmService, Map<String, Object> connectionInfo) {

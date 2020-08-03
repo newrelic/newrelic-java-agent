@@ -48,7 +48,7 @@ public class SqlTraceAggregatorTest {
         serviceManager.setTransactionTraceService(ttService);
         serviceManager.setTransactionService(new TransactionService());
         serviceManager.setDatabaseService(new DatabaseService());
-        serviceManager.setRPMServiceManager(new RPMServiceManagerImpl(AgentConnectionEstablishedListener.NOOP));
+        serviceManager.setRPMServiceManager(new RPMServiceManagerImpl(new AgentConnectionEstablishedListener[0]));
         serviceManager.setSqlTraceService(new SqlTraceServiceImpl());
         serviceManager.setStatsService(new StatsServiceImpl());
         serviceManager.setDistributedTraceService(new DistributedTraceServiceImpl());

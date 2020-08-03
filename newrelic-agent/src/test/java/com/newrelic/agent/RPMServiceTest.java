@@ -234,7 +234,7 @@ public class RPMServiceTest {
     private void doTestLaunch() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         svc.shutdown();
@@ -343,7 +343,7 @@ public class RPMServiceTest {
                 data.set(connectionInfo);
                 return null;
             }
-        }, null, AgentConnectionEstablishedListener.NOOP);
+        }, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
         List<NormalizationRule> rules = NormalizationRuleFactory.getUrlRules("MyApplication", new NormalizationRuleConfig(data.get()).getUrlRules());
 
@@ -383,7 +383,7 @@ public class RPMServiceTest {
         };
 
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, connectionListener, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, connectionListener, new AgentConnectionEstablishedListener[0]);
         svc.launch();
         Assert.assertTrue(connected.get());
 
@@ -439,7 +439,7 @@ public class RPMServiceTest {
         DataSenderFactory.setDataSenderFactory(dataSenderFactory);
 
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.start();
         svc.launch();
 
@@ -473,7 +473,7 @@ public class RPMServiceTest {
     private void doTestLaunchAndRestart() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         Assert.assertTrue(ServiceFactory.getTransactionTraceService().isEnabled());
@@ -503,7 +503,7 @@ public class RPMServiceTest {
     private void doHarvest() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
         synchronized (this) {
             wait(1000);
@@ -549,7 +549,7 @@ public class RPMServiceTest {
         Transaction.clearTransaction();
 
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "test", "()V");
@@ -582,7 +582,7 @@ public class RPMServiceTest {
         createServiceManager(config);
 
         List<String> appNames = singletonList("Java CMS");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         Assert.assertEquals(TransactionNamingScheme.LEGACY, svc.getTransactionNamingScheme());
@@ -609,7 +609,7 @@ public class RPMServiceTest {
     private void doSendProfileData() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         ProfilerParameters parameters = new ProfilerParameters(0L, 0L, 0L, false, false, Agent.isDebugEnabled(), null,
                 null);
         Profile profile = new Profile(parameters);
@@ -644,7 +644,7 @@ public class RPMServiceTest {
 
     private void doGetApplicationName() {
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         Assert.assertEquals("MyApplication", svc.getApplicationName());
     }
 
@@ -677,7 +677,7 @@ public class RPMServiceTest {
 
     private void doIsMainApp(String appName, Map<String, Object> map) {
         List<String> appNames = singletonList(appName);
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         Assert.assertTrue(svc.isMainApp());
 
         map.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
@@ -707,7 +707,7 @@ public class RPMServiceTest {
     private void doGetAgentCommands() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         List<List<?>> commands = svc.getAgentCommands();
@@ -732,7 +732,7 @@ public class RPMServiceTest {
     private void doSendEmptyCommandResults() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         Map<Long, Object> commandResults = new HashMap<>();
@@ -756,7 +756,7 @@ public class RPMServiceTest {
     private void doSendCommandResults() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         Map<Long, Object> commandResults = new HashMap<>();
@@ -791,7 +791,7 @@ public class RPMServiceTest {
         List<String> appNames = new ArrayList<>(2);
         appNames.add("MyApp1");
         appNames.add("MyApp2");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         Assert.assertEquals("MyApp1", svc.getApplicationName());
         svc.launch();
 
@@ -824,7 +824,7 @@ public class RPMServiceTest {
 
         List<String> appNames = new ArrayList<>(1);
         appNames.add("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         final ThreadInfo threadInfo = ManagementFactory.getThreadMXBean().getThreadInfo(Thread.currentThread().getId(),
@@ -888,7 +888,7 @@ public class RPMServiceTest {
                     Assert.assertEquals(2L, rawDataReceived.get("return_value"));
                 }
             }
-        }, AgentConnectionEstablishedListener.NOOP);
+        }, new AgentConnectionEstablishedListener[0]);
         ((MockRPMServiceManager) ServiceFactory.getRPMServiceManager()).setRPMService(svc);
         svc.launch();
 
@@ -932,7 +932,7 @@ public class RPMServiceTest {
     private void doTestLaunchHttps() throws Exception {
         List<String> appNames = new ArrayList<>(1);
         appNames.add("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         svc.shutdown();
@@ -949,7 +949,7 @@ public class RPMServiceTest {
     private void doTestStatusCodeSupportabilityMetrics() throws Exception {
         List<String> appNames = new ArrayList<>(1);
         appNames.add("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
         StatsEngine statsEngine = ServiceFactory.getStatsService().getStatsEngineForHarvest("MyApplication");
         MetricName metricName = MetricName.create("Supportability/Collector/HttpCode/200");
@@ -973,7 +973,7 @@ public class RPMServiceTest {
         createServiceManager(config);
 
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         svc.shutdown();
@@ -1017,7 +1017,7 @@ public class RPMServiceTest {
 
     private void doTestLaunchProxyAuthBadPassword() throws Exception {
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
     }
 
@@ -1033,7 +1033,7 @@ public class RPMServiceTest {
         createServiceManager(config);
 
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         svc.shutdown();
@@ -1058,7 +1058,7 @@ public class RPMServiceTest {
     private void doTestLaunchToSendMetricData() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
 
         StatsEngine statsEngine = ServiceFactory.getStatsService().getStatsEngineForHarvest(null);
@@ -1118,7 +1118,7 @@ public class RPMServiceTest {
     private void doTestBadLicense() throws Exception {
         addTrustStore();
         List<String> appNames = singletonList("");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         svc.launch();
     }
 
@@ -1142,7 +1142,7 @@ public class RPMServiceTest {
         Transaction.clearTransaction();
 
         List<String> appNames = singletonList("MyApplication");
-        RPMService svc = new RPMService(appNames, null, null, AgentConnectionEstablishedListener.NOOP);
+        RPMService svc = new RPMService(appNames, null, null, new AgentConnectionEstablishedListener[0]);
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "test", "()V");
         Tracer rootTracer = new BasicRequestRootTracer(Transaction.getTransaction(), sig, this, null, null,
                 new SimpleMetricNameFormat("/test"));

@@ -13,10 +13,12 @@ import com.newrelic.agent.ForceDisconnectException;
 import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.instrumentation.PointCutConfiguration;
+import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringPointCut;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.weave.weavepackage.WeavePackageConfig;
 import org.junit.Assert;
@@ -35,6 +37,7 @@ import static com.newrelic.agent.config.ConfigHelper.buildConfigMap;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ClassTransformerConfigImplTest {
 
@@ -156,8 +159,10 @@ public class ClassTransformerConfigImplTest {
         Assert.assertEquals(8, exclusions.size()); // 6 included by default ClassTransformerConfigImpl#initializeClassloaderExcludes
 
         ConfigService configService = ConfigServiceFactory.createConfigService(config, Collections.<String, Object>emptyMap());
-        ServiceManager serviceManager = new MockServiceManager(configService);
+        MockServiceManager serviceManager = new MockServiceManager(configService);
         ServiceFactory.setServiceManager(serviceManager);
+        JarCollectorService mockJarCollector = serviceManager.getJarCollectorService();
+        when(mockJarCollector.getSourceVisitor()).thenReturn(ClassMatchVisitorFactory.NO_OP_FACTORY);
 
         InstrumentationContextManager icm = new InstrumentationContextManager(Mockito.mock(InstrumentationProxy.class));
         Assert.assertFalse(icm.isClassloaderExcluded(new GoodClassLoader()));

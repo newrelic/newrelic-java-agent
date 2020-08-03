@@ -13,6 +13,7 @@ import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.extension.ExtensionService;
+import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.jmx.JmxType;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Assert;
@@ -39,7 +40,7 @@ public class JmxObjectJava6UpTest {
 
         ConfigService configService = ConfigServiceFactory.createConfigService(config, Collections.EMPTY_MAP);
         serviceManager.setConfigService(configService);
-        serviceManager.setExtensionService(new ExtensionService(configService));
+        serviceManager.setExtensionService(new ExtensionService(configService, ExtensionsLoadedListener.NOOP));
     }
 
     @Test

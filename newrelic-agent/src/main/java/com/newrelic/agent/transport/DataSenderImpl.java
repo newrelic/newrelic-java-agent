@@ -27,7 +27,6 @@ import com.newrelic.agent.model.ErrorEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.module.Jar;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
@@ -404,19 +403,19 @@ public class DataSenderImpl implements DataSender {
     /**
      * Sends the jars with versions to the collector.
      *
-     * @param pJars The new jars which need to be sent to the collector.
+     * @param jarDataList The new jars which need to be sent to the collector.
      */
     @Override
-    public void sendModules(List<Jar> pJars) throws Exception {
+    public void sendModules(List<? extends JSONStreamAware> jarDataList) throws Exception {
         Object runId = agentRunId;
-        if (runId == NO_AGENT_RUN_ID || pJars == null || pJars.isEmpty()) {
+        if (runId == NO_AGENT_RUN_ID || jarDataList == null || jarDataList.isEmpty()) {
             return;
         }
         InitialSizedJsonArray params = new InitialSizedJsonArray(2);
 
         // Module type must always be first - it should always be jars
         params.add(MODULE_TYPE);
-        params.add(pJars);
+        params.add(jarDataList);
 
         invokeRunId(CollectorMethods.UPDATE_LOADED_MODULES, compressedEncoding, runId, params);
     }
