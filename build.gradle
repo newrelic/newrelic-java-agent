@@ -8,7 +8,7 @@ allprojects {
     apply plugin: 'idea'
 
     group = 'com.newrelic.agent.java'
-    version = agentVersion
+    version = agentVersion + (project.findProperty("release") == "true" ? "" : "-SNAPSHOT")
 
     idea.module {
         outputDir file('build/classes/main')

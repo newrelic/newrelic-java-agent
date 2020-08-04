@@ -64,10 +64,6 @@ After building, Java agent artifacts are located here:
 - Agent: `java_agent/newrelic-agent/build/newrelicJar/newrelic.jar`
 - Agent API: `java_agent/newrelic-api/build/libs/newrelic-api.jar`
 
-#### Agent version
-
-The Java agent version defaults to `6.DEV-SNAPSHOT` for developer builds. You can change this in the `gradle.properties` file. To avoid confusion, we recommend against using version numbers for developer builds that look like production releases.
-
 ## IntelliJ IDEA setup
 
 We recommend using IntelliJ IDEA for development on this project. Configure as follows:
