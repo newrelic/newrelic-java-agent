@@ -14,9 +14,30 @@ Before submitting an Issue, please search for similar ones in the
 
 ## Pull Requests
 
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
-2. Increase the version numbers in any examples files and the README.md to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-3. You may merge the Pull Request in once you have the sign-off of two other developers, or if you do not have permission to do that, you may request the second reviewer to merge it for you.
+### Version Support
+
+When contributing, keep in mind that New Relic customers (that's you!) are running many different versions of Java, some of them pretty old. Changes that require the newest version of Java will probably be rejected, especially if they replace something backwards compatible.
+
+Be aware that the instrumentation needs to work with a wide range of versions of the instrumented modules, and that code that looks nonsensical or overcomplicated may be that way for compatibility-related reasons. Read all the comments and check the related tests before deciding whether existing code is incorrect.
+
+If you’re planning on contributing a new feature or an otherwise complex contribution, we kindly ask you to start a conversation with the maintainer team by opening up a Github issue first. 
+
+### Dependencies
+
+As new dependencies have to be shaded and licensed for distribution, any additional dependency would have to add significant value.
+
+### Coding Style Guidelines/Conventions
+
+- Use the [style provided](https://github.com/newrelic/newrelic-java-agent/blob/main/dev-tools/code-style/java-agent-code-style.xml) in the project.
+- We encourage you to reduce tech debt you might find in the area. Leave the code better than you found it.
+
+### Testing Guidelines
+
+The tests can be run with `./gradlew test`. Note that this runs unit tests, functional tests, and individual instrumentation module tests, so this is extremely time-consuming.
+
+For more information, refer to the [README](https://github.com/newrelic/newrelic-java-agent#testing).
+
+We expect that all new code has robust unit test coverage, and any functional changes should also be covered by tests. Because the Java agent must support Java 7, we are using JUnit 4. We expect reasonable test coverage for any changed paths, but there’s no specific metric (such as through jacoco) at this time.
 
 ## Contributor License Agreement
 
