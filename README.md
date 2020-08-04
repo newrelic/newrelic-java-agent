@@ -134,7 +134,7 @@ See our [roadmap](/roadmap.md), to learn more about our product vision, understa
 
 ## Support
 
-Should you need assistance with New Relic products, you are in good hands with several [**Optional** support diagnostic tools and] support channels.
+Should you need assistance with New Relic products, you are in good hands with several diagnostic tools and support channels.
 
 This [troubleshooting framework](https://discuss.newrelic.com/t/java-agent-troubleshooting-framework-install/108680) steps you through common troubleshooting questions.
 
