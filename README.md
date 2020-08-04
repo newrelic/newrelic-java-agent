@@ -129,6 +129,8 @@ Run a single test for a specific instrumentation module:
 ```
 ./gradlew instrumentation:vertx-web-3.2.0:test --tests com.nr.vertx.instrumentation.RoutingTest
 ```
+## Roadmap
+See our [roadmap](/roadmap.md), to learn more about our product vision, understand our plans, and provide us valuable feedback.
 
 ## Support
 
