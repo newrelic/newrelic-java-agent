@@ -54,15 +54,15 @@ jdk9=/Library/Java/JavaVirtualMachines/adoptopenjdk-9.jdk/Contents/Home
 
 The Java agent requires JDK 1.8 to build; your `JAVA_HOME` must be set to this JDK version.
 
-To build the agent jar, run the following command from `java_agent` root directory:  
+To build the agent jar, run the following command from the project root directory:  
 `./gradlew clean jar --parallel`
 
 To build and run all checks:  
 `./gradlew clean build --parallel`
 
 After building, Java agent artifacts are located here:  
-- Agent: `java_agent/newrelic-agent/build/newrelicJar/newrelic.jar`
-- Agent API: `java_agent/newrelic-api/build/libs/newrelic-api.jar`
+- Agent: `newrelic-agent/build/newrelicJar/newrelic.jar`
+- Agent API: `newrelic-api/build/libs/newrelic-api-*.jar`
 
 ## IntelliJ IDEA setup
 
