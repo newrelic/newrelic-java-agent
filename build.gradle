@@ -39,7 +39,6 @@ subprojects {
     }
 
     def isJavaProject = ![
-            'agent-integration-tests', // the test apps have their independent build processes.
             'instrumentation',  // is a parent project
             'instrumentation-build', // is a build utility
             'newrelic-java', // this is a project used exclusively for bundling the zip file.
