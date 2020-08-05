@@ -38,7 +38,7 @@ public class JavaVersionUtils {
 
     /**
      * @param javaSpecificationVersion unsupported java specification version string.
-     * @return a printable message for a version of java unsupported by the New Relic agent. Supported versions will return
+     * @return a printable message for a version of java unsupported by the New Relic agent. Supported versions will return
      * an empty string.
      */
     public static String getUnsupportedAgentJavaSpecVersionMessage(String javaSpecificationVersion) {

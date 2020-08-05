@@ -82,7 +82,7 @@ public class SourceLibraryDetector implements Runnable {
             recordJvmVendorMetric("Eclipse");
         } else if (jvmVendor.contains("openjdk")) {
             recordJvmVendorMetric("OpenJDK");
-        } else if (jvmVendor.contains("Corretto")) {
+        } else if (jvmVendor.contains("corretto")) {
             recordJvmVendorMetric("Corretto");
         } else {
             recordJvmVendorMetric("Other");

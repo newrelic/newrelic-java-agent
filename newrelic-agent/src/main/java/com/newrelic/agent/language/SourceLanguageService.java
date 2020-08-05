@@ -45,6 +45,9 @@ public class SourceLanguageService extends AbstractService implements HarvestLis
             .put(54, "1.10")
             .put(55, "1.11")
             .put(56, "1.12")
+            .put(57, "1.13")
+            .put(58, "1.14")
+            .put(59, "1.15")
             .build();
 
     // There are A LOT of languages that can run on the JVM; only look for certain ones and collapse the known extensions
