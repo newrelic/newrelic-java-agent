@@ -9,6 +9,7 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.cli.AgentCommandLineParser;
 import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
@@ -24,7 +25,6 @@ import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.ClassStructure;
-import com.newrelic.api.agent.Logger;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.weave.utils.Streams;
 import org.objectweb.asm.ClassReader;
@@ -295,7 +295,7 @@ public final class Agent {
             return;
         }
 
-        new AgentCommandLineParser().parseCommand(args);
+        System.exit(new AgentCommandLineParser().parseCommand(args));
     }
 
     public static long getAgentPremainTimeInMillis() {

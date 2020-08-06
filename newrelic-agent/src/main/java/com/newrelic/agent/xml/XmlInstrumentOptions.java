@@ -12,9 +12,9 @@ public enum XmlInstrumentOptions {
         }
     },
     /**
-     * True means debug will be on and more information will be outputed to the command line.
+     * True means debug will be on and more information will be printed to stdout.
      */
-    DEBUG_FLAG("debug", true, "Set this flag to true for more debuging information. The default is false.") {
+    DEBUG_FLAG("debug", true, "Set this flag to true for more debugging information. The default is false.") {
         @Override
         public void validateAndAddParameter(XmlInstrumentParams pInstrument, String[] pValue, String pTagName) {
             pInstrument.setDebug(pValue, pTagName);

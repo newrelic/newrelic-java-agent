@@ -5,8 +5,9 @@
  *
  */
 
-package com.newrelic.agent;
+package com.newrelic.agent.cli;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigHelper;
 import com.newrelic.agent.config.ConfigServiceFactory;
@@ -22,22 +23,22 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 
-public class Deployments {
+class Deployments {
     static final String REVISION_OPTION = "revision";
     static final String CHANGE_LOG_OPTION = "changes";
     static final String APP_NAME_OPTION = "appname";
     static final String USER_OPTION = "user";
     static final String ENVIRONMENT_OPTION = "environment";
 
-    static int recordDeployment(CommandLine cmd) throws Exception {
+    static void recordDeployment(CommandLine cmd) throws Exception {
         if (cmd.hasOption(ENVIRONMENT_OPTION)) {
             System.setProperty(AgentConfigHelper.NEWRELIC_ENVIRONMENT_SYSTEM_PROP, cmd.getOptionValue(ENVIRONMENT_OPTION));
         }
         AgentConfig config = ConfigServiceFactory.createConfigService(Agent.LOG, false).getDefaultAgentConfig();
-        return recordDeployment(cmd, config);
+        recordDeployment(cmd, config);
     }
 
-    static int recordDeployment(CommandLine cmd, AgentConfig config) throws Exception {
+    private static void recordDeployment(CommandLine cmd, AgentConfig config) throws Exception {
         String appName = config.getApplicationName();
         if (cmd.hasOption(APP_NAME_OPTION)) {
             appName = cmd.getOptionValue(APP_NAME_OPTION);
@@ -90,10 +91,10 @@ public class Deployments {
                 out.println(output);
             }
         }
-        return responseCode;
 
-        // conn.setRequestProperty("CONTENT-TYPE", "application/octet-stream");
-        // conn.setRequestProperty("ACCEPT-ENCODING", GZIP);
+        if (isError) {
+            throw new Exception("Failed to record deployment");
+        }
     }
 
     private static String getDeploymentPayload(String appName, CommandLine cmd) throws IOException {
