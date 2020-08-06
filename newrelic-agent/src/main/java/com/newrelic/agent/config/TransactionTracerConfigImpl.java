@@ -13,6 +13,7 @@ import com.newrelic.agent.database.SqlObfuscator;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -202,7 +203,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     }
 
     private Map<String, Object> mergeSettings(Map<String, Object> localSettings, Map<String, Object> serverSettings) {
-        Map<String, Object> mergedSettings = createMap();
+        Map<String, Object> mergedSettings = new HashMap<>();
         if (localSettings != null) {
             mergedSettings.putAll(localSettings);
         }
