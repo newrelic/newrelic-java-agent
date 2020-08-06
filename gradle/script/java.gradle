@@ -171,6 +171,11 @@ test {
     if (project.hasProperty("development")) {
         environment "ENVIRONMENT", "development"
     }
+
+    testLogging {
+        events "failed"
+        exceptionFormat "short"
+    }
 }
 
 dependencies {
