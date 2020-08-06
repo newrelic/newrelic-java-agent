@@ -1,11 +1,11 @@
-name: PR Build - Unit Tests
+name: PR Build - Functional Tests
 
 on:
   pull_request:
     branches: [ main ]
 
 jobs:
-  unit_test:
+  functional_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -46,6 +46,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle
       # Start running the build.
-      - name: run the unit tests
-        run: ./gradlew --console=plain --parallel test -x functional_test:test -PnoInstrumentation --continue
+      - name: run the functional tests
+        run: ./gradlew --console=plain --parallel functional_test:test --continue
+
 
