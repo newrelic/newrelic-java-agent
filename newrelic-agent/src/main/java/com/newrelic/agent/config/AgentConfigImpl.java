@@ -259,16 +259,20 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final Map<String, Object> flattenedProperties;
     private final CommandParserConfig commandParserConfig;
 
-
     public static AgentConfig createAgentConfig(Map<String, Object> settings) {
         if (settings == null) {
             settings = Collections.emptyMap();
+        } else {
+            settings = new ObscuringConfig(settings, SYSTEM_PROPERTY_ROOT).getDeobscuredProperties();
         }
+
         return new AgentConfigImpl(settings);
     }
 
     private AgentConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
+
+        licenseKey = getProperty(LICENSE_KEY);
         // ssl, transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
         securityPoliciesToken = getProperty(LASP_TOKEN, DEFAULT_SECURITY_POLICIES_TOKEN);
@@ -279,7 +283,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
         debug = Boolean.getBoolean(DEBUG);
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
-        licenseKey = getProperty(LICENSE_KEY);
         host = parseHost(licenseKey);
         isSSL = initSsl(props);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
@@ -364,10 +367,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
+
     private String initSSLConfig() {
         String caBundlePath = getProperty(CA_BUNDLE_PATH, DEFAULT_CA_BUNDLE_PATH);
-        if ( getProperty(USE_PRIVATE_SSL) != null) {
-            if ( caBundlePath != null) {
+        if (getProperty(USE_PRIVATE_SSL) != null) {
+            if (caBundlePath != null) {
                 Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
             } else {
                 Agent.LOG.log(Level.SEVERE, "use_private_ssl configuration setting has been removed. Please use ca_bundle_path instead.");
@@ -462,7 +466,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /*
-     * This is here just in case someone uses get value to retrieve one of the properties which has been changed do to
+     * This is here just in case someone uses get value to retrieve one of the properties which has been changed due to
      * high security.
      */
     private void checkHighSecurityPropsInFlattened(Map<String, Object> flattenedProps) {
@@ -577,7 +581,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         Map<String, Object> props = nestedProps(CROSS_APPLICATION_TRACER);
         if (prop != null) {
             if (props == null) {
-                props = createMap();
+                props = new HashMap<>();
             }
             props.put(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING, prop);
         }
@@ -939,7 +943,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
                 break;
             }
             if (result instanceof Map) {
-                Map<?, ?> resultMap = (Map<?, ?>)result;
+                Map<?, ?> resultMap = (Map<?, ?>) result;
                 result = resultMap.containsKey(component) ? resultMap.get(component) : null;
             }
         }

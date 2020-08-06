@@ -15,7 +15,6 @@ import org.json.simple.parser.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,10 +65,6 @@ public class BaseConfig implements Config {
 
     public Map<String, Object> getProperties() {
         return props;
-    }
-
-    protected Map<String, Object> createMap() {
-        return new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -140,6 +135,9 @@ public class BaseConfig implements Config {
         override = getPropertyFromSystemProperties(key, defaultVal);
         if (override != null) {
             return castValue(key, override, defaultVal);
+        }
+        if (propVal instanceof ObscuredYamlPropertyWrapper) {
+            throw new IllegalArgumentException("Property " + key + " was obscured; obscured values are not supported for this property.");
         }
         return castValue(key, propVal, defaultVal);
     }
