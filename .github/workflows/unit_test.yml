@@ -46,8 +46,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle
       # Start running the build.
-      - name: build the agent jar
-        run: ./gradlew --console=plain --parallel newrelicJar
       - name: run the unit tests
         run: ./gradlew --console=plain --parallel test -x functional_test:test -PnoInstrumentation --continue
 
