@@ -256,6 +256,7 @@ task newrelicVersionedAgentJar(type: Jar) {
     dependsOn(instrumentProjects().collect { it.tasks["jar"] })
 
     from("$rootDir/LICENSE")
+    from("$rootDir/THIRD_PARTY_NOTICES.md")
 
     includeEmptyDirs = false
 
