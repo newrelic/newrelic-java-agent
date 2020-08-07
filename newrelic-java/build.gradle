@@ -29,7 +29,6 @@ task dist(type: Zip, dependsOn: [
 
     from(project(":newrelic-agent").sourceSets.main.resources) {
         include 'newrelic.yml'
-        include 'nrcerts'
         include 'extension-example.xml'
         include 'extension.xsd'
     }
