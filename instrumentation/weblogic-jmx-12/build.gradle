@@ -13,6 +13,8 @@ compileTestJava {
     enabled(shouldBuild)
 }
 
+tasks.getByName("writeCachedWeaveAttributes").enabled(shouldBuild)
+
 jar {
     enabled(shouldBuild)
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.weblogic-jmx-12' }
