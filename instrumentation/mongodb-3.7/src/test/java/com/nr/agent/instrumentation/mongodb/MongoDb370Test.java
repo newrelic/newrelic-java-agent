@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import java.net.UnknownHostException;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
@@ -53,10 +54,26 @@ public class MongoDb370Test {
     public void startMongo() throws Exception {
         port = InstrumentationTestRunner.getIntrospector().getRandomPort();
         IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.V3_6_5).net(new Net(port,
-                Network.localhostIsIPv6())).build();
+                isIpv6()
+        private boolean isIpv6()  {
+            try {
+                return Network.localhostIsIPv6();
+            } catch (UnknownHostException e) {
+                return false;
+            }
+        }
+)).build();
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
         mongoClient = MongoClients.create(new ConnectionString("mongodb://localhost:" + port));
+    }
+
+    private boolean isIpv6()  {
+        try {
+            return Network.localhostIsIPv6();
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
 
     @After

@@ -60,6 +60,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -88,7 +89,11 @@ public class DynamoApiTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         port = String.valueOf(InstrumentationTestRunner.getIntrospector().getRandomPort());
-        hostName = InetAddress.getLocalHost().getHostName();
+        try {
+            hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException ignored) {
+            hostName = "localhost";
+        }
         server = ServerRunner.createServerFromCommandLineArgs(new String[] { "-inMemory", "-port", port });
         server.start();
 

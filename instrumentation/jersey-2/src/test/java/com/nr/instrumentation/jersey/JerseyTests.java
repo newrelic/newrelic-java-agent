@@ -42,7 +42,7 @@ public class JerseyTests {
 
     @BeforeClass
     public static void setUp() {
-        server = new Server(8089);
+        server = new Server(0);
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(NO_SESSIONS);
 

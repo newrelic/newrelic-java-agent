@@ -11,6 +11,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -53,10 +54,18 @@ public class MongoDb300Test {
     public void startMongo() throws Exception {
         final int port = InstrumentationTestRunner.getIntrospector().getRandomPort();
         IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.V3_0_8).net(new Net(port,
-                Network.localhostIsIPv6())).build();
+                isIpv6())).build();
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
         mongoClient = new MongoClient("localhost", port);
+    }
+
+    private boolean isIpv6()  {
+        try {
+            return Network.localhostIsIPv6();
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
 
     @After
