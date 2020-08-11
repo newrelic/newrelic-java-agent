@@ -65,6 +65,35 @@ public class DataSenderImplConnectCycleTest {
     }
 
     @Test
+    public void testReconnectCycleNoSecurity() throws Exception {
+        MockitoAnnotations.initMocks(this);
+
+        final Map<String, Object> settings = new HashMap<>();
+        settings.put(AgentConfigImpl.APP_NAME, "Unit Test");
+        settings.put(AgentConfigImpl.HOST, "no-collector.example.com");
+
+        final MockServiceManager serviceManager = new MockServiceManager(
+                ConfigServiceFactory.createConfigServiceUsingSettings(settings)
+        );
+        serviceManager.setStatsService(mockStatsService);
+
+        HttpClientWrapper wrapper = new ConnectCycleNoSecuritySuccessClientWrapper();
+
+        DataSenderImpl target = new DataSenderImpl(serviceManager.getConfigService().getDefaultAgentConfig(), wrapper, null, Agent.LOG,
+                ServiceFactory.getConfigService());
+        target.setAgentRunId("agent run id");
+
+        Map<String, Object> startupOptions = new HashMap<>();
+        startupOptions.put("test-sentinel", "test-value");
+        Map<String, Object> result = target.connect(startupOptions);
+        assertEquals("my-run-id", target.getAgentRunId());
+        assertEquals("value", result.get("other"));
+
+        // This will assert that preconnect was called with the original host, not the redirect host.
+        target.connect(startupOptions);
+    }
+
+    @Test
     public void testFullPreconnectConnectCycleWithLasp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
