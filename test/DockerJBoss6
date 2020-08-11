@@ -1,0 +1,7 @@
+FROM daggerok/jboss-eap-6.4
+
+ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
+ENV PATH ${PATH}:${JAVA_HOME}/bin
+
+RUN wget -P /home/jboss/jboss-eap-6.4/standalone/deployments/ \
+    https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war

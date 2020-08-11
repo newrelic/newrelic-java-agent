@@ -120,6 +120,7 @@ public final class Agent {
      */
     @SuppressWarnings("unused")
     public static void continuePremain(String agentArgs, Instrumentation inst, long startTime) {
+        final LifecycleObserver lifecycleObserver = LifecycleObserver.createLifecycleObserver(agentArgs);
         // This *MUST* be done first thing in the premain
         addMixinInterfacesToBootstrap(inst);
 
@@ -131,6 +132,7 @@ public final class Agent {
 
         if (ServiceFactory.getServiceManager() != null) {
             LOG.warning("New Relic Agent is already running! Check if more than one -javaagent switch is used on the command line.");
+            lifecycleObserver.agentAlreadyRunning();
             return;
         }
         String enabled = System.getProperty(AGENT_ENABLED_PROPERTY);
@@ -155,6 +157,7 @@ public final class Agent {
             // is written to the newrelic_agent.log rather than to the console. Configuring the log also applies the
             // log_level setting from the newrelic.yml so debugging levels become available here, if so configured.
             serviceManager.start();
+            lifecycleObserver.serviceManagerStarted(serviceManager);
 
             LOG.info(MessageFormat.format("New Relic Agent v{0} has started", Agent.getVersion()));
 
@@ -196,6 +199,7 @@ public final class Agent {
             t.printStackTrace();
             System.exit(1);
         }
+        lifecycleObserver.agentStarted();
     }
 
     private static boolean tryToInitializeServiceManager(Instrumentation inst) {

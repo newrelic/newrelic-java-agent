@@ -7,7 +7,13 @@
 
 package com.newrelic.agent.config;
 
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Mocks;
+import com.newrelic.agent.config.internal.MapEnvironmentFacade;
+import com.newrelic.agent.config.internal.MapSystemProps;
+import com.newrelic.agent.discovery.AgentArguments;
+import com.newrelic.bootstrap.BootstrapAgent;
+
 import org.junit.After;
 import org.junit.Test;
 
@@ -24,6 +30,7 @@ public class AgentConfigImplTest {
 
     @After
     public void after() {
+        System.getProperties().remove(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY);
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider());
         new TestConfig().clearDeprecatedProps();
     }
@@ -241,8 +248,7 @@ public class AgentConfigImplTest {
 
     @Test
     public void appNamesMissing() throws Exception {
-        Map<String, Object> localMap = new HashMap<>();
-        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(Collections.<String, Object>emptyMap());
 
         assertEquals(0, config.getApplicationNames().size());
         assertNull(config.getApplicationName());
@@ -251,7 +257,7 @@ public class AgentConfigImplTest {
     @Test
     public void appNamesString() throws Exception {
         Map<String, Object> localMap = new HashMap<>();
-        localMap.put(AgentConfigImpl.APP_NAME, " app1");
+        localMap.put(AgentConfigImpl.APP_NAME, " app1 ");
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertEquals(1, config.getApplicationNames().size());
@@ -279,6 +285,34 @@ public class AgentConfigImplTest {
         assertEquals(2, config.getApplicationNames().size());
         assertTrue(config.getApplicationNames().containsAll(Arrays.asList("app1", "app2")));
         assertEquals("app1", config.getApplicationName());
+    }
+
+    @Test
+    public void appNamesMissingWithAutoName() throws Exception {
+        EnvironmentFacade environmentFacade = createEnvironmentFacade(
+                ImmutableMap.<String, String>of(
+                        AgentArguments.NEW_RELIC_COMMAND_LINE_ENV_VARIABLE, "app.jar"),
+                ImmutableMap.<String, String>of());
+        System.setProperty(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY, "{}");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(
+                Collections.<String, Object>emptyMap(), environmentFacade);
+
+        assertEquals(1, config.getApplicationNames().size());
+        assertEquals("app.jar", config.getApplicationName());
+    }
+
+    @Test
+    public void appNameAutoNameSystemPropertyOverride() throws Exception {
+        EnvironmentFacade environmentFacade = createEnvironmentFacade(
+                ImmutableMap.<String, String>of(
+                        AgentArguments.NEW_RELIC_COMMAND_LINE_ENV_VARIABLE, "app.jar"),
+                ImmutableMap.<String, String>of("newrelic.config.app_name", "My App"));
+        System.setProperty(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY, "{}");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(
+                Collections.<String, Object>emptyMap(), environmentFacade);
+
+        assertEquals(1, config.getApplicationNames().size());
+        assertEquals("My App", config.getApplicationName());
     }
 
     @Test
@@ -1068,6 +1102,16 @@ public class AgentConfigImplTest {
                         + "It was set as a system property. "
                         + "This property is obsolete."
         ));
+    }
+
+    private static EnvironmentFacade createEnvironmentFacade(
+            Map<String, String> environment, Map<String, String> systemProps) {
+        EnvironmentFacade environmentFacade = new MapEnvironmentFacade(environment);
+
+        SystemPropertyProvider systemPropertyProvider = new SystemPropertyProvider(
+                new MapSystemProps(systemProps), environmentFacade);
+        SystemPropertyFactory.setSystemPropertyProvider(systemPropertyProvider);
+        return environmentFacade;
     }
 
     private static class TestConfig extends BaseConfig {
