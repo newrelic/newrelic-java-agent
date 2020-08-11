@@ -556,7 +556,7 @@ public class DataSenderImpl implements DataSender {
         final URL url = new URL(protocol, host, port, uri);
         HttpClientWrapper.Request request = createRequest(method, encoding, url, data);
 
-        httpClientWrapper.captureSupportabilityMetrics(ServiceFactory.getStatsService(), this.redirectHost);
+        httpClientWrapper.captureSupportabilityMetrics(ServiceFactory.getStatsService(), host);
 
         ReadResult result = httpClientWrapper.execute(request, new TimingEventHandler(method, ServiceFactory.getStatsService()));
 
