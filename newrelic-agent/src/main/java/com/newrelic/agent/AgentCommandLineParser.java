@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.newrelic.agent.discovery.SafeDiscovery;
 import com.newrelic.agent.xml.XmlInstrumentOptions;
 import com.newrelic.agent.xml.XmlInstrumentValidator;
 import com.newrelic.weave.verification.WeavePackageVerifier;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 class AgentCommandLineParser {
+    private static final String ATTACH_COMMAND = "attach";
     private static final String DEPLOYMENT_COMMAND = "deployment";
     private static final String VERIFY_INSTRUMENTATION = "verifyInstrumentation";
     /**
@@ -42,10 +44,11 @@ class AgentCommandLineParser {
         commandOptionsMap.put(DEPLOYMENT_COMMAND, getDeploymentOptions());
         commandOptionsMap.put(INSTRUMENT_COMMAND, getInstrumentOptions());
         commandOptionsMap.put(VERIFY_INSTRUMENTATION, getVerifyInstrumentationOptions());
+        commandOptionsMap.put(ATTACH_COMMAND, getAttachOptions());
 
         commandDescriptions = new HashMap<>();
         commandDescriptions.put(DEPLOYMENT_COMMAND, "[OPTIONS] [description]  Records a deployment");
-        commandDescriptions.put(INSTRUMENT_COMMAND, "[OPTIONS]                Validates a custom instrumentation xml configuration file.");
+        commandDescriptions.put(ATTACH_COMMAND,     "[OPTIONS]                Attaches the agent to running java processes.");
     }
 
     public void parseCommand(String[] args) {
@@ -77,6 +80,8 @@ class AgentCommandLineParser {
                 instrumentCommand(cmd);
             } else if (VERIFY_INSTRUMENTATION.equals(command)) {
                 verifyInstrumentation(cmd);
+            } else if (ATTACH_COMMAND.equals(command)) {
+                SafeDiscovery.discoverAndAttach(new AttachOptionsImpl(cmd));
             } else if (cmd.hasOption('v') || cmd.hasOption("version")) {
                 System.out.println(Agent.getVersion());
             } else {
@@ -182,6 +187,16 @@ class AgentCommandLineParser {
         options.addOption(Deployments.USER_OPTION, true, "Specify the user deploying");
         options.addOption(Deployments.REVISION_OPTION, true, "Specify the revision being deployed");
         options.addOption(Deployments.CHANGE_LOG_OPTION, false, "Reads the change log for a deployment from standard input");
+        return options;
+    }
+
+    private static Options getAttachOptions() {
+        Options options = new Options();
+        options.addOption(new String(new char[] { AttachOptionsImpl.ATTACH_LIST_OPTION }),
+                false, "Lists the java process to which the agent could attach");
+        options.addOption(AttachOptionsImpl.LICENSE_KEY, true, "Specifies a New Relic APM license key");
+        options.addOption(AttachOptionsImpl.ATTACH_PID, true, "Attaches to a specific java process by pid");
+        options.addOption(AttachOptionsImpl.JSON_OPTION, false, "Write output as json");
         return options;
     }
 
