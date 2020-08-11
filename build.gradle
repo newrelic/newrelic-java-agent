@@ -6,6 +6,7 @@ plugins {
 
 allprojects {
     apply plugin: 'idea'
+    apply plugin: 'eclipse'
 
     group = 'com.newrelic.agent.java'
     version = agentVersion + (project.findProperty("release") == "true" ? "" : "-SNAPSHOT")
