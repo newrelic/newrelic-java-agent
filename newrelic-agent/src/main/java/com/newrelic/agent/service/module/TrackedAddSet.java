@@ -13,11 +13,25 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class TrackedAddSet<T> implements Consumer<T> {
-    // This contains every item ever seen by this set.
-    private final Set<T> fullSet = new HashSet<>();
+    private static final int DEFAULT_MAX_SIZE = 1000;
 
+    public TrackedAddSet() {
+        this(DEFAULT_MAX_SIZE);
+    }
+
+    public TrackedAddSet(int overrideMaxSize) {
+        maxSize = overrideMaxSize;
+    }
+
+    // This contains every item ever seen by this set.
+
+    private final Set<T> fullSet = new HashSet<>();
     // This contains only the items seen since the last reset.
+
     private Set<T> addedElementSet = new HashSet<>();
+
+    // don't accept more elements than this if we've seen this many.
+    private final int maxSize;
 
     private final Object lock = new Object();
 
@@ -52,7 +66,7 @@ public class TrackedAddSet<T> implements Consumer<T> {
     @Override
     public void accept(T element) {
         synchronized (lock) {
-            if (element != null && fullSet.add(element)) {
+            if (element != null && fullSet.size() < maxSize && fullSet.add(element)) {
                 addedElementSet.add(element);
             }
         }

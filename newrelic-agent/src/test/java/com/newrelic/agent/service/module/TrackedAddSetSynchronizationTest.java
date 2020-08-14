@@ -41,7 +41,7 @@ public class TrackedAddSetSynchronizationTest {
     public void verifySynchronization() throws InterruptedException {
         Random r = new Random();
         CountDownLatch latch = new CountDownLatch(1);
-        TrackedAddSet<String> target = new TrackedAddSet<>();
+        TrackedAddSet<String> target = new TrackedAddSet<>(1_000_000);
         List<String> expectedValues = Collections.synchronizedList(new LinkedList<String>());
         List<Set<String>> deltas = Collections.synchronizedList(new LinkedList<Set<String>>());
         AtomicInteger value = new AtomicInteger(1234);
