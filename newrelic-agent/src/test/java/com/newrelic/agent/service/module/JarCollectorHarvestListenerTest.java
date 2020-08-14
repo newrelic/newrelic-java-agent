@@ -2,6 +2,7 @@ package com.newrelic.agent.service.module;
 
 import org.junit.Test;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -18,7 +19,7 @@ public class JarCollectorHarvestListenerTest {
         JarCollectorHarvestListener target = new JarCollectorHarvestListener("default", mockService);
         target.beforeHarvest("default", null);
 
-        verify(mockService, times(1)).harvest();
+        verify(mockService, times(1)).harvest("default");
     }
 
     @Test
@@ -30,7 +31,7 @@ public class JarCollectorHarvestListenerTest {
         JarCollectorHarvestListener target = new JarCollectorHarvestListener("default", mockService);
         target.beforeHarvest("other", null);
 
-        verify(mockService, never()).harvest();
+        verify(mockService, never()).harvest(anyString());
     }
 
     @Test
@@ -42,7 +43,7 @@ public class JarCollectorHarvestListenerTest {
         JarCollectorHarvestListener target = new JarCollectorHarvestListener("default", mockService);
         target.beforeHarvest("default", null);
 
-        verify(mockService, never()).harvest();
+        verify(mockService, never()).harvest(anyString());
     }
 
     @Test
@@ -54,6 +55,6 @@ public class JarCollectorHarvestListenerTest {
         JarCollectorHarvestListener target = new JarCollectorHarvestListener("default", mockService);
         target.beforeHarvest("default", null);
 
-        verify(mockService, never()).harvest();
+        verify(mockService, never()).harvest(anyString());
     }
 }

@@ -8,7 +8,6 @@
 package com.newrelic.agent.introspec.internal;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.module.JarCollectorService;
@@ -20,12 +19,7 @@ public class IgnoringJarCollectorService implements JarCollectorService {
     }
 
     @Override
-    public ExtensionsLoadedListener getExtensionsLoadedListener() {
-        return null;
-    }
-
-    @Override
-    public void harvest() {
+    public void harvest(String appName) {
 
     }
 

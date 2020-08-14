@@ -56,11 +56,10 @@ import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
-import com.newrelic.agent.service.module.ClassNoticingFactory;
-import com.newrelic.agent.service.module.ExtensionAnalysisProducer;
 import com.newrelic.agent.service.module.JarAnalystFactory;
 import com.newrelic.agent.service.module.JarCollectorConnectionListener;
 import com.newrelic.agent.service.module.JarCollectorHarvestListener;
+import com.newrelic.agent.service.module.JarCollectorInputs;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.service.module.JarCollectorServiceImpl;
 import com.newrelic.agent.service.module.JarCollectorServiceProcessor;
@@ -161,27 +160,29 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         jmxService = new JmxService();
 
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
-        AtomicBoolean shouldResetSentJars = new AtomicBoolean(true);
+        boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
+        AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
         TrackedAddSet<JarData> analyzedJars = new TrackedAddSet<>();
 
         JarCollectorServiceProcessor processor = new JarCollectorServiceProcessor(configService, jarCollectorLogger);
         ExecutorService executorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory("New Relic Jar Analysis Thread", true));
         JarAnalystFactory jarAnalystFactory = new JarAnalystFactory(processor, analyzedJars, jarCollectorLogger);
-        ClassNoticingFactory classNoticingFactory = new ClassNoticingFactory(jarAnalystFactory, executorService, jarCollectorLogger);
-        ExtensionAnalysisProducer extensionAnalysisProducer = new ExtensionAnalysisProducer(jarAnalystFactory, executorService, jarCollectorLogger);
+
+        JarCollectorInputs jarCollectorInputs = new JarCollectorInputs(jarCollectorEnabled, jarAnalystFactory, executorService, jarCollectorLogger);
 
         jarCollectorService = new JarCollectorServiceImpl(
-                configService, shouldResetSentJars, analyzedJars, jarCollectorLogger, classNoticingFactory, extensionAnalysisProducer
+                jarCollectorLogger, jarCollectorEnabled, shouldSendAllJars, analyzedJars, jarCollectorInputs.getClassNoticingFactory()
         );
 
-        extensionService = new ExtensionService(configService, jarCollectorService.getExtensionsLoadedListener());
+        extensionService = new ExtensionService(configService, jarCollectorInputs.getExtensionAnalysisProducer());
 
+        String defaultAppName = configService.getDefaultAgentConfig().getApplicationName();
         JarCollectorConnectionListener jarCollectorConnectionListener = new JarCollectorConnectionListener(
-                configService.getDefaultAgentConfig().getApplicationName(), shouldResetSentJars
+                defaultAppName, shouldSendAllJars
         );
 
         JarCollectorHarvestListener jarCollectorHarvestListener = new JarCollectorHarvestListener(
-                configService.getDefaultAgentConfig().getApplicationName(), jarCollectorService
+                defaultAppName, jarCollectorService
         );
 
         sourceLanguageService = new SourceLanguageService();
@@ -219,7 +220,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         InfiniteTracing infiniteTracing = buildInfiniteTracing(configService);
         InfiniteTracingEnabledCheck infiniteTracingEnabledCheck = new InfiniteTracingEnabledCheck(configService);
         SpanEventCreationDecider spanEventCreationDecider = new SpanEventCreationDecider(configService);
-        AgentConnectionEstablishedListener agentConnectionEstablishedListener = new UpdateInfiniteTracingAfterConnect(infiniteTracingEnabledCheck, infiniteTracing);
+        AgentConnectionEstablishedListener agentConnectionEstablishedListener = new UpdateInfiniteTracingAfterConnect(infiniteTracingEnabledCheck,
+                infiniteTracing);
 
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =

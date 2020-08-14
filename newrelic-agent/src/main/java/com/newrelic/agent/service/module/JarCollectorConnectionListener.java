@@ -13,11 +13,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class JarCollectorConnectionListener implements AgentConnectionEstablishedListener {
     private final String defaultAppName;
-    private final AtomicBoolean shouldReset;
+    private final AtomicBoolean shouldSendAllJars;
 
-    public JarCollectorConnectionListener(String defaultAppName, AtomicBoolean shouldReset) {
+    public JarCollectorConnectionListener(String defaultAppName, AtomicBoolean shouldSendAllJars) {
         this.defaultAppName = defaultAppName;
-        this.shouldReset = shouldReset;
+        this.shouldSendAllJars = shouldSendAllJars;
     }
 
     @Override
@@ -26,6 +26,6 @@ public class JarCollectorConnectionListener implements AgentConnectionEstablishe
             return;
         }
 
-        shouldReset.set(true);
+        shouldSendAllJars.set(true);
     }
 }

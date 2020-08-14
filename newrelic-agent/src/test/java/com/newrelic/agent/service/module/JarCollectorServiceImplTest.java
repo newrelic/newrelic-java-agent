@@ -3,11 +3,6 @@ package com.newrelic.agent.service.module;
 import com.google.common.collect.ImmutableSet;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.JarCollectorConfig;
-import com.newrelic.agent.extension.ExtensionsLoadedListener;
-import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.api.agent.Logger;
@@ -27,8 +22,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -40,19 +33,7 @@ import static org.mockito.Mockito.when;
 public class JarCollectorServiceImplTest {
 
     @Mock
-    public JarCollectorConfig jarCollectorConfig;
-
-    @Mock
-    public AgentConfig agentConfig;
-
-    @Mock
-    public ConfigService mockConfigService;
-
-    @Mock
     public ClassNoticingFactory classNoticingFactory;
-
-    @Mock
-    public ExtensionsLoadedListener extensionsLoadedListener;
 
     @Mock
     public IRPMService rpmService;
@@ -66,10 +47,6 @@ public class JarCollectorServiceImplTest {
     @Before
     public void before() throws Exception {
         MockitoAnnotations.initMocks(this);
-
-        when(agentConfig.getJarCollectorConfig()).thenReturn(jarCollectorConfig);
-        when(agentConfig.getApplicationName()).thenReturn("some name");
-        when(mockConfigService.getDefaultAgentConfig()).thenReturn(agentConfig);
 
         RPMServiceManager rpmServiceManager = mock(RPMServiceManager.class);
         when(rpmServiceManager.getOrCreateRPMService(anyString())).thenReturn(rpmService);
@@ -91,11 +68,10 @@ public class JarCollectorServiceImplTest {
         set.resetReturningAll();
         set.accept(expectedSentJar);
 
-        when(jarCollectorConfig.isEnabled()).thenReturn(true);
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
 
         JarCollectorService target = getTarget(set, shouldSendAllJars);
-        target.harvest();
+        target.harvest("any name");
 
         verifyTriedToSendExpectedJar();
     }
@@ -107,21 +83,20 @@ public class JarCollectorServiceImplTest {
         set.resetReturningAll();
         set.accept(expectedSentJar);
 
-        when(jarCollectorConfig.isEnabled()).thenReturn(true);
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
 
         JarCollectorService target = getTarget(set, shouldSendAllJars);
 
         // make harvest fail
         doThrow(new Exception("~~ oops ~~")).when(rpmService).sendModules(ArgumentMatchers.<List<JarData>>any());
-        target.harvest();
+        target.harvest("any name");
         verifyTriedToSendExpectedJar();
         reset(rpmService);
 
         // this is another delta
         JarData postErrorAdd = new JarData("jar3", new JarInfo("v3", Collections.<String, String>emptyMap()));
         set.accept(postErrorAdd);
-        target.harvest();
+        target.harvest("any name");
 
         verify(rpmService, times(1)).sendModules(listArgumentCaptor.capture());
         assertEquals(ImmutableSet.of(expectedSentJar, postErrorAdd), new HashSet<>(listArgumentCaptor.getValue()));
@@ -134,20 +109,19 @@ public class JarCollectorServiceImplTest {
         set.resetReturningAll();
         set.accept(expectedSentJar);
 
-        when(jarCollectorConfig.isEnabled()).thenReturn(true);
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
 
         JarCollectorService target = getTarget(set, shouldSendAllJars);
 
         // make harvest fail
         doThrow(new Exception("~~ oops ~~")).when(rpmService).sendModules(ArgumentMatchers.<List<JarData>>any());
-        target.harvest();
+        target.harvest("any name");
         verifyTriedToSendExpectedJar();
 
         // allow second harvest to succeed
         reset(rpmService);
 
-        target.harvest();
+        target.harvest("any name");
         verifyTriedToSendExpectedJar();
     }
 
@@ -158,19 +132,18 @@ public class JarCollectorServiceImplTest {
         set.resetReturningAll();
         set.accept(expectedSentJar);
 
-        when(jarCollectorConfig.isEnabled()).thenReturn(true);
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
 
         JarCollectorService target = getTarget(set, shouldSendAllJars);
 
         // harvest the delta, only jar2
-        target.harvest();
+        target.harvest("any name");
         verifyTriedToSendExpectedJar();
         reset(rpmService);
 
         // send all jars next time!
         shouldSendAllJars.set(true);
-        target.harvest();
+        target.harvest("any name");
 
         verify(rpmService, times(1)).sendModules(listArgumentCaptor.capture());
         assertEquals(ImmutableSet.of(expectedSentJar, initialJarAlreadySent), new HashSet<>(listArgumentCaptor.getValue()));
@@ -183,11 +156,10 @@ public class JarCollectorServiceImplTest {
         set.resetReturningAll();
         set.accept(expectedSentJar);
 
-        when(jarCollectorConfig.isEnabled()).thenReturn(true);
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
 
         JarCollectorService target = getTarget(set, shouldSendAllJars);
-        target.harvest();
+        target.harvest("any name");
         verify(rpmService, times(1)).sendModules(listArgumentCaptor.capture());
         assertEquals(ImmutableSet.of(expectedSentJar, initialJarAlreadySent), new HashSet<>(listArgumentCaptor.getValue()));
         reset(rpmService);
@@ -199,40 +171,15 @@ public class JarCollectorServiceImplTest {
         verify(rpmService, times(1)).sendModules(Collections.singletonList(expectedSentJar));
     }
 
-    @Test
-    public void whenEnabledSetsUpVariousHooks() {
-        when(jarCollectorConfig.isEnabled()).thenReturn(true);
-        AtomicBoolean shouldSendAllJars = new AtomicBoolean();
-
-        JarCollectorService target = getTarget(new TrackedAddSet<JarData>(), shouldSendAllJars);
-
-        assertSame(classNoticingFactory, target.getSourceVisitor());
-        assertNotSame(ClassMatchVisitorFactory.NO_OP_FACTORY, target.getSourceVisitor());
-        assertSame(extensionsLoadedListener, target.getExtensionsLoadedListener());
-        assertNotSame(ExtensionsLoadedListener.NOOP, target.getExtensionsLoadedListener());
-    }
-
-    @Test
-    public void whenNotEnabledUsesNoOps() {
-        when(jarCollectorConfig.isEnabled()).thenReturn(false);
-        AtomicBoolean shouldSendAllJars = new AtomicBoolean();
-
-        JarCollectorService target = getTarget(new TrackedAddSet<JarData>(), shouldSendAllJars);
-
-        assertSame(ClassMatchVisitorFactory.NO_OP_FACTORY, target.getSourceVisitor());
-        assertNotSame(classNoticingFactory, target.getSourceVisitor());
-        assertSame(ExtensionsLoadedListener.NOOP, target.getExtensionsLoadedListener());
-        assertNotSame(extensionsLoadedListener, target.getExtensionsLoadedListener());
-    }
-
-    private JarCollectorServiceImpl getTarget(TrackedAddSet<JarData> set, AtomicBoolean shouldSendAllJars) {
+    private JarCollectorServiceImpl getTarget(
+            TrackedAddSet<JarData> set,
+            AtomicBoolean shouldSendAllJars) {
         return new JarCollectorServiceImpl(
-                mockConfigService,
+                mock(Logger.class),
+                true,
                 shouldSendAllJars,
                 set,
-                mock(Logger.class),
-                classNoticingFactory,
-                extensionsLoadedListener
+                classNoticingFactory
         );
     }
 

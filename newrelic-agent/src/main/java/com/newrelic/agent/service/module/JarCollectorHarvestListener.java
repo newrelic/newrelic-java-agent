@@ -26,7 +26,7 @@ public class JarCollectorHarvestListener implements HarvestListener {
             return;
         }
 
-        service.harvest();
+        service.harvest(defaultAppName);
     }
 
     @Override

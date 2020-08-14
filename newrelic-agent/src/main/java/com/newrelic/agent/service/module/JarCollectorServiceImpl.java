@@ -8,11 +8,7 @@
 package com.newrelic.agent.service.module;
 
 import com.newrelic.agent.MetricNames;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.JarCollectorConfig;
 import com.newrelic.agent.config.JarCollectorConfigImpl;
-import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -31,43 +27,33 @@ import java.util.logging.Level;
  * Responsible for gathering and sending jars with version to the collector.
  */
 public class JarCollectorServiceImpl extends AbstractService implements JarCollectorService {
-    private final AtomicBoolean shouldSendAllJars;
-    private final String defaultAppName;
-    private final boolean enabled;
-    private final ClassMatchVisitorFactory classMatchVisitorFactory;
-    private final TrackedAddSet<JarData> analyzedJars;
-    private final ExtensionsLoadedListener extensionsLoadedListener;
     private final Logger logger;
+    private final boolean enabled;
+    private final AtomicBoolean shouldSendAllJars;
+    private final TrackedAddSet<JarData> analyzedJars;
+    private final ClassMatchVisitorFactory classMatchVisitorFactory;
 
     private volatile List<JarData> jarsNotSentLastHarvest = Collections.emptyList();
 
     public JarCollectorServiceImpl(
-            ConfigService configService,
+            Logger logger,
+            boolean enabled,
             AtomicBoolean shouldSendAllJars,
             TrackedAddSet<JarData> analyzedJars,
-            Logger jarCollectorLogger,
-            ClassNoticingFactory classNoticingFactory,
-            ExtensionsLoadedListener extensionsLoadedListener) {
+            ClassMatchVisitorFactory classNoticingFactory) {
         super(JarCollectorService.class.getSimpleName());
+
         this.shouldSendAllJars = shouldSendAllJars;
         this.analyzedJars = analyzedJars;
-        logger = jarCollectorLogger;
-
-        // get the default application
-        AgentConfig config = configService.getDefaultAgentConfig();
-        defaultAppName = config.getApplicationName();
-
-        JarCollectorConfig jarCollectorConfig = config.getJarCollectorConfig();
-        enabled = jarCollectorConfig.isEnabled();
-
-        this.extensionsLoadedListener = enabled ? extensionsLoadedListener : ExtensionsLoadedListener.NOOP;
-        this.classMatchVisitorFactory = enabled ? classNoticingFactory : ClassMatchVisitorFactory.NO_OP_FACTORY;
+        this.logger = logger;
+        this.classMatchVisitorFactory = classNoticingFactory;
+        this.enabled = enabled;
 
         if (JarCollectorConfigImpl.isUsingDeprecatedConfigSettings()) {
             String deprecatedConfigMsg = "Jar Collector system properties prefixed with 'newrelic.config.module.' and environment variables prefixed with "
                     + "'NEW_RELIC_MODULE_' are deprecated and will be removed in a future agent release. Instead use the "
                     + "'newrelic.config.jar_collector.' and 'NEW_RELIC_JAR_COLLECTOR_' prefixes.";
-            logger.log(Level.INFO, deprecatedConfigMsg);
+            this.logger.log(Level.INFO, deprecatedConfigMsg);
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_DEPRECATED_CONFIG_JAR_COLLECTOR);
         }
     }
@@ -75,11 +61,6 @@ public class JarCollectorServiceImpl extends AbstractService implements JarColle
     @Override
     public final boolean isEnabled() {
         return enabled;
-    }
-
-    @Override
-    public ExtensionsLoadedListener getExtensionsLoadedListener() {
-        return extensionsLoadedListener;
     }
 
     @Override
@@ -96,7 +77,7 @@ public class JarCollectorServiceImpl extends AbstractService implements JarColle
     }
 
     @Override
-    public void harvest() {
+    public void harvest(String appName) {
         logger.log(Level.FINER, "Harvesting Modules");
 
         List<JarData> jarsToSend = getJars();
@@ -105,7 +86,7 @@ public class JarCollectorServiceImpl extends AbstractService implements JarColle
             try {
                 // send the jars to the collector
                 ServiceFactory.getRPMServiceManager()
-                        .getOrCreateRPMService(defaultAppName)
+                        .getOrCreateRPMService(appName)
                         .sendModules(jarsToSend);
 
                 jarsNotSentLastHarvest = Collections.emptyList();
