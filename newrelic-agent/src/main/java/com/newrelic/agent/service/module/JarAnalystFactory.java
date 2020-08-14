@@ -6,6 +6,7 @@
  */
 package com.newrelic.agent.service.module;
 
+import com.newrelic.Function;
 import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.api.agent.Logger;
 
@@ -13,11 +14,11 @@ import java.io.File;
 import java.net.URL;
 
 public class JarAnalystFactory {
-    private final JarCollectorServiceProcessor processor;
+    private final Function<URL, JarData> processor;
     private final Consumer<JarData> analyzedJars;
     private final Logger logger;
 
-    public JarAnalystFactory(JarCollectorServiceProcessor processor, Consumer<JarData> analyzedJars, Logger logger) {
+    public JarAnalystFactory(Function<URL, JarData> processor, Consumer<JarData> analyzedJars, Logger logger) {
         this.processor = processor;
         this.analyzedJars = analyzedJars;
         this.logger = logger;

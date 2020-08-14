@@ -8,7 +8,6 @@ package com.newrelic.agent.service.module;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.weave.weavepackage.WeavePackageConfig;

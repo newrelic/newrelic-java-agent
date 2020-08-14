@@ -118,7 +118,7 @@ public class JarCollectorServiceProcessorTest {
         URL jarURL = ClassLoader.getSystemClassLoader().getResource(JAR_PATH);
 
         JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
-        JarData jarData = task.processSingleURL(jarURL);
+        JarData jarData = task.apply(jarURL);
 
         assertEquals("jarTest.jar", jarData.getName());
         assertEquals("2.0", jarData.getVersion());
@@ -129,7 +129,7 @@ public class JarCollectorServiceProcessorTest {
         URL jarURL = getURL(JAR_PATH_2);
 
         JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
-        JarData jarData = task.processSingleURL(jarURL);
+        JarData jarData = task.apply(jarURL);
         assertEquals("anotherJar.jar", jarData.getName());
         assertEquals("5.0", jarData.getVersion());
     }
@@ -221,7 +221,7 @@ public class JarCollectorServiceProcessorTest {
     public void textFilesReturnNull() {
         URL txtURL = getURL(TXT_FILE);
         JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
-        assertNull(task.processSingleURL(txtURL));
+        assertNull(task.apply(txtURL));
     }
 
     @Test

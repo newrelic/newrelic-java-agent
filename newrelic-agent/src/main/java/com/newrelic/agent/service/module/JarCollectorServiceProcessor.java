@@ -8,6 +8,7 @@
 package com.newrelic.agent.service.module;
 
 import com.google.common.collect.ImmutableList;
+import com.newrelic.Function;
 import com.newrelic.agent.bridge.ManifestUtils;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.api.agent.Config;
@@ -30,7 +31,7 @@ import java.util.logging.Level;
 /**
  * Attempts to open jars and obtain version information from manifests.
  */
-public class JarCollectorServiceProcessor {
+public class JarCollectorServiceProcessor implements Function<URL, JarData> {
 
     static final String SHA1_CHECKSUM_KEY = "sha1Checksum";
     static final String SHA512_CHECKSUM_KEY = "sha512Checksum";
@@ -47,6 +48,7 @@ public class JarCollectorServiceProcessor {
      */
     static final String UNKNOWN_VERSION = " ";
 
+    @SuppressWarnings("deprecation") // Implementation-Vendor-Id is deprecated
     private static final List<String> ATTRIBUTES_TO_COLLECT =
             ImmutableList.of(
                     Attributes.Name.IMPLEMENTATION_VENDOR.toString(),
@@ -76,7 +78,8 @@ public class JarCollectorServiceProcessor {
         }
     }
 
-    public JarData processSingleURL(URL url) {
+    @Override
+    public JarData apply(URL url) {
         try {
             return tryProcessSingleURL(url);
         } catch (Throwable t) {

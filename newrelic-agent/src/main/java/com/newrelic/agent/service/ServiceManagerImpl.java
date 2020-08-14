@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.service;
 
+import com.newrelic.Function;
 import com.newrelic.InfiniteTracing;
 import com.newrelic.InfiniteTracingConfig;
 import com.newrelic.agent.Agent;
@@ -80,6 +81,7 @@ import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -164,9 +166,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
         TrackedAddSet<JarData> analyzedJars = new TrackedAddSet<>();
 
-        JarCollectorServiceProcessor processor = new JarCollectorServiceProcessor(configService, jarCollectorLogger);
-        ExecutorService executorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory("New Relic Jar Analysis Thread", true));
+        Function<URL, JarData> processor = new JarCollectorServiceProcessor(configService, jarCollectorLogger);
         JarAnalystFactory jarAnalystFactory = new JarAnalystFactory(processor, analyzedJars, jarCollectorLogger);
+        ExecutorService executorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory("New Relic Jar Analysis Thread", true));
 
         JarCollectorInputs jarCollectorInputs = new JarCollectorInputs(jarCollectorEnabled, jarAnalystFactory, executorService, jarCollectorLogger);
 
