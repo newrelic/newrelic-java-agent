@@ -68,7 +68,7 @@ After building, Java agent artifacts are located here:
 
 We recommend using IntelliJ IDEA for development on this project. Configure as follows:
 
-1. Select `File > Open` and select `java_agent/build.gradle`.
+1. Select `File > Open` and select `newrelic-java-agent/build.gradle`.
 2. Select `Open as Project`.
 3. Wait for the builds, imports, and indexing to finish. This may take a few minutes due to the project's size and complexity.
 4. Import Code Style: from `dev-tools/code-style/java-agent-code-style.xml`, select `Preferences > Editor > Code Style > gear cog > Import Scheme > IntelliJ IDEA code style XML`.
@@ -93,7 +93,7 @@ The functional tests are JUnit tests for which Gradle ensures that each test cla
 
 **Note:** Functional tests require that the Java agent jar artifact is present in the build directory. 
 
-Functional tests are located in `java_agent/functional_test/src/test/` and are run from the root `java_agent` directory as follows:
+Functional tests are located in `newrelic-java-agent/functional_test/src/test/` and are run from the root `newrelic-java-agent` directory as follows:
 
 Run all functional tests: 
 ```
@@ -109,7 +109,7 @@ Run an individual functional test:
 
 The instrumentation module tests are also JUnit tests. The framework is the industry-standard JUnit dependency modified by a custom test runner and class loader that support bytecode weaving within the test without the need to fully initialize the agent. Note: fully initializing the agent is not possible when running in an uninstrumented reusable test process like an IntelliJ test subprocess or Gradle daemon. There is also an "introspector" (somewhat equivalent to a local mock collector) for test assertions.
 
-Instrumentation tests are located in each instrumentation module at  `java_agent/instrumentation/<INSTRUMENTATION MODULE>/src/test` and are run from the root `java_agent` directory as follows:
+Instrumentation tests are located in each instrumentation module at  `newrelic-java-agent/instrumentation/<INSTRUMENTATION MODULE>/src/test` and are run from the root `newrelic-java-agent` directory as follows:
 
 Run all instrumentation module tests: 
 ```
