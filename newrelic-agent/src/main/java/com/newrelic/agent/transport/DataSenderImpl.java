@@ -101,7 +101,8 @@ public class DataSenderImpl implements DataSender {
 
     private final HttpClientWrapper httpClientWrapper;
 
-    private volatile String host;
+    private final String originalHost;
+    private volatile String redirectHost;
     private final int port;
     private volatile String protocol;
     private volatile boolean auditMode;
@@ -129,7 +130,8 @@ public class DataSenderImpl implements DataSender {
         this.logger = logger;
         this.configService = configService;
         logger.info(MessageFormat.format("Setting audit_mode to {0}", auditMode));
-        host = config.getHost();
+        originalHost = config.getHost();
+        redirectHost = config.getHost();
         port = config.getPort();
 
         protocol = config.isSSL() ? "https" : "http";
@@ -187,8 +189,8 @@ public class DataSenderImpl implements DataSender {
     public Map<String, Object> connect(Map<String, Object> startupOptions) throws Exception {
         String redirectHost = parsePreconnectAndReturnHost();
         if (redirectHost != null) {
-            host = redirectHost;
-            logger.info(MessageFormat.format("Collector redirection to {0}:{1}", host, Integer.toString(port)));
+            this.redirectHost = redirectHost;
+            logger.info(MessageFormat.format("Collector redirection to {0}:{1}", this.redirectHost, Integer.toString(port)));
         } else if (configService.getDefaultAgentConfig().laspEnabled()) {
             throw new ForceDisconnectException("The agent did not receive one or more security policies that it expected and will shut down."
                     + " Please contact support.");
@@ -207,7 +209,7 @@ public class DataSenderImpl implements DataSender {
         }
         token.put("high_security", agentConfig.isHighSecurity());
         params.add(token);
-        Object response = invokeNoRunId(CollectorMethods.PRECONNECT, compressedEncoding, params);
+        Object response = invokeNoRunId(originalHost, CollectorMethods.PRECONNECT, compressedEncoding, params);
 
         if (response != null) {
             Map<?, ?> returnValue = (Map<?, ?>) response;
@@ -232,7 +234,7 @@ public class DataSenderImpl implements DataSender {
         startupOptions.put(ENV_METADATA, metadata);
 
         params.add(startupOptions);
-        Object response = invokeNoRunId(CollectorMethods.CONNECT, compressedEncoding, params);
+        Object response = invokeNoRunId(redirectHost, CollectorMethods.CONNECT, compressedEncoding, params);
         if (!(response instanceof Map)) {
             throw new UnexpectedException(MessageFormat.format("Expected a map of connection data, got {0}", response));
         }
@@ -487,17 +489,17 @@ public class DataSenderImpl implements DataSender {
 
     private Object invokeRunId(String method, String encoding, Object runId, JSONStreamAware params) throws Exception {
         String uri = MessageFormat.format(agentRunIdUriPattern, method, runId.toString());
-        return invoke(method, encoding, uri, params);
+        return invoke(redirectHost, method, encoding, uri, params);
     }
 
-    private Object invokeNoRunId(String method, String encoding, JSONStreamAware params) throws Exception {
+    private Object invokeNoRunId(String host, String method, String encoding, JSONStreamAware params) throws Exception {
         String uri = MessageFormat.format(noAgentRunIdUriPattern, method);
-        return invoke(method, encoding, uri, params);
+        return invoke(host, method, encoding, uri, params);
     }
 
-    private Object invoke(String method, String encoding, String uri, JSONStreamAware params) throws Exception {
+    private Object invoke(String host, String method, String encoding, String uri, JSONStreamAware params) throws Exception {
         // ReadResult should be from a valid 2xx response at this point otherwise send method throws an exception here
-        ReadResult readResult = send(method, encoding, uri, params);
+        ReadResult readResult = send(host, method, encoding, uri, params);
         Map<?, ?> responseMap = null;
         String responseBody = readResult.getResponseBody();
 
@@ -535,7 +537,7 @@ public class DataSenderImpl implements DataSender {
      * response code value. The previous behavior of a 200 (“OK”) with an exact string in the body that should be
      * matched/parsed has been deprecated.
      */
-    private ReadResult connectAndSend(String method, String encoding, String uri, JSONStreamAware params) throws Exception {
+    private ReadResult connectAndSend(String host, String method, String encoding, String uri, JSONStreamAware params) throws Exception {
         byte[] data = writeData(encoding, params);
 
         /*
@@ -636,9 +638,9 @@ public class DataSenderImpl implements DataSender {
         return true;
     }
 
-    private ReadResult send(String method, String encoding, String uri, JSONStreamAware params) throws Exception {
+    private ReadResult send(String host, String method, String encoding, String uri, JSONStreamAware params) throws Exception {
         try {
-            return connectAndSend(method, encoding, uri, params);
+            return connectAndSend(host, method, encoding, uri, params);
         } catch (MalformedURLException e) {
             logger.log(Level.SEVERE, "You have requested a connection to New Relic via a protocol which is unavailable in your runtime: {0}", e.toString());
             throw new ForceDisconnectException(e.toString());
