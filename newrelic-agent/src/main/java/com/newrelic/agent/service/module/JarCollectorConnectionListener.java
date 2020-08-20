@@ -22,10 +22,8 @@ public class JarCollectorConnectionListener implements AgentConnectionEstablishe
 
     @Override
     public void onEstablished(String appName, String agentRunToken, Map<String, String> requestMetadata) {
-        if (!appName.equals(defaultAppName)) {
-            return;
+        if (appName.equals(defaultAppName)) {
+            shouldSendAllJars.set(true);
         }
-
-        shouldSendAllJars.set(true);
     }
 }

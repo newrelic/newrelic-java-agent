@@ -4,7 +4,8 @@ import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class JarCollectorConnectionListenerTest {
     @Test
@@ -14,6 +15,7 @@ public class JarCollectorConnectionListenerTest {
         target.onEstablished("default", null, null);
         assertTrue(shouldReset.get());
     }
+
     @Test
     public void doesNotResetOnOtherAppName() {
         AtomicBoolean shouldReset = new AtomicBoolean(false);
