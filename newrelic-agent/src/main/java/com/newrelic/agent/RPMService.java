@@ -95,12 +95,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private long lastReportTime;
 
     public RPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener, ConnectionListener connectionListener,
-            AgentConnectionEstablishedListener[] agentConnectionEstablishedListeners) {
+            List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners) {
         this(appNames, connectionConfigListener, connectionListener, null, agentConnectionEstablishedListeners);
     }
 
     RPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener, ConnectionListener connectionListener,
-            DataSenderListener dataSenderListener, AgentConnectionEstablishedListener[] agentConnectionEstablishedListeners) {
+            DataSenderListener dataSenderListener, List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners) {
         super(RPMService.class.getSimpleName() + "/" + appNames.get(0));
         appName = appNames.get(0).intern();
         AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
@@ -113,7 +113,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         host = config.getHost();
         port = config.getPort();
         isMainApp = appName.equals(config.getApplicationName());
-        this.agentConnectionEstablishedListeners = Arrays.asList(agentConnectionEstablishedListeners);
+        this.agentConnectionEstablishedListeners = new ArrayList<>(agentConnectionEstablishedListeners);
     }
 
     @Override
