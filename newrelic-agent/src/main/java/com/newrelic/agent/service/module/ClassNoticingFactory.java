@@ -37,10 +37,9 @@ public class ClassNoticingFactory implements ClassMatchVisitorFactory {
     @Override
     public ClassVisitor newClassMatchVisitor(ClassLoader loader, Class<?> classBeingRedefined,
             ClassReader reader, ClassVisitor cv, InstrumentationContext context) {
-        if (null != context.getProtectionDomain()
-                && null != context.getProtectionDomain().getCodeSource()
-                && null != context.getProtectionDomain().getCodeSource().getLocation()) {
-            addURL(context.getProtectionDomain().getCodeSource().getLocation());
+        URL codeSourceLocation = context.getCodeSourceLocation();
+        if (codeSourceLocation != null){
+            addURL(codeSourceLocation);
         }
         return null;
     }
