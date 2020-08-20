@@ -76,7 +76,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private final String host;
     private final int port;
-    private final AgentConnectionEstablishedListener[] agentConnectionEstablishedListeners;
+    private final List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners;
     private volatile boolean connected = false;
     private final ErrorService errorService;
     private final String appName;
@@ -113,7 +113,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         host = config.getHost();
         port = config.getPort();
         isMainApp = appName.equals(config.getApplicationName());
-        this.agentConnectionEstablishedListeners = agentConnectionEstablishedListeners;
+        this.agentConnectionEstablishedListeners = Arrays.asList(agentConnectionEstablishedListeners);
     }
 
     @Override
