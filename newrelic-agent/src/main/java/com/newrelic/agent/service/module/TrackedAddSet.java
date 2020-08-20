@@ -12,6 +12,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A data collection that tracks items newly added since it was last reset.
+ * Resetting never clears the fullSet, the fullSet is tracked indefinitely.
+ */
 public class TrackedAddSet<T> implements Consumer<T> {
     private static final int DEFAULT_MAX_SIZE = 1000;
 
