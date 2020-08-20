@@ -14,7 +14,6 @@ import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
-import com.newrelic.agent.service.module.Jar;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transport.DataSender;
@@ -128,7 +127,7 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
-    public void sendModules(List<Jar> pJars) throws Exception {
+    public void sendModules(List<? extends JSONStreamAware> jarData) throws Exception {
     }
 
     @Override

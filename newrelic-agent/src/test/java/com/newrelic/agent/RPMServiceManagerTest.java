@@ -48,7 +48,7 @@ public class RPMServiceManagerTest {
                 map);
         serviceManager.setConfigService(configService);
 
-        RPMServiceManager rpmServiceManager = new RPMServiceManagerImpl(null) {
+        RPMServiceManager rpmServiceManager = new RPMServiceManagerImpl() {
 
             @Override
             protected IRPMService createRPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener,

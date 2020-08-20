@@ -16,7 +16,7 @@ import org.json.simple.JSONStreamAware;
 
 import com.google.common.collect.ImmutableList;
 
-public class Jar implements JSONStreamAware, Cloneable {
+public class JarData implements JSONStreamAware {
 
     /** The name of the jar. */
     private final String name;
@@ -27,8 +27,7 @@ public class Jar implements JSONStreamAware, Cloneable {
      * 
      * Creates this Jar.
      */
-    public Jar(String name, JarInfo jarInfo) {
-        super();
+    public JarData(String name, JarInfo jarInfo) {
         this.name = name;
         this.jarInfo = jarInfo;
     }
@@ -76,7 +75,7 @@ public class Jar implements JSONStreamAware, Cloneable {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Jar other = (Jar) obj;
+        JarData other = (JarData) obj;
         if (getVersion() == null) {
             if (other.getVersion() != null)
                 return false;

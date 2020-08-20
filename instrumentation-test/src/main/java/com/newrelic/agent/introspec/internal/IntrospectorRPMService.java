@@ -16,7 +16,7 @@ import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.analytics.TransactionEvent;
-import com.newrelic.agent.service.module.Jar;
+import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.trace.TransactionTrace;
@@ -134,7 +134,7 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     }
 
     @Override
-    public void sendModules(List<Jar> jarsToSend) {
+    public void sendModules(List<JarData> jarDataList) {
     }
 
     @Override

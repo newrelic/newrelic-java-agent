@@ -61,6 +61,7 @@ import java.util.logging.Level;
  */
 public class ExtensionService extends AbstractService implements HarvestListener {
     private final ConfigService config;
+    private final ExtensionsLoadedListener extensionsLoadedListener;
     private ExtensionParsers extensionParsers;
 
     /**
@@ -81,9 +82,10 @@ public class ExtensionService extends AbstractService implements HarvestListener
     private long lastReloaded = 0;
     private int elementCount = -1;
 
-    public ExtensionService(ConfigService configService) {
+    public ExtensionService(ConfigService configService, ExtensionsLoadedListener extensionsLoadedListener) {
         super(ExtensionService.class.getSimpleName());
         config = configService;
+        this.extensionsLoadedListener = extensionsLoadedListener;
     }
 
     /**
@@ -114,6 +116,7 @@ public class ExtensionService extends AbstractService implements HarvestListener
                 Agent.LOG.log(Level.FINE, e, "");
             }
 
+            extensionsLoadedListener.loaded(getWeaveExtensions());
         }
     }
 
@@ -517,7 +520,7 @@ public class ExtensionService extends AbstractService implements HarvestListener
      * Returns the files that contain weave instrumentation.
      *
      */
-    public Collection<File> getWeaveExtensions() {
+    public Set<File> getWeaveExtensions() {
         return weaveExtensions.keySet();
     }
 

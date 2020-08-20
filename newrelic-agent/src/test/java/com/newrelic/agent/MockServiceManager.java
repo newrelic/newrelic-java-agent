@@ -20,6 +20,7 @@ import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
+import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
@@ -40,7 +41,6 @@ import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceInt
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
 import com.newrelic.agent.service.module.JarCollectorService;
-import com.newrelic.agent.service.module.JarCollectorServiceImpl;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
@@ -58,7 +58,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile CoreService coreService;
     private volatile ConfigService configService;
     private volatile ThreadService threadService;
-    private volatile EnvironmentService environmentService = Mockito.mock(EnvironmentService.class);
+    private volatile EnvironmentService environmentService;
     private volatile TransactionTraceService transactionTraceService;
     private volatile TransactionService transactionService;
     private volatile ProfilerService profilerService;
@@ -66,11 +66,10 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile StatsService statsService;
     private volatile HarvestService harvestService;
     private volatile SqlTraceService sqlTraceService;
-    private volatile BrowserService browserService;
     private volatile CacheService cacheService;
     private volatile SamplerService samplerService;
     private volatile DatabaseService dbService;
-    private volatile JarCollectorService jarCollectorService;
+    private final JarCollectorService jarCollectorService;
     private volatile TransactionEventsService transactionEventsService;
     private volatile NormalizationService normalizationService;
     private volatile ExtensionService extensionService;
@@ -128,7 +127,8 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         // browserService;
         // cacheService;
         dbService = new DatabaseService();
-        jarCollectorService = new JarCollectorServiceImpl();
+        extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
+        jarCollectorService = Mockito.mock(JarCollectorService.class);
         sourceLanguageService = new SourceLanguageService();
         expirationService = new ExpirationService();
         distributedTraceService = Mockito.mock(DistributedTraceService.class);
@@ -138,7 +138,6 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         Mockito.when(normalizationService.getMetricNormalizer(Mockito.anyString())).thenReturn(new MockNormalizer());
         Mockito.when(normalizationService.getTransactionNormalizer(Mockito.anyString())).thenReturn(new MockNormalizer());
         Mockito.when(normalizationService.getUrlNormalizer(Mockito.anyString())).thenReturn(new MockNormalizer());
-        extensionService = new ExtensionService(configService);
         tracerService = new TracerService();
         commandParser = new CommandParser();
         remoteInstrumentationService = Mockito.mock(RemoteInstrumentationService.class);
@@ -374,9 +373,6 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         if (statsService != null) {
             statsService.start();
         }
-        if (browserService != null) {
-            browserService.start();
-        }
         if (cacheService != null) {
             cacheService.start();
         }
@@ -450,9 +446,6 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         if (statsService != null) {
             statsService.stop();
         }
-        if (browserService != null) {
-            browserService.stop();
-        }
         if (cacheService != null) {
             cacheService.stop();
         }
@@ -481,9 +474,8 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         return rpmConnectionService;
     }
 
-    public MockServiceManager setRPMConnectionService(RPMConnectionService rpmConnectionService) {
+    public void setRPMConnectionService(RPMConnectionService rpmConnectionService) {
         this.rpmConnectionService = rpmConnectionService;
-        return this;
     }
 
     @Override
@@ -518,13 +510,9 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         return sqlTraceService;
     }
 
-    public void setBrowserService(BrowserService browserService) {
-        this.browserService = browserService;
-    }
-
     @Override
     public BrowserService getBrowserService() {
-        return browserService;
+        return null;
     }
 
     public void setCacheService(CacheService cacheService) {
@@ -564,10 +552,6 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     @Override
     public JarCollectorService getJarCollectorService() {
         return jarCollectorService;
-    }
-
-    public void setJarCollectorService(JarCollectorService jarCollectorService) {
-        this.jarCollectorService = jarCollectorService;
     }
 
     @Override

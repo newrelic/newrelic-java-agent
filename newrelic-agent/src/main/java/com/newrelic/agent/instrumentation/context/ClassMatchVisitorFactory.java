@@ -19,4 +19,12 @@ public interface ClassMatchVisitorFactory {
     ClassVisitor newClassMatchVisitor(ClassLoader loader, Class<?> classBeingRedefined, ClassReader reader,
             ClassVisitor cv, InstrumentationContext context);
 
+    ClassMatchVisitorFactory NO_OP_FACTORY = new ClassMatchVisitorFactory() {
+        @Override
+        public ClassVisitor newClassMatchVisitor(ClassLoader loader, Class<?> classBeingRedefined, ClassReader reader, ClassVisitor cv,
+                InstrumentationContext context) {
+            return null;
+        }
+    };
+
 }

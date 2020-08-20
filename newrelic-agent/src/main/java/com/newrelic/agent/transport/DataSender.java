@@ -14,7 +14,6 @@ import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
-import com.newrelic.agent.service.module.Jar;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.trace.TransactionTrace;
 import org.json.simple.JSONStreamAware;
@@ -73,7 +72,7 @@ public interface DataSender {
 
     void sendTransactionTraceData(List<TransactionTrace> traces) throws Exception;
 
-    void sendModules(List<Jar> jarToSend) throws Exception;
+    void sendModules(List<? extends JSONStreamAware> jarDataToSend) throws Exception;
 
     void shutdown(long timeMillis) throws Exception;
 

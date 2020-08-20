@@ -11,13 +11,17 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.module.JarCollectorService;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.mockito.Mockito.when;
 
 /**
  * Tests to ensure that InstrumentationContextManager has the correct include/exclude logic.
@@ -31,6 +35,8 @@ public class IncludeExcludeTest {
                 AgentConfigImpl.createAgentConfig(configMap), configMap);
         MockServiceManager serviceManager = new MockServiceManager(configService);
         ServiceFactory.setServiceManager(serviceManager);
+        JarCollectorService mockJarCollector = serviceManager.getJarCollectorService();
+        when(mockJarCollector.getSourceVisitor()).thenReturn(ClassMatchVisitorFactory.NO_OP_FACTORY);
     }
 
     private Map<String, Object> createConfigMap() {
