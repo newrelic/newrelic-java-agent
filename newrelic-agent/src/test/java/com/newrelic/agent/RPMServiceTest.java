@@ -259,7 +259,7 @@ public class RPMServiceTest {
         RPMService svc = null;
         try {
             List<String> appNames = singletonList("MyApplication");
-            svc = new RPMService(appNames, null, null, null);
+            svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
             Map<String, Object> values = svc.getStartOptions();
             Object env = values.get("environment");
             assertNotNull(env);
@@ -298,7 +298,7 @@ public class RPMServiceTest {
         RPMService svc = null;
         try {
             List<String> appNames = singletonList("MyApplication");
-            svc = new RPMService(appNames, null, null, null);
+            svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
             Map<String, Object> values = svc.getStartOptions();
             Object env = values.get("environment");
             assertNotNull(env);
@@ -682,11 +682,11 @@ public class RPMServiceTest {
 
         map.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
         appNames = singletonList("Bogus");
-        svc = new RPMService(appNames, null, null, null);
+        svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         Assert.assertFalse(svc.isMainApp());
 
         appNames = singletonList(appName);
-        svc = new RPMService(appNames, null, null, null);
+        svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         Assert.assertTrue(svc.isMainApp());
     }
 
