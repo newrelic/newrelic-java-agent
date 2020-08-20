@@ -170,7 +170,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         JarAnalystFactory jarAnalystFactory = new JarAnalystFactory(processor, analyzedJars, jarCollectorLogger);
         ExecutorService executorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory("New Relic Jar Analysis Thread", true));
 
-        JarCollectorInputs jarCollectorInputs = new JarCollectorInputs(jarCollectorEnabled, jarAnalystFactory, executorService, jarCollectorLogger);
+        JarCollectorInputs jarCollectorInputs = JarCollectorInputs.build(jarCollectorEnabled, jarAnalystFactory, executorService, jarCollectorLogger);
 
         jarCollectorService = new JarCollectorServiceImpl(
                 jarCollectorLogger, jarCollectorEnabled, shouldSendAllJars, analyzedJars, jarCollectorInputs.getClassNoticingFactory()
