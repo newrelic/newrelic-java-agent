@@ -20,13 +20,11 @@ public class JarCollectorHarvestListener implements HarvestListener {
 
     @Override
     public void beforeHarvest(String appName, StatsEngine statsEngine) {
-        if (!appName.equals(defaultAppName)
-                || !service.isEnabled()
-                || !service.isStartedOrStarting()) {
-            return;
+        if (appName.equals(defaultAppName)
+                && service.isEnabled()
+                && service.isStartedOrStarting()) {
+            service.harvest(defaultAppName);
         }
-
-        service.harvest(defaultAppName);
     }
 
     @Override
