@@ -1,13 +1,4 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
-    }
-}
-
-apply plugin: 'com.github.johnrengelman.shadow'
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 configurations {
     shadowIntoJar
@@ -30,11 +21,18 @@ dependencies {
  * so they're accessible. We try not to rely on the agent dependencies
  * otherwise.
  */
-shadowJar {
+tasks.create("shadowJar", ShadowJar) {
+    archiveClassifier.set("shadowed")
     setConfigurations([project.configurations.shadowIntoJar])
     from(sourceSets.main.output.classesDirs)
     relocate("org.json.simple", "com.nr.agent.deps.org.json.simple")
 }
+
+artifacts {
+    instrumentationWithDependencies shadowJar
+}
+
+project.tasks.getByName("writeCachedWeaveAttributes").dependsOn(shadowJar)
 
 /**
  * shadowJar takes care of dependencies, but the jar task is what

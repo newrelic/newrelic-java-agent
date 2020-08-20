@@ -1,32 +1,4 @@
-// update manifest in the doLast phase of jar.
-jar {
-    dependsOn ':instrumentation-build:compileJava'
-
-    doLast {
-        def out = new ByteArrayOutputStream()
-        javaexec {
-            classpath = project(":instrumentation-build").sourceSets.main.runtimeClasspath
-            main = "PrintAllManifestAttributes"
-            args jar.archivePath
-            standardOutput = out
-        }
-        def result = out.toString().split("\n").collectEntries { value -> value.split(":", 2) }
-        manifest {
-            attributes(result)
-        }
-
-        ant.jar(update: true, destfile: jar.archivePath) {
-            for (updatedAttribute in jar.manifest.getAttributes()) {
-                delegate.manifest {
-                    // We need to escape two dollar signs ($$) and turn it into 3 ($$$) in order to work around some weird bug in ant here that causes a double
-                    // dollar sign to get collapsed down into a single one. We can't use gradle here because the manifest is already created at this point and
-                    // it doesn't provide an easy way to update the jar manifest at this point.
-                    attribute(name: updatedAttribute.key, value: updatedAttribute.value.toString().replaceAll("\\\$\\\$", '\\\$\\\$\\\$'))
-                }
-            }
-        }
-    }
-}
+apply(from: "$rootProject.projectDir/gradle/script/cache_weave_attributes.gradle.kts")
 
 def shouldVerifyInstrumentation = ("instrumentation" == project.parent.name);
 if (shouldVerifyInstrumentation) {
