@@ -8,7 +8,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -19,22 +20,23 @@ public class WeavePackageAnalyzerTest {
         URL url = getClass().getResource('/' + ExtensionServiceTest.class.getPackage().getName().replace('.', '/') + '/'
                 + ExtensionServiceTest.WEAVE_INSTRUMENTATION);
 
-        final JarData[] jarData = new JarData[] { null };
+        final List<JarData> jarData = new ArrayList<>();
         Consumer<JarData> mockConsumer = new Consumer<JarData>() {
             @Override
             public void accept(JarData x) {
-                jarData[0] = x;
+                jarData.add(x);
             }
         };
 
         WeavePackageAnalyzer target = new WeavePackageAnalyzer(new File(url.getFile()), mockConsumer, mock(Logger.class));
         target.run();
 
-        assertEquals("com.newrelic.instrumentation.spring-jms-2", jarData[0].getName());
-        assertEquals("1.0", jarData[0].getVersion());
+        assertEquals(1, jarData.size());
+        assertEquals("com.newrelic.instrumentation.spring-jms-2", jarData.get(0).getName());
+        assertEquals("1.0", jarData.get(0).getVersion());
 
-        assertEquals(url.toString(), jarData[0].getJarInfo().attributes.get("weaveFile"));
-        assertEquals("10ce178a632add8d5a98442a9cf1220f34c95874", jarData[0].getJarInfo().attributes.get("sha1Checksum"));
+        assertEquals(url.toString(), jarData.get(0).getJarInfo().attributes.get("weaveFile"));
+        assertEquals("10ce178a632add8d5a98442a9cf1220f34c95874", jarData.get(0).getJarInfo().attributes.get("sha1Checksum"));
     }
 
     @Test
