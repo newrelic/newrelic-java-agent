@@ -166,7 +166,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
         TrackedAddSet<JarData> analyzedJars = new TrackedAddSet<>();
 
-        Function<URL, JarData> processor = new JarCollectorServiceProcessor(configService, jarCollectorLogger);
+        Function<URL, JarData> processor = new JarCollectorServiceProcessor(jarCollectorLogger, configService.getDefaultAgentConfig());
         JarAnalystFactory jarAnalystFactory = new JarAnalystFactory(processor, analyzedJars, jarCollectorLogger);
         ExecutorService executorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory("New Relic Jar Analysis Thread", true));
 

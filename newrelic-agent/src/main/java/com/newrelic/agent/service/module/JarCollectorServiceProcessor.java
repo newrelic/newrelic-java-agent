@@ -10,7 +10,7 @@ package com.newrelic.agent.service.module;
 import com.google.common.collect.ImmutableList;
 import com.newrelic.Function;
 import com.newrelic.agent.bridge.ManifestUtils;
-import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Logger;
 
@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,17 +63,17 @@ public class JarCollectorServiceProcessor implements Function<URL, JarData> {
      */
     private final List<String> ignoreJars;
 
-    public JarCollectorServiceProcessor(ConfigService configService, Logger logger) {
-        this(configService.getDefaultAgentConfig(), configService.getDefaultAgentConfig().getIgnoreJars(), logger);
+    public JarCollectorServiceProcessor(Logger logger, AgentConfig agentConfig) {
+        this(agentConfig, agentConfig.getIgnoreJars(), logger);
     }
 
     /**
      * Creates this JarCollectorServiceProcessor.
      */
     JarCollectorServiceProcessor(Config config, List<String> ignoreJars, Logger logger) {
-        this.ignoreJars = ignoreJars;
+        this.ignoreJars = new ArrayList<>(ignoreJars);
         this.logger = logger;
-        skipTempJars = config.getValue("jar_collector.skip_temp_jars", true);
+        this.skipTempJars = config.getValue("jar_collector.skip_temp_jars", true);
         if (!skipTempJars) {
             logger.log(Level.FINEST, "temporary jars will be transmitted to the host");
         }
