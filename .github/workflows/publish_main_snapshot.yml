@@ -55,10 +55,11 @@ jobs:
         run: |
           aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip
           ls -a
-      - name: unzip the instrumentation jar
+      - name: unzip the instrumentation jars
         run: |
           unzip proprietary-jars.zip
-          find instrumentation -name "*.jar"
+      - name: log jars are in target libs
+        run: find instrumentation -name "*.jar"
       - name: publish snapshot
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -66,7 +67,6 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: echo "Test finished"
-        #run: ./gradlew publish
+        run: ./gradlew publish
 
 
