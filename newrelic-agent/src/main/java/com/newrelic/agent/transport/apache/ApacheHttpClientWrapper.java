@@ -79,7 +79,7 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper {
     }
 
     private static PoolingHttpClientConnectionManager createHttpClientConnectionManager(SSLContext sslContext) {
-        // Using the pooling manager here for thread safety, but we only want one connection to the backend
+        // Using the pooling manager here for thread safety.
         PoolingHttpClientConnectionManager httpClientConnectionManager = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
@@ -87,6 +87,8 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper {
                                 new SSLConnectionSocketFactory(sslContext) : SSLConnectionSocketFactory.getSocketFactory())
                         .build());
 
+        // We only allow one connection at a time to the backend.
+        // Anymore and the the agent hangs during the initial request to the connect endpoint.
         httpClientConnectionManager.setMaxTotal(1);
         httpClientConnectionManager.setDefaultMaxPerRoute(1);
 
@@ -102,11 +104,16 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper {
                         new BasicHeader("ACCEPT-ENCODING", GZIP_ENCODING)))
                 .setSSLHostnameVerifier(new DefaultHostnameVerifier())
                 .setDefaultRequestConfig(RequestConfig.custom()
+                        // Timeout in millis until a connection is established.
                         .setConnectTimeout(requestTimeoutInMillis)
-                        .setConnectionRequestTimeout(requestTimeoutInMillis)
+                        // Timeout in millis when requesting a connection from the connection manager.
+                        // This timeout should be longer than the connect timeout to avoid potential ConnectionPoolTimeoutExceptions.
+                        .setConnectionRequestTimeout(requestTimeoutInMillis * 2)
+                        // Timeout in millis for non-blocking socket I/O operations (aka max inactivity between two consecutive data packets).
                         .setSocketTimeout(requestTimeoutInMillis)
                         .build())
                 .setDefaultSocketConfig(SocketConfig.custom()
+                        // Timeout in millis for non-blocking socket I/O operations.
                         .setSoTimeout(requestTimeoutInMillis)
                         .setSoKeepAlive(true)
                         .build())
@@ -151,15 +158,22 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper {
         if (handler != null) {
             handler.requestStarted();
         }
-
+        logConnectionPoolStatus(apacheRequest);
         try (CloseableHttpResponse response = httpClient.execute(apacheRequest, createContext())) {
             if (handler != null) {
                 handler.requestEnded();
             }
-
+            logConnectionPoolStatus(apacheRequest);
             return mapResponseToResult(response);
         } catch (HttpHostConnectException hostConnectException) {
             throw new HostConnectException(hostConnectException.getHost().toString(), hostConnectException);
+        }
+    }
+
+    private void logConnectionPoolStatus(HttpUriRequest apacheRequest) {
+        if (Agent.isDebugEnabled()) {
+            Agent.LOG.debug("Datasender HTTP connection pool status: "
+                    + apacheRequest.getURI().getQuery().split("&")[0] + ", " + connectionManager.getTotalStats());
         }
     }
 
