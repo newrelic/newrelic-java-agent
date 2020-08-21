@@ -2,7 +2,7 @@ name: PR Build - Functional Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ publish-snapshot ]
 
 jobs:
   publish_snapshot:
@@ -45,12 +45,20 @@ jobs:
           key: ${{ runner.os }}-gradle
           restore-keys: |
             ${{ runner.os }}-gradle
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
       - name: download S3 instrumentation jar zip
         run: |
-          pwd
+          aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip
           ls -a
-      - name: unzip into lib
-        run:
+      - name: unzip the instrumentation jar
+        run: |
+          unzip proprietary-jars.zip
+          find instrumentation -name "*.jar"
       - name: publish snapshot
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -58,6 +66,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew publish
+        run: echo "Test finished"
+        #run: ./gradlew publish
 
 
