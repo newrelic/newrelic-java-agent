@@ -1,8 +1,8 @@
-name: PR Build - Functional Tests
+name: Publish snapshot on main merge
 
 on:
   push:
-    branches: [ publish-snapshot ]
+    branches: [ main ]
 
 jobs:
   publish_snapshot:
@@ -51,16 +51,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
-      - name: download S3 instrumentation jar zip
-        run: |
-          aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip
-          ls -a
-      - name: unzip the instrumentation jars
-        run: |
-          unzip proprietary-jars.zip
-      - name: log jars are in target libs
+      - name: Download S3 instrumentation jar zip
+        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip
+      - name: Unzip the instrumentation jars
+        run: unzip proprietary-jars.zip
+      - name: Log jars are in target libs
         run: find instrumentation -name "*.jar"
-      - name: publish snapshot
+      - name: Publish snapshot
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
