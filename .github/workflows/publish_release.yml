@@ -1,11 +1,12 @@
-name: Test release action
+name: Publish release version explicitly
 
 on:
-  push:
-    branches: [ publish-release ]
+  release:
+    types:
+      - published
 
 jobs:
-  publish_snapshot:
+  publish_release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
