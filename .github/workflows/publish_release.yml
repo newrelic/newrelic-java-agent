@@ -1,0 +1,70 @@
+name: Publish release version explicitly
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish_release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gradle/wrapper-validation-action@v1
+      # The first JDK set up gets to be "primary".
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1.4.0
+        with:
+          java-version: 8
+      - name: save JAVA_HOME as JDK8 for later usage
+        run: echo "::set-env name=ORG_GRADLE_PROJECT_jdk8::$JAVA_HOME"
+      # The second JDK is not first in the path but does reset JAVA_HOME
+      - name: Set up JDK 1.7
+        uses: actions/setup-java@v1.4.0
+        with:
+          java-version: 7
+      - name: save JAVA_HOME as JDK7 for later usage
+        run: echo "::set-env name=ORG_GRADLE_PROJECT_jdk7::$JAVA_HOME"
+      # Java is installed; document settings
+      - name: log project settings
+        run: |
+          echo "--- Java versions ---"
+          $ORG_GRADLE_PROJECT_jdk7/bin/java -version
+          $ORG_GRADLE_PROJECT_jdk8/bin/java -version
+      - name: correct JAVA_HOME
+        run: echo "::set-env name=JAVA_HOME::$ORG_GRADLE_PROJECT_jdk8"
+      # Restore the gradle cache
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # The docs say to use hashfiles, but gradle itself is smart enough to
+          # re-download dependencies if it couldn't resolve them.
+          # Because our gradle cache is _so big_, I think a 90% cache is far
+          # better than a 0% cache.
+          key: ${{ runner.os }}-gradle
+          restore-keys: |
+            ${{ runner.os }}-gradle
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: Download S3 instrumentation jar zip
+        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip
+      - name: Unzip the instrumentation jars
+        run: unzip proprietary-jars.zip
+      - name: Log jars are in target libs
+        run: find instrumentation -name "*.jar"
+      - name: Publish release
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+        run: ./gradlew publish -Prelease=true
+
+
