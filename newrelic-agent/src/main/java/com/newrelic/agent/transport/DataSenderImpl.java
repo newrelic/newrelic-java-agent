@@ -532,14 +532,14 @@ public class DataSenderImpl implements DataSender {
 
     /*
      * As of Protocol 17 agents MUST NOT depend on the content of the response body for any behavior; just the integer
-     * response code value. The previous behavior of a 200 (“OK”) with an exact string in the body that should be
+     * response code value. The previous behavior of a 200 ("OK") with an exact string in the body that should be
      * matched/parsed has been deprecated.
      */
     private ReadResult connectAndSend(String method, String encoding, String uri, JSONStreamAware params) throws Exception {
         byte[] data = writeData(encoding, params);
 
         /*
-         * We don’t enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
+         * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
          * payload and try again. See RPMService sendErrorData
          */
         if (data.length > maxPayloadSizeInBytes && !method.equals(CollectorMethods.ERROR_DATA)) {
