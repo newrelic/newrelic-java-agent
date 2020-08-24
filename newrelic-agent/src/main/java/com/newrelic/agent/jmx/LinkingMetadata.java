@@ -13,7 +13,7 @@ public class LinkingMetadata implements LinkingMetadataMBean {
     public Map<String, String> readLinkingMetadata() {
         Agent agent = NewRelic.getAgent();
         Logger logger = agent.getLogger();
-        logger.log(Level.INFO, "JmxLinkingMetadata: Fetching linking metadata from the agent...");
+        logger.log(Level.INFO, "JMX LinkingMetadata: Fetching linking metadata from the agent...");
         return agent.getLinkingMetadata();
     }
 }

@@ -51,8 +51,8 @@ public class LinkingMetadataRegistrationTest {
 
         testClass.registerLinkingMetadata();
         //success
-        verify(logger).log(eq(Level.INFO), eq("JmxLinkingMetadata started, registering MBean: com.newrelic.jfr:type=LinkingMetadata"));
-        verify(logger).log(eq(Level.INFO), eq("ERROR REGISTERING JmxLinkingMetadata MBean"), eq(exception));
+        verify(logger).log(eq(Level.INFO), eq("JMX LinkingMetadata started, registering MBean: com.newrelic.jfr:type=LinkingMetadata"));
+        verify(logger).log(eq(Level.INFO), eq("Error registering JMX LinkingMetadata MBean"), eq(exception));
     }
 
 }
