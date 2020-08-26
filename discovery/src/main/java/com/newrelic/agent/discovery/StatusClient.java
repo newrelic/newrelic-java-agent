@@ -24,16 +24,20 @@ public class StatusClient implements StatusMessageWriter {
     }
 
     public void write(StatusMessage message) throws IOException {
-        try {
-            try (Socket socket = new Socket(address, port)) {
-                socket.setSoLinger(true, 1);
-                try (ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
-                    out.writeLong(StatusMessage.serialVersionUID);
-                    message.writeExternal(out);
-                }
+        write(StatusMessage.serialVersionUID, message);
+    }
+
+    public void write(ApplicationContainerInfo container) throws IOException {
+        write(ApplicationContainerInfo.serialVersionUID, container);
+    }
+
+    private void write(long uid, Externalizable externalizable) throws IOException {
+        try (Socket socket = new Socket(address, port)) {
+            socket.setSoLinger(true, 1);
+            try (ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+                out.writeLong(uid);
+                externalizable.writeExternal(out);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

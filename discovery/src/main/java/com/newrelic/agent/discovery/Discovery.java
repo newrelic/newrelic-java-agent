@@ -35,22 +35,19 @@ public class Discovery {
         discover(options, output);
     }
 
-    static void discover(AttachOptions options, final AttachOutput output) {
-        StatusServer server = null;
+    static void discover(final AttachOptions options, final AttachOutput output) {
+        final StatusServer server = StatusServer.createAndStart(output);
         try {
+            final String agentJarPath = getAgentJarPath();
             if (options.getPid() != null) {
-                server = StatusServer.createAndStart(output);
-                try {
-                    attach(output, options.getSerializer(), getAgentJarPath(),
-                            AgentArguments.getAgentArguments(options), server,
-                            options.getPid(), options.getAppName(), null);
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
+                attach(output, options.getSerializer(), agentJarPath,
+                        AgentArguments.getAgentArguments(options), server,
+                        options.getPid(), options.getAppName(), null);
             } else {
                 final VMConsumer vmConsumer;
                 if (options.isList()) {
                     output.listHeader();
+                    final AgentArguments agentArgs = AgentArguments.getDiscoveryAgentArguments();
                     vmConsumer = new VMConsumer() {
 
                         @Override
@@ -68,19 +65,16 @@ public class Discovery {
                                     monitoredHost.detach(monitoredVm);
                                 }
                             } catch (URISyntaxException | MonitorException e) {
-                                e.printStackTrace();
+                                output.error(e);
                             }
                             output.list(vmd.id(), vmd.displayName(), vmVersion, isAttachable);
+                            attach(output, options.getSerializer(), agentJarPath, agentArgs, server, vmd.id(),
+                                    getAppName(vmd.displayName()), vmd.displayName());
                         }
                     };
                 } else {
-                    server = StatusServer.createAndStart(output);
-                    try {
-                        vmConsumer = getAttachingVMConsumer(options, output,
-                                options.getSerializer(), server);
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
+                    vmConsumer = getAttachingVMConsumer(agentJarPath, options, output,
+                            options.getSerializer(), server);
                 }
     
                 final List<VirtualMachineDescriptor> vmds = VirtualMachine.list();
@@ -90,8 +84,10 @@ public class Discovery {
                     }
                 }
             }
+        } catch (URISyntaxException e) {
+            output.error(e);
         } finally {
-            output.finished();
+            output.close();
             if (server != null) {
                 server.close();
             }
@@ -99,19 +95,19 @@ public class Discovery {
     }
 
     private static VMConsumer getAttachingVMConsumer(
+            final String agentJarPath,
             final AttachOptions attachOptions,
             final AttachOutput attachOutput,
             final JsonSerializer serializer,
-            final StatusServer server) throws URISyntaxException {
+            final StatusServer server) {
         final AgentArguments agentArgs = AgentArguments.getAgentArguments(attachOptions);
-        final String agentJarPath = getAgentJarPath();
 
         return new VMConsumer() {
 
             @Override
             public void consume(VirtualMachineDescriptor vmd) {
                 attach(attachOutput, serializer, agentJarPath, agentArgs, server, vmd.id(),
-                        null, getAppName(vmd.displayName()));
+                        getAppName(vmd.displayName()), null);
             }
         };
     }
@@ -122,9 +118,11 @@ public class Discovery {
         try {
             VirtualMachine vm = VirtualMachine.attach(pid);
             try {
-                agentArgs.update(appName, commandLine, server.getPort(), pid);
-                final String args = serializer.serialize(agentArgs, true);
-                attachOutput.attachStarted(pid, commandLine, args);
+                final String args = serializer.serialize(
+                        agentArgs.update(appName, commandLine, server.getPort(), pid), true);
+                if (!agentArgs.isDiscover()) {
+                    attachOutput.attachStarted(pid, commandLine, args);
+                }
                 vm.loadAgent(agentJarPath, args);
             } finally {
                 vm.detach();
