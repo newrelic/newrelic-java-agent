@@ -12,8 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Format the details about attach operations as json
  */
 class JsonAttachOutput implements AttachOutput {
-    private Map<String, AttachInfo> attaches = new ConcurrentHashMap<>();
-    private List<ProcessInfo> processes = Collections.synchronizedList(new ArrayList<ProcessInfo>());
+    private Map<String, ProcessInfo> processes = new ConcurrentHashMap<>();
     private final PrintStream out;
     private final JsonSerializer serializer;
 
@@ -24,30 +23,36 @@ class JsonAttachOutput implements AttachOutput {
 
     @Override
     public void attachStarted(String pid, String command, String agentArgs) {
-        attaches.put(pid, new AttachInfo(pid, command, agentArgs));
+        processes.put(pid, new AttachInfo(pid, command, agentArgs));
     }
 
     @Override
     public void write(StatusMessage message) {
-        AttachInfo attachInfo = attaches.get(message.getProcessId());
-        if (attachInfo != null) {
-            attachInfo.addMessage(message);
+        ProcessInfo processInfo = processes.get(message.getProcessId());
+        if (processInfo != null) {
+            processInfo.addMessage(message);
         } else {
             System.err.println(message);
         }
     }
 
     @Override
-    public void finished() {
+    public void close() {
         out.println(serializer.serialize(toArray(), false));
+    }
+
+    @Override
+    public void listHeader() {
+    }
+
+    @Override
+    public void list(String id, String displayName, String vmVersion, boolean isAttachable) {
+        this.processes.put(id, new DiscoveryInfo(id, displayName, vmVersion, isAttachable));
     }
 
     private Object toArray() {
         List<Object> arr = new ArrayList<>();
-        for (AttachInfo info : attaches.values()) {
-            arr.add(info.toMap());
-        }
-        for (ProcessInfo process : processes) {
+        for (ProcessInfo process : processes.values()) {
             arr.add(process.toMap());
         }
         return arr;
@@ -79,12 +84,10 @@ class JsonAttachOutput implements AttachOutput {
         return list;
     }
 
-    private static class AttachInfo {
+    private static class AttachInfo extends ProcessInfo {
         final String pid;
         final String command;
-        final List<StatusMessage> messages = Collections.synchronizedList(new ArrayList<StatusMessage>());
         final String agentArgs;
-        volatile boolean success = false;
 
         public AttachInfo(String pid, String command, String agentArgs) {
             this.pid = pid;
@@ -92,51 +95,65 @@ class JsonAttachOutput implements AttachOutput {
             this.agentArgs = agentArgs;
         }
 
-        public void addMessage(StatusMessage message) {
-            messages.add(message);
-            success = success | message.isSuccess();
-        }
-
+        @Override
         public Map<String, Object> toMap() {
-            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> map = super.toMap();
             map.put("pid", Integer.parseInt(pid));
             map.put("command", command);
-            map.put("messages", toPOJO(messages));
             map.put("agentArgs", agentArgs);
             map.put("success", success);
             return map;
         }
     }
 
-    private static class ProcessInfo {
+    static class DiscoveryInfo extends ProcessInfo {
         final String id;
         final String displayName;
         final String vmVersion;
         final boolean isAttachable;
+        volatile ApplicationContainerInfo applicationContainerInfo;
 
-        public ProcessInfo(String id, String displayName, String vmVersion, boolean isAttachable) {
+        public DiscoveryInfo(String id, String displayName, String vmVersion, boolean isAttachable) {
             this.id = id;
             this.displayName = displayName;
             this.vmVersion = vmVersion;
             this.isAttachable = isAttachable;
         }
 
+        @Override
         public Map<String, Object> toMap() {
-            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> map = super.toMap();
             map.put("pid", Integer.parseInt(id));
             map.put("displayName", displayName);
             map.put("vmVersion", vmVersion);
             map.put("attachable", isAttachable);
+            if (applicationContainerInfo != null) {
+                map.put("containerName", applicationContainerInfo.getContainerName());
+                map.put("applicationNames", applicationContainerInfo.getApplicationNames());
+            }
             return map;
         }
     }
 
-    @Override
-    public void listHeader() {
+    static abstract class ProcessInfo {
+        final List<StatusMessage> messages = Collections.synchronizedList(new ArrayList<StatusMessage>());
+        protected volatile boolean success;
+
+        public Map<String, Object> toMap() {
+            Map<String, Object> map = new HashMap<>();
+            map.put("messages", toPOJO(messages));
+            return map;
+        }
+
+        public void addMessage(StatusMessage message) {
+            messages.add(message);
+            success = success | message.isSuccess();
+        }
     }
 
     @Override
-    public void list(String id, String displayName, String vmVersion, boolean isAttachable) {
-        this.processes.add(new ProcessInfo(id, displayName, vmVersion, isAttachable));
+    public void applicationInfo(ApplicationContainerInfo applicationContainerInfo) {
+        DiscoveryInfo discoveryInfo = (DiscoveryInfo) processes.get(applicationContainerInfo.getId());
+        discoveryInfo.applicationContainerInfo = applicationContainerInfo;
     }
 }

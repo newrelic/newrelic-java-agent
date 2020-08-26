@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Level;
 
-public class StatusMessage implements Serializable {
+public class StatusMessage implements Serializable, Externalizable {
     // we use the RPM url as an indication of a successful attach operation
     private static final String URL_LABEL = "Url";
     static final long serialVersionUID = -1921492641455922593L;

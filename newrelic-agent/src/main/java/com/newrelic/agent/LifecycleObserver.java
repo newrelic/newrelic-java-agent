@@ -6,7 +6,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.newrelic.agent.autoname.ApplicationAutoName;
 import com.newrelic.agent.discovery.AgentArguments;
+import com.newrelic.agent.discovery.ApplicationContainerInfo;
 import com.newrelic.agent.discovery.StatusClient;
 import com.newrelic.agent.discovery.StatusMessage;
 import com.newrelic.agent.service.ServiceManager;
@@ -28,14 +30,19 @@ public class LifecycleObserver {
     void agentAlreadyRunning() {
     }
 
+    boolean isDiscovery() {
+        return false;
+    }
+
     public static LifecycleObserver createLifecycleObserver(String agentArgs) {
         if (agentArgs != null && !agentArgs.isEmpty()) {
             try {
                 final AgentArguments args = AgentArguments.fromJsonObject(new JSONParser().parse(agentArgs));
                 final Number port = args.getServerPort();
                 final StatusClient client = StatusClient.create(port.intValue());
-                client.write(StatusMessage.info(args.getId(), "Msg", "Initializing agent"));
-                return new AttachLifecycleObserver(client, args.getId());
+                client.write(StatusMessage.info(args.getId(), "Msg",
+                        args.isDiscover() ? "Discovering environment" : "Initializing agent"));
+                return new AttachLifecycleObserver(client, args);
             } catch (ParseException | IOException e) {
                 // ignore
             }
@@ -48,10 +55,27 @@ public class LifecycleObserver {
         private final StatusClient client;
         private final AtomicReference<ServiceManager> serviceManager = new AtomicReference<>();
         private final String id;
+        private final boolean discovery;
 
-        public AttachLifecycleObserver(StatusClient client, String id) {
+        public AttachLifecycleObserver(StatusClient client, AgentArguments args) {
             this.client = client;
-            this.id = id;
+            this.id = args.getId();
+            this.discovery = args.isDiscover();
+            if (discovery) {
+                ApplicationContainerInfo container = ApplicationAutoName.getApplicationContainerInfo(id);
+                if (container != null) {
+                    try {
+                        client.write(container);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        @Override
+        boolean isDiscovery() {
+            return discovery;
         }
 
         @Override

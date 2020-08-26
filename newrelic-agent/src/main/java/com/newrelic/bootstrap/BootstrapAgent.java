@@ -15,7 +15,11 @@ import com.newrelic.agent.modules.ClassLoaderUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -23,6 +27,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.zip.InflaterInputStream;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -119,9 +124,20 @@ public class BootstrapAgent {
             throw new IllegalArgumentException("Unable to attach.  The license key was not specified");
         }
         System.out.println("Attaching the New Relic java agent");
-        agentArgs = new String(Base64.decodeBase64(agentArgs));
+        try {
+            agentArgs = decodeAndDecompressAgentArguments(agentArgs);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
         System.setProperty(NR_AGENT_ARGS_SYSTEM_PROPERTY, agentArgs);
         premain(agentArgs, inst);
+    }
+
+    static String decodeAndDecompressAgentArguments(String agentArgs) throws IOException {
+        byte[] decodeBase64 = Base64.decodeBase64(agentArgs);
+        InflaterInputStream zipStream = new InflaterInputStream(new ByteArrayInputStream(decodeBase64));
+        return new BufferedReader(new InputStreamReader(zipStream)).readLine();
     }
 
     /**

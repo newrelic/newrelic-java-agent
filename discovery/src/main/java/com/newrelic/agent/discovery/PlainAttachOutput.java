@@ -1,10 +1,16 @@
 package com.newrelic.agent.discovery;
 
 import java.io.PrintStream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.google.common.base.Joiner;
+import com.newrelic.agent.discovery.JsonAttachOutput.DiscoveryInfo;
 
 class PlainAttachOutput implements AttachOutput {
     private final PrintStream out;
     private final PrintStream err;
+    private final Map<String, DiscoveryInfo> processes = new ConcurrentHashMap<>();
 
     public PlainAttachOutput() {
         this(System.out, System.err);
@@ -24,11 +30,20 @@ class PlainAttachOutput implements AttachOutput {
 
     @Override
     public void write(StatusMessage message) {
-        out.println('\t' + message.toString());
+        if (processes.isEmpty()) {
+            out.println('\t' + message.toString());
+        }
     }
 
     @Override
-    public void finished() {
+    public void close() {
+        for (DiscoveryInfo discoveryInfo : processes.values()) {
+            System.out.println(
+                    Joiner.on('\t').join(discoveryInfo.id, discoveryInfo.vmVersion,
+                            discoveryInfo.isAttachable, discoveryInfo.displayName));
+
+        }
+
         out.flush();
         err.flush();
     }
@@ -49,11 +64,27 @@ class PlainAttachOutput implements AttachOutput {
     @Override
     public void listHeader() {
         System.out.println("Java processes:");
-        System.out.println("PID\tDisplay Name\tVM Version\tAttachable");
+        System.out.println("PID\tVM Version\tAttachable\tDisplay Name\tServer Info\tApplication Names");
     }
 
     @Override
     public void list(String id, String displayName, String vmVersion, boolean isAttachable) {
-        System.out.println(id + '\t' + displayName + '\t' + vmVersion + '\t' + isAttachable);
+        if (!isAttachable) {
+            System.out.println(
+                    Joiner.on('\t').join(id, vmVersion, isAttachable, displayName));
+        } else {
+            processes.put(id, new DiscoveryInfo(id, displayName, vmVersion, isAttachable));
+        }
+    }
+
+    @Override
+    public void applicationInfo(ApplicationContainerInfo applicationContainerInfo) {
+        DiscoveryInfo discoveryInfo = processes.remove(applicationContainerInfo.getId());
+        if (discoveryInfo != null) {
+            System.out.println(
+                    Joiner.on('\t').join(discoveryInfo.id, discoveryInfo.vmVersion,
+                            discoveryInfo.isAttachable, discoveryInfo.displayName,
+                            applicationContainerInfo.getContainerName(), applicationContainerInfo.getApplicationNames()));
+        }
     }
 }

@@ -39,8 +39,9 @@ public class StatusServer implements Closeable {
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                 final long uid = in.readLong();
                 if (StatusMessage.serialVersionUID == uid) {
-                    StatusMessage message = StatusMessage.readExternal(in);
-                    attachOutput.write(message);
+                    attachOutput.write(StatusMessage.readExternal(in));
+                } else if (ApplicationContainerInfo.serialVersionUID == uid) {
+                    attachOutput.applicationInfo(ApplicationContainerInfo.readExternal(in));
                 }
             } catch (IOException e) {
                 if (running.get()) {

@@ -16,9 +16,11 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.EnvironmentFacade;
 import com.newrelic.agent.discovery.AgentArguments;
+import com.newrelic.agent.discovery.ApplicationContainerInfo;
 import com.newrelic.bootstrap.BootstrapAgent;
 
 public class ApplicationAutoName {
@@ -31,6 +33,10 @@ public class ApplicationAutoName {
 
     private ApplicationAutoName(String name) {
         this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getName(EnvironmentFacade environment) {
@@ -54,21 +60,23 @@ public class ApplicationAutoName {
         return "ApplicationServerDetails [name=" + name + "]";
     }
 
-    private static ApplicationAutoName createApplicationAutoName(AppServer appServer,
+    private static AppServerApplicationAutoName createApplicationAutoName(AppServer appServer,
             Set<ServletContextDetails> contexts) {
         String appName = contexts.size() == 1 ?
             contexts.iterator().next().getDisplayName() :
             appServer.getName(contexts);
 
-        return new AppServerApplicationAutoName(appServer.name() + " : " + appName, contexts);
+        return new AppServerApplicationAutoName(appServer, appName, contexts);
     }
 
     private static class AppServerApplicationAutoName extends ApplicationAutoName {
         private final Set<ServletContextDetails> servletContexts;
+        private final String appServerName;
 
-        private AppServerApplicationAutoName(String name, Set<ServletContextDetails> servletContexts) {
-            super(name);
+        private AppServerApplicationAutoName(AppServer appServer, String name, Set<ServletContextDetails> servletContexts) {
+            super(appServer.name() + " : " + name);
             this.servletContexts = servletContexts;
+            appServerName = appServer.name();
         }
 
         @Override
@@ -85,7 +93,7 @@ public class ApplicationAutoName {
             }
 
             @Override
-            ApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
+            AppServerApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
                 return null;
             }
             
@@ -117,16 +125,16 @@ public class ApplicationAutoName {
             }
 
             @Override
-            ApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
-                return ApplicationAutoName.getApplicationServerDetails(mbeanServer, this, 
+            AppServerApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
+                return ApplicationAutoName.getApplicationServerDetails(mbeanServer, this,
                         "Catalina:j2eeType=WebModule,name=//*/*,J2EEApplication=*,J2EEServer=*",
                         "baseName", "displayName");
             }
         },
         JBoss {
             @Override
-            ApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
-                return ApplicationAutoName.getApplicationServerDetails(mbeanServer, this, 
+            AppServerApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
+                return ApplicationAutoName.getApplicationServerDetails(mbeanServer, this,
                         "jboss.as:deployment=*",
                         "name", "name");
             }
@@ -138,15 +146,15 @@ public class ApplicationAutoName {
         Jetty {
 
             @Override
-            ApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
-                return ApplicationAutoName.getApplicationServerDetails(mbeanServer, this, 
+            AppServerApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
+                return ApplicationAutoName.getApplicationServerDetails(mbeanServer, this,
                         "org.eclipse.jetty.webapp:context=*,type=webappcontext,*",
                         "contextPath", "displayName");
             }
         },
         WebSphereLiberty {
             @Override
-            ApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
+            AppServerApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
                 try {
                     String nameQuery = "WebSphere:service=com.ibm.websphere.application.ApplicationMBean,name=*";
                     Set<ObjectName> results = mbeanServer.queryNames(new ObjectName(nameQuery), null);
@@ -167,7 +175,7 @@ public class ApplicationAutoName {
         },
         WebLogic {
             @Override
-            ApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
+            AppServerApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer) {
                 return null;
             }
         };
@@ -176,10 +184,10 @@ public class ApplicationAutoName {
             return this.name();
         }
 
-        abstract ApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer);
+        abstract AppServerApplicationAutoName getApplicationServerDetails(MBeanServer mbeanServer);
     }
 
-    private static ApplicationAutoName getApplicationServerDetails(
+    private static AppServerApplicationAutoName getApplicationServerDetails(
             MBeanServer mbeanServer,
             AppServer appServer,
             String nameQuery, String baseAttributeName, String displayNameAttributeName) {
@@ -205,6 +213,30 @@ public class ApplicationAutoName {
         return System.getProperty(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY) != null;
     }
 
+    private static AppServerApplicationAutoName getApplicationNameFromAppServer() {
+        final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+        for (AppServer server : AppServer.values()) {
+            AppServerApplicationAutoName details = server.getApplicationServerDetails(mbeanServer);
+            if (details != null) {
+                return details;
+            }
+        }
+        return null;
+    }
+
+    public static ApplicationContainerInfo getApplicationContainerInfo(String id) {
+        AppServerApplicationAutoName details = getApplicationNameFromAppServer();
+        if (details != null) {
+            List<String> appNames = Lists.newArrayListWithExpectedSize(details.servletContexts.size());
+            for (ServletContextDetails context : details.servletContexts) {
+                appNames.add(context.getDisplayName());
+            }
+            return new ApplicationContainerInfo(id, details.appServerName,
+                    appNames);
+        }
+        return null;
+    }
+
     public static ApplicationAutoName getApplicationAutoName(EnvironmentFacade environmentFacade) {
         
         if (isAgentAttached()) {
@@ -224,12 +256,9 @@ public class ApplicationAutoName {
             }
 
             // try to find app server info
-            final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
-            for (AppServer server : AppServer.values()) {
-                ApplicationAutoName details = server.getApplicationServerDetails(mbeanServer);
-                if (details != null) {
-                    return details;
-                }
+            ApplicationAutoName name = getApplicationNameFromAppServer();
+            if (name != null) {
+                return name;
             }
         }
         return new ApplicationAutoName(null);

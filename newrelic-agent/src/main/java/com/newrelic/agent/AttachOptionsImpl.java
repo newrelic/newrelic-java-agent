@@ -1,12 +1,13 @@
 package com.newrelic.agent;
 
+import java.util.zip.Deflater;
+
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONValue;
 
-import com.google.common.base.Charsets;
 import com.newrelic.agent.discovery.AttachOptions;
 import com.newrelic.agent.discovery.JsonSerializer;
+import com.newrelic.agent.transport.DataSenderWriter;
 
 class AttachOptionsImpl implements AttachOptions {
 
@@ -26,8 +27,8 @@ class AttachOptionsImpl implements AttachOptions {
         this.jsonSerializer = new JsonSerializer() {
             @Override
             public String serialize(Object object, boolean encode) {
-                final String json = JSONValue.toJSONString(object);
-                return encode ? Base64.encodeBase64String(json.getBytes(Charsets.UTF_8)) : json;
+                return encode ? DataSenderWriter.getJsonifiedCompressedEncodedString(object,
+                        Deflater.DEFAULT_COMPRESSION) : JSONValue.toJSONString(object);
             }
         };
         jsonFormat = cmd.hasOption(JSON_OPTION);
