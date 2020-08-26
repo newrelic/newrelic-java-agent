@@ -63,7 +63,7 @@ public class InstrumentationImpl implements Instrumentation {
      */
     @Override
     public ExitTracer createTracer(Object invocationTarget, int signatureId, boolean dispatcher, String metricName,
-            String tracerFactoryName, Object[] args) {
+                                   String tracerFactoryName, Object[] args, String instrumentationModule) {
         if (ServiceFactory.getServiceManager().isStopped()) {
             return null;
         }
@@ -87,8 +87,9 @@ public class InstrumentationImpl implements Instrumentation {
             }
 
             ClassMethodSignature sig = ClassMethodSignatures.get().get(signatureId);
-            return noticeTracer(signatureId, TracerFlags.getDispatcherFlags(dispatcher),
-                    transaction.getTransactionState().getTracer(transaction, tracerFactoryName, sig, invocationTarget, args));
+            Tracer tracer = transaction.getTransactionState().getTracer(transaction, tracerFactoryName, sig, invocationTarget, args);
+            tracer.setInstrumentationModule(instrumentationModule);
+            return noticeTracer(signatureId, TracerFlags.getDispatcherFlags(dispatcher), tracer);
         } catch (Throwable t) {
             logger.log(Level.FINEST, t, "createTracer({0}, {1}, {2})", invocationTarget, signatureId, metricName);
             return null;
@@ -100,7 +101,7 @@ public class InstrumentationImpl implements Instrumentation {
      * a Transaction is present on the thread. If present, we do not know if the Transaction has been started.
      */
     @Override
-    public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+    public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule) {
         try {
             if (ServiceFactory.getServiceManager().isStopped()) {
                 return null;
@@ -118,7 +119,7 @@ public class InstrumentationImpl implements Instrumentation {
             }
 
             if (!Agent.canFastPath()) { // legacy async instrumentation is in use
-                return oldCreateTracer(txa, invocationTarget, signatureId, metricName, flags);
+                return oldCreateTracer(txa, invocationTarget, signatureId, metricName, flags, instrumentationModule);
             }
 
             if (txa == null) {
@@ -148,6 +149,7 @@ public class InstrumentationImpl implements Instrumentation {
 
                     Tracer initiatingTracer = (Tracer) AgentBridge.activeToken.get().tracedMethod.getAndSet(tracer);
                     tx.startFastAsyncWork(txa, initiatingTracer);
+                    tracer.setInstrumentationModule(instrumentationModule);
                     return noticeTracer(signatureId, flags, tracer);
                 } else if (TracerFlags.isDispatcher(flags)) {
                     // Traditional first-time creation of a new transaction
@@ -163,7 +165,9 @@ public class InstrumentationImpl implements Instrumentation {
                     // or we are running on an Agent thread.
                     return noticeTracer(signatureId, flags, null);
                 }
-                return noticeTracer(signatureId, flags, startTracer(txa, invocationTarget, signatureId, metricName, flags));
+                Tracer tracer = startTracer(txa, invocationTarget, signatureId, metricName, flags);
+                tracer.setInstrumentationModule(instrumentationModule);
+                return noticeTracer(signatureId, flags, tracer);
             }
 
             // There's a TxA on this thread, but it may not be started. It's hard to know
@@ -198,6 +202,9 @@ public class InstrumentationImpl implements Instrumentation {
 
                 txa.tracerStarted(result);
             }
+            if (result != null) {
+                result.setInstrumentationModule(instrumentationModule);
+            }
             return noticeTracer(signatureId, flags, result);
 
         } catch (Throwable t) {
@@ -210,7 +217,7 @@ public class InstrumentationImpl implements Instrumentation {
     // I don't like having this method be a copy/paste of the createTracer method above but I do not
     // want to introduce a performance hit for the default tracer path just to support sql tracers.
     @Override
-    public ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+    public ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule) {
         try {
             if (ServiceFactory.getServiceManager().isStopped()) {
                 return null;
@@ -228,7 +235,7 @@ public class InstrumentationImpl implements Instrumentation {
             }
 
             if (!Agent.canFastPath()) { // legacy async instrumentation is in use
-                return oldCreateSqlTracer(txa, invocationTarget, signatureId, metricName, flags);
+                return oldCreateSqlTracer(txa, invocationTarget, signatureId, metricName, flags, instrumentationModule);
             }
 
             if (txa == null) {
@@ -254,7 +261,9 @@ public class InstrumentationImpl implements Instrumentation {
                         tracer = new OtherRootSqlTracer(txa, sig, invocationTarget, mnf, flags);
                     } else if (overSegmentLimit(txa)) {
                         logger.log(Level.FINEST, "Transaction has exceeded tracer segment limit. Returning ultralight sql tracer.");
-                        return UltraLightTracer.createClampedSegment(txa, sig);
+                        tracer = UltraLightTracer.createClampedSegment(txa, sig);
+                        tracer.setInstrumentationModule(instrumentationModule);
+                        return tracer;
                     } else {
                         tracer = new DefaultSqlTracer(txa, sig, invocationTarget, mnf, flags);
                     }
@@ -262,6 +271,7 @@ public class InstrumentationImpl implements Instrumentation {
 
                     Tracer initiatingTracer = (Tracer) tokenAndRefCount.tracedMethod.getAndSet(tracer);
                     tx.startFastAsyncWork(txa, initiatingTracer);
+                    tracer.setInstrumentationModule(instrumentationModule);
                     return tracer;
                 } else if (TracerFlags.isDispatcher(flags)) {
                     // Traditional first-time creation of a new transaction
@@ -278,7 +288,9 @@ public class InstrumentationImpl implements Instrumentation {
                     return null;
                 }
 
-                return startSqlTracer(txa, invocationTarget, signatureId, metricName, flags);
+                Tracer tracer = startSqlTracer(txa, invocationTarget, signatureId, metricName, flags);
+                tracer.setInstrumentationModule(instrumentationModule);
+                return tracer;
             }
 
             // There's a TxA on this thread, but it may not be started. It's hard to know
@@ -316,6 +328,7 @@ public class InstrumentationImpl implements Instrumentation {
 
                 txa.tracerStarted(result);
             }
+            result.setInstrumentationModule(instrumentationModule);
             return result;
 
         } catch (Throwable t) {
@@ -382,7 +395,7 @@ public class InstrumentationImpl implements Instrumentation {
     // instrumentation: Play1 and async servlet 3.0 instrumentation. The key difference from the "fast path" is that
     // this path switches on the TransactionState during creation.
     private ExitTracer oldCreateTracer(TransactionActivity txa, Object invocationTarget, int signatureId,
-            String metricName, int flags) {
+                                       String metricName, int flags, String instrumentationModule) {
 
         // ASSERT: the circuit breaker was checked by the caller and doesn't need to be checked again.
 
@@ -417,10 +430,13 @@ public class InstrumentationImpl implements Instrumentation {
 
                 Tracer initiatingTracer = (Tracer) tokenAndRefCount.tracedMethod.getAndSet(tracer);
                 tx.startFastAsyncWork(txa, initiatingTracer);
+                tracer.setInstrumentationModule(instrumentationModule);
                 return noticeTracer(signatureId, flags, tracer);
             } else if (TracerFlags.isAsync(flags)) {
                 txa = TransactionActivity.create(null, Integer.MAX_VALUE);
-                return startTracer(txa, invocationTarget, signatureId, metricName, flags);
+                Tracer tracer = startTracer(txa, invocationTarget, signatureId, metricName, flags);
+                tracer.setInstrumentationModule(instrumentationModule);
+                return tracer;
             }
         }
 
@@ -450,7 +466,7 @@ public class InstrumentationImpl implements Instrumentation {
     // This code path is similar to the 3.16.1 and earlier tracer creation path. It is retained for use by legacy
     // async instrumentation, including NAPS (Netty, Akka, Play, Scala) and async servlet instrumentation.
     private ExitTracer oldCreateSqlTracer(TransactionActivity txa, Object invocationTarget, int signatureId,
-            String metricName, int flags) {
+            String metricName, int flags, String instrumentationModule) {
 
         // ASSERT: the circuit breaker was checked by the caller and doesn't need to be checked again.
 
@@ -476,7 +492,9 @@ public class InstrumentationImpl implements Instrumentation {
                     tracer = new OtherRootSqlTracer(txa, sig, invocationTarget, mnf, flags);
                 } else if (overSegmentLimit(txa)) {
                     logger.log(Level.FINEST, "Transaction has exceeded tracer segment limit. Returning ultralight sql tracer.");
-                    return UltraLightTracer.createClampedSegment(txa, sig);
+                    tracer = UltraLightTracer.createClampedSegment(txa, sig);
+                    tracer.setInstrumentationModule(instrumentationModule);
+                    return tracer;
                 } else {
                     tracer = new DefaultSqlTracer(txa, sig, invocationTarget, mnf, flags);
                 }
@@ -484,10 +502,13 @@ public class InstrumentationImpl implements Instrumentation {
 
                 Tracer initiatingTracer = (Tracer) tokenAndRefCount.tracedMethod.getAndSet(tracer);
                 tx.startFastAsyncWork(txa, initiatingTracer);
+                tracer.setInstrumentationModule(instrumentationModule);
                 return tracer;
             } else if (TracerFlags.isAsync(flags)) {
                 txa = TransactionActivity.create(null, Integer.MAX_VALUE);
-                return startTracer(txa, invocationTarget, signatureId, metricName, flags);
+                Tracer tracer = startTracer(txa, invocationTarget, signatureId, metricName, flags);
+                tracer.setInstrumentationModule(instrumentationModule);
+                return tracer;
             }
         }
 

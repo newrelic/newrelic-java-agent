@@ -266,6 +266,15 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
+    public String getInstrumentationModule() {
+        return "";
+    }
+
+    @Override
+    public void setInstrumentationModule(String instrumentationModule) {
+    }
+
+    @Override
     public long getStartTimeInMillis() {
         return 0;
     }

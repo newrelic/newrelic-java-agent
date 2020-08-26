@@ -58,7 +58,7 @@ public class CircuitBreakerServiceFunctionalTest {
         InstrumentationImpl impl = new InstrumentationImpl(Agent.LOG);
 
         if (breakerTripped) {
-            ExitTracer createdTracer = impl.createTracer(null, 0, "metricName", TracerFlags.DISPATCHER);
+            ExitTracer createdTracer = impl.createTracer(null, 0, "metricName", TracerFlags.DISPATCHER, instrumentationModule);
             Assert.assertNull(createdTracer);
             Assert.assertTrue(transaction instanceof NoOpTransaction);
         }

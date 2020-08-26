@@ -64,7 +64,7 @@ public class NoTransactionCreateTracerTest {
                 // If there is an attempt to create a Transaction, it will throw because the config
                 // service doesn't exist. But this is caught and causes a null return, just like any
                 // other failure of any time. Must debug at that point to figure out what happened.
-                Assert.assertNotNull(ii.createTracer(new Object(), 1, null, TracerFlags.ASYNC));
+                Assert.assertNotNull(ii.createTracer(new Object(), 1, null, TracerFlags.ASYNC, instrumentationModule));
                 Assert.assertNull(Transaction.getTransaction(false));
 
             }

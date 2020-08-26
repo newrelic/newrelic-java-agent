@@ -87,7 +87,7 @@ public class TraceMethodVisitorTest {
         public NoOpTrackingSqlTracer tracer; 
 
         @Override
-        public ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+        public ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule) {
             tracerCount++;
             this.tracer = new NoOpTrackingSqlTracer();
             return tracer;

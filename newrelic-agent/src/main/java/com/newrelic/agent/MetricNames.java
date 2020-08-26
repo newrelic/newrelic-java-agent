@@ -442,6 +442,14 @@ public class MetricNames {
     // Deprecated features
     public static final String SUPPORTABILITY_DEPRECATED_CONFIG_JAR_COLLECTOR = "Supportability/Deprecated/Config/JarCollector";
 
+    // Framework usage
+    public static final String SUPPORTABILITY_FRAMEWORK_SPAN_USAGE = "Supportability/Usage/SpanEvent/{0}";
+    public static final String SUPPORTABILITY_FRAMEWORK_SPAN_BYTE_USAGE = "Supportability/Usage/SpanEvent/Bytes/{0}";
+
+    public static final String SUPPORTABILITY_FRAMEWORK_TRANSACTION_USAGE = "Supportability/Usage/TransactionEvent/{0}";
+    public static final String SUPPORTABILITY_FRAMEWORK_TRANSACTION_BYTE_USAGE = "Supportability/Usage/TransactionEvent/Bytes/{0}";
+
+
     // parent.type/parent.account/parent.appId/transport
     public static final String PARENT_DATA = "{0}/{1}/{2}/{3}/{4}";
     public static final String PARENT_DATA_ALL = "all";

@@ -45,6 +45,7 @@ public class SpringDispatcherPointCut extends TracerFactoryPointCut {
 
     @Override
     public Tracer doGetTracer(Transaction transaction, ClassMethodSignature sig, Object dispatcher, Object[] args) {
+        Tracer result;
         if (RENDER_METHOD_NAME == sig.getMethodName()) {
             StringBuilder metricName = new StringBuilder("SpringView");
             if (canSetTransactionName(transaction)) {
@@ -61,10 +62,12 @@ public class SpringDispatcherPointCut extends TracerFactoryPointCut {
                 metricName.append("/Java/").append(dispatcher.getClass().getName()).append('/').append(
                         sig.getMethodName());
             }
-            return new DefaultTracer(transaction, sig, dispatcher, new SimpleMetricNameFormat(metricName.toString()));
+            result =  new DefaultTracer(transaction, sig, dispatcher, new SimpleMetricNameFormat(metricName.toString()));
         } else {
-            return new DefaultTracer(transaction, sig, dispatcher, new ClassMethodMetricNameFormat(sig, dispatcher));
+            result =  new DefaultTracer(transaction, sig, dispatcher, new ClassMethodMetricNameFormat(sig, dispatcher));
         }
+        result.setInstrumentationModule("spring-pointcut");
+        return result;
     }
 
     private boolean canSetTransactionName(Transaction transaction) {

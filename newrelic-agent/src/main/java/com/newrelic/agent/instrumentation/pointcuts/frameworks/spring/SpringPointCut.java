@@ -105,7 +105,7 @@ public class SpringPointCut extends TracerFactoryPointCut {
     public Tracer doGetTracer(final Transaction transaction, final ClassMethodSignature sig, final Object controller,
             Object[] args) {
         final Object handler = args[2];
-        return new DefaultTracer(transaction, sig, controller) {
+        Tracer result = new DefaultTracer(transaction, sig, controller) {
 
             @Override
             protected void doFinish(int opcode, Object modelView) {
@@ -164,6 +164,8 @@ public class SpringPointCut extends TracerFactoryPointCut {
             }
 
         };
+        result.setInstrumentationModule("spring-pointcut");
+        return result;
     }
 
     @Override

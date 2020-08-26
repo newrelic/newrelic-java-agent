@@ -38,7 +38,6 @@ import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
 import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.SpanEventsServiceImpl;
 import com.newrelic.agent.service.analytics.TransactionEvent;
-import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.Stats;
 import com.newrelic.agent.stats.StatsEngine;
@@ -236,7 +235,7 @@ public class DefaultTracerTest {
         int externalCount = 0;
         { // generic external
             DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                    DefaultTracer.DEFAULT_TRACER_FLAGS);
+                    DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
 
             assertExternal(stats, externalCount, host, library, procedure);
 
@@ -275,7 +274,7 @@ public class DefaultTracerTest {
         int datastoreCount = 0;
         { // datastore
             DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                    DefaultTracer.DEFAULT_TRACER_FLAGS);
+                    DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
 
             tracer.reportAsExternal(GenericParameters
                     .library(library)
@@ -298,7 +297,7 @@ public class DefaultTracerTest {
 
         { // http + DT
             DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                    DefaultTracer.DEFAULT_TRACER_FLAGS);
+                    DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
 
             tracer.addOutboundRequestHeaders(new Outbound());
             tracer.reportAsExternal(GenericParameters
@@ -325,7 +324,7 @@ public class DefaultTracerTest {
 
         { // last inboundHeaders win
             DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                    DefaultTracer.DEFAULT_TRACER_FLAGS);
+                    DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
 
             tracer.addOutboundRequestHeaders(new Outbound());
             tracer.reportAsExternal(GenericParameters
@@ -353,7 +352,7 @@ public class DefaultTracerTest {
 
         { // set headers manually
             DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                    DefaultTracer.DEFAULT_TRACER_FLAGS);
+                    DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
 
             tracer.addOutboundRequestHeaders(new Outbound());
             tracer.reportAsExternal(GenericParameters
@@ -395,7 +394,7 @@ public class DefaultTracerTest {
         AgentBridge.activeToken.set(tokenAndRefCount);
 
         DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                DefaultTracer.DEFAULT_TRACER_FLAGS);
+                DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
 
         assertNull(tracer);
 
@@ -421,7 +420,7 @@ public class DefaultTracerTest {
         AgentBridge.activeToken.set(tokenAndRefCount);
 
         DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                DefaultTracer.DEFAULT_TRACER_FLAGS);
+                DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
 
         Assert.assertNotNull(tracer);
 

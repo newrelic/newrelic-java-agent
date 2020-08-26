@@ -42,6 +42,7 @@ public class UltraLightTracer implements Tracer {
     private final long startNanos = System.nanoTime();
     private final AtomicLong endNanos = new AtomicLong();
     private final String segmentName;
+    private String instrumentationModule;
 
     public static UltraLightTracer createClampedSegment(TransactionActivity txa, ClassMethodSignature classMethodSignature) {
         return new UltraLightTracer(txa, classMethodSignature, "Clamped");
@@ -289,6 +290,16 @@ public class UltraLightTracer implements Tracer {
     @Override
     public String getGuid() {
         return null;
+    }
+
+    @Override
+    public String getInstrumentationModule() {
+        return instrumentationModule;
+    }
+
+    @Override
+    public void setInstrumentationModule(String instrumentationModule) {
+        this.instrumentationModule = instrumentationModule;
     }
 
     @Override

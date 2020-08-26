@@ -55,7 +55,7 @@ public interface TraceDetails {
     /**
      * The tracer factory name.
      * 
-     * @see Instrumentation#createTracer(Object, int, String, int)
+     * @see Instrumentation#createTracer(Object, int, String, int, String)
      */
     String tracerFactoryName();
 

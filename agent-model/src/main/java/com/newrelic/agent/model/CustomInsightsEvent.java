@@ -21,7 +21,7 @@ public class CustomInsightsEvent extends AnalyticsEvent implements JSONStreamAwa
     private volatile float mutablePriority;
 
     public CustomInsightsEvent(String type, long timestamp, Map<String, Object> attributes, float priority) {
-        super(type, timestamp, priority, attributes);
+        super(type, timestamp, priority, attributes, "custom");
         this.mutablePriority = priority;
     }
 

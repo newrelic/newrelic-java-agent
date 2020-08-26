@@ -20,6 +20,7 @@ import java.util.Map;
 import static com.newrelic.agent.service.analytics.TransactionEvent.UNASSIGNED_FLOAT;
 
 public class TransactionEventBuilder {
+    private String instrumentationModule;
     private String appName;
     private long timestamp;
     private String name;
@@ -60,6 +61,11 @@ public class TransactionEventBuilder {
 
     public TransactionEventBuilder setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public TransactionEventBuilder setInstrumentationModule(String instrumentationModule) {
+        this.instrumentationModule = instrumentationModule;
         return this;
     }
 
@@ -188,6 +194,6 @@ public class TransactionEventBuilder {
 
         return new TransactionEvent(appName, userAttributes, timestamp, name, timing, guid, referringGuid, port, tripId,
                 pathHashes, apdexPerfZone, syntheticsIds, error, timeoutCause,
-                priority, distributedTraceIntrinsics, decider);
+                priority, distributedTraceIntrinsics, decider, instrumentationModule);
     }
 }

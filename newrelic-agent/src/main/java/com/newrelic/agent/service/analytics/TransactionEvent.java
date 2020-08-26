@@ -69,8 +69,8 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
     public TransactionEvent(String appName, Map<String, Object> userAttributes, long timestamp, String name, TransactionTiming timing,
                             String guid, String referringGuid, Integer port, String tripId, PathHashes pathHashes,
                             ApdexPerfZone apdexPerfZone, SyntheticsIds syntheticsIds, boolean error, TimeoutCause timeoutCause,
-                            float priority, Map<String, Object> distributedTraceIntrinsics, boolean decider) {
-        super(TYPE, timestamp, priority, userAttributes);
+                            float priority, Map<String, Object> distributedTraceIntrinsics, boolean decider, String instrumentationModule) {
+        super(TYPE, timestamp, priority, userAttributes, instrumentationModule);
         if (pathHashes == null) throw new NullPointerException("pathHashes must not be null");
         if (syntheticsIds == null) throw new NullPointerException("syntheticsIds must not be null");
         if (timing == null) throw new NullPointerException("timing must not be null");
@@ -277,12 +277,21 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
         Map<String, ?> filteredAgentAtts = getFilteredMap(agentAttributes);
         if (filteredAgentAtts.isEmpty()) {
             if (filteredUserAtts.isEmpty()) {
-                JSONArray.writeJSONString(Collections.singletonList(obj), out);
+                String json = JSONArray.toJSONString(Collections.singletonList(obj));
+                byte[] bytes = json.getBytes("UTF-8");
+                sizeOfEventInBytes = bytes.length;
+                out.write(json);
             } else {
-                JSONArray.writeJSONString(Arrays.asList(obj, filteredUserAtts), out);
+                String json = JSONArray.toJSONString(Arrays.asList(obj, filteredUserAtts));
+                byte[] bytes = json.getBytes("UTF-8");
+                sizeOfEventInBytes = bytes.length;
+                out.write(json);
             }
         } else {
-            JSONArray.writeJSONString(Arrays.asList(obj, filteredUserAtts, filteredAgentAtts), out);
+            String json = JSONArray.toJSONString(Arrays.asList(obj, filteredUserAtts, filteredAgentAtts));
+            byte[] bytes = json.getBytes("UTF-8");
+            sizeOfEventInBytes = bytes.length;
+            out.write(json);
         }
     }
     private Map<String, ?> getFilteredMap(Map<String, ?> input) {

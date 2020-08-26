@@ -42,7 +42,7 @@ public class ErrorEventFactory {
                 tracedError.getExceptionClass(), truncateIfNecessary(tracedError.getMessage()), isErrorExpected(tracedError),
                 UNKNOWN, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, null,
                 null, null, null, null, getPortUsingServiceManagerIfPossible(), null, null, Collections.<String, Object>emptyMap(),
-                null, ERROR_EVENTS_ATTRIBUTE_FILTER);
+                null, ERROR_EVENTS_ATTRIBUTE_FILTER, "error");
     }
 
     public static ErrorEvent create(String appName, TracedError tracedError, TransactionData transactionData,
@@ -61,7 +61,8 @@ public class ErrorEventFactory {
                 transactionData.getGuid(), transactionData.getReferrerGuid(), transactionData.getSyntheticsResourceId(),
                 transactionData.getSyntheticsMonitorId(), transactionData.getSyntheticsJobId(), getPortUsingServiceManagerIfPossible(),
                 transactionData.getTimeoutCause() == null ? null : transactionData.getTimeoutCause().cause, getTripId(transactionData),
-                getDistributedTraceIntrinsics(transactionData), buildAgentAttributes(appName, transactionData), ERROR_EVENTS_ATTRIBUTE_FILTER);
+                getDistributedTraceIntrinsics(transactionData), buildAgentAttributes(appName, transactionData), ERROR_EVENTS_ATTRIBUTE_FILTER,
+                "error");
     }
 
     private static float getMetricTotal(TransactionStats transactionStats, String metricName) {

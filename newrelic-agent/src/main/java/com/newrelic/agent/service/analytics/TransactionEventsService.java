@@ -27,12 +27,7 @@ import com.newrelic.agent.model.SyntheticsIds;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.stats.AbstractStats;
-import com.newrelic.agent.stats.CountStats;
-import com.newrelic.agent.stats.StatsBase;
-import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.stats.StatsWork;
-import com.newrelic.agent.stats.TransactionStats;
+import com.newrelic.agent.stats.*;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.util.TimeConversion;
@@ -201,10 +196,20 @@ public class TransactionEventsService extends AbstractService implements EventSe
 
         if (reservoirToSend != null && reservoirToSend.size() > 0) {
             try {
+                List<TransactionEvent> transactionEvents = Collections.unmodifiableList(reservoirToSend.asList());
                 ServiceFactory.getRPMServiceManager()
                         .getOrCreateRPMService(appName)
-                        .sendAnalyticsEvents(maxSamplesStored, reservoirToSend.getNumberOfTries(), Collections.unmodifiableList(reservoirToSend.asList()));
+                        .sendAnalyticsEvents(maxSamplesStored, reservoirToSend.getNumberOfTries(), transactionEvents);
                 final long durationInNanos = System.nanoTime() - startTimeInNanos;
+
+                for(TransactionEvent event: transactionEvents) {
+                    ServiceFactory.getStatsService().doStatsWork(
+                            StatsWorks.getIncrementCounterWork(MessageFormat.format(MetricNames.SUPPORTABILITY_FRAMEWORK_TRANSACTION_USAGE, event.getInstrumentationModule()), 1));
+
+                    ServiceFactory.getStatsService().doStatsWork(
+                            StatsWorks.getRecordMetricWork(MessageFormat.format(MetricNames.SUPPORTABILITY_FRAMEWORK_TRANSACTION_BYTE_USAGE, event.getInstrumentationModule()), event.getSizeOfEventInBytes()));
+                }
+
                 ServiceFactory.getStatsService().doStatsWork(new StatsWork() {
                     @Override
                     public void doWork(StatsEngine statsEngine) {
@@ -402,7 +407,8 @@ public class TransactionEventsService extends AbstractService implements EventSe
                 .setError(transactionData.hasReportableErrorThatIsNotIgnored())
                 .setpTotalTime((float) transactionData.getTransactionTime().getTotalSumTimeInNanos() / TimeConversion.NANOSECONDS_PER_SECOND)
                 .setTimeoutCause(transactionData.getTransaction().getTimeoutCause())
-                .setPriority(transactionData.getPriority());
+                .setPriority(transactionData.getPriority())
+                .setInstrumentationModule(transactionData.getRootTracer().getInstrumentationModule());
 
         if (distributedTracingEnabled) {
             DistributedTracePayloadImpl inboundDistributedTracePayload = transactionData.getInboundDistributedTracePayload();

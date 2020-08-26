@@ -22,24 +22,26 @@ public interface Instrumentation {
      * @param signatureId The index of the ClassMethodSignature in the ClassMethodSignatures cache.
      * @param metricName
      * @param flags
+     * @param instrumentationModule
      * @return the Tracer on which to call finish()
      */
-    ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags);
+    ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule);
 
     /**
      * Create a tracer. A call to this method is injected into methods that are traced because of yaml configuration.
      * 
+     * @param tracerFactory
      * @param invocationTarget The instance of the object owning the method being invoked, or null for a static method.
      * @param signatureId The index of the ClassMethodSignature in the ClassMethodSignatures cache.
      * @param dispatcher If true, this should be treated as the start of a transaction if a transaction is not already
      *        in progress.
      * @param metricName
-     * @param tracerFactory
      * @param args The arguments passed in the method invocation.
+     * @param instrumentationModule
      * @return the Tracer on which to call finish()
      */
     ExitTracer createTracer(Object invocationTarget, int signatureId, boolean dispatcher, String metricName,
-            String tracerFactoryName, Object[] args);
+                            String tracerFactoryName, Object[] args, String instrumentationModule);
 
     /**
      * Create a sql tracer. A call to this method is injected into methods that are traced with weaved implementations,
@@ -51,9 +53,10 @@ public interface Instrumentation {
      * @param signatureId The index of the ClassMethodSignature in the ClassMethodSignatures cache.
      * @param metricName
      * @param flags
+     * @param instrumentationModule
      * @return the Tracer on which to call finish()
      */
-    ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags);
+    ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule);
 
     /**
      * Returns the current transaction. This should not be called directly - instead use {@link Agent#getTransaction()}.

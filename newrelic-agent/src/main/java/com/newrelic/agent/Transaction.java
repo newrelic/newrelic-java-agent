@@ -2022,7 +2022,7 @@ public class Transaction {
             }
             if (dispatcher == null) {
                 ExitTracer tracer = AgentBridge.instrumentation.createTracer(null,
-                        REQUEST_INITIALIZED_CLASS_SIGNATURE_ID, null, REQUEST_TRACER_FLAGS);
+                        REQUEST_INITIALIZED_CLASS_SIGNATURE_ID, null, REQUEST_TRACER_FLAGS, "requestInitialized");
 
                 if (tracer != null) {
                     if (response == null) {

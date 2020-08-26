@@ -38,7 +38,9 @@ public class HandlerInterceptorPointCut extends TracerFactoryPointCut {
 
     @Override
     public Tracer doGetTracer(Transaction transaction, ClassMethodSignature sig, Object interceptor, Object[] args) {
-        return new DefaultTracer(transaction, sig, interceptor, new SimpleMetricNameFormat("Spring/HandlerInterceptor",
+        Tracer result = new DefaultTracer(transaction, sig, interceptor, new SimpleMetricNameFormat("Spring/HandlerInterceptor",
                 ClassMethodMetricNameFormat.getMetricName(sig, interceptor, "Spring/Java")));
+        result.setInstrumentationModule("spring-pointcut");
+        return result;
     }
 }

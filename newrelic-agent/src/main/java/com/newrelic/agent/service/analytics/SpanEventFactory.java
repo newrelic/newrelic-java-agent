@@ -247,6 +247,11 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory setInstrumentationModule(String instrumentationModule) {
+        builder.instrumentationModule(instrumentationModule);
+        return this;
+    }
+
     private void setErrorClass(Class<?> throwableClass, Integer errorStatus) {
         if (filter.shouldIncludeAgentAttribute(appName, "error.class")) {
             if (throwableClass != null) {

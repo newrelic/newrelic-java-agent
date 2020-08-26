@@ -91,7 +91,8 @@ public class TracerToSpanEvent {
                 .setPriority(transactionData.getPriority())
                 .setExternalParameterAttributes(tracer.getExternalParameters())
                 .setIsRootSpanEvent(isRoot)
-                .setDecider(inboundPayload == null || inboundPayload.priority == null);
+                .setDecider(inboundPayload == null || inboundPayload.priority == null)
+                .setInstrumentationModule(tracer.getInstrumentationModule());
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
 

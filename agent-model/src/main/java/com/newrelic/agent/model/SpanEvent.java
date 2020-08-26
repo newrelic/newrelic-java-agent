@@ -12,6 +12,7 @@ import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,8 +30,9 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
     private final Map<String, Object> agentAttributes;
     private final boolean decider;
 
+
     private SpanEvent(Builder builder) {
-        super(SPAN, builder.timestamp, builder.priority, builder.userAttributes);
+        super(SPAN, builder.timestamp, builder.priority, builder.userAttributes, builder.instrumentationModule);
         this.appName = builder.appName;
         this.agentAttributes = builder.agentAttributes;
         this.decider = builder.decider;
@@ -60,7 +62,10 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
 
     @Override
     public void writeJSONString(Writer out) throws IOException {
-        JSONArray.writeJSONString(Arrays.asList(intrinsics, getMutableUserAttributes(), getAgentAttributes()), out);
+        String json = JSONArray.toJSONString(Arrays.asList(intrinsics, getMutableUserAttributes(), getAgentAttributes()));
+        byte[] bytes = json.getBytes("UTF-8");
+        sizeOfEventInBytes = bytes.length;
+        out.write(json);
     }
 
     public String getTraceId() {
@@ -120,6 +125,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         private float priority;
         private boolean decider;
         private long timestamp;
+        private String instrumentationModule;
 
         public Builder appName(String appName) {
             this.appName = appName;
@@ -197,6 +203,10 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
                 timestamp = System.currentTimeMillis();
             }
             return new SpanEvent(this);
+        }
+
+        public void instrumentationModule(String instrumentationModule) {
+            this.instrumentationModule = instrumentationModule;
         }
     }
 }

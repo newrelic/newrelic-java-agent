@@ -43,7 +43,9 @@ public class HandlerMethodInvoker3PointCut extends TracerFactoryPointCut {
         Class<?> controller = args[1].getClass();
         // build the tracer name;
         tracerName.append(getControllerName(methodName, controller));
-        return new DefaultTracer(transaction, sig, invoker, new SimpleMetricNameFormat(tracerName.toString()));
+        Tracer result = new DefaultTracer(transaction, sig, invoker, new SimpleMetricNameFormat(tracerName.toString()));
+        result.setInstrumentationModule("spring-pointcut");
+        return result;
     }
 
     private String getControllerName(String methodName, Class<?> controller) {

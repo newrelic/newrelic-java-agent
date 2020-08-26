@@ -56,9 +56,9 @@ public class BaseMatchTest {
         AgentBridge.instrumentation = new NoOpInstrumentation() {
 
             @Override
-            public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+            public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule) {
                 success[0] = true;
-                return super.createTracer(invocationTarget, signatureId, metricName, flags);
+                return super.createTracer(invocationTarget, signatureId, metricName, flags, instrumentationModule);
             }
 
         };

@@ -501,7 +501,7 @@ public class SegmentTest implements ExtendedTransactionListener {
         final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Psuedo Async2");
         Assert.assertNotNull(segment);
         ExitTracer child = AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                DefaultTracer.DEFAULT_TRACER_FLAGS);
+                DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
         child.finish(Opcodes.ARETURN, null);
         assertTrue(child.getParentTracedMethod() == root);
         Thread.sleep(1);
@@ -571,7 +571,7 @@ public class SegmentTest implements ExtendedTransactionListener {
         }
         {
             ExitTracer child1 = AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild1",
-                    DefaultTracer.DEFAULT_TRACER_FLAGS);
+                    DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
             {
                 final Segment underChild1 = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Under Child");
                 Assert.assertNotNull(underChild1);
@@ -581,7 +581,7 @@ public class SegmentTest implements ExtendedTransactionListener {
             }
             {
                 ExitTracer child2 = AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild2",
-                        DefaultTracer.DEFAULT_TRACER_FLAGS);
+                        DefaultTracer.DEFAULT_TRACER_FLAGS, instrumentationModule);
                 {
                     final Segment underChild2 = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Under Child 2");
                     Assert.assertNotNull(underChild2);

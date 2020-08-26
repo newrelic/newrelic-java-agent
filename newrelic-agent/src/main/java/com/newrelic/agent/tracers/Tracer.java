@@ -151,6 +151,10 @@ public interface Tracer extends TimedItem, ExitTracer, ErrorTracer {
 
     String getGuid();
 
+    String getInstrumentationModule();
+
+    void setInstrumentationModule(String instrumentationModule);
+
     long getStartTimeInMillis();
 
     ExternalParameters getExternalParameters();

@@ -142,8 +142,9 @@ public class ErrorEvent extends AnalyticsEvent implements JSONStreamAware {
                       float gcCumulative, float databaseCallCount, float externalCallCount, String transactionGuid,
                       String referringTransactionGuid, String syntheticsResourceId, String syntheticsMonitorId,
                       String syntheticsJobId, int port, String timeoutCause, String tripId, Map<String, Object>
-                              distributedTraceIntrinsics, Map<String, Object> agentAttributes, AttributeFilter attributeFilter) {
-        super(TYPE, timestamp, priority, new HashMap<>(userAttributes));
+                              distributedTraceIntrinsics, Map<String, Object> agentAttributes, AttributeFilter attributeFilter,
+                      String instrumentationModule) {
+        super(TYPE, timestamp, priority, new HashMap<>(userAttributes), instrumentationModule);
         this.errorClass = errorClass;
         this.errorMessage = errorMessage;
         this.errorExpected = errorExpected;

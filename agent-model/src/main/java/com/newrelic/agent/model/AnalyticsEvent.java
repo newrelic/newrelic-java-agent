@@ -15,6 +15,9 @@ import java.util.regex.Pattern;
 public abstract class AnalyticsEvent implements PriorityAware {
     private static final Pattern TYPE_VALID = Pattern.compile("^[a-zA-Z0-9:_ ]{1,255}$");
 
+    private final String instrumentationModule;
+    protected int sizeOfEventInBytes;
+
     private final float priority;
 
     /**
@@ -33,15 +36,24 @@ public abstract class AnalyticsEvent implements PriorityAware {
      */
     private final Map<String, ?> userAttributes;
 
-    protected AnalyticsEvent(String type, long timestamp, float priority, Map<String, ?> userAttributes) {
+    protected AnalyticsEvent(String type, long timestamp, float priority, Map<String, ?> userAttributes, String instrumentationModule) {
         this.type = type;
         this.timestamp = timestamp;
         this.priority = priority;
+        this.instrumentationModule = instrumentationModule;
         if (userAttributes != null) {
             this.userAttributes = userAttributes;
         } else {
             this.userAttributes = new HashMap<>();
         }
+    }
+
+    public int getSizeOfEventInBytes() {
+        return sizeOfEventInBytes;
+    }
+
+    public String getInstrumentationModule() {
+        return instrumentationModule;
     }
 
     /**

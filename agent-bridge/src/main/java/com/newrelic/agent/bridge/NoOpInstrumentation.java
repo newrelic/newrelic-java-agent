@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
 public class NoOpInstrumentation implements Instrumentation {
 
     @Override
-    public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+    public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule) {
         return null;
     }
 
@@ -64,12 +64,12 @@ public class NoOpInstrumentation implements Instrumentation {
 
     @Override
     public ExitTracer createTracer(Object invocationTarget, int signatureId, boolean dispatcher, String metricName,
-            String tracerFactoryName, Object[] args) {
+                                   String tracerFactoryName, Object[] args, String instrumentationModule) {
         return null;
     }
 
     @Override
-    public ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+    public ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule) {
         return null;
     }
 }

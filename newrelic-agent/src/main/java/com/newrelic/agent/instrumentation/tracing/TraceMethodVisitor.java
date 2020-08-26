@@ -28,6 +28,7 @@ import org.objectweb.asm.commons.Method;
 
 import java.sql.Connection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class TraceMethodVisitor extends AdviceAdapter {
@@ -105,6 +106,13 @@ public class TraceMethodVisitor extends AdviceAdapter {
 
         String tracerFactory = traceDetails.tracerFactoryName();
 
+
+        List<String> instrumentationSourceNames = traceDetails.instrumentationSourceNames();
+        String instrumentationModule = "custom";
+        if (!instrumentationSourceNames.isEmpty()) {
+            instrumentationModule = traceDetails.instrumentationSourceNames().get(0).replace("com.newrelic.instrumentation.", "");
+        }
+
         BytecodeGenProxyBuilder<Instrumentation> builder = BytecodeGenProxyBuilder.newBuilder(Instrumentation.class,
                 this, true);
         Variables loader = builder.getVariables();
@@ -114,9 +122,9 @@ public class TraceMethodVisitor extends AdviceAdapter {
             int tracerFlags = getTracerFlags();
 
             if (noticeSql) {
-                instrumentation.createSqlTracer(loader.loadThis(this.access), signatureId, metricName, tracerFlags);
+                instrumentation.createSqlTracer(loader.loadThis(this.access), signatureId, metricName, tracerFlags, instrumentationModule);
             } else {
-                instrumentation.createTracer(loader.loadThis(this.access), signatureId, metricName, tracerFlags);
+                instrumentation.createTracer(loader.loadThis(this.access), signatureId, metricName, tracerFlags, instrumentationModule);
             }
 
         } else {
@@ -130,7 +138,7 @@ public class TraceMethodVisitor extends AdviceAdapter {
             });
 
             instrumentation.createTracer(loader.loadThis(this.access), signatureId, traceDetails.dispatcher(),
-                    metricName, tracerFactory, loadArgs);
+                    metricName, tracerFactory, loadArgs, instrumentationModule);
         }
 
         storeLocal(tracerLocal, TraceMethodVisitor.TRACER_TYPE);

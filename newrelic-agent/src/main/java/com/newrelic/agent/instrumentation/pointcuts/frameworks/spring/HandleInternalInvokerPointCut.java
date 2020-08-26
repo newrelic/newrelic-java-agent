@@ -61,7 +61,9 @@ public class HandleInternalInvokerPointCut extends MethodInvokerPointCut {
             tracerName.append(sig.getMethodName());
         }
 
-        return new DefaultTracer(transaction, sig, invoker, new SimpleMetricNameFormat(tracerName.toString()));
+        Tracer result = new DefaultTracer(transaction, sig, invoker, new SimpleMetricNameFormat(tracerName.toString()));
+        result.setInstrumentationModule("spring-pointcut");
+        return result;
     }
 
     private String getControllerName(String methodName, Class<?> controller) {

@@ -68,9 +68,9 @@ public class TraceClassVisitorTest {
         public int tracerCount = 0;
 
         @Override
-        public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+        public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags, String instrumentationModule) {
             tracerCount++;
-            return super.createTracer(invocationTarget, signatureId, metricName, flags);
+            return super.createTracer(invocationTarget, signatureId, metricName, flags, instrumentationModule);
         }
     }
 

@@ -41,6 +41,7 @@ public abstract class AbstractTracer implements Tracer {
     static final int INITIAL_PARAMETER_MAP_SIZE = 5;
     protected static String ATTRIBUTE_TYPE = "custom";
 
+    private String instrumentationModule;
     private final TransactionActivity transactionActivity;
     private AttributeValidator attributeValidator;
     private Set<String> rollupMetricNames;
@@ -413,6 +414,16 @@ public abstract class AbstractTracer implements Tracer {
             current = current.getParentTracer();
         }
         return current;
+    }
+
+    @Override
+    public String getInstrumentationModule() {
+        return instrumentationModule;
+    }
+
+    @Override
+    public void setInstrumentationModule(String instrumentationModule) {
+        this.instrumentationModule = instrumentationModule;
     }
 
     private static class TracedException {
