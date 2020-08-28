@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.utilization;
 
+import com.newrelic.Function;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import org.apache.http.HttpStatus;
@@ -23,14 +24,27 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-
-import static com.google.common.base.CharMatcher.ascii;
 
 public class CloudUtility {
 
     // Spec: All characters should be in the following character class: over U+007F
     private static final int MIN_CHAR_CODEPOINT = "\u007F".codePointAt(0);
+    private final Function<Integer,CloseableHttpClient> httpClientCreator;
+
+    public CloudUtility() {
+        this(new Function<Integer, CloseableHttpClient>() {
+            @Override
+            public CloseableHttpClient apply(Integer requestTimeoutMillis) {
+                return configureHttpClient(requestTimeoutMillis);
+            }
+        });
+    }
+
+    CloudUtility(Function<Integer, CloseableHttpClient> httpClientCreator) {
+        this.httpClientCreator = httpClientCreator;
+    }
 
     public String httpGet(String url, int requestTimeoutMillis, String... headers) throws IOException {
         HttpGet httpGet = new HttpGet(url);
@@ -44,26 +58,26 @@ public class CloudUtility {
         return makeHttpRequest(httpPut, requestTimeoutMillis, headers);
     }
 
-    private String makeHttpRequest(HttpUriRequest httpGet, int requestTimeoutMillis, String[] headers) throws IOException {
-        try (CloseableHttpClient httpclient = configureHttpClient(requestTimeoutMillis)) {
+    private String makeHttpRequest(HttpUriRequest request, int requestTimeoutMillis, String[] headers) throws IOException {
+        try (CloseableHttpClient httpclient = httpClientCreator.apply(requestTimeoutMillis)) {
             for (String header : headers) {
                 String[] parts = header.split(":");
-                httpGet.addHeader(parts[0].trim(), parts[1].trim());
+                request.addHeader(parts[0].trim(), parts[1].trim());
             }
 
-            CloseableHttpResponse response = httpclient.execute(httpGet);
+            CloseableHttpResponse response = httpclient.execute(request);
             // status code should be in the 200s
             if (response.getStatusLine().getStatusCode() <= HttpStatus.SC_MULTI_STATUS) {
                 return EntityUtils.toString(response.getEntity(), "UTF-8");
             }
-        } catch (ConnectTimeoutException | UnknownHostException ignored) {
+        } catch (ConnectTimeoutException | UnknownHostException | SocketTimeoutException ignored) {
             // we expect these values in situations where there is no cloud provider, or
             // we're on a different cloud provider than expected.
         }
         return null;
     }
 
-    private CloseableHttpClient configureHttpClient(int requestTimeoutInMillis) {
+    private static CloseableHttpClient configureHttpClient(int requestTimeoutInMillis) {
         HttpClientBuilder builder = HttpClientBuilder.create();
         builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(requestTimeoutInMillis).setSoKeepAlive(true).build());
         RequestConfig.Builder requestBuilder = RequestConfig.custom().setConnectTimeout(requestTimeoutInMillis)
