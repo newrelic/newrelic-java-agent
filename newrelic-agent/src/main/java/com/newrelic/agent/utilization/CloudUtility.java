@@ -23,6 +23,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import static com.google.common.base.CharMatcher.ascii;
@@ -56,7 +57,7 @@ public class CloudUtility {
             if (response.getStatusLine().getStatusCode() <= HttpStatus.SC_MULTI_STATUS) {
                 return EntityUtils.toString(response.getEntity(), "UTF-8");
             }
-        } catch (ConnectTimeoutException | UnknownHostException ignored) {
+        } catch (ConnectTimeoutException | UnknownHostException | SocketTimeoutException ignored) {
             // we expect these values in situations where there is no cloud provider, or
             // we're on a different cloud provider than expected.
         }
