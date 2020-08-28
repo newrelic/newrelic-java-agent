@@ -16,6 +16,7 @@ import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class SystemPropertyProviderTest {
     @Test
@@ -70,7 +71,8 @@ public class SystemPropertyProviderTest {
         assertEquals("hello", provider.getEnvironmentVariable("NEW_RELIC_PROCESS_HOST_DISPLAY_NAME"));
         assertEquals("people", provider.getEnvironmentVariable("NEW_RELIC_APP_NAME"));
         assertEquals("10.96.0.1", provider.getEnvironmentVariable("KUBERNETES_SERVICE_HOST"));
-        assertEquals("true", provider.getEnvironmentVariable("newrelic.config.distributed_tracing.enabled"));
+        // Environment variables with system property style dot notation should not be read by the agent
+        assertNull(provider.getNewRelicEnvVarsWithoutPrefix().get("distributed_tracing.enabled"));
     }
 
     @Test
