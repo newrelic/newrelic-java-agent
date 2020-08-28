@@ -51,25 +51,6 @@ public class SystemPropertyProviderTest {
     }
 
     @Test
-    public void testSystemPropertyProviderGeneralEnvProps() {
-        //to cover for a case where config properties get passed as environment variables.
-        Map<String, String> envs = new HashMap<>(System.getenv());
-        envs.put("newrelic.config.process_host.display_name", "hello");
-        envs.put("newrelic.config.app_name", "people");
-        envs.put("newrelic.config.log_file_name", "logfile.log");
-
-        SystemPropertyProvider provider = new SystemPropertyProvider(
-                new SaveSystemPropertyProviderRule.TestSystemProps(),
-                new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envs)
-        );
-
-        assertNotNull("Properties can not be null", provider.getNewRelicEnvVarsWithoutPrefix().get("process_host.display_name"));
-        assertEquals("hello", provider.getNewRelicEnvVarsWithoutPrefix().get("process_host.display_name"));
-        assertEquals("people", provider.getNewRelicEnvVarsWithoutPrefix().get("app_name"));
-        assertEquals("logfile.log", provider.getNewRelicEnvVarsWithoutPrefix().get("log_file_name"));
-    }
-
-    @Test
     public void testEnvironmentVariable() {
         Map<String, String> envs = new HashMap<>();
         envs.put("NEW_RELIC_ANALYTICS_EVENTS_MAX_SAMPLES_STORED", "12345");
