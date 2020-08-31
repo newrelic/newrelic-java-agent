@@ -17,4 +17,8 @@ public class BootstrapAgentTest {
         String json = BootstrapAgent.decodeAndDecompressAgentArguments(serialized);
         assertEquals("{\"a\":\"b\"}", json);
     }
+
+    public static String decodeAndDecompress(String encodedCompressed) throws IOException {
+        return BootstrapAgent.decodeAndDecompressAgentArguments(encodedCompressed);
+    }
 }

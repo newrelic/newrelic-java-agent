@@ -141,7 +141,9 @@ class JsonAttachOutput implements AttachOutput {
 
         public Map<String, Object> toMap() {
             Map<String, Object> map = new HashMap<>();
-            map.put("messages", toPOJO(messages));
+            if (!messages.isEmpty()) {
+                map.put("messages", toPOJO(messages));
+            }
             return map;
         }
 
