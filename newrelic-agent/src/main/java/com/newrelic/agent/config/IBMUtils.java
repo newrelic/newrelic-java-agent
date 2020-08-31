@@ -11,7 +11,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class IBMUtils {
+    private static final String IBM_VENDOR = "IBM Corporation";
     private static final Pattern srNumberPattern = Pattern.compile("\\(SR([0-9]+)[^()]*\\)\\s*$");
+
+    public static boolean isIbmJVM() {
+        return IBM_VENDOR.equals(System.getProperty("java.vendor"));
+    }
 
     /**
      * See JAVA-1206.
@@ -20,8 +25,7 @@ public class IBMUtils {
      */
     public static boolean getIbmWorkaroundDefault() {
         try {
-            String jvmVendor = System.getProperty("java.vendor");
-            if ("IBM Corporation".equals(jvmVendor)) {
+            if (isIbmJVM()) {
                 String jvmVersion = System.getProperty("java.specification.version", "");
                 int srNum = getIbmSRNumber();
 
@@ -43,7 +47,7 @@ public class IBMUtils {
      * @return the SR[0-9]* int, or -1 if no version can be found.
      */
     public static int getIbmSRNumber() {
-        if ("IBM Corporation".equals(System.getProperty("java.vendor"))) {
+        if (isIbmJVM()) {
             String runtimeVersion = System.getProperty("java.runtime.version", "");
             Matcher matcher = srNumberPattern.matcher(runtimeVersion);
             if (matcher.find()) {

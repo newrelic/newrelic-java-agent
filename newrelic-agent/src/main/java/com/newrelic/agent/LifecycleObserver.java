@@ -7,11 +7,14 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.newrelic.agent.autoname.ApplicationAutoName;
+import com.newrelic.agent.config.IBMUtils;
+import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.discovery.AgentArguments;
 import com.newrelic.agent.discovery.ApplicationContainerInfo;
 import com.newrelic.agent.discovery.StatusClient;
 import com.newrelic.agent.discovery.StatusMessage;
 import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.bootstrap.BootstrapAgent;
 
 /**
  * This class is used to communicate important startup information back to an attaching
@@ -28,6 +31,10 @@ public class LifecycleObserver {
     }
 
     void agentAlreadyRunning() {
+    }
+
+    public boolean isAgentSafe() {
+        return true;
     }
 
     boolean isDiscovery() {
@@ -76,6 +83,17 @@ public class LifecycleObserver {
         @Override
         boolean isDiscovery() {
             return discovery;
+        }
+
+        public boolean isAgentSafe() {
+            if (IBMUtils.isIbmJVM() && 
+                    !Boolean.parseBoolean(SystemPropertyFactory.getSystemPropertyProvider()
+                            .getSystemProperty(BootstrapAgent.TRY_IBM_ATTACH_SYSTEM_PROPERTY))) {
+                writeMessage(StatusMessage.error(id, "Error",
+                        "The agent attach feature is not supported for IBM JVMs"));
+                return false;
+            }
+            return true;
         }
 
         @Override

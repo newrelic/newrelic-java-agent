@@ -18,7 +18,7 @@ public class JsonAttachOutputTest {
         output.attachFinished();
         output.close();
 
-        assertEquals("[{\"agentArgs\":\"{}\",\"success\":false,\"messages\":[],\"pid\":1,\"command\":\"test.jar\"}]\n",
+        assertEquals("[{\"agentArgs\":\"{}\",\"success\":false,\"pid\":1,\"command\":\"test.jar\"}]\n",
                 out.toString());
     }
 
