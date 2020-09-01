@@ -1,0 +1,6 @@
+FROM jetty:9.4-jdk8
+
+RUN wget -P /var/lib/jetty/webapps \
+    https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war
+
+RUN java -jar "$JETTY_HOME/start.jar" --create-startd --add-to-start=jmx

@@ -9,13 +9,13 @@ package com.newrelic.agent.config;
 
 import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.autoname.ApplicationAutoName;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -258,16 +258,20 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private final Map<String, Object> flattenedProperties;
     private final CommandParserConfig commandParserConfig;
-
+    private final ApplicationAutoName applicationAutoName;
 
     public static AgentConfig createAgentConfig(Map<String, Object> settings) {
+        return createAgentConfig(settings, EnvironmentFacade.getInstance());
+    }
+
+    static AgentConfig createAgentConfig(Map<String, Object> settings, EnvironmentFacade environmentFacade) {
         if (settings == null) {
             settings = Collections.emptyMap();
         }
-        return new AgentConfigImpl(settings);
+        return new AgentConfigImpl(settings, environmentFacade);
     }
 
-    private AgentConfigImpl(Map<String, Object> props) {
+    private AgentConfigImpl(Map<String, Object> props, EnvironmentFacade environmentFacade) {
         super(props, SYSTEM_PROPERTY_ROOT);
         // ssl, transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
@@ -292,10 +296,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         proxyScheme = getProperty(PROXY_SCHEME, DEFAULT_PROXY_SCHEME);
         proxyUser = getStringPropertyOrNull(PROXY_USER);
         proxyPass = getStringPropertyOrNull(PROXY_PASS);
-        appNames = new ArrayList<>(getUniqueStrings(APP_NAME, SEMI_COLON_SEPARATOR));
-        appName = getPrimaryAppName();
+        applicationAutoName = ApplicationAutoName.getApplicationAutoName(environmentFacade);
+        appNames = getAppNames(environmentFacade);
+        appName = appNames.isEmpty() ? null : appNames.get(0);
         cpuSamplingEnabled = getProperty(CPU_SAMPLING_ENABLED, DEFAULT_CPU_SAMPLING_ENABLED);
-        autoAppNamingEnabled = getProperty(ENABLE_AUTO_APP_NAMING, DEFAULT_ENABLE_AUTO_APP_NAMING);
+        autoAppNamingEnabled = applicationAutoName.enableAutoAppNaming() ||
+                getProperty(ENABLE_AUTO_APP_NAMING, DEFAULT_ENABLE_AUTO_APP_NAMING);
         autoTransactionNamingEnabled = getProperty(ENABLE_AUTO_TRANSACTION_NAMING, DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING);
         transactionSizeLimit = getIntProperty(TRANSACTION_SIZE_LIMIT, DEFAULT_TRANSACTION_SIZE_LIMIT) * 1024;
         waitForRPMConnect = getProperty(WAIT_FOR_RPM_CONNECT, DEFAULT_WAIT_FOR_RPM_CONNECT);
@@ -545,31 +551,15 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return getProperty(LOG_LEVEL, DEFAULT_LOG_LEVEL).toLowerCase();
     }
 
-    private String getPrimaryAppName() {
-        Object val = getProperty(APP_NAME);
-        if (val instanceof String) {
-            String[] values = ((String) val).split(SEMI_COLON_SEPARATOR);
-            if (values.length == 0) {
-                return null;
-            }
-            String res = values[0].trim();
-            if (res.length() == 0) {
-                return null;
-            }
-            return res;
-        }
-        if (val instanceof Collection<?>) {
-            Collection<?> values = (Collection<?>) val;
-            for (Object value : values) {
-                String res = (String) value;
-                res = res.trim();
-                if (res.length() != 0) {
-                    return res;
-                }
-                return null;
+    private List<String> getAppNames(EnvironmentFacade environmentFacade) {
+        final List<String> appNames = getUniqueStrings(APP_NAME, SEMI_COLON_SEPARATOR);
+        if (appNames.isEmpty()) {
+            String appServerAppName = applicationAutoName.getName(environmentFacade);
+            if (appServerAppName != null) {
+                return Arrays.asList(appServerAppName);
             }
         }
-        return null;
+        return appNames;
     }
 
     private CrossProcessConfig initCrossProcessConfig() {
@@ -996,7 +986,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     @Override
     public boolean isSyncStartup() {
-        return getProperty(SYNC_STARTUP, DEFAULT_SYNC_STARTUP);
+        return ApplicationAutoName.isAgentAttached() || getProperty(SYNC_STARTUP, DEFAULT_SYNC_STARTUP);
     }
 
     @Override

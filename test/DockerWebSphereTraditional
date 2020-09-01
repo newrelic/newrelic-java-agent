@@ -1,0 +1,14 @@
+FROM ibmcom/websphere-traditional:latest
+
+USER root
+
+RUN apt-get update && apt-get install -y wget
+
+USER was
+
+WORKDIR /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/
+
+RUN wget https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war
+
+RUN echo "AdminApp.install('sample.war', '[-server server1 -contextroot /test \
+    -usedefaultbindings]')\nAdminConfig.save()\n" > install.py

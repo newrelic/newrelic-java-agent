@@ -1,0 +1,14 @@
+FROM tomcat:9.0
+
+RUN mkdir -p /usr/lib/jvm/
+
+WORKDIR /usr/lib/jvm/
+
+RUN wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u262-b10/OpenJDK8U-jdk_x64_linux_hotspot_8u262b10.tar.gz
+RUN tar xzf OpenJDK8U-jdk_x64_linux_hotspot_8u262b10.tar.gz
+
+ENV JAVA_HOME /usr/lib/jvm/jdk8u262-b10
+ENV PATH ${JAVA_HOME}/bin:${PATH}
+
+RUN wget -P /usr/local/tomcat/webapps \
+    https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war

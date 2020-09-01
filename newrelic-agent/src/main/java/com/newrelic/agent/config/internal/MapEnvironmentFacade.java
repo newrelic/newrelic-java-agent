@@ -9,17 +9,22 @@ package com.newrelic.agent.config.internal;
 
 import com.newrelic.agent.config.EnvironmentFacade;
 
-import java.util.Collections;
 import java.util.Map;
 
-public class NoOpEnvironmentFacade extends EnvironmentFacade {
+public class MapEnvironmentFacade extends EnvironmentFacade {
+    private final Map<String, String> map;
+
+    public MapEnvironmentFacade(Map<String, String> map) {
+        this.map = map;
+    }
+
     @Override
     public String getenv(String key) {
-        return null;
+        return map.get(key);
     }
 
     @Override
     public Map<String, String> getAllEnvProperties() {
-        return Collections.emptyMap();
+        return map;
     }
 }

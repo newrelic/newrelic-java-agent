@@ -9,6 +9,7 @@ package com.newrelic.agent.environment;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.autoname.ApplicationAutoName;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.samplers.MemorySampler;
 import org.json.simple.JSONArray;
@@ -65,6 +66,9 @@ public class Environment implements JSONStreamAware, Cloneable {
             addVariable("Java VM version", System.getProperty("java.vm.version"));
             addVariable("Java version", System.getProperty("java.version"));
             addVariable("Log path", logFilePath);
+            if (ApplicationAutoName.isAgentAttached()) {
+                addVariable("Instrumentation mechanism", "Attach");
+            }
 
             ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
             addVariable("ThreadCpuTimeSupported", threadMXBean.isThreadCpuTimeSupported());

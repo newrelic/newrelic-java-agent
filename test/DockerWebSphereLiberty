@@ -1,0 +1,13 @@
+FROM websphere-liberty:20.0.0.3-full-java8-ibmjava
+
+USER root
+
+RUN apt-get update && apt-get install -y wget openjdk-8-jdk
+
+USER default
+
+RUN wget -P /config/dropins/ \
+    https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+ENV PATH ${JAVA_HOME}/bin:${PATH}
