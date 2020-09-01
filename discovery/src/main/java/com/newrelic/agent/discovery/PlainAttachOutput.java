@@ -30,6 +30,7 @@ class PlainAttachOutput implements AttachOutput {
 
     @Override
     public void write(StatusMessage message) {
+        // we don't want to print the "connected" message when inspecting processes
         if (processes.isEmpty()) {
             out.println('\t' + message.toString());
         }
@@ -38,7 +39,7 @@ class PlainAttachOutput implements AttachOutput {
     @Override
     public void close() {
         for (DiscoveryInfo discoveryInfo : processes.values()) {
-            System.out.println(
+            out.println(
                     Joiner.on('\t').join(discoveryInfo.id, discoveryInfo.vmVersion,
                             discoveryInfo.isAttachable, discoveryInfo.displayName));
 
@@ -63,14 +64,14 @@ class PlainAttachOutput implements AttachOutput {
 
     @Override
     public void listHeader() {
-        System.out.println("Java processes:");
-        System.out.println("PID\tVM Version\tAttachable\tDisplay Name\tServer Info\tApplication Names");
+        out.println("Java processes:");
+        out.println("PID\tVM Version\tAttachable\tDisplay Name\tServer Info\tApplication Names");
     }
 
     @Override
     public void list(String id, String displayName, String vmVersion, boolean isAttachable) {
         if (!isAttachable) {
-            System.out.println(
+            out.println(
                     Joiner.on('\t').join(id, vmVersion, isAttachable, displayName));
         } else {
             processes.put(id, new DiscoveryInfo(id, displayName, vmVersion, isAttachable));
@@ -81,7 +82,7 @@ class PlainAttachOutput implements AttachOutput {
     public void applicationInfo(ApplicationContainerInfo applicationContainerInfo) {
         DiscoveryInfo discoveryInfo = processes.remove(applicationContainerInfo.getId());
         if (discoveryInfo != null) {
-            System.out.println(
+            out.println(
                     Joiner.on('\t').join(discoveryInfo.id, discoveryInfo.vmVersion,
                             discoveryInfo.isAttachable, discoveryInfo.displayName,
                             applicationContainerInfo.getContainerName(), applicationContainerInfo.getApplicationNames()));

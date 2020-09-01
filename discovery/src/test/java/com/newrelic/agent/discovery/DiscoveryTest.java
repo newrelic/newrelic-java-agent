@@ -21,6 +21,7 @@ public class DiscoveryTest {
         Discovery.discover(options, attachOutput);
 
         assertFalse(out.toString().isEmpty());
+        @SuppressWarnings("unchecked")
         List<Object> list = (List<Object>) new JSONParser().parse(out.toString());
         assertNotNull(list);
     }
