@@ -59,7 +59,8 @@ public class PublishConfig {
         URI releasesRepoUri = URI.create("https://oss.sonatype.org/service/local/staging/deploy/maven2/");
         URI snapshotsRepoUrl = URI.create("https://oss.sonatype.org/content/repositories/snapshots/");
         repo.setUrl(
-                projectVersion.endsWith("SNAPSHOT")
+                //TODO: "POC" must not be merged into main. Revert to "SNAPSHOT"
+                projectVersion.endsWith("POC")
                         ? snapshotsRepoUrl
                         : releasesRepoUri
         );

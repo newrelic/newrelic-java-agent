@@ -9,7 +9,8 @@ allprojects {
     apply plugin: 'eclipse'
 
     group = 'com.newrelic.agent.java'
-    version = agentVersion + (project.findProperty("release") == "true" ? "" : "-SNAPSHOT")
+    //TODO: "-POC" must not be merged into main. Revert to "-SNAPSHOT"
+    version = agentVersion + (project.findProperty("release") == "true" ? "" : "-POC")
 
     idea.module {
         outputDir file('build/classes/main')
