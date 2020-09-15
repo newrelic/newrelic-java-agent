@@ -119,6 +119,7 @@ public class RPMServiceTest {
         map.put("port", https ? MOCK_COLLECTOR_HTTPS_PORT : MOCK_COLLECTOR_HTTP_PORT);
         map.put("ssl", https);
         map.put("license_key", "deadbeefcafebabe8675309babecafe1beefdead");
+        map.put("ca_bundle_path", "src/test/resources/server.cer");
         map.put(AgentConfigImpl.APP_NAME, "MyApplication");
         map.put(AgentConfigImpl.LABELS, "one:two;three:four");
         if (isHighSec) {
@@ -1095,6 +1096,7 @@ public class RPMServiceTest {
         map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
         map.put("ssl", false);
         map.put("license_key", "xxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        map.put("ca_bundle_path", "src/test/resources/server.cer");
         map.put(AgentConfigImpl.APP_NAME, "MyApplication");
         createServiceManager(map);
 
@@ -1108,6 +1110,7 @@ public class RPMServiceTest {
         map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
         map.put("ssl", false);
         map.put("license_key", "xxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        map.put("ca_bundle_path", "src/test/resources/server.cer");
         map.put(AgentConfigImpl.APP_NAME, "MyApplication");
         map.put(AgentConfigImpl.PUT_FOR_DATA_SEND_PROPERTY, true);
         createServiceManager(map);
