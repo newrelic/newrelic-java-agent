@@ -50,7 +50,7 @@ public class Deployments {
 
         String uri = "/deployments.xml";
         String payload = getDeploymentPayload(appName, cmd);
-        String protocol = "http" + (config.isSSL() ? "s" : "");
+        String protocol = "https";
         URL url = new URL(protocol, config.getApiHost(), config.getApiPort(), uri);
 
         System.out.println(MessageFormat.format("Opening connection to {0}:{1}", config.getApiHost(), Integer.toString(config.getApiPort())));

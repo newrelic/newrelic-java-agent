@@ -69,6 +69,7 @@ public class DataSenderImpl implements DataSender {
 
     private static final String MODULE_TYPE = "Jars";
     private static final int PROTOCOL_VERSION = 17;
+    private static final String PROTOCOL = "https";
     private static final String BEFORE_LICENSE_KEY_URI_PATTERN = "/agent_listener/invoke_raw_method?method={0}";
     private static final String AFTER_LICENSE_KEY_URI_PATTERN = "&marshal_format=json&protocol_version=";
     private static final String LICENSE_KEY_URI_PATTERN = "&license_key={0}";
@@ -78,7 +79,6 @@ public class DataSenderImpl implements DataSender {
     public static final String GZIP_ENCODING = "gzip";
     private static final String IDENTITY_ENCODING = "identity";
     private static final String EXCEPTION_MAP_RETURN_VALUE_KEY = "return_value";
-    private static final String SSL_KEY = "ssl";
     private static final Object NO_AGENT_RUN_ID = null;
     private static final String NULL_RESPONSE = "null";
     private static final int COMPRESSION_LEVEL = Deflater.DEFAULT_COMPRESSION;
@@ -103,7 +103,7 @@ public class DataSenderImpl implements DataSender {
     private final String originalHost;
     private volatile String redirectHost;
     private final int port;
-    private volatile String protocol;
+
     private volatile boolean auditMode;
     private Set<String> auditModeEndpoints;
     private final IAgentLogger logger;
@@ -132,9 +132,6 @@ public class DataSenderImpl implements DataSender {
         originalHost = config.getHost();
         redirectHost = config.getHost();
         port = config.getPort();
-
-        protocol = config.isSSL() ? "https" : "http";
-        logger.info(MessageFormat.format("Setting protocol to \"{0}\"", protocol));
 
         String licenseKeyUri = MessageFormat.format(LICENSE_KEY_URI_PATTERN, config.getLicenseKey());
         noAgentRunIdUriPattern = BEFORE_LICENSE_KEY_URI_PATTERN + licenseKeyUri + AFTER_LICENSE_KEY_URI_PATTERN + PROTOCOL_VERSION;
@@ -262,11 +259,6 @@ public class DataSenderImpl implements DataSender {
             setAgentRunId(runId);
         } else {
             throw new UnexpectedException(MessageFormat.format("Missing {0} connection parameter", ConnectionResponse.AGENT_RUN_ID_KEY));
-        }
-        Object ssl = data.get(SSL_KEY);
-        if (Boolean.TRUE.equals(ssl)) {
-            logger.info("Setting protocol to \"https\"");
-            protocol = "https";
         }
         configService.setLaspPolicies(policiesJson);
 
@@ -552,7 +544,7 @@ public class DataSenderImpl implements DataSender {
             throw new MaxPayloadException(msg);
         }
 
-        final URL url = new URL(protocol, host, port, uri);
+        final URL url = new URL(PROTOCOL, host, port, uri);
         HttpClientWrapper.Request request = createRequest(method, encoding, url, data);
 
         httpClientWrapper.captureSupportabilityMetrics(ServiceFactory.getStatsService(), host);
