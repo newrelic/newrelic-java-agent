@@ -11,6 +11,7 @@ import com.newrelic.test.marker.Java11IncompatibleTest;
 import com.newrelic.test.marker.Java12IncompatibleTest;
 import com.newrelic.test.marker.Java13IncompatibleTest;
 import com.newrelic.test.marker.Java14IncompatibleTest;
+import com.newrelic.test.marker.Java15IncompatibleTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -18,7 +19,8 @@ import javax.activation.MimeType;
 import java.util.HashMap;
 import java.util.Map;
 
-@Category({ Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class })
+@Category({ Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class,
+        Java14IncompatibleTest.class, Java15IncompatibleTest.class })
 public class ClassRetransformBootstrapTest {
 
     /**
@@ -40,7 +42,8 @@ public class ClassRetransformBootstrapTest {
         InstrumentTestUtils.verifyCountMetric(expected);
 
         // make retransformer
-        InstrumentTestUtils.createTransformerAndRetransformClass("javax.activation.MimeType", "getParameter", "(Ljava/lang/String;)Z");
+        InstrumentTestUtils.createTransformerAndRetransformClass("javax.activation.MimeType", "getParameter",
+                "(Ljava/lang/String;)Z");
 
         // call method on class that was transformed
         sample = new MimeType();

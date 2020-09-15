@@ -89,6 +89,12 @@ compileJava.options.bootstrapClasspath = files("${jdk7}/jre/lib/rt.jar", "${jdk7
 // These properties must be set in gradle.properties to point to the java executable.
 // For example: java8=/Library/Java/JavaVirtualMachines/jdk1.8.0_45.jdk/Contents/Home/bin/java
 test {
+    if (project.hasProperty("test15")) {
+        executable = jdk15 + '/bin/java'
+        useJUnit {
+            excludeCategories 'com.newrelic.test.marker.Java15IncompatibleTest'
+        }
+    }
     if (project.hasProperty("test14")) {
         executable = jdk14 + '/bin/java'
         useJUnit {
