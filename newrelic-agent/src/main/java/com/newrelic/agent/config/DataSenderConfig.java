@@ -15,8 +15,6 @@ public interface DataSenderConfig {
 
     int getPort();
 
-    boolean isSSL();
-
     String getInsertApiKey();
 
     boolean isAuditMode();

@@ -80,7 +80,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String SEND_ENVIRONMENT_INFO = "send_environment_info";
     public static final String SEND_JVM_PROPS = "send_jvm_props";
     public static final String SIMPLE_COMPRESSION_PROPERTY = "simple_compression";
-    public static final String IS_SSL = "ssl";
     private static final String REQUEST_TIMEOUT_IN_SECONDS_PROPERTY = "timeout";
     public static final String STARTUP_LOG_LEVEL = "startup_log_level";
     public static final String STARTUP_TIMING = "startup_timing";
@@ -137,7 +136,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_HOST = "collector.newrelic.com";
     public static final boolean DEFAULT_IBM_WORKAROUND = IBMUtils.getIbmWorkaroundDefault();
     public static final String DEFAULT_INSERT_API_KEY = "";
-    public static final boolean DEFAULT_IS_SSL = true;
     // jdbc support
     public static final String GENERIC_JDBC_SUPPORT = "generic";
     public static final String DEFAULT_JDBC_SUPPORT = GENERIC_JDBC_SUPPORT;
@@ -195,7 +193,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final List<String> ignoreJars;
     private final String insertApiKey;
     private final boolean isApdexTSet;
-    private final boolean isSSL;
     private final HashSet<String> jdbcSupport;
     private final String licenseKey;
     private final boolean litemode;
@@ -269,7 +266,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private AgentConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
-        // ssl, transaction_tracer.record_sql, request atts, and message atts are all affected by high security
+        // transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
         securityPoliciesToken = getProperty(LASP_TOKEN, DEFAULT_SECURITY_POLICIES_TOKEN);
         simpleCompression = getProperty(SIMPLE_COMPRESSION_PROPERTY, DEFAULT_SIMPLE_COMPRESSION_ENABLED);
@@ -281,12 +278,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         licenseKey = getProperty(LICENSE_KEY);
         host = parseHost(licenseKey);
-        isSSL = initSsl(props);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
         logDaily = getProperty(LOG_DAILY, DEFAULT_LOG_DAILY);
-        port = getIntProperty(PORT, isSSL ? DEFAULT_SSL_PORT : DEFAULT_PORT);
+        port = getIntProperty(PORT, DEFAULT_SSL_PORT);
         proxyHost = getProperty(PROXY_HOST, DEFAULT_PROXY_HOST);
         proxyPort = getIntProperty(PROXY_PORT, DEFAULT_PROXY_PORT);
         proxyScheme = getProperty(PROXY_SCHEME, DEFAULT_PROXY_SCHEME);
@@ -467,20 +463,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      */
     private void checkHighSecurityPropsInFlattened(Map<String, Object> flattenedProps) {
         if (highSecurity && !flattenedProps.isEmpty()) {
-            flattenedProps.put(AgentConfigImpl.IS_SSL, isSSL);
             flattenedProps.put("transaction_tracer.record_sql", transactionTracerConfig.getRecordSql());
         }
-    }
-
-    /*
-     * The agent must always connect using SSL.
-     */
-    private boolean initSsl(Map<String, Object> props) {
-        if (!getProperty(IS_SSL, DEFAULT_IS_SSL)) { // ssl: false is configured in yml
-            Agent.LOG.log(Level.INFO, "Agent versions 4.0.0+ must connect with SSL. Agent is ignoring yml config and enabling SSL.");
-            props.put(IS_SSL, DEFAULT_IS_SSL); // default is ssl: true
-        }
-        return DEFAULT_IS_SSL;
     }
 
     @SuppressWarnings("unchecked")
@@ -793,12 +777,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     @Override
     public int getApiPort() {
-        return getProperty(API_PORT, isSSL ? DEFAULT_SSL_PORT : DEFAULT_PORT);
-    }
-
-    @Override
-    public boolean isSSL() {
-        return isSSL;
+        return getProperty(API_PORT, DEFAULT_SSL_PORT);
     }
 
     @Override

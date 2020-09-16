@@ -26,10 +26,10 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 
 public class ApacheSSLManager {
-    public static SSLContext createSSLContext(boolean useSSL, String caBundlePath) {
+    public static SSLContext createSSLContext(String caBundlePath) {
         SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
         try {
-            if (useSSL && (caBundlePath != null)) {
+            if (caBundlePath != null) {
                 sslContextBuilder.loadTrustMaterial(getKeyStore(caBundlePath), null);
             }
 
