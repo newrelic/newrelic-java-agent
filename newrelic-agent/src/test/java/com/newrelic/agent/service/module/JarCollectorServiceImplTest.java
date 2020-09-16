@@ -1,73 +1,186 @@
-/*
- *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
- *  * SPDX-License-Identifier: Apache-2.0
- *
- */
-
 package com.newrelic.agent.service.module;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import com.newrelic.agent.MockConfigService;
-import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.JarCollectorConfig;
+import com.google.common.collect.ImmutableSet;
+import com.newrelic.agent.IRPMService;
+import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.api.agent.Logger;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class JarCollectorServiceImplTest {
 
-    private static JarCollectorServiceImpl createService() {
-        AgentConfig config = Mockito.mock(AgentConfig.class);
-        JarCollectorConfig jarConfig = Mockito.mock(JarCollectorConfig.class);
-        Mockito.when(jarConfig.isEnabled()).thenReturn(true);
-        Mockito.when(config.getJarCollectorConfig()).thenReturn(jarConfig);
-        Mockito.when(config.getValue("jar_collector.skip_temp_jars", true)).thenReturn(true);
+    @Mock
+    public ClassNoticingFactory classNoticingFactory;
 
-        ServiceFactory.setServiceManager(new MockServiceManager().setConfigService(Mockito.spy(new MockConfigService(
-                config))));
+    @Mock
+    public IRPMService rpmService;
 
-        return new JarCollectorServiceImpl();
+    @Captor
+    public ArgumentCaptor<List<JarData>> listArgumentCaptor;
+
+    private final JarData initialJarAlreadySent = new JarData("jar1", new JarInfo("v1", Collections.<String, String>emptyMap()));
+    private final JarData expectedSentJar = new JarData("jar2", new JarInfo("v2", Collections.<String, String>emptyMap()));
+
+    @Before
+    public void before() throws Exception {
+        MockitoAnnotations.initMocks(this);
+
+        RPMServiceManager rpmServiceManager = mock(RPMServiceManager.class);
+        when(rpmServiceManager.getOrCreateRPMService(anyString())).thenReturn(rpmService);
+
+        ServiceManager mockServiceManager = mock(ServiceManager.class);
+        when(mockServiceManager.getRPMServiceManager()).thenReturn(rpmServiceManager);
+        ServiceFactory.setServiceManager(mockServiceManager);
+    }
+
+    @After
+    public void after() {
+        ServiceFactory.setServiceManager(null);
     }
 
     @Test
-    public void test() throws MalformedURLException {
+    public void harvestsJarsThatHaventBeenSent() throws Exception {
+        TrackedAddSet<JarData> set = new TrackedAddSet<>();
+        set.accept(initialJarAlreadySent);
+        set.resetReturningAll();
+        set.accept(expectedSentJar);
 
-        JarCollectorServiceImpl service = createService();
+        AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
 
-        service.addUrls(new URL(
-                "file:/Users/roger/Documents/integration_tests_webapps/resin-3.1.12/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.0.1.jar!/org/apache/commons/httpclient/HttpVersion.class"));
-        service.addUrls(new URL(
-                "file:/Users/roger/Documents/integration_tests_webapps/resin-3.1.12/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.0.1.jar!/org/apache/commons/httpclient/Dude.class"));
+        JarCollectorService target = getTarget(set, shouldSendAllJars);
+        target.harvest("any name");
 
-        Assert.assertEquals(
-                new URL(
-                        "file:/Users/roger/Documents/integration_tests_webapps/resin-3.1.12/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.0.1.jar"),
-                service.getQueuedJars().get(
-                        "/Users/roger/Documents/integration_tests_webapps/resin-3.1.12/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.0.1.jar"));
-
-        Assert.assertEquals(service.getQueuedJars().toString(), 1, service.getQueuedJars().size());
+        verifyTriedToSendExpectedJar();
     }
 
     @Test
-    public void jarProtocol() throws MalformedURLException {
+    public void resendsErrorJarsWithDelta() throws Exception {
+        TrackedAddSet<JarData> set = new TrackedAddSet<>();
+        set.accept(initialJarAlreadySent);
+        set.resetReturningAll();
+        set.accept(expectedSentJar);
 
-        JarCollectorServiceImpl service = createService();
+        AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
 
-        // jboss sends us complex urls like this
-        service.addUrls(new URL(
-                "jar:file:/Users/sdaubin/servers/jboss-as-7.1.1.Final/modules/org/apache/xerces/main/xercesImpl-2.9.1-jbossas-1.jar!/"));
+        JarCollectorService target = getTarget(set, shouldSendAllJars);
 
-        Assert.assertEquals(
-                service.getQueuedJars().toString(),
-                new URL(
-                        "file:/Users/sdaubin/servers/jboss-as-7.1.1.Final/modules/org/apache/xerces/main/xercesImpl-2.9.1-jbossas-1.jar"),
-                service.getQueuedJars().get(
-                        "file:/Users/sdaubin/servers/jboss-as-7.1.1.Final/modules/org/apache/xerces/main/xercesImpl-2.9.1-jbossas-1.jar!/"));
+        // make harvest fail
+        doThrow(new Exception("~~ oops ~~")).when(rpmService).sendModules(ArgumentMatchers.<List<JarData>>any());
+        target.harvest("any name");
+        verifyTriedToSendExpectedJar();
+        reset(rpmService);
+
+        // this is another delta
+        JarData postErrorAdd = new JarData("jar3", new JarInfo("v3", Collections.<String, String>emptyMap()));
+        set.accept(postErrorAdd);
+        target.harvest("any name");
+
+        verify(rpmService, times(1)).sendModules(listArgumentCaptor.capture());
+        assertEquals(ImmutableSet.of(expectedSentJar, postErrorAdd), new HashSet<>(listArgumentCaptor.getValue()));
     }
+
+    @Test
+    public void resendsErrorJarsEvenWithoutDelta() throws Exception {
+        TrackedAddSet<JarData> set = new TrackedAddSet<>();
+        set.accept(initialJarAlreadySent);
+        set.resetReturningAll();
+        set.accept(expectedSentJar);
+
+        AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
+
+        JarCollectorService target = getTarget(set, shouldSendAllJars);
+
+        // make harvest fail
+        doThrow(new Exception("~~ oops ~~")).when(rpmService).sendModules(ArgumentMatchers.<List<JarData>>any());
+        target.harvest("any name");
+        verifyTriedToSendExpectedJar();
+
+        // allow second harvest to succeed
+        reset(rpmService);
+
+        target.harvest("any name");
+        verifyTriedToSendExpectedJar();
+    }
+
+    @Test
+    public void harvestsAllJarsOnReset() throws Exception {
+        TrackedAddSet<JarData> set = new TrackedAddSet<>();
+        set.accept(initialJarAlreadySent);
+        set.resetReturningAll();
+        set.accept(expectedSentJar);
+
+        AtomicBoolean shouldSendAllJars = new AtomicBoolean(false);
+
+        JarCollectorService target = getTarget(set, shouldSendAllJars);
+
+        // harvest the delta, only jar2
+        target.harvest("any name");
+        verifyTriedToSendExpectedJar();
+        reset(rpmService);
+
+        // send all jars next time!
+        shouldSendAllJars.set(true);
+        target.harvest("any name");
+
+        verify(rpmService, times(1)).sendModules(listArgumentCaptor.capture());
+        assertEquals(ImmutableSet.of(expectedSentJar, initialJarAlreadySent), new HashSet<>(listArgumentCaptor.getValue()));
+    }
+
+    @Test
+    public void resetsSendAllFlagAfterSendingAll() throws Exception {
+        TrackedAddSet<JarData> set = new TrackedAddSet<>();
+        set.accept(initialJarAlreadySent);
+        set.resetReturningAll();
+        set.accept(expectedSentJar);
+
+        AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
+
+        JarCollectorService target = getTarget(set, shouldSendAllJars);
+        target.harvest("any name");
+        verify(rpmService, times(1)).sendModules(listArgumentCaptor.capture());
+        assertEquals(ImmutableSet.of(expectedSentJar, initialJarAlreadySent), new HashSet<>(listArgumentCaptor.getValue()));
+        reset(rpmService);
+
+        assertFalse(shouldSendAllJars.get());
+    }
+
+    private void verifyTriedToSendExpectedJar() throws Exception {
+        verify(rpmService, times(1)).sendModules(Collections.singletonList(expectedSentJar));
+    }
+
+    private JarCollectorServiceImpl getTarget(
+            TrackedAddSet<JarData> set,
+            AtomicBoolean shouldSendAllJars) {
+        return new JarCollectorServiceImpl(
+                mock(Logger.class),
+                true,
+                shouldSendAllJars,
+                set,
+                classNoticingFactory
+        );
+    }
+
 }

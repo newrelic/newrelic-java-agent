@@ -14,6 +14,7 @@ import com.newrelic.agent.service.ServiceFactory;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +35,13 @@ public class RPMServiceManagerImpl extends AbstractService implements RPMService
     private final ConnectionConfigListener connectionConfigListener;
     private final List<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
     private final ConnectionListener connectionListener;
-    private final AgentConnectionEstablishedListener agentConnectionEstablishedListener;
+    private final List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners;
     // for efficiency: an unmodifiable list of all RPM services
     private volatile List<IRPMService> rpmServices;
 
-    public RPMServiceManagerImpl(AgentConnectionEstablishedListener agentConnectionEstablishedListener) {
+    public RPMServiceManagerImpl(AgentConnectionEstablishedListener... agentConnectionEstablishedListeners) {
         super(RPMServiceManager.class.getSimpleName());
-        this.agentConnectionEstablishedListener = agentConnectionEstablishedListener;
+        this.agentConnectionEstablishedListeners = new ArrayList<>(Arrays.asList(agentConnectionEstablishedListeners));
         connectionConfigListener = new ConnectionConfigListener() {
             @Override
             public AgentConfig connected(IRPMService rpmService, Map<String, Object> connectionInfo) {
@@ -170,7 +171,7 @@ public class RPMServiceManagerImpl extends AbstractService implements RPMService
 
     protected IRPMService createRPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener,
                                            ConnectionListener connectionListener) {
-        return new RPMService(appNames, connectionConfigListener, connectionListener, null, agentConnectionEstablishedListener);
+        return new RPMService(appNames, connectionConfigListener, connectionListener, null, agentConnectionEstablishedListeners);
     }
 
     @Override

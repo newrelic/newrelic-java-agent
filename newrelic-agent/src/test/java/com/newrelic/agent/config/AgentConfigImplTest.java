@@ -141,7 +141,6 @@ public class AgentConfigImplTest {
     @Test
     public void apiPortDefaultSSL() throws Exception {
         Map<String, Object> localMap = new HashMap<>();
-        localMap.put(AgentConfigImpl.IS_SSL, true);
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertEquals(AgentConfigImpl.DEFAULT_SSL_PORT, config.getApiPort());

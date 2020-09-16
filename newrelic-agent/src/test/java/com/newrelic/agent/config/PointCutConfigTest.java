@@ -12,6 +12,7 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.TracerService;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.extension.ExtensionService;
+import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.classmatchers.ClassMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.ExactClassMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.InterfaceMatcher;
@@ -51,7 +52,7 @@ public class PointCutConfigTest {
                 AgentConfigImpl.createAgentConfig(new HashMap()), new HashMap());
         serviceManager.setConfigService(configService);
 
-        ExtensionService service = new ExtensionService(configService);
+        ExtensionService service = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         serviceManager.setExtensionService(service);
 
         TracerService tService = new TracerService();

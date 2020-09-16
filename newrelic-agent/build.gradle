@@ -256,6 +256,7 @@ task newrelicVersionedAgentJar(type: Jar) {
     dependsOn(instrumentProjects().collect { it.tasks["jar"] })
 
     from("$rootDir/LICENSE")
+    from("$rootDir/THIRD_PARTY_NOTICES.md")
 
     includeEmptyDirs = false
 
@@ -287,7 +288,7 @@ task newrelicVersionedAgentJar(type: Jar) {
                 'Multi-Release': true,
                 'Premain-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Main-Class': 'com.newrelic.bootstrap.BootstrapAgent',
-                'X-Git-SHA': GitUtil.sha(project) ?: "UNKNOWN"
+                'X-Git-SHA': System.getenv("GITHUB_SHA") ?: GitUtil.sha(project) ?: "UNKNOWN"
     }
 }
 

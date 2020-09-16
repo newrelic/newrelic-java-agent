@@ -31,7 +31,7 @@ import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.analytics.TransactionEvent;
-import com.newrelic.agent.service.module.Jar;
+import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.trace.TransactionTrace;
@@ -76,7 +76,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private final String host;
     private final int port;
-    private final AgentConnectionEstablishedListener agentConnectionEstablishedListener;
+    private final List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners;
     private volatile boolean connected = false;
     private final ErrorService errorService;
     private final String appName;
@@ -95,12 +95,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private long lastReportTime;
 
     public RPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener, ConnectionListener connectionListener,
-                      AgentConnectionEstablishedListener agentConnectionEstablishedListener) {
-        this(appNames, connectionConfigListener, connectionListener, null, agentConnectionEstablishedListener);
+            List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners) {
+        this(appNames, connectionConfigListener, connectionListener, null, agentConnectionEstablishedListeners);
     }
 
     RPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener, ConnectionListener connectionListener,
-            DataSenderListener dataSenderListener, AgentConnectionEstablishedListener agentConnectionEstablishedListener) {
+            DataSenderListener dataSenderListener, List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners) {
         super(RPMService.class.getSimpleName() + "/" + appNames.get(0));
         appName = appNames.get(0).intern();
         AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
@@ -113,7 +113,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         host = config.getHost();
         port = config.getPort();
         isMainApp = appName.equals(config.getApplicationName());
-        this.agentConnectionEstablishedListener = agentConnectionEstablishedListener;
+        this.agentConnectionEstablishedListeners = new ArrayList<>(agentConnectionEstablishedListeners);
     }
 
     @Override
@@ -277,7 +277,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
         String agentRunToken = (String) data.get(ConnectionResponse.AGENT_RUN_ID_KEY);
         Map<String, String> requestMetadata = (Map<String, String>) data.get(ConnectionResponse.REQUEST_HEADERS);
-        agentConnectionEstablishedListener.onEstablished(appName, agentRunToken, requestMetadata);
+        for (AgentConnectionEstablishedListener listener : agentConnectionEstablishedListeners) {
+            listener.onEstablished(appName, agentRunToken, requestMetadata);
+        }
     }
 
     private Map<String, Object> doConnect() throws Exception {
@@ -449,10 +451,10 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
-    public void sendModules(final List<Jar> pJarsToSend) throws Exception {
-        Agent.LOG.log(Level.FINE, "Sending {0} module(s)", pJarsToSend.size());
+    public void sendModules(final List<JarData> jarDataList) throws Exception {
+        Agent.LOG.log(Level.FINE, "Sending {0} module(s)", jarDataList.size());
         try {
-            sendModulesSyncRestart(pJarsToSend);
+            sendModulesSyncRestart(jarDataList);
         } catch (ForceRestartException e) {
             logForceRestartException(e);
             reconnectAsync();
@@ -464,13 +466,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         }
     }
 
-    private void sendModulesSyncRestart(final List<Jar> pJarsToSend) throws Exception {
+    private void sendModulesSyncRestart(final List<JarData> jarDataList) throws Exception {
         try {
-            dataSender.sendModules(pJarsToSend);
+            dataSender.sendModules(jarDataList);
         } catch (ForceRestartException e) {
             logForceRestartException(e);
             reconnectSync();
-            dataSender.sendModules(pJarsToSend);
+            dataSender.sendModules(jarDataList);
         }
     }
 
@@ -495,7 +497,8 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         }
     }
 
-    private <T extends AnalyticsEvent & JSONStreamAware> void sendAnalyticsEventsSyncRestart(int reservoirSize, int eventsSeen, final Collection<T> events) throws Exception {
+    private <T extends AnalyticsEvent & JSONStreamAware> void sendAnalyticsEventsSyncRestart(int reservoirSize, int eventsSeen, final Collection<T> events)
+            throws Exception {
         try {
             dataSender.sendAnalyticsEvents(reservoirSize, eventsSeen, events);
         } catch (ForceRestartException e) {

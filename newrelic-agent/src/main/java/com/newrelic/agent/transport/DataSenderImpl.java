@@ -27,7 +27,6 @@ import com.newrelic.agent.model.ErrorEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.module.Jar;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
@@ -70,6 +69,7 @@ public class DataSenderImpl implements DataSender {
 
     private static final String MODULE_TYPE = "Jars";
     private static final int PROTOCOL_VERSION = 17;
+    private static final String PROTOCOL = "https";
     private static final String BEFORE_LICENSE_KEY_URI_PATTERN = "/agent_listener/invoke_raw_method?method={0}";
     private static final String AFTER_LICENSE_KEY_URI_PATTERN = "&marshal_format=json&protocol_version=";
     private static final String LICENSE_KEY_URI_PATTERN = "&license_key={0}";
@@ -79,7 +79,6 @@ public class DataSenderImpl implements DataSender {
     public static final String GZIP_ENCODING = "gzip";
     private static final String IDENTITY_ENCODING = "identity";
     private static final String EXCEPTION_MAP_RETURN_VALUE_KEY = "return_value";
-    private static final String SSL_KEY = "ssl";
     private static final Object NO_AGENT_RUN_ID = null;
     private static final String NULL_RESPONSE = "null";
     private static final int COMPRESSION_LEVEL = Deflater.DEFAULT_COMPRESSION;
@@ -101,9 +100,10 @@ public class DataSenderImpl implements DataSender {
 
     private final HttpClientWrapper httpClientWrapper;
 
-    private volatile String host;
+    private final String originalHost;
+    private volatile String redirectHost;
     private final int port;
-    private volatile String protocol;
+
     private volatile boolean auditMode;
     private Set<String> auditModeEndpoints;
     private final IAgentLogger logger;
@@ -129,11 +129,9 @@ public class DataSenderImpl implements DataSender {
         this.logger = logger;
         this.configService = configService;
         logger.info(MessageFormat.format("Setting audit_mode to {0}", auditMode));
-        host = config.getHost();
+        originalHost = config.getHost();
+        redirectHost = config.getHost();
         port = config.getPort();
-
-        protocol = config.isSSL() ? "https" : "http";
-        logger.info(MessageFormat.format("Setting protocol to \"{0}\"", protocol));
 
         String licenseKeyUri = MessageFormat.format(LICENSE_KEY_URI_PATTERN, config.getLicenseKey());
         noAgentRunIdUriPattern = BEFORE_LICENSE_KEY_URI_PATTERN + licenseKeyUri + AFTER_LICENSE_KEY_URI_PATTERN + PROTOCOL_VERSION;
@@ -187,8 +185,8 @@ public class DataSenderImpl implements DataSender {
     public Map<String, Object> connect(Map<String, Object> startupOptions) throws Exception {
         String redirectHost = parsePreconnectAndReturnHost();
         if (redirectHost != null) {
-            host = redirectHost;
-            logger.info(MessageFormat.format("Collector redirection to {0}:{1}", host, Integer.toString(port)));
+            this.redirectHost = redirectHost;
+            logger.info(MessageFormat.format("Collector redirection to {0}:{1}", this.redirectHost, Integer.toString(port)));
         } else if (configService.getDefaultAgentConfig().laspEnabled()) {
             throw new ForceDisconnectException("The agent did not receive one or more security policies that it expected and will shut down."
                     + " Please contact support.");
@@ -207,7 +205,7 @@ public class DataSenderImpl implements DataSender {
         }
         token.put("high_security", agentConfig.isHighSecurity());
         params.add(token);
-        Object response = invokeNoRunId(CollectorMethods.PRECONNECT, compressedEncoding, params);
+        Object response = invokeNoRunId(originalHost, CollectorMethods.PRECONNECT, compressedEncoding, params);
 
         if (response != null) {
             Map<?, ?> returnValue = (Map<?, ?>) response;
@@ -232,7 +230,7 @@ public class DataSenderImpl implements DataSender {
         startupOptions.put(ENV_METADATA, metadata);
 
         params.add(startupOptions);
-        Object response = invokeNoRunId(CollectorMethods.CONNECT, compressedEncoding, params);
+        Object response = invokeNoRunId(redirectHost, CollectorMethods.CONNECT, compressedEncoding, params);
         if (!(response instanceof Map)) {
             throw new UnexpectedException(MessageFormat.format("Expected a map of connection data, got {0}", response));
         }
@@ -261,11 +259,6 @@ public class DataSenderImpl implements DataSender {
             setAgentRunId(runId);
         } else {
             throw new UnexpectedException(MessageFormat.format("Missing {0} connection parameter", ConnectionResponse.AGENT_RUN_ID_KEY));
-        }
-        Object ssl = data.get(SSL_KEY);
-        if (Boolean.TRUE.equals(ssl)) {
-            logger.info("Setting protocol to \"https\"");
-            protocol = "https";
         }
         configService.setLaspPolicies(policiesJson);
 
@@ -404,19 +397,19 @@ public class DataSenderImpl implements DataSender {
     /**
      * Sends the jars with versions to the collector.
      *
-     * @param pJars The new jars which need to be sent to the collector.
+     * @param jarDataList The new jars which need to be sent to the collector.
      */
     @Override
-    public void sendModules(List<Jar> pJars) throws Exception {
+    public void sendModules(List<? extends JSONStreamAware> jarDataList) throws Exception {
         Object runId = agentRunId;
-        if (runId == NO_AGENT_RUN_ID || pJars == null || pJars.isEmpty()) {
+        if (runId == NO_AGENT_RUN_ID || jarDataList == null || jarDataList.isEmpty()) {
             return;
         }
         InitialSizedJsonArray params = new InitialSizedJsonArray(2);
 
         // Module type must always be first - it should always be jars
         params.add(MODULE_TYPE);
-        params.add(pJars);
+        params.add(jarDataList);
 
         invokeRunId(CollectorMethods.UPDATE_LOADED_MODULES, compressedEncoding, runId, params);
     }
@@ -487,17 +480,17 @@ public class DataSenderImpl implements DataSender {
 
     private Object invokeRunId(String method, String encoding, Object runId, JSONStreamAware params) throws Exception {
         String uri = MessageFormat.format(agentRunIdUriPattern, method, runId.toString());
-        return invoke(method, encoding, uri, params);
+        return invoke(redirectHost, method, encoding, uri, params);
     }
 
-    private Object invokeNoRunId(String method, String encoding, JSONStreamAware params) throws Exception {
+    private Object invokeNoRunId(String host, String method, String encoding, JSONStreamAware params) throws Exception {
         String uri = MessageFormat.format(noAgentRunIdUriPattern, method);
-        return invoke(method, encoding, uri, params);
+        return invoke(host, method, encoding, uri, params);
     }
 
-    private Object invoke(String method, String encoding, String uri, JSONStreamAware params) throws Exception {
+    private Object invoke(String host, String method, String encoding, String uri, JSONStreamAware params) throws Exception {
         // ReadResult should be from a valid 2xx response at this point otherwise send method throws an exception here
-        ReadResult readResult = send(method, encoding, uri, params);
+        ReadResult readResult = send(host, method, encoding, uri, params);
         Map<?, ?> responseMap = null;
         String responseBody = readResult.getResponseBody();
 
@@ -532,14 +525,14 @@ public class DataSenderImpl implements DataSender {
 
     /*
      * As of Protocol 17 agents MUST NOT depend on the content of the response body for any behavior; just the integer
-     * response code value. The previous behavior of a 200 (“OK”) with an exact string in the body that should be
+     * response code value. The previous behavior of a 200 ("OK") with an exact string in the body that should be
      * matched/parsed has been deprecated.
      */
-    private ReadResult connectAndSend(String method, String encoding, String uri, JSONStreamAware params) throws Exception {
+    private ReadResult connectAndSend(String host, String method, String encoding, String uri, JSONStreamAware params) throws Exception {
         byte[] data = writeData(encoding, params);
 
         /*
-         * We don’t enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
+         * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
          * payload and try again. See RPMService sendErrorData
          */
         if (data.length > maxPayloadSizeInBytes && !method.equals(CollectorMethods.ERROR_DATA)) {
@@ -551,7 +544,7 @@ public class DataSenderImpl implements DataSender {
             throw new MaxPayloadException(msg);
         }
 
-        final URL url = new URL(protocol, host, port, uri);
+        final URL url = new URL(PROTOCOL, host, port, uri);
         HttpClientWrapper.Request request = createRequest(method, encoding, url, data);
 
         httpClientWrapper.captureSupportabilityMetrics(ServiceFactory.getStatsService(), host);
@@ -636,9 +629,9 @@ public class DataSenderImpl implements DataSender {
         return true;
     }
 
-    private ReadResult send(String method, String encoding, String uri, JSONStreamAware params) throws Exception {
+    private ReadResult send(String host, String method, String encoding, String uri, JSONStreamAware params) throws Exception {
         try {
-            return connectAndSend(method, encoding, uri, params);
+            return connectAndSend(host, method, encoding, uri, params);
         } catch (MalformedURLException e) {
             logger.log(Level.SEVERE, "You have requested a connection to New Relic via a protocol which is unavailable in your runtime: {0}", e.toString());
             throw new ForceDisconnectException(e.toString());

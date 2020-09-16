@@ -7,23 +7,32 @@
 
 package com.newrelic.agent.utilization;
 
+import com.newrelic.Function;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.stats.IncrementCounter;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWork;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.net.SocketTimeoutException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CloudUtilityTest {
 
@@ -87,6 +96,19 @@ public class CloudUtilityTest {
         StatsWork argument = captor.getValue();
         assertTrue(argument instanceof IncrementCounter);
         assertEquals("some error", ((IncrementCounter)argument).getName());
+    }
+
+    @Test
+    public void testSocketTimeoutExceptionIsHandled() throws Exception {
+        Function<Integer, CloseableHttpClient> mockClientCreator = mock(Function.class);
+        CloseableHttpClient explodingClient = mock(CloseableHttpClient.class);
+
+        when(mockClientCreator.apply(anyInt())).thenReturn(explodingClient);
+        when(explodingClient.execute(isA(HttpUriRequest.class))).thenThrow(new SocketTimeoutException("oof"));
+
+        CloudUtility testClass = new CloudUtility(mockClientCreator);
+        String result = testClass.httpGet("https://example.com/some/path", 12, "foo:bar");
+        assertNull(result);
     }
 
     @Before

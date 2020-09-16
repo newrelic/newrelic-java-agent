@@ -11,12 +11,6 @@ import java.util.Map;
 
 public interface AgentConnectionEstablishedListener {
 
-    AgentConnectionEstablishedListener NOOP = new AgentConnectionEstablishedListener() {
-        @Override
-        public void onEstablished(String appName, String agentRunToken, Map<String, String> requestMetadata) {
-        }
-    };
-
     void onEstablished(String appName, String agentRunToken, Map<String, String> requestMetadata);
 
 }

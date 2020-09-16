@@ -24,8 +24,16 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
+import java.net.URL;
 import java.security.ProtectionDomain;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class tracks information about a class passing through the {@link InstrumentationContextManager}. It keeps track
@@ -387,5 +395,12 @@ public class InstrumentationContext implements TraceDetailsList {
      */
     public boolean hasSourceAttribute() {
         return hasSource;
+    }
+
+    public URL getCodeSourceLocation(){
+        if((protectionDomain == null) || (protectionDomain.getCodeSource() == null)) {
+            return null;
+        }
+        return protectionDomain.getCodeSource().getLocation();
     }
 }

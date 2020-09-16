@@ -131,7 +131,7 @@ public class ExtensionServiceTest {
         Mockito.when(instrumentationProxy.isRetransformClassesSupported()).thenReturn(true);
         Mockito.when(instrumentationProxy.getAllLoadedClasses()).thenReturn(new Class[] {});
 
-        extensionService = new ExtensionService(configService);
+        extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         serviceManager.setExtensionService(extensionService);
         serviceManager.setJmxService(Mockito.mock(JmxService.class));
 
@@ -244,7 +244,7 @@ public class ExtensionServiceTest {
             is.close();
             System.setProperty("newrelic.config.extensions.dir", extDir.getAbsolutePath());
 
-            extensionService = new ExtensionService(serviceManager.getConfigService());
+            extensionService = new ExtensionService(serviceManager.getConfigService(), ExtensionsLoadedListener.NOOP);
             extensionService.start();
             e = extensionService.getEnabledPointCuts();
             assertEquals(beforeSize + 1, e.size());
@@ -298,7 +298,7 @@ public class ExtensionServiceTest {
     public void testParamAttributes() throws Exception {
         setupFiles(true, XML_FILE_PATH_1);
 
-        ExtensionService extService = new ExtensionService(configService);
+        ExtensionService extService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         serviceManager.setExtensionService(extService);
         extService.start();
 
@@ -886,7 +886,7 @@ public class ExtensionServiceTest {
 
         AgentConfig config = AgentConfigImpl.createAgentConfig(configMap);
         configService = ConfigServiceFactory.createConfigService(config, Collections.<String, Object>emptyMap());
-        extensionService = new ExtensionService(configService);
+        extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         serviceManager.setExtensionService(extensionService);
     }
 

@@ -15,6 +15,7 @@ import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
+import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEvent;
@@ -99,7 +100,7 @@ public class TransactionServiceTest {
         TransactionTraceService transactionTraceService = new TransactionTraceService();
         serviceManager.setTransactionTraceService(transactionTraceService);
 
-        ExtensionService extensionService = new ExtensionService(configService);
+        ExtensionService extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         serviceManager.setExtensionService(extensionService);
 
         TracerService tracerService = new TracerService();

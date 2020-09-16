@@ -12,11 +12,10 @@ import com.newrelic.agent.service.Service;
 
 /**
  * Interface for collecting and sending jars to RPM.
- * 
- * @since Nov 9, 2012
  */
 public interface JarCollectorService extends Service {
 
     ClassMatchVisitorFactory getSourceVisitor();
 
+    void harvest(String appName);
 }

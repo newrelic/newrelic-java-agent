@@ -64,7 +64,7 @@ public interface Agent {
     Insights getInsights();
 
     /**
-     * Provides access to the Trace Metadarta API for details about the currently executing distributed trace.
+     * Provides access to the Trace Metadata API for details about the currently executing distributed trace.
      *
      * @return trace metadata API class
      * @since 5.6.0

@@ -25,11 +25,10 @@ task dist(type: Zip, dependsOn: [
     }
 
     from("$rootDir/LICENSE")
+    from("$rootDir/THIRD_PARTY_NOTICES.md")
 
     from(project(":newrelic-agent").sourceSets.main.resources) {
-        include 'THIRD_PARTY_NOTICES.md'
         include 'newrelic.yml'
-        include 'nrcerts'
         include 'extension-example.xml'
         include 'extension.xsd'
     }

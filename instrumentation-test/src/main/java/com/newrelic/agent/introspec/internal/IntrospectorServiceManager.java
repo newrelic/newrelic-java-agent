@@ -19,17 +19,12 @@ import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
+import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
-import com.newrelic.agent.instrumentation.PointCutClassTransformer;
-import com.newrelic.agent.instrumentation.classmatchers.ClassAndMethodMatcher;
-import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
-import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
-import com.newrelic.agent.instrumentation.custom.ClassRetransformer;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
-import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.normalization.NormalizationServiceImpl;
@@ -45,7 +40,6 @@ import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.analytics.*;
 import com.newrelic.agent.service.async.AsyncTransactionService;
 import com.newrelic.agent.service.module.JarCollectorService;
-import com.newrelic.agent.service.module.JarCollectorServiceImpl;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.stats.StatsService;
@@ -54,7 +48,6 @@ import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.utilization.UtilizationService;
 
-import java.lang.instrument.Instrumentation;
 import java.util.*;
 
 class IntrospectorServiceManager extends AbstractService implements ServiceManager {
@@ -71,9 +64,6 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile StatsService statsService;
     private volatile HarvestService harvestService;
     private volatile SqlTraceService sqlTraceService;
-    private volatile BrowserService browserService;
-    private volatile CacheService cacheService;
-    private volatile SamplerService samplerService;
     private volatile DatabaseService dbService;
     private volatile JarCollectorService jarCollectorService;
     private volatile TransactionEventsService transactionEventsService;
@@ -84,7 +74,6 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile RemoteInstrumentationService remoteInstrumentationService;
     private volatile ClassTransformerService classTransformerService;
     private volatile AttributesService attributesService;
-    private volatile UtilizationService utilizationService;
     private volatile JmxService jmxService;
     private volatile AsyncTransactionService asyncTxService;
     private volatile CircuitBreakerService circuitBreakerService;
@@ -128,7 +117,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         config.put("span_events", spanConfig);
 
         if (configOverrides != null) {
-            config = deepMerge(config, configOverrides);
+            deepMerge(config, configOverrides);
         }
         manager.setup(config);
         return manager;
@@ -152,104 +141,19 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         insightsService = new IntrospectorInsightsService();
         expirationService = new ExpirationService();
         dbService = new DatabaseService();
-        jarCollectorService = new JarCollectorServiceImpl();
+        jarCollectorService = new IgnoringJarCollectorService();
         distributedTraceService = new DistributedTraceServiceImpl();
 
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
         transactionEventsService = new TransactionEventsService(transactionDataToDistributedTraceIntrinsics);
 
         normalizationService = new NormalizationServiceImpl();
-        extensionService = new ExtensionService(configService);
+        extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         tracerService = new TracerService();
         commandParser = new CommandParser();
         remoteInstrumentationService = new RemoteInstrumentationServiceImpl();
         sourceLanguageService = new SourceLanguageService();
-        classTransformerService = new ClassTransformerService() {
-            @Override
-            public void stop() {
-            }
-
-            @Override
-            public void start() {
-            }
-
-            @Override
-            public boolean isStoppedOrStopping() {
-                return false;
-            }
-
-            @Override
-            public boolean isStopped() {
-                return false;
-            }
-
-            @Override
-            public boolean isStartedOrStarting() {
-                return true;
-            }
-
-            @Override
-            public boolean isStarted() {
-                return true;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-
-            @Override
-            public String getName() {
-                return "ClassTransformer";
-            }
-
-            @Override
-            public IAgentLogger getLogger() {
-                return Agent.LOG;
-            }
-
-            @Override
-            public void retransformMatchingClassesImmediately(Class<?>[] loadedClasses, Collection<ClassMatchVisitorFactory> classMatchers) {
-            }
-
-            @Override
-            public void retransformMatchingClasses(Collection<ClassMatchVisitorFactory> classMatchers) {
-            }
-
-            @Override
-            public ClassRetransformer getRemoteRetransformer() {
-                return null;
-            }
-
-            @Override
-            public ClassRetransformer getLocalRetransformer() {
-                return null;
-            }
-
-            @Override
-            public Instrumentation getExtensionInstrumentation() {
-                return null;
-            }
-
-            @Override
-            public InstrumentationContextManager getContextManager() {
-                return null;
-            }
-
-            @Override
-            public PointCutClassTransformer getClassTransformer() {
-                return null;
-            }
-
-            @Override
-            public void checkShutdown() {
-            }
-
-            @Override
-            public boolean addTraceMatcher(ClassAndMethodMatcher matcher, String metricPrefix) {
-                return false;
-            }
-        };
+        classTransformerService = new NoOpClassTransformerService();
         jmxService = new JmxService();
         attributesService = new AttributesService();
         circuitBreakerService = new CircuitBreakerService();
@@ -324,7 +228,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
 
     @Override
     public SamplerService getSamplerService() {
-        return samplerService;
+        return null;
     }
 
     @Override
@@ -432,12 +336,12 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
 
     @Override
     public BrowserService getBrowserService() {
-        return browserService;
+        return null;
     }
 
     @Override
     public CacheService getCacheService() {
-        return cacheService;
+        return null;
     }
 
     @Override
@@ -490,7 +394,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
 
     @Override
     public UtilizationService getUtilizationService() {
-        return utilizationService;
+        return null;
     }
 
     @Override
@@ -521,11 +425,12 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     }
 
     // Override entries in original
-    private static Map deepMerge(Map original, Map toOverride) {
-        for (Object key : toOverride.keySet()) {
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> deepMerge(Map<String, Object> original, Map<String, Object> toOverride) {
+        for (String key : toOverride.keySet()) {
             if (toOverride.get(key) instanceof Map && original.get(key) instanceof Map) {
-                Map originalChild = (Map) original.get(key);
-                Map newChild = (Map) toOverride.get(key);
+                Map<String, Object> originalChild = (Map<String, Object>) original.get(key);
+                Map<String, Object> newChild = (Map<String, Object>) toOverride.get(key);
                 original.put(key, deepMerge(originalChild, newChild));
             } else {
                 original.put(key, toOverride.get(key));
@@ -533,4 +438,5 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         }
         return original;
     }
+
 }

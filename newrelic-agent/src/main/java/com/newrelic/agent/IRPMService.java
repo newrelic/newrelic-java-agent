@@ -15,7 +15,7 @@ import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.Service;
 import com.newrelic.agent.service.analytics.TransactionEvent;
-import com.newrelic.agent.service.module.Jar;
+import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.trace.TransactionTrace;
@@ -73,10 +73,10 @@ public interface IRPMService extends Service {
      * Sends the meta information about the jars used by the application to the New Relic service.
      * Note that only the jars which have not yet been sent be passed into this method.
      *
-     * @param jarsToSend The jars which have not yet been sent to the New Relic service.
+     * @param jarDataList The jars which have not yet been sent to the New Relic service.
      * @throws Exception Thrown if a problem sending the jars.
      */
-    void sendModules(List<Jar> jarsToSend) throws Exception;
+    void sendModules(List<JarData> jarDataList) throws Exception;
 
     void sendAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<TransactionEvent> events) throws Exception;
 

@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.service;
 
+import com.newrelic.Function;
 import com.newrelic.InfiniteTracing;
 import com.newrelic.InfiniteTracingConfig;
 import com.newrelic.agent.Agent;
@@ -56,8 +57,15 @@ import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.module.JarAnalystFactory;
+import com.newrelic.agent.service.module.JarCollectorConnectionListener;
+import com.newrelic.agent.service.module.JarCollectorHarvestListener;
+import com.newrelic.agent.service.module.JarCollectorInputs;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.service.module.JarCollectorServiceImpl;
+import com.newrelic.agent.service.module.JarCollectorServiceProcessor;
+import com.newrelic.agent.service.module.JarData;
+import com.newrelic.agent.service.module.TrackedAddSet;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.stats.StatsEngine;
@@ -67,16 +75,22 @@ import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.utilization.UtilizationService;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Service Manager implementation
@@ -146,8 +160,33 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         circuitBreakerService = new CircuitBreakerService();
         classTransformerService = new ClassTransformerServiceImpl(coreService.getInstrumentation());
         jmxService = new JmxService();
-        extensionService = new ExtensionService(configService);
-        jarCollectorService = new JarCollectorServiceImpl();
+
+        Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
+        boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
+        AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
+        TrackedAddSet<JarData> analyzedJars = new TrackedAddSet<>();
+
+        Function<URL, JarData> processor = new JarCollectorServiceProcessor(jarCollectorLogger, configService.getDefaultAgentConfig());
+        JarAnalystFactory jarAnalystFactory = new JarAnalystFactory(processor, analyzedJars, jarCollectorLogger);
+        ExecutorService executorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory("New Relic Jar Analysis Thread", true));
+
+        JarCollectorInputs jarCollectorInputs = JarCollectorInputs.build(jarCollectorEnabled, jarAnalystFactory, executorService, jarCollectorLogger);
+
+        jarCollectorService = new JarCollectorServiceImpl(
+                jarCollectorLogger, jarCollectorEnabled, shouldSendAllJars, analyzedJars, jarCollectorInputs.getClassNoticingFactory()
+        );
+
+        extensionService = new ExtensionService(configService, jarCollectorInputs.getExtensionAnalysisProducer());
+
+        String defaultAppName = configService.getDefaultAgentConfig().getApplicationName();
+        JarCollectorConnectionListener jarCollectorConnectionListener = new JarCollectorConnectionListener(
+                defaultAppName, shouldSendAllJars
+        );
+
+        JarCollectorHarvestListener jarCollectorHarvestListener = new JarCollectorHarvestListener(
+                defaultAppName, jarCollectorService
+        );
+
         sourceLanguageService = new SourceLanguageService();
         expirationService = new ExpirationService();
 
@@ -160,8 +199,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         /*
          * Before this point the ClassTransformer is not initialized, so be careful not to load classes that should be
-         * instrumented. In particular, an ExecutorService should not be created because it causes the classes
-         * instrumented by ConcurrentCallablePointCut to be loaded prematurely.
+         * instrumented.
          */
         cacheService = new CacheService();
         extensionService.start();
@@ -184,13 +222,14 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         InfiniteTracing infiniteTracing = buildInfiniteTracing(configService);
         InfiniteTracingEnabledCheck infiniteTracingEnabledCheck = new InfiniteTracingEnabledCheck(configService);
         SpanEventCreationDecider spanEventCreationDecider = new SpanEventCreationDecider(configService);
-        AgentConnectionEstablishedListener agentConnectionEstablishedListener = new UpdateInfiniteTracingAfterConnect(infiniteTracingEnabledCheck, infiniteTracing);
+        AgentConnectionEstablishedListener agentConnectionEstablishedListener = new UpdateInfiniteTracingAfterConnect(infiniteTracingEnabledCheck,
+                infiniteTracing);
 
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
 
-        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener);
+        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener);
         normalizationService = new NormalizationServiceImpl();
         harvestService = new HarvestServiceImpl();
         gcService = realAgent ? new GCService() : new NoopService("GC Service");
@@ -219,6 +258,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         // Register harvest listeners that started before harvest service was created.
         harvestService.addHarvestListener(extensionService);
+        harvestService.addHarvestListener(jarCollectorHarvestListener);
 
         asyncTxService.start();
         threadService.start();

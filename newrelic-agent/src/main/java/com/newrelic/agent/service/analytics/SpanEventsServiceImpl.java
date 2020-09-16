@@ -125,7 +125,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             ServiceFactory.getStatsService().doStatsWork(new StatsWork() {
                 @Override
                 public void doWork(StatsEngine statsEngine) {
-                    recordSupportabilityMetrics(statsEngine, durationInNanos, result.seen, result.sent);
+                    recordSupportabilityMetrics(statsEngine, durationInNanos, result.sent, result.seen);
                 }
 
                 @Override
