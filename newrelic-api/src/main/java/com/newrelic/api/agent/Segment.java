@@ -7,6 +7,8 @@
 
 package com.newrelic.api.agent;
 
+import java.util.Map;
+
 /**
  * <p>
  * Represents a timed unit of work. Like a {@link TracedMethod}, reports a single metric,
@@ -92,4 +94,33 @@ public interface Segment {
      * @since 5.4.0
      */
     void endAsync();
+
+    /**
+     * Adds/Replaces a numerical attribute on the current segment.
+     *
+     * @since 6.1.0
+     */
+    void addCustomAttribute(String key, Number value); //
+    //
+    /**
+     * Adds/Replaces a string attribute on the current segment.
+     *
+     * @since 6.1.0
+     */
+    void addCustomAttribute(String key, String value);
+
+    /**
+     * Adds/Replaces a boolean attribute on the current segment.
+     *
+     * @since 6.1.0
+     */
+    void addCustomAttribute(String key, boolean value);
+
+    /**
+     * Adds/Replaces key/value pairs on the current segment.
+     *
+     * @since 6.1.0
+     */
+    void addCustomAttributes(Map<String, Object> attributes);
+
 }

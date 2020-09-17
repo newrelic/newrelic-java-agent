@@ -7,16 +7,15 @@
 
 package com.newrelic.agent;
 
-import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
 import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
-import com.newrelic.api.agent.DistributedTracePayload;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.Transaction;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Segment implements com.newrelic.agent.bridge.TracedActivity {
@@ -149,6 +148,34 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity {
         finish(null, true);
     }
 
+    @Override
+    public void addCustomAttribute(String key, Number value) {
+        if (underlyingTracer != null) {
+            underlyingTracer.addCustomAttribute(key, value);
+        }
+    }
+
+    @Override
+    public void addCustomAttribute(String key, String value) {
+        if (underlyingTracer != null) {
+            underlyingTracer.addCustomAttribute(key, value);
+        }
+    }
+
+    @Override
+    public void addCustomAttribute(String key, boolean value) {
+        if (underlyingTracer != null) {
+            underlyingTracer.addCustomAttribute(key, value);
+        }
+    }
+
+    @Override
+    public void addCustomAttributes(Map<String, Object> attributes) {
+        if (underlyingTracer != null) {
+            underlyingTracer.addCustomAttributes(attributes);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -169,7 +196,9 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity {
                 Runnable expireSegmentRunnable = new Runnable() {
                     @Override
                     public void run() {
-                        tracer.getTransactionActivity().getTransaction().finishSegment(segment, t, parent, endThreadName);
+                        tracer.getTransactionActivity()
+                                .getTransaction()
+                                .finishSegment(segment, t, parent, endThreadName);
 
                         // Remove references to underlying and parent tracer to prevent GC issues
                         underlyingTracer = null;
@@ -195,7 +224,8 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity {
     public void setTruncated() {
         Tracer tracer = underlyingTracer;
         if (tracer != null) {
-            tracer.setMetricNameFormatInfo(tracer.getMetricName(), "Truncated/" + tracer.getMetricName(), tracer.getTransactionSegmentUri());
+            tracer.setMetricNameFormatInfo(tracer.getMetricName(), "Truncated/" + tracer.getMetricName(),
+                    tracer.getTransactionSegmentUri());
         }
     }
 
