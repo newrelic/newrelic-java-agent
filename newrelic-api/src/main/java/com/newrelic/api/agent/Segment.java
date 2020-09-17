@@ -7,7 +7,6 @@
 
 package com.newrelic.api.agent;
 
-import java.util.Map;
 
 /**
  * <p>
@@ -25,7 +24,7 @@ import java.util.Map;
  * A {@link Segment} will show up in the Transaction Breakdown table, as well as the Transaction Trace page in APM.
  * </p>
  */
-public interface Segment {
+public interface Segment extends AttributeCarrying {
 
     /**
      * Sets the metric name by concatenating all given metricNameParts with a '/' separating each part.
@@ -95,32 +94,5 @@ public interface Segment {
      */
     void endAsync();
 
-    /**
-     * Adds/Replaces a numerical attribute on the current segment.
-     *
-     * @since 6.1.0
-     */
-    void addCustomAttribute(String key, Number value); //
-    //
-    /**
-     * Adds/Replaces a string attribute on the current segment.
-     *
-     * @since 6.1.0
-     */
-    void addCustomAttribute(String key, String value);
-
-    /**
-     * Adds/Replaces a boolean attribute on the current segment.
-     *
-     * @since 6.1.0
-     */
-    void addCustomAttribute(String key, boolean value);
-
-    /**
-     * Adds/Replaces key/value pairs on the current segment.
-     *
-     * @since 6.1.0
-     */
-    void addCustomAttributes(Map<String, Object> attributes);
 
 }

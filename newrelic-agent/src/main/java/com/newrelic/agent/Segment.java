@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.api.agent.AttributeCarrying;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.Transaction;
@@ -18,7 +19,7 @@ import com.newrelic.api.agent.Transaction;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Segment implements com.newrelic.agent.bridge.TracedActivity {
+public class Segment implements com.newrelic.agent.bridge.TracedActivity, AttributeCarrying {
     private volatile Tracer underlyingTracer;
     private volatile Tracer parent;
     private volatile WeakRefTransaction weakRefTransaction;
