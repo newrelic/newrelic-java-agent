@@ -25,7 +25,7 @@ public class LinkingMetadataRegistration {
             Object bean = new LinkingMetadata();
             server.registerMBean(bean, name);
             logger.log(Level.INFO, "JMX LinkingMetadata bean registered");
-        } catch (Exception e) {
+        } catch (Exception | NoClassDefFoundError e) {
             logger.log(Level.INFO, "Error registering JMX LinkingMetadata MBean", e);
         }
     }
