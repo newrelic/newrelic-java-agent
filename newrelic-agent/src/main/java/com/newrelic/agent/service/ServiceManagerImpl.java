@@ -164,7 +164,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         AgentConfig config = configService.getDefaultAgentConfig();
         JmxConfig jmxConfig = config.getJmxConfig();
-        jmxService = new JmxService(jmxConfig.isEnabled());
+        jmxService = new JmxService(jmxConfig);
 
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
         boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
