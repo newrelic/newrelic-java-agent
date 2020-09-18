@@ -16,7 +16,6 @@ import com.newrelic.agent.config.JarResource;
 import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
-import com.newrelic.agent.jmx.LinkingMetadataRegistration;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.ServiceFactory;
@@ -167,8 +166,6 @@ public final class Agent {
 
             logAnyFilesFoundInEndorsedDirs();
 
-            registerAgentMBeans();
-
             if (serviceManager.getConfigService().getDefaultAgentConfig().isStartupTimingEnabled()) {
                 recordPremainTime(serviceManager.getStatsService(), startTime);
             }
@@ -199,11 +196,6 @@ public final class Agent {
             t.printStackTrace();
             System.exit(1);
         }
-    }
-
-    private static void registerAgentMBeans() {
-        // This registers the mbean that exposes linking metadata
-        new LinkingMetadataRegistration(LOG).registerLinkingMetadata();
     }
 
     private static boolean tryToInitializeServiceManager(Instrumentation inst) {

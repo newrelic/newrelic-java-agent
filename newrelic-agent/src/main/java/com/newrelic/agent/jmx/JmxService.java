@@ -92,6 +92,7 @@ public class JmxService extends AbstractService implements HarvestListener {
     @Override
     protected void doStart() {
         if (enabled) {
+            registerAgentMBeans();
             jmxMetricFactory.getStartUpJmxObjects(jmxGets, jmxInvokes);
             if (jmxGets.size() > 0) {
                 ServiceFactory.getHarvestService().addHarvestListener(this);
@@ -413,6 +414,11 @@ public class JmxService extends AbstractService implements HarvestListener {
         for (Extension newExtension : extensions) {
             jmxMetricFactory.addExtension(newExtension, jmxGets);
         }
+    }
+
+    private void registerAgentMBeans() {
+        // This registers the mbean that exposes linking metadata
+        new LinkingMetadataRegistration(Agent.LOG).registerLinkingMetadata();
     }
 
     /*
