@@ -15,6 +15,7 @@ import com.newrelic.agent.commands.CommandParser;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.JmxConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.environment.EnvironmentService;
@@ -140,7 +141,8 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         commandParser = new CommandParser();
         remoteInstrumentationService = Mockito.mock(RemoteInstrumentationService.class);
         classTransformerService = Mockito.mock(ClassTransformerService.class);
-        jmxService = new JmxService(true);
+        JmxConfig jmxConfig = this.configService.getDefaultAgentConfig().getJmxConfig();
+        jmxService = new JmxService(jmxConfig);
         circuitBreakerService = new CircuitBreakerService();
         spanEventsService = Mockito.mock(SpanEventsService.class);
         insights = Mockito.mock(InsightsServiceImpl.class);
