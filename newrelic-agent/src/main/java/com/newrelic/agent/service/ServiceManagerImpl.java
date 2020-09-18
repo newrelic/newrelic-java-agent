@@ -27,7 +27,9 @@ import com.newrelic.agent.browser.BrowserServiceImpl;
 import com.newrelic.agent.cache.CacheService;
 import com.newrelic.agent.circuitbreaker.CircuitBreakerService;
 import com.newrelic.agent.commands.CommandParser;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.JmxConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.deadlock.DeadlockDetectorService;
@@ -159,7 +161,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         threadService = new ThreadService();
         circuitBreakerService = new CircuitBreakerService();
         classTransformerService = new ClassTransformerServiceImpl(coreService.getInstrumentation());
-        jmxService = new JmxService();
+
+        AgentConfig config = configService.getDefaultAgentConfig();
+        JmxConfig jmxConfig = config.getJmxConfig();
+        jmxService = new JmxService(jmxConfig.isEnabled());
 
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
         boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();

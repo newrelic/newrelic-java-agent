@@ -10,8 +10,6 @@ package com.newrelic.agent.jmx;
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.HarvestListener;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.JmxConfig;
 import com.newrelic.agent.extension.Extension;
 import com.newrelic.agent.jmx.create.JmxGet;
 import com.newrelic.agent.jmx.create.JmxInvoke;
@@ -20,7 +18,6 @@ import com.newrelic.agent.jmx.metrics.JmxFrameworkValues;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
-
 
 import javax.management.Attribute;
 import javax.management.AttributeNotFoundException;
@@ -76,11 +73,9 @@ public class JmxService extends AbstractService implements HarvestListener {
      */
     private final Set<MBeanServer> toRemoveMBeanServers = new CopyOnWriteArraySet<>();
 
-    public JmxService() {
+    public JmxService(boolean enabled) {
         super(JmxService.class.getSimpleName());
-        AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        JmxConfig jmxConfig = config.getJmxConfig();
-        enabled = jmxConfig.isEnabled();
+        this.enabled = enabled;
         jmxMetricFactory = JmxObjectFactory.createJmxFactory();
     }
 

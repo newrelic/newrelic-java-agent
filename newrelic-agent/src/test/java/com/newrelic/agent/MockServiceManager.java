@@ -124,8 +124,6 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         Mockito.when(statsService.getMetricAggregator()).thenReturn(metricAggregator);
         harvestService = Mockito.mock(HarvestService.class);
         sqlTraceService = Mockito.mock(SqlTraceService.class);
-        // browserService;
-        // cacheService;
         dbService = new DatabaseService();
         extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         jarCollectorService = Mockito.mock(JarCollectorService.class);
@@ -142,7 +140,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         commandParser = new CommandParser();
         remoteInstrumentationService = Mockito.mock(RemoteInstrumentationService.class);
         classTransformerService = Mockito.mock(ClassTransformerService.class);
-        jmxService = new JmxService();
+        jmxService = new JmxService(true);
         circuitBreakerService = new CircuitBreakerService();
         spanEventsService = Mockito.mock(SpanEventsService.class);
         insights = Mockito.mock(InsightsServiceImpl.class);
