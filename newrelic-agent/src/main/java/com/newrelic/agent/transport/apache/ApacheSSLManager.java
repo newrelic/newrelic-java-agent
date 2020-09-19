@@ -19,11 +19,14 @@ import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
@@ -52,17 +55,46 @@ public class ApacheSSLManager {
         if (nrCertUrl != null) {
             try (InputStream is = nrCertUrl.openStream()) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                Certificate cert = cf.generateCertificate(is);
-                keystore.load(null, null);
-                keystore.setCertificateEntry("newrelic", cert);
-                Agent.LOG.log(Level.FINEST, "Installed New Relic ssl certificate at alias: newrelic");
+                X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
+                boolean sslCertIsValid = isSslCertValid(cert);
+                if (sslCertIsValid) {
+                    logIfExpiringSoon(cert.getNotAfter());
+                    // Initialize keystore and add valid New Relic certificate
+                    keystore.load(null, null);
+                    keystore.setCertificateEntry("newrelic", cert);
+                    Agent.LOG.log(Level.FINEST, "Installed New Relic ssl certificate at alias: newrelic. ");
+                    Agent.LOG.log(Level.FINEST, "SSL Certificate expires on: {0}", cert.getNotAfter());
+                }
             } catch (IOException e) {
-                Agent.LOG.log(Level.INFO, "Unable to add New Relic ssl certificate.", e);
+                Agent.LOG.log(Level.INFO, "Unable to add bundled New Relic ssl certificate.", e);
             }
         } else {
-            Agent.LOG.log(Level.INFO, "Unable to add New Relic ssl certificate.");
+            Agent.LOG.log(Level.INFO, "Unable to find bundled New Relic ssl certificate.");
         }
         sslContextBuilder.loadTrustMaterial(keystore, null);
+    }
+
+    private static void logIfExpiringSoon(Date expiry) {
+        // log if less than 3 months left until certificate expires
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, +3);
+        if (cal.getTime().compareTo(expiry) > 0) {
+            Agent.LOG.log(Level.WARNING, "New Relic ssl certificate expire on {0}.\n" +
+                    "Applications using a custom Trustore may need to update the agent " +
+                    "or provide a valid certificate using the ca_bundle_path config", expiry);
+        }
+    }
+
+    private static boolean isSslCertValid(X509Certificate cert) {
+        try {
+            cert.checkValidity();
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+            Agent.LOG.log(Level.WARNING, "New Relic ssl certificate has expired.\n" +
+                    "Applications using a custom Trustore may need to update the agent " +
+                    "or provide a valid certificate using the ca_bundle_path config", e);
+            return false;
+        }
+        return true;
     }
 
     private static KeyStore getKeyStore(String caBundlePath)
