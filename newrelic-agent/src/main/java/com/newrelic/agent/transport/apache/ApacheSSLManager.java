@@ -33,6 +33,7 @@ import java.util.logging.Level;
 public class ApacheSSLManager {
     private static final String NEW_RELIC_CERT = "META-INF/newrelic-com.pem";
 
+
     public static SSLContext createSSLContext(String caBundlePath) {
         SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
         try {

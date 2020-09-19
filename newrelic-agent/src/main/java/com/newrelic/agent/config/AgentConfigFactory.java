@@ -157,9 +157,8 @@ public class AgentConfigFactory {
         agentData.remove(COLLECT_SLOW_QUERIES_FROM);
         Object serverRecordSql = agentData.remove(RECORD_SQL);
 
-        // handle high security - ssl needs to stay off and record_sql must stay as obfuscated or off
+        // handle high security - record_sql must stay as obfuscated or off
         if (isHighSecurity(settingsConfig.getProperty(AgentConfigImpl.HIGH_SECURITY))) {
-            agentData.remove(AgentConfigImpl.IS_SSL);
             // check record sql
             if (isValidRecordSqlValue(serverRecordSql)) {
                 addServerProp(RECORD_SQL, serverRecordSql, settings);

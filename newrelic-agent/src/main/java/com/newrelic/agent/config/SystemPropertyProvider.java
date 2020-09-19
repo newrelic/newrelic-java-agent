@@ -24,7 +24,6 @@ public class SystemPropertyProvider {
     private static final String LOG_FILE_NAME = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.LOG_FILE_NAME;
     private static final String NEW_RELIC_SYSTEM_PROPERTY_ROOT = "newrelic.";
 
-
     private final Map<String, String> envVars;
     private final Map<String, String> envVarToSystemPropKeyMap;
     private final Map<String, String> newRelicSystemProps;
@@ -85,7 +84,8 @@ public class SystemPropertyProvider {
         addNewRelicSystemProperties(nrProps, systemProps.getAllSystemProperties());
         return Collections.unmodifiableMap(nrProps);
     }
-    private Map<String, Object> createNewRelicEnvVarsWithoutPrefix(){
+
+    private Map<String, Object> createNewRelicEnvVarsWithoutPrefix() {
         Map<String, Object> nrEnv = new HashMap<>();
         addNewRelicEnvProperties(nrEnv, environmentFacade.getAllEnvProperties());
         return Collections.unmodifiableMap(nrEnv);
@@ -110,12 +110,15 @@ public class SystemPropertyProvider {
                 } else {
                     addPropertyWithoutEnvPrefix(nrProps, envVar.toLowerCase(), entry.getValue());
                 }
-            } else if (envVar.startsWith(AgentConfigImpl.SYSTEM_PROPERTY_ROOT)){
-                //because some newrelic.config properties get passed as environment variables
-                addPropertyWithoutSystemPropRoot(nrProps, envVar, entry.getValue());
+            } else if (envVar.startsWith(AgentConfigImpl.SYSTEM_PROPERTY_ROOT)) {
+                Agent.LOG.log(Level.WARNING,
+                        "The agent only supports environment variable configurations consisting of" +
+                                " alphanumeric characters and underscores. Use {0} instead.",
+                        formatNewRelicEnvVarPrefix(envVar));
             }
         }
     }
+
     private void addPropertyWithoutEnvPrefix(Map<String, Object> nrProps, String key, Object value) {
         nrProps.put(key.substring(NEW_RELIC_PREFIX_ENV.length()), value);
     }
@@ -139,20 +142,21 @@ public class SystemPropertyProvider {
             return val;
         }
         //check if current key needs to be converted from NR config prop to NR env var
-        String removeConfigKey = addNewRelicEnvVarPrefix(key.replace("newrelic.config", "new.relic"));
-        return environmentFacade.getenv(removeConfigKey);
+
+        return environmentFacade.getenv(formatNewRelicEnvVarPrefix(key));
     }
 
-    private String addNewRelicEnvVarPrefix(String key) {
+    private String formatNewRelicEnvVarPrefix(String key) {
         // Replace any dots and dashes with underscores to allow config to be set as environment variables. We are replacing dashes here because
         // our instrumentation modules have dashes in their names and we want to be able to allow those to be disabled via environment variables.
-        return key.replaceAll("[.-]", "_").toUpperCase();
+        return key.replace("newrelic.config", "new.relic")
+                .replaceAll("[.-]", "_")
+                .toUpperCase();
     }
 
     public String getSystemProperty(String prop) {
         return systemProps.getSystemProperty(prop);
     }
-
 
     /**
      * Get a map of the New Relic system properties (any property starting with newrelic.)
