@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 public class ObscuringConfig extends BaseConfig {
 
-    private static final String OBSCURING_CONFIG = "config";
+    public static final String OBSCURING_CONFIG = "config";
     static final String SYSTEM_PROPERTY_ROOT = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + OBSCURING_CONFIG + ".";
     private final ObscuringKeyConfig obscuringKeyConfig;
     private final Map<String, Object> obscureConfigProps;
