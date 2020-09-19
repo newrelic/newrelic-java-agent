@@ -174,8 +174,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         remoteInstrumentationService = new RemoteInstrumentationServiceImpl();
         sourceLanguageService = new SourceLanguageService();
         classTransformerService = new NoOpClassTransformerService();
-        boolean jmxEnabled = configService.getDefaultAgentConfig().getJmxConfig().isEnabled();
-        jmxService = new JmxService(jmxEnabled);
+        jmxService = new JmxService(configService.getDefaultAgentConfig().getJmxConfig());
         attributesService = new AttributesService();
         circuitBreakerService = new CircuitBreakerService();
         AgentConfig agentConfig = createAgentConfig(config, (Map) config.get("distributed_tracing"));

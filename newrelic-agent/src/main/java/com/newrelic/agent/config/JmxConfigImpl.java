@@ -14,7 +14,9 @@ import java.util.Map;
 class JmxConfigImpl extends BaseConfig implements JmxConfig {
 
     public static final String ENABLED = "enabled";
+    public static final String REGISTER_LINKING_METADATA_MBEAN = "linkingMetadataMBean";
     public static final String DISABLED_JMX_FRAMEWORKS = "disabled_jmx_frameworks";
+    public static final boolean DEFAULT_REGISTER_LINKING_METADATA_MBEAN = false;
     public static final Boolean DEFAULT_ENABLED = Boolean.TRUE;
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.jmx.";
 
@@ -44,4 +46,8 @@ class JmxConfigImpl extends BaseConfig implements JmxConfig {
         return disabledJmxFrameworks;
     }
 
+    @Override
+    public boolean registerLinkingMetadataMBean(){
+        return getProperty(REGISTER_LINKING_METADATA_MBEAN, DEFAULT_REGISTER_LINKING_METADATA_MBEAN);
+    }
 }
