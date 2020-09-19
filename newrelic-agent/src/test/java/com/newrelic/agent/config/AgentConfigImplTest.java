@@ -1099,23 +1099,6 @@ public class AgentConfigImplTest {
         assertEquals(sysPropValue, config.getValue(ObscuringConfig.OBSCURING_CONFIG + "." + yamlObscuringKey));
     }
 
-    @Test
-    public void shouldDeobfuscateLicenseKey() {
-        Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
-        obscuringKeyConfigProps.put("obscuring_key", "abc123");
-        Map<String, Object> localMap = new HashMap<>();
-        localMap.put(ObscuringConfig.OBSCURING_CONFIG, obscuringKeyConfigProps);
-
-        ObscuredYamlPropertyWrapper obfuscatedLicenseKey =
-                new ObscuredYamlPropertyWrapper("NBFTAEprV1VbCFNRAgYGVwICU1FXBAQEWVsCU1FXBARTAAAAVVdVBg==");
-        localMap.put(AgentConfigImpl.LICENSE_KEY, obfuscatedLicenseKey);
-
-        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
-
-        String expectedDeobfuscatedKey = "Us01xX6789abcdef0123456789abcdef01234567";
-        assertEquals(expectedDeobfuscatedKey, config.getLicenseKey());
-    }
-
     private static class TestConfig extends BaseConfig {
         TestConfig() {
             super(Collections.<String, Object>emptyMap());
