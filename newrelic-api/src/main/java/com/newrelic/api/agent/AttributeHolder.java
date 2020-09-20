@@ -3,14 +3,14 @@ package com.newrelic.api.agent;
 import java.util.Map;
 
 
-public interface AttributeCarrying {
+public interface AttributeHolder {
 
     /**
      * Adds/Replaces a numerical attribute on the current tracer.
      *
      * @since 6.1.0
      */
-    void addCustomAttribute(String key, Number value); //
+    void addCustomAttribute(String key, Number value);
 
     /**
      * Adds/Replaces a string attribute on the current tracer.

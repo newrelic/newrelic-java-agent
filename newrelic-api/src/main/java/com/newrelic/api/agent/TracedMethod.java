@@ -7,15 +7,13 @@
 
 package com.newrelic.api.agent;
 
-import java.util.Map;
-
 /**
  * Represents a single instance of the timing mechanism associated with a method that is instrumented using the
  * {@link Trace} annotation.
  * 
  * @see Agent#getTracedMethod()
  */
-public interface TracedMethod extends AttributeCarrying {
+public interface TracedMethod extends AttributeHolder {
 
     /**
      * Returns the traced method metric name.

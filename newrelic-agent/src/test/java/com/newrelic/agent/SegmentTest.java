@@ -1211,7 +1211,7 @@ public class SegmentTest implements ExtendedTransactionListener {
     }
 
     @Test
-    public void testAddCustomAttributeNoCheckLimit() {
+    public void testSegmentAddCustomAttributeSync() {
         Transaction.clearTransaction();
         Tracer rootTracer = makeTransaction();
         Transaction tx = rootTracer.getTransactionActivity().getTransaction();
@@ -1231,6 +1231,42 @@ public class SegmentTest implements ExtendedTransactionListener {
         assertEquals(400, segment.getTracer().getCustomAttributes().get("numBeans"));
         assertTrue((Boolean) segment.getTracer().getCustomAttributes().get("sausage"));
         assertTrue((Boolean) segment.getTracer().getCustomAttributes().get("hotSauce"));
+    }
+
+    @Test
+    public void testSegmentAddCustomAttributeAsync() throws InterruptedException {
+        Tracer root = makeTransaction();
+        final Transaction txn = root.getTransactionActivity().getTransaction();
+        final Segment segment = txn.startSegment("custom", "Segment Name");
+        final AtomicReference<Tracer> segmentTracerRef = new AtomicReference<>();
+
+        Thread finishThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                segment.addCustomAttribute("redbeans", "rice");
+                segment.addCustomAttribute("numBeans", 400);
+                segment.addCustomAttribute("sausage", true);
+                segment.addCustomAttribute(null, "Keys cant be null");
+                Map<String, Object> extras = new HashMap<>();
+                extras.put("pickles", null);
+                extras.put("hotSauce", true);
+                segment.addCustomAttributes(extras);
+
+                Thread.currentThread().setName("Second Thread");
+                segmentTracerRef.set(segment.getTracer());
+                segment.end();
+            }
+        });
+
+        finishThread.start();
+        finishThread.join();
+        Tracer tracer = segmentTracerRef.get();
+        assertEquals(4, tracer.getCustomAttributes().size());
+        assertEquals("rice", tracer.getCustomAttributes().get("redbeans"));
+        assertEquals(400, tracer.getCustomAttributes().get("numBeans"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("sausage"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("hotSauce"));
     }
 
     private SpanEvent findSpanByName(List<SpanEvent> spanEvents, String spanName) {

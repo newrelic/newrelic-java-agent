@@ -24,7 +24,7 @@ package com.newrelic.api.agent;
  * A {@link Segment} will show up in the Transaction Breakdown table, as well as the Transaction Trace page in APM.
  * </p>
  */
-public interface Segment extends AttributeCarrying {
+public interface Segment extends AttributeHolder {
 
     /**
      * Sets the metric name by concatenating all given metricNameParts with a '/' separating each part.
