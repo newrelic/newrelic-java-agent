@@ -11,18 +11,9 @@ import com.newrelic.agent.Mocks;
 import org.junit.After;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /* (non-javadoc)
  * Note: the "beacon" was a predecessor technology for correlated transaction traces with the browser. 
@@ -1077,26 +1068,6 @@ public class AgentConfigImplTest {
                         + "It was set as a system property. "
                         + "This property is obsolete."
         ));
-    }
-
-    @Test
-    public void checkSystemPropertyObscuringKeyOverridesYamlValue(){
-        Map<String, Object> sysProp = new HashMap<>();
-        String sysPropKey = "config.obscuring_key";
-        String sysPropValue = "key_from_system_property";
-        sysProp.put(sysPropKey, sysPropValue);
-        SystemPropertyProvider provider = Mocks.createSystemPropertyFlattenedProvider(sysProp);
-        SystemPropertyFactory.setSystemPropertyProvider(provider);
-
-        Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
-        String yamlObscuringKey = "obscuring_key";
-        obscuringKeyConfigProps.put(yamlObscuringKey, "key_in_yaml");
-
-        Map<String, Object> localMap = new HashMap<>();
-        localMap.put(ObscuringConfig.OBSCURING_CONFIG, obscuringKeyConfigProps);
-        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
-
-        assertEquals(sysPropValue, config.getValue(ObscuringConfig.OBSCURING_CONFIG + "." + yamlObscuringKey));
     }
 
     private static class TestConfig extends BaseConfig {

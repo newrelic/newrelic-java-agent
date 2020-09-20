@@ -1,6 +1,9 @@
 package com.newrelic.agent.config;
 
 import com.google.common.collect.ImmutableMap;
+import com.newrelic.agent.Mocks;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -12,24 +15,46 @@ import static org.junit.Assert.assertEquals;
 
 public class ObscuringConfigTest {
 
-    private Map<String, Object> obscureConfigProps = new HashMap<>();
-    private Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
+    private Map<String, Object> obscureConfigProps;
+    private Map<String, Object> obscuringKeyConfigProps;
+    private final String yamlObscuringKeyValue = "abc123";
+    private final String sysPropValue = "key_from_sysProps";
+    private final String envPropValue = "key_from_envProps";
+
+    @Before
+    public void setup() {
+        obscureConfigProps = new HashMap<>();
+        obscuringKeyConfigProps = new HashMap<>();
+    }
+
+    @After
+    public void teardown() {
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider());
+    }
 
     @Test
-    public void createsObscureKeyConfigWithExpectedKey() {
-        obscuringKeyConfigProps.put("obscuring_key", "abc123");
-        obscureConfigProps.put("config", obscuringKeyConfigProps);
-        String expectedObscuringKey = "abc123";
+    public void createsObscureKeyConfigWithValuesFromYaml() {
+        ObscuringKeyConfig result = createObscureKeyConfigWithYamlSettings();
+        assertEquals(yamlObscuringKeyValue, result.getObscuringKey());
+    }
 
-        ObscuringConfig target = new ObscuringConfig(obscureConfigProps, "not_applicable");
-        ObscuringKeyConfig result = target.createObscuringKeyConfig();
+    @Test
+    public void checkSystemPropertyObscuringKeyOverridesYaml() {
+        setObscuringKeySystemProperty();
+        ObscuringKeyConfig result = createObscureKeyConfigWithYamlSettings();
+        assertEquals(sysPropValue, result.getObscuringKey());
+    }
 
-        assertEquals(expectedObscuringKey, result.getObscuringKey());
+    @Test
+    public void checkEnvironmentPropertyObscuringKeyOverridesYaml() {
+        setObscuringKeyEnvironmentProperty();
+        ObscuringKeyConfig result = createObscureKeyConfigWithYamlSettings();
+        assertEquals(envPropValue, result.getObscuringKey());
     }
 
     @Test
     public void deobscuresAll() {
-        Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
+//        Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
         obscuringKeyConfigProps.put("obscuring_key", "abc123");
         Map<String, Object> obscuredMap = ImmutableMap.of(
                 "config", obscuringKeyConfigProps,
@@ -44,5 +69,25 @@ public class ObscuringConfigTest {
         assertEquals("value324", deobscuredProperties.get("top_level"));
         assertEquals(Arrays.asList("a", "b", "c"), deobscuredProperties.get("in_list"));
         assertEquals(Collections.singletonMap("state", "Oregon"), deobscuredProperties.get("in_map"));
+    }
+
+    public ObscuringKeyConfig createObscureKeyConfigWithYamlSettings() {
+        obscuringKeyConfigProps.put(ObscuringKeyConfig.OBSCURING_KEY, yamlObscuringKeyValue);
+        obscureConfigProps.put(ObscuringConfig.OBSCURING_CONFIG, obscuringKeyConfigProps);
+        ObscuringConfig target = new ObscuringConfig(obscureConfigProps, "not_applicable");
+        return target.createObscuringKeyConfig();
+    }
+
+    private void setObscuringKeySystemProperty() {
+        Map<String, String> sysProps = new HashMap<>();
+        sysProps.put(ObscuringConfig.SYSTEM_PROPERTY_ROOT + ObscuringKeyConfig.OBSCURING_KEY, sysPropValue);
+        Mocks.createSystemPropertyProvider(sysProps);
+    }
+
+    private void setObscuringKeyEnvironmentProperty() {
+        Map<String, String> sysProps = new HashMap<>();
+        Map<String, String> envProps = new HashMap<>();
+        envProps.put(ObscuringConfig.SYSTEM_PROPERTY_ROOT + ObscuringKeyConfig.OBSCURING_KEY, envPropValue);
+        Mocks.createSystemPropertyProvider(sysProps, envProps);
     }
 }
