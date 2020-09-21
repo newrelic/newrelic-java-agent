@@ -200,6 +200,16 @@ public final class NewRelic {
     }
 
     /**
+     * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
+     *
+     * @param key Custom parameter key.
+     * @param value Custom parameter value. @
+     */
+    public static void addCustomParameter(String key, Boolean value) {
+        AgentBridge.publicApi.addCustomParameter(key, value);
+    }
+
+    /**
      * Add a key/value pairs to the current transaction. These are reported in errors and transaction traces.
      *
      * @param params Custom parameters to include.

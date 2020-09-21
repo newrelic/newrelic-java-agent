@@ -83,6 +83,7 @@ public class AgentAttributeSenderTest {
             impl.addCustomParameter("abc.thread", "1");
             impl.addCustomParameter("request.many", "1");
             impl.addCustomParameter("message.many", "1");
+            impl.addCustomParameter("message.bool", true);
 
             Map<String, Object> customParamMap = new HashMap<>();
             customParamMap.put("key1", "val1");
@@ -92,7 +93,7 @@ public class AgentAttributeSenderTest {
             customParamMap.put("key5", null);
             impl.addCustomParameters(customParamMap);
 
-            Set<String> expected = Sets.newHashSet("abc.thread", "request.many", "message.many", "key1", "key2", "key4");
+            Set<String> expected = Sets.newHashSet("abc.thread", "request.many", "message.many", "key1", "key2", "key4", "message.bool");
 
             verifyOutput(t.getUserAttributes(), expected);
 

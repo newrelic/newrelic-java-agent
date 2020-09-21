@@ -238,6 +238,17 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     /**
+     * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
+     *
+     * @param key
+     * @param value @
+     */
+    @Override
+    public void addCustomParameter(String key, Boolean value) {
+        attributeSender.addAttribute(key, value, "addCustomParameter");
+    }
+
+    /**
      * Add key/value pairs to the current transaction. These are reported in errors and transaction traces.
      *
      * @param params
