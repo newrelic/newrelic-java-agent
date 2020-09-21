@@ -246,7 +246,7 @@ public final class NewRelic {
      * @param value Custom parameter value.
      * @since 6.1.0
      */
-    public static void addCustomParameter(String key, Boolean value) {
+    public static void addCustomParameter(String key, boolean value) {
     }
 
     /**

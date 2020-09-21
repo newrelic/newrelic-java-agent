@@ -65,7 +65,7 @@ class NoOpPublicApi implements PublicApi {
     }
 
     @Override
-    public void addCustomParameter(String key, Boolean value) {
+    public void addCustomParameter(String key, boolean value) {
 
     }
 

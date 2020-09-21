@@ -147,7 +147,7 @@ public interface PublicApi {
      * @param key Custom parameter key.
      * @param value Custom parameter value.
      */
-    void addCustomParameter(String key, Boolean value);
+    void addCustomParameter(String key, boolean value);
 
     /**
      * Add key/value pairs to the current transaction. These are reported in errors and transaction traces.
