@@ -13,16 +13,7 @@ import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -259,10 +250,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static AgentConfig createAgentConfig(Map<String, Object> settings) {
         if (settings == null) {
             settings = Collections.emptyMap();
-        } else {
-            settings = new ObscuringConfig(settings, SYSTEM_PROPERTY_ROOT).getDeobscuredProperties();
         }
-
         return new AgentConfigImpl(settings);
     }
 
