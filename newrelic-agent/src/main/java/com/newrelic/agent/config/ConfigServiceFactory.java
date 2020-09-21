@@ -25,7 +25,9 @@ public class ConfigServiceFactory {
 
     @VisibleForTesting
     public static ConfigService createConfigServiceUsingSettings(Map<String, Object> settings) {
-        return new ConfigServiceImpl(AgentConfigImpl.createAgentConfig(settings), null, settings, false);
+        Map<String, Object> deObfuscatedSettings = new ObscuringConfig(
+                settings, AgentConfigImpl.SYSTEM_PROPERTY_ROOT).getDeobscuredProperties();
+        return new ConfigServiceImpl(AgentConfigImpl.createAgentConfig(deObfuscatedSettings), null, deObfuscatedSettings, false);
     }
 
     public static ConfigService createConfigService(Logger log, boolean checkConfig) throws ConfigurationException, ForceDisconnectException {
