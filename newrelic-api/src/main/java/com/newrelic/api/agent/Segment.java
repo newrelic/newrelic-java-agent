@@ -7,7 +7,6 @@
 
 package com.newrelic.api.agent;
 
-
 /**
  * <p>
  * Represents a timed unit of work. Like a {@link TracedMethod}, reports a single metric,
@@ -93,6 +92,4 @@ public interface Segment extends AttributeHolder {
      * @since 5.4.0
      */
     void endAsync();
-
-
 }

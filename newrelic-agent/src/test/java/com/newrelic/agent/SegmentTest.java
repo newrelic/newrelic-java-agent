@@ -191,7 +191,6 @@ public class SegmentTest implements ExtendedTransactionListener {
         Segment segment = root.getTransactionActivity()
                 .getTransaction()
                 .startSegment(MetricNames.CUSTOM, "Custom Sync Segment");
-        segment.addCustomAttribute("redbeans", "rice");
         Assert.assertNotNull(segment);
         Thread.sleep(1);
 
@@ -1216,6 +1215,7 @@ public class SegmentTest implements ExtendedTransactionListener {
         Tracer rootTracer = makeTransaction();
         Transaction tx = rootTracer.getTransactionActivity().getTransaction();
         Segment segment = tx.startSegment("custom", "segment");
+        Tracer tracer = segment.getTracer();
 
         segment.addCustomAttribute("redbeans", "rice");
         segment.addCustomAttribute("numBeans", 400);
@@ -1225,12 +1225,13 @@ public class SegmentTest implements ExtendedTransactionListener {
         extras.put("pickles", null);
         extras.put("hotSauce", true);
         segment.addCustomAttributes(extras);
+        segment.end();
 
-        assertEquals(4, segment.getTracer().getCustomAttributes().size());
-        assertEquals("rice", segment.getTracer().getCustomAttributes().get("redbeans"));
-        assertEquals(400, segment.getTracer().getCustomAttributes().get("numBeans"));
-        assertTrue((Boolean) segment.getTracer().getCustomAttributes().get("sausage"));
-        assertTrue((Boolean) segment.getTracer().getCustomAttributes().get("hotSauce"));
+        assertEquals(4, tracer.getCustomAttributes().size());
+        assertEquals("rice", tracer.getCustomAttributes().get("redbeans"));
+        assertEquals(400, tracer.getCustomAttributes().get("numBeans"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("sausage"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("hotSauce"));
     }
 
     @Test
