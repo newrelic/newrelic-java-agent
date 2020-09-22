@@ -183,7 +183,7 @@ public final class NewRelic {
      * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
      * 
      * @param key Custom parameter key.
-     * @param value Custom parameter value. @
+     * @param value Custom parameter value.
      */
     public static void addCustomParameter(String key, Number value) {
         AgentBridge.publicApi.addCustomParameter(key, value);
@@ -193,9 +193,19 @@ public final class NewRelic {
      * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
      * 
      * @param key Custom parameter key.
-     * @param value Custom parameter value. @
+     * @param value Custom parameter value.
      */
     public static void addCustomParameter(String key, String value) {
+        AgentBridge.publicApi.addCustomParameter(key, value);
+    }
+
+    /**
+     * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
+     *
+     * @param key Custom parameter key.
+     * @param value Custom parameter value.
+     */
+    public static void addCustomParameter(String key, boolean value) {
         AgentBridge.publicApi.addCustomParameter(key, value);
     }
 

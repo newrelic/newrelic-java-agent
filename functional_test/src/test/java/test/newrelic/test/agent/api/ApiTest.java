@@ -758,6 +758,21 @@ public class ApiTest implements TransactionListener {
     }
 
     @Test
+    public void testAddCustomBoolParameter() {
+        try {
+            runTestAddCustomBoolParameter();
+        } finally {
+            Transaction.clearTransaction();
+        }
+    }
+
+    @Trace(dispatcher = true)
+    private void runTestAddCustomBoolParameter() {
+        NewRelic.addCustomParameter("bool", true);
+        Assert.assertEquals(true, Transaction.getTransaction().getUserAttributes().get("bool"));
+    }
+
+    @Test
     public void testIgnoreApdexNotSet() {
         Transaction tx = Transaction.getTransaction();
         tx.getTransactionActivity().tracerStarted(createDispatcherTracer());
