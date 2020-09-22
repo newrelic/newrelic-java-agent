@@ -403,11 +403,17 @@ public class PathMatcherUtils {
     public static class DirectiveWrapper<T> extends Directive<T> {
 
         private final Directive<T> underlying;
+        private NewRelicRequestContextWrapper previousContext;
 
         public DirectiveWrapper(Tuple<T> ev, Directive<T> underlying) {
             super(ev);
             this.underlying = underlying;
 
+            // Akka-http 10.1.15 creates Directives on different threads
+            // Store the previous directive to link the token in apply()
+            if (nrRequestContext.get() != null) {
+                this.previousContext = nrRequestContext.get();
+            }
             // Remove the current request context since we may be switching threads in this directive
             nrRequestContext.remove();
         }
@@ -419,6 +425,9 @@ public class PathMatcherUtils {
                 @Override
                 public RequestContext apply(RequestContext requestContext) {
                     if (requestContext instanceof NewRelicRequestContextWrapper) {
+                        if (previousContext != null && previousContext.token() != null) {
+                            previousContext.token().link();
+                        }
                         // If we have a New Relic wrapped RequestContext we should set this back into the thread local so we can use it after this directive
                         nrRequestContext.set(((NewRelicRequestContextWrapper)requestContext));
                     }
