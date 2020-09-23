@@ -54,7 +54,6 @@ public class ObscuringConfigTest {
 
     @Test
     public void deobscuresAll() {
-//        Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
         obscuringKeyConfigProps.put("obscuring_key", "abc123");
         Map<String, Object> obscuredMap = ImmutableMap.of(
                 "config", obscuringKeyConfigProps,

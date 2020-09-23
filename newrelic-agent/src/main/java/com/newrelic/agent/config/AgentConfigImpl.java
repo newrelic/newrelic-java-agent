@@ -256,8 +256,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private AgentConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
-
-        licenseKey = getProperty(LICENSE_KEY);
         // transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
         securityPoliciesToken = getProperty(LASP_TOKEN, DEFAULT_SECURITY_POLICIES_TOKEN);
@@ -268,6 +266,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
         debug = Boolean.getBoolean(DEBUG);
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
+        licenseKey = getProperty(LICENSE_KEY);
         host = parseHost(licenseKey);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
