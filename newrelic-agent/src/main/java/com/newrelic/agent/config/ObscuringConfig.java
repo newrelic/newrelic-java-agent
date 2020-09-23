@@ -3,12 +3,10 @@ package com.newrelic.agent.config;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.internal.DeepMapClone;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class ObscuringConfig extends BaseConfig {
 
@@ -40,7 +38,7 @@ public class ObscuringConfig extends BaseConfig {
                 if (obscuringKey != null) {
                     return ((ObscuredYamlPropertyWrapper) input).getValue(obscuringKey);
                 }
-                AgentBridge.getAgent().getLogger().log(Level.WARNING, "Unable to deobfuscate value. Missing a obscuring key");
+                throw new RuntimeException("Unable to deobfuscate value. Missing a obscuring key");
             }
             if (input instanceof Map) {
                 return Maps.transformValues((Map<?, ?>) input, this);
