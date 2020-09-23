@@ -72,6 +72,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class SegmentTest implements ExtendedTransactionListener {
@@ -187,7 +188,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
-        Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Sync Segment");
+        Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Sync Segment");
         Assert.assertNotNull(segment);
         Thread.sleep(1);
 
@@ -199,7 +202,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         root.finish(Opcodes.ARETURN, null);
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
-        assertEquals(2, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(2,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(2, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -216,7 +220,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Async Segment");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Async Segment");
         Assert.assertNotNull(segment);
         Thread t = new Thread() {
             @Override
@@ -243,7 +249,8 @@ public class SegmentTest implements ExtendedTransactionListener {
 
         // assert num children == 2
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
-        assertEquals(2, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(2,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(2, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -336,13 +343,17 @@ public class SegmentTest implements ExtendedTransactionListener {
      */
     @Test
     public void testAsyncWithoutTimeout() throws InterruptedException {
-        final long configTimeoutMillis = ServiceFactory.getConfigService().getDefaultAgentConfig().getValue("traced_activity_timeout", 10 * 60) * 1000;
+        final long configTimeoutMillis =
+                ServiceFactory.getConfigService().getDefaultAgentConfig().getValue("traced_activity_timeout", 10 * 60) *
+                        1000;
         final Tracer root = makeTransaction();
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
         final long startTs = System.currentTimeMillis();
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Async Without Timeout");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Async Without Timeout");
         Assert.assertNotNull(segment);
 
         ServiceFactory.getTransactionService().processQueue();
@@ -353,10 +364,12 @@ public class SegmentTest implements ExtendedTransactionListener {
         // this will almost always be true since the configTimeout is 3 seconds.
         if (durationMs < configTimeoutMillis) {
             // the TA was running less than the timeout when the harvest completed. Should not have been timed out.
-            assertEquals(2, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+            assertEquals(2,
+                    root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         } else {
             // the TA was running more than the timeout when the harvest completed. Could have been timed out correctly.
-            System.err.println("Skipping timeout assert. duration " + durationMs + " exceeds timeout " + configTimeoutMillis);
+            System.err.println(
+                    "Skipping timeout assert. duration " + durationMs + " exceeds timeout " + configTimeoutMillis);
         }
         Assert.assertSame("Segment must be child of root tracer", root,
                 segment.getTracedMethod().getParentTracedMethod());
@@ -409,7 +422,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         assertEquals("Segment name not set properly",
                 "Custom/Unnamed Segment",
                 ((Tracer) tracedMethod.get()).getMetricName());
-        assertEquals(2, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(2,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(2, getNumTracers(root.getTransactionActivity().getTransaction()));
         Assert.assertSame("Segment must be child of root tracer", root,
                 tracedMethod.get().getParentTracedMethod());
@@ -431,7 +445,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
 
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Psuedo Async 1");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Psuedo Async 1");
         Assert.assertNotNull(segment);
         root.finish(Opcodes.ARETURN, null);
         Thread.sleep(1);
@@ -443,7 +459,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         segment.end();
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
-        assertEquals(2, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(2,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(2, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -462,7 +479,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
         Assert.assertNotNull(segment);
         root.finish(Opcodes.ARETURN, null);
         Thread.sleep(1);
@@ -475,7 +494,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         assertEquals("Segment name was not properly set",
                 "activity",
                 ((Tracer) tracedMethod.get()).getTransactionActivity().getAsyncContext());
-        assertEquals(2, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(2,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(2, getNumTracers(root.getTransactionActivity().getTransaction()));
         Assert.assertSame("Segment must be child of root tracer", root,
                 tracedMethod.get().getParentTracedMethod());
@@ -498,7 +518,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Psuedo Async2");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Psuedo Async2");
         Assert.assertNotNull(segment);
         ExitTracer child = AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
                 DefaultTracer.DEFAULT_TRACER_FLAGS);
@@ -514,7 +536,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         root.finish(Opcodes.ARETURN, null);
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
-        assertEquals(2, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(2,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(3, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -527,10 +550,14 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, Segment.UNNAMED_SEGMENT);
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, Segment.UNNAMED_SEGMENT);
         Assert.assertNotNull(segment);
         Thread.sleep(1);
-        final Segment segment2 = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, Segment.UNNAMED_SEGMENT);
+        final Segment segment2 = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, Segment.UNNAMED_SEGMENT);
         root.finish(Opcodes.ARETURN, null);
         Thread.sleep(1);
         assertFalse(root.getTransactionActivity().getTransaction().isFinished());
@@ -549,7 +576,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         Thread.sleep(1);
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
-        assertEquals(3, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(3,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
 
         assertEquals(3, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
@@ -563,7 +591,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         {
-            final Segment segmentUnderRoot = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Under Root");
+            final Segment segmentUnderRoot = root.getTransactionActivity()
+                    .getTransaction()
+                    .startSegment(MetricNames.CUSTOM, "Under Root");
             Assert.assertNotNull(segmentUnderRoot);
             Assert.assertSame("Segment has the wrong parent", root,
                     segmentUnderRoot.getTracedMethod().getParentTracedMethod());
@@ -573,7 +603,9 @@ public class SegmentTest implements ExtendedTransactionListener {
             ExitTracer child1 = AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild1",
                     DefaultTracer.DEFAULT_TRACER_FLAGS);
             {
-                final Segment underChild1 = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Under Child");
+                final Segment underChild1 = root.getTransactionActivity()
+                        .getTransaction()
+                        .startSegment(MetricNames.CUSTOM, "Under Child");
                 Assert.assertNotNull(underChild1);
                 Assert.assertSame("Segment has the wrong parent", child1,
                         underChild1.getTracedMethod().getParentTracedMethod());
@@ -583,7 +615,9 @@ public class SegmentTest implements ExtendedTransactionListener {
                 ExitTracer child2 = AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild2",
                         DefaultTracer.DEFAULT_TRACER_FLAGS);
                 {
-                    final Segment underChild2 = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Under Child 2");
+                    final Segment underChild2 = root.getTransactionActivity()
+                            .getTransaction()
+                            .startSegment(MetricNames.CUSTOM, "Under Child 2");
                     Assert.assertNotNull(underChild2);
                     Assert.assertSame("Segment has the wrong parent", child2,
                             underChild2.getTracedMethod().getParentTracedMethod());
@@ -598,7 +632,8 @@ public class SegmentTest implements ExtendedTransactionListener {
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
         // 4 txas: 1 for each of the 3 segments + 1 tracer
-        assertEquals(4, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(4,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(6, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -607,19 +642,27 @@ public class SegmentTest implements ExtendedTransactionListener {
         Tracer root = makeTransaction();
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
         segment.getTracedMethod().addRollupMetricName("rollupMetric");
         segment.getTracedMethod().addExclusiveRollupMetricName("exclusiveRollupMetric");
         segment.end();
         root.finish(Opcodes.ARETURN, null);
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
 
-        ResponseTimeStats rollupMetric = root.getTransactionActivity().getTransactionStats().getUnscopedStats().getOrCreateResponseTimeStats(
-                "rollupMetric");
+        ResponseTimeStats rollupMetric = root.getTransactionActivity()
+                .getTransactionStats()
+                .getUnscopedStats()
+                .getOrCreateResponseTimeStats(
+                        "rollupMetric");
         assertTrue(rollupMetric.getCallCount() == 1);
 
-        ResponseTimeStats exclusiveRollupMetric = root.getTransactionActivity().getTransactionStats().getUnscopedStats().getOrCreateResponseTimeStats(
-                "exclusiveRollupMetric");
+        ResponseTimeStats exclusiveRollupMetric = root.getTransactionActivity()
+                .getTransactionStats()
+                .getUnscopedStats()
+                .getOrCreateResponseTimeStats(
+                        "exclusiveRollupMetric");
         assertTrue(exclusiveRollupMetric.getCallCount() == 1);
     }
 
@@ -628,7 +671,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Tracer root = makeTransaction();
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
         segment.getTracedMethod().addRollupMetricName("rollupMetric");
 
         Thread finishThread = new Thread(new Runnable() {
@@ -647,12 +692,18 @@ public class SegmentTest implements ExtendedTransactionListener {
         root.finish(Opcodes.ARETURN, null);
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
 
-        ResponseTimeStats rollupMetric = root.getTransactionActivity().getTransactionStats().getUnscopedStats().getOrCreateResponseTimeStats(
-                "rollupMetric");
+        ResponseTimeStats rollupMetric = root.getTransactionActivity()
+                .getTransactionStats()
+                .getUnscopedStats()
+                .getOrCreateResponseTimeStats(
+                        "rollupMetric");
         assertEquals(1, rollupMetric.getCallCount());
 
-        ResponseTimeStats exclusiveRollupMetric = root.getTransactionActivity().getTransactionStats().getUnscopedStats().getOrCreateResponseTimeStats(
-                "rollupMetric2");
+        ResponseTimeStats exclusiveRollupMetric = root.getTransactionActivity()
+                .getTransactionStats()
+                .getUnscopedStats()
+                .getOrCreateResponseTimeStats(
+                        "rollupMetric2");
         assertEquals(1, exclusiveRollupMetric.getCallCount());
     }
 
@@ -662,7 +713,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
 
-        final com.newrelic.agent.bridge.TracedActivity tracedActivity = AgentBridge.getAgent().getTransaction().createAndStartTracedActivity();
+        final com.newrelic.agent.bridge.TracedActivity tracedActivity = AgentBridge.getAgent()
+                .getTransaction()
+                .createAndStartTracedActivity();
         DefaultTracer underlyingTracer = (DefaultTracer) tracedActivity.getTracedMethod();
         Thread.sleep(10);
         tracedActivity.end();
@@ -682,7 +735,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
 
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
         Thread finishThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -716,14 +771,17 @@ public class SegmentTest implements ExtendedTransactionListener {
         root.getTransactionActivity().getTransaction().ignore();
         Thread.sleep(1);
 
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
-        Assert.assertNull(segment);
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
+        assertNull(segment);
         Thread.sleep(1);
         root.finish(Opcodes.ARETURN, null);
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
         //I think reporting a 0 instead of a 1 is fine here
-        assertEquals(0, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(0,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(1, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -736,14 +794,17 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
         Assert.assertNotNull(segment);
         Thread.sleep(1);
         segment.ignoreIfUnfinished();
         root.finish(Opcodes.ARETURN, null);
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
-        assertEquals(1, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(1,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(1, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -757,7 +818,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
         Thread.sleep(1);
-        final Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
         root.finish(Opcodes.ARETURN, null);
         Thread t = new Thread() {
             @Override
@@ -776,7 +839,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         t.join();
 
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
-        assertEquals(1, root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
+        assertEquals(1,
+                root.getTransactionActivity().getTransaction().getCountOfRunningAndFinishedTransactionActivities());
         assertEquals(1, getNumTracers(root.getTransactionActivity().getTransaction()));
     }
 
@@ -786,7 +850,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getTransactionActivity().getTransaction());
 
-        Segment segment = root.getTransactionActivity().getTransaction().startSegment(MetricNames.CUSTOM, "Custom Segment");
+        Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Segment");
         Assert.assertNotNull(segment);
 
         segment.end();
@@ -799,7 +865,7 @@ public class SegmentTest implements ExtendedTransactionListener {
         assertEquals(0, tracers.size());
 
         TransactionActivity segmentTxa = findSegmentTxa(root.getTransactionActivity().getTransaction());
-        Assert.assertNull(segmentTxa.getRootTracer().getAgentAttribute("async_context"));
+        assertNull(segmentTxa.getRootTracer().getAgentAttribute("async_context"));
     }
 
     @Test
@@ -851,7 +917,8 @@ public class SegmentTest implements ExtendedTransactionListener {
         return map;
     }
 
-    private static void createServiceManager(Map<String, Object> map, ExpirationService expirationService) throws Exception {
+    private static void createServiceManager(Map<String, Object> map, ExpirationService expirationService)
+            throws Exception {
         ConfigService configService = ConfigServiceFactory.createConfigServiceUsingSettings(map);
         MockServiceManager serviceManager = new MockServiceManager(configService);
         ServiceFactory.setServiceManager(serviceManager);
@@ -894,8 +961,10 @@ public class SegmentTest implements ExtendedTransactionListener {
         distributedTraceService.connected(null, AgentConfigFactory.createAgentConfig(configMap, null, null));
 
         serviceManager.setDistributedTraceService(distributedTraceService);
-        TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
-        serviceManager.setTransactionEventsService(new TransactionEventsService(transactionDataToDistributedTraceIntrinsics));
+        TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = new TransactionDataToDistributedTraceIntrinsics(
+                distributedTraceService);
+        serviceManager.setTransactionEventsService(
+                new TransactionEventsService(transactionDataToDistributedTraceIntrinsics));
 
         MockRPMServiceManager rpmServiceManager = new MockRPMServiceManager();
         serviceManager.setRPMServiceManager(rpmServiceManager);
@@ -963,11 +1032,11 @@ public class SegmentTest implements ExtendedTransactionListener {
         // Please, please, run the gc
         System.gc();
 
-        Assert.assertNull(seg.getParent());
+        assertNull(seg.getParent());
 
         // Need to find if the underlying txn is still alive.
         com.newrelic.api.agent.Transaction tx = seg.getTransaction();
-        Assert.assertNull("Transaction was not garbage collected", tx);
+        assertNull("Transaction was not garbage collected", tx);
     }
 
     @Test
@@ -1031,9 +1100,9 @@ public class SegmentTest implements ExtendedTransactionListener {
         root.finish(Opcodes.ARETURN, null);
         assertTrue(root.getTransactionActivity().getTransaction().isFinished());
 
-        Assert.assertNull(segmentTracer.getAgentAttribute(Segment.START_THREAD));
-        Assert.assertNull(segmentTracer.getAgentAttribute(Segment.END_THREAD));
-        Assert.assertNull(segmentTracer.getAgentAttribute("async_context"));
+        assertNull(segmentTracer.getAgentAttribute(Segment.START_THREAD));
+        assertNull(segmentTracer.getAgentAttribute(Segment.END_THREAD));
+        assertNull(segmentTracer.getAgentAttribute("async_context"));
     }
 
     @Test(timeout = 30000)
@@ -1138,6 +1207,67 @@ public class SegmentTest implements ExtendedTransactionListener {
 
         assertEquals(rootTracerSpanEvent.getGuid(), segmentSpanEvent.getParentId());
         assertEquals(segmentSpanEvent.getGuid(), secondRootTracerSpanEvent.getParentId());
+    }
+
+    @Test
+    public void testSegmentAddCustomAttributeSync() {
+        Transaction.clearTransaction();
+        Tracer rootTracer = makeTransaction();
+        Transaction tx = rootTracer.getTransactionActivity().getTransaction();
+        Segment segment = tx.startSegment("custom", "segment");
+        Tracer tracer = segment.getTracer();
+
+        segment.addCustomAttribute("redbeans", "rice");
+        segment.addCustomAttribute("numBeans", 400);
+        segment.addCustomAttribute("sausage", true);
+        segment.addCustomAttribute(null, "Keys cant be null");
+        Map<String, Object> extras = new HashMap<>();
+        extras.put("pickles", null);
+        extras.put("hotSauce", true);
+        segment.addCustomAttributes(extras);
+        segment.end();
+
+        assertEquals(4, tracer.getCustomAttributes().size());
+        assertEquals("rice", tracer.getCustomAttributes().get("redbeans"));
+        assertEquals(400, tracer.getCustomAttributes().get("numBeans"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("sausage"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("hotSauce"));
+    }
+
+    @Test
+    public void testSegmentAddCustomAttributeAsync() throws InterruptedException {
+        Tracer root = makeTransaction();
+        final Transaction txn = root.getTransactionActivity().getTransaction();
+        final Segment segment = txn.startSegment("custom", "Segment Name");
+        final AtomicReference<Tracer> segmentTracerRef = new AtomicReference<>();
+
+        Thread finishThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                segment.addCustomAttribute("redbeans", "rice");
+                segment.addCustomAttribute("numBeans", 400);
+                segment.addCustomAttribute("sausage", true);
+                segment.addCustomAttribute(null, "Keys cant be null");
+                Map<String, Object> extras = new HashMap<>();
+                extras.put("pickles", null);
+                extras.put("hotSauce", true);
+                segment.addCustomAttributes(extras);
+
+                Thread.currentThread().setName("Second Thread");
+                segmentTracerRef.set(segment.getTracer());
+                segment.end();
+            }
+        });
+
+        finishThread.start();
+        finishThread.join();
+        Tracer tracer = segmentTracerRef.get();
+        assertEquals(4, tracer.getCustomAttributes().size());
+        assertEquals("rice", tracer.getCustomAttributes().get("redbeans"));
+        assertEquals(400, tracer.getCustomAttributes().get("numBeans"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("sausage"));
+        assertTrue((Boolean) tracer.getCustomAttributes().get("hotSauce"));
     }
 
     private SpanEvent findSpanByName(List<SpanEvent> spanEvents, String spanName) {

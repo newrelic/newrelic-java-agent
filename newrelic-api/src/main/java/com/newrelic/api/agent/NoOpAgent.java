@@ -366,6 +366,22 @@ class NoOpAgent implements Agent {
         @Override
         public void endAsync() {
         }
+
+        @Override
+        public void addCustomAttribute(String key, Number value) {
+        }
+
+        @Override
+        public void addCustomAttribute(String key, String value) {
+        }
+
+        @Override
+        public void addCustomAttribute(String key, boolean value) {
+        }
+
+        @Override
+        public void addCustomAttributes(Map<String, Object> attributes) {
+        }
     };
 
     private static final TraceMetadata TRACE_METADATA = new TraceMetadata() {
