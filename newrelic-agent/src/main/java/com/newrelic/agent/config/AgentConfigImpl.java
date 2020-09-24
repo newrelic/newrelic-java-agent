@@ -13,16 +13,7 @@ import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -256,7 +247,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final Map<String, Object> flattenedProperties;
     private final CommandParserConfig commandParserConfig;
 
-
     public static AgentConfig createAgentConfig(Map<String, Object> settings) {
         if (settings == null) {
             settings = Collections.emptyMap();
@@ -360,10 +350,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
+
     private String initSSLConfig() {
         String caBundlePath = getProperty(CA_BUNDLE_PATH, DEFAULT_CA_BUNDLE_PATH);
-        if ( getProperty(USE_PRIVATE_SSL) != null) {
-            if ( caBundlePath != null) {
+        if (getProperty(USE_PRIVATE_SSL) != null) {
+            if (caBundlePath != null) {
                 Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
             } else {
                 Agent.LOG.log(Level.SEVERE, "use_private_ssl configuration setting has been removed. Please use ca_bundle_path instead.");
@@ -458,7 +449,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /*
-     * This is here just in case someone uses get value to retrieve one of the properties which has been changed do to
+     * This is here just in case someone uses get value to retrieve one of the properties which has been changed due to
      * high security.
      */
     private void checkHighSecurityPropsInFlattened(Map<String, Object> flattenedProps) {
@@ -561,7 +552,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         Map<String, Object> props = nestedProps(CROSS_APPLICATION_TRACER);
         if (prop != null) {
             if (props == null) {
-                props = createMap();
+                props = new HashMap<>();
             }
             props.put(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING, prop);
         }
@@ -918,7 +909,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
                 break;
             }
             if (result instanceof Map) {
-                Map<?, ?> resultMap = (Map<?, ?>)result;
+                Map<?, ?> resultMap = (Map<?, ?>) result;
                 result = resultMap.containsKey(component) ? resultMap.get(component) : null;
             }
         }

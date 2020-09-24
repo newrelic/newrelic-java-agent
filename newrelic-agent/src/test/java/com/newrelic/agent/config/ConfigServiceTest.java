@@ -297,4 +297,25 @@ public class ConfigServiceTest {
         assertFalse("circuitbreaker setting has changed from false; it should not have!", circuitBreakerSetting[0]);
     }
 
+    @Test
+    public void shouldDeobfuscateLicenseKey() throws Exception {
+        Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
+        obscuringKeyConfigProps.put("obscuring_key", "abc123");
+        ObscuredYamlPropertyWrapper obfuscatedLicenseKey =
+                new ObscuredYamlPropertyWrapper("NBFTAEprV1VbCFNRAgYGVwICU1FXBAQEWVsCU1FXBARTAAAAVVdVBg==");
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put(ObscuringConfig.OBSCURING_CONFIG, obscuringKeyConfigProps);
+        configMap.put(AgentConfigImpl.LICENSE_KEY, obfuscatedLicenseKey);
+        configMap.put(AgentConfigImpl.APP_NAME, "Test");
+
+        createServiceManager(configMap);
+        ConfigService configService = ServiceFactory.getConfigService();
+
+        AgentConfig config = configService.getAgentConfig("Test");
+
+        String expectedDeobfuscatedKey = "Us01xX6789abcdef0123456789abcdef01234567";
+        assertEquals(expectedDeobfuscatedKey, config.getLicenseKey());
+    }
+
 }

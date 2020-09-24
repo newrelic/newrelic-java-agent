@@ -12,14 +12,7 @@ import com.newrelic.api.agent.Logger;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -66,10 +59,6 @@ public class BaseConfig implements Config {
 
     public Map<String, Object> getProperties() {
         return props;
-    }
-
-    protected Map<String, Object> createMap() {
-        return new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")

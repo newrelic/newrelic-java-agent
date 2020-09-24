@@ -25,16 +25,19 @@ public class ConfigServiceFactory {
 
     @VisibleForTesting
     public static ConfigService createConfigServiceUsingSettings(Map<String, Object> settings) {
-        return new ConfigServiceImpl(AgentConfigImpl.createAgentConfig(settings), null, settings, false);
+        Map<String, Object> deObfuscatedSettings = new ObscuringConfig(
+                settings, AgentConfigImpl.SYSTEM_PROPERTY_ROOT).getDeobscuredProperties();
+        return new ConfigServiceImpl(AgentConfigImpl.createAgentConfig(deObfuscatedSettings), null, deObfuscatedSettings, false);
     }
 
     public static ConfigService createConfigService(Logger log, boolean checkConfig) throws ConfigurationException, ForceDisconnectException {
         File configFile = getConfigFile(log);
         Map<String, Object> configSettings = getConfigurationFileSettings(configFile, log);
-
-        AgentConfig config = AgentConfigImpl.createAgentConfig(configSettings);
+        Map<String, Object> deObfuscatedSettings = new ObscuringConfig(
+                configSettings, AgentConfigImpl.SYSTEM_PROPERTY_ROOT).getDeobscuredProperties();
+        AgentConfig config = AgentConfigImpl.createAgentConfig(deObfuscatedSettings);
         validateConfig(config);
-        return new ConfigServiceImpl(config, configFile, configSettings, checkConfig);
+        return new ConfigServiceImpl(config, configFile, deObfuscatedSettings, checkConfig);
     }
 
     public static Map<String, Object> getConfigurationFileSettings(File configFile, Logger log) throws ConfigurationException {
