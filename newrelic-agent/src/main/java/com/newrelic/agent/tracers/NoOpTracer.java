@@ -241,6 +241,16 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
+    public void setTrackCallbackRunnable(boolean shouldTrack) {
+
+    }
+
+    @Override
+    public boolean trackCallbackRunnable() {
+        return false;
+    }
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
     }
 

@@ -34,7 +34,9 @@ public class CallbackRunnable_Instrumentation<T> {
 
     public CallbackRunnable_Instrumentation(final ExecutionContext executor, final Function1 onComplete) {
         Transaction transaction = AgentBridge.getAgent().getTransaction(false);
-        if (AgentBridge.activeToken.get() == null && transaction != null) {
+        if (AgentBridge.activeToken.get() == null &&
+                transaction != null &&
+                AgentBridge.getAgent().getTracedMethod().trackCallbackRunnable()) {
             token = transaction.getToken();
         }
     }

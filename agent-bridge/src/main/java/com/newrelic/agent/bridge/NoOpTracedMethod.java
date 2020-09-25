@@ -90,6 +90,16 @@ public final class NoOpTracedMethod implements TracedMethod {
     }
 
     @Override
+    public void setTrackCallbackRunnable(boolean shouldTrack) {
+
+    }
+
+    @Override
+    public boolean trackCallbackRunnable() {
+        return false;
+    }
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
     }
 
