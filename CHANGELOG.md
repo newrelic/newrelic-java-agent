@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 6.1.0 (2020-09-29)
+* Support for Java 15
+* [Ability to add attributes to segments](https://github.com/newrelic/newrelic-java-agent/pull/67)
+* `Newrelic.addCustomParameter()` API [now supports boolean values](https://github.com/newrelic/newrelic-java-agent/pull/70)
+* Installation of [Real Time Java Profiler](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-java-profiling-using-jfr-metrics)
+(which uses Java Flight Recorder data) via a daemon is now configurable in the agent. To enable in your configuration file, set:
+  ```
+    jmx:
+      linkingMetadataMBean: true
+  ```
+* [Fix a config issue](https://github.com/newrelic/newrelic-java-agent/pull/39) where the agent would try to read environment
+variables using system-property syntax. It will now log the correct syntax and ignore the incorrect config
+* [The Java agent now includes the newrelic.com SSL certificate](https://github.com/newrelic/newrelic-java-agent/pull/54).
+In previous agent versions, applications using a custom Truststore would have to provide their certificate or use the
+`use_private_ssl` configuration which was removed in 6.0.0.
+
 ## Version 6.0.0 (2020-08-26)
 * Fix for [asynchronous jar file collection](https://github.com/newrelic/newrelic-java-agent/pull/20).  Collection
 of modules will no longer block the initial first harvest.
