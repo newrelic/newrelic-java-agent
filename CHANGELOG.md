@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
-## Version 6.1.0 (2020-09-29)
+## Version 6.1.0 (2020-09-30)
 * Support for Java 15
 * [Ability to add attributes to segments](https://github.com/newrelic/newrelic-java-agent/pull/67)
 * `Newrelic.addCustomParameter()` API [now supports boolean values](https://github.com/newrelic/newrelic-java-agent/pull/70)
