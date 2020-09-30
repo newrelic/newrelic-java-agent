@@ -11,12 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Support for Java 15
 * [Ability to add attributes to segments](https://github.com/newrelic/newrelic-java-agent/pull/67)
 * `Newrelic.addCustomParameter()` API [now supports boolean values](https://github.com/newrelic/newrelic-java-agent/pull/70)
-* Installation of [Real Time Java Profiler](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-java-profiling-using-jfr-metrics)
-(which uses Java Flight Recorder data) via a daemon is now configurable in the agent. To enable in your configuration file, set:
-  ```
-    jmx:
-      linkingMetadataMBean: true
-  ```
 * [Fix a config issue](https://github.com/newrelic/newrelic-java-agent/pull/39) where the agent would try to read environment
 variables using system-property syntax. It will now log the correct syntax and ignore the incorrect config
 * [The Java agent now includes the newrelic.com SSL certificate](https://github.com/newrelic/newrelic-java-agent/pull/54).
