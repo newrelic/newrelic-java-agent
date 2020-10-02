@@ -76,7 +76,7 @@ public class ResponseObserver implements StreamObserver<V1.RecordStatus> {
     /**
      * Detects if the error received was a connection timeout exception. This can happen if the agent hasn't sent any spans for more than 15 seconds.
      */
-    protected boolean isConnectionTimeoutException(Throwable t) {
+    private boolean isConnectionTimeoutException(Throwable t) {
         return t instanceof StatusRuntimeException
                 && t.getMessage().startsWith("INTERNAL: No error: A GRPC status of OK should have been sent");
     }
