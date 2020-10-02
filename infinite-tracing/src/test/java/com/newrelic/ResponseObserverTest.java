@@ -15,6 +15,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 class ResponseObserverTest {
+
+    AtomicBoolean shouldRecreateCall = new AtomicBoolean();
+
     @Test
     public void shouldIncrementCounterOnNext() {
         MetricAggregator metricAggregator = mock(MetricAggregator.class);
@@ -115,5 +118,18 @@ class ResponseObserverTest {
         verify(disconnectionHandler).terminate();
     }
 
-    AtomicBoolean shouldRecreateCall = new AtomicBoolean();
+    @Test
+    public void testIsConnectionTimeoutException() {
+        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
+        MetricAggregator metricAggregator = mock(MetricAggregator.class);
+
+        ResponseObserver target = new ResponseObserver(
+                metricAggregator,
+                mock(Logger.class),
+                disconnectionHandler, shouldRecreateCall);
+
+        Throwable exception = new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL).withDescription("No error: A GRPC status of OK should have been sent\nRst Stream"));
+        assertTrue(target.isConnectionTimeoutException(exception));
+    }
+
 }
