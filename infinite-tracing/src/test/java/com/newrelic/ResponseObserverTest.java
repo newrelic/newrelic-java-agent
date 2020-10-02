@@ -8,13 +8,18 @@ import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 class ResponseObserverTest {
+
+    AtomicBoolean shouldRecreateCall = new AtomicBoolean();
+
     @Test
     public void shouldIncrementCounterOnNext() {
         MetricAggregator metricAggregator = mock(MetricAggregator.class);
@@ -115,5 +120,56 @@ class ResponseObserverTest {
         verify(disconnectionHandler).terminate();
     }
 
-    AtomicBoolean shouldRecreateCall = new AtomicBoolean();
+    @Test
+    public void testIsConnectionTimeoutException() {
+        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
+        MetricAggregator metricAggregator = mock(MetricAggregator.class);
+        Logger logger = mock(Logger.class);
+
+        ResponseObserver target = new ResponseObserver(
+                metricAggregator,
+                logger,
+                disconnectionHandler, shouldRecreateCall);
+
+        Throwable exception = new StatusRuntimeException(
+                Status.fromCode(Status.Code.INTERNAL).withDescription("No error: A GRPC status of OK should have been sent\nRst Stream"));
+        target.onError(exception);
+
+        verify(logger, never()).log(Level.WARNING, exception, "Encountered gRPC exception");
+    }
+
+    @Test
+    public void testConnectionTimeoutExceptionWrongType() {
+        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
+        MetricAggregator metricAggregator = mock(MetricAggregator.class);
+        Logger logger = mock(Logger.class);
+
+        ResponseObserver target = new ResponseObserver(
+                metricAggregator,
+                logger,
+                disconnectionHandler, shouldRecreateCall);
+
+        Throwable exception = new RuntimeException("No error: A GRPC status of OK should have been sent\nRst Stream");
+        target.onError(exception);
+
+        verify(logger).log(Level.WARNING, exception, "Encountered gRPC exception");
+    }
+
+    @Test
+    public void testConnectionTimeoutExceptionWrongMessage() {
+        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
+        MetricAggregator metricAggregator = mock(MetricAggregator.class);
+        Logger logger = mock(Logger.class);
+
+        ResponseObserver target = new ResponseObserver(
+                metricAggregator,
+                logger,
+                disconnectionHandler, shouldRecreateCall);
+
+        Throwable exception = new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL).withDescription("A REALLY BAD ERROR: PRINT ME"));
+        target.onError(exception);
+
+        verify(logger).log(Level.WARNING, exception, "Encountered gRPC exception");
+    }
+
 }

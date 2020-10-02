@@ -43,7 +43,10 @@ public class ResponseObserver implements StreamObserver<V1.RecordStatus> {
             return;
         }
 
-        logger.log(Level.WARNING, t, "Encountered gRPC exception");
+        if (!isConnectionTimeoutException(t)) {
+            logger.log(Level.WARNING, t, "Encountered gRPC exception");
+        }
+
         metricAggregator.incrementCounter("Supportability/InfiniteTracing/Response/Error");
 
         Status status = null;
@@ -68,6 +71,14 @@ public class ResponseObserver implements StreamObserver<V1.RecordStatus> {
      */
     private boolean isChannelClosing(Throwable t) {
         return t instanceof StatusRuntimeException && t.getCause() instanceof ChannelClosingException;
+    }
+
+    /**
+     * Detects if the error received was a connection timeout exception. This can happen if the agent hasn't sent any spans for more than 15 seconds.
+     */
+    private boolean isConnectionTimeoutException(Throwable t) {
+        return t instanceof StatusRuntimeException
+                && t.getMessage().startsWith("INTERNAL: No error: A GRPC status of OK should have been sent");
     }
 
     /**
