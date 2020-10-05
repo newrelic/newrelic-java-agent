@@ -16,6 +16,7 @@ variables using system-property syntax. It will now log the correct syntax and i
 * [The Java agent now includes the newrelic.com SSL certificate](https://github.com/newrelic/newrelic-java-agent/pull/54).
 In previous agent versions, applications using a custom Truststore would have to provide their certificate or use the
 `use_private_ssl` configuration which was removed in 6.0.0.
+* [Fixed an issue](https://github.com/newrelic/newrelic-java-agent/pull/65) where applications could fail to start due to the agent attempting to access the JMX MBean server before it was initialized.
 
 ## Version 6.0.0 (2020-08-26)
 * Fix for [asynchronous jar file collection](https://github.com/newrelic/newrelic-java-agent/pull/20).  Collection
