@@ -9,6 +9,7 @@ package scala.concurrent.impl;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
@@ -36,6 +37,7 @@ public class CallbackRunnable_Instrumentation<T> {
         Transaction transaction = AgentBridge.getAgent().getTransaction(false);
         if (AgentBridge.activeToken.get() == null &&
                 transaction != null &&
+                NewRelic.getAgent().getConfig().getValue("scala.callbackrunnable.enabled", false) &&
                 AgentBridge.getAgent().getTracedMethod().trackCallbackRunnable()) {
             token = transaction.getToken();
         }
