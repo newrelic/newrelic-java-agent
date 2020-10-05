@@ -47,8 +47,13 @@ public class CallbackRunnable_Instrumentation<T> {
      * Override the setter for "value" so we can replace it with our wrapped version
      */
 
+    @Trace(async = true, excludeFromTransactionTrace = true)
     public void value_$eq(Try<T> original) {
         Weaver.callOriginal();
+        if (token != null) {
+            token.linkAndExpire();
+            token = null;
+        }
         AgentBridge.TokenAndRefCount tokenAndRefCount = AgentBridge.activeToken.get();
         if (tokenAndRefCount == null) {
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
@@ -63,15 +68,11 @@ public class CallbackRunnable_Instrumentation<T> {
         }
     }
 
-    @Trace(async = true, excludeFromTransactionTrace = true)
+    @Trace(excludeFromTransactionTrace = true)
     public void run() {
         Segment segment = null;
         WrappedTry wrapped = null;
         boolean remove = false;
-        if (token != null) {
-            token.linkAndExpire();
-            token = null;
-        }
         if (value instanceof WrappedTry) {
             wrapped = (WrappedTry) value;
             // If we are here and there is no activeToken in progress we are the first one so we set this boolean in
