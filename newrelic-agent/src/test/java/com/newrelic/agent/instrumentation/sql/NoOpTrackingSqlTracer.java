@@ -387,7 +387,7 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     }
 
     @Override
-    public boolean trackCallbackRunnable() {
+    public boolean isTrackCallbackRunnable() {
         return false;
     }
 

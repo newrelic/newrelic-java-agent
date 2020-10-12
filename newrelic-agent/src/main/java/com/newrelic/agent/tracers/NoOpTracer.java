@@ -246,7 +246,7 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
-    public boolean trackCallbackRunnable() {
+    public boolean isTrackCallbackRunnable() {
         return false;
     }
 

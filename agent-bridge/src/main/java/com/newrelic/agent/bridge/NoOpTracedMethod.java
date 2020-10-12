@@ -95,7 +95,7 @@ public final class NoOpTracedMethod implements TracedMethod {
     }
 
     @Override
-    public boolean trackCallbackRunnable() {
+    public boolean isTrackCallbackRunnable() {
         return false;
     }
 

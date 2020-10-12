@@ -238,16 +238,16 @@ public abstract class AbstractTracer implements Tracer {
     }
 
     @Override
-    public boolean trackCallbackRunnable() {
-        if (!this.trackCallBackRunnable) {
-            TracedMethod parent = this.getParentTracedMethod();
-            if (null == parent) {
-                return false;
-            } else {
-                return parent.trackCallbackRunnable();
-            }
+    public boolean isTrackCallbackRunnable() {
+        return this.trackCallBackRunnable || this.isParentTrackCallbackRunnable();
+    }
+
+    private boolean isParentTrackCallbackRunnable() {
+        TracedMethod parent = this.getParentTracedMethod();
+        if (null == parent) {
+            return false;
         }
-        return trackCallBackRunnable;
+        return parent.isTrackCallbackRunnable();
     }
 
     @Override

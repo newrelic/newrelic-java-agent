@@ -80,7 +80,7 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
      */
     public void setTrackCallbackRunnable(boolean shouldTrack);
 
-    public boolean trackCallbackRunnable();
+    public boolean isTrackCallbackRunnable();
 
     /**
      * Do not use. Use

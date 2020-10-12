@@ -111,7 +111,7 @@ public class MockTracer implements ExitTracer {
     }
 
     @Override
-    public boolean trackCallbackRunnable() {
+    public boolean isTrackCallbackRunnable() {
         return false;
     }
 

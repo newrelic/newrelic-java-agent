@@ -38,7 +38,7 @@ public class CallbackRunnable_Instrumentation<T> {
         if (AgentBridge.activeToken.get() == null &&
                 transaction != null &&
                 NewRelic.getAgent().getConfig().getValue("scala.callbackrunnable.enabled", false) &&
-                AgentBridge.getAgent().getTracedMethod().trackCallbackRunnable()) {
+                AgentBridge.getAgent().getTracedMethod().isTrackCallbackRunnable()) {
             token = transaction.getToken();
         }
     }

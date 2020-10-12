@@ -128,7 +128,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
         addUnsupportedMethod(map, new Method("setTrackChildThreads", "(Z)V"));
         addUnsupportedMethod(map, new Method("trackChildThreads", "()Z"));
         addUnsupportedMethod(map, new Method("setTrackCallbackRunnable", "(Z)V"));
-        addUnsupportedMethod(map, new Method("trackCallbackRunnable", "()Z"));
+        addUnsupportedMethod(map, new Method("isTrackCallbackRunnable", "()Z"));
         addUnsupportedMethod(map, new Method("reportAsDatastore",
                 "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"));
         addUnsupportedMethod(map, new Method("addOutboundRequestHeaders",

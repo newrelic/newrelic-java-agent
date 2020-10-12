@@ -81,7 +81,7 @@ public class AbstractTracerTest {
     @Test
     public void testTrackCallbackRunnableDefault() {
         AbstractTracer tracer = createTxnAndTracer();
-        assertFalse(tracer.trackCallbackRunnable());
+        assertFalse(tracer.isTrackCallbackRunnable());
         tracer.finish(Opcodes.RETURN, null);
     }
 
@@ -89,7 +89,7 @@ public class AbstractTracerTest {
     public void testTrackCallbackRunnableTrue() {
         AbstractTracer tracer = createTxnAndTracer();
         tracer.setTrackCallbackRunnable(true);
-        assertTrue(tracer.trackCallbackRunnable());
+        assertTrue(tracer.isTrackCallbackRunnable());
         tracer.finish(Opcodes.RETURN, null);
     }
 
@@ -97,7 +97,7 @@ public class AbstractTracerTest {
     public void testTrackCallbackRunnableFalse() {
         AbstractTracer tracer = createTxnAndTracer();
         tracer.setTrackCallbackRunnable(false);
-        assertFalse(tracer.trackCallbackRunnable());
+        assertFalse(tracer.isTrackCallbackRunnable());
         tracer.finish(Opcodes.RETURN, null);
     }
 
@@ -105,14 +105,14 @@ public class AbstractTracerTest {
     public void testEnabledTrackCallbackRunnableParent() {
         AbstractTracer tracer = createTxnAndTracer();
         tracer.setTrackCallbackRunnable(true);
-        assertTrue(tracer.trackCallbackRunnable());
+        assertTrue(tracer.isTrackCallbackRunnable());
 
         Transaction tx = Transaction.getTransaction();
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
         DefaultTracer kid = new DefaultTracer(tx, sig, this);
         tx.getTransactionActivity().tracerStarted(kid);
 
-        assertTrue(kid.trackCallbackRunnable());
+        assertTrue(kid.isTrackCallbackRunnable());
 
         kid.finish(Opcodes.RETURN, null);
         tracer.finish(Opcodes.RETURN, null);
@@ -122,14 +122,14 @@ public class AbstractTracerTest {
     public void testDisabledTrackCallbackRunnableParent() {
         AbstractTracer tracer = createTxnAndTracer();
         tracer.setTrackCallbackRunnable(false);
-        assertFalse(tracer.trackCallbackRunnable());
+        assertFalse(tracer.isTrackCallbackRunnable());
 
         Transaction tx = Transaction.getTransaction();
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
         DefaultTracer kid = new DefaultTracer(tx, sig, this);
         tx.getTransactionActivity().tracerStarted(kid);
 
-        assertFalse(kid.trackCallbackRunnable());
+        assertFalse(kid.isTrackCallbackRunnable());
 
         kid.finish(Opcodes.RETURN, null);
         tracer.finish(Opcodes.RETURN, null);
