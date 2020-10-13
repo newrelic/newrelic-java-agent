@@ -227,6 +227,16 @@ public class UltraLightTracer implements Tracer {
     }
 
     @Override
+    public void setTrackCallbackRunnable(boolean shouldTrack) {
+
+    }
+
+    @Override
+    public boolean isTrackCallbackRunnable() {
+        return false;
+    }
+
+    @Override
     public String getTransactionSegmentUri() {
         return null;
     }

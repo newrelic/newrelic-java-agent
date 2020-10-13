@@ -79,6 +79,63 @@ public class AbstractTracerTest {
     }
 
     @Test
+    public void testTrackCallbackRunnableDefault() {
+        AbstractTracer tracer = createTxnAndTracer();
+        assertFalse(tracer.isTrackCallbackRunnable());
+        tracer.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
+    public void testTrackCallbackRunnableTrue() {
+        AbstractTracer tracer = createTxnAndTracer();
+        tracer.setTrackCallbackRunnable(true);
+        assertTrue(tracer.isTrackCallbackRunnable());
+        tracer.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
+    public void testTrackCallbackRunnableFalse() {
+        AbstractTracer tracer = createTxnAndTracer();
+        tracer.setTrackCallbackRunnable(false);
+        assertFalse(tracer.isTrackCallbackRunnable());
+        tracer.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
+    public void testEnabledTrackCallbackRunnableParent() {
+        AbstractTracer tracer = createTxnAndTracer();
+        tracer.setTrackCallbackRunnable(true);
+        assertTrue(tracer.isTrackCallbackRunnable());
+
+        Transaction tx = Transaction.getTransaction();
+        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
+        DefaultTracer kid = new DefaultTracer(tx, sig, this);
+        tx.getTransactionActivity().tracerStarted(kid);
+
+        assertTrue(kid.isTrackCallbackRunnable());
+
+        kid.finish(Opcodes.RETURN, null);
+        tracer.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
+    public void testDisabledTrackCallbackRunnableParent() {
+        AbstractTracer tracer = createTxnAndTracer();
+        tracer.setTrackCallbackRunnable(false);
+        assertFalse(tracer.isTrackCallbackRunnable());
+
+        Transaction tx = Transaction.getTransaction();
+        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
+        DefaultTracer kid = new DefaultTracer(tx, sig, this);
+        tx.getTransactionActivity().tracerStarted(kid);
+
+        assertFalse(kid.isTrackCallbackRunnable());
+
+        kid.finish(Opcodes.RETURN, null);
+        tracer.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
     public void testGetParentTracerWithSpan() throws Exception {
         AbstractTracer childTracer = createTxnAndTracer(true, false);
         Tracer parentTracer = childTracer.getParentTracer();
