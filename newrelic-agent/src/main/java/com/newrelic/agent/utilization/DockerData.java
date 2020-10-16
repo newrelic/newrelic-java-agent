@@ -13,7 +13,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.logging.Level;
@@ -35,7 +34,7 @@ public class DockerData {
 
     private static final Pattern DOCKER_NATIVE_DRIVER_WOUT_SYSTEMD = Pattern.compile("^/.*/([0-9a-f]+)$");
     private static final Pattern DOCKER_GENERIC_DRIVER = Pattern.compile("^/([0-9a-f]+)$");
-    private static final Pattern DOCKER_NATIVE_DRIVER_W_SYSTEMD = Pattern.compile("^/.*/docker-([0-9a-f]+)\\.scope$");
+    private static final Pattern DOCKER_NATIVE_DRIVER_W_SYSTEMD = Pattern.compile("^/.*/\\w+-([0-9a-f]+)\\.scope$");
 
     public String getDockerContainerId(boolean isLinux) {
         if (isLinux) {
