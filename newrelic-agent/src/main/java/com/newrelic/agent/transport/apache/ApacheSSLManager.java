@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.transport.apache;
 
+import com.google.common.collect.ImmutableList;
 import com.newrelic.agent.Agent;
 import org.apache.http.ssl.SSLContextBuilder;
 
@@ -31,8 +32,9 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 
 public class ApacheSSLManager {
-    private static final String NEW_RELIC_CERT = "META-INF/newrelic-com.pem";
-
+    private static final String NEW_RELIC_CERTS_PATH = "META-INF/certs/";
+    private static final Collection<String> NEW_RELIC_CERTS = ImmutableList.of("newrelic-com.pem",
+            "eu-newrelic-com.pem", "eu01-nr-data-net.pem");
 
     public static SSLContext createSSLContext(String caBundlePath) {
         SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
@@ -50,27 +52,30 @@ public class ApacheSSLManager {
     }
 
     private static void addNewRelicCertToTrustStore(SSLContextBuilder sslContextBuilder)
-            throws KeyStoreException, CertificateException, NoSuchAlgorithmException {
+            throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        URL nrCertUrl = ApacheSSLManager.class.getClassLoader().getResource(NEW_RELIC_CERT);
-        if (nrCertUrl != null) {
-            try (InputStream is = nrCertUrl.openStream()) {
-                CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
-                boolean sslCertIsValid = isSslCertValid(cert);
-                if (sslCertIsValid) {
-                    logIfExpiringSoon(cert.getNotAfter());
-                    // Initialize keystore and add valid New Relic certificate
-                    keystore.load(null, null);
-                    keystore.setCertificateEntry("newrelic", cert);
-                    Agent.LOG.log(Level.FINEST, "Installed New Relic ssl certificate at alias: newrelic. ");
-                    Agent.LOG.log(Level.FINEST, "SSL Certificate expires on: {0}", cert.getNotAfter());
+        // Initialize keystore and add valid New Relic certificate
+        keystore.load(null, null);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        for (String file : NEW_RELIC_CERTS) {
+            URL nrCertUrl = ApacheSSLManager.class.getClassLoader().getResource(NEW_RELIC_CERTS_PATH + file);
+            if (nrCertUrl != null) {
+                try (InputStream is = nrCertUrl.openStream()) {
+                    X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
+                    boolean sslCertIsValid = isSslCertValid(cert);
+                    if (sslCertIsValid) {
+                        logIfExpiringSoon(cert.getNotAfter());
+                        String alias = file.split("\\.pem")[0];
+                        keystore.setCertificateEntry(alias, cert);
+                        Agent.LOG.log(Level.FINEST, "Installed New Relic ssl certificate at alias: " + alias);
+                        Agent.LOG.log(Level.FINEST, "SSL Certificate expires on: {0}", cert.getNotAfter());
+                    }
+                } catch (IOException e) {
+                    Agent.LOG.log(Level.INFO, "Unable to add bundled New Relic ssl certificate.", e);
                 }
-            } catch (IOException e) {
-                Agent.LOG.log(Level.INFO, "Unable to add bundled New Relic ssl certificate.", e);
+            } else {
+                Agent.LOG.log(Level.INFO, "Unable to find bundled New Relic ssl certificate.");
             }
-        } else {
-            Agent.LOG.log(Level.INFO, "Unable to find bundled New Relic ssl certificate.");
         }
         sslContextBuilder.loadTrustMaterial(keystore, null);
     }
