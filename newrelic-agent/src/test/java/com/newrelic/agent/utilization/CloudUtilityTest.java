@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import static org.junit.Assert.assertEquals;
@@ -105,6 +106,19 @@ public class CloudUtilityTest {
 
         when(mockClientCreator.apply(anyInt())).thenReturn(explodingClient);
         when(explodingClient.execute(isA(HttpUriRequest.class))).thenThrow(new SocketTimeoutException("oof"));
+
+        CloudUtility testClass = new CloudUtility(mockClientCreator);
+        String result = testClass.httpGet("https://example.com/some/path", 12, "foo:bar");
+        assertNull(result);
+    }
+
+    @Test
+    public void testSocketExceptionIsHandled() throws Exception {
+        Function<Integer, CloseableHttpClient> mockClientCreator = mock(Function.class);
+        CloseableHttpClient explodingClient = mock(CloseableHttpClient.class);
+
+        when(mockClientCreator.apply(anyInt())).thenReturn(explodingClient);
+        when(explodingClient.execute(isA(HttpUriRequest.class))).thenThrow(new SocketException("oof"));
 
         CloudUtility testClass = new CloudUtility(mockClientCreator);
         String result = testClass.httpGet("https://example.com/some/path", 12, "foo:bar");
