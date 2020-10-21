@@ -78,6 +78,11 @@ public class DockerDataTest {
         line = "2:cpu:/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod917d7891_0d63_11ea_873f_005056993b36.slice/docker-92b21022a0cecd0212c5097aa63ed8248ed832902dbdbb654e6df95e05573646.scope";
         Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
         Assert.assertEquals("92b21022a0cecd0212c5097aa63ed8248ed832902dbdbb654e6df95e05573646", sb.toString());
+
+        sb = new StringBuilder();
+        line = "1:cpu:/system.slice/crio-67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f.scope";
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertEquals("67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f", sb.toString());
     }
 
     @Test
