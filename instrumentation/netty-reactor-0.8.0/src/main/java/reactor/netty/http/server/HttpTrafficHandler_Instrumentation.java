@@ -7,23 +7,22 @@
 
 package reactor.netty.http.server;
 
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import io.netty.channel.ChannelHandlerContext_Instrumentation;
+import com.nr.instrumentation.reactor.netty.TokenLinkingSubscriber;
+import io.netty.channel.ChannelHandlerContext;
+import reactor.core.publisher.Hooks;
+import reactor.core.publisher.Hooks_Instrumentation;
+
+import static com.nr.instrumentation.reactor.netty.TokenLinkingSubscriber.tokenLift;
 
 @Weave(originalName = "reactor.netty.http.server.HttpTrafficHandler")
 class HttpTrafficHandler_Instrumentation {
-
-    @Trace(async = true)
-    public void channelRead(ChannelHandlerContext_Instrumentation ctx, Object msg) {
-        if (ctx.pipeline().reactiveLayerToken == null) {
-            ctx.pipeline().reactiveLayerToken = NewRelic.getAgent().getTransaction().getToken();
-        } else {
-            ctx.pipeline().reactiveLayerToken.link();
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        //TODO: Find a better place for this or add static initializer support for the weaver
+        if (!Hooks_Instrumentation.instrumented.getAndSet(true)) {
+            Hooks.onEachOperator(TokenLinkingSubscriber.class.getName(), tokenLift());
         }
         Weaver.callOriginal();
     }
-
 }
