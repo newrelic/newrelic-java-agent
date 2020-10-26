@@ -11,13 +11,10 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.grpc.GrpcConfig;
 import io.grpc.ClientCall_Instrumentation;
-import io.grpc.Metadata;
-import io.grpc.MethodDescriptor;
 
 @Weave(originalName = "io.grpc.stub.ClientCalls")
 public final class ClientCalls_Instrumentation {

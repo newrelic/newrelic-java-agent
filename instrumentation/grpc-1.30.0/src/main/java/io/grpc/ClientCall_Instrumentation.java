@@ -19,7 +19,6 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.grpc.GrpcConfig;
 import com.nr.agent.instrumentation.grpc.InboundHeadersWrapper;
 import com.nr.agent.instrumentation.grpc.OutboundHeadersWrapper;
-import io.grpc.stub.ClientCalls_Instrumentation;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -76,16 +75,12 @@ public class ClientCall_Instrumentation<ReqT, RespT> {
 
         @NewField
         public Segment segment = null;
-
-        @NewField
-        private Metadata headers = null;
-
         @NewField
         public String authority;
-
         @NewField
         public MethodDescriptor methodDescriptor;
-
+        @NewField
+        private Metadata headers = null;
 
         public void onHeaders(Metadata headers) {
             this.headers = headers;
