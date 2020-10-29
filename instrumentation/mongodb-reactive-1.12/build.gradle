@@ -1,0 +1,39 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.mongodb-reactive-1.12' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.mongodb:mongodb-driver-reactivestreams:1.12.0")
+    
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.2")
+    testImplementation("org.springframework:spring-context:5.1.1.RELEASE")
+    testImplementation("io.projectreactor.netty:reactor-netty:0.8.3.RELEASE")
+    testImplementation("org.springframework:spring-webflux:5.1.1.RELEASE")
+    testImplementation(project(":instrumentation:spring-webclient-5.0"))
+
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileJava.options.bootstrapClasspath = null
+
+verifyInstrumentation {
+    passesOnly 'org.mongodb:mongodb-driver-reactivestreams:[1.12.0-rc0,)'
+
+    fails 'org.mongodb:mongo-java-driver:[3.1.0-rc0,)'
+}
+
+site {
+    title 'MongoDB'
+    type 'Datastore'
+}
