@@ -10,6 +10,7 @@ package io.grpc.stub;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.grpc.GrpcConfig;
@@ -18,15 +19,17 @@ import io.grpc.ClientCall_Instrumentation;
 @Weave(originalName = "io.grpc.stub.ClientCalls")
 public final class ClientCalls_Instrumentation {
 
-    private static <ReqT, RespT> void startCall(ClientCall_Instrumentation<ReqT, RespT> call,
-                                                ClientCall_Instrumentation.Listener<RespT> responseListener,
-                                                boolean streamingResponse) {
+    private static <ReqT, RespT> void startCall(
+            ClientCall_Instrumentation<ReqT, RespT> call,
+            ClientCalls_Instrumentation.StartableListener_Instrumentation<RespT> responseListener) {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("gRPC", "External");
         call.segment = segment;
         Weaver.callOriginal();
-        responseListener.segment = segment;
-        responseListener.authority = call.authority;
-        responseListener.methodDescriptor = call.methodDescriptor;
+    }
+
+    @Weave(type = MatchType.BaseClass, originalName = "io.grpc.stub.ClientCalls$StartableListener")
+    private abstract static class StartableListener_Instrumentation<T> extends ClientCall_Instrumentation.Listener {
+        abstract void onStart();
     }
 
     @Weave(originalName = "io.grpc.stub.ClientCalls$CallToStreamObserverAdapter")
