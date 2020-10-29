@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("io.projectreactor.netty:reactor-netty:0.8.0.RELEASE")
+    implementation("io.projectreactor.ipc:reactor-netty:0.7.0.RELEASE")
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -14,11 +14,15 @@ compileTestJava {
 compileJava.options.bootstrapClasspath = null
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.netty-reactor-0.8.0' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.netty-reactor-0.7.0' }
 }
 
 verifyInstrumentation {
-    passesOnly 'io.projectreactor.netty:reactor-netty:[0.8.0.RELEASE,)'
+    // Capped for the compatibility docs plugin
+    passesOnly 'io.projectreactor.ipc:reactor-netty:[0.7.0.RELEASE,0.7.15.RELEASE]'
+
+    // New Versions 0.8.0+ moved here
+    fails 'io.projectreactor.netty:reactor-netty:[0.8.0.RELEASE,)'
 }
 
 site {
