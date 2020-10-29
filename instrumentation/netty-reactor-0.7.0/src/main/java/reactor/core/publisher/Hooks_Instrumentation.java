@@ -9,8 +9,4 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class Hooks_Instrumentation {
     @NewField
     public static AtomicBoolean instrumented = new AtomicBoolean(false);
-
-//    static {
-//        Hooks.onEachOperator(NRSubscriber.class.getName(), tracingLift());
-//    }
 }

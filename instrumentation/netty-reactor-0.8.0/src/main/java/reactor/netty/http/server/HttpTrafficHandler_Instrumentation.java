@@ -19,7 +19,6 @@ import static com.nr.instrumentation.reactor.netty.TokenLinkingSubscriber.tokenL
 @Weave(originalName = "reactor.netty.http.server.HttpTrafficHandler")
 class HttpTrafficHandler_Instrumentation {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        //TODO: Find a better place for this or add static initializer support for the weaver
         if (!Hooks_Instrumentation.instrumented.getAndSet(true)) {
             Hooks.onEachOperator(TokenLinkingSubscriber.class.getName(), tokenLift());
         }

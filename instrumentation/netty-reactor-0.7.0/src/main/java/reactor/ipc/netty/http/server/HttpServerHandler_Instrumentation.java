@@ -24,7 +24,6 @@ import static io.netty.TokenLinkingSubscriber.tokenLift;
 class HttpServerHandler_Instrumentation {
 
     public void channelRead(ChannelHandlerContext_Instrumentation ctx, Object msg) {
-        //TODO: Find a better place for this or add static initializer support for the weaver
         if (!Hooks_Instrumentation.instrumented.getAndSet(true)) {
             Hooks.onEachOperator(TokenLinkingSubscriber.class.getName(), tokenLift());
         }
