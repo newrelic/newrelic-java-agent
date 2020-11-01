@@ -9,6 +9,7 @@ package com.newrelic.agent.transport.apache;
 
 import com.google.common.collect.ImmutableList;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.config.DataSenderConfig;
 import org.apache.http.ssl.SSLContextBuilder;
 
 import javax.net.ssl.SSLContext;
@@ -36,12 +37,16 @@ public class ApacheSSLManager {
     private static final Collection<String> NEW_RELIC_CERTS = ImmutableList.of("newrelic-com.pem",
             "eu-newrelic-com.pem", "eu01-nr-data-net.pem");
 
-    public static SSLContext createSSLContext(String caBundlePath) {
+    public static SSLContext createSSLContext(DataSenderConfig config) {
         SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
         try {
-            if (caBundlePath != null) {
-                sslContextBuilder.loadTrustMaterial(getKeyStore(caBundlePath), null);
-            } else {
+            if (config.getCaBundlePath() != null) {
+                if (config.getUsePrivateSSL()) {
+                   Agent.LOG.log(Level.FINE, "Ignoring use_private_ssl config." +
+                           " SSL certicates provided by ca_bundle_path.");
+                }
+                sslContextBuilder.loadTrustMaterial(getKeyStore(config.getCaBundlePath()), null);
+            } else if (config.getUsePrivateSSL()){
                 addNewRelicCertToTrustStore(sslContextBuilder);
             }
             return sslContextBuilder.build();
