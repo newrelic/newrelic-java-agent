@@ -19,9 +19,10 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 
-//how the akka http core docs' example sets up a server
-class AkkaServer() {
+//how play 2.6 sets up a server
+class PlayServer() {
   implicit val system = ActorSystem()
   implicit val executor = system.dispatcher
   implicit val materializer = ActorMaterializer()
@@ -30,37 +31,28 @@ class AkkaServer() {
   val config = ConfigFactory.load()
   val logger = Logging(system, getClass)
 
-  var serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] = _
   var bindingFuture: Future[Http.ServerBinding] = _
 
   def start(port: Int, async: Boolean) = {
 
-    serverSource = Http().bind(interface = "localhost", port)
-
     if (async) {
 
       val asyncRequestHandler: HttpRequest => Future[HttpResponse] = {
-        case HttpRequest(GET, Uri.Path("/asyncPing"), _, _, _) => Future[HttpResponse](HttpResponse(entity = "Hoops!"))
+        case HttpRequest(GET, Uri.Path("/asyncPing"), _, _, _) =>
+          Future[HttpResponse](HttpResponse(entity = "Hoops!"))
       }
 
-      bindingFuture = serverSource.to(Sink.foreach {
-        connection =>
-          println("accepted connection from: " + connection.remoteAddress)
-          connection handleWithAsyncHandler asyncRequestHandler
-      }).run()
+      bindingFuture = Http().bindAndHandleAsync(asyncRequestHandler, interface = "localhost", port)
+
     }
     else {
 
       val requestHandler: HttpRequest => HttpResponse = {
         case HttpRequest(GET, Uri.Path("/ping"), _, _, _) =>
-          HttpResponse(entity = "Hoops!")
+          HttpResponse(entity = "Boops!")
       }
 
-      bindingFuture = serverSource.to(Sink.foreach {
-        connection =>
-          println("accepted connection from: " + connection.remoteAddress)
-          connection handleWithSyncHandler requestHandler
-      }).run()
+      bindingFuture = Http().bindAndHandleSync(requestHandler, interface = "localhost", port)
     }
 
     Await.ready({
@@ -70,7 +62,9 @@ class AkkaServer() {
 
   def stop() = {
     if (bindingFuture != null) {
-      bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
+      bindingFuture.flatMap(_.unbind()).onComplete(_ => {
+        system.terminate()
+      })
     }
   }
 }
