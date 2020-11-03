@@ -43,7 +43,7 @@ public class ApacheSSLManager {
             if (config.getCaBundlePath() != null) {
                 if (config.getUsePrivateSSL()) {
                    Agent.LOG.log(Level.FINE, "Ignoring use_private_ssl config." +
-                           " SSL certicates provided by ca_bundle_path.");
+                           " Using SSL certificates provided by ca_bundle_path.");
                 }
                 sslContextBuilder.loadTrustMaterial(getKeyStore(config.getCaBundlePath()), null);
             } else if (config.getUsePrivateSSL()){
@@ -94,7 +94,7 @@ public class ApacheSSLManager {
         cal.add(Calendar.MONTH, +3);
         if (cal.getTime().compareTo(expiry) > 0) {
             Agent.LOG.log(Level.WARNING, "New Relic ssl certificate expire on {0}.\n" +
-                    "Applications using a custom Trustore may need to update the agent " +
+                    "Applications using a custom Truststore may need to update the agent " +
                     "or provide a valid certificate using the ca_bundle_path config", expiry);
         }
     }
@@ -104,7 +104,7 @@ public class ApacheSSLManager {
             cert.checkValidity();
         } catch (CertificateExpiredException | CertificateNotYetValidException e) {
             Agent.LOG.log(Level.WARNING, "New Relic ssl certificate has expired.\n" +
-                    "Applications using a custom Trustore may need to update the agent " +
+                    "Applications using a custom Truststore may need to update the agent " +
                     "or provide a valid certificate using the ca_bundle_path config", e);
             return false;
         }
