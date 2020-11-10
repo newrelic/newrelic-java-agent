@@ -1,8 +1,8 @@
-package akka.http.impl.engine
+package akka.http
 
 import com.newrelic.api.agent.weaver.SkipIfPresent
 
 @SkipIfPresent
-class HttpConnectionTimeoutException {
+class DefaultParsingErrorHandler {
 
 }
