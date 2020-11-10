@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * [Adds support for gRPC 1.30.0](https://github.com/newrelic/newrelic-java-agent/pull/92). Thank you [jef](https://github.com/jef) for submitting this request and trying it out.
 * [Adds support for `map` and `flatmap` async external calls in spring webflux framework](https://github.com/newrelic/newrelic-java-agent/pull/93).  Previously the agent didn’t support client calls that occurred within the `map` or `flatmap` methods within the spring webflux framework. External calls such as `serviceB` and `serviceC` in the example below would not get reported to New Relic:
 ```
-return serviceA.getData()
+    return serviceA.getData()
                 .map(service -> Response.builder().service(service).build())
                 .flatMap(serviceB::getData)
                 .flatMap(serviceC::getData)
@@ -28,6 +28,7 @@ return serviceA.getData()
 * [Prevents the agent from logging a timeout exception when using New Relic Edge with Infinite Tracing but the agent hasn’t sent spans in a while](https://github.com/newrelic/newrelic-java-agent/pull/76).
 * [Prevents the agent from logging a socket exception when trying to retrieve cloud provider information in a non-cloud environment](https://github.com/newrelic/newrelic-java-agent/pull/80).
 * [Adds New Relic EU certifications](https://github.com/newrelic/newrelic-java-agent/pull/89) if [`ca_bundle_path` is specified](https://docs.newrelic.com/docs/agents/java-agent/configuration/configuring-your-ssl-certificates).
+This fix also came with the reintroduction of the `use_private_ssl` config, which can be set to add our agent certs to the truststore.
 
 ### Support statement:
 * New Relic recommends that you upgrade the agent regularly and at a minimum every 3 months. As of this release, the oldest supported version is [4.8.0](https://docs.newrelic.com/docs/release-notes/agent-release-notes/java-release-notes/java-agent-480).
