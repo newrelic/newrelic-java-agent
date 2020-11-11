@@ -59,6 +59,8 @@ public class MongoDb310Test {
                                 // The default configuration creates executables whose names contain random UUIDs, which
                                 // prompts repetitive firewall dialog popups. Instead, we use a naming strategy that
                                 // produces a stable executable name and only have to acknowledge the firewall dialogs once.
+                                // On macOS systems, the dialogs must be acknowledged quickly in order to be registered.
+                                // Failure to click fast enough will result in additional dialogs on subsequent test runs.
                                 // This firewall dialog issue only seems to occur with versions of mongo < 3.6.0
                                 .executableNaming(new TempNaming() {
                                     @Override
