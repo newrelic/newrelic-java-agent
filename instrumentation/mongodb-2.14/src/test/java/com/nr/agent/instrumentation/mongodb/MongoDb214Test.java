@@ -7,59 +7,91 @@
 
 package com.nr.agent.instrumentation.mongodb;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.introspec.DatastoreHelper;
+import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.agent.introspec.InstrumentationTestConfig;
-
+import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Defaults;
+import de.flapdoodle.embed.mongo.config.ImmutableMongodConfig;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.config.RuntimeConfig;
+import de.flapdoodle.embed.process.extract.DirectoryAndExecutableNaming;
+import de.flapdoodle.embed.process.extract.TempNaming;
+import de.flapdoodle.embed.process.io.directories.PropertyOrPlatformTempDir;
 import de.flapdoodle.embed.process.runtime.Network;
+import de.flapdoodle.embed.process.store.ExtractedArtifactStore;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.mongodb")
 public class MongoDb214Test {
 
     private static final String MONGODB_PRODUCT = DatastoreVendor.MongoDB.toString();
-    private static final MongodStarter mongodStarter = MongodStarter.getDefaultInstance();
+    private static final MongodStarter mongodStarter;
+
+    static {
+        Command command = Command.MongoD;
+        RuntimeConfig runtimeConfig = Defaults.runtimeConfigFor(command)
+                .artifactStore(ExtractedArtifactStore.builder()
+                        .from(Defaults.extractedArtifactStoreFor(command))
+                        .temp(DirectoryAndExecutableNaming.builder()
+                                .directory(new PropertyOrPlatformTempDir())
+                                // The default configuration creates executables whose names contain random UUIDs, which
+                                // prompts repetitive firewall dialog popups. Instead, we use a naming strategy that
+                                // produces a stable executable name and only have to acknowledge the firewall dialogs once.
+                                // On macOS systems, the dialogs must be acknowledged quickly in order to be registered.
+                                // Failure to click fast enough will result in additional dialogs on subsequent test runs.
+                                // This firewall dialog issue only seems to occur with versions of mongo < 3.6.0
+                                .executableNaming(new TempNaming() {
+                                    @Override
+                                    public String nameFor(String prefix, String postfix) {
+                                        return prefix + "-Db214-" + postfix;
+                                    }
+                                })
+                                .build())
+                        .build())
+                .build();
+        mongodStarter = MongodStarter.getInstance(runtimeConfig);
+    }
+
     private MongodExecutable mongodExecutable;
     private MongodProcess mongodProcess;
     private MongoClient mongoClient;
 
     @Before
     public void startMongo() throws Exception {
-        final int port = InstrumentationTestRunner.getIntrospector().getRandomPort();
-        IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.V2_6_11).net(new Net(port,
-                Network.localhostIsIPv6())).build();
+        int port = Network.getFreeServerPort();
+        @SuppressWarnings("deprecation")
+        ImmutableMongodConfig mongodConfig = ImmutableMongodConfig.builder()
+                .version(Version.V2_6_11)
+                .net(new Net(port, Network.localhostIsIPv6()))
+                .build();
+
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
         mongoClient = new MongoClient("localhost", port);
     }
 
     @After
-    public void stopMongo() throws Exception {
+    public void stopMongo() {
         if (mongoClient != null) {
             mongoClient.close();
         }
