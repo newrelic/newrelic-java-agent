@@ -7,41 +7,38 @@
 
 package com.nr.agent.instrumentation.mongodb;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
-import de.flapdoodle.embed.mongo.Command;
-import de.flapdoodle.embed.mongo.config.Defaults;
-import de.flapdoodle.embed.mongo.config.ImmutableMongodConfig;
-import de.flapdoodle.embed.process.config.RuntimeConfig;
-import de.flapdoodle.embed.process.extract.DirectoryAndExecutableNaming;
-import de.flapdoodle.embed.process.extract.TempNaming;
-import de.flapdoodle.embed.process.io.directories.PropertyOrPlatformTempDir;
-import de.flapdoodle.embed.process.store.ExtractedArtifactStore;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.introspec.DatastoreHelper;
+import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.agent.introspec.InstrumentationTestConfig;
-
+import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
+import de.flapdoodle.embed.mongo.config.IMongodConfig;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.config.IRuntimeConfig;
+import de.flapdoodle.embed.process.extract.ITempNaming;
 import de.flapdoodle.embed.process.runtime.Network;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.mongodb")
@@ -51,26 +48,21 @@ public class MongoDb300Test {
     private static final MongodStarter mongodStarter;
 
     static {
-        Command command = Command.MongoD;
-        RuntimeConfig runtimeConfig = Defaults.runtimeConfigFor(command)
-                .artifactStore(ExtractedArtifactStore.builder()
-                        .from(Defaults.extractedArtifactStoreFor(command))
-                        .temp(DirectoryAndExecutableNaming.builder()
-                                .directory(new PropertyOrPlatformTempDir())
-                                // The default configuration creates executables whose names contain random UUIDs, which
-                                // prompts repetitive firewall dialog popups. Instead, we use a naming strategy that
-                                // produces a stable executable name and only have to acknowledge the firewall dialogs once.
-                                // On macOS systems, the dialogs must be acknowledged quickly in order to be registered.
-                                // Failure to click fast enough will result in additional dialogs on subsequent test runs.
-                                // This firewall dialog issue only seems to occur with versions of mongo < 3.6.0
-                                .executableNaming(new TempNaming() {
-                                    @Override
-                                    public String nameFor(String prefix, String postfix) {
-                                        return prefix + "-Db300-" + postfix;
-                                    }
-                                })
-                                .build())
-                        .build())
+        IRuntimeConfig runtimeConfig = new RuntimeConfigBuilder().defaults(Command.MongoD)
+                .artifactStore(new ExtractedArtifactStoreBuilder()
+                        .defaults(Command.MongoD)
+                        // The default configuration creates executables whose names contain random UUIDs, which
+                        // prompts repetitive firewall dialog popups. Instead, we use a naming strategy that
+                        // produces a stable executable name and only have to acknowledge the firewall dialogs once.
+                        // On macOS systems, the dialogs must be acknowledged quickly in order to be registered.
+                        // Failure to click fast enough will result in additional dialogs on subsequent test runs.
+                        // This firewall dialog issue only seems to occur with versions of mongo < 3.6.0
+                        .executableNaming(new ITempNaming() {
+                            @Override
+                            public String nameFor(String prefix, String postfix) {
+                                return prefix + "-Db300-" + postfix;
+                            }
+                        }))
                 .build();
         mongodStarter = MongodStarter.getInstance(runtimeConfig);
     }
@@ -83,7 +75,7 @@ public class MongoDb300Test {
     public void startMongo() throws Exception {
         int port = Network.getFreeServerPort();
         @SuppressWarnings("deprecation")
-        ImmutableMongodConfig mongodConfig = ImmutableMongodConfig.builder()
+        IMongodConfig mongodConfig = new MongodConfigBuilder()
                 .version(Version.V3_0_8)
                 .net(new Net(port, Network.localhostIsIPv6()))
                 .build();
