@@ -77,6 +77,7 @@ public class Util {
             if (token != null) {
                 token.linkAndExpire();
             }
+            runnable.run();
         }
 
         @Trace(async = true, excludeFromTransactionTrace = true)
