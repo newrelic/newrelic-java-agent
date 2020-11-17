@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 6.2.1 (2020-11-17)
+[Fixes an issue where Spring-Webflux applications with endpoints returning no or empty content could become unresponsive](https://github.com/newrelic/newrelic-java-agent/pull/115)
+
 ## Version 6.2.0 (2020-11-10)
 
 ### New Features and Improvements:
