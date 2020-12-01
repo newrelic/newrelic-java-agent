@@ -39,6 +39,9 @@ public class Util {
     }
 
     public static Mono<ClientResponse> reportAsExternal(ClientRequest request, Mono<ClientResponse> response) {
+        if(request == null) {
+            return response;
+        }
         Segment segment = (Segment) request.attribute(SEGMENT_ATTRIBUTE).orElse(null);
         if (segment == null) {
             return response;
