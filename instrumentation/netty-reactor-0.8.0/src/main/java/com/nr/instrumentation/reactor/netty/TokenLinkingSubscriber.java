@@ -4,6 +4,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
+import com.nr.instrumentation.NettyReactorConfig;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -67,7 +68,9 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
     private void withNRError(Runnable runnable, Throwable throwable) {
         if (token != null && token.isActive()) {
             token.linkAndExpire();
-            NewRelic.noticeError(throwable);
+            if (NettyReactorConfig.errorsEnabled) {
+                NewRelic.noticeError(throwable);
+            }
         }
         runnable.run();
     }

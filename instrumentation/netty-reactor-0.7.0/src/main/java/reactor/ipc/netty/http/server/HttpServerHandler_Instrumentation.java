@@ -11,14 +11,13 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import io.netty.TokenLinkingSubscriber;
-import io.netty.channel.ChannelHandlerContext;
+import com.nr.instrumentation.TokenLinkingSubscriber;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
 import io.netty.handler.codec.http.HttpRequest;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Hooks_Instrumentation;
 
-import static io.netty.TokenLinkingSubscriber.tokenLift;
+import static com.nr.instrumentation.TokenLinkingSubscriber.tokenLift;
 
 @Weave(type = MatchType.BaseClass, originalName = "reactor.ipc.netty.http.server.HttpServerHandler")
 class HttpServerHandler_Instrumentation {

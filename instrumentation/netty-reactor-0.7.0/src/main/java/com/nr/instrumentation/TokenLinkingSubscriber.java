@@ -1,4 +1,4 @@
-package io.netty;
+package com.nr.instrumentation;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
@@ -67,7 +67,9 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
     private void withNRError(Runnable runnable, Throwable throwable) {
         if (token != null && token.isActive()) {
             token.linkAndExpire();
-            NewRelic.noticeError(throwable);
+            if (NettyReactorConfig.errorsEnabled) {
+                NewRelic.noticeError(throwable);
+            }
         }
         runnable.run();
     }
