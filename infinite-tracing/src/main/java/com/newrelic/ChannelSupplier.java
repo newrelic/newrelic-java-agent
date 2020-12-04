@@ -48,14 +48,12 @@ public class ChannelSupplier implements Supplier<ManagedChannel> {
     }
 
     public ConnectionStatus.BlockResult getBlockResult() {
-        ConnectionStatus.BlockResult blockResult;
         try {
-            blockResult = connectionStatus.blockOnConnection();
+            return connectionStatus.blockOnConnection();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Thread interrupted while attempting to connect.");
         }
-        return blockResult;
     }
 
 }

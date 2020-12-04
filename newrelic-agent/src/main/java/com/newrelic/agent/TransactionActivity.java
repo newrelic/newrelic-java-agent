@@ -8,31 +8,22 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.bridge.TracedMethod;
-import com.newrelic.agent.config.TransactionTracerConfig;
-import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.SimpleStatsEngine;
 import com.newrelic.agent.stats.TransactionStats;
-import com.newrelic.agent.trace.TransactionSegment;
 import com.newrelic.agent.trace.TransactionTraceService;
-import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.NoOpTracer;
 import com.newrelic.agent.tracers.SkipTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TransactionActivityInitiator;
 import com.newrelic.agent.transaction.TransactionCache;
-import com.newrelic.api.agent.ExternalParameters;
-import com.newrelic.api.agent.InboundHeaders;
-import com.newrelic.api.agent.OutboundHeaders;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -148,8 +139,7 @@ public class TransactionActivity {
     }
 
     public static TransactionActivity get() {
-        TransactionActivity result = activityHolder.get();
-        return result;
+        return activityHolder.get();
     }
 
     public static TransactionActivity create(Transaction transaction, int id) {
@@ -189,7 +179,6 @@ public class TransactionActivity {
             // and don't have a transaction yet. We always allow
             // the tracer to proceed in this case.
             return ServiceFactory.getTransactionTraceService().isEnabled();
-
         }
         return transaction.shouldGenerateTransactionSegment();
     }
@@ -369,7 +358,7 @@ public class TransactionActivity {
             return;
         }
         if (tracer != lastTracer) {
-            failedDueToInconsistentTracerState(this, tracer, opcode);
+            failedDueToInconsistentTracerState(tracer, opcode);
         } else if (tracer == rootTracer) {
             finished(rootTracer, opcode);
         } else {
@@ -380,11 +369,10 @@ public class TransactionActivity {
     /**
      * A serious internal error occurred. All data associated with this activity will be lost.
      *
-     * @param activity the activity that failed
      * @param tracer the tracer that completed, leading to the internal error detection.
      * @param opcode
      */
-    private void failedDueToInconsistentTracerState(TransactionActivity activity, Tracer tracer, int opcode) {
+    private void failedDueToInconsistentTracerState(Tracer tracer, int opcode) {
         Agent.LOG.log(Level.SEVERE, "Inconsistent state!  tracer != last tracer for {0} ({1} != {2})", this, tracer,
                 lastTracer);
         try {
@@ -451,12 +439,10 @@ public class TransactionActivity {
     }
 
     public void recordCpu() {
-        // if (transaction != null && transaction.isTransactionTraceEnabled()) {
         if (cpuStartTimeInNanos != NOT_REPORTED && totalCpuTimeInNanos == 0) {
             totalCpuTimeInNanos = ServiceFactory.getTransactionTraceService().getThreadMXBean().getCurrentThreadCpuTime()
                     - cpuStartTimeInNanos;
         }
-        // }
     }
 
     public void addTracer(Tracer tracer) {
@@ -671,7 +657,7 @@ public class TransactionActivity {
             rootTracer.removeTransactionSegment();
             // we can drop the current tracer list
             // we are never going to add another tracer to this and so get rid of the list
-            tracers = Collections.EMPTY_LIST;
+            tracers = Collections.emptyList();
         }
     }
 
