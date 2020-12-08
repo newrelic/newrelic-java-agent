@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.springframework" })
-public class Spring510RouterFunTest {
+public class Spring530RouterFunTest {
     @ClassRule
     public static HttpServerRule server = new HttpServerRule();
 
