@@ -157,9 +157,8 @@ public class BaseConfig implements Config {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T getProperty(String key) {
-        return (T) getProperty(key, null);
+        return getProperty(key, null);
     }
 
     protected Set<Integer> getIntegerSet(String key, Set<Integer> defaultVal) {

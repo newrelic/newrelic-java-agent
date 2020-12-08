@@ -42,6 +42,7 @@ import com.newrelic.agent.normalization.Normalizer;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceUtils;
 import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
+import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SlowQueryListener;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
 import com.newrelic.agent.stats.StatsWorks;
@@ -125,18 +126,7 @@ public class Transaction {
     static final int REQUEST_INITIALIZED_CLASS_SIGNATURE_ID = ClassMethodSignatures.get().add(REQUEST_INITIALIZED_CLASS_SIGNATURE);
     private static final String THREAD_ASSERTION_FAILURE = "Thread assertion failed!";
 
-    private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<Transaction>() {
-        @Override
-        public void remove() {
-            super.remove();
-        }
-
-        @Override
-        public void set(Transaction value) {
-            super.set(value);
-        }
-    };
-
+    private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<>();
 
     private static volatile DatabaseStatementParser databaseStatementParser;
 
@@ -351,7 +341,7 @@ public class Transaction {
             DistributedTracePayloadImpl inboundPayload = spanProxy.get().getInboundDistributedTracePayload();
             Float inboundPriority = inboundPayload != null ? inboundPayload.priority : null;
 
-            DistributedSamplingPriorityQueue reservoir = ServiceFactory.getTransactionEventsService()
+            DistributedSamplingPriorityQueue<TransactionEvent> reservoir = ServiceFactory.getTransactionEventsService()
                     .getOrCreateDistributedSamplingReservoir(getApplicationName());
 
             priority.compareAndSet(null, distributedTraceService.calculatePriority(inboundPriority, reservoir));
@@ -485,8 +475,7 @@ public class Transaction {
     // of its new owning transaction using the context key under which it was
     // registered.
     private void postConstruct() {
-        TransactionActivity txa = TransactionActivity.create(this, nextActivityId.getAndIncrement());
-        this.initialActivity = txa;
+        this.initialActivity = TransactionActivity.create(this, nextActivityId.getAndIncrement());;
         checkAndSetPriority();
     }
 
@@ -985,10 +974,6 @@ public class Transaction {
     private void finishTransaction() {
         try {
             synchronized (lock) {
-                if (Agent.LOG.isFinestEnabled()) {
-                    threadAssertion();
-                }
-
                 // this may have the side-effect of ignoring the transaction
                 freezeTransactionName();
 
@@ -1135,7 +1120,7 @@ public class Transaction {
         boolean reportingCpu = true;
         // this is for the legacy async
         Object val = getIntrinsicAttributes().remove(AttributeNames.CPU_TIME_PARAMETER_NAME);
-        if (val != null && val instanceof Long) {
+        if (val instanceof Long) {
             totalCpuTime = (Long) val;
             if (totalCpuTime < 0) {
                 reportingCpu = false;
@@ -1355,7 +1340,6 @@ public class Transaction {
      * TransactionActivity from its thread-local variable on the current thread.
      */
     public static void clearTransaction() {
-        Transaction tx = transactionHolder.get();
         transactionHolder.remove();
         TransactionActivity.clear();
         AgentBridge.activeToken.remove();
@@ -2110,7 +2094,7 @@ public class Transaction {
             if (policy.canSetApplicationName(this, priority)) {
                 String name = stripLeadingForwardSlash(appName);
                 PriorityApplicationName pan = PriorityApplicationName.create(name, priority);
-                if (pan == null || pan.equals(getPriorityApplicationName())) {
+                if (pan.equals(getPriorityApplicationName())) {
                     return;
                 }
                 Agent.LOG.log(Level.FINE, "Set application name to {0}", pan.getName());
@@ -2122,7 +2106,7 @@ public class Transaction {
     private static String stripLeadingForwardSlash(String appName) {
         final String FORWARD_SLASH = "/";
         if (appName.length() > 1 && appName.startsWith(FORWARD_SLASH)) {
-            return appName.substring(1, appName.length());
+            return appName.substring(1);
         }
         return appName;
     }

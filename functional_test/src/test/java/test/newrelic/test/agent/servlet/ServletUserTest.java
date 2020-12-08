@@ -53,10 +53,9 @@ public class ServletUserTest {
         // Set the transaction on the private static ThreadLocal in the Transaction class.
         Field f = Transaction.class.getDeclaredField("transactionHolder");
         f.setAccessible(true);
-        Object threadLocal = f.get(null);
-        Method m = threadLocal.getClass().getMethod("set", Transaction.class);
-        m.setAccessible(true);
-        m.invoke(threadLocal, transaction);
+        @SuppressWarnings("unchecked")
+        ThreadLocal<Transaction> threadLocal = (ThreadLocal<Transaction>) f.get(null);
+        threadLocal.set(transaction);
 
         Map<String, Object> agentAttributes = new HashMap<>();
         Mockito.when(transaction.getAgentAttributes()).thenReturn(agentAttributes);
@@ -72,8 +71,7 @@ public class ServletUserTest {
         final Servlet servlet = new HttpServlet() {
 
             @Override
-            protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
-                    IOException {
+            protected void service(HttpServletRequest req, HttpServletResponse resp) {
                 // NO OP
             }
 
@@ -93,8 +91,7 @@ public class ServletUserTest {
     private static class UserFilter implements Filter {
 
         @Override
-        public void init(FilterConfig filterConfig) throws ServletException {
-
+        public void init(FilterConfig filterConfig) {
         }
 
         @Override
