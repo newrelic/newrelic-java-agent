@@ -1,0 +1,29 @@
+apply plugin: 'scala'
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.scala-lang:scala-library:2.13.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.scala-2.13.0',
+            'Implementation-Title-Alias': 'scala_instrumentation' }
+}
+
+verifyInstrumentation {
+    passes 'org.scala-lang:scala-library:[2.13.0,)'
+    fails 'org.scala-lang:scala-library:(,2.13.0-M4]'
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Scala'
+    type 'Other'
+}
