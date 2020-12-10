@@ -124,7 +124,7 @@ public class TracerToSpanEvent {
 
     private SpanEventFactory maybeSetError(Tracer tracer, TransactionData transactionData, boolean isRoot, SpanEventFactory builder) {
         SpanErrorBuilder spanErrorBuilder = errorBuilderForApp.get(transactionData.getApplicationName());
-        spanErrorBuilder = spanErrorBuilder == null ? defaultSpanErrorBuilder: spanErrorBuilder;
+        spanErrorBuilder = spanErrorBuilder == null ? defaultSpanErrorBuilder : spanErrorBuilder;
 
         if (spanErrorBuilder.areErrorsEnabled()) {
             final SpanError spanError = spanErrorBuilder.buildSpanError(
