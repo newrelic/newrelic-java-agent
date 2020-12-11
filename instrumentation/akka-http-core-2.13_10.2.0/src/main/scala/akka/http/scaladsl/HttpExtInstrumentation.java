@@ -51,7 +51,6 @@ public class HttpExtInstrumentation {
         return Weaver.callOriginal();
     }
 
-    // We are weaving the singleRequestImpl method here rather than just singleRequest because the javadsl only flows through here
     public Future<HttpResponse> singleRequest(HttpRequest httpRequest, HttpsConnectionContext connectionContext, ConnectionPoolSettings poolSettings,
             LoggingAdapter loggingAdapter) {
         final Segment segment = NewRelic.getAgent().getTransaction().startSegment("Akka", "singleRequest");
