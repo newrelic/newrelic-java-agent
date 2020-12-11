@@ -27,7 +27,7 @@ import java.util.logging.Level;
 public class NettyDispatcher {
 
     private static volatile NettyDispatcher instance = null;
-    public static volatile AtomicBoolean instrumented = new AtomicBoolean(false);
+    public static final AtomicBoolean instrumented = new AtomicBoolean(false);
 
     public static NettyDispatcher get() {
         if (null == instance) {
