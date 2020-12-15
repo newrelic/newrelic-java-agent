@@ -25,6 +25,9 @@ verifyInstrumentation {
     fails('com.typesafe.akka:akka-http-core_2.12:[,10.2.0-M1)') {
         compile("com.typesafe.akka:akka-stream_2.12:2.5.11")
     }
+    fails('com.typesafe.akka:akka-http-core_2.13:[,10.2.0-M1)') {
+        compile("com.typesafe.akka:akka-stream_2.13:2.5.11")
+    }
 }
 
 site {
