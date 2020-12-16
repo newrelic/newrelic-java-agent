@@ -1,5 +1,15 @@
 apply plugin: 'scala'
 
+// The scala plugin uses zinc for incremental compiling. Zinc itself relies on scala, and while gradle is
+// normally able to resolve the correct version of scala for zinc (even if that version is different than
+// the version of scala required for the module), it certain circumstances the zinc scala version
+// resolution fails for this module. It succeeds when gradle tasks are isolated to this module, but _may_
+// fail when gradle tasks span multiple scala modules with different versions. Its not deterministic and
+// quite mysterious.
+configurations.zinc {
+    resolutionStrategy.force "org.scala-lang:scala-library:2.12.12"
+}
+
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-core-10.2.0' }
 }
@@ -8,8 +18,6 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation("com.typesafe.akka:akka-http-core_2.12:10.2.1")
     implementation("com.typesafe.akka:akka-stream_2.12:2.6.10")
-
-    testImplementation(project(":instrumentation:akka-2.2")) { transitive = false }
 }
 
 verifyInstrumentation {
