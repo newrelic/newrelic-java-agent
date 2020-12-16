@@ -1,12 +1,16 @@
 package com.newrelic.agent.jmx;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.api.agent.Logger;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.logging.Level;
+
+import static com.newrelic.agent.stats.StatsWorks.getRecordMetricWork;
 
 public class LinkingMetadataRegistration {
 
@@ -25,6 +29,7 @@ public class LinkingMetadataRegistration {
             Object bean = new LinkingMetadata();
             server.registerMBean(bean, name);
             logger.log(Level.INFO, "JMX LinkingMetadata bean registered");
+            ServiceFactory.getStatsService().doStatsWork(getRecordMetricWork(MetricNames.LINKING_METADATA_MBEAN, 1));
         } catch (Exception | NoClassDefFoundError e) {
             logger.log(Level.INFO, "Error registering JMX LinkingMetadata MBean", e);
         }
