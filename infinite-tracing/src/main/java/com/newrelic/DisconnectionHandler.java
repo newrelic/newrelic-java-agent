@@ -7,12 +7,15 @@ import java.util.logging.Level;
 
 public class DisconnectionHandler {
     private final ConnectionStatus connectionStatus;
-    private final BackoffPolicy backoffPolicy;
+    private final BackoffPolicy defaultBackoffPolicy;
+    private final ConnectBackoffPolicy connectBackoffPolicy;
     private final Logger logger;
 
-    public DisconnectionHandler(ConnectionStatus connectionStatus, BackoffPolicy backoffPolicy, Logger logger) {
+    public DisconnectionHandler(ConnectionStatus connectionStatus, BackoffPolicy defaultBackoffPolicy,
+                                ConnectBackoffPolicy connectBackoffPolicy, Logger logger) {
         this.connectionStatus = connectionStatus;
-        this.backoffPolicy = backoffPolicy;
+        this.defaultBackoffPolicy = defaultBackoffPolicy;
+        this.connectBackoffPolicy = connectBackoffPolicy;
         this.logger = logger;
     }
 
@@ -21,20 +24,42 @@ public class DisconnectionHandler {
     }
 
     public void handle(Status responseStatus) {
-        if (!connectionStatus.shouldReconnect()) {
-            return;
-        }
-
-        if (!backoffPolicy.shouldReconnect(responseStatus)) {
+        if (!defaultBackoffPolicy.shouldReconnect(responseStatus)) {
             if (responseStatus != null) {
-                logger.log(Level.WARNING, "Got gRPC status " + responseStatus.getCode().toString() + ", no longer permitting connections.");
+                logger.log(Level.WARNING, "Got gRPC status {0}, no longer permitting connections.", responseStatus.getCode().toString());
             }
             terminate();
         }
 
-        logger.log(Level.FINE, "Backing off due to gRPC errors.");
+        if (isFailedPrecondition(responseStatus)) {
+            backingOff(connectBackoffPolicy);
+            connectionStatus.reattemptConnection();
+        }
+
+        if (!connectionStatus.shouldReconnect()) {
+            return;
+        }
+
+        backingOff(defaultBackoffPolicy);
+        connectionStatus.reattemptConnection();
+    }
+
+    void backingOff(BackoffPolicy backoffPolicy) {
+        logger.log(Level.FINE, "Backing off with {0} for {1} seconds", backoffPolicy.getClass().getSimpleName(), backoffPolicy.duration());
         backoffPolicy.backoff();
         logger.log(Level.FINE, "Backoff complete, attempting connection.");
-        connectionStatus.reattemptConnection();
+    }
+
+    boolean isFailedPrecondition(Status responseStatus) {
+        if(responseStatus != null) {
+            return responseStatus.getCode() == Status.Code.FAILED_PRECONDITION;
+        }
+        return false;
+    }
+
+    public void resetConnectBackoffPolicy() {
+        if(connectBackoffPolicy.duration() > 0) {
+            connectBackoffPolicy.reset();
+        }
     }
 }

@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 /**
  * Accepts a {@link SpanEvent} for publishing to the Trace Observer.
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Not thread-safe.
  */
 public class SpanEventConsumer implements Consumer<SpanEvent> {
+    private final Logger logger;
     private final BlockingQueue<SpanEvent> queue;
     private final MetricAggregator aggregator;
     private final ConnectionHeaders connectionHeaders;
@@ -33,8 +35,9 @@ public class SpanEventConsumer implements Consumer<SpanEvent> {
     private final AtomicBoolean wasStarted = new AtomicBoolean(false);
     private volatile Future<?> senderFuture;
 
-    private SpanEventConsumer(BlockingQueue<SpanEvent> queue, MetricAggregator aggregator, ConnectionHeaders connectionHeaders,
+    private SpanEventConsumer(Logger logger, BlockingQueue<SpanEvent> queue, MetricAggregator aggregator, ConnectionHeaders connectionHeaders,
             Runnable spanSender, ExecutorService executorService) {
+        this.logger = logger;
         this.queue = queue;
         this.aggregator = aggregator;
         this.connectionHeaders = connectionHeaders;
@@ -45,7 +48,9 @@ public class SpanEventConsumer implements Consumer<SpanEvent> {
     @Override
     public void accept(SpanEvent spanEvent) {
         aggregator.incrementCounter("Supportability/InfiniteTracing/Span/Seen");
-        queue.offer(spanEvent);
+            if(!queue.offer(spanEvent)) {
+                logger.log(Level.FINEST, "Span event not accepted. The queue was full.");
+            }
     }
 
     public static SpanEventConsumer.Builder builder(InfiniteTracingConfig config, MetricAggregator metricAggregator) {
@@ -99,13 +104,14 @@ public class SpanEventConsumer implements Consumer<SpanEvent> {
         }
 
         public SpanEventConsumer build() {
-            BackoffPolicy backoffPolicy = new DefaultBackoffPolicy();
+            BackoffPolicy defaultBackoffPolicy = new DefaultBackoffPolicy();
+            ConnectBackoffPolicy connectBackoffPolicy = new ConnectBackoffPolicy();
             ConnectionStatus connectionStatus = new ConnectionStatus(logger);
 
             ConnectionHeaders connectionHeaders = new ConnectionHeaders(connectionStatus, logger, config.getLicenseKey());
             ClientInterceptor clientInterceptor = new HeadersInterceptor(connectionHeaders);
             ClientInterceptor maybeInjectFlakyHeader = new FlakyHeaderInterceptor(config);
-            DisconnectionHandler disconnectionHandler = new DisconnectionHandler(connectionStatus, backoffPolicy, logger);
+            DisconnectionHandler disconnectionHandler = new DisconnectionHandler(connectionStatus, defaultBackoffPolicy, connectBackoffPolicy, logger);
             AtomicBoolean shouldRecreateCall = new AtomicBoolean(false);
 
             ResponseObserver responseObserver = new ResponseObserver(metricAggregator, logger, disconnectionHandler, shouldRecreateCall);
@@ -116,12 +122,12 @@ public class SpanEventConsumer implements Consumer<SpanEvent> {
 
             StreamObserverFactory streamObserverFactory = this.streamObserverFactory != null
                 ? this.streamObserverFactory
-                : new StreamObserverFactory(metricAggregator, responseObserver);
+                : new StreamObserverFactory(logger, metricAggregator, responseObserver);
 
             Function<ManagedChannel, ClientCallStreamObserver<V1.Span>> channelToStreamObserverConverter =
                     new ChannelToStreamObserver(streamObserverFactory, shouldRecreateCall);
 
-            Supplier<ManagedChannel> channelSupplier = new ChannelSupplier(channelFactory, connectionStatus, logger);
+            Supplier<ManagedChannel> channelSupplier = new ChannelSupplier(connectionStatus, logger, channelFactory);
 
             Supplier<ClientCallStreamObserver<V1.Span>> streamObserverSupplier = new StreamObserverSupplier(channelSupplier, channelToStreamObserverConverter);
 
@@ -131,7 +137,7 @@ public class SpanEventConsumer implements Consumer<SpanEvent> {
 
             ExecutorService executorService = Executors.newSingleThreadExecutor(new DaemonThreadFactory("Span Event Consumer"));
 
-            return new SpanEventConsumer(queue, metricAggregator, connectionHeaders, loopForever, executorService);
+            return new SpanEventConsumer(logger, queue, metricAggregator, connectionHeaders, loopForever, executorService);
         }
     }
 

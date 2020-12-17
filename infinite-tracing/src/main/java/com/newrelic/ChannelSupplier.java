@@ -17,7 +17,7 @@ public class ChannelSupplier implements Supplier<ManagedChannel> {
     private final ChannelFactory channelFactory;
     private volatile ManagedChannel channel;
 
-    public ChannelSupplier(ChannelFactory channelFactory, ConnectionStatus connectionStatus, Logger logger) {
+    public ChannelSupplier(ConnectionStatus connectionStatus, Logger logger, ChannelFactory channelFactory) {
         this.connectionStatus = connectionStatus;
         this.logger = logger;
         this.channelFactory = channelFactory;

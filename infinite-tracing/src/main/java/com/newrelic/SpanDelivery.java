@@ -20,7 +20,7 @@ class SpanDelivery implements Runnable {
     private final Supplier<ClientCallStreamObserver<V1.Span>> streamObserverSupplier;
 
     public SpanDelivery(SpanConverter<V1.Span> spanConverter, MetricAggregator metricAggregator, Logger logger, BlockingQueue<SpanEvent> queue,
-            Supplier<ClientCallStreamObserver<V1.Span>> streamObserverSupplier) {
+                        Supplier<ClientCallStreamObserver<V1.Span>> streamObserverSupplier) {
         this.spanConverter = spanConverter;
         this.metricAggregator = metricAggregator;
         this.logger = logger;

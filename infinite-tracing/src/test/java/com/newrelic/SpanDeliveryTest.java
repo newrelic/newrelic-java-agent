@@ -46,6 +46,8 @@ class SpanDeliveryTest {
     public Logger logger;
     @Mock
     public Supplier<ClientCallStreamObserver<V1.Span>> streamObserverSupplier;
+    @Mock
+    public ConnectBackoffPolicy connectBackoffPolicy;
 
     @SuppressWarnings("unchecked")
     public ClientCallStreamObserver<V1.Span> mockStreamObserver() {

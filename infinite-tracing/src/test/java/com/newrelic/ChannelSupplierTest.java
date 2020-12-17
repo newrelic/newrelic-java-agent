@@ -26,6 +26,8 @@ class ChannelSupplierTest {
     public ManagedChannel mockChannel;
     @Mock
     public ConnectionStatus connectionStatus;
+    @Mock
+    public ConnectBackoffPolicy connectBackoffPolicy;
 
     @Test
     public void shouldCallFactoryIfNotAlreadyExisting() throws InterruptedException {
@@ -73,7 +75,7 @@ class ChannelSupplierTest {
     public ChannelSupplier prepTargetForFirstCall() throws InterruptedException {
         when(channelFactory.createChannel()).thenReturn(mockChannel);
         when(connectionStatus.blockOnConnection()).thenReturn(ConnectionStatus.BlockResult.MUST_ATTEMPT_CONNECTION);
-        return new ChannelSupplier(channelFactory, connectionStatus, mock(Logger.class));
+        return new ChannelSupplier(connectionStatus, mock(Logger.class), channelFactory);
     }
 
 }

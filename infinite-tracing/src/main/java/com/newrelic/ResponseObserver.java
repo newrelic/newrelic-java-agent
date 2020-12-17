@@ -17,7 +17,7 @@ public class ResponseObserver implements StreamObserver<V1.RecordStatus> {
     private final AtomicBoolean shouldRecreateCall;
 
     public ResponseObserver(MetricAggregator metricAggregator, Logger logger, DisconnectionHandler disconnectionHandler,
-            AtomicBoolean shouldRecreateCall) {
+                            AtomicBoolean shouldRecreateCall) {
         this.metricAggregator = metricAggregator;
         this.logger = logger;
         this.disconnectionHandler = disconnectionHandler;
@@ -64,6 +64,7 @@ public class ResponseObserver implements StreamObserver<V1.RecordStatus> {
         logger.log(Level.FINE, "Completing gRPC call.");
         shouldRecreateCall.set(true);
         metricAggregator.incrementCounter("Supportability/InfiniteTracing/Response/Completed");
+        disconnectionHandler.resetConnectBackoffPolicy();
     }
 
     /**
