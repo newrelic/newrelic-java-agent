@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 6.3.0 (2020-12-17)
+
+### New Features and Improvements:
+* [Adds support for Spring Webflux 5.3.+](https://github.com/newrelic/newrelic-java-agent/pull/121).
+* [Adds configuration for ignoring netty reactor errors](https://github.com/newrelic/newrelic-java-agent/pull/130). The relevant configuration property is `reactor-netty.errors.enabled`. Error reporting is enabled by default.
+* Adds support for [Scala 2.13](https://github.com/newrelic/newrelic-java-agent/pull/109), including [Akka Http](https://github.com/newrelic/newrelic-java-agent/pull/149) and [Play](https://github.com/newrelic/newrelic-java-agent/pull/94). Thank you [junder31](https://github.com/junder31) for these contributions.
+
+### Fixes:
+* The netty-4.0.8 instrumentation would [sometimes not start a Transaction on `channelRead`](https://github.com/newrelic/newrelic-java-agent/pull/148), potentially affecting instrumentation dependent on it including: Spring, Akka and Play.
+* Updates the Java agent’s [Apache HttpClient dependency to 5.13](https://github.com/newrelic/newrelic-java-agent/pull/145).
+* Spring Webclient could report the [wrong URL when multiple HTTP calls to several URLs occurred in parallel](https://github.com/newrelic/newrelic-java-agent/pull/129). Thank you [veklov](https://github.com/veklov) for contributing this fix.
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly and at a minimum every 3 months. As of this release, the oldest supported version is [4.8.0](https://docs.newrelic.com/docs/release-notes/agent-release-notes/java-release-notes/java-agent-480).
+
 ## Version 6.2.1 (2020-11-17)
 [Fixes an issue where Spring-Webflux applications with endpoints returning no or empty content could become unresponsive](https://github.com/newrelic/newrelic-java-agent/pull/115)
 
