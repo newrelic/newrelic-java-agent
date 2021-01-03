@@ -29,9 +29,8 @@ class UpdateInfiniteTracingAfterConnect implements AgentConnectionEstablishedLis
         if (!infiniteTracingEnabledCheck.isEnabledAndSpanEventsEnabled()) {
             return;
         }
-
-        infiniteTracing.setConnectionMetadata(agentRunToken, requestMetadata);
-        infiniteTracing.start();
+        infiniteTracing.stop();
+        infiniteTracing.start(agentRunToken, requestMetadata);
     }
 
 }

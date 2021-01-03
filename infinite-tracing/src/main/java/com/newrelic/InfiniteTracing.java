@@ -2,59 +2,114 @@ package com.newrelic;
 
 import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.model.SpanEvent;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
 
-import java.util.Collections;
+import javax.annotation.concurrent.GuardedBy;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public class InfiniteTracing implements Consumer<SpanEvent> {
-    private final SpanEventConsumer spanEventConsumer;
 
-    /**
-     * Set up the Infinite Tracing library.
-     * @param config Required data to start a connection to Infinite Tracing.
-     * @param metricAggregator Aggregator to which information about the library will be recorded.
-     * @return An object that requires two final pieces: {@link #setConnectionMetadata} and {@link #start}
-     */
-    @SuppressWarnings("unused") // this is the public API of the class
-    public static InfiniteTracing initialize(InfiniteTracingConfig config, MetricAggregator metricAggregator) {
-        SpanEventConsumer spanEventConsumer = SpanEventConsumer.builder(config, metricAggregator).build();
-        return new InfiniteTracing(spanEventConsumer);
+    private final Logger logger;
+    private final InfiniteTracingConfig config;
+    private final MetricAggregator aggregator;
+    private final ExecutorService executorService;
+    private final BlockingQueue<SpanEvent> queue;
+
+    private final Object lock = new Object();
+    @GuardedBy("lock") private Future<?> sendLoop;
+    @GuardedBy("lock") private SpanEventSender spanEventSender;
+    @GuardedBy("lock") private ChannelManager channelManager;
+
+    private InfiniteTracing(InfiniteTracingConfig config, MetricAggregator aggregator) {
+        this.logger = config.getLogger();
+        this.config = config;
+        this.aggregator = aggregator;
+        this.executorService = Executors.newSingleThreadExecutor(new DaemonThreadFactory("Infinite Tracing"));
+        this.queue = new LinkedBlockingDeque<>(config.getMaxQueueSize());
     }
 
-    private InfiniteTracing(SpanEventConsumer spanEventConsumer) {
-        this.spanEventConsumer = spanEventConsumer;
-    }
-
     /**
-     * Call this method when the connection metadata changes, which is driven by the collector.
+     * Start sending spans to the Infinite Tracing Observer. If already running, return immediately.
+     * If already running and {@code agentRunToken} and / or {@code requestMetadata} need to be updated
+     * {@link #stop()} should be called before calling this.
      *
-     * @param newRunToken The new agent run token that should be supplied to the Trace Observer.
-     * @param headers The metadata that should be supplied to the Trace Observer as headers.
+     * @param agentRunToken the agent run token
+     * @param requestMetadata any extra metadata headers that must be included
      */
-    public void setConnectionMetadata(String newRunToken, Map<String, String> headers) {
-        spanEventConsumer.setConnectionMetadata(newRunToken, headers);
+    public void start(String agentRunToken, Map<String, String> requestMetadata) {
+        synchronized (lock) {
+            if (sendLoop != null) {
+                return;
+            }
+            logger.log(Level.INFO, "Starting Infinite Tracing.");
+            channelManager = new ChannelManager(config, agentRunToken, requestMetadata, aggregator);
+            spanEventSender = new SpanEventSender(config, queue, aggregator, channelManager);
+            sendLoop = executorService.submit(spanEventSender);
+        }
     }
 
     /**
-     * Initiates the connection and acceptance of {@link SpanEvent} instances.
+     * Stop sending spans to the Infinite Tracing Observer and cleanup resources. If not already running,
+     * return immediately.
      */
-    @SuppressWarnings("unused") // this is the public API of the class
-    public void start() {
-        spanEventConsumer.start();
-    }
-
-    /**
-     * Call this method whenever the run token changes.
-     * @deprecated use {@link #setConnectionMetadata} instead
-     */
-    @Deprecated
-    public void setRunToken(String newRunToken) {
-        setConnectionMetadata(newRunToken, Collections.<String, String>emptyMap());
+    public void stop() {
+        synchronized (lock) {
+            if (sendLoop == null) {
+                return;
+            }
+            logger.log(Level.INFO, "Stopping Infinite Tracing.");
+            sendLoop.cancel(true);
+            channelManager.shutdownChannelForever();
+            sendLoop = null;
+            spanEventSender = null;
+            channelManager = null;
+        }
     }
 
     @Override
     public void accept(SpanEvent spanEvent) {
-        spanEventConsumer.accept(spanEvent);
+        aggregator.incrementCounter("Supportability/InfiniteTracing/Span/Seen");
+        if (!queue.offer(spanEvent)) {
+            logger.log(Level.FINEST, "Span event not accepted. The queue was full.");
+        }
     }
+
+    /**
+     * Initialize Infinite Tracing. Note, for spans to start being sent {@link #start(String, Map)} must
+     * be called.
+     *
+     * @param config the config
+     * @param aggregator the metric aggregator
+     * @return the instance
+     */
+    public static InfiniteTracing initialize(InfiniteTracingConfig config, MetricAggregator aggregator) {
+        return new InfiniteTracing(config, aggregator);
+    }
+
+    private static class DaemonThreadFactory implements ThreadFactory {
+        private final String serviceName;
+        private final AtomicInteger counter = new AtomicInteger(0);
+
+        private DaemonThreadFactory(String serviceName) {
+            this.serviceName = serviceName;
+        }
+
+        @Override
+        public Thread newThread(Runnable runnable) {
+            Thread thread = new Thread(runnable);
+            thread.setName("New Relic " + serviceName + " #" + counter.incrementAndGet());
+            thread.setDaemon(true);
+            return thread;
+        }
+    }
+
 }

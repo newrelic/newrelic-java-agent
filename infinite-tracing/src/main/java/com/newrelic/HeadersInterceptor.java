@@ -1,6 +1,5 @@
 package com.newrelic;
 
-import com.newrelic.agent.interfaces.backport.Supplier;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -12,30 +11,38 @@ import io.grpc.MethodDescriptor;
 
 import java.util.Map;
 
-// this class is for adding headers to the outbound span event stream
-public class HeadersInterceptor implements ClientInterceptor {
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
-    private final Supplier<Map<String, String>> headersSupplier;
+class HeadersInterceptor implements ClientInterceptor {
 
-    public HeadersInterceptor(Supplier<Map<String, String>> headersSupplier) {
-        this.headersSupplier = headersSupplier;
+    private final Map<String, String> headers;
+
+    HeadersInterceptor(Map<String, String> headers) {
+        this.headers = headers;
     }
+
     @Override
     public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
-        return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
+        return new HeadersClientCall<>(method, callOptions, next);
+    }
 
-            @Override
-            public void start(Listener<RespT> responseListener, Metadata headers) {
-                for (Map.Entry<String, String> header: headersSupplier.get().entrySet()) {
-                    headers.put(Metadata.Key.of(header.getKey().toLowerCase(), Metadata.ASCII_STRING_MARSHALLER), header.getValue());
-                }
-                super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(responseListener) {
-                    @Override
-                    public void onHeaders(Metadata headers) {
-                        super.onHeaders(headers);
-                    }
-                }, headers);
+    private class HeadersClientCall<ReqT, RespT> extends ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT> {
+
+        protected HeadersClientCall(MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
+            super(next.newCall(method, callOptions));
+        }
+
+        @Override
+        public void start(Listener<RespT> responseListener, Metadata metadata) {
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                metadata.put(Metadata.Key.of(header.getKey().toLowerCase(), ASCII_STRING_MARSHALLER), header.getValue());
             }
-        };
+            super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(responseListener) {
+                @Override
+                public void onHeaders(Metadata headers) {
+                    super.onHeaders(headers);
+                }
+            }, metadata);
+        }
     }
 }
