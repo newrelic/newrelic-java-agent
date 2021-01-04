@@ -19,6 +19,7 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
     public static final String TRACE_OBSERVER = "trace_observer";
     public static final String SPAN_EVENTS = "span_events";
     public static final String FLAKY_PERCENTAGE = "_flakyPercentage";
+    public static final String FLAKY_CODE = "_flakyCode";
     public static final String USE_PLAINTEXT = "plaintext";
     public static final boolean DEFAULT_USE_PLAINTEXT = false;
 
@@ -70,6 +71,11 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
     @Override
     public Double getFlakyPercentage() {
         return getProperty(FLAKY_PERCENTAGE);
+    }
+
+    @Override
+    public Long getFlakyCode() {
+        return getProperty(FLAKY_CODE);
     }
 
     @Override
