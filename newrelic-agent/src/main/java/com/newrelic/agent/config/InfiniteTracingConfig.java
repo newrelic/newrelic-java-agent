@@ -16,6 +16,8 @@ public interface InfiniteTracingConfig {
 
     Double getFlakyPercentage();
 
+    Long getFlakyCode();
+
     boolean getUsePlaintext();
 
     boolean isEnabled();

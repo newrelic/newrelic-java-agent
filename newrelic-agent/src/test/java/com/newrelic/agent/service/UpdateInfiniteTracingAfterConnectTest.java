@@ -45,8 +45,7 @@ public class UpdateInfiniteTracingAfterConnectTest {
 
         Map<String, String> headersData = new HashMap<>();
         testClass.onEstablished(appName, runToken, headersData);
-        verify(infiniteTracing).setConnectionMetadata(runToken, headersData);
-        verify(infiniteTracing).start();
+        verify(infiniteTracing).start(runToken, headersData);
     }
 
     @Test
