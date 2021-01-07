@@ -58,7 +58,7 @@ public class JarCollectorConfigImplTest {
         jarCollectorConfig = new JarCollectorConfigImpl(configProps);
 
         assertEquals(DEFAULT_ENABLED, jarCollectorConfig.isEnabled());
-        assertEquals(DEFAULT_MAX_CLASS_LOADERS.intValue(), jarCollectorConfig.getMaxClassLoaders());
+        assertEquals(DEFAULT_MAX_CLASS_LOADERS, jarCollectorConfig.getMaxClassLoaders());
     }
 
     @Test
