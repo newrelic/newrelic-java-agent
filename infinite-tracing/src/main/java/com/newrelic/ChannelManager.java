@@ -22,6 +22,7 @@ class ChannelManager {
     private final Logger logger;
     private final InfiniteTracingConfig config;
     private final MetricAggregator aggregator;
+    private final BackoffPolicy backoffManager;
 
     private final Object lock = new Object();
     @GuardedBy("lock") private boolean isShutdownForever;
@@ -38,6 +39,7 @@ class ChannelManager {
         this.aggregator = aggregator;
         this.agentRunToken = agentRunToken;
         this.requestMetadata = requestMetadata;
+        this.backoffManager = new BackoffPolicy();
     }
 
     /**
@@ -103,7 +105,7 @@ class ChannelManager {
 
     @VisibleForTesting
     ResponseObserver buildResponseObserver() {
-        return new ResponseObserver(logger, this, aggregator);
+        return new ResponseObserver(logger, this, aggregator, backoffManager);
     }
 
     /**

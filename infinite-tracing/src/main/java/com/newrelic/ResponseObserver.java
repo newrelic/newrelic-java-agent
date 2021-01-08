@@ -7,28 +7,26 @@ import com.newrelic.trace.v1.V1;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 class ResponseObserver implements StreamObserver<V1.RecordStatus> {
 
-    static final int DEFAULT_BACKOFF_SECONDS = 15;
-    static final int[] BACKOFF_SECONDS_SEQUENCE = new int[] { 15, 15, 30, 60, 120, 300 };
-
     private final Logger logger;
     private final ChannelManager channelManager;
     private final MetricAggregator aggregator;
-    private final AtomicInteger backoffSequenceIndex = new AtomicInteger(-1);
+    private final BackoffPolicy backoffManager;
 
-    ResponseObserver(Logger logger, ChannelManager channelManager, MetricAggregator aggregator) {
+    ResponseObserver(Logger logger, ChannelManager channelManager, MetricAggregator aggregator, BackoffPolicy backoffPolicy) {
         this.logger = logger;
         this.channelManager = channelManager;
         this.aggregator = aggregator;
+        this.backoffManager = backoffPolicy;
     }
 
     @Override
     public void onNext(V1.RecordStatus value) {
         aggregator.incrementCounter("Supportability/InfiniteTracing/Response");
+        backoffManager.reset();
     }
 
     @Override
@@ -89,13 +87,10 @@ class ResponseObserver implements StreamObserver<V1.RecordStatus> {
             logLevel = Level.FINE;
         } else if (status.getCode() == Status.Code.FAILED_PRECONDITION) {
             // See: https://source.datanerd.us/agents/agent-specs/blob/master/Infinite-Tracing.md#failed_precondition
-            int nextIndex = backoffSequenceIndex.incrementAndGet();
-            backoffSeconds = nextIndex < BACKOFF_SECONDS_SEQUENCE.length
-                    ? BACKOFF_SECONDS_SEQUENCE[nextIndex]
-                    : BACKOFF_SECONDS_SEQUENCE[BACKOFF_SECONDS_SEQUENCE.length - 1];
+            backoffSeconds = backoffManager.getNextBackoffSeconds();
         } else {
             // See: https://source.datanerd.us/agents/agent-specs/blob/master/Infinite-Tracing.md#other-errors-1
-            backoffSeconds = DEFAULT_BACKOFF_SECONDS;
+            backoffSeconds = backoffManager.getDefaultBackoffSeconds();
         }
 
         logger.log(logLevel, status.asException(), "Received gRPC status {0}.", status.getCode().toString());

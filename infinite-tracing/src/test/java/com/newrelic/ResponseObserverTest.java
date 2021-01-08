@@ -13,8 +13,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.logging.Level;
 
-import static com.newrelic.ResponseObserver.BACKOFF_SECONDS_SEQUENCE;
-import static com.newrelic.ResponseObserver.DEFAULT_BACKOFF_SECONDS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -24,6 +22,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class ResponseObserverTest {
 
@@ -33,13 +32,15 @@ class ResponseObserverTest {
     private ChannelManager channelManager;
     @Mock
     private MetricAggregator aggregator;
+    @Mock
+    private BackoffPolicy backoffPolicy;
 
     private ResponseObserver target;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.initMocks(this);
-        target = spy(new ResponseObserver(logger, channelManager, aggregator));
+        target = spy(new ResponseObserver(logger, channelManager, aggregator, backoffPolicy));
     }
 
     @Test
@@ -47,6 +48,7 @@ class ResponseObserverTest {
         target.onNext(V1.RecordStatus.newBuilder().build());
 
         verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Response");
+        verify(backoffPolicy).reset();
     }
 
     @Test
@@ -102,21 +104,24 @@ class ResponseObserverTest {
 
     @Test
     void shutdownChannelAndBackoff_FailedPreconditionBackoffSequence() {
-        for (int i = 0; i < 10; i++) {
-            target.shutdownChannelAndBackoff(Status.FAILED_PRECONDITION);
-        }
+        int backoffSeconds = 5;
+        when(backoffPolicy.getNextBackoffSeconds()).thenReturn(backoffSeconds);
 
-        verify(logger, times(10)).log(eq(Level.WARNING), any(Throwable.class), anyString(), any());
-        verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(BACKOFF_SECONDS_SEQUENCE[0]);
-        verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(BACKOFF_SECONDS_SEQUENCE[BACKOFF_SECONDS_SEQUENCE.length - 1]);
+        target.shutdownChannelAndBackoff(Status.FAILED_PRECONDITION);
+
+        verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), any());
+        verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(backoffSeconds);
     }
 
     @Test
     void shutdownChannelAndBackoff_OtherStatusDefaultBackoff() {
+        int backoffSeconds = 5;
+        when(backoffPolicy.getDefaultBackoffSeconds()).thenReturn(backoffSeconds);
+
         target.shutdownChannelAndBackoff(Status.UNKNOWN);
 
         verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), any());
-        verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(DEFAULT_BACKOFF_SECONDS);
+        verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(backoffSeconds);
     }
 
     @Test
