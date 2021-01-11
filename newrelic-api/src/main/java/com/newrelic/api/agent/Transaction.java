@@ -8,6 +8,7 @@
 package com.newrelic.api.agent;
 
 import java.net.URI;
+import java.util.Map;
 
 /**
  * A transaction represents a unit of work in an application. It may be a single web request or a scheduled background
@@ -18,6 +19,13 @@ import java.net.URI;
  * @see Trace#dispatcher()
  */
 public interface Transaction {
+
+    /**
+     * insert Dt Headers. This mutates the headers
+     *
+     */
+
+    void insertDistributedTraceHeaders(Map<String,String> headers);
 
     /**
      * Sets the current transaction's name using the given priority. Higher priority levels are given precedence, and if

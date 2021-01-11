@@ -37,6 +37,10 @@ public class NoOpTransaction implements Transaction {
     }
 
     @Override
+    public void insertDistributedTraceHeaders(Map<String, String> headers) {
+    }
+
+    @Override
     public boolean setTransactionName(TransactionNamePriority namePriority, boolean override, String category,
             String... parts) {
         return false;

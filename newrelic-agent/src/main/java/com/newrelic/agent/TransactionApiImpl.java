@@ -21,18 +21,8 @@ import com.newrelic.agent.bridge.TransportType;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
-import com.newrelic.api.agent.ApplicationNamePriority;
-import com.newrelic.api.agent.DistributedTracePayload;
-import com.newrelic.api.agent.ExtendedInboundHeaders;
-import com.newrelic.api.agent.ExtendedRequest;
-import com.newrelic.api.agent.InboundHeaders;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.OutboundHeaders;
-import com.newrelic.api.agent.Request;
-import com.newrelic.api.agent.Response;
+import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.Segment;
-import com.newrelic.api.agent.TracedMethod;
-import com.newrelic.api.agent.TransactionNamePriority;
 
 import java.net.URI;
 import java.util.Map;
@@ -411,6 +401,24 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     }
 
     @Override
+    public void insertDistributedTraceHeaders(Map<String, String> headers) {
+        Transaction tx = getTransactionIfExists();
+        if (tx == null) {
+            return;
+        }
+        //How could there be a transaction but no transaction activity?
+        TransactionActivity txa = tx.getTransactionActivity();
+        if (txa == null) {
+            return;
+        }
+        //mutate the headers and add W3C to the headers here
+        //We need to wrap headers into an OutboundHeaders
+        OutboundHeaders outboundHeaders = new addW3CHeadersWrapper(headers);
+        //This creaates all necessary headers and adds them
+        HeadersUtil.createAndSetDistributedTraceHeaders(tx, txa.getLastTracer(), outboundHeaders);
+    }
+
+    @Override
     public DistributedTracePayload createDistributedTracePayload() {
         Transaction tx = getTransactionIfExists();
         if (tx == null) {
@@ -494,5 +502,25 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
         if (tx != null) {
             tx.setTransportType(transportType);
         }
+    }
+}
+
+class addW3CHeadersWrapper implements OutboundHeaders {
+
+    private Map<String, String> headers;
+
+    public addW3CHeadersWrapper(Map<String, String> headers) {
+
+        this.headers = headers;
+    }
+
+    @Override
+    public HeaderType getHeaderType() {
+        return HeaderType.HTTP;
+    }
+
+    @Override
+    public void setHeader(String name, String value) {
+        headers.put(name,value);
     }
 }
