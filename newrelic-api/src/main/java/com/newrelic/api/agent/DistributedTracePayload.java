@@ -7,11 +7,13 @@
 
 package com.newrelic.api.agent;
 
+import java.util.Map;
+
 /**
  * Payload used to connect two services in a distributed system.
  *
- * Use {@link com.newrelic.api.agent.Transaction#createDistributedTracePayload() createDistributedTracePayload()}
- * to create a payload, and {@link com.newrelic.api.agent.Transaction#acceptDistributedTracePayload(DistributedTracePayload)} acceptDistributedTracePayload()} to accept the payload on the second service.
+ * Use the Distributed Tracing API {@link Transaction#insertDistributedTraceHeaders(Map)} to create distributed tracing headers
+ * and {@link Transaction#acceptDistributedTraceHeaders(HeaderType, Map)} to link the services together.
  */
 public interface DistributedTracePayload {
 

@@ -90,8 +90,8 @@ public interface Transaction {
      * @return A string representation of the metadata required for linking this transaction to a remote child
      * transaction, or null if no metadata should be sent.
      * @since 3.16.1
-     * @deprecated Instead, use the Distributed Tracing API {@link #createDistributedTracePayload()} to create a distributed tracing payload
-     * and {@link #acceptDistributedTracePayload(DistributedTracePayload)} to link the services together.
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Map)} to create distributed tracing headers
+     * and {@link #acceptDistributedTraceHeaders(HeaderType, Map)} to link the services together.
      */
     @Deprecated
     String getRequestMetadata();
@@ -111,8 +111,8 @@ public interface Transaction {
      *
      * @param requestMetadata metadata string received from an inbound request.
      * @since 3.16.1
-     * @deprecated Instead, use the Distributed Tracing API {@link #createDistributedTracePayload()} to create a distributed tracing payload
-     * and {@link #acceptDistributedTracePayload(DistributedTracePayload)} to link the services together.
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Map)} to create distributed tracing headers
+     * and {@link #acceptDistributedTraceHeaders(HeaderType, Map)} to link the services together.
      */
     @Deprecated
     void processRequestMetadata(String requestMetadata);
@@ -298,7 +298,10 @@ public interface Transaction {
      *
      * @return a {@link DistributedTracePayload}
      * @since 4.3.0
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Map)} to create distributed tracing headers
+     * and {@link #acceptDistributedTraceHeaders(HeaderType, Map)} to link the services together.
      */
+    @Deprecated
     DistributedTracePayload createDistributedTracePayload();
 
     /**
@@ -308,7 +311,10 @@ public interface Transaction {
      *
      * @param payload a String representation of the {@link DistributedTracePayload} to accept
      * @since 4.3.0
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Map)} to create distributed tracing headers
+     * and {@link #acceptDistributedTraceHeaders(HeaderType, Map)} to link the services together.
      */
+    @Deprecated
     void acceptDistributedTracePayload(String payload);
 
     /**
@@ -318,7 +324,10 @@ public interface Transaction {
      *
      * @param payload a {@link DistributedTracePayload} instance to accept
      * @since 4.3.0
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Map)} to create distributed tracing headers
+     * and {@link #acceptDistributedTraceHeaders(HeaderType, Map)} to link the services together.
      */
+    @Deprecated
     void acceptDistributedTracePayload(DistributedTracePayload payload);
 
     /**
