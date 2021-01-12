@@ -168,6 +168,14 @@ class NoOpAgent implements Agent {
         @Override
         public void acceptDistributedTracePayload(DistributedTracePayload payload) {
         }
+
+        @Override
+        public void insertDistributedTraceHeaders(Map<String, String> headersMap) {
+        }
+
+        @Override
+        public void acceptDistributedTraceHeaders(HeaderType headerType, Map<String, String> headersMap) {
+        }
     };
 
     private static final Token TOKEN = new Token() {

@@ -9,10 +9,9 @@ package com.newrelic.agent.bridge;
 
 import com.newrelic.api.agent.ApplicationNamePriority;
 import com.newrelic.api.agent.DistributedTracePayload;
-import com.newrelic.api.agent.ExtendedInboundHeaders;
 import com.newrelic.api.agent.ExtendedRequest;
+import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
-import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 import com.newrelic.api.agent.Segment;
@@ -303,6 +302,14 @@ public class NoOpTransaction implements Transaction {
 
     @Override
     public void acceptDistributedTracePayload(DistributedTracePayload payload) {
+    }
+
+    @Override
+    public void insertDistributedTraceHeaders(Map<String, String> headersMap) {
+    }
+
+    @Override
+    public void acceptDistributedTraceHeaders(HeaderType headerType, Map<String, String> headersMap) {
     }
 
     @Override

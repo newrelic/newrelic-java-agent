@@ -8,17 +8,22 @@
 package com.newrelic.agent;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.OutboundHeaders;
 
-@SuppressWarnings("serial")
-public class OutboundHeadersMap extends HashMap<String, String> implements OutboundHeaders {
+/**
+ * An {@link OutboundHeaders} that is backed by a map.
+ */
+public class OutboundHeadersMap implements OutboundHeaders {
+
     private final HeaderType type;
+    private final Map<String, String> map;
 
     public OutboundHeadersMap(HeaderType type) {
-        super();
         this.type = type;
+        this.map = new HashMap<>();
     }
 
     @Override
@@ -26,8 +31,19 @@ public class OutboundHeadersMap extends HashMap<String, String> implements Outbo
         return type;
     }
 
+
     @Override
     public void setHeader(String name, String value) {
-        put(name, value);
+        map.put(name, value);
     }
+
+    /**
+     * Obtain a copy of the headers backing map.
+     *
+     * @return the headers map
+     */
+    public Map<String, String> asMap() {
+        return new HashMap<>(map);
+    }
+
 }

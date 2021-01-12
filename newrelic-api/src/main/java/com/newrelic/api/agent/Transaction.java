@@ -8,6 +8,7 @@
 package com.newrelic.api.agent;
 
 import java.net.URI;
+import java.util.Map;
 
 /**
  * A transaction represents a unit of work in an application. It may be a single web request or a scheduled background
@@ -319,4 +320,24 @@ public interface Transaction {
      * @since 4.3.0
      */
     void acceptDistributedTracePayload(DistributedTracePayload payload);
+
+    /**
+     * Generate distributed trace headers and insert them into the given {@code headersMap}. NOTE: the {@code headersMap}
+     * MUST be mutable. Distributed trace headers should be sent from one service to another when you want to follow a trace
+     * throughout a distributed system. Distributed trace headers must be created within an active New Relic {@link Transaction}.
+     *
+     * @param headersMap a map to be updated with distributed trace header names and values
+     */
+    void insertDistributedTraceHeaders(Map<String, String> headersMap);
+
+    /**
+     * Accept distributed trace headers. Accepting distributed trace headers sent from one service to another in a
+     * distributed system will result in those services being linked together in a trace of the system. Distributed trace
+     * payloads must be accepted within an active New Relic {@link Transaction}.
+     *
+     * @param headerType the type of headers being accepted
+     * @param headersMap a map of distributed trace header names and values to be accepted
+     */
+    void acceptDistributedTraceHeaders(HeaderType headerType, Map<String, String> headersMap);
+
 }

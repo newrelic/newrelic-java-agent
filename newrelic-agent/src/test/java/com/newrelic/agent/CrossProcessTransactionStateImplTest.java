@@ -220,12 +220,13 @@ public class CrossProcessTransactionStateImplTest {
                 "object",
                 null
         ));
-        assertTrue(headers.containsKey("newrelic"));
-        assertTrue(headers.get("newrelic").length() > 0);
-        assertTrue(headers.containsKey("traceparent"));
-        assertTrue(headers.get("traceparent").length() > 0);
-        assertTrue(headers.containsKey("tracestate"));
-        assertTrue(headers.get("tracestate").length() > 0);
+        Map<String, String> headersMap = headers.asMap();
+        assertTrue(headersMap.containsKey("newrelic"));
+        assertTrue(headersMap.get("newrelic").length() > 0);
+        assertTrue(headersMap.containsKey("traceparent"));
+        assertTrue(headersMap.get("traceparent").length() > 0);
+        assertTrue(headersMap.containsKey("tracestate"));
+        assertTrue(headersMap.get("tracestate").length() > 0);
     }
 
     @Test
@@ -240,11 +241,12 @@ public class CrossProcessTransactionStateImplTest {
                 "object",
                 null
         ));
-        assertFalse(headers.containsKey("newrelic"));
-        assertTrue(headers.containsKey("traceparent"));
-        assertTrue(headers.get("traceparent").length() > 0);
-        assertTrue(headers.containsKey("tracestate"));
-        assertTrue(headers.get("tracestate").length() > 0);
+        Map<String, String> headersMap = headers.asMap();
+        assertFalse(headersMap.containsKey("newrelic"));
+        assertTrue(headersMap.containsKey("traceparent"));
+        assertTrue(headersMap.get("traceparent").length() > 0);
+        assertTrue(headersMap.containsKey("tracestate"));
+        assertTrue(headersMap.get("tracestate").length() > 0);
     }
 
     private CrossProcessTransactionStateImpl setupTestForDistributedTracing(boolean includeNewRelicHeader) {

@@ -56,23 +56,24 @@ public class HeadersUtilTest {
 
         Tracer mockTracer = new DefaultTracer(tx, new ClassMethodSignature(getClass().getName(), "tracerMethod", "()V"), this);
 
-        OutboundHeadersMap map = new OutboundHeadersMap(HeaderType.HTTP);
+        OutboundHeadersMap outboundHeaders = new OutboundHeadersMap(HeaderType.HTTP);
 
-        assertTrue("DT headers should have been set", HeadersUtil.createAndSetDistributedTraceHeaders(tx, mockTracer, map));
+        assertTrue("DT headers should have been set", HeadersUtil.createAndSetDistributedTraceHeaders(tx, mockTracer, outboundHeaders));
         assertFalse(tx.sampled());
 
-        assertTrue("map should contain newrelic header", map.containsKey("newrelic"));
-        String decodedHeader = new String(Base64.decodeBase64(map.get("newrelic")), StandardCharsets.UTF_8);
+        Map<String, String> headersMap = outboundHeaders.asMap();
+        assertTrue("map should contain newrelic header", headersMap.containsKey("newrelic"));
+        String decodedHeader = new String(Base64.decodeBase64(headersMap.get("newrelic")), StandardCharsets.UTF_8);
         JsonObject jsonObject = new Gson().fromJson(decodedHeader, JsonObject.class);
         assertFalse("d.sa should be false because tx is not sampled", jsonObject.getAsJsonObject("d").get("sa").getAsBoolean());
         assertEquals("d.pr should be zero", 0f, jsonObject.getAsJsonObject("d").get("pr").getAsFloat(), 0.0001);
         assertNotNull("d.id should not be null", jsonObject.getAsJsonObject("d").get("id"));
         assertEquals("d.id should be the span id.", mockTracer.getGuid(), jsonObject.getAsJsonObject("d").get("id").getAsString());
 
-        String traceParent = map.get("traceparent");
+        String traceParent = headersMap.get("traceparent");
         assertEquals("traceparent parentId field should match span id.", mockTracer.getGuid(), traceParent.split("-")[2]);
 
-        String traceState = map.get("tracestate");
+        String traceState = headersMap.get("tracestate");
         assertEquals("tracestate spanId field should match span id.", mockTracer.getGuid(), traceState.split("-")[4]);
         assertEquals("tracestate txId field should match tx id.", tx.getGuid(), traceState.split("-")[5]);
     }

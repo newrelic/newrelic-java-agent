@@ -127,15 +127,15 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
             boolean populated = populateResponseMetadata(metadata, contentLength);
 
             if (populated && obfuscateMetadata(metadata)) {
-                for (Entry<String, String> entry : metadata.entrySet()) {
+                for (Entry<String, String> entry : metadata.asMap().entrySet()) {
                     outboundHeaders.setHeader(entry.getKey(), entry.getValue());
                 }
             }
         }
     }
 
-    private boolean obfuscateMetadata(Map<String, String> metadata) {
-        if (metadata == null || metadata.isEmpty()) {
+    private boolean obfuscateMetadata(OutboundHeadersMap headersMap) {
+        if (headersMap == null || headersMap.asMap().isEmpty()) {
             return false;
         }
 
@@ -145,12 +145,12 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
             return false;
         }
 
-        for (Entry<String, String> entry : metadata.entrySet()) {
+        for (Entry<String, String> entry : headersMap.asMap().entrySet()) {
             if (UNOBFUSCATED_HEADERS.contains(entry.getKey())) {
                 continue;
             }
             String obfuscatedValue = Obfuscator.obfuscateNameUsingKey(entry.getValue(), encodingKey);
-            entry.setValue(obfuscatedValue);
+            headersMap.setHeader(entry.getKey(), obfuscatedValue);
         }
         return true;
     }
@@ -216,13 +216,13 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
             populateRequestMetadata(metadata, tracedMethod);
 
             if (obfuscateMetadata(metadata)) {
-                for (Entry<String, String> entry : metadata.entrySet()) {
+                for (Entry<String, String> entry : metadata.asMap().entrySet()) {
                     outboundHeaders.setHeader(entry.getKey(), entry.getValue());
                 }
             } else {
                 // If we got in here, old CAT is disabled but better CAT might be
                 // enabled so we should try to set those unobfuscated headers
-                for (Entry<String, String> entry : metadata.entrySet()) {
+                for (Entry<String, String> entry : metadata.asMap().entrySet()) {
                     if (UNOBFUSCATED_HEADERS.contains(entry.getKey())) {
                         outboundHeaders.setHeader(entry.getKey(), entry.getValue());
                     }
@@ -497,12 +497,12 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
         populateRequestMetadata(metadata, tx.getTransactionActivity().getLastTracer());
 
         // CAT specification: return null when there are no headers to send.
-        if (metadata.isEmpty()) {
+        if (metadata.asMap().isEmpty()) {
             return null;
         }
 
         // JSON serialize, obfuscate, and Base64 encode
-        String serializedMetadata = JSONValue.toJSONString(metadata);
+        String serializedMetadata = JSONValue.toJSONString(metadata.asMap());
         String encodingKey = tx.getCrossProcessConfig().getEncodingKey();
         return Obfuscator.obfuscateNameUsingKey(serializedMetadata, encodingKey);
     }
@@ -534,12 +534,12 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
         populateResponseMetadata(metadata, -1);
 
         // CAT specification: return null when there are no headers to send.
-        if (metadata.isEmpty()) {
+        if (metadata.asMap().isEmpty()) {
             return null;
         }
 
         // JSON serialize, obfuscate, and Base64 encode
-        String serializedMetadata = JSONValue.toJSONString(metadata);
+        String serializedMetadata = JSONValue.toJSONString(metadata.asMap());
         String encodingKey = tx.getCrossProcessConfig().getEncodingKey();
         return Obfuscator.obfuscateNameUsingKey(serializedMetadata, encodingKey);
     }

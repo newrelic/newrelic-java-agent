@@ -17,17 +17,16 @@ import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.NoOpWebResponse;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TracedActivity;
+import com.newrelic.api.agent.HeaderType;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.agent.bridge.TransportType;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.ApplicationNamePriority;
 import com.newrelic.api.agent.DistributedTracePayload;
-import com.newrelic.api.agent.ExtendedInboundHeaders;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.InboundHeaders;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 import com.newrelic.api.agent.Segment;
@@ -486,6 +485,26 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
         if (tx != null) {
             tx.publicApiAcceptDistributedTracePayload(payload);
         }
+    }
+
+    @Override
+    public void insertDistributedTraceHeaders(Map<String, String> headersMap) {
+        Transaction tx = getTransactionIfExists();
+        if (tx == null) {
+            return;
+        }
+        OutboundHeadersMap outboundHeaders = new OutboundHeadersMap(HeaderType.HTTP);
+        HeadersUtil.createAndSetDistributedTraceHeaders(tx, NewRelic.getAgent().getTracedMethod(), outboundHeaders);
+        headersMap.putAll(outboundHeaders.asMap());
+    }
+
+    @Override
+    public void acceptDistributedTraceHeaders(HeaderType headerType, Map<String, String> headersMap) {
+        Transaction tx = getTransactionIfExists();
+        if (tx == null) {
+            return;
+        }
+        HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, new InboundHeadersMap(headerType, headersMap));
     }
 
     @Override
