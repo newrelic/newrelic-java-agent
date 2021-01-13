@@ -8,7 +8,7 @@
 package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableSet;
-import com.newrelic.api.agent.TransportType;
+import com.newrelic.api.agent.Headers;
 import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
@@ -22,6 +22,7 @@ import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -179,6 +180,9 @@ public class HeadersUtil {
         if (inboundHeaders instanceof ExtendedInboundHeaders) {
             return ((ExtendedInboundHeaders) inboundHeaders).getHeaders(key);
         }
+        if (inboundHeaders instanceof Headers) {
+            return new ArrayList<>(((Headers) inboundHeaders).getHeaders(key));
+        }
 
         String header = inboundHeaders.getHeader(key);
         return header != null ? Collections.singletonList(header) : null;
@@ -231,13 +235,6 @@ public class HeadersUtil {
      * @param inboundHeaders the request headers containing the distributed trace payload
      */
     public static void parseAndAcceptDistributedTraceHeaders(Transaction tx, InboundHeaders inboundHeaders) {
-        //Don't override TransportType if it has already been set
-        if (TransportType.Unknown.equals(tx.getTransportType())) {
-            TransportType transportType = inboundHeaders.getHeaderType() == HeaderType.MESSAGE ?
-                    TransportType.JMS : TransportType.HTTP;
-            tx.setTransportType(transportType);
-        }
-
         List<String> traceParent = HeadersUtil.getTraceParentHeader(inboundHeaders);
         if (traceParent != null && !traceParent.isEmpty()) {
             List<String> traceState = HeadersUtil.getTraceStateHeader(inboundHeaders);

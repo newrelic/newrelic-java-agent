@@ -17,6 +17,8 @@ import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.NoOpWebResponse;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TracedActivity;
+import com.newrelic.api.agent.Headers;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.service.ServiceFactory;
@@ -483,6 +485,27 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
         if (tx != null) {
             tx.publicApiAcceptDistributedTracePayload(payload);
         }
+    }
+
+    @Override
+    public void insertDistributedTraceHeaders(Headers headers) {
+        Transaction tx = getTransactionIfExists();
+        if (tx == null) {
+            return;
+        }
+        HeadersUtil.createAndSetDistributedTraceHeaders(tx, NewRelic.getAgent().getTracedMethod(), headers);
+    }
+
+    @Override
+    public void acceptDistributedTraceHeaders(TransportType transportType, Headers headers) {
+        Transaction tx = getTransactionIfExists();
+        if (tx == null) {
+            return;
+        }
+        if (TransportType.Unknown.equals(tx.getTransportType())) {
+            tx.setTransportType(transportType);
+        }
+        HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, headers);
     }
 
     @Override
