@@ -27,13 +27,13 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
     public TokenLinkingSubscriber(Subscriber<? super T> subscriber, Context ctx) {
         this.subscriber = subscriber;
         this.context = ctx;
-        // newrelic-token is added by spring-webflux-5.1 instrumentation
+        // newrelic-token is added by spring-webflux instrumentation
         this.token = ctx.getOrDefault("newrelic-token", null);
     }
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        subscriber.onSubscribe(subscription);
+        withNRToken(() -> subscriber.onSubscribe(subscription));
     }
 
     @Override
