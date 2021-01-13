@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.agent.bridge;
+package com.newrelic.api.agent;
 
 public enum TransportType {
 

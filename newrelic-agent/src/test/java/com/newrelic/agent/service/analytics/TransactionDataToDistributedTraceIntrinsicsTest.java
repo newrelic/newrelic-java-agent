@@ -9,7 +9,7 @@ package com.newrelic.agent.service.analytics;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.TransactionData;
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.W3CTraceParent;

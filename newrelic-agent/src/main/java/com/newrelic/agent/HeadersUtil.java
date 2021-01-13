@@ -8,7 +8,7 @@
 package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableSet;
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;

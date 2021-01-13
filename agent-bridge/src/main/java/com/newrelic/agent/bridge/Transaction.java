@@ -13,6 +13,7 @@ import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
+import com.newrelic.api.agent.TransportType;
 
 import java.util.Map;
 
