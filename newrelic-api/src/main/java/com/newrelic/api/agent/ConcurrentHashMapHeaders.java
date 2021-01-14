@@ -3,6 +3,8 @@ package com.newrelic.api.agent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,12 +24,13 @@ public class ConcurrentHashMapHeaders implements Headers {
     }
 
     /**
-     * Obtain a read only view of the backing map.
+     * Obtain a copy of the backing map. The result is not guaranteed to be thread safe, or mutable. If it is mutable, changes
+     * do not modify the backing {@link #headers} map.
      *
-     * @return The map view.
+     * @return The map copy.
      */
-    public Map<String, List<String>> getReadOnlyMap() {
-        return Collections.unmodifiableMap(headers);
+    public Map<String, List<String>> getMapCopy() {
+        return new HashMap<>(headers);
     }
 
     /**
@@ -77,7 +80,7 @@ public class ConcurrentHashMapHeaders implements Headers {
 
     @Override
     public Collection<String> getHeaderNames() {
-        return Collections.unmodifiableSet(headers.keySet());
+        return new HashSet<>(headers.keySet());
     }
 
     @Override
