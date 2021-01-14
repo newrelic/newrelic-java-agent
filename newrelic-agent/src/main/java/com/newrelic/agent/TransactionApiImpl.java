@@ -475,7 +475,7 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     public void acceptDistributedTracePayload(String payload) {
         Transaction tx = getTransactionIfExists();
         if (tx != null) {
-            tx.publicApiAcceptDistributedTracePayload(payload);
+            tx.acceptDistributedTracePayload(payload);
         }
     }
 
@@ -483,7 +483,7 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     public void acceptDistributedTracePayload(DistributedTracePayload payload) {
         Transaction tx = getTransactionIfExists();
         if (tx != null) {
-            tx.publicApiAcceptDistributedTracePayload(payload);
+            tx.acceptDistributedTracePayload(payload);
         }
     }
 

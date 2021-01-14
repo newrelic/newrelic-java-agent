@@ -290,14 +290,6 @@ public class Transaction {
         return payload;
     }
 
-    void publicApiAcceptDistributedTracePayload(String payload) {
-        acceptDistributedTracePayload(payload);
-    }
-
-    void publicApiAcceptDistributedTracePayload(DistributedTracePayload payload) {
-        acceptDistributedTracePayload(payload);
-    }
-
     public boolean acceptDistributedTracePayload(String payload) {
         if (getAgentConfig().getDistributedTracingConfig().isEnabled()) {
             long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(
