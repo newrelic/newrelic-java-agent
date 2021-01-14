@@ -338,7 +338,8 @@ public interface Transaction {
      * Generate distributed trace headers and insert them into the {@link Headers}. The header names inserted will depend
      * on the {@link Headers#getHeaderType()}.
      *
-     * @param headers the headers to be updated with distributed trace header names and values
+     * @param headers The headers to be updated with distributed trace header names and values.
+     * @since 6.5.0
      */
     void insertDistributedTraceHeaders(Headers headers);
 
@@ -348,8 +349,9 @@ public interface Transaction {
      * payloads must be accept within an active New Relic {@link Transaction}. The header names accepted will depend on
      * the {@link Headers#getHeaderType()}.
      *
-     * @param transportType the transport type of headers being accepted
-     * @param headers the headers to be accepted
+     * @param transportType The transport type of headers being accepted.
+     * @param headers The headers to be accepted.
+     * @since 6.5.0
      */
     void acceptDistributedTraceHeaders(TransportType transportType, Headers headers);
 
