@@ -9,16 +9,14 @@ import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
 import reactor.util.context.Context;
 
-@Weave(originalName = "reactor.core.publisher.LambdaMonoSubscriber")
-abstract class LambdaMonoSubscriber_Instrumentation {
+@Weave(originalName = "reactor.core.publisher.LambdaSubscriber")
+abstract class LambdaSubscriber_Instrumentation {
+    final Context initialContext = Weaver.callOriginal();
     @NewField
     private Context nrContext;
-    final Context initialContext = Weaver.callOriginal();
 
     @WeaveAllConstructors
-    protected LambdaMonoSubscriber_Instrumentation() {
-        // LamdaMonoSubscriber creates a new Context, so we create a new token and put it on the Context
-        // to be linked by TokenLinkingSubscriber but expired on onComplete here
+    protected LambdaSubscriber_Instrumentation() {
         if (AgentBridge.getAgent().getTransaction(false) != null
                 && initialContext.getOrDefault("newrelic-token", null) == null) {
             nrContext = Context.of("newrelic-token", NewRelic.getAgent().getTransaction().getToken());
@@ -37,6 +35,7 @@ abstract class LambdaMonoSubscriber_Instrumentation {
 
     public Context currentContext() {
         if (nrContext != null) {
+            //return nrContext;
             return initialContext.putAll(nrContext);
         }
         return Weaver.callOriginal();
