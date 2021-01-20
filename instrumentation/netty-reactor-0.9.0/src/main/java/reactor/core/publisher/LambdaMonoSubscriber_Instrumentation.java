@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package reactor.core.publisher;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -29,7 +36,6 @@ abstract class LambdaMonoSubscriber_Instrumentation {
         Token token = this.currentContext().getOrDefault("newrelic-token", null);
         if (token != null) {
             token.expire();
-            token = null;
             this.nrContext = null;
 
         }
