@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * A thread safe implementation of {@link Headers} using {@link ConcurrentHashMap} as the backing data structure. Concurrent
  * writes are supported. Reads return immutable data types.
+ *
+ * <p>NOTE: If using this implementation of {@link Headers}, an agent of the same version should be used. Failure to do so
+ * may cause unexpected results at runtime, since the agent's definition may be different than provided by the {@code newrelic-api}.
  */
 public class ConcurrentHashMapHeaders implements Headers {
 
@@ -91,6 +94,9 @@ public class ConcurrentHashMapHeaders implements Headers {
     /**
      * Build an empty instance with the given {@link HeaderType}.
      *
+     * <p>NOTE: If using this implementation of {@link Headers}, an agent of the same version should be used. Failure to do so
+     * may cause unexpected results at runtime, since the agent's definition may be different than provided by the {@code newrelic-api}.
+     *
      * @param headerType The type of headers the instance represents.
      * @return The instance.
      */
@@ -101,6 +107,9 @@ public class ConcurrentHashMapHeaders implements Headers {
     /**
      * Build an instance with the given {@link HeaderType} and call {@link #setHeader(String, String)} with each entry
      * in the {@code map}.
+     *
+     * <p>NOTE: If using this implementation of {@link Headers}, an agent of the same version should be used. Failure to do so
+     * may cause unexpected results at runtime, since the agent's definition may be different than provided by the {@code newrelic-api}.
      *
      * @param headerType The type of headers the instance represents.
      * @param map A map of header names and values used to populate the instance.
@@ -117,6 +126,9 @@ public class ConcurrentHashMapHeaders implements Headers {
     /**
      * Build an instance with the given {@link HeaderType} and call {@link #addHeader(String, String)} with each entry
      * in the {@code map}.
+     *
+     * <p>NOTE: If using this implementation of {@link Headers}, an agent of the same version should be used. Failure to do so
+     * may cause unexpected results at runtime, since the agent's definition may be different than provided by the {@code newrelic-api}.
      *
      * @param headerType The type of headers the instance represents.
      * @param map A map of header names and potentially several values each used to populate the instance.
