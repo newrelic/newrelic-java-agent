@@ -15,12 +15,10 @@ public class JarCollectorConfigImpl extends BaseConfig implements JarCollectorCo
 
     public static final String ENABLED = "enabled";
     public static final String SKIP_TEMP_JARS = "skip_temp_jars";
-    public static final String MAX_CLASS_LOADERS = "max_class_loaders";
     public static final String JARS_PER_SECOND = "jars_per_second";
 
     public static final boolean DEFAULT_ENABLED = Boolean.TRUE;
     public static final boolean DEFAULT_SKIP_TEMP_JARS = Boolean.TRUE;
-    public static final int DEFAULT_MAX_CLASS_LOADERS = 5000;
     public static final int DEFAULT_JARS_PER_SECOND = 10;
 
     // The newrelic.config.module root shouldn't be used but is kept for backwards compatibility
@@ -30,14 +28,12 @@ public class JarCollectorConfigImpl extends BaseConfig implements JarCollectorCo
 
     private final boolean isEnabled;
     private final boolean skipTempJars;
-    private final int maxClassLoaders;
     private final Integer jarsPerSecond;
 
     public JarCollectorConfigImpl(Map<String, Object> pProps) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
         isEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
         skipTempJars = getProperty(SKIP_TEMP_JARS, DEFAULT_SKIP_TEMP_JARS);
-        maxClassLoaders = getProperty(MAX_CLASS_LOADERS, DEFAULT_MAX_CLASS_LOADERS);
         jarsPerSecond = getProperty(JARS_PER_SECOND, DEFAULT_JARS_PER_SECOND);
     }
 
@@ -57,11 +53,6 @@ public class JarCollectorConfigImpl extends BaseConfig implements JarCollectorCo
     @Override
     public boolean skipTempJars() {
         return skipTempJars;
-    }
-
-    @Override
-    public int getMaxClassLoaders() {
-        return maxClassLoaders;
     }
 
     @Override

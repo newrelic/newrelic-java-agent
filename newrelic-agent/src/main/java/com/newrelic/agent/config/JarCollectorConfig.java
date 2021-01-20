@@ -26,13 +26,6 @@ public interface JarCollectorConfig {
     boolean skipTempJars();
 
     /**
-     * The number of class loaders which we should grab jars from.
-     *
-     * @return The max number of class loaders to look at for jar information.
-     */
-    int getMaxClassLoaders();
-
-    /**
      * The maximum number of jars to process per second. Must be positive.
      *
      * @return The number of jars to process per second.
