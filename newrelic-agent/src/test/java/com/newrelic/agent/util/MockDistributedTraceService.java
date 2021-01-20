@@ -7,7 +7,7 @@
 
 package com.newrelic.agent.util;
 
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 

@@ -89,8 +89,9 @@ public interface Transaction {
      * @return A string representation of the metadata required for linking this transaction to a remote child
      * transaction, or null if no metadata should be sent.
      * @since 3.16.1
-     * @deprecated Instead, use the Distributed Tracing API {@link #createDistributedTracePayload()} to create a distributed tracing payload
-     * and {@link #acceptDistributedTracePayload(DistributedTracePayload)} to link the services together.
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Headers)} to create a
+     * distributed tracing payload and {@link #acceptDistributedTraceHeaders(TransportType, Headers)} to link the services
+     * together.
      */
     @Deprecated
     String getRequestMetadata();
@@ -110,8 +111,9 @@ public interface Transaction {
      *
      * @param requestMetadata metadata string received from an inbound request.
      * @since 3.16.1
-     * @deprecated Instead, use the Distributed Tracing API {@link #createDistributedTracePayload()} to create a distributed tracing payload
-     * and {@link #acceptDistributedTracePayload(DistributedTracePayload)} to link the services together.
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Headers)} to create a
+     * distributed tracing payload and {@link #acceptDistributedTraceHeaders(TransportType, Headers)} to link the services
+     * together.
      */
     @Deprecated
     void processRequestMetadata(String requestMetadata);
@@ -297,7 +299,11 @@ public interface Transaction {
      *
      * @return a {@link DistributedTracePayload}
      * @since 4.3.0
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Headers)} to create a
+     * distributed tracing payload and {@link #acceptDistributedTraceHeaders(TransportType, Headers)} to link the services
+     * together.
      */
+    @Deprecated
     DistributedTracePayload createDistributedTracePayload();
 
     /**
@@ -307,7 +313,11 @@ public interface Transaction {
      *
      * @param payload a String representation of the {@link DistributedTracePayload} to accept
      * @since 4.3.0
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Headers)} to create a
+     * distributed tracing payload and {@link #acceptDistributedTraceHeaders(TransportType, Headers)} to link the services
+     * together.
      */
+    @Deprecated
     void acceptDistributedTracePayload(String payload);
 
     /**
@@ -317,6 +327,32 @@ public interface Transaction {
      *
      * @param payload a {@link DistributedTracePayload} instance to accept
      * @since 4.3.0
+     * @deprecated Instead, use the Distributed Tracing API {@link #insertDistributedTraceHeaders(Headers)} to create a
+     * distributed tracing payload and {@link #acceptDistributedTraceHeaders(TransportType, Headers)} to link the services
+     * together.
      */
+    @Deprecated
     void acceptDistributedTracePayload(DistributedTracePayload payload);
+
+    /**
+     * Generate distributed trace headers and insert them into the {@link Headers}. The header names inserted will depend
+     * on the {@link Headers#getHeaderType()}.
+     *
+     * @param headers The headers to be updated with distributed trace header names and values.
+     * @since 6.5.0
+     */
+    void insertDistributedTraceHeaders(Headers headers);
+
+    /**
+     * Accept the distributed trace headers. Accepting distributed trace headers sent from one service to another in a
+     * distributed system will result in those services being linked together in a trace of the system. Distributed trace
+     * payloads must be accept within an active New Relic {@link Transaction}. The header names accepted will depend on
+     * the {@link Headers#getHeaderType()}.
+     *
+     * @param transportType The transport type of headers being accepted.
+     * @param headers The headers to be accepted.
+     * @since 6.5.0
+     */
+    void acceptDistributedTraceHeaders(TransportType transportType, Headers headers);
+
 }

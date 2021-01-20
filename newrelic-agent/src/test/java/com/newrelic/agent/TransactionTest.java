@@ -41,6 +41,7 @@ import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.SegmentTest;
+import com.newrelic.api.agent.TransportType;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
