@@ -309,8 +309,6 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
     private InfiniteTracing buildInfiniteTracing(ConfigService configService) {
         com.newrelic.agent.config.InfiniteTracingConfig config = configService.getDefaultAgentConfig().getInfiniteTracingConfig();
-        Double flakyPercentage = configService.getDefaultAgentConfig().getInfiniteTracingConfig().getFlakyPercentage();
-        boolean usePlaintext = configService.getDefaultAgentConfig().getInfiniteTracingConfig().getUsePlaintext();
 
         InfiniteTracingConfig infiniteTracingConfig = InfiniteTracingConfig.builder()
                 .maxQueueSize(config.getSpanEventsQueueSize())
@@ -318,8 +316,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
                 .host(config.getTraceObserverHost())
                 .port(config.getTraceObserverPort())
                 .licenseKey(configService.getDefaultAgentConfig().getLicenseKey())
-                .flakyPercentage(flakyPercentage)
-                .usePlaintext(usePlaintext)
+                .flakyPercentage(config.getFlakyPercentage())
+                .flakyCode(config.getFlakyCode())
+                .usePlaintext(config.getUsePlaintext())
                 .build();
 
         return InfiniteTracing.initialize(infiniteTracingConfig, NewRelic.getAgent().getMetricAggregator());
