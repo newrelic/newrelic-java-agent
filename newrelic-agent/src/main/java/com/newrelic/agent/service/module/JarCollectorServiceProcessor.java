@@ -7,11 +7,12 @@
 
 package com.newrelic.agent.service.module;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.RateLimiter;
 import com.newrelic.Function;
 import com.newrelic.agent.bridge.ManifestUtils;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Logger;
 
 import java.io.File;
@@ -28,6 +29,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
+
+import static com.newrelic.agent.config.JarCollectorConfigImpl.DEFAULT_JARS_PER_SECOND;
 
 /**
  * Attempts to open jars and obtain version information from manifests.
@@ -55,32 +58,29 @@ public class JarCollectorServiceProcessor implements Function<URL, JarData> {
                     Attributes.Name.IMPLEMENTATION_VENDOR.toString(),
                     Attributes.Name.IMPLEMENTATION_VENDOR_ID.toString());
 
-    private final boolean skipTempJars; // default true
     private final Logger logger;
-
-    /**
-     * The list of jars to ignore.
-     */
+    private final boolean skipTempJars;
     private final List<String> ignoreJars;
+    private final RateLimiter processUrlRateLimiter;
 
     public JarCollectorServiceProcessor(Logger logger, AgentConfig agentConfig) {
-        this(agentConfig, agentConfig.getIgnoreJars(), logger);
-    }
-
-    /**
-     * Creates this JarCollectorServiceProcessor.
-     */
-    JarCollectorServiceProcessor(Config config, List<String> ignoreJars, Logger logger) {
-        this.ignoreJars = new ArrayList<>(ignoreJars);
         this.logger = logger;
-        this.skipTempJars = config.getValue("jar_collector.skip_temp_jars", true);
+        this.skipTempJars = agentConfig.getJarCollectorConfig().skipTempJars();
         if (!skipTempJars) {
             logger.log(Level.FINEST, "temporary jars will be transmitted to the host");
         }
+        this.ignoreJars = new ArrayList<>(agentConfig.getIgnoreJars());
+        int jarsPerSecond = agentConfig.getJarCollectorConfig().getJarsPerSecond();
+        if (jarsPerSecond <= 0) {
+            logger.log(Level.INFO, "Jars per second must be greater than 0. Defaulting to {0}.", DEFAULT_JARS_PER_SECOND);
+            jarsPerSecond = DEFAULT_JARS_PER_SECOND;
+        }
+        this.processUrlRateLimiter = RateLimiter.create(jarsPerSecond);
     }
 
     @Override
     public JarData apply(URL url) {
+        processUrlRateLimiter.acquire(1);
         try {
             return tryProcessSingleURL(url);
         } catch (Throwable t) {
@@ -89,7 +89,8 @@ public class JarCollectorServiceProcessor implements Function<URL, JarData> {
         }
     }
 
-    private JarData tryProcessSingleURL(URL url) throws URISyntaxException {
+    @VisibleForTesting
+    JarData tryProcessSingleURL(URL url) throws URISyntaxException {
         if (skipTempJars && isTempFile(url)) {
             logger.log(Level.FINE, "{0} Skipping temp jar file", url);
             return null;
