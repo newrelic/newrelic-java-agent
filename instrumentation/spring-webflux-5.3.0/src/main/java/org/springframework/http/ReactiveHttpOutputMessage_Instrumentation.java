@@ -23,32 +23,6 @@ public class ReactiveHttpOutputMessage_Instrumentation {
     @NewField
     public Token token;
 
-    public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-        try {
-            if (this.token != null) {
-                this.token.expire();
-                this.token = null;
-            }
-        } catch (Throwable t) {
-            AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
-        }
-
-        return Weaver.callOriginal();
-    }
-
-    public Mono<Void> writeAndFlushWith(
-            Publisher<? extends Publisher<? extends DataBuffer>> body) {
-        try {
-            if (this.token != null) {
-                this.token.expire();
-                this.token = null;
-            }
-        } catch (Throwable t) {
-            AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
-        }
-        return Weaver.callOriginal();
-    }
-
     public Mono<Void> setComplete() {
         try {
             if (this.token != null) {
