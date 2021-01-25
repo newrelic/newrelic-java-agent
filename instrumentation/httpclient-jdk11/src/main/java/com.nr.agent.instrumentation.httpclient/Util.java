@@ -8,16 +8,16 @@ import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.Weaver;
 
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.channels.UnresolvedAddressException;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 public class Util {
 
     private static final String LIBRARY = "JavaHttpClient";
-    private static final URI UNKNOWN_HOST = URI.create("UnknownHost");
+    private static final URI UNRESOLVED_ADDRESS = URI.create("UnresolvedAddress");
     private static final String PROCEDURE = "send";
 
     public static void addOutboundHeaders(HttpRequest.Builder thisBuilder) {
@@ -36,10 +36,10 @@ public class Util {
                                 .inboundHeaders(new InboundWrapper(httpResponse))
                                 .build());
                     } else {
-                        if (throwable instanceof UnknownHostException) {
+                        if (throwable instanceof UnresolvedAddressException) {
                             segment.reportAsExternal(GenericParameters
                                     .library(LIBRARY)
-                                    .uri(UNKNOWN_HOST)
+                                    .uri(UNRESOLVED_ADDRESS)
                                     .procedure("failed")
                                     .build());
                         }

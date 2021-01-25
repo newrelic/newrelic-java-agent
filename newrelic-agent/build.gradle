@@ -64,9 +64,7 @@ dependencies {
     shadowIntoJar project(":agent-model")
     shadowIntoJar(project(":newrelic-weaver"))
     shadowIntoJar(project(":infinite-tracing"))
-
-//    shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.0")
-    shadowIntoJar fileTree(dir: 'libs', include: '*.jar')
+    shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
 
     shadowIntoJar 'org.ow2.asm:asm:8.0.1'
     shadowIntoJar 'org.ow2.asm:asm-tree:8.0.1'
