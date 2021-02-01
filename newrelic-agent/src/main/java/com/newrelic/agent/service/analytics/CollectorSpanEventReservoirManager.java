@@ -73,7 +73,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
             eventSender.sendEvents(appName, config.getMaxSamplesStored(), toSend.getNumberOfTries(), Collections.unmodifiableList(toSend.asList()));
             if (toSend.size() < toSend.getNumberOfTries()) {
                 int dropped = toSend.getNumberOfTries() - toSend.size();
-                logger.log(Level.WARNING, "Dropped {0} span events out of {1}.", dropped, toSend.getNumberOfTries());
+                logger.log(Level.FINE, "Dropped {0} span events out of {1}.", dropped, toSend.getNumberOfTries());
             }
             return new HarvestResult(toSend.getNumberOfTries(), toSend.size());
         } catch (HttpError e) {

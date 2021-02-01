@@ -11,6 +11,7 @@ public class InfiniteTracingConfig {
     private final int port;
     private final Logger logger;
     private final Double flakyPercentage;
+    private final Long flakyCode;
     private final boolean usePlaintext;
 
     public InfiniteTracingConfig(Builder builder) {
@@ -20,6 +21,7 @@ public class InfiniteTracingConfig {
         this.port = builder.port;
         this.logger = builder.logger;
         this.flakyPercentage = builder.flakyPercentage;
+        this.flakyCode = builder.flakyCode;
         this.usePlaintext = builder.usePlaintext;
     }
 
@@ -51,6 +53,10 @@ public class InfiniteTracingConfig {
         return flakyPercentage;
     }
 
+    public Long getFlakyCode() {
+        return flakyCode;
+    }
+
     public boolean getUsePlaintext() {
         return usePlaintext;
     }
@@ -62,6 +68,7 @@ public class InfiniteTracingConfig {
         private String host;
         private int port;
         private Double flakyPercentage;
+        private Long flakyCode;
         private boolean usePlaintext;
 
         /**
@@ -112,6 +119,18 @@ public class InfiniteTracingConfig {
          */
         public Builder flakyPercentage(Double flakyPercentage) {
             this.flakyPercentage = flakyPercentage;
+            return this;
+        }
+
+        /**
+         * The optional gRPC error status to trigger when {@link #flakyPercentage(Double)} is
+         * specified.
+         *
+         * @param flakyCode The gRPC error status code
+         * @see <a href="https://github.com/grpc/grpc/blob/master/doc/statuscodes.md">gRPC status codes</a>
+         */
+        public Builder flakyCode(Long flakyCode) {
+            this.flakyCode = flakyCode;
             return this;
         }
 

@@ -442,6 +442,9 @@ public class MetricNames {
     // Deprecated features
     public static final String SUPPORTABILITY_DEPRECATED_CONFIG_JAR_COLLECTOR = "Supportability/Deprecated/Config/JarCollector";
 
+    // JMX
+    public static final String LINKING_METADATA_MBEAN = "Supportability/LinkingMetadataMBean/Enabled";
+
     // parent.type/parent.account/parent.appId/transport
     public static final String PARENT_DATA = "{0}/{1}/{2}/{3}/{4}";
     public static final String PARENT_DATA_ALL = "all";

@@ -80,7 +80,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String SEND_ENVIRONMENT_INFO = "send_environment_info";
     public static final String SEND_JVM_PROPS = "send_jvm_props";
     public static final String SIMPLE_COMPRESSION_PROPERTY = "simple_compression";
-    public static final String IS_SSL = "ssl";
     private static final String REQUEST_TIMEOUT_IN_SECONDS_PROPERTY = "timeout";
     public static final String STARTUP_LOG_LEVEL = "startup_log_level";
     public static final String STARTUP_TIMING = "startup_timing";
@@ -123,6 +122,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final double DEFAULT_APDEX_T = 1.0; // 1 second
     public static final String DEFAULT_API_HOST = "rpm.newrelic.com";
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
+    public static final boolean DEFAULT_USE_PRIVATE_SSL = false;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
     public static final boolean DEFAULT_ENABLED = true;
@@ -137,7 +137,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_HOST = "collector.newrelic.com";
     public static final boolean DEFAULT_IBM_WORKAROUND = IBMUtils.getIbmWorkaroundDefault();
     public static final String DEFAULT_INSERT_API_KEY = "";
-    public static final boolean DEFAULT_IS_SSL = true;
     // jdbc support
     public static final String GENERIC_JDBC_SUPPORT = "generic";
     public static final String DEFAULT_JDBC_SUPPORT = GENERIC_JDBC_SUPPORT;
@@ -182,6 +181,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean autoAppNamingEnabled;
     private final boolean autoTransactionNamingEnabled;
     private final String caBundlePath;
+    private final boolean usePrivateSSL;
     private final String compressedContentEncoding;
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
@@ -195,7 +195,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final List<String> ignoreJars;
     private final String insertApiKey;
     private final boolean isApdexTSet;
-    private final boolean isSSL;
     private final HashSet<String> jdbcSupport;
     private final String licenseKey;
     private final boolean litemode;
@@ -273,7 +272,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private AgentConfigImpl(Map<String, Object> props, EnvironmentFacade environmentFacade) {
         super(props, SYSTEM_PROPERTY_ROOT);
-        // ssl, transaction_tracer.record_sql, request atts, and message atts are all affected by high security
+        // transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
         securityPoliciesToken = getProperty(LASP_TOKEN, DEFAULT_SECURITY_POLICIES_TOKEN);
         simpleCompression = getProperty(SIMPLE_COMPRESSION_PROPERTY, DEFAULT_SIMPLE_COMPRESSION_ENABLED);
@@ -285,12 +284,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         licenseKey = getProperty(LICENSE_KEY);
         host = parseHost(licenseKey);
-        isSSL = initSsl(props);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
         logDaily = getProperty(LOG_DAILY, DEFAULT_LOG_DAILY);
-        port = getIntProperty(PORT, isSSL ? DEFAULT_SSL_PORT : DEFAULT_PORT);
+        port = getIntProperty(PORT, DEFAULT_SSL_PORT);
         proxyHost = getProperty(PROXY_HOST, DEFAULT_PROXY_HOST);
         proxyPort = getIntProperty(PROXY_PORT, DEFAULT_PROXY_PORT);
         proxyScheme = getProperty(PROXY_SCHEME, DEFAULT_PROXY_SCHEME);
@@ -308,7 +306,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         startupTimingEnabled = getProperty(STARTUP_TIMING, DEFAULT_STARTUP_TIMING);
         sendJvmProps = getProperty(SEND_JVM_PROPS, true);
         litemode = getProperty(LITE_MODE, false);
-        caBundlePath = initSSLConfig();
+        caBundlePath = initCaBundlePathConfig();
+        usePrivateSSL = initUsePrivateSSLConfig();
         trimStats = getProperty(TRIM_STATS, DEFAULT_TRIM_STATS);
         platformInformationEnabled = getProperty(PLATFORM_INFORMATION_ENABLED, DEFAULT_PLATFORM_INFORMATION_ENABLED);
         ibmWorkaroundEnabled = getProperty(IBM_WORKAROUND, DEFAULT_IBM_WORKAROUND);
@@ -370,16 +369,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
-    private String initSSLConfig() {
-        String caBundlePath = getProperty(CA_BUNDLE_PATH, DEFAULT_CA_BUNDLE_PATH);
-        if ( getProperty(USE_PRIVATE_SSL) != null) {
-            if ( caBundlePath != null) {
-                Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
-            } else {
-                Agent.LOG.log(Level.SEVERE, "use_private_ssl configuration setting has been removed. Please use ca_bundle_path instead.");
-            }
-        }
-        return caBundlePath;
+    private String initCaBundlePathConfig() {
+        return getProperty(CA_BUNDLE_PATH, DEFAULT_CA_BUNDLE_PATH);
+    }
+
+    private boolean initUsePrivateSSLConfig() {
+        return getProperty(USE_PRIVATE_SSL, DEFAULT_USE_PRIVATE_SSL);
     }
 
     /**
@@ -468,25 +463,13 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /*
-     * This is here just in case someone uses get value to retrieve one of the properties which has been changed do to
+     * This is here just in case someone uses get value to retrieve one of the properties which has been changed due to
      * high security.
      */
     private void checkHighSecurityPropsInFlattened(Map<String, Object> flattenedProps) {
         if (highSecurity && !flattenedProps.isEmpty()) {
-            flattenedProps.put(AgentConfigImpl.IS_SSL, isSSL);
             flattenedProps.put("transaction_tracer.record_sql", transactionTracerConfig.getRecordSql());
         }
-    }
-
-    /*
-     * The agent must always connect using SSL.
-     */
-    private boolean initSsl(Map<String, Object> props) {
-        if (!getProperty(IS_SSL, DEFAULT_IS_SSL)) { // ssl: false is configured in yml
-            Agent.LOG.log(Level.INFO, "Agent versions 4.0.0+ must connect with SSL. Agent is ignoring yml config and enabling SSL.");
-            props.put(IS_SSL, DEFAULT_IS_SSL); // default is ssl: true
-        }
-        return DEFAULT_IS_SSL;
     }
 
     @SuppressWarnings("unchecked")
@@ -567,7 +550,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         Map<String, Object> props = nestedProps(CROSS_APPLICATION_TRACER);
         if (prop != null) {
             if (props == null) {
-                props = createMap();
+                props = new HashMap<>();
             }
             props.put(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING, prop);
         }
@@ -783,12 +766,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     @Override
     public int getApiPort() {
-        return getProperty(API_PORT, isSSL ? DEFAULT_SSL_PORT : DEFAULT_PORT);
-    }
-
-    @Override
-    public boolean isSSL() {
-        return isSSL;
+        return getProperty(API_PORT, DEFAULT_SSL_PORT);
     }
 
     @Override
@@ -929,7 +907,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
                 break;
             }
             if (result instanceof Map) {
-                Map<?, ?> resultMap = (Map<?, ?>)result;
+                Map<?, ?> resultMap = (Map<?, ?>) result;
                 result = resultMap.containsKey(component) ? resultMap.get(component) : null;
             }
         }
@@ -1116,6 +1094,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public String getCaBundlePath() {
         return caBundlePath;
+    }
+
+    @Override
+    public boolean getUsePrivateSSL() {
+        return usePrivateSSL;
     }
 
     @Override

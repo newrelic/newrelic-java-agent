@@ -219,7 +219,7 @@ public class NewRelicApiImplementation implements PublicApi {
      * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
      *
      * @param key
-     * @param value @
+     * @param value
      */
     @Override
     public void addCustomParameter(String key, String value) {
@@ -230,10 +230,21 @@ public class NewRelicApiImplementation implements PublicApi {
      * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
      *
      * @param key
-     * @param value @
+     * @param value
      */
     @Override
     public void addCustomParameter(String key, Number value) {
+        attributeSender.addAttribute(key, value, "addCustomParameter");
+    }
+
+    /**
+     * Add a key/value pair to the current transaction. These are reported in errors and transaction traces.
+     *
+     * @param key
+     * @param value
+     */
+    @Override
+    public void addCustomParameter(String key, boolean value) {
         attributeSender.addAttribute(key, value, "addCustomParameter");
     }
 

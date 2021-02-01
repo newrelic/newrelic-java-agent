@@ -7,10 +7,11 @@
 
 package com.newrelic.agent;
 
-import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceUtils;
+import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.Request;
+import com.newrelic.api.agent.TransportType;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 
@@ -155,6 +156,12 @@ public class InboundHeaderState {
     }
 
     private void parseDistributedTraceHeaders() {
+        //Don't override TransportType if it has already been set
+        if (TransportType.Unknown.equals(tx.getTransportType())) {
+            TransportType transportType = inboundHeaders.getHeaderType() == HeaderType.MESSAGE ?
+                    TransportType.JMS : TransportType.HTTP;
+            tx.setTransportType(transportType);
+        }
         parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
     }
 

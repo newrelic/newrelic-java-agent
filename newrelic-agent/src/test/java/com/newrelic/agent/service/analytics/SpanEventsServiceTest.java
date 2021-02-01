@@ -82,17 +82,18 @@ public class SpanEventsServiceTest {
             }
         };
 
-        Map<String, SpanErrorBuilder> map = new HashMap<>();
-        map.put(agentConfig.getApplicationName(), new SpanErrorBuilder(
+        SpanErrorBuilder defaultSpanErrorBuilder = new SpanErrorBuilder(
                 new ErrorAnalyzerImpl(agentConfig.getErrorCollectorConfig()),
-                new ErrorMessageReplacer(agentConfig.getStripExceptionConfig())
-        ));
+                new ErrorMessageReplacer(agentConfig.getStripExceptionConfig()));
+
+        Map<String, SpanErrorBuilder> map = new HashMap<>();
+        map.put(agentConfig.getApplicationName(), defaultSpanErrorBuilder);
 
         EnvironmentService environmentService = mock(EnvironmentService.class, RETURNS_DEEP_STUBS);
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = mock(TransactionDataToDistributedTraceIntrinsics.class);
         when(transactionDataToDistributedTraceIntrinsics.buildDistributedTracingIntrinsics(any(TransactionData.class), anyBoolean()))
                 .thenReturn(Collections.<String, Object>emptyMap());
-        TracerToSpanEvent tracerToSpanEvent = new TracerToSpanEvent(map, environmentService, transactionDataToDistributedTraceIntrinsics);
+        TracerToSpanEvent tracerToSpanEvent = new TracerToSpanEvent(map, environmentService, transactionDataToDistributedTraceIntrinsics, defaultSpanErrorBuilder);
         SpanEventsServiceImpl spanEventsService = SpanEventsServiceImpl.builder()
                 .agentConfig(agentConfig)
                 .reservoirManager(reservoirManager)

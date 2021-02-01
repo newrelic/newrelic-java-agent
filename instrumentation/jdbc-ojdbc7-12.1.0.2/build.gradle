@@ -9,7 +9,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passes("com.oracle.database.jdbc:ojdbc8:[0,)")
+    passes("com.oracle.database.jdbc:ojdbc10:[0,)")
+    passes("com.oracle.database.jdbc:ojdbc8:[0,21.1.0.0)")
     fails("com.oracle.database.jdbc:ojdbc6:[0,)")
     fails("com.oracle.database.jdbc:ojdbc5:[0,)")
 }

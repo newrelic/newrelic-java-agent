@@ -21,8 +21,8 @@ import com.newrelic.test.marker.Java7IncompatibleTest;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.ImmutableMongodConfig;
+import de.flapdoodle.embed.mongo.config.MongodConfig;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
@@ -47,20 +47,22 @@ public class MongoDb370Test {
     private MongodExecutable mongodExecutable;
     private MongodProcess mongodProcess;
     private MongoClient mongoClient;
-    private int port;
 
     @Before
     public void startMongo() throws Exception {
-        port = InstrumentationTestRunner.getIntrospector().getRandomPort();
-        IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.V3_6_5).net(new Net(port,
-                Network.localhostIsIPv6())).build();
+        int port = Network.getFreeServerPort();
+        MongodConfig mongodConfig = ImmutableMongodConfig.builder()
+                .version(Version.V3_6_5)
+                .net(new Net(port, Network.localhostIsIPv6()))
+                .build();
+
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
         mongoClient = MongoClients.create(new ConnectionString("mongodb://localhost:" + port));
     }
 
     @After
-    public void stopMongo() throws Exception {
+    public void stopMongo() {
         if (mongoClient != null) {
             mongoClient.close();
         }

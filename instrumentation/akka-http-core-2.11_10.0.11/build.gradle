@@ -1,0 +1,34 @@
+apply plugin: 'scala'
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-core-10.0.11' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.typesafe.akka:akka-http-core_2.11:10.0.11")
+    implementation("com.typesafe.akka:akka-stream_2.11:2.5.11")
+}
+
+verifyInstrumentation {
+    fails('com.typesafe.akka:akka-http-core-experimental_2.11:[1.0,10.0.11)')
+    fails('com.typesafe.akka:akka-http-core-experimental_2.10:[1.0,10.0.11)')
+    fails('com.typesafe.akka:akka-http-core_2.13:(,)')
+    passesOnly('com.typesafe.akka:akka-http-core_2.11:[10.0.11,10.2.0-M1)') {
+        compile("com.typesafe.akka:akka-stream_2.11:2.5.11")
+    }
+    passesOnly('com.typesafe.akka:akka-http-core_2.12:[10.0.11,10.2.0-M1)') {
+        compile("com.typesafe.akka:akka-stream_2.12:2.5.11")
+    }
+}
+
+site {
+    title 'Akka Http Core'
+    type 'Framework'
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test6') && !project.hasProperty('test7')
+    }
+}

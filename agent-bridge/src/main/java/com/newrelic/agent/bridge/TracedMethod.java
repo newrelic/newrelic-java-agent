@@ -75,6 +75,14 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
     public boolean trackChildThreads();
 
     /**
+     * Tell the tracer to track child CallbackRunnable jobs which are submitted under its method call.
+     * This only applies to the Akka-Http instrumentation at the moment.
+     */
+    public void setTrackCallbackRunnable(boolean shouldTrack);
+
+    public boolean isTrackCallbackRunnable();
+
+    /**
      * Do not use. Use
      * {@link com.newrelic.api.agent.TracedMethod#addOutboundRequestHeaders(OutboundHeaders)} instead.
      *

@@ -42,7 +42,8 @@ class ContextWrapper(original: Function1[RequestContext, Future[RouteResult]]) e
     try {
       val tracedMethod = AgentBridge.getAgent.getTracedMethod
       tracedMethod.setMetricName("AkkaHttp")
-
+      // Akka-http 10.1.5 uses CallbackRunnable and we lose transaction context between Directives
+      AgentBridge.getAgent.getTracedMethod.setTrackCallbackRunnable(true);
       val token = AgentBridge.getAgent.getTransaction(false).getToken
       PathMatcherUtils.setHttpRequest(ctx.request)
       // We use this method to wire up our RequestContext wrapper and start our transaction

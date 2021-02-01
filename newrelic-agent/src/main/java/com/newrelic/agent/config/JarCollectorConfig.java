@@ -19,10 +19,17 @@ public interface JarCollectorConfig {
     boolean isEnabled();
 
     /**
-     * The number of class loaders which we should grab jars from.
+     * True if temp jars should be skipped.
      *
-     * @return The max number of class loaders to look at for jar information.
+     * @return <code>true</code> if temp jars should be skipped.
      */
-    int getMaxClassLoaders();
+    boolean skipTempJars();
+
+    /**
+     * The maximum number of jars to process per second. Must be positive.
+     *
+     * @return The number of jars to process per second.
+     */
+    int getJarsPerSecond();
 
 }

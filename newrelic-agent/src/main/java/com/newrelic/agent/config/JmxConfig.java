@@ -25,4 +25,9 @@ public interface JmxConfig {
      */
     Collection<String> getDisabledJmxFrameworks();
 
+    /**
+     * Returns true if the LinkingMetadataMBean should be registered in the platform
+     * MBean server.
+     */
+    boolean registerLinkingMetadataMBean();
 }

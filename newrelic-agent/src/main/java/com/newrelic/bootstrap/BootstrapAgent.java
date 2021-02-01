@@ -7,6 +7,7 @@
 
 package com.newrelic.bootstrap;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.modules.ClassLoaderUtil;
@@ -164,12 +165,12 @@ public class BootstrapAgent {
 
         String sysPropEnabled = System.getProperty("newrelic.config.agent_enabled");
         String envVarEnabled = System.getenv("NEW_RELIC_AGENT_ENABLED");
-        if (sysPropEnabled != null && !Boolean.valueOf(sysPropEnabled)) {
+        if (sysPropEnabled != null && !Boolean.parseBoolean(sysPropEnabled)) {
             System.err.println("----------");
             System.err.println("New Relic Agent is disabled by -Dnewrelic.config.agent_enabled system property.");
             System.err.println("----------");
             return;
-        } else if (envVarEnabled != null && !Boolean.valueOf(envVarEnabled)) {
+        } else if (envVarEnabled != null && !Boolean.parseBoolean(envVarEnabled)) {
             System.err.println("----------");
             System.err.println("New Relic Agent is disabled by NEW_RELIC_AGENT_ENABLED environment variable.");
             System.err.println("----------");

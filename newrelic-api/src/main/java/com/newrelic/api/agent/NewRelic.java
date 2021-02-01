@@ -235,6 +235,21 @@ public final class NewRelic {
     }
 
     /**
+     * Add a key/value pair to the current transaction. These are reported in errors, transaction traces, and
+     * transaction events. The key and value will only be reported if this call is made within a New Relic transaction.
+     * <p>
+     * <b>Note:</b> The key and value pair will only be reported if the key argument can be represented in 255 bytes
+     * when encoded with UTF-8 encoding.
+     * </p>
+     *
+     * @param key Custom parameter key.
+     * @param value Custom parameter value.
+     * @since 6.1.0
+     */
+    public static void addCustomParameter(String key, boolean value) {
+    }
+
+    /**
      * Add key/value pairs to the current transaction. These are reported in errors, transaction traces, and
      * transaction events. The key and value will only be reported if this call is made within a New Relic transaction.
      * <p>

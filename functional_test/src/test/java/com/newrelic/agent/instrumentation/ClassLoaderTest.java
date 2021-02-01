@@ -7,20 +7,20 @@
 
 package com.newrelic.agent.instrumentation;
 
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLClassLoader;
-
-import com.newrelic.test.marker.Java12IncompatibleTest;
-import com.newrelic.test.marker.Java13IncompatibleTest;
-import com.newrelic.test.marker.Java14IncompatibleTest;
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.newrelic.agent.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java12IncompatibleTest;
+import com.newrelic.test.marker.Java13IncompatibleTest;
+import com.newrelic.test.marker.Java14IncompatibleTest;
+import com.newrelic.test.marker.Java15IncompatibleTest;
+import org.junit.Assert;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 public class ClassLoaderTest {
 
@@ -69,7 +69,8 @@ public class ClassLoaderTest {
 
     // Java 12 no longer lets us access the declared field
     @Test
-    @Category({ Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class })
+    @Category({ Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
+            Java15IncompatibleTest.class })
     public void testSetSystemClassLoader() throws Exception {
 
         final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();

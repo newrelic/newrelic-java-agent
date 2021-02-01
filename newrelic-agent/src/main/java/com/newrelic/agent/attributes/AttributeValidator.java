@@ -16,7 +16,11 @@ import com.newrelic.agent.config.ConfigConstant;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,7 +38,8 @@ public class AttributeValidator {
     private boolean isTransactional = true;
 
     // Set of APIs that can report attributes outside of a transaction
-    private static final Collection<String> sendParametersOutsideOfTxn = Arrays.asList("noticeError", "Span.addCustomParameter", "Span.addCustomParameters");
+    private static final Collection<String> sendParametersOutsideOfTxn = Arrays.asList("noticeError",
+            "Span.addCustomParameter", "Span.addCustomParameters", "TracedMethod.addCustomAttributes");
 
     public AttributeValidator(String attributeType) {
         this.attributeType = attributeType;
@@ -133,7 +138,8 @@ public class AttributeValidator {
     }
 
     private boolean isAcceptableValueType(Object value) {
-        if (!(value instanceof String) && !(value instanceof Number) && !(value instanceof Boolean) && !(value instanceof AtomicBoolean)) {
+        if (!(value instanceof String) && !(value instanceof Number) && !(value instanceof Boolean) &&
+                !(value instanceof AtomicBoolean)) {
             return false;
         }
         return true;
@@ -168,7 +174,7 @@ public class AttributeValidator {
      * This function truncates a Unicode String so that it can be encoded in maxBytes. It uses the UTF-8 encoding to
      * determine where the String has to be truncated.
      *
-     * @param s        String to be truncated
+     * @param s String to be truncated
      * @param maxBytes Maximum number of bytes in UTF-8 charset encoding
      * @return
      */

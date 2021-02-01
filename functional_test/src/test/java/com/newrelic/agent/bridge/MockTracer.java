@@ -106,6 +106,16 @@ public class MockTracer implements ExitTracer {
     }
 
     @Override
+    public void setTrackCallbackRunnable(boolean shouldTrack) {
+
+    }
+
+    @Override
+    public boolean isTrackCallbackRunnable() {
+        return false;
+    }
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
     }
 

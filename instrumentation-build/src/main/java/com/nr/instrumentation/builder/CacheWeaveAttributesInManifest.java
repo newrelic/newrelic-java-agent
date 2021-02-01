@@ -7,17 +7,12 @@
 
 package com.nr.instrumentation.builder;
 
-import com.newrelic.weave.weavepackage.CachedWeavePackage;
 import com.newrelic.weave.weavepackage.WeavePackage;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 
 /**
  * Examine a single Jar file or a set of directories for cached weave attributes.

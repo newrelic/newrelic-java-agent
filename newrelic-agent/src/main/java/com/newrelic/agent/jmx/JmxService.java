@@ -10,7 +10,6 @@ package com.newrelic.agent.jmx;
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.HarvestListener;
-import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JmxConfig;
 import com.newrelic.agent.extension.Extension;
 import com.newrelic.agent.jmx.create.JmxGet;
@@ -20,7 +19,6 @@ import com.newrelic.agent.jmx.metrics.JmxFrameworkValues;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
-
 
 import javax.management.Attribute;
 import javax.management.AttributeNotFoundException;
@@ -49,7 +47,6 @@ public class JmxService extends AbstractService implements HarvestListener {
     private static final int INVOKE_ERROR_COUNT_MAX = 5;
     private static final String J2EE_STATS_ATTRIBUTE_PROCESSOR_CLASS_NAME = "com.newrelic.agent.jmx.J2EEStatsAttributeProcessor";
 
-    private final boolean enabled;
     private final Set<JmxAttributeProcessor> jmxAttributeProcessors = new HashSet<>();
     /**
      * This is used to create JmxGet and JmxInvoke objects.
@@ -75,12 +72,11 @@ public class JmxService extends AbstractService implements HarvestListener {
      * Remove MBeanServers who class name is contained here.
      */
     private final Set<MBeanServer> toRemoveMBeanServers = new CopyOnWriteArraySet<>();
+    private final JmxConfig jmxConfig;
 
-    public JmxService() {
+    public JmxService(JmxConfig jmxConfig) {
         super(JmxService.class.getSimpleName());
-        AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        JmxConfig jmxConfig = config.getJmxConfig();
-        enabled = jmxConfig.isEnabled();
+        this.jmxConfig = jmxConfig;
         jmxMetricFactory = JmxObjectFactory.createJmxFactory();
     }
 
@@ -96,7 +92,8 @@ public class JmxService extends AbstractService implements HarvestListener {
 
     @Override
     protected void doStart() {
-        if (enabled) {
+        if (jmxConfig.isEnabled()) {
+            registerAgentMBeans();
             jmxMetricFactory.getStartUpJmxObjects(jmxGets, jmxInvokes);
             if (jmxGets.size() > 0) {
                 ServiceFactory.getHarvestService().addHarvestListener(this);
@@ -109,14 +106,14 @@ public class JmxService extends AbstractService implements HarvestListener {
 
     @Override
     public final boolean isEnabled() {
-        return enabled;
+        return jmxConfig.isEnabled();
     }
 
     /**
      * This method can be called by multiple threads. Be careful!!
      */
     public void addJmxFrameworkValues(final JmxFrameworkValues jmxValues) {
-        if (enabled) {
+        if (jmxConfig.isEnabled()) {
             toBeAdded.add(jmxValues);
         }
     }
@@ -417,6 +414,13 @@ public class JmxService extends AbstractService implements HarvestListener {
         }
         for (Extension newExtension : extensions) {
             jmxMetricFactory.addExtension(newExtension, jmxGets);
+        }
+    }
+
+    private void registerAgentMBeans() {
+        if (jmxConfig.registerLinkingMetadataMBean()) {
+            // This registers the mbean that exposes linking metadata
+            new LinkingMetadataRegistration(Agent.LOG).registerLinkingMetadata();
         }
     }
 
