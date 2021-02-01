@@ -155,7 +155,7 @@ public class TracerToSpanEventTest {
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
@@ -176,7 +176,7 @@ public class TracerToSpanEventTest {
         when(spanProxy.getInitiatingW3CTraceState()).thenReturn(traceState);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -201,7 +201,7 @@ public class TracerToSpanEventTest {
         when(tracer.getParentTracer()).thenReturn(parentTracer);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -224,7 +224,7 @@ public class TracerToSpanEventTest {
         when(txnData.getInboundDistributedTracePayload()).thenReturn(dtPayload);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -247,7 +247,7 @@ public class TracerToSpanEventTest {
         when(w3cPayload.getParentId()).thenReturn(parentGuid);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -272,7 +272,7 @@ public class TracerToSpanEventTest {
         when(tracer.getParentTracer()).thenReturn(parentTracer);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, true);
@@ -321,7 +321,7 @@ public class TracerToSpanEventTest {
         when(txnStats.getUnscopedStats().getOrCreateResponseTimeStats(QUEUE_TIME).getTotal()).thenReturn(queueDuration);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -350,7 +350,7 @@ public class TracerToSpanEventTest {
         when(txnData.getAgentAttributes()).thenReturn(transactionAgentAttributes);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -381,7 +381,7 @@ public class TracerToSpanEventTest {
         when(txnData.getPrefixedAttributes()).thenReturn(prefixedAttributes);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -401,7 +401,7 @@ public class TracerToSpanEventTest {
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -423,7 +423,7 @@ public class TracerToSpanEventTest {
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -446,7 +446,7 @@ public class TracerToSpanEventTest {
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
@@ -469,7 +469,7 @@ public class TracerToSpanEventTest {
         when(txnData.getIntrinsicAttributes()).thenReturn(intrinsicAttributes);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
@@ -504,7 +504,7 @@ public class TracerToSpanEventTest {
         when(txnData.getAgentAttributes()).thenReturn(transactionAgentAttributes);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
@@ -521,7 +521,33 @@ public class TracerToSpanEventTest {
         when(spanErrorBuilder.areErrorsEnabled()).thenReturn(false);
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        // execution
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
+
+        // assertions
+        assertEquals(expectedSpanEvent, spanEvent);
+    }
+
+    @Test
+    public void testAutoAppNaming() {
+        // setup
+        String newAppName = "new app name";
+        when(txnData.getApplicationName()).thenReturn(newAppName);
+        SpanEvent expectedSpanEvent = SpanEvent.builder()
+                .appName(newAppName)
+                .priority(priority)
+                .putAllAgentAttributes(expectedAgentAttributes)
+                .putAllIntrinsics(expectedIntrinsicAttributes)
+                .putAllUserAttributes(expectedUserAttributes)
+                .decider(true)
+                .timestamp(timestamp)
+                .build();
+        when(spanErrorBuilder.areErrorsEnabled()).thenReturn(true);
+
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
@@ -538,7 +564,7 @@ public class TracerToSpanEventTest {
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
@@ -557,7 +583,7 @@ public class TracerToSpanEventTest {
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
@@ -582,7 +608,7 @@ public class TracerToSpanEventTest {
         }
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
@@ -613,7 +639,7 @@ public class TracerToSpanEventTest {
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
         TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics);
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);

@@ -8,7 +8,7 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.attributes.AttributesService;
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.TransactionTracerConfig;

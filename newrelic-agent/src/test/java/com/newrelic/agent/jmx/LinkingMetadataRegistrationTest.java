@@ -1,6 +1,7 @@
 package com.newrelic.agent.jmx;
 
 import com.newrelic.api.agent.Logger;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.management.MBeanServer;
@@ -16,11 +17,19 @@ import static org.mockito.Mockito.when;
 
 public class LinkingMetadataRegistrationTest {
 
+    ObjectName name;
+    Logger logger;
+    MBeanServer fakeServer;
+
+    @Before
+    public void setup() throws Exception {
+        name = new ObjectName(MBEAN_NAME);
+        logger = mock(Logger.class);
+        fakeServer = mock(MBeanServer.class);
+    }
+
     @Test
     public void testRegisterHappyPath() throws Exception {
-        ObjectName name = new ObjectName(MBEAN_NAME);
-        Logger logger = mock(Logger.class);
-        final MBeanServer fakeServer = mock(MBeanServer.class);
 
         LinkingMetadataRegistration testClass = new LinkingMetadataRegistration(logger) {
             @Override
@@ -35,11 +44,27 @@ public class LinkingMetadataRegistrationTest {
 
     @Test
     public void testExceptionsAreHandled() throws Exception {
-        ObjectName name = new ObjectName(MBEAN_NAME);
         RuntimeException exception = new RuntimeException("Bad beans exception");
 
-        Logger logger = mock(Logger.class);
-        final MBeanServer fakeServer = mock(MBeanServer.class);
+        when(fakeServer.registerMBean(isA(LinkingMetadataMBean.class), eq(name))).thenThrow(exception);
+
+        LinkingMetadataRegistration testClass = new LinkingMetadataRegistration(logger) {
+            @Override
+            protected MBeanServer getMbeanServer() {
+                return fakeServer;
+            }
+        };
+
+        testClass.registerLinkingMetadata();
+        //success
+        verify(logger).log(eq(Level.INFO), eq("JMX LinkingMetadata started, registering MBean: com.newrelic.jfr:type=LinkingMetadata"));
+        verify(logger).log(eq(Level.INFO), eq("Error registering JMX LinkingMetadata MBean"), eq(exception));
+    }
+
+    @Test
+    public void testNoClassDefErrorAlsoHandled() throws Exception {
+        NoClassDefFoundError exception = new NoClassDefFoundError("I am broken.");
+
         when(fakeServer.registerMBean(isA(LinkingMetadataMBean.class), eq(name))).thenThrow(exception);
 
         LinkingMetadataRegistration testClass = new LinkingMetadataRegistration(logger) {

@@ -8,10 +8,11 @@
 package com.newrelic.agent.service.module;
 
 import com.google.common.io.ByteStreams;
-import com.newrelic.api.agent.Config;
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.JarCollectorConfig;
 import com.newrelic.api.agent.Logger;
 import org.junit.Test;
-import org.mockito.internal.stubbing.answers.ReturnsArgumentAt;
+import org.mockito.ArgumentMatchers;
 
 import javax.servlet.jsp.JspPage;
 import java.io.File;
@@ -29,9 +30,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JarCollectorServiceProcessorTest {
@@ -68,7 +71,7 @@ public class JarCollectorServiceProcessorTest {
     }
 
     static URL getJarURLInsideWar() throws IOException {
-        File tmpFile = File.createTempFile("embedded_war", '.' + "war");
+        File tmpFile = File.createTempFile("embedded_war", ".war");
         tmpFile.deleteOnExit();
         URL embeddedJarURL = JarCollectorServiceProcessorTest.getURL(EMBEDDED_JAR);
         try (FileOutputStream out = new FileOutputStream(tmpFile);
@@ -83,15 +86,35 @@ public class JarCollectorServiceProcessorTest {
         return new URL(JarCollectorServiceProcessorTest.getURL(EMBEDDED_JAR).toExternalForm() + "!/lib/test-jar1-1.2.3.jar");
     }
 
-    private Config getMockConfig() {
-        Config mockConfig = mock(Config.class);
-        when(mockConfig.getValue(anyString(), anyBoolean())).thenAnswer(new ReturnsArgumentAt(-1));
-        return mockConfig;
+    private AgentConfig getMockConfig() {
+        AgentConfig agentConfig = mock(AgentConfig.class);
+        JarCollectorConfig jarCollectorConfig = mock(JarCollectorConfig.class);
+        when(agentConfig.getJarCollectorConfig()).thenReturn(jarCollectorConfig);
+        return agentConfig;
+    }
+
+    @Test
+    public void applyWithRateLimit() throws URISyntaxException {
+        AgentConfig config = getMockConfig();
+        when(config.getJarCollectorConfig().getJarsPerSecond()).thenReturn(10);
+        JarCollectorServiceProcessor target = spy(new JarCollectorServiceProcessor(mock(Logger.class), config));
+        doReturn(mock(JarData.class)).when(target).tryProcessSingleURL(ArgumentMatchers.<URL>any());
+
+        long startMillis = System.currentTimeMillis();
+        for (int i = 0; i < 50; i++) {
+            target.apply(getURL(TXT_FILE));
+        }
+        long elapsedMillis = System.currentTimeMillis() - startMillis;
+
+        // 50 urls at 10 per second should take 5 second, but the rate limiter has a warm up period
+        // preventing perfect accuracy so we give it some leniency for more reliable testing.
+        assertTrue(elapsedMillis > 4000);
+        verify(target, times(50)).apply(ArgumentMatchers.<URL>any());
     }
 
     @Test
     public void parseJarNameWithJarProtocol() throws MalformedURLException, URISyntaxException {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         URL url = new URL(
                 "jar:file:/Users/sdaubin/servers/jboss-as-7.1.1.Final/modules/org/apache/xerces/main/xercesImpl-2.9.1-jbossas-1.jar!/");
         assertEquals("xercesImpl-2.9.1-jbossas-1.jar", target.parseJarName(url));
@@ -99,7 +122,7 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     public void parseJarNameWithoutJarProtocolCurrentDir() throws MalformedURLException, URISyntaxException {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         URL url = new URL(
                 "ftp:xercesImpl-2.9.1-jbossas-1.jar!/");
         assertEquals("xercesImpl-2.9.1-jbossas-1.jar", target.parseJarName(url));
@@ -107,7 +130,7 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     public void parseJarNameWithoutJarProtocolRootDir() throws MalformedURLException, URISyntaxException {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         URL url = new URL(
                 "ftp:/xercesImpl-2.9.1-jbossas-1.jar!/");
         assertEquals("xercesImpl-2.9.1-jbossas-1.jar", target.parseJarName(url));
@@ -117,7 +140,7 @@ public class JarCollectorServiceProcessorTest {
     public void testProcessJar1() {
         URL jarURL = ClassLoader.getSystemClassLoader().getResource(JAR_PATH);
 
-        JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         JarData jarData = task.apply(jarURL);
 
         assertEquals("jarTest.jar", jarData.getName());
@@ -128,7 +151,7 @@ public class JarCollectorServiceProcessorTest {
     public void testProcessJar2() {
         URL jarURL = getURL(JAR_PATH_2);
 
-        JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         JarData jarData = task.apply(jarURL);
         assertEquals("anotherJar.jar", jarData.getName());
         assertEquals("5.0", jarData.getVersion());
@@ -148,7 +171,7 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     public void embeddedJar() throws IOException {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         JarInfo jarInfo = target.getJarInfoSafe(getEmbeddedJarURL());
 
         assertEquals("1.2.3", jarInfo.version);
@@ -160,7 +183,7 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     public void embeddedWar() throws IOException {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         URL url = getJarURLInsideWar();
         assertTrue(url.toString().contains(".war!/"));
         JarInfo jarInfo = target.getJarInfoSafe(url);
@@ -174,7 +197,7 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     public void getJarInfo_withoutPom() {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         JarInfo jarInfo = target.getJarInfoSafe(getURL(JAR_PATH));
 
         assertEquals("b82b735bc9ddee35c7fe6780d68f4a0256c4bd7a", jarInfo.attributes.get("sha1Checksum"));
@@ -184,7 +207,7 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     public void getJarInfo_noVersion() {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         JarInfo jarInfo = target.getJarInfoSafe(getURL(THREADILIZER_PATH));
 
         assertEquals("2cd63bbdc83562c6a26d7c96f13d11522541e352", jarInfo.attributes.get("sha1Checksum"));
@@ -193,7 +216,7 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     public void getJarInfo_withPomProperties() {
-        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor target = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         JarInfo jarInfo = target.getJarInfoSafe(getURL(POM_PROPS_JAR_PATH));
         assertEquals("com.newrelic.pom.props", jarInfo.attributes.get("groupId"));
         assertEquals("pom-props", jarInfo.attributes.get("artifactId"));
@@ -209,18 +232,20 @@ public class JarCollectorServiceProcessorTest {
         JarOutputStream out = new JarOutputStream(new FileOutputStream(jar));
         out.close();
 
-        JarCollectorServiceProcessor processor = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor processor = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         assertNotNull(processor.addJarAndVersion(jar.toURI().toURL(), null));
 
         // this hits a slightly different code path in addJarAndVersion
-        processor = new JarCollectorServiceProcessor(getMockConfig(), Collections.singletonList(jar.getName()), mock(Logger.class));
+        AgentConfig agentConfig = getMockConfig();
+        when(agentConfig.getIgnoreJars()).thenReturn(Collections.singletonList(jar.getName()));
+        processor = new JarCollectorServiceProcessor(mock(Logger.class), agentConfig);
         assertNull(processor.addJarAndVersion(jar.toURI().toURL(), null));
     }
 
     @Test
     public void textFilesReturnNull() {
         URL txtURL = getURL(TXT_FILE);
-        JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(getMockConfig(), Collections.<String>emptyList(), mock(Logger.class));
+        JarCollectorServiceProcessor task = new JarCollectorServiceProcessor(mock(Logger.class), getMockConfig());
         assertNull(task.apply(txtURL));
     }
 

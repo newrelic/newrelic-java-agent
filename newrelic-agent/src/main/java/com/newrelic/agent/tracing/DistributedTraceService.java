@@ -7,7 +7,7 @@
 
 package com.newrelic.agent.tracing;
 
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.tracers.Tracer;

@@ -84,7 +84,11 @@ class ProducerConsumerWithFutures {
       }
       TracerSegmentUtils.checkChildrenTraces(txTrace.getInitialTraceSegment.getChildren,
         List(),
-        List(),
+        List("Java/scala.concurrent.impl.CallbackRunnable/value_$eq",
+          "Java/scala.concurrent.impl.CallbackRunnable/value_$eq",
+          "Java/scala.concurrent.impl.CallbackRunnable/value_$eq",
+          "Java/scala.concurrent.impl.CallbackRunnable/value_$eq",
+          "Java/scala.concurrent.impl.CallbackRunnable/value_$eq"),
         List())
     }
   }

@@ -166,7 +166,7 @@ public class AsyncHttpClient2_1_0Tests {
 
     @Test
     public void testError() {
-        String host = "www.thiswebsitedoesntexistreallyatallipromise.com";
+        String host = "www.thisisnotthecorrectwaytotestbutthiswebsitedoesntexistreallyatallipromise.com";
         String url = "http://" + host + "/";
         int status = makeAsyncRequest(url);
         assertEquals(-1, status);

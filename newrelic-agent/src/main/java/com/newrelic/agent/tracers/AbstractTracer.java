@@ -8,6 +8,7 @@
 package com.newrelic.agent.tracers;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.api.agent.AttributeHolder;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
@@ -36,7 +37,7 @@ import java.util.logging.Level;
 /**
  * Base class for all tracers. This implements {@link InvocationHandler#invoke(Object, Method, Object[])}
  */
-public abstract class AbstractTracer implements Tracer {
+public abstract class AbstractTracer implements Tracer, AttributeHolder {
 
     static final int INITIAL_PARAMETER_MAP_SIZE = 5;
     protected static String ATTRIBUTE_TYPE = "custom";
@@ -50,11 +51,12 @@ public abstract class AbstractTracer implements Tracer {
     private String customPrefix = "Custom";
     // doesn't need to be thread safe since this flag affects the decision to registerAsync
     private Boolean trackChildThreads = null;
+    private Boolean trackCallBackRunnable = false;
     private AtomicReference<TracedException> tracerError = new AtomicReference<>(TracedException.NO_EXCEPTION);
 
     private final long startTimeInMillis;
     AtomicReference<Long> finishTime = new AtomicReference<>(null);
-    private final String ATTRIBUTE_API_METHOD_NAME = "TracedMethod addCustomAttributes";
+    private final String ATTRIBUTE_API_METHOD_NAME = "TracedMethod.addCustomAttributes";
 
     // Tracers MUST NOT store references to the Transaction. Why: tracers are stored in the TransactionActivity,
     // and Activities can be reparented from one Transaction to another by the public APIs that support async.
@@ -229,6 +231,24 @@ public abstract class AbstractTracer implements Tracer {
             }
         }
         return this.trackChildThreads;
+    }
+
+    @Override
+    public void setTrackCallbackRunnable(boolean shouldTrack) {
+        this.trackCallBackRunnable = shouldTrack;
+    }
+
+    @Override
+    public boolean isTrackCallbackRunnable() {
+        return this.trackCallBackRunnable || this.isParentTrackCallbackRunnable();
+    }
+
+    private boolean isParentTrackCallbackRunnable() {
+        TracedMethod parent = this.getParentTracedMethod();
+        if (null == parent) {
+            return false;
+        }
+        return parent.isTrackCallbackRunnable();
     }
 
     @Override

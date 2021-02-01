@@ -26,6 +26,7 @@ public class JavaVersionUtilsTest {
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_12));
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_13));
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_14));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_15));
     }
 
     @Test
@@ -44,14 +45,14 @@ public class JavaVersionUtilsTest {
 
     @Test
     public void unsupportedAgentVersionsExceedingJava14() {
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15.0"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15+181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15.0+181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15.0_b181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15.0.1"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15.0.1+11"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15.0.1_11"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("15.0.1_11-b11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16+181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0+181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0_b181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1+11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1_11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1_11-b11"));
     }
 
     @Test
@@ -78,9 +79,9 @@ public class JavaVersionUtilsTest {
 
     @Test
     public void unsupportedJavaVersionMessageWhenGreaterThanJava9() {
-        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_15);
-        assertThat(msg, containsString(JavaVersionUtils.JAVA_15));
-        assertThat(msg, containsString("Java greater than 14."));
+        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_16);
+        assertThat(msg, containsString(JavaVersionUtils.JAVA_16));
+        assertThat(msg, containsString("Java greater than 15."));
     }
 
     @Test

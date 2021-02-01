@@ -16,6 +16,7 @@ import com.newrelic.api.agent.TracedMethod;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
 import io.netty.handler.codec.http.HttpRequest;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 /**
@@ -26,12 +27,14 @@ import java.util.logging.Level;
 public class NettyDispatcher {
 
     private static volatile NettyDispatcher instance = null;
+    public static final AtomicBoolean instrumented = new AtomicBoolean(false);
 
     public static NettyDispatcher get() {
         if (null == instance) {
             synchronized (NettyDispatcher.class) {
                 if (null == instance) {
                     instance = new NettyDispatcher();
+                    instrumented.set(true);
                 }
             }
         }

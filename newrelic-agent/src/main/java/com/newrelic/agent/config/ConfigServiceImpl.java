@@ -297,9 +297,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
 
     private void logIfHighSecurityServerAndLocal(String appName, AgentConfig agentConfig, Map<String, Object> serverData) {
         if (agentConfig.isHighSecurity() && serverData.containsKey(AgentConfigFactory.HIGH_SECURITY)) {
-            String msg = MessageFormat.format("The agent is in high security mode for {0}: {1} setting is \"{2}\". {3} setting is \"{4}\"."
+            String msg = MessageFormat.format("The agent is in high security mode for {0}: {1} setting is \"{2}\"."
                             + " Disabling the collection of request parameters, message queue parameters, and user attributes.", appName,
-                    AgentConfigFactory.RECORD_SQL, agentConfig.getTransactionTracerConfig().getRecordSql(), AgentConfigImpl.IS_SSL, agentConfig.isSSL());
+                    AgentConfigFactory.RECORD_SQL, agentConfig.getTransactionTracerConfig().getRecordSql());
             Agent.LOG.info(msg);
         }
     }

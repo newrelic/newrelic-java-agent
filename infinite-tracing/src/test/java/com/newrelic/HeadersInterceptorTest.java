@@ -1,15 +1,17 @@
 package com.newrelic;
 
 import com.google.common.collect.ImmutableMap;
-import com.newrelic.agent.interfaces.backport.Supplier;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
+import io.grpc.ForwardingClientCall;
 import io.grpc.InternalMetadata;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
@@ -20,7 +22,7 @@ import static org.mockito.Mockito.when;
 class HeadersInterceptorTest {
 
     @Test
-    void testInjectHeader() {
+    void interceptCall_Valid() {
         MethodDescriptor<Object, Object> method = mock(MethodDescriptor.class);
         CallOptions callOptions = mock(CallOptions.class);
         Channel next = mock(Channel.class);
@@ -30,17 +32,10 @@ class HeadersInterceptorTest {
 
         when(next.newCall(method, callOptions)).thenReturn(newCallNext);
 
-        Supplier<Map<String, String>> headerSupplier = new Supplier<Map<String, String>>() {
-            @Override
-            public Map<String, String> get() {
-                return ImmutableMap.of(
-                        "header1", "value1",
-                        "WILL_BE_LOWER_CASED", "value2"
-                );
-            }
-        };
-
-        HeadersInterceptor target = new HeadersInterceptor(headerSupplier);
+        Map<String, String> headers = ImmutableMap.of(
+                "header1", "value1",
+                "WILL_BE_LOWER_CASED", "value2");
+        HeadersInterceptor target = new HeadersInterceptor(headers);
 
         ClientCall<Object, Object> result = target.interceptCall(method, callOptions, next);
 
@@ -53,8 +48,28 @@ class HeadersInterceptorTest {
         assertEquals("value2", newCallNext.getHeader(keyFor("will_be_lower_cased")));
     }
 
-    private Metadata.Key<String> keyFor(String key) {
+    private static Metadata.Key<String> keyFor(String key) {
         return Metadata.Key.of(key, ASCII_STRING_MARSHALLER);
+    }
+
+    static class MockForwardingClientCall extends ForwardingClientCall<Object, Object> {
+        private final List<Metadata> seenHeaders = new ArrayList<>();
+
+        @Override
+        public void start(Listener<Object> responseListener, Metadata headers) {
+            seenHeaders.add(headers);
+            super.start(responseListener, headers);
+        }
+
+        @Override
+        protected ClientCall<Object, Object> delegate() {
+            return mock(ClientCall.class);
+        }
+
+        public String getHeader(Metadata.Key<String> key) {
+            return seenHeaders.get(0).get(key);
+        }
+
     }
 
 }

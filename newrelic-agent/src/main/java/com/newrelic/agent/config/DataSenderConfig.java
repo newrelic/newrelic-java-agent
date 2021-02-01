@@ -15,8 +15,6 @@ public interface DataSenderConfig {
 
     int getPort();
 
-    boolean isSSL();
-
     String getInsertApiKey();
 
     boolean isAuditMode();
@@ -32,6 +30,8 @@ public interface DataSenderConfig {
     String getProxyUser();
 
     String getCaBundlePath();
+
+    boolean getUsePrivateSSL();
 
     /**
      * If simple compression is enabled we will prevent data within a payload from being compressed. However,

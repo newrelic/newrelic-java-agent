@@ -12,8 +12,10 @@ import com.newrelic.agent.errors.ExceptionHandlerSignature;
 import com.newrelic.agent.instrumentation.methodmatchers.InvalidMethodDescriptor;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.AbstractConstruct;
+import org.yaml.snakeyaml.constructor.Construct;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
 import org.yaml.snakeyaml.nodes.Tag;
 
@@ -49,7 +51,7 @@ public class AgentConfigHelper {
     public static Map<String, Object> parseConfiguration(InputStream is) throws Exception {
         String env = getEnvironment();
         try {
-            Map<String, Object> allConfig = (Map<String, Object>) createYaml().load(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)));
+            Map<String, Object> allConfig = createYaml().load(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)));
             if (allConfig == null) {
                 Agent.LOG.info("The configuration file is empty");
                 return Collections.emptyMap();
@@ -101,6 +103,13 @@ public class AgentConfigHelper {
                     } catch (InvalidMethodDescriptor e) {
                         return e;
                     }
+                }
+            });
+            yamlConstructors.put(new Tag("!obscured"), new AbstractConstruct() {
+                @Override
+                public Object construct(Node node) {
+                    String value = constructScalar((ScalarNode) node);
+                    return new ObscuredYamlPropertyWrapper(value);
                 }
             });
         }

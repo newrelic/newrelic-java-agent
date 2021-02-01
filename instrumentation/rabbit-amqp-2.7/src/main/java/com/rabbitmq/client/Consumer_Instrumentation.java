@@ -10,7 +10,7 @@ package com.rabbitmq.client;
 import java.io.IOException;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;

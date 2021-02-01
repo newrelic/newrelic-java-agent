@@ -10,6 +10,8 @@ package com.newrelic.agent.bridge;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.OutboundHeaders;
 
+import java.util.Map;
+
 public class NoOpSegment implements TracedActivity {
 
     public static final NoOpSegment INSTANCE = new NoOpSegment();
@@ -65,6 +67,22 @@ public class NoOpSegment implements TracedActivity {
 
     @Override
     public void endAsync() {
+    }
+
+    @Override
+    public void addCustomAttribute(String key, Number value) {
+    }
+
+    @Override
+    public void addCustomAttribute(String key, String value) {
+    }
+
+    @Override
+    public void addCustomAttribute(String key, boolean value) {
+    }
+
+    @Override
+    public void addCustomAttributes(Map<String, Object> attributes) {
     }
 
 }

@@ -65,11 +65,13 @@ public class SpanEventsServiceFactory {
 
         Consumer<SpanEvent> eventStorageBackend = buildStorageBackendConsumer(reservoirManager);
 
-        Map<String, SpanErrorBuilder> errorBuilderForApp = buildSpanEventErrorBuilder(agentConfig);
+        SpanErrorBuilder defaultSpanErrorBuilder = buildDefaultSpanErrorBuilder(agentConfig);
+
+        Map<String, SpanErrorBuilder> errorBuilderForApp = buildSpanEventErrorBuilder(agentConfig, defaultSpanErrorBuilder);
 
         configureUpdateOnConfigChange(errorBuilderForApp);
 
-        TracerToSpanEvent tracerToSpanEvent = new TracerToSpanEvent(errorBuilderForApp, environmentService, transactionDataToDistributedTraceIntrinsics);
+        TracerToSpanEvent tracerToSpanEvent = new TracerToSpanEvent(errorBuilderForApp, environmentService, transactionDataToDistributedTraceIntrinsics, defaultSpanErrorBuilder);
 
         SpanEventsServiceImpl result = SpanEventsServiceImpl.builder()
                 .agentConfig(agentConfig)
@@ -98,13 +100,16 @@ public class SpanEventsServiceFactory {
         });
     }
 
-    private Map<String, SpanErrorBuilder> buildSpanEventErrorBuilder(AgentConfig agentConfig) {
+    private Map<String, SpanErrorBuilder> buildSpanEventErrorBuilder(AgentConfig agentConfig, SpanErrorBuilder spanErrorBuilder) {
         Map<String, SpanErrorBuilder> result = new HashMap<>();
-        result.put(agentConfig.getApplicationName(), new SpanErrorBuilder(
-                new ErrorAnalyzerImpl(agentConfig.getErrorCollectorConfig()),
-                new ErrorMessageReplacer(agentConfig.getStripExceptionConfig())
-        ));
+        result.put(agentConfig.getApplicationName(), spanErrorBuilder);
         return result;
+    }
+
+    private SpanErrorBuilder buildDefaultSpanErrorBuilder(AgentConfig agentConfig) {
+        return new SpanErrorBuilder(
+                new ErrorAnalyzerImpl(agentConfig.getErrorCollectorConfig()),
+                new ErrorMessageReplacer(agentConfig.getStripExceptionConfig()));
     }
 
     private Consumer<SpanEvent> buildStorageBackendConsumer(final ReservoirManager<SpanEvent> reservoirManager) {

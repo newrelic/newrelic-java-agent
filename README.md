@@ -1,5 +1,4 @@
-[![Community Project header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Project.png)](https://opensource.newrelic.com/oss-category/#community-project)
-
+[![Community Plus header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
 # newrelic-java-agent
 
 With [New Relic's Java agent](https://docs.newrelic.com/docs/agents/java-agent) for bytecode instrumentation, you can track everything from performance issues to tiny errors within your code. Our Java agent monitors your Java app and provides visibility into the behavior of your JVM. After installing, you can quickly monitor transactions, dive deep into errors, and more.
@@ -125,8 +124,6 @@ Run a single test for a specific instrumentation module:
 ```
 ./gradlew instrumentation:vertx-web-3.2.0:test --tests com.nr.vertx.instrumentation.RoutingTest
 ```
-## Roadmap
-See our [roadmap](/roadmap.md), to learn more about our product vision, understand our plans, and provide us valuable feedback.
 
 ## Support
 
@@ -153,8 +150,12 @@ We define “Personal Data” as any information relating to an identified or id
 
 Please review [New Relic’s General Data Privacy Notice](https://newrelic.com/termsandconditions/privacy) for more information.
 
-## Contributing
+## Roadmap
+See our [roadmap](/roadmap.md), to learn more about our product vision, understand our plans, and provide us valuable feedback.
+
+## Contribute
 We encourage your contributions to improve `newrelic-java-agent`. Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+
 If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company, please drop us an email at opensource@newrelic.com.
 
 **A note about vulnerabilities**
