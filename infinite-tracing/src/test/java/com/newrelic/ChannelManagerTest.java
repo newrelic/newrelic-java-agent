@@ -79,11 +79,26 @@ class ChannelManagerTest {
         assertEquals(spanObserver, target.getSpanObserver());
         assertEquals(spanObserver, target.getSpanObserver());
 
-        verify(target, times(1)).buildChannel();
-        verify(target, times(1)).buildStub(managedChannel);
-        verify(target, times(1)).buildResponseObserver();
+        verify(target).buildChannel();
+        verify(target).buildStub(managedChannel);
+        verify(target).buildResponseObserver();
         verify(stub, times(1)).recordSpan(responseObserver);
         verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Connect");
+    }
+
+    @Test
+    void getSpanObserver_RecreatesSpanObserver() {
+        assertEquals(spanObserver, target.getSpanObserver());
+        target.recreateSpanObserver();
+        assertEquals(spanObserver, target.getSpanObserver());
+        assertEquals(spanObserver, target.getSpanObserver());
+
+        verify(target).buildChannel();
+        verify(target, times(2)).buildStub(managedChannel);
+        verify(spanObserver).cancel(eq("CLOSING_CONNECTION"), any(ChannelClosingException.class));
+        verify(target, times(2)).buildResponseObserver();
+        verify(stub, times(2)).recordSpan(responseObserver);
+        verify(aggregator, times(2)).incrementCounter("Supportability/InfiniteTracing/Connect");
     }
 
     @Test
@@ -127,28 +142,12 @@ class ChannelManagerTest {
     }
 
     @Test
-    void cancelSpanObserver_GetSpanObserverRebuildsWhenNextCalled() {
-        assertEquals(spanObserver, target.getSpanObserver());
-        target.cancelSpanObserver();
-        assertEquals(spanObserver, target.getSpanObserver());
-
-        verify(spanObserver).cancel(eq("CLOSING_CONNECTION"), any(ChannelClosingException.class));
-        // Channel is only built once
-        verify(target, times(1)).buildChannel();
-        // Span observer is built twice
-        verify(target, times(2)).buildStub(managedChannel);
-        verify(target, times(2)).buildResponseObserver();
-        verify(stub, times(2)).recordSpan(responseObserver);
-        verify(aggregator, times(2)).incrementCounter("Supportability/InfiniteTracing/Connect");
-    }
-
-    @Test
     void shutdownChannelAndBackoff_ShutsDownChannelCancelsSpanObserver() {
         assertEquals(spanObserver, target.getSpanObserver());
         target.shutdownChannelAndBackoff(0);
         assertEquals(spanObserver, target.getSpanObserver());
 
-        verify(target).cancelSpanObserver();
+        verify(target).recreateSpanObserver();
         // Channel and span observer is built twice
         verify(target, times(2)).buildChannel();
         verify(target, times(2)).buildStub(managedChannel);
