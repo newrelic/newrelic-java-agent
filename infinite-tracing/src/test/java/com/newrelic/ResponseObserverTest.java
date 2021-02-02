@@ -129,7 +129,7 @@ class ResponseObserverTest {
         target.onCompleted();
 
         verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Response/Completed");
-        verify(channelManager).cancelSpanObserver();
+        verify(channelManager).recreateSpanObserver();
     }
 
 }

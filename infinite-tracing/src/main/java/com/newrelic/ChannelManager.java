@@ -28,8 +28,8 @@ class ChannelManager {
     @GuardedBy("lock") private boolean isShutdownForever;
     @GuardedBy("lock") private CountDownLatch backoffLatch;
     @GuardedBy("lock") private ManagedChannel managedChannel;
+    @GuardedBy("lock") private boolean recreateSpanObserver = true;
     @GuardedBy("lock") private ClientCallStreamObserver<V1.Span> spanObserver;
-    @GuardedBy("lock") private ResponseObserver responseObserver;
     @GuardedBy("lock") private String agentRunToken;
     @GuardedBy("lock") private Map<String, String> requestMetadata;
 
@@ -87,12 +87,16 @@ class ChannelManager {
                 logger.log(Level.FINE, "Creating gRPC channel.");
                 managedChannel = buildChannel();
             }
-            if (spanObserver == null) {
-                logger.log(Level.FINE, "Creating gRPC span observer.");
+            if (recreateSpanObserver) {
+                if (spanObserver != null) {
+                    logger.log(Level.FINE, "Cancelling and recreating gRPC span observer.");
+                    spanObserver.cancel("CLOSING_CONNECTION", new ChannelClosingException());
+                }
                 IngestServiceStub ingestServiceStub = buildStub(managedChannel);
-                responseObserver = buildResponseObserver();
+                ResponseObserver responseObserver = buildResponseObserver();
                 spanObserver = (ClientCallStreamObserver<V1.Span>) ingestServiceStub.recordSpan(responseObserver);
                 aggregator.incrementCounter("Supportability/InfiniteTracing/Connect");
+                recreateSpanObserver = false;
             }
             return spanObserver;
         }
@@ -109,19 +113,11 @@ class ChannelManager {
     }
 
     /**
-     * Cancel the span observer. The next time {@link #getSpanObserver()} is called the span observer
-     * will be recreated. This cancels the span observer with a {@link ChannelClosingException}, which
-     * {@link ResponseObserver#onError(Throwable)} detects and ignores.
+     * Mark that the span observer should be canceled and recreated the next time {@link #getSpanObserver()} is called.
      */
-    void cancelSpanObserver() {
+    void recreateSpanObserver() {
         synchronized (lock) {
-            if (spanObserver == null) {
-                return;
-            }
-            logger.log(Level.FINE, "Canceling gRPC span observer.");
-            spanObserver.cancel("CLOSING_CONNECTION", new ChannelClosingException());
-            spanObserver = null;
-            responseObserver = null;
+            recreateSpanObserver = true;
         }
     }
 
@@ -146,7 +142,7 @@ class ChannelManager {
                 managedChannel.shutdown();
                 managedChannel = null;
             }
-            cancelSpanObserver();
+            recreateSpanObserver();
         }
 
         try {
