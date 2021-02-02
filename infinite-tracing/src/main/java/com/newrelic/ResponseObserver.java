@@ -111,7 +111,7 @@ class ResponseObserver implements StreamObserver<V1.RecordStatus> {
     public void onCompleted() {
         logger.log(Level.FINE, "Completing gRPC response observer.");
         aggregator.incrementCounter("Supportability/InfiniteTracing/Response/Completed");
-        channelManager.cancelSpanObserver();
+        channelManager.recreateSpanObserver();
     }
 
 }
