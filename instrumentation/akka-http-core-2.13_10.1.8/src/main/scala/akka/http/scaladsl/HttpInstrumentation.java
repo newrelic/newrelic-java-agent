@@ -36,7 +36,7 @@ public class HttpInstrumentation {
         public ServerBinding() {
             AgentBridge.getAgent().getLogger().log(Level.FINE, "Setting akka-http port to: {0,number,#}", localAddress().getPort());
             AgentBridge.publicApi.setAppServerPort(localAddress().getPort());
-            AgentBridge.publicApi.setServerInfo("Akka HTTP", ManifestUtils.getVersionFromManifest(getClass(), "akka-http-core", "10.0.11"));
+            AgentBridge.publicApi.setServerInfo("Akka HTTP", ManifestUtils.getVersionFromManifest(getClass(), "akka-http-core", "10.1.8"));
 
             AgentBridge.instrumentation.retransformUninstrumentedClass(SyncRequestHandler.class);
             AgentBridge.instrumentation.retransformUninstrumentedClass(AsyncRequestHandler.class);
