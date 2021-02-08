@@ -75,7 +75,7 @@ public class Util {
         private void withNRToken(Runnable runnable) {
             Token token = currentContext().get(NR_TOKEN);
             if (token != null) {
-                token.linkAndExpire();
+                token.link();
             }
             runnable.run();
         }
@@ -84,7 +84,7 @@ public class Util {
         private void withNRError(Runnable runnable, Throwable throwable) {
             Token token = currentContext().get(NR_TOKEN);
             if (token != null && token.isActive()) {
-                token.linkAndExpire();
+                token.link();
                 NewRelic.noticeError(throwable);
             }
             runnable.run();
