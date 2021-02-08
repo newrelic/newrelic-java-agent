@@ -15,6 +15,7 @@ class AttachOptionsImpl implements AttachOptions {
     static final String LICENSE_KEY = "license";
     static final char ATTACH_LIST_OPTION = 'l';
     static final String JSON_OPTION = "json";
+    static final String APP_NAME = "app_name";
 
     private final boolean list;
     private final String pid;
@@ -33,13 +34,26 @@ class AttachOptionsImpl implements AttachOptions {
         };
         jsonFormat = cmd.hasOption(JSON_OPTION);
         this.list = cmd.hasOption(ATTACH_LIST_OPTION);
+
         if (cmd.hasOption(ATTACH_PID)) {
             final String[] args = cmd.getOptionValues(ATTACH_PID);
+            System.out.println(args.toString());
             if (args.length < 1) {
                 throw new RuntimeException("The pid option requires a process id");
             }
             this.pid = args[0];
-            this.appName = args.length > 1 ? args[1] : null;
+
+            if (cmd.hasOption(APP_NAME)) {
+                final String[] name = cmd.getOptionValues(APP_NAME);
+                 if (name.length < 1) {
+                     throw new RuntimeException("The app_name option requires an application name");
+                 }
+
+                this.appName = name[0];
+            } else {
+                throw new RuntimeException("The app_name option is required");
+
+            }
         } else {
             this.pid = null;
             this.appName = null;

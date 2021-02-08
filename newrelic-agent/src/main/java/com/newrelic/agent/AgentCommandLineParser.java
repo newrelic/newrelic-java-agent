@@ -197,6 +197,7 @@ class AgentCommandLineParser {
         options.addOption(AttachOptionsImpl.LICENSE_KEY, true, "Specifies a New Relic APM license key");
         options.addOption(AttachOptionsImpl.ATTACH_PID, true, "Attaches to a specific java process by pid");
         options.addOption(AttachOptionsImpl.JSON_OPTION, false, "Write output as json");
+        options.addOption(AttachOptionsImpl.APP_NAME, true, "Application name");
         return options;
     }
 

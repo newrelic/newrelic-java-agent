@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.newrelic.agent.autoname.ApplicationAutoName;
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.discovery.AgentArguments;
@@ -68,16 +67,16 @@ public class LifecycleObserver {
             this.client = client;
             this.id = args.getId();
             this.discovery = args.isDiscover();
-            if (discovery) {
-                ApplicationContainerInfo container = ApplicationAutoName.getApplicationContainerInfo(id);
-                if (container != null) {
-                    try {
-                        client.write(container);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+//            if (discovery) {
+//                ApplicationContainerInfo container = ApplicationAutoName.getApplicationContainerInfo(id);
+//                if (container != null) {
+//                    try {
+//                        client.write(container);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
         }
 
         @Override

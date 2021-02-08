@@ -7,7 +7,6 @@
 
 package com.newrelic.bootstrap;
 
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.modules.ClassLoaderUtil;
