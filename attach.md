@@ -20,6 +20,34 @@ Infra agent detect java processes and automatically attach the agent to them.
 We probably also want the Infra agent to provide a Java 8 JDK for the
 attach process.
 
+### Attach Options
+`-license` : Specifies a New Relic APM license key  
+`-app_name` : Application name  
+`-json` : Write output as json  
+`-pid` : Attaches to a specific java process by pid  
+`-l` : Lists the java process to which the agent could attach  
+
+### Usage:
+Command: `java -jar newrelic.jar attach -l`
+
+Output:
+```
+Java processes:
+PID	VM Version	Attachable	Display Name	Server Info	Application Names
+66824	25.282-b08	true	target/HyperAlloc-1.0.jar -h 1024 -d 7200
+```
+
+Command: `java -jar newrelic.jar attach -app_name foo -pid 66824`
+
+Output:
+```
+--- Attaching ---
+	PID	| 66824
+	Command	| null
+	Msg	| Initializing agent
+	Url	| https://rpm.newrelic.com/accounts/123/applications/123
+```
+
 ### Environment
 
 Java agent configuration can be set through a configuration file, through
