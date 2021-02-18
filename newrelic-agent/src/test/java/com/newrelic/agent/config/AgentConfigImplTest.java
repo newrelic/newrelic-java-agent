@@ -7,11 +7,9 @@
 
 package com.newrelic.agent.config;
 
-import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Mocks;
 import com.newrelic.agent.config.internal.MapEnvironmentFacade;
 import com.newrelic.agent.config.internal.MapSystemProps;
-import com.newrelic.agent.discovery.AgentArguments;
 import com.newrelic.bootstrap.BootstrapAgent;
 
 import org.junit.After;
@@ -285,34 +283,6 @@ public class AgentConfigImplTest {
         assertEquals(2, config.getApplicationNames().size());
         assertTrue(config.getApplicationNames().containsAll(Arrays.asList("app1", "app2")));
         assertEquals("app1", config.getApplicationName());
-    }
-
-    @Test
-    public void appNamesMissingWithAutoName() throws Exception {
-        EnvironmentFacade environmentFacade = createEnvironmentFacade(
-                ImmutableMap.<String, String>of(
-                        AgentArguments.NEW_RELIC_COMMAND_LINE_ENV_VARIABLE, "app.jar"),
-                ImmutableMap.<String, String>of());
-        System.setProperty(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY, "{}");
-        AgentConfig config = AgentConfigImpl.createAgentConfig(
-                Collections.<String, Object>emptyMap(), environmentFacade);
-
-        assertEquals(1, config.getApplicationNames().size());
-        assertEquals("app.jar", config.getApplicationName());
-    }
-
-    @Test
-    public void appNameAutoNameSystemPropertyOverride() throws Exception {
-        EnvironmentFacade environmentFacade = createEnvironmentFacade(
-                ImmutableMap.<String, String>of(
-                        AgentArguments.NEW_RELIC_COMMAND_LINE_ENV_VARIABLE, "app.jar"),
-                ImmutableMap.<String, String>of("newrelic.config.app_name", "My App"));
-        System.setProperty(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY, "{}");
-        AgentConfig config = AgentConfigImpl.createAgentConfig(
-                Collections.<String, Object>emptyMap(), environmentFacade);
-
-        assertEquals(1, config.getApplicationNames().size());
-        assertEquals("My App", config.getApplicationName());
     }
 
     @Test

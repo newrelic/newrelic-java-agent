@@ -131,21 +131,6 @@ public class AgentArguments implements JSONAware {
         return properties;
     }
 
-    static AgentArguments getAgentArguments(AttachOptions attachOptions) {
-        final Map<String, String> environment = getEnvironmentMap();
-        if (attachOptions.getLicenseKey() == null) {
-            final String licenseKey = System.getenv(Discovery.NEW_RELIC_LICENSE_KEY_ENV_NAME);
-            if (licenseKey == null) {
-                if (System.getProperty("newrelic.config.license_key") == null) {
-                    throw new IllegalArgumentException("Please specify the account license key with -license");
-                }
-            }
-        } else {
-            environment.put(Discovery.NEW_RELIC_LICENSE_KEY_ENV_NAME, attachOptions.getLicenseKey());
-        }
-        return new AgentArguments(environment, getSystemPropertiesMap());
-    }
-
     static AgentArguments getDiscoveryAgentArguments() {
         return new AgentArguments(getEnvironmentMap(), getSystemPropertiesMap()).setDiscover(true);
     }

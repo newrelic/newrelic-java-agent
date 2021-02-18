@@ -65,9 +65,6 @@ public class Environment implements JSONStreamAware, Cloneable {
             addVariable("Java VM version", System.getProperty("java.vm.version"));
             addVariable("Java version", System.getProperty("java.version"));
             addVariable("Log path", logFilePath);
-//            if (ApplicationAutoName.isAgentAttached()) {
-//                addVariable("Instrumentation mechanism", "Attach");
-//            }
 
             ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
             addVariable("ThreadCpuTimeSupported", threadMXBean.isThreadCpuTimeSupported());

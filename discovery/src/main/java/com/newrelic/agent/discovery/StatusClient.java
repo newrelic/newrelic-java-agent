@@ -23,12 +23,9 @@ public class StatusClient implements StatusMessageWriter {
         return new StatusClient(port);
     }
 
+    @Override
     public void write(StatusMessage message) throws IOException {
         write(StatusMessage.serialVersionUID, message);
-    }
-
-    public void write(ApplicationContainerInfo container) throws IOException {
-        write(ApplicationContainerInfo.serialVersionUID, container);
     }
 
     private void write(long uid, Externalizable externalizable) throws IOException {

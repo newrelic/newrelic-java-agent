@@ -259,17 +259,13 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final CommandParserConfig commandParserConfig;
 
     public static AgentConfig createAgentConfig(Map<String, Object> settings) {
-        return createAgentConfig(settings, EnvironmentFacade.getInstance());
-    }
-
-    static AgentConfig createAgentConfig(Map<String, Object> settings, EnvironmentFacade environmentFacade) {
         if (settings == null) {
             settings = Collections.emptyMap();
         }
-        return new AgentConfigImpl(settings, environmentFacade);
+        return new AgentConfigImpl(settings);
     }
 
-    private AgentConfigImpl(Map<String, Object> props, EnvironmentFacade environmentFacade) {
+    private AgentConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
         // transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);

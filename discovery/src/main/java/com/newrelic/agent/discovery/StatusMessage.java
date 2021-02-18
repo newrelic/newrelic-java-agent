@@ -61,6 +61,15 @@ public class StatusMessage implements Serializable, Externalizable {
         return TerminalColor.fromLevel(level).formatMessage(label, message);
     }
 
+    /**
+     * Writes messages to an output stream to indicate status of the dynamic attach sequence.
+     *
+     * Messages are sent to a StatusServer associated with the process that initiated the dynamic attach sequence.
+     *
+     * @param out ObjectOutput that writes objects to an output stream
+     * @throws IOException if an I/O exception of some sort has occurred
+     */
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeUTF(id);
         out.writeUTF(level.getName());

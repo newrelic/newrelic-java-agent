@@ -1,6 +1,7 @@
 package com.newrelic.agent;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.json.simple.parser.JSONParser;
@@ -9,7 +10,6 @@ import org.json.simple.parser.ParseException;
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.discovery.AgentArguments;
-import com.newrelic.agent.discovery.ApplicationContainerInfo;
 import com.newrelic.agent.discovery.StatusClient;
 import com.newrelic.agent.discovery.StatusMessage;
 import com.newrelic.agent.service.ServiceManager;
@@ -67,16 +67,6 @@ public class LifecycleObserver {
             this.client = client;
             this.id = args.getId();
             this.discovery = args.isDiscover();
-//            if (discovery) {
-//                ApplicationContainerInfo container = ApplicationAutoName.getApplicationContainerInfo(id);
-//                if (container != null) {
-//                    try {
-//                        client.write(container);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
         }
 
         @Override
@@ -95,14 +85,30 @@ public class LifecycleObserver {
             return true;
         }
 
+        /**
+         * Busy waits until the agent establishes a connection with New Relic.
+         *
+         * Under normal circumstances this can take several minutes. With {@code sync_startup: true} it should be nearly instantaneous.
+         */
         @Override
         void agentStarted() {
-            if (!writeConnectMessage()) {
-                writeMessage(StatusMessage.warn(id, "Msg",
-                        "The agent started but was not able to connect to New Relic to send data"));
+            writeMessage(StatusMessage.warn(id, "Msg",
+                    "The agent has started and is connecting to New Relic. This may take a few minutes."));
+            while (!writeConnectMessage()) {
+                try {
+                    TimeUnit.SECONDS.sleep(30);
+                    writeMessage(StatusMessage.warn(id, "Msg", "Establishing a connection with New Relic..."));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
+        /**
+         * Writes a message to an output stream containing the application URL when the agent has successfully connected to New Relic.
+         *
+         * @return true if the agent has successfully connected to New Relic, otherwise false
+         */
         private boolean writeConnectMessage() {
             final ServiceManager serviceManager = this.serviceManager.get();
             if (serviceManager != null) {
