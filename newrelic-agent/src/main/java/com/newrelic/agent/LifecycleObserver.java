@@ -113,6 +113,10 @@ public class LifecycleObserver {
             final ServiceManager serviceManager = this.serviceManager.get();
             if (serviceManager != null) {
                 IRPMService rpmService = serviceManager.getRPMServiceManager().getRPMService();
+                if (rpmService.isStoppedOrStopping()) {
+                    writeMessage(StatusMessage.error(id, "Error", "The agent has shutdown. Make sure that the license key matches the region."));
+                    return true;
+                }
                 if (rpmService.isConnected()) {
                     writeMessage(StatusMessage.success(id, rpmService.getApplicationLink()));
                     return true;
