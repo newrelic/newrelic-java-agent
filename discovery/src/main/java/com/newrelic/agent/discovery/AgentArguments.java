@@ -19,13 +19,11 @@ public class AgentArguments implements JSONAware {
     private static final String ENVIRONMENT_AGENT_ARGS_KEY = "environment";
     private static final String SERVER_PORT_AGENT_ARGS_KEY = "serverPort";
     private static final String ID_AGENT_ARGS_KEY = "id";
-    private static final String DISCOVER_AGENT_ARGS_KEY = "discover";
 
     private final Map<String, String> environment;
     private final Map<String, String> systemProperties;
     private Number serverPort;
     private String id;
-    private boolean discover = false;
 
     public AgentArguments(Map<String, String> environment, Map<String, String> systemProperties) {
         this.environment = environment;
@@ -48,15 +46,6 @@ public class AgentArguments implements JSONAware {
         return id;
     }
 
-    public boolean isDiscover() {
-        return discover;
-    }
-
-    public AgentArguments setDiscover(boolean discover) {
-        this.discover = discover;
-        return this;
-    }
-
     public void setAppName(String appName) {
         environment.put(NEW_RELIC_APP_NAME_ENV_VARIABLE, appName);
     }
@@ -74,7 +63,6 @@ public class AgentArguments implements JSONAware {
         if (commandLine != null) {
             args.setCommandLine(commandLine);
         }
-        args.discover = discover;
         args.serverPort = serverPort;
         args.id = pid;
         return args;
@@ -88,7 +76,6 @@ public class AgentArguments implements JSONAware {
                 (Map<String, String>) map.get(SYSTEM_PROPERTIES_AGENT_ARGS_KEY));
         args.serverPort = (Number) map.get(SERVER_PORT_AGENT_ARGS_KEY);
         args.id = (String) map.get(ID_AGENT_ARGS_KEY);
-        args.discover = (Boolean) map.get(DISCOVER_AGENT_ARGS_KEY);
         return args;
     }
 
@@ -98,7 +85,6 @@ public class AgentArguments implements JSONAware {
         args.put(ENVIRONMENT_AGENT_ARGS_KEY, environment);
         args.put(SYSTEM_PROPERTIES_AGENT_ARGS_KEY, systemProperties);
         args.put(ID_AGENT_ARGS_KEY, id);
-        args.put(DISCOVER_AGENT_ARGS_KEY, discover);
         if (serverPort != null) {
             args.put(SERVER_PORT_AGENT_ARGS_KEY, serverPort);
         }
@@ -129,9 +115,5 @@ public class AgentArguments implements JSONAware {
             }
         }
         return properties;
-    }
-
-    static AgentArguments getDiscoveryAgentArguments() {
-        return new AgentArguments(getEnvironmentMap(), getSystemPropertiesMap()).setDiscover(true);
     }
 }

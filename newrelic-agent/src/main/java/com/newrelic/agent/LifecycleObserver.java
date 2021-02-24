@@ -36,18 +36,13 @@ public class LifecycleObserver {
         return true;
     }
 
-    boolean isDiscovery() {
-        return false;
-    }
-
     public static LifecycleObserver createLifecycleObserver(String agentArgs) {
         if (agentArgs != null && !agentArgs.isEmpty()) {
             try {
                 final AgentArguments args = AgentArguments.fromJsonObject(new JSONParser().parse(agentArgs));
                 final Number port = args.getServerPort();
                 final StatusClient client = StatusClient.create(port.intValue());
-                client.write(StatusMessage.info(args.getId(), "Msg",
-                        args.isDiscover() ? "Discovering environment" : "Initializing agent"));
+                client.write(StatusMessage.info(args.getId(), "Msg", "Initializing agent"));
                 return new AttachLifecycleObserver(client, args);
             } catch (ParseException | IOException e) {
                 // ignore
@@ -61,17 +56,10 @@ public class LifecycleObserver {
         private final StatusClient client;
         private final AtomicReference<ServiceManager> serviceManager = new AtomicReference<>();
         private final String id;
-        private final boolean discovery;
 
         public AttachLifecycleObserver(StatusClient client, AgentArguments args) {
             this.client = client;
             this.id = args.getId();
-            this.discovery = args.isDiscover();
-        }
-
-        @Override
-        boolean isDiscovery() {
-            return discovery;
         }
 
         public boolean isAgentSafe() {
