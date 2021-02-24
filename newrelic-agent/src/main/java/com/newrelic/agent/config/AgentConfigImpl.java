@@ -554,7 +554,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return null;
     }
 
-
     private CrossProcessConfig initCrossProcessConfig() {
         Boolean prop = getProperty(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING);
         Map<String, Object> props = nestedProps(CROSS_APPLICATION_TRACER);

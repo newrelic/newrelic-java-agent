@@ -45,6 +45,7 @@ class AgentCommandLineParser {
 
         commandDescriptions = new HashMap<>();
         commandDescriptions.put(DEPLOYMENT_COMMAND, "[OPTIONS] [description]  Records a deployment");
+        commandDescriptions.put(INSTRUMENT_COMMAND, "[OPTIONS]                Validates a custom instrumentation xml configuration file.");
     }
 
     public void parseCommand(String[] args) {
