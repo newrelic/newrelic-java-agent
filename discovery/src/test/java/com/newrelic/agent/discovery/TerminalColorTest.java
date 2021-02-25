@@ -37,14 +37,4 @@ public class TerminalColorTest {
     public void colorTestYellow() {
         assertEquals("[33mYellow[0m", TerminalColor.Yellow.colorText("Yellow"));
     }
-
-    @Test
-    public void colorTestGreen() {
-        assertEquals("[32mGreen[0m", TerminalColor.Green.colorText("Green"));
-    }
-
-    @Test
-    public void formatMessage() {
-        assertEquals("[32mInfo[0m\t| Good!", TerminalColor.Green.formatMessage("Info", "Good!"));
-    }
 }
