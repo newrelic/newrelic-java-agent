@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.service.AbstractService;
+import com.newrelic.agent.service.ServiceFactory;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -12,24 +15,15 @@ import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.discovery.AgentArguments;
 import com.newrelic.agent.discovery.StatusClient;
 import com.newrelic.agent.discovery.StatusMessage;
-import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.bootstrap.BootstrapAgent;
 
 /**
  * This class is used to communicate important startup information back to an attaching
  * process.
  */
-public class LifecycleObserver {
+public class LifecycleObserver extends AbstractService implements ConnectionListener {
     protected LifecycleObserver() {
-    }
-
-    void agentStarted() {
-    }
-
-    void serviceManagerStarted(ServiceManager serviceManager) {
-    }
-
-    void agentAlreadyRunning() {
+        super(LifecycleObserver.class.getSimpleName());
     }
 
     public boolean isAgentSafe() {
@@ -44,17 +38,41 @@ public class LifecycleObserver {
                 final StatusClient client = StatusClient.create(port.intValue());
                 client.write(StatusMessage.info(args.getId(), "Msg", "Initializing agent"));
                 return new AttachLifecycleObserver(client, args);
+
             } catch (ParseException | IOException e) {
-                // ignore
+                System.out.println("Unable to create lifecycle observer: " + e);
             }
         }
         return new LifecycleObserver();
     }
 
+    @Override
+    public void connected(IRPMService rpmService, AgentConfig agentConfig) {
+    }
+
+    @Override
+    public void disconnected(IRPMService rpmService) {
+
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
     private static class AttachLifecycleObserver extends LifecycleObserver {
 
         private final StatusClient client;
-        private final AtomicReference<ServiceManager> serviceManager = new AtomicReference<>();
         private final String id;
 
         public AttachLifecycleObserver(StatusClient client, AgentArguments args) {
@@ -73,62 +91,26 @@ public class LifecycleObserver {
             return true;
         }
 
+        public void doStart() {
+            ServiceFactory.getRPMServiceManager().addConnectionListener(this);
+        }
+
         /**
          * Busy waits until the agent establishes a connection with New Relic.
          *
          * Under normal circumstances this can take several minutes. With {@code sync_startup: true} it should be nearly instantaneous.
          */
         @Override
-        void agentStarted() {
-            writeMessage(StatusMessage.warn(id, "Msg",
-                    "The agent has started and is connecting to New Relic. This may take a few minutes."));
-            while (!writeConnectMessage()) {
-                try {
-                    TimeUnit.SECONDS.sleep(30);
-                    writeMessage(StatusMessage.warn(id, "Msg", "Establishing a connection with New Relic..."));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        /**
-         * Writes a message to an output stream containing the application URL when the agent has successfully connected to New Relic.
-         *
-         * @return true if the agent has successfully connected to New Relic, otherwise false
-         */
-        private boolean writeConnectMessage() {
-            final ServiceManager serviceManager = this.serviceManager.get();
-            if (serviceManager != null) {
-                IRPMService rpmService = serviceManager.getRPMServiceManager().getRPMService();
-                if (rpmService.isStoppedOrStopping()) {
-                    writeMessage(StatusMessage.error(id, "Error", "The agent has shutdown. Make sure that the license key matches the region."));
-                    return true;
-                }
-                if (rpmService.isConnected()) {
-                    writeMessage(StatusMessage.success(id, rpmService.getApplicationLink()));
-                    return true;
-                }
-            }
-            return false;
+        public void connected(IRPMService rpmService, AgentConfig agentConfig) {
+            writeMessage(StatusMessage.success(id, rpmService.getApplicationLink()));
         }
 
         private void writeMessage(StatusMessage message) {
             try {
-                System.out.println(message);
                 client.write(message);
             } catch (IOException e) {
                 // ignore
             }
-        }
-
-        @Override
-        public void serviceManagerStarted(ServiceManager serviceManager) {
-            this.serviceManager.set(serviceManager);
-        }
-
-        public void agentAlreadyRunning() {
-            writeMessage(StatusMessage.error(id, "Error", "The New Relic agent is already attached to this process"));
         }
     }
 }
