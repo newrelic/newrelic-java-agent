@@ -7,7 +7,6 @@
 
 package com.newrelic.bootstrap;
 
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.modules.ClassLoaderUtil;
@@ -15,20 +14,30 @@ import com.newrelic.agent.modules.ClassLoaderUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.zip.InflaterInputStream;
+
+import org.apache.commons.codec.binary.Base64;
 
 public class BootstrapAgent {
 
+    public static final String TRY_IBM_ATTACH_SYSTEM_PROPERTY = "newrelic.try_ibm_attach";
+    public static final String NR_AGENT_ARGS_SYSTEM_PROPERTY = "nr-internal-agent-args";
     private static final String AGENT_CLASS_NAME = "com.newrelic.agent.Agent";
     private static final String JAVA_LOG_MANAGER = "java.util.logging.manager";
     private static final String WS_SERVER_JAR = "ws-server.jar";
     private static final String WS_LOG_MANAGER = "com.ibm.ws.kernel.boot.logging.WsLogManager";
-    private static final String IBM_VENDOR = "IBM";
 
     public static URL getAgentJarUrl() {
         return BootstrapAgent.class.getProtectionDomain().getCodeSource().getLocation();
@@ -43,6 +52,7 @@ public class BootstrapAgent {
         try {
             Collection<URL> urls = BootstrapLoader.getJarURLs();
             urls.add(getAgentJarUrl());
+            @SuppressWarnings("resource")
             ClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[0]), null);
             Class<?> agentClass = classLoader.loadClass(AGENT_CLASS_NAME);
             Method main = agentClass.getDeclaredMethod("main", String[].class);
@@ -51,6 +61,30 @@ public class BootstrapAgent {
             System.err.println(MessageFormat.format("Error invoking the New Relic command: {0}", t));
             t.printStackTrace();
         }
+    }
+
+    /**
+     * This is invoked when the agent is attached to a running process.
+     */
+    public static void agentmain(String agentArgs, Instrumentation inst) {
+        if (agentArgs == null || agentArgs.isEmpty()) {
+            throw new IllegalArgumentException("Unable to attach. The license key was not specified");
+        }
+        System.out.println("Attaching the New Relic java agent");
+        try {
+            agentArgs = decodeAndDecompressAgentArguments(agentArgs);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        System.setProperty(NR_AGENT_ARGS_SYSTEM_PROPERTY, agentArgs);
+        premain(agentArgs, inst);
+    }
+
+    static String decodeAndDecompressAgentArguments(String agentArgs) throws IOException {
+        byte[] decodeBase64 = Base64.decodeBase64(agentArgs);
+        InflaterInputStream zipStream = new InflaterInputStream(new ByteArrayInputStream(decodeBase64));
+        return new BufferedReader(new InputStreamReader(zipStream)).readLine();
     }
 
     /**
@@ -86,8 +120,7 @@ public class BootstrapAgent {
     }
 
     private static void checkAndApplyIBMLibertyProfileLogManagerWorkaround() {
-        String javaVendor = System.getProperty("java.vendor");
-        if (javaVendor != null && (javaVendor.startsWith(IBM_VENDOR))) {
+        if (IBMUtils.isIbmJVM()) {
             String javaClassPath = System.getProperty("java.class.path");
             // WS_SERVER_JAR is characteristic of a Liberty Profile installation
             if (javaClassPath != null && javaClassPath.contains(WS_SERVER_JAR)) {

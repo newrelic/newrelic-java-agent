@@ -1,0 +1,107 @@
+version: '3'
+services:
+  jboss6:
+    build:
+      context: ./test
+      dockerfile: DockerJBoss6
+    container_name: jboss6
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+  jboss7:
+    build:
+      context: ./test
+      dockerfile: DockerJBoss7
+    container_name: jboss7
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+  wildfly20:
+    build:
+      context: ./test
+      dockerfile: DockerWildfly20
+    container_name: wildfly20
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+      - "9990:9990"
+    command: /opt/jboss/wildfly/bin/standalone.sh
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.252.b09-2.el7_8.x86_64
+  jetty9:
+    build:
+      context: ./test
+      dockerfile: DockerJetty9
+    container_name: jetty9
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+    command: --module=jmx
+  tomcat7:
+    build:
+      context: ./test
+      dockerfile: DockerTomcat7
+    container_name: tomcat7
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+  tomcat8:
+    build:
+      context: ./test
+      dockerfile: DockerTomcat8
+    container_name: tomcat8
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-7-openjdk-amd64
+  tomcat9:
+    build:
+      context: ./test
+      dockerfile: DockerTomcat9
+    container_name: tomcat9
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+  websphere:
+    build:
+      context: ./test
+      dockerfile: DockerWebSphereTraditional
+    container_name: websphere
+    hostname: websphere
+    volumes:
+      - ./test/WebSpherePassword:/tmp/PASSWORD
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "9443:9443"
+      - "9080:9080"
+    environment:
+      JAVA_HOME: /opt/IBM/WebSphere/AppServer/java/8.0
+      PATH: ${PATH}:/opt/IBM/WebSphere/AppServer/java/8.0/bin
+  websphere-liberty:
+    build:
+      context: ./test
+      dockerfile: DockerWebSphereLiberty
+    container_name: websphere-liberty
+    hostname: websphere
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:9080"
+  springboot-petclinic:
+    build:
+      context: ./test/petclinic
+    container_name: springboot-petclinic
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod

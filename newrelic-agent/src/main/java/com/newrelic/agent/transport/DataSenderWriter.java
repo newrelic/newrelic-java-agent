@@ -128,7 +128,7 @@ public class DataSenderWriter extends OutputStreamWriter {
     /**
      * Converts data into a json string, compresses it and returns a base 64 encoded string.
      */
-    private static String getJsonifiedCompressedEncodedString(Object data, int compressionLevel) {
+    public static String getJsonifiedCompressedEncodedString(Object data, int compressionLevel) {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         try {
             OutputStream zipStream = new DeflaterOutputStream(outStream, new Deflater(compressionLevel));
