@@ -64,6 +64,9 @@ dependencies {
     shadowIntoJar project(":agent-model")
     shadowIntoJar(project(":newrelic-weaver"))
     shadowIntoJar(project(":infinite-tracing"))
+    shadowIntoJar(project(":discovery")) {
+        transitive = false
+    }
 
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.0")
 
@@ -286,6 +289,7 @@ task newrelicVersionedAgentJar(type: Jar) {
                 'Specification-Version': project.version,
                 'Build-Id': System.getProperty('BUILD_ID') ?: "None",
                 'Multi-Release': true,
+                'Agent-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Premain-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Main-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'X-Git-SHA': System.getenv("GITHUB_SHA") ?: GitUtil.sha(project) ?: "UNKNOWN"
