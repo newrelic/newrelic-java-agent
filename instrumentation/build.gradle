@@ -10,6 +10,11 @@ subprojects {
         task.enabled = !project.hasProperty('noInstrumentation')
     }
 
+    tasks.withType(AbstractArchiveTask) {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+
     jar {
         manifest {
             attributes 'Implementation-Vendor': 'New Relic', 'Implementation-Version': project.version
