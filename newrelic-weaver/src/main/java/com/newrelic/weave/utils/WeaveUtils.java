@@ -1000,4 +1000,22 @@ public final class WeaveUtils {
     public static boolean isMethodWeNeverInstrument(MethodNode originalMethod) {
         return METHODS_WE_NEVER_INSTRUMENT.contains(new MethodKey(originalMethod.name, originalMethod.desc));
     }
+
+    /**
+     * Checks if a {@code ClassNode} is annotated with {@code @WeavePriorityOrder} and returns the priority value if it exists.
+     *
+     * @param classNode ClassNode to inspect
+     * @return Integer indicating the WeavePriorityOrder value, or Integer.MIN_VALUE if there isn't one
+     */
+    public static Integer getWeavePriorityOrderIfExists(ClassNode classNode) {
+        // Uses SynchronizedClassNode and SynchronizedAnnotationNode
+        final List<AnnotationNode> visibleAnnotations = classNode.visibleAnnotations;
+
+        for (AnnotationNode annotationNode : visibleAnnotations) {
+            if (annotationNode.desc.contains("WeavePriorityOrder")) {
+                return (Integer) annotationNode.values.get(1);
+            }
+        }
+        return Integer.MIN_VALUE;
+    }
 }
