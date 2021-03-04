@@ -9,10 +9,8 @@ package com.newrelic.weave.weavepackage.testclasses;
 
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
-import com.newrelic.api.agent.weaver.WeavePriorityOrder;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 
-@WeavePriorityOrder(1)
 @WeaveWithAnnotation(annotationClasses = { "javax.ws.rs.Path" }, type = MatchType.Interface)
 public class JaxRsAnnotations {
 

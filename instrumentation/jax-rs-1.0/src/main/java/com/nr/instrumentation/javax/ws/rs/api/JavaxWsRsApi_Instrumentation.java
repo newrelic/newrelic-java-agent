@@ -13,7 +13,6 @@ import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
-import com.newrelic.api.agent.weaver.WeavePriorityOrder;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 import com.newrelic.api.agent.weaver.Weaver;
 
@@ -28,7 +27,6 @@ import javax.ws.rs.Path;
 import java.util.Queue;
 import java.util.logging.Level;
 
-@WeavePriorityOrder(1) // Lower priority than JavaxWsRsApi_Subresource_Instrumentation in WeavePackage.processWeaveBytes
 @WeaveWithAnnotation(annotationClasses = { "javax.ws.rs.Path" }, type = MatchType.Interface)
 public class JavaxWsRsApi_Instrumentation {
 

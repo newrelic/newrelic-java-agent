@@ -12,7 +12,6 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
-import com.newrelic.api.agent.weaver.WeavePriorityOrder;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 import com.newrelic.api.agent.weaver.Weaver;
 
@@ -43,7 +42,6 @@ import java.util.logging.Level;
  * Case 3: Class annotation = @Path, method annotation = @Path
  * This can't happen.
  */
-@WeavePriorityOrder(0) // Higher priority than JavaxWsRsApi_Instrumentation in WeavePackage.processWeaveBytes
 public class JavaxWsRsApi_Subresource_Instrumentation {
 
     @WeaveWithAnnotation(annotationClasses = { "javax.ws.rs.PUT", "javax.ws.rs.POST", "javax.ws.rs.GET",

@@ -8,10 +8,8 @@
 package com.newrelic.weave.weavepackage.testclasses;
 
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
-import com.newrelic.api.agent.weaver.WeavePriorityOrder;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 
-@WeavePriorityOrder(0)
 public class JaxRsSubresourceAnnotations {
 
     @WeaveWithAnnotation(annotationClasses = { "javax.ws.rs.PUT", "javax.ws.rs.POST", "javax.ws.rs.GET",

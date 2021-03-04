@@ -142,24 +142,11 @@ public class WeavePackage {
                     requiredClassAnnotationsLookup.put(weaveNode.name, weave.getRequiredClassAnnotations());
                 }
                 if (isMethodAnnotationMatch) {
-                    final Integer weavePriorityOrder = WeaveUtils.getWeavePriorityOrderIfExists(weaveNode);
-                    final boolean weavePriorityOrderExists = weavePriorityOrder != Integer.MAX_VALUE;
-
                     for (String requiredAnnotation : weave.getRequiredMethodAnnotations()) {
-                        // order of instrumentation class processing doesn't matter, add annotation to the map
-                        if (!weavePriorityOrderExists) {
+                        if (!isClassAnnotationMatch) {
                             allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
-                        // order matters and the instrumentation class is annotated with @WeavePriorityOrder
                         } else if (!allMethodAnnotationWeaves.containsKey(requiredAnnotation)) {
-                            // annotation hasn't yet been added to the map, so just add it
                             allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
-                        } else {
-                            final Integer oldWeavePriorityOrder = WeaveUtils.getWeavePriorityOrderIfExists(allMethodAnnotationWeaves.get(requiredAnnotation));
-                            final boolean oldWeavePriorityOrderExists = oldWeavePriorityOrder != Integer.MAX_VALUE;
-                            // annotation is already in the map, compare weavePriorityOrder to determine if the weaveNode should be overwritten or not
-                            if (oldWeavePriorityOrderExists && (weavePriorityOrder < oldWeavePriorityOrder)) {
-                                allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
-                            }
                         }
                     }
                     requiredMethodAnnotationsLookup.put(weaveNode.name, weave.getRequiredMethodAnnotations());

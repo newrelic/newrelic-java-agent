@@ -7,12 +7,9 @@
 
 package com.newrelic.weave.utils;
 
-import com.newrelic.api.agent.weaver.Weave;
-import com.newrelic.api.agent.weaver.WeavePriorityOrder;
 import com.newrelic.weave.WeaveTestUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -65,38 +62,4 @@ public class WeaveUtilsTest {
         Assert.assertFalse(WeaveUtils.isEmptyConstructor(generatedNonEmptyInnerCtor));
     }
 
-    @Test
-    public void testGetWeavePriorityOrderIfExists() throws IOException {
-        @WeavePriorityOrder(0)
-        class PriorityZero {
-        }
-
-        @WeavePriorityOrder(1)
-        class PriorityOne {
-        }
-
-        @Weave
-        class NoPriorityOtherAnnotation {
-        }
-
-        class NoPriorityNoAnnotation {
-        }
-
-        final Integer priorityOrderPriorityZero = WeaveUtils.getWeavePriorityOrderIfExists(readClass(PriorityZero.class.getName()));
-        final Integer priorityOrderPriorityOne = WeaveUtils.getWeavePriorityOrderIfExists(readClass(PriorityOne.class.getName()));
-        final Integer priorityOrderNoPriorityOtherAnnotation = WeaveUtils.getWeavePriorityOrderIfExists(readClass(NoPriorityOtherAnnotation.class.getName()));
-        final Integer priorityOrderNoPriorityNoAnnotation = WeaveUtils.getWeavePriorityOrderIfExists(readClass(NoPriorityNoAnnotation.class.getName()));
-
-        Assert.assertEquals(0, priorityOrderPriorityZero.intValue());
-        Assert.assertEquals(1, priorityOrderPriorityOne.intValue());
-        Assert.assertEquals(Integer.MAX_VALUE, priorityOrderNoPriorityOtherAnnotation.intValue());
-        Assert.assertEquals(Integer.MAX_VALUE, priorityOrderNoPriorityNoAnnotation.intValue());
-    }
-
-    public static ClassNode readClass(String name) throws IOException {
-        ClassReader reader = new ClassReader(name);
-        ClassNode result = new ClassNode(WeaveUtils.ASM_API_LEVEL);
-        reader.accept(result, ClassReader.SKIP_FRAMES);
-        return result;
-    }
 }
