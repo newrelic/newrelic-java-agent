@@ -64,7 +64,7 @@ public class WeavePackageAnnotationProcessingTest {
     }
 
     @Test
-    public void testJaxRsAnnotationProcessing() throws IOException {
+    public void testJaxRsSubResourceAnnotationsProcessedFirst() throws IOException {
         List<byte[]> weaveBytes = new ArrayList<>();
         weaveBytes.add(WeaveTestUtils.getClassBytes(JAX_RS_SUBRESOURCE_ANNOTATIONS_CLASS_NAME));
         weaveBytes.add(WeaveTestUtils.getClassBytes(JAX_RS_ANNOTATIONS_CLASS_NAME));
@@ -91,7 +91,7 @@ public class WeavePackageAnnotationProcessingTest {
     }
 
     @Test
-    public void testJaxRsAnnotationProcessingOppositeClassByteOrder() throws IOException {
+    public void testJaxRsSubResourceAnnotationsProcessedLast() throws IOException {
         List<byte[]> weaveBytes = new ArrayList<>();
         weaveBytes.add(WeaveTestUtils.getClassBytes(JAX_RS_ANNOTATIONS_CLASS_NAME));
         weaveBytes.add(WeaveTestUtils.getClassBytes(JAX_RS_SUBRESOURCE_ANNOTATIONS_CLASS_NAME));
