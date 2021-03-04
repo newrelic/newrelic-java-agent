@@ -143,7 +143,7 @@ public class WeavePackage {
                 }
                 if (isMethodAnnotationMatch) {
                     final Integer weavePriorityOrder = WeaveUtils.getWeavePriorityOrderIfExists(weaveNode);
-                    final boolean weavePriorityOrderExists = weavePriorityOrder != Integer.MIN_VALUE;
+                    final boolean weavePriorityOrderExists = weavePriorityOrder != Integer.MAX_VALUE;
 
                     for (String requiredAnnotation : weave.getRequiredMethodAnnotations()) {
                         // order of instrumentation class processing doesn't matter, add annotation to the map
@@ -155,7 +155,7 @@ public class WeavePackage {
                             allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
                         } else {
                             final Integer oldWeavePriorityOrder = WeaveUtils.getWeavePriorityOrderIfExists(allMethodAnnotationWeaves.get(requiredAnnotation));
-                            final boolean oldWeavePriorityOrderExists = oldWeavePriorityOrder != Integer.MIN_VALUE;
+                            final boolean oldWeavePriorityOrderExists = oldWeavePriorityOrder != Integer.MAX_VALUE;
                             // annotation is already in the map, compare weavePriorityOrder to determine if the weaveNode should be overwritten or not
                             if (oldWeavePriorityOrderExists && (weavePriorityOrder < oldWeavePriorityOrder)) {
                                 allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
