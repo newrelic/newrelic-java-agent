@@ -472,6 +472,16 @@ public class WeavePackage {
         return allMethodAnnotationWeaves.keySet();
     }
 
+    // package private for testing
+    Map<String,ClassNode> getAllClassAnnotationWeaves() {
+        return allClassAnnotationWeaves;
+    }
+
+    // package private for testing
+    Map<String,ClassNode> getAllMethodAnnotationWeaves() {
+        return allMethodAnnotationWeaves;
+    }
+
     /**
      * Returns the set of required annotation classes listed on the provided annotation weave class
      * 
