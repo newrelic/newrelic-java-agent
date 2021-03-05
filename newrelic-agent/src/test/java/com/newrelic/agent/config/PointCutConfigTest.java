@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -251,7 +251,7 @@ public class PointCutConfigTest {
 
     @Test
     public void yaml() {
-        Constructor constructor = new InstrumentationConstructor();
+        SafeConstructor constructor = new InstrumentationConstructor();
         Yaml yaml = new Yaml(constructor);
 
         Object config = yaml.load("--- !interface_matcher 'org/apache/solr/request/SolrRequestHandler'");
