@@ -48,7 +48,7 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
 
     @Override
     public void onComplete() {
-        subscriber.onComplete();
+        withNRToken(subscriber::onComplete);
     }
 
     @Override
@@ -67,8 +67,10 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
     @Trace(async = true, excludeFromTransactionTrace = true)
     private void withNRError(Runnable runnable, Throwable throwable) {
         if (token != null && token.isActive()) {
-            token.linkAndExpire();
+            token.link();
             if (NettyReactorConfig.errorsEnabled) {
+                // I believe 100% of users disable this as it makes NewRelic to report caught and handled
+                // exceptions as errors in APM. Is there a real use case for this?
                 NewRelic.noticeError(throwable);
             }
         }
