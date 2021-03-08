@@ -12,8 +12,7 @@ import com.newrelic.agent.errors.ExceptionHandlerSignature;
 import com.newrelic.agent.instrumentation.methodmatchers.InvalidMethodDescriptor;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.AbstractConstruct;
-import org.yaml.snakeyaml.constructor.Construct;
-import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
@@ -88,11 +87,11 @@ public class AgentConfigHelper {
     }
 
     private static Yaml createYaml() {
-        Constructor constructor = new ExtensionConstructor();
+        SafeConstructor constructor = new ExtensionConstructor();
         return new Yaml(constructor);
     }
 
-    private static class ExtensionConstructor extends Constructor {
+    private static class ExtensionConstructor extends SafeConstructor {
         public ExtensionConstructor() {
             yamlConstructors.put(new Tag("!exception_handler"), new AbstractConstruct() {
                 @Override

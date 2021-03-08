@@ -24,6 +24,7 @@ import org.yaml.snakeyaml.Yaml;
 import com.newrelic.agent.config.BaseConfig;
 import com.newrelic.agent.config.Config;
 import com.newrelic.agent.jmx.JmxType;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /**
  * Tests the utility methods found in JmxYmlUtils.
@@ -181,7 +182,7 @@ public class JmxYmlParserTest {
     }
 
     protected static BaseConfig readYml(File file) throws Exception {
-        Yaml yaml = new Yaml();
+        Yaml yaml = new Yaml(new SafeConstructor());
         try (Reader reader = new FileReader(file)) {
             Map output = (Map) yaml.load(reader);
             return new BaseConfig(output);
