@@ -13,22 +13,20 @@ import com.newrelic.agent.modules.ClassLoaderUtil;
 import com.newrelic.agent.modules.ClassLoaderUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
+import com.newrelic.jfr.daemon.agent.AgentMain;
+import org.apache.commons.codec.binary.Base64;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.zip.InflaterInputStream;
-
-import org.apache.commons.codec.binary.Base64;
 
 public class BootstrapAgent {
 
@@ -143,6 +141,9 @@ public class BootstrapAgent {
 
     private static void startAgent(String agentArgs, Instrumentation inst) {
         try {
+            //jfr-daemon
+            AgentMain.premain("", inst);
+
             // Premain start time will be recorded starting from this point
             long startTime = System.currentTimeMillis();
 
