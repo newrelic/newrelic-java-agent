@@ -48,7 +48,7 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
 
     @Override
     public void onComplete() {
-        subscriber.onComplete();
+        withNRToken(subscriber::onComplete);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
     @Trace(async = true, excludeFromTransactionTrace = true)
     private void withNRError(Runnable runnable, Throwable throwable) {
         if (token != null && token.isActive()) {
-            token.linkAndExpire();
+            token.link();
             if (NettyReactorConfig.errorsEnabled) {
                 NewRelic.noticeError(throwable);
             }
