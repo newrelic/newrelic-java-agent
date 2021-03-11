@@ -69,8 +69,6 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
         if (token != null && token.isActive()) {
             token.link();
             if (NettyReactorConfig.errorsEnabled) {
-                // I believe 100% of users disable this as it makes NewRelic to report caught and handled
-                // exceptions as errors in APM. Is there a real use case for this?
                 NewRelic.noticeError(throwable);
             }
         }

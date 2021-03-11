@@ -1,6 +1,5 @@
 package com.nr.agent.instrumentation;
 
-import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
@@ -9,7 +8,6 @@ import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.Trace;
 import com.nr.instrumentation.reactor.netty.TokenLinkingSubscriber;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Flux;
@@ -38,12 +36,10 @@ public class TransactionPropagationTest {
     @BeforeClass
     public static void init() {
         Hooks.onEachOperator(TokenLinkingSubscriber.class.getName(), tokenLift());
-        DebugFlag.tokenEnabled.set(true);
     }
 
     @Test
-    @Ignore("A test harness check")
-    public void testSync() {
+    public void syncPropagationSanityCheck() {
         AtomicBoolean hadTransaction = new AtomicBoolean();
         inTransaction(() ->
                 checkTransaction(hadTransaction));
@@ -51,8 +47,7 @@ public class TransactionPropagationTest {
     }
 
     @Test
-    @Ignore("A test harness check")
-    public void testAsync() throws InterruptedException {
+    public void asyncPropagationSanityCheck() throws InterruptedException {
         AtomicBoolean hadTransaction = new AtomicBoolean();
         CountDownLatch done = new CountDownLatch(1);
         inTransaction(() -> {
@@ -70,8 +65,7 @@ public class TransactionPropagationTest {
     }
 
     @Test
-    @Ignore("A sanity check")
-    public void testAsyncSchedulers() throws InterruptedException {
+    public void testReactorSchedulersInstrumentation() throws InterruptedException {
         AtomicBoolean hadTransaction = new AtomicBoolean();
         CountDownLatch done = new CountDownLatch(1);
         inTransaction(() -> {
@@ -121,7 +115,6 @@ public class TransactionPropagationTest {
     }
 
     @Test
-    @Ignore("A sanity check")
     public void testMonoOnSuccess() {
         AtomicBoolean hadTransaction = new AtomicBoolean();
         inTransaction(() -> {
@@ -188,7 +181,6 @@ public class TransactionPropagationTest {
     }
 
     @Test
-    @Ignore("A sanity check")
     public void testMonoNestedInFlatMap() {
         AtomicBoolean hadTransaction = new AtomicBoolean();
         inTransaction(() -> {
