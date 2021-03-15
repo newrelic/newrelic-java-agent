@@ -9,17 +9,17 @@ package com.nr.agent.instrumentation.spring_webclient;
 
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.OutboundHeaders;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.ClientRequest;
 
 /**
  * Wraps Spring 5 Web Client's outbound request headers for CAT.
  */
 public class OutboundRequestWrapper implements OutboundHeaders {
 
-    private final WebClient.RequestHeadersSpec requestHeaderSpec;
+    private final ClientRequest.Builder requestBuilder;
 
-    public OutboundRequestWrapper(WebClient.RequestHeadersSpec requestBuilder) {
-        this.requestHeaderSpec = requestBuilder;
+    public OutboundRequestWrapper(ClientRequest request) {
+        this.requestBuilder = ClientRequest.from(request);
     }
 
     @Override
@@ -29,6 +29,10 @@ public class OutboundRequestWrapper implements OutboundHeaders {
 
     @Override
     public void setHeader(String name, String value) {
-        requestHeaderSpec.header(name, value);
+        requestBuilder.header(name, value);
+    }
+
+    public ClientRequest build() {
+        return requestBuilder.build();
     }
 }
