@@ -19,6 +19,7 @@ import reactor.util.context.Context;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static com.nr.instrumentation.reactor.netty.TokenLinkingSubscriber.tokenLift;
 import static org.hamcrest.CoreMatchers.is;
@@ -199,6 +200,98 @@ public class TransactionPropagationTest {
         assertCapturedData(hadTransaction);
     }
 
+    @Test(timeout = 10000L)
+    public void testLambdaMonoSubscriberOnSuccess() {
+        AtomicBoolean hadTransaction = new AtomicBoolean();
+        CountDownLatch done = new CountDownLatch(1);
+        inTransaction(() -> {
+            Token token = createToken();
+            Mono.empty()
+                    .subscribeOn(Schedulers.elastic())
+                    .doOnSuccess(v ->
+                            checkTransaction(hadTransaction))
+
+                    // it is not need as LambdaMonoSubscriber instrumentation creates token
+                    // and puts it into the context
+                    //.subscriberContext(with(token))
+
+                    // Call countDown in onComplete to see that instrumentation code calls original method
+                    .subscribe(nil(), nil(), done::countDown);
+            await(done);
+            token.expire();
+        });
+        assertCapturedData(hadTransaction);
+    }
+
+    @Test(timeout = 10000L)
+    public void testLambdaMonoSubscriberOnError() {
+        AtomicBoolean hadTransaction = new AtomicBoolean();
+        CountDownLatch done = new CountDownLatch(1);
+        inTransaction(() -> {
+            Token token = createToken();
+            Mono.error(new RuntimeException())
+                    .subscribeOn(Schedulers.elastic())
+                    .doOnError(v ->
+                            checkTransaction(hadTransaction))
+
+                    // it is not need as LambdaMonoSubscriber instrumentation creates token
+                    // and puts it into the context
+                    //.subscriberContext(with(token))
+
+                    // Call countDown in onError to see that instrumentation code calls original method
+                    .subscribe(nil(), v -> done.countDown());
+            await(done);
+            token.expire();
+        });
+        assertCapturedData(hadTransaction);
+    }
+
+    @Test(timeout = 10000L)
+    public void testLambdaSubscriberOnComplete() {
+        AtomicBoolean hadTransaction = new AtomicBoolean();
+        CountDownLatch done = new CountDownLatch(1);
+        inTransaction(() -> {
+            Token token = createToken();
+            Flux.empty()
+                    .subscribeOn(Schedulers.elastic())
+                    .doOnComplete(() ->
+                            checkTransaction(hadTransaction))
+
+                    // it is not need as LambdaSubscriber instrumentation creates token
+                    // and puts it into the context
+                    //.subscriberContext(with(token))
+
+                    // Call countDown in onComplete to see that instrumentation code calls original method
+                    .subscribe(nil(), nil(), done::countDown);
+            await(done);
+            token.expire();
+        });
+        assertCapturedData(hadTransaction);
+    }
+
+    @Test(timeout = 10000L)
+    public void testLambdaSubscriberOnError() {
+        AtomicBoolean hadTransaction = new AtomicBoolean();
+        CountDownLatch done = new CountDownLatch(1);
+        inTransaction(() -> {
+            Token token = createToken();
+            Flux.error(new RuntimeException())
+                    .subscribeOn(Schedulers.elastic())
+                    .doOnError(v ->
+                            checkTransaction(hadTransaction))
+
+                    // it is not need as LambdaSubscriber instrumentation creates token
+                    // and puts it into the context
+                    //.subscriberContext(with(token))
+
+                    // Call countDown in onError to see that instrumentation code calls original method
+                    .subscribe(nil(), v -> done.countDown());
+            await(done);
+            token.expire();
+        });
+        assertCapturedData(hadTransaction);
+    }
+
     @Trace(dispatcher = true)
     public void inTransaction(Runnable actions) {
         actions.run();
@@ -224,6 +317,18 @@ public class TransactionPropagationTest {
     @Trace
     public void checkTransaction(AtomicBoolean hadTransaction) {
         hadTransaction.set(AgentBridge.getAgent().getTransaction(false) != null);
+    }
+
+    private <T> Consumer<T> nil() {
+        return v -> {
+        };
+    }
+
+    private void await(CountDownLatch done) {
+        try {
+            done.await();
+        } catch (InterruptedException ignore) {
+        }
     }
 
     private void assertCapturedData(AtomicBoolean hadTransaction) {
