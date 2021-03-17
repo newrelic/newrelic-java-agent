@@ -56,6 +56,9 @@ public class ApacheSSLManager {
                 while (is.available() > 0) {
                     try {
                         caCerts.add((X509Certificate) cf.generateCertificate(is));
+                    } catch (CertificateException e) {
+                        Agent.LOG.log(Level.SEVERE, "Failed to generate ca_bundle_path certificate. Verify the certificate format. For instance, is it this issue JDK-8208602 ?", e);
+                        break;
                     } catch (Throwable t) {
                         Agent.LOG.log(Level.SEVERE,
                                 "Unable to generate ca_bundle_path certificate. Will not process further certs.", t);
