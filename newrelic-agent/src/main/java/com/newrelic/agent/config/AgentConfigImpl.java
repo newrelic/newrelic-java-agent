@@ -356,7 +356,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             if (caBundlePath != null) {
                 Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
             } else {
-                Agent.LOG.log(Level.SEVERE, "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.\n");
+                Agent.LOG.log(Level.SEVERE, "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.");
             }
         }
         return caBundlePath;
