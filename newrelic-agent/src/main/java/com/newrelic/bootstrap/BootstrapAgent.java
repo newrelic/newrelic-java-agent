@@ -9,10 +9,7 @@ package com.newrelic.bootstrap;
 
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
-import com.newrelic.agent.modules.ClassLoaderUtil;
-import com.newrelic.agent.modules.ClassLoaderUtilImpl;
-import com.newrelic.agent.modules.ModuleUtil;
-import com.newrelic.agent.modules.ModuleUtilImpl;
+import com.newrelic.agent.modules.*;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.BufferedReader;
