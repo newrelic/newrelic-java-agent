@@ -7,17 +7,18 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.Weaver;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.channels.UnresolvedAddressException;
+import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 public class Util {
 
     private static final String LIBRARY = "JavaHttpClient";
-    private static final URI UNRESOLVED_ADDRESS = URI.create("UnresolvedAddress");
+    private static final URI UNKNOWN_HOST = URI.create("UnknownHost");
     private static final String PROCEDURE = "send";
 
     public static void addOutboundHeaders(HttpRequest.Builder thisBuilder) {
@@ -36,10 +37,10 @@ public class Util {
                                 .inboundHeaders(new InboundWrapper(httpResponse))
                                 .build());
                     } else {
-                        if (throwable instanceof UnresolvedAddressException) {
+                        if (throwableIsConnectException(throwable)) {
                             segment.reportAsExternal(GenericParameters
                                     .library(LIBRARY)
-                                    .uri(UNRESOLVED_ADDRESS)
+                                    .uri(UNKNOWN_HOST)
                                     .procedure("failed")
                                     .build());
                         }
@@ -54,5 +55,11 @@ public class Util {
                 AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());
             }
         };
+    }
+
+    private static boolean throwableIsConnectException(Throwable throwable) {
+        if (throwable instanceof ConnectException) {
+            return true;
+        } else return throwable instanceof CompletionException && throwable.getCause() instanceof ConnectException;
     }
 }
