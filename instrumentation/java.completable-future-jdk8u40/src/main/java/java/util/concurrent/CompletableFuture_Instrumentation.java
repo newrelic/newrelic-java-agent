@@ -96,7 +96,6 @@ public class CompletableFuture_Instrumentation<T> {
 
     final CompletableFuture<T> postFire(CompletableFuture<?> a, int mode) {
         CompletableFuture<T> result = Weaver.callOriginal();
-        //this requires a boolean 
         finishCompletableFuture();
         return result;
     }
