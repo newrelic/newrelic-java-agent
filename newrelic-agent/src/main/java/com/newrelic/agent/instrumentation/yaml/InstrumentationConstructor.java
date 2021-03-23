@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
@@ -28,7 +28,7 @@ import com.newrelic.agent.instrumentation.methodmatchers.OrMethodMatcher;
 import com.newrelic.agent.instrumentation.yaml.PointCutFactory.ClassMethodNameFormatDescriptor;
 import org.yaml.snakeyaml.nodes.Tag;
 
-public class InstrumentationConstructor extends Constructor {
+public class InstrumentationConstructor extends SafeConstructor {
     public final Collection<ConfigurationConstruct> constructs;
 
     public InstrumentationConstructor() {

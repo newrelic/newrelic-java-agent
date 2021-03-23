@@ -18,7 +18,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 // Based on OpenTelemetry code
-// https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/instrumentation-core/reactor-3.1/src/main/java/io/opentelemetry/instrumentation/reactor/TracingSubscriber.java
+// https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/reactor-3.1/library/src/main/java/io/opentelemetry/instrumentation/reactor/TracingSubscriber.java
 public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
     private final Token token;
     private final Subscriber<? super T> subscriber;
@@ -48,7 +48,7 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
 
     @Override
     public void onComplete() {
-        subscriber.onComplete();
+        withNRToken(subscriber::onComplete);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
     @Trace(async = true, excludeFromTransactionTrace = true)
     private void withNRError(Runnable runnable, Throwable throwable) {
         if (token != null && token.isActive()) {
-            token.linkAndExpire();
+            token.link();
             if (NettyReactorConfig.errorsEnabled) {
                 NewRelic.noticeError(throwable);
             }

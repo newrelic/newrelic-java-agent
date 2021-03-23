@@ -7,6 +7,7 @@
 
 package org.springframework.web.reactive.function.client;
 
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -18,8 +19,12 @@ public class ExchangeFunction_Instrumentation {
 
     public Mono<ClientResponse> exchange(ClientRequest request) {
 
+        Segment segment = Util.startSegment();
+        request = Util.addHeaders(request, segment);
+
         Mono<ClientResponse> response = Weaver.callOriginal();
 
-        return Util.reportAsExternal(request, response);
+        return Util.reportAsExternal(request, response, segment);
     }
+
 }
