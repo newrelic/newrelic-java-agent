@@ -13,16 +13,7 @@ import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -122,7 +113,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final double DEFAULT_APDEX_T = 1.0; // 1 second
     public static final String DEFAULT_API_HOST = "rpm.newrelic.com";
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
-    public static final boolean DEFAULT_USE_PRIVATE_SSL = false;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
     public static final boolean DEFAULT_ENABLED = true;
@@ -181,7 +171,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean autoAppNamingEnabled;
     private final boolean autoTransactionNamingEnabled;
     private final String caBundlePath;
-    private final boolean usePrivateSSL;
     private final String compressedContentEncoding;
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
@@ -299,8 +288,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         startupTimingEnabled = getProperty(STARTUP_TIMING, DEFAULT_STARTUP_TIMING);
         sendJvmProps = getProperty(SEND_JVM_PROPS, true);
         litemode = getProperty(LITE_MODE, false);
-        caBundlePath = initCaBundlePathConfig();
-        usePrivateSSL = initUsePrivateSSLConfig();
+        caBundlePath = initSSLConfig();
         trimStats = getProperty(TRIM_STATS, DEFAULT_TRIM_STATS);
         platformInformationEnabled = getProperty(PLATFORM_INFORMATION_ENABLED, DEFAULT_PLATFORM_INFORMATION_ENABLED);
         ibmWorkaroundEnabled = getProperty(IBM_WORKAROUND, DEFAULT_IBM_WORKAROUND);
@@ -358,16 +346,20 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         this.customParameters = getProperty(LaspPolicies.LASP_CUSTOM_PARAMETERS, !highSecurity);
 
         if (getProperty(REPORT_SQL_PARSER_ERRORS) != null) {
-            addDeprecatedProperty(new String[] { REPORT_SQL_PARSER_ERRORS }, null);
+            addDeprecatedProperty(new String[]{REPORT_SQL_PARSER_ERRORS}, null);
         }
     }
 
-    private String initCaBundlePathConfig() {
-        return getProperty(CA_BUNDLE_PATH, DEFAULT_CA_BUNDLE_PATH);
-    }
-
-    private boolean initUsePrivateSSLConfig() {
-        return getProperty(USE_PRIVATE_SSL, DEFAULT_USE_PRIVATE_SSL);
+    private String initSSLConfig() {
+        String caBundlePath = getProperty(CA_BUNDLE_PATH, DEFAULT_CA_BUNDLE_PATH);
+        if (getProperty(USE_PRIVATE_SSL) != null) {
+            if (caBundlePath != null) {
+                Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
+            } else {
+                Agent.LOG.log(Level.SEVERE, "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.");
+            }
+        }
+        return caBundlePath;
     }
 
     /**
@@ -1103,11 +1095,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public String getCaBundlePath() {
         return caBundlePath;
-    }
-
-    @Override
-    public boolean getUsePrivateSSL() {
-        return usePrivateSSL;
     }
 
     @Override
