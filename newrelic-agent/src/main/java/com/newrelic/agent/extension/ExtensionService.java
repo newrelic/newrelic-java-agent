@@ -10,6 +10,7 @@ package com.newrelic.agent.extension;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.HarvestListener;
 import com.newrelic.agent.bridge.AgentBridge;
@@ -82,6 +83,10 @@ public class ExtensionService extends AbstractService implements HarvestListener
     private long lastReloaded = 0;
     private int elementCount = -1;
 
+    private final ImmutableMap<String, String> builtinExtensionsToEntryClasses
+            = ImmutableMap.of("jfr", "com.newrelic.jfr.Entrypoint");
+//            = ImmutableMap.of("jfr", "com.newrelic.jfr.daemon.agent.AgentMain"); // entry class if jfr-daemon jar is used instead of jfr-agent-extension
+
     public ExtensionService(ConfigService configService, ExtensionsLoadedListener extensionsLoadedListener) {
         super(ExtensionService.class.getSimpleName());
         config = configService;
@@ -103,7 +108,7 @@ public class ExtensionService extends AbstractService implements HarvestListener
 
             try {
                 initializeBuiltInExtensions();
-                loadExtensionJars();
+                loadExternalExtensionJars();
                 reloadCustomExtensionsIfModified();
                 reloadWeaveInstrumentationIfModified();
             } catch (NoSuchMethodError e) {
@@ -184,6 +189,7 @@ public class ExtensionService extends AbstractService implements HarvestListener
             try {
                 JarExtension jarExtension = JarExtension.create(getLogger(), extensionParsers, jarFileName);
                 addJarExtensions(jarExtension);
+                loadBuiltInExtensions();
             } catch (IOException e) {
                 getLogger().severe(MessageFormat.format("Unable to read extensions from the agent jar : {0}", e.toString()));
                 getLogger().log(Level.FINER, "Extensions error", e);
@@ -191,7 +197,7 @@ public class ExtensionService extends AbstractService implements HarvestListener
         }
     }
 
-    private void loadExtensionJars() {
+    private void loadExternalExtensionJars() {
         Collection<JarExtension> jarExtensions = loadJarExtensions(getExtensionDirectory());
         for (JarExtension extension : jarExtensions) {
             if (extension.isWeaveInstrumentation()) {
@@ -208,6 +214,13 @@ public class ExtensionService extends AbstractService implements HarvestListener
                     Agent.LOG.log(Level.FINEST, t, t.getMessage());
                 }
             }
+        }
+    }
+
+    private void loadBuiltInExtensions() {
+        for (String extension : builtinExtensionsToEntryClasses.keySet()) {
+            BuiltinExtension builtinExtension = new BuiltinExtension(getLogger(), extension, builtinExtensionsToEntryClasses.get(extension));
+            builtinExtension.invokePremainMethod();
         }
     }
 
