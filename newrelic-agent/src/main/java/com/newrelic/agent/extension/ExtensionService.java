@@ -49,6 +49,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
@@ -56,36 +59,30 @@ import java.util.logging.Level;
  * and additional JMX configuration. Multiple extension files can be combined into a single jar extension. The agent
  * reads extensions from within the agent jar file itself by loading all of the xml and yml files in
  * META-INF/extensions. It also reads from the extensions directory in the New Relic home directory.
- *
+ * <p>
  * Extensions directory is checked every harvest for changes. If changes are detected, the instrumentation is reloaded
  * and matching classes are retransformed.
  */
 public class ExtensionService extends AbstractService implements HarvestListener {
     private final ConfigService config;
     private final ExtensionsLoadedListener extensionsLoadedListener;
-    private ExtensionParsers extensionParsers;
-
     /**
      * This contains the agent internal yml and xml extensions.
      */
     private final Map<String, Extension> internalExtensions = new HashMap<>();
-    private volatile Set<Extension> extensions = Collections.emptySet();
     private final List<ExtensionClassAndMethodMatcher> pointCuts = new ArrayList<>();
-
     /**
      * A map of weave files to their timestamp.
      */
     private final Map<File, Long> weaveExtensions = new HashMap<>();
-
     private final List<Service> services = new ArrayList<>();
     private final List<ConfigurationConstruct> constructs = new ArrayList<>();
-
-    private long lastReloaded = 0;
-    private int elementCount = -1;
-
     private final ImmutableMap<String, String> builtinExtensionsToEntryClasses
             = ImmutableMap.of("jfr", "com.newrelic.jfr.Entrypoint");
-//            = ImmutableMap.of("jfr", "com.newrelic.jfr.daemon.agent.AgentMain"); // entry class if jfr-daemon jar is used instead of jfr-agent-extension
+    private ExtensionParsers extensionParsers;
+    private volatile Set<Extension> extensions = Collections.emptySet();
+    private long lastReloaded = 0;
+    private int elementCount = -1;
 
     public ExtensionService(ConfigService configService, ExtensionsLoadedListener extensionsLoadedListener) {
         super(ExtensionService.class.getSimpleName());
@@ -218,10 +215,18 @@ public class ExtensionService extends AbstractService implements HarvestListener
     }
 
     private void loadBuiltInExtensions() {
+        final ExecutorService executorService = Executors.newFixedThreadPool(builtinExtensionsToEntryClasses.size());
         for (String extension : builtinExtensionsToEntryClasses.keySet()) {
-            BuiltinExtension builtinExtension = new BuiltinExtension(getLogger(), extension, builtinExtensionsToEntryClasses.get(extension));
-            builtinExtension.invokePremainMethod();
+            final BuiltinExtension builtinExtension = new BuiltinExtension(getLogger(), extension, builtinExtensionsToEntryClasses.get(extension));
+            // invoke extensions on separate threads so that they don't block progress of starting the extension service and ServiceManagerImpl
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    builtinExtension.invokePremainMethod();
+                }
+            });
         }
+        executorService.shutdown();
     }
 
     private void addJarExtensions(JarExtension jarExtension) {
@@ -367,8 +372,8 @@ public class ExtensionService extends AbstractService implements HarvestListener
     /**
      * Gets the valid extension files and adds them to the extensions map.
      *
-     * @param files Files to attempt to load as extensions
-     * @param parser The parser that applies to all of this type of file extension
+     * @param files      Files to attempt to load as extensions
+     * @param parser     The parser that applies to all of this type of file extension
      * @param extensions - read extensions checked against this map and added if valid
      */
     private void loadValidExtensions(final File[] files, ExtensionParser parser, HashMap<String, Extension> extensions) {
@@ -402,7 +407,7 @@ public class ExtensionService extends AbstractService implements HarvestListener
     /**
      * Validates extension against existingExtensions for name and version issues.
      *
-     * @param extension The extension to validate.
+     * @param extension          The extension to validate.
      * @param existingExtensions Map to compare against for version issues.
      * @return validated extension, or null if not valid.
      */
@@ -531,7 +536,6 @@ public class ExtensionService extends AbstractService implements HarvestListener
 
     /**
      * Returns the files that contain weave instrumentation.
-     *
      */
     public Set<File> getWeaveExtensions() {
         return weaveExtensions.keySet();

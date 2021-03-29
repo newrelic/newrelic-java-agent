@@ -265,6 +265,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     String getMetricIngestUri();
 
+    String getEventIngestUri();
+
     boolean isHighSecurity();
 
     boolean getIbmWorkaroundEnabled();
