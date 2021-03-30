@@ -115,6 +115,7 @@ public class JfrService extends AbstractService {
                 .auditLogging(jfrConfig.auditLoggingEnabled())
                 .metricsUri(URI.create(defaultAgentConfig.getMetricIngestUri()))
                 .eventsUri(URI.create(defaultAgentConfig.getEventIngestUri()));
+        // TODO add proxy config values
         return builder.build();
     }
 
