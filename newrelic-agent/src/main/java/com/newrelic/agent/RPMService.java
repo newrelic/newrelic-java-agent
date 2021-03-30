@@ -268,7 +268,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         connectionTimestamp = System.nanoTime();
         connected = true;
         hasEverConnected = true;
-        entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : ""; // TODO
+        entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
 
         if (connectionListener != null) {
             config = config != null ? config : ServiceFactory.getConfigService().getDefaultAgentConfig();
