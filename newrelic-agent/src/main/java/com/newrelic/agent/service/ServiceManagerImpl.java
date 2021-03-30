@@ -29,6 +29,7 @@ import com.newrelic.agent.circuitbreaker.CircuitBreakerService;
 import com.newrelic.agent.commands.CommandParser;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.config.JmxConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
@@ -38,6 +39,7 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.instrumentation.ClassTransformerServiceImpl;
+import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -113,6 +115,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile HarvestService harvestService;
     private volatile Service gcService;
     private volatile TransactionService transactionService;
+    private volatile JfrService jfrService;
     private volatile JmxService jmxService;
     private volatile TransactionEventsService transactionEventsService;
     private volatile CommandParser commandParser;
@@ -165,6 +168,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         AgentConfig config = configService.getDefaultAgentConfig();
         JmxConfig jmxConfig = config.getJmxConfig();
         jmxService = new JmxService(jmxConfig);
+
+        JfrConfig jfrConfig = config.getJfrConfig();
+        jfrService = new JfrService(jfrConfig);
 
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
         boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
@@ -281,6 +287,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         profilerService.start();
         commandParser.start();
         jmxService.start();
+        jfrService.start();
         cpuSamplerService.start();
         deadlockDetectorService.start();
         samplerService.start();
@@ -349,6 +356,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         transactionEventsService.stop();
         profilerService.stop();
         commandParser.stop();
+        jfrService.stop();
         jmxService.stop();
         rpmServiceManager.stop();
         environmentService.stop();
@@ -417,6 +425,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         config.put("CommandParser", serviceInfo);
 
         serviceInfo = new HashMap<>();
+        serviceInfo.put("enabled", jfrService.isEnabled());
+        config.put("JfrService", serviceInfo);
+
+        serviceInfo = new HashMap<>();
         serviceInfo.put("enabled", jmxService.isEnabled());
         config.put("JmxService", serviceInfo);
 
@@ -475,6 +487,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public TransactionService getTransactionService() {
         return transactionService;
+    }
+
+    @Override
+    public JfrService getJfrService() {
+        return jfrService;
     }
 
     @Override

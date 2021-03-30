@@ -166,7 +166,8 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
                 linkingMetadata.put("entity.guid", entityGuid);
             }
         } catch (NullPointerException ignored) {
-            // it's possible to call getLinkingMetadata in the premain from an agent extension before RPMService has been initialized which will NPE
+            // it's possible to call getLinkingMetadata in the premain before RPMService has been initialized which will NPE
+            Agent.LOG.log(Level.WARNING, "Cannot get entity.guid from getLinkingMetadata() until RPMService has initialized.");
         }
 
         return linkingMetadata;

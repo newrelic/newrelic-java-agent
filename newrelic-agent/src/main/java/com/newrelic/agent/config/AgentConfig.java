@@ -135,6 +135,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     SqlTraceConfig getSqlTraceConfig();
 
     /**
+     * Gets the JFR configuration settings.
+     *
+     * @return JFR configuration settings.
+     */
+    JfrConfig getJfrConfig();
+
+    /**
      * Gets the JMX configuration settings.
      *
      * @return JMX configuration settings.
