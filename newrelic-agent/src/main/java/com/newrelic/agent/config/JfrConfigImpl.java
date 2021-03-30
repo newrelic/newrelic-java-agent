@@ -18,13 +18,6 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     public static final String AUDIT_LOGGING = "audit_logging";
     public static final Boolean AUDIT_LOGGING_DEFAULT = Boolean.FALSE;
     public static final Boolean USE_LICENSE_KEY_DEFAULT = Boolean.TRUE;
-//    public static final String METRIC_INGEST_URI = "metric_ingest_uri";
-//    public static final String METRIC_INGEST_URI_DEFAULT =
-//            "https://metric-api.newrelic.com/metric/v1";
-//    public static final String EVENT_INGEST_URI = "event_ingest_uri";
-//    public static final String EVENT_INGEST_URI_DEFAULT =
-//            "https://insights-collector.newrelic.com/v1/accounts/events";
-
 
     private final boolean isEnabled;
 
