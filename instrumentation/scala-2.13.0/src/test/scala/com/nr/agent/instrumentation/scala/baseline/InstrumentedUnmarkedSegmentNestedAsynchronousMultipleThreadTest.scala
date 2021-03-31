@@ -110,7 +110,6 @@ class InstrumentedUnmarkedSegmentNestedAsynchronousMultipleThreadTest {
   @Trace(dispatcher = true)
   def getThreeNestedResults: Future[Int] = Future.reduceLeft(Seq(getFirstNumber, getNestedSecondNumber, getNestedThirdNumber))(_ + _)(threadPoolThree)
 
-  @Trace
   def getFirstNumber: Future[Int] = Future{
     println(s"${Thread.currentThread.getName}: getFirstNumber")
     1
