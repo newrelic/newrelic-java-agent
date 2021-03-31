@@ -70,9 +70,8 @@ dependencies {
 
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.0")
 //    shadowIntoJar("com.newrelic:jfr-daemon:1.1.0")
-    // FIXME change to a published artifact when available, jfr-agent-extension is required to configure jfr via the agent and log to agent logs
-//    shadowIntoJar files('/Users/jkeller/code/newrelic-jfr-core/jfr-agent-extension/build/libs/jfr-agent-extension-1.2.0-SNAPSHOT.jar')
-    shadowIntoJar files('/Users/jkeller/code/newrelic-jfr-core/jfr-daemon/build/libs/jfr-daemon-1.2.0-SNAPSHOT.jar')
+    // FIXME change to a published artifact when available, jfr-daemon is required to configure jfr service 
+    shadowIntoJar files('/Users/xxia/dev/newrelic-jfr-core/jfr-daemon/build/libs/jfr-daemon-1.2.0-SNAPSHOT.jar')
     shadowIntoJar 'org.ow2.asm:asm:8.0.1'
     shadowIntoJar 'org.ow2.asm:asm-tree:8.0.1'
     shadowIntoJar 'org.ow2.asm:asm-commons:8.0.1'

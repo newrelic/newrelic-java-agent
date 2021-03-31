@@ -10,17 +10,7 @@ package com.newrelic.agent.service;
 import com.newrelic.Function;
 import com.newrelic.InfiniteTracing;
 import com.newrelic.InfiniteTracingConfig;
-import com.newrelic.agent.Agent;
-import com.newrelic.agent.AgentConnectionEstablishedListener;
-import com.newrelic.agent.ExpirationService;
-import com.newrelic.agent.GCService;
-import com.newrelic.agent.HarvestService;
-import com.newrelic.agent.HarvestServiceImpl;
-import com.newrelic.agent.RPMServiceManager;
-import com.newrelic.agent.RPMServiceManagerImpl;
-import com.newrelic.agent.ThreadService;
-import com.newrelic.agent.TracerService;
-import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.*;
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.browser.BrowserService;
 import com.newrelic.agent.browser.BrowserServiceImpl;
@@ -53,23 +43,9 @@ import com.newrelic.agent.samplers.CPUSamplerService;
 import com.newrelic.agent.samplers.NoopSamplerService;
 import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.samplers.SamplerServiceImpl;
-import com.newrelic.agent.service.analytics.InfiniteTracingEnabledCheck;
-import com.newrelic.agent.service.analytics.InsightsService;
-import com.newrelic.agent.service.analytics.InsightsServiceImpl;
-import com.newrelic.agent.service.analytics.SpanEventCreationDecider;
-import com.newrelic.agent.service.analytics.SpanEventsService;
-import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
-import com.newrelic.agent.service.analytics.TransactionEventsService;
+import com.newrelic.agent.service.analytics.*;
 import com.newrelic.agent.service.async.AsyncTransactionService;
-import com.newrelic.agent.service.module.JarAnalystFactory;
-import com.newrelic.agent.service.module.JarCollectorConnectionListener;
-import com.newrelic.agent.service.module.JarCollectorHarvestListener;
-import com.newrelic.agent.service.module.JarCollectorInputs;
-import com.newrelic.agent.service.module.JarCollectorService;
-import com.newrelic.agent.service.module.JarCollectorServiceImpl;
-import com.newrelic.agent.service.module.JarCollectorServiceProcessor;
-import com.newrelic.agent.service.module.JarData;
-import com.newrelic.agent.service.module.TrackedAddSet;
+import com.newrelic.agent.service.module.*;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.stats.StatsEngine;
@@ -169,9 +145,6 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         JmxConfig jmxConfig = config.getJmxConfig();
         jmxService = new JmxService(jmxConfig);
 
-        JfrConfig jfrConfig = config.getJfrConfig();
-        jfrService = new JfrService(jfrConfig);
-
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
         boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
@@ -236,11 +209,15 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         AgentConnectionEstablishedListener agentConnectionEstablishedListener = new UpdateInfiniteTracingAfterConnect(infiniteTracingEnabledCheck,
                 infiniteTracing);
 
+        JfrConfig jfrConfig = config.getJfrConfig();
+        jfrService = new JfrService(jfrConfig);
+        AgentConnectionEstablishedListener jfrServiceConnectionListener = new JfrServiceConnectionListener(jfrService);
+
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
 
-        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener);
+        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener, jfrServiceConnectionListener);
         normalizationService = new NormalizationServiceImpl();
         harvestService = new HarvestServiceImpl();
         gcService = realAgent ? new GCService() : new NoopService("GC Service");
@@ -287,7 +264,6 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         profilerService.start();
         commandParser.start();
         jmxService.start();
-        jfrService.start();
         cpuSamplerService.start();
         deadlockDetectorService.start();
         samplerService.start();

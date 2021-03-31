@@ -12,13 +12,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.jfr.daemon.DaemonConfig;
-import com.newrelic.jfr.daemon.EventConverter;
-import com.newrelic.jfr.daemon.JFRUploader;
-import com.newrelic.jfr.daemon.JfrController;
-import com.newrelic.jfr.daemon.JfrRecorderException;
-import com.newrelic.jfr.daemon.VersionFinder;
-import com.newrelic.jfr.daemon.agent.FileJfrRecorderFactory;
+import com.newrelic.jfr.daemon.*;
 import com.newrelic.telemetry.Attributes;
 
 import java.net.URI;
@@ -48,18 +42,13 @@ public class JfrService extends AbstractService {
 
             try {
                 DaemonConfig daemonConfig = buildDaemonConfig();
-                Attributes commonAttrs = buildCommonAttributes();
-                final String entityGuid = waitAndGetEntityGuid();
+                final Attributes commonAttrs = buildCommonAttributes();
+                final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
                 commonAttrs.put(ENTITY_GUID, entityGuid);
 
                 JFRUploader uploader = buildUploader(daemonConfig);
                 uploader.readyToSend(new EventConverter(commonAttrs));
-
-                FileJfrRecorderFactory recorderFactory =
-                        new FileJfrRecorderFactory(daemonConfig.getHarvestInterval());
-
-                final JfrController jfrController =
-                        new JfrController(recorderFactory, uploader, daemonConfig.getHarvestInterval());
+                final JfrController jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
 
                 ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor();
                 jfrMonitorService.submit(
@@ -77,7 +66,6 @@ public class JfrService extends AbstractService {
             } catch (Throwable t) {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
             }
-
         }
     }
 
@@ -114,19 +102,12 @@ public class JfrService extends AbstractService {
                 .monitoredAppName(defaultAgentConfig.getApplicationName())
                 .auditLogging(jfrConfig.auditLoggingEnabled())
                 .metricsUri(URI.create(defaultAgentConfig.getMetricIngestUri()))
-                .eventsUri(URI.create(defaultAgentConfig.getEventIngestUri()));
-        // TODO add proxy config values
+                .eventsUri(URI.create(defaultAgentConfig.getEventIngestUri()))
+                .proxyHost(defaultAgentConfig.getProxyHost())
+                .proxyScheme(defaultAgentConfig.getProxyScheme())
+                .proxyPort(defaultAgentConfig.getProxyPort())
+                .proxyUser(defaultAgentConfig.getProxyUser())
+                .proxyPassword(defaultAgentConfig.getProxyPassword());
         return builder.build();
     }
-
-    private String waitAndGetEntityGuid() {
-        while (ServiceFactory.getRPMService().getEntityGuid().isEmpty()) {
-            // FIXME better alternative to busy waiting?
-            // busy wait for entity.guid to become available
-        }
-        final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
-        Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
-        return entityGuid;
-    }
-
 }
