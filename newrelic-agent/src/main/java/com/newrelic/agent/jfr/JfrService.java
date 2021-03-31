@@ -44,6 +44,7 @@ public class JfrService extends AbstractService {
                 DaemonConfig daemonConfig = buildDaemonConfig();
                 final Attributes commonAttrs = buildCommonAttributes();
                 final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
+                Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
                 commonAttrs.put(ENTITY_GUID, entityGuid);
 
                 JFRUploader uploader = buildUploader(daemonConfig);
