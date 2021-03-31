@@ -75,14 +75,6 @@ object TracerSegmentUtils {
   def getSegments(traces : Iterable[TransactionTrace]): Iterable[TraceSegment] =
     traces.flatMap(trace => this.getSegments(trace.getInitialTraceSegment))
 
-  def finishedTransactionCollection(expectedTransactions: Int = 1)(implicit introspector: Introspector, ec: ExecutionContextExecutor): Future[Unit] = {
-    Future {
-      while (introspector.getFinishedTransactionCount() < expectedTransactions) {
-        Thread.sleep(100)
-      }
-    }(ec)
-  }
-
   private def getSegments(segment: TraceSegment): List[TraceSegment] = {
     val childSegments = segment.getChildren.asScala.flatMap(childSegment => getSegments(childSegment)).toList
     segment :: childSegments

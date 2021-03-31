@@ -2,9 +2,9 @@ package com.nr.agent.instrumentation.scala.baseline
 
 import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner, Introspector}
 import com.newrelic.api.agent.Trace
-import com.nr.agent.instrumentation.scala.TracerSegmentUtils.{finishedTransactionCollection, getSegments, getTraces}
+import com.nr.agent.instrumentation.scala.TracerSegmentUtils.{getSegments, getTraces}
 import org.junit.runner.RunWith
-import org.junit.{Assert, Ignore, Test}
+import org.junit.{Assert, Test}
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.duration.DurationInt
