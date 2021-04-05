@@ -20,8 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
-import static com.newrelic.jfr.daemon.AttributeNames.ENTITY_GUID;
-import static com.newrelic.jfr.daemon.AttributeNames.SERVICE_NAME;
+import static com.newrelic.jfr.daemon.AttributeNames.*;
 import static com.newrelic.jfr.daemon.SetupUtils.buildCommonAttributes;
 import static com.newrelic.jfr.daemon.SetupUtils.buildUploader;
 
@@ -48,6 +47,7 @@ public class JfrService extends AbstractService {
                 Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
                 commonAttrs.put(ENTITY_GUID, entityGuid);
                 commonAttrs.put(SERVICE_NAME, daemonConfig.getMonitoredAppName());
+                commonAttrs.put(APP_NAME, daemonConfig.getMonitoredAppName());
 
                 JFRUploader uploader = buildUploader(daemonConfig);
                 uploader.readyToSend(new EventConverter(commonAttrs));
