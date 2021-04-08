@@ -23,6 +23,7 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
+import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -35,11 +36,7 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.Service;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
-import com.newrelic.agent.service.analytics.InsightsService;
-import com.newrelic.agent.service.analytics.InsightsServiceImpl;
-import com.newrelic.agent.service.analytics.SpanEventsService;
-import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
-import com.newrelic.agent.service.analytics.TransactionEventsService;
+import com.newrelic.agent.service.analytics.*;
 import com.newrelic.agent.service.async.AsyncTransactionService;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
@@ -81,6 +78,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile AttributesService attributesService;
     private volatile UtilizationService utilizationService;
     private volatile JmxService jmxService;
+    private volatile JfrService jfrService;
     private volatile AsyncTransactionService asyncTxService;
     private volatile CircuitBreakerService circuitBreakerService;
     private volatile DistributedTraceService distributedTraceService;
@@ -552,6 +550,11 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     @Override
     public JarCollectorService getJarCollectorService() {
         return jarCollectorService;
+    }
+
+    @Override
+    public JfrService getJfrService() {
+        return jfrService;
     }
 
     @Override

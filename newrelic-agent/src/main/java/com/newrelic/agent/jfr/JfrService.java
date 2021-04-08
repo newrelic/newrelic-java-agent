@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.jfr;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
@@ -27,11 +28,13 @@ import static com.newrelic.jfr.daemon.SetupUtils.buildUploader;
 public class JfrService extends AbstractService {
 
     private final JfrConfig jfrConfig;
-    private final AgentConfig defaultAgentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+    private final AgentConfig defaultAgentConfig;
+    private JfrController jfrController;
 
-    public JfrService(JfrConfig jfrConfig) {
+    public JfrService(JfrConfig jfrConfig, AgentConfig defaultAgentConfig) {
         super(JfrService.class.getSimpleName());
         this.jfrConfig = jfrConfig;
+        this.defaultAgentConfig = defaultAgentConfig;
     }
 
     @Override
@@ -49,7 +52,7 @@ public class JfrService extends AbstractService {
 
                 final JFRUploader uploader = buildUploader(daemonConfig);
                 uploader.readyToSend(new EventConverter(commonAttrs));
-                final JfrController jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
+                jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
 
                 ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor();
                 jfrMonitorService.submit(
@@ -57,7 +60,7 @@ public class JfrService extends AbstractService {
                             @Override
                             public void run() {
                                 try {
-                                    jfrController.loop();
+                                    startJfrLoop();
                                 } catch (JfrRecorderException e) {
                                     Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
                                     jfrController.shutdown();
@@ -68,6 +71,11 @@ public class JfrService extends AbstractService {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
             }
         }
+    }
+
+    //using Mockito spy, verify execution of this method as start of jfr.
+    void startJfrLoop() throws JfrRecorderException {
+        jfrController.loop();
     }
 
     @Override
@@ -81,10 +89,11 @@ public class JfrService extends AbstractService {
 
     @Override
     protected void doStop() {
-
+        jfrController.shutdown();
     }
 
-    private boolean coreApisExist() {
+    @VisibleForTesting
+    boolean coreApisExist() {
         try {
             Class.forName("jdk.jfr.Recording");
             Class.forName("jdk.jfr.FlightRecorder");
@@ -95,7 +104,8 @@ public class JfrService extends AbstractService {
         return true;
     }
 
-    private DaemonConfig buildDaemonConfig() {
+    @VisibleForTesting
+    DaemonConfig buildDaemonConfig() {
         DaemonConfig.Builder builder = DaemonConfig.builder()
                 .daemonVersion(VersionFinder.getVersion())
                 .useLicenseKey(jfrConfig.useLicenseKey())
