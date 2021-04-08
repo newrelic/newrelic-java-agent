@@ -73,6 +73,7 @@ public class JfrService extends AbstractService {
         }
     }
 
+    //using Mockito spy, verify execution of this method as start of jfr.
     void startJfrLoop() throws JfrRecorderException {
         jfrController.loop();
     }
@@ -91,6 +92,7 @@ public class JfrService extends AbstractService {
         jfrController.shutdown();
     }
 
+    @VisibleForTesting
     boolean coreApisExist() {
         try {
             Class.forName("jdk.jfr.Recording");
