@@ -210,7 +210,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
                 infiniteTracing);
 
         JfrConfig jfrConfig = config.getJfrConfig();
-        jfrService = new JfrService(jfrConfig);
+        jfrService = new JfrService(jfrConfig, configService.getDefaultAgentConfig());
         AgentConnectionEstablishedListener jfrServiceConnectionListener = new JfrServiceConnectionListener(jfrService);
 
         distributedTraceService = new DistributedTraceServiceImpl();

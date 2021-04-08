@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SourceLanguageServiceTest {
-    private static final String SUPPORTABILITY_METRIC_FOR_CLASS = format(MetricNames.SUPPORTABILITY_LOADED_CLASSES_SOURCE_VERSION, "java", "1.7");
+    private static final String SUPPORTABILITY_METRIC_FOR_CLASS = format(MetricNames.SUPPORTABILITY_LOADED_CLASSES_SOURCE_VERSION, "java", "1.8");
 
     private SourceLanguageService sourceLanguageService;
 
