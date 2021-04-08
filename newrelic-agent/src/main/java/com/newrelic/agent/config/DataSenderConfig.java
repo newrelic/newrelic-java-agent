@@ -31,8 +31,6 @@ public interface DataSenderConfig {
 
     String getCaBundlePath();
 
-    boolean getUsePrivateSSL();
-
     /**
      * If simple compression is enabled we will prevent data within a payload from being compressed. However,
      * the payload itself may still be compressed before being sent to the collector.

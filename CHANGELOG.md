@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 6.4.0 (2021-1-27)
+
+### New Features and Improvements:
+* Spring Webflux/Netty Reactor instrumentation improvements for enhanced tracing across asynchronous thread hops
+([#174](https://github.com/newrelic/newrelic-java-agent/pull/174), [#190](https://github.com/newrelic/newrelic-java-agent/pull/190),
+[#195](https://github.com/newrelic/newrelic-java-agent/pull/195)).
+* Infinite tracing will now utilize a backoff sequence on retries. ([#180](https://github.com/newrelic/newrelic-java-agent/pull/180))
+* New distributed tracing APIs have been added to better support general use cases for
+propagating distributed tracing headers. In particular the new APIs provide enhanced support for [W3C Trace Context](https://www.w3.org/TR/trace-context/) but
+are flexible enough to support other header protocols. Previous distributed tracing APIs have been deprecated and are subject to removal in a
+future agent release. See [documentation here](https://docs.newrelic.com/docs/agents/java-agent/api-guides/guide-using-java-agent-api#trace-calls).
+([#188](https://github.com/newrelic/newrelic-java-agent/pull/188))
+  * [`Transaction.insertDistributedTraceHeaders(Headers)`](https://newrelic.github.io/java-agent-api/javadoc/com/newrelic/api/agent/Transaction.html#insertDistributedTraceHeaders(com.newrelic.api.agent.Headers))
+is used to create and insert distributed tracing headers (both newrelic and W3C Trace Context) into a `Headers` data structure.
+  * [`Transaction.acceptDistributedTraceHeaders(TransportType, Headers)`](https://newrelic.github.io/java-agent-api/javadoc/com/newrelic/api/agent/Transaction.html#acceptDistributedTraceHeaders(com.newrelic.api.agent.TransportType,com.newrelic.api.agent.Headers))
+  is used to accept the distributed tracing headers sent from the calling service and link these services together in a distributed trace.
+
+### Fixes:
+* Updated the Java agent’s snakeyaml dependency to 1.27. ([#182](https://github.com/newrelic/newrelic-java-agent/pull/182))
+* In some environments the jar collector service could lead to high CPU utilization at application startup.
+The agent now provides a configurable rate limiter, with a reasonable default, for processing jars detected in the application’s environment.
+See [documentation here](https://docs.newrelic.com/docs/agents/java-agent/configuration/java-agent-configuration-config-file#jar-collector).
+([#183](https://github.com/newrelic/newrelic-java-agent/pull/183))
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly and at a minimum every 3 months. As of this release,
+the oldest supported version is [4.10.0](https://docs.newrelic.com/docs/release-notes/agent-release-notes/java-release-notes/java-agent-4100).
+
 ## Version 6.3.0 (2020-12-17)
 
 ### New Features and Improvements:

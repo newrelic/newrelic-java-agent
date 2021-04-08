@@ -143,7 +143,11 @@ public class WeavePackage {
                 }
                 if (isMethodAnnotationMatch) {
                     for (String requiredAnnotation : weave.getRequiredMethodAnnotations()) {
-                        allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
+                        if (!isClassAnnotationMatch) {
+                            allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
+                        } else if (!allMethodAnnotationWeaves.containsKey(requiredAnnotation)) {
+                            allMethodAnnotationWeaves.put(requiredAnnotation, weaveNode);
+                        }
                     }
                     requiredMethodAnnotationsLookup.put(weaveNode.name, weave.getRequiredMethodAnnotations());
                 }
@@ -453,6 +457,16 @@ public class WeavePackage {
 
     public Set<String> getAllRequiredMethodAnnotationClasses() {
         return allMethodAnnotationWeaves.keySet();
+    }
+
+    // package private for testing
+    Map<String,ClassNode> getAllClassAnnotationWeaves() {
+        return allClassAnnotationWeaves;
+    }
+
+    // package private for testing
+    Map<String,ClassNode> getAllMethodAnnotationWeaves() {
+        return allMethodAnnotationWeaves;
     }
 
     /**

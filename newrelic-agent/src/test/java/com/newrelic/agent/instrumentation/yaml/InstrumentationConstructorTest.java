@@ -23,13 +23,14 @@ import com.newrelic.agent.instrumentation.classmatchers.OrClassMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.ExactMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.MethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.OrMethodMatcher;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 public class InstrumentationConstructorTest {
     private Yaml yaml;
 
     @Before
     public void setup() {
-        InstrumentationConstructor constructor = new InstrumentationConstructor();
+        SafeConstructor constructor = new InstrumentationConstructor();
         yaml = new Yaml(constructor);
     }
 

@@ -10,7 +10,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 // Based on OpenteTemetry instrumentation
-// https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/instrumentation/spring/spring-webflux-5.0/javaagent/src/main/java/io/opentelemetry/javaagent/instrumentation/spring/webflux/server/DispatcherHandlerAdvice.java
+// https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spring/spring-webflux-5.0/javaagent/src/main/java/io/opentelemetry/javaagent/instrumentation/spring/webflux/server/DispatcherHandlerAdvice.java
 @Weave(type =MatchType.ExactClass, originalName = "org.springframework.web.reactive.DispatcherHandler")
 public class DispatchHandler_Instrumentation {
     @Trace

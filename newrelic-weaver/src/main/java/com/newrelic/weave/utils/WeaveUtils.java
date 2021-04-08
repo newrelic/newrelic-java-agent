@@ -1000,4 +1000,5 @@ public final class WeaveUtils {
     public static boolean isMethodWeNeverInstrument(MethodNode originalMethod) {
         return METHODS_WE_NEVER_INSTRUMENT.contains(new MethodKey(originalMethod.name, originalMethod.desc));
     }
+
 }
