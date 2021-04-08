@@ -44,13 +44,13 @@ public class JfrService extends AbstractService {
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
             try {
-                DaemonConfig daemonConfig = buildDaemonConfig();
+                final DaemonConfig daemonConfig = buildDaemonConfig();
                 final Attributes commonAttrs = buildCommonAttributes(daemonConfig);
                 final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
                 Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
                 commonAttrs.put(ENTITY_GUID, entityGuid);
 
-                JFRUploader uploader = buildUploader(daemonConfig);
+                final JFRUploader uploader = buildUploader(daemonConfig);
                 uploader.readyToSend(new EventConverter(commonAttrs));
                 jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
 
