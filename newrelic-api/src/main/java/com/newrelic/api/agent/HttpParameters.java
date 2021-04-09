@@ -31,6 +31,10 @@ public class HttpParameters implements ExternalParameters {
      */
     private final String procedure;
 
+    private final Integer statusCode;
+
+    private final String statusText;
+
     /**
      * The headers from the response of the external call.
      */
@@ -42,13 +46,16 @@ public class HttpParameters implements ExternalParameters {
     private final ExtendedInboundHeaders extendedInboundResponseHeaders;
 
     protected HttpParameters(String library, URI uri, String procedure, InboundHeaders inboundHeaders) {
-        this(library, uri, procedure, inboundHeaders, null);
+        this(library, uri, procedure, null, null, inboundHeaders, null);
     }
 
-    protected HttpParameters(String library, URI uri, String procedure, InboundHeaders inboundHeaders, ExtendedInboundHeaders extendedInboundHeaders) {
+    protected HttpParameters(String library, URI uri, String procedure, Integer statusCode, String statusText, InboundHeaders inboundHeaders,
+            ExtendedInboundHeaders extendedInboundHeaders) {
         this.library = library;
         this.uri = uri;
         this.procedure = procedure;
+        this.statusCode = statusCode;
+        this.statusText = statusText;
         this.inboundResponseHeaders = inboundHeaders;
         this.extendedInboundResponseHeaders = extendedInboundHeaders;
     }
@@ -57,6 +64,8 @@ public class HttpParameters implements ExternalParameters {
         this.library = httpParameters.library;
         this.uri = httpParameters.uri;
         this.procedure = httpParameters.procedure;
+        this.statusCode = httpParameters.statusCode;
+        this.statusText = httpParameters.statusText;
         this.inboundResponseHeaders = httpParameters.inboundResponseHeaders;
         this.extendedInboundResponseHeaders = null;
     }
@@ -92,6 +101,26 @@ public class HttpParameters implements ExternalParameters {
     }
 
     /**
+     * Returns the HTTP status code for the call.
+     *
+     * @return the status code for the call, null if not available
+     * @since 6.5.0
+     */
+    public Integer getStatusCode() {
+        return statusCode;
+    }
+
+    /**
+     * Returns the HTTP reason message for the call.
+     *
+     * @return the text of the reason message, null if not available
+     * @since 6.5.0
+     */
+    public String getStatusText() {
+        return statusText;
+    }
+
+    /**
      * Returns the headers from the response of the external call.
      *
      * @return the response headers
@@ -115,6 +144,8 @@ public class HttpParameters implements ExternalParameters {
         private String library;
         private URI uri;
         private String procedure;
+        private Integer statusCode;
+        private String statusText;
         private InboundHeaders inboundHeaders;
         private ExtendedInboundHeaders extendedInboundHeaders;
 
@@ -147,8 +178,17 @@ public class HttpParameters implements ExternalParameters {
             return this;
         }
 
+        @Override
+        public Build status(Integer statusCode, String statusText) {
+            this.statusCode = statusCode;
+            if (statusText != null && !statusText.isEmpty()) {
+                this.statusText = statusText;
+            }
+            return this;
+        }
+
         public HttpParameters build() {
-            return new HttpParameters(library, uri, procedure, inboundHeaders, extendedInboundHeaders);
+            return new HttpParameters(library, uri, procedure, statusCode, statusText, inboundHeaders, extendedInboundHeaders);
         }
     }
 
@@ -201,7 +241,6 @@ public class HttpParameters implements ExternalParameters {
          * @return the completed HttpParameters object
          */
         Build extendedInboundHeaders(ExtendedInboundHeaders extendedInboundHeaders);
-
         /**
          * No inbound headers.
          *
@@ -211,6 +250,12 @@ public class HttpParameters implements ExternalParameters {
     }
 
     public interface Build {
+
+        /**
+         * Set the status code/text of the HTTP response.
+         * @return the builder in a buildable state.
+         */
+        Build status(Integer statusCode, String statusText);
 
         /**
          * Build the final {@link HttpParameters} for the API call.
