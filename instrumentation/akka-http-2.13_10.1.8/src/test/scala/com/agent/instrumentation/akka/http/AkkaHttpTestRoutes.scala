@@ -1,7 +1,7 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
- *  * SPDX-License-Identifier: Apache-2.0
+ *  Copyright 2020 New Relic Corporation. All rights reserved.
+ *  SPDX-License-Identifier: Apache-2.0
  *
  */
 
@@ -74,7 +74,7 @@ class AkkaHttpTestRoutes {
       pathPrefix("custom-directive") {
         pathPrefix("v2") {
           pathPrefix("docs") {
-            parameters('parameter) { parameterId: String =>
+            parameters(Symbol("parameter")) { parameterId: String =>
               get { ctx: RequestContext =>
                 ctx.complete("CustomDirectiveDocsParam: " + parameterId)
               }
@@ -380,7 +380,7 @@ class AkkaHttpTestRoutes {
             } ~
             pathPrefix("v1") {
               pathPrefix("containers") {
-                parameters('parameter) { parameterId: String =>
+                parameters(Symbol("parameter")) { parameterId: String =>
                   get { ctx: RequestContext =>
                     ctx.complete("ContainersParam: " + parameterId)
                   }
