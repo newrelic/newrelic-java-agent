@@ -23,6 +23,7 @@ import com.newrelic.api.agent.NewRelic
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
+import scala.language.postfixOps
 
 class AkkaHttpTestRoutes {
 
