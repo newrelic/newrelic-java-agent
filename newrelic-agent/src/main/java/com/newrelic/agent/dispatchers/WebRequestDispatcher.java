@@ -121,11 +121,14 @@ public class WebRequestDispatcher extends DefaultDispatcher implements WebRespon
 
                 if (getStatus() > 0) {
                     // http status is now being recorded as a string
-                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS, String.valueOf(getStatus()));
+                    String statusCode = String.valueOf(getStatus());
+                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS, statusCode);
+                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_CODE, statusCode);
                 }
 
                 if (getStatusMessage() != null) {
                     getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_MESSAGE, getStatusMessage());
+                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_TEXT, getStatusMessage());
                 }
 
                 // adding request.uri here includes it in the Transaction event, which also propagates to any Transaction error events
