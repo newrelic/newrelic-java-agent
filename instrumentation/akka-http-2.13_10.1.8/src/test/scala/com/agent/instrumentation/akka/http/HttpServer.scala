@@ -19,6 +19,7 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 
 class HttpServer(val routes: Route = RouteService.defaultRoute) {
   implicit val system = ActorSystem()
