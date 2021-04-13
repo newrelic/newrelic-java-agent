@@ -45,6 +45,8 @@ public class NRAsyncHandler<T> {
     public URI uri;
     @NewField
     private InboundWrapper inboundHeaders;
+    @NewField
+    private HttpResponseStatus responseStatus;
 
     public AsyncHandler.State onStatusReceived(HttpResponseStatus responseStatus) throws Exception {
         AsyncHandler.State userState = Weaver.callOriginal();
@@ -52,6 +54,7 @@ public class NRAsyncHandler<T> {
             userAbortedOnStatusReceived.set(true);
             return AsyncHandler.State.CONTINUE;
         }
+        this.responseStatus = responseStatus;
         return userState;
     }
 
@@ -66,6 +69,8 @@ public class NRAsyncHandler<T> {
             segment.end();
             segment = null;
             uri = null;
+            inboundHeaders = null;
+            responseStatus = null;
         }
         Weaver.callOriginal();
     }
@@ -93,13 +98,30 @@ public class NRAsyncHandler<T> {
                     .uri(uri)
                     .procedure("onCompleted")
                     .inboundHeaders(inboundHeaders)
+                    .status(getStatusCode(), getStatusText())
                     .build());
             //This used to be segment.finish(t), but the agent doesn't automatically report t.
             segment.end();
             segment = null;
             uri = null;
+            inboundHeaders = null;
+            responseStatus = null;
         }
 
         return Weaver.callOriginal();
+    }
+
+    private Integer getStatusCode() {
+        if (responseStatus != null) {
+            return responseStatus.getStatusCode();
+        }
+        return null;
+    }
+
+    private String getStatusText() {
+        if (responseStatus != null) {
+            return responseStatus.getStatusText();
+        }
+        return null;
     }
 }
