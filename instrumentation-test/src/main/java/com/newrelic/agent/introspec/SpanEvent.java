@@ -25,4 +25,8 @@ public interface SpanEvent {
     String getHttpComponent();
 
     String getTransactionId();
+
+    Integer getStatusCode();
+
+    String getStatusText();
 }
