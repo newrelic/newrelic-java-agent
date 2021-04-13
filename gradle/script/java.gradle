@@ -81,7 +81,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 // Compile all Java projects with jdk7 bootstrap classpath (to properly support target compatibility)
-compileJava.options.bootstrapClasspath = files("${jdk7}/jre/lib/rt.jar", "${jdk7}/lib/jsse.jar")
+compileJava.options.bootstrapClasspath = files("${jdk8}/jre/lib/rt.jar", "${jdk8}/lib/jsse.jar")
 
 // There is no clear way to run the same task under multiple JDKs, so we use the following gradle properties
 // and jenkins matrix plugin to run the instrumentation module tests
