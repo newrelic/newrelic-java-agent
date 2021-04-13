@@ -83,6 +83,8 @@ public class AsyncHttpClient2_0_0Tests {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         assertEquals(1, externalRequest.getCount());
         assertEquals(endpoint.getHost(), externalRequest.getHostname());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
 
     }
 
@@ -140,6 +142,8 @@ public class AsyncHttpClient2_0_0Tests {
         assertEquals(host, externalRequest.getHostname());
         assertEquals("AsyncHttpClient", externalRequest.getLibrary());
         assertEquals("onCompleted", externalRequest.getOperation());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
     }
 
     @Test
