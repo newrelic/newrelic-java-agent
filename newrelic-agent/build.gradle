@@ -93,19 +93,14 @@ dependencies {
     shadowIntoJar 'com.googlecode.json-simple:json-simple:1.1'
 
     // this is using the android version because it supports JDK 7+ (the jre version only supports JDK 8+)
-    shadowIntoJar('com.google.guava:guava:28.2-android') {
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-        exclude group: 'com.google.guava', module: 'listenablefuture'
-        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
-        exclude group: "org.checkerframework", module: "checker-compat-qual"
-    }
-
-//    shadowIntoJar('com.google.guava:guava:28.2-jre') {
+//    shadowIntoJar('com.google.guava:guava:28.2-android') {
 //        exclude group: 'com.google.code.findbugs', module: 'jsr305'
 //        exclude group: 'com.google.guava', module: 'listenablefuture'
 //        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
 //        exclude group: "org.checkerframework", module: "checker-compat-qual"
 //    }
+
+    shadowIntoJar('com.google.guava:guava:28.2-jre') 
 
     shadowIntoJar("org.yaml:snakeyaml:1.27")
 
