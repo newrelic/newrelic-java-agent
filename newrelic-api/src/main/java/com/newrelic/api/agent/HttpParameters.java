@@ -46,16 +46,15 @@ public class HttpParameters implements ExternalParameters {
     private final ExtendedInboundHeaders extendedInboundResponseHeaders;
 
     protected HttpParameters(String library, URI uri, String procedure, InboundHeaders inboundHeaders) {
-        this(library, uri, procedure, null, null, inboundHeaders, null);
+        this(library, uri, procedure, inboundHeaders, null);
     }
 
-    protected HttpParameters(String library, URI uri, String procedure, Integer statusCode, String statusText, InboundHeaders inboundHeaders,
-            ExtendedInboundHeaders extendedInboundHeaders) {
+    protected HttpParameters(String library, URI uri, String procedure, InboundHeaders inboundHeaders, ExtendedInboundHeaders extendedInboundHeaders) {
         this.library = library;
         this.uri = uri;
         this.procedure = procedure;
-        this.statusCode = statusCode;
-        this.statusText = statusText;
+        this.statusCode = null;
+        this.statusText = null;
         this.inboundResponseHeaders = inboundHeaders;
         this.extendedInboundResponseHeaders = extendedInboundHeaders;
     }
@@ -68,6 +67,16 @@ public class HttpParameters implements ExternalParameters {
         this.statusText = httpParameters.statusText;
         this.inboundResponseHeaders = httpParameters.inboundResponseHeaders;
         this.extendedInboundResponseHeaders = null;
+    }
+
+    protected HttpParameters(Builder builder) {
+        this.library = builder.library;
+        this.uri = builder.uri;
+        this.procedure = builder.procedure;
+        this.statusCode = builder.statusCode;
+        this.statusText = builder.statusText;
+        this.inboundResponseHeaders = builder.inboundHeaders;
+        this.extendedInboundResponseHeaders = builder.extendedInboundHeaders;
     }
 
     /**
@@ -188,7 +197,7 @@ public class HttpParameters implements ExternalParameters {
         }
 
         public HttpParameters build() {
-            return new HttpParameters(library, uri, procedure, statusCode, statusText, inboundHeaders, extendedInboundHeaders);
+            return new HttpParameters(this);
         }
     }
 
