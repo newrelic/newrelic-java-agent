@@ -28,12 +28,12 @@ import java.util.regex.Pattern;
 
 /**
  * The class visitor returned by this factory matches TraceLambda annotations and matches the marked classes method names
- * against the annotations pattern, if matched marking them to be traced, recording this in the {@link InstrumentationContext}.
+ * against the TraceLambda annotations pattern, if matched marking them to be traced, recording this in the {@link InstrumentationContext}.
  */
 public class TraceLambdaVisitor implements ClassMatchVisitorFactory {
 
     /**
-     * The annotation which class visitor matches on
+     * The annotation which the class visitor matches
      */
     private static final String TRACE_LAMBDA_DESC = Type.getDescriptor(TraceLambda.class);
     /**
