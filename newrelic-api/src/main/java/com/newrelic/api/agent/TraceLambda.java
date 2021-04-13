@@ -20,8 +20,7 @@ public @interface TraceLambda {
     /**
      * Tells the agent the pattern to try matching against the marked classes method names.
      *
-     * @return The regex pattern.
-     * @since 3.37.0
+     * @return The pattern.
      */
     String pattern() default "";
 
