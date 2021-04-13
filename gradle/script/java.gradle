@@ -73,12 +73,12 @@ compileTestJava.options.forkOptions.executable = jdk8 + '/bin/javac'
 compileTestJava.options.compilerArgs += '-proc:none'
 
 compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 // Compile all Java projects with jdk7 bootstrap classpath (to properly support target compatibility)
 compileJava.options.bootstrapClasspath = files("${jdk7}/jre/lib/rt.jar", "${jdk7}/lib/jsse.jar")

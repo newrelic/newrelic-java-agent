@@ -100,6 +100,13 @@ dependencies {
         exclude group: "org.checkerframework", module: "checker-compat-qual"
     }
 
+//    shadowIntoJar('com.google.guava:guava:28.2-jre') {
+//        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+//        exclude group: 'com.google.guava', module: 'listenablefuture'
+//        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
+//        exclude group: "org.checkerframework", module: "checker-compat-qual"
+//    }
+
     shadowIntoJar("org.yaml:snakeyaml:1.27")
 
     implementation("javax.management.j2ee:management-api:1.1-rev-1") {
