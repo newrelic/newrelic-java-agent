@@ -65,6 +65,17 @@ public class SpanEventImpl implements SpanEvent {
     }
 
     @Override
+    public Integer getStatusCode() {
+        return (Integer) spanEvent.getAgentAttributes().get("http.statusCode");
+    }
+
+    @Override
+    public String getStatusText() {
+        return (String) spanEvent.getAgentAttributes().get("http.statusText");
+    }
+
+
+    @Override
     public Map<String, Object> getAgentAttributes() {
         return spanEvent.getAgentAttributes();
     }
