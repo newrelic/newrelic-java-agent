@@ -108,6 +108,7 @@ public class ClientCall_Instrumentation<ReqT, RespT> {
                             .uri(uri)
                             .procedure(methodDescriptor.getFullMethodName())
                             .inboundHeaders(wrapper)
+                            .status(status.getCode().value(), status.getDescription())
                             .build();
                     if (segment != null) {
                         segment.reportAsExternal(params);
