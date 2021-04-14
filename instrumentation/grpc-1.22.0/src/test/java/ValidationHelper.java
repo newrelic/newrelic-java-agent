@@ -7,6 +7,7 @@
 
 import app.TestServer;
 import com.newrelic.agent.introspec.CatHelper;
+import com.newrelic.agent.introspec.ExternalRequest;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TraceSegment;
@@ -18,6 +19,7 @@ import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 class ValidationHelper {
@@ -52,6 +54,12 @@ class ValidationHelper {
         }
         assertTrue("Unable to find client side External/ segment", foundSegment);
 
+        Collection<ExternalRequest> externalRequests = introspector.getExternalRequests(clientTxName);
+        assertEquals(1, externalRequests.size());
+        ExternalRequest externalRequest = externalRequests.iterator().next();
+        assertEquals(Integer.valueOf(0), externalRequest.getStatusCode());
+        assertNull(externalRequest.getStatusText());
+
         // Server side
         Collection<TransactionTrace> serverTransactionTrace = introspector.getTransactionTracesForTransaction(serverTxName);
         assertEquals(1, serverTransactionTrace.size());
@@ -61,6 +69,8 @@ class ValidationHelper {
         assertEquals(1, rootSegment.getCallCount());
         assertEquals(fullMethod, rootSegment.getTracerAttributes().get("request.method"));
         assertEquals(0, rootSegment.getTracerAttributes().get("response.status"));
+        assertEquals(0, rootSegment.getTracerAttributes().get("http.statusCode"));
+        assertNull(rootSegment.getTracerAttributes().get("http.statusText"));
         assertEquals(grpcType, rootSegment.getTracerAttributes().get("grpc.type"));
 
         // Custom attributes (to test tracing into customer code)

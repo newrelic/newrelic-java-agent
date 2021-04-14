@@ -38,7 +38,10 @@ public abstract class ServerStream_Instrumentation {
         }
 
         if (status != null) {
-            NewRelic.addCustomParameter("response.status", status.getCode().value());
+            int statusCode = status.getCode().value();
+            NewRelic.addCustomParameter("response.status", statusCode);
+            NewRelic.addCustomParameter("http.statusCode", statusCode);
+            NewRelic.addCustomParameter("http.statusText", status.getDescription());
             if (GrpcConfig.errorsEnabled && status.getCause() != null) {
                 // If an error occurred during the close of this server call we should record it
                 NewRelic.noticeError(status.getCause());
