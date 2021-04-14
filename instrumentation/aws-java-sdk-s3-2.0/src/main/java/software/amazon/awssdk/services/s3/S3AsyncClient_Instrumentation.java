@@ -14,6 +14,7 @@ import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -27,7 +28,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
@@ -45,51 +45,46 @@ public class S3AsyncClient_Instrumentation {
     public CompletableFuture<CreateBucketResponse> createBucket(CreateBucketRequest createBucketRequest) {
         String uri = "s3://" + createBucketRequest.bucket();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "createBucket");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "createBucket");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<CreateBucketResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "createBucket"));
     }
 
     public CompletableFuture<DeleteBucketResponse> deleteBucket(DeleteBucketRequest deleteBucketRequest) {
         String uri = "s3://" + deleteBucketRequest.bucket();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "deleteBucket");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "deleteBucket");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<DeleteBucketResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "deleteBucket"));
     }
 
     public CompletableFuture<ListBucketsResponse> listBuckets(ListBucketsRequest listBucketsRequest) {
         String uri = "s3://amazon/";
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "listBuckets");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "listBuckets");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<ListBucketsResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "listBuckets"));
     }
 
     public CompletableFuture<GetBucketLocationResponse> getBucketLocation(GetBucketLocationRequest getBucketLocationRequest) {
         String uri = "s3://" + getBucketLocationRequest.bucket();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "getBucketLocation");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "getBucketLocation");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<GetBucketLocationResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "getBucketLocation"));
     }
 
     public <ReturnT> CompletableFuture<ReturnT> getObject(GetObjectRequest getObjectRequest, AsyncResponseTransformer asyncResponseTransformer) {
         String uri = "s3://" + getObjectRequest.bucket() + "/" + getObjectRequest.key();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "getObject");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "getObject");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<ReturnT> result = Weaver.callOriginal();
@@ -100,45 +95,41 @@ public class S3AsyncClient_Instrumentation {
     public CompletableFuture<ListObjectsResponse> listObjects(ListObjectsRequest listObjectsRequest) {
         String uri = "s3://" + listObjectsRequest.bucket();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "listObjects");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "listObjects");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<ListObjectsResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "listObjects"));
     }
 
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody asyncRequestBody) {
         String uri = "s3://" + putObjectRequest.bucket() + "/" + putObjectRequest.key();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "putObject");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "putObject");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<PutObjectResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "putObject"));
     }
 
     public CompletableFuture<DeleteObjectResponse> deleteObject(DeleteObjectRequest deleteObjectRequest) {
         String uri = "s3://" + deleteObjectRequest.bucket() + "/" + deleteObjectRequest.key();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "deleteObject");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "deleteObject");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<DeleteObjectResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "deleteObject"));
     }
 
     public CompletableFuture<DeleteObjectsResponse> deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
         String uri = "s3://" + deleteObjectsRequest.bucket();
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("S3", "deleteObjects");
-        S3MetricUtil.reportExternalMetrics(segment, uri, "deleteObjects");
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<DeleteObjectsResponse> result = Weaver.callOriginal();
 
-        return result.whenComplete(new ResultWrapper<>(segment));
+        return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "deleteObjects"));
     }
 
     private class ResultWrapper<T, U> implements BiConsumer<T, U> {
@@ -151,6 +142,36 @@ public class S3AsyncClient_Instrumentation {
         @Override
         public void accept(T t, U u) {
             try {
+                segment.end();
+            } catch (Throwable t1) {
+                AgentBridge.instrumentation.noticeInstrumentationError(t1, Weaver.getImplementationTitle());
+            }
+        }
+    }
+
+    private class S3ResponseResultWrapper<T extends S3Response, U> implements BiConsumer<T, U> {
+        private Segment segment;
+        private String uri;
+        private String operationName;
+
+        public S3ResponseResultWrapper(Segment segment, String uri, String operationName) {
+            this.segment = segment;
+            this.uri = uri;
+            this.operationName = operationName;
+        }
+
+        @Override
+        public void accept(T s3Response, U exception) {
+            try {
+                if (s3Response == null) {
+                    Integer statusCode = null;
+                    if (exception instanceof AwsServiceException) {
+                        statusCode = ((AwsServiceException) exception).statusCode();
+                    }
+                    S3MetricUtil.reportExternalMetrics(segment, uri, operationName, statusCode);
+                } else {
+                    S3MetricUtil.reportExternalMetrics(segment, uri, operationName, s3Response);
+                }
                 segment.end();
             } catch (Throwable t1) {
                 AgentBridge.instrumentation.noticeInstrumentationError(t1, Weaver.getImplementationTitle());

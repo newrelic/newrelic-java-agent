@@ -86,14 +86,14 @@ public class AmazonS3AsyncApiTest {
     @Test
     public void testCreateBucket() {
         createBucket();
-        assertMetrics("createBucket");
+        assertMetrics("createBucket", 200);
     }
 
     @Test
     public void testListBuckets() {
         createBucketNoTxn();
         listBuckets();
-        assertMetrics("listBuckets");
+        assertMetrics("listBuckets", 200);
     }
 
 // This test passes but it consistently takes 30s to complete
@@ -103,35 +103,35 @@ public class AmazonS3AsyncApiTest {
 //        createBucketNoTxn();
 //        putObjectNoTxn();
 //        getObject();
-//        assertMetrics("getObject");
+//        assertMetrics("getObject", null);
 //    }
 
     @Test
     public void testListObjects() {
         createBucketNoTxn();
         listObjects();
-        assertMetrics("listObjects");
+        assertMetrics("listObjects", 200);
     }
 
     @Test
     public void testPutObject() {
         createBucketNoTxn();
         putObject();
-        assertMetrics("putObject");
+        assertMetrics("putObject", 200);
     }
 
     @Test
     public void testDeleteBucket() {
         createBucketNoTxn();
         deleteBucket();
-        assertMetrics("deleteBucket");
+        assertMetrics("deleteBucket", 204);
     }
 
     @Test
     public void testGetBucketLocation() {
         createBucketNoTxn();
         getBucketLocation();
-        assertMetrics("getBucketLocation");
+        assertMetrics("getBucketLocation", 200);
     }
 
 // This test passes but it consistently takes 60s to complete
@@ -141,7 +141,7 @@ public class AmazonS3AsyncApiTest {
 //        createBucketNoTxn();
 //        putObjectNoTxn();
 //        deleteObject();
-//        assertMetrics("deleteObject");
+//        assertMetrics("deleteObject", 204);
 //    }
 
 // This test passes but it consistently takes 30s to complete
@@ -151,7 +151,7 @@ public class AmazonS3AsyncApiTest {
 //        createBucketNoTxn();
 //        putObjectNoTxn();
 //        deleteObjects();
-//        assertMetrics("deleteObjects");
+//        assertMetrics("deleteObjects", 200);
 //    }
 
     @Trace(dispatcher = true)
