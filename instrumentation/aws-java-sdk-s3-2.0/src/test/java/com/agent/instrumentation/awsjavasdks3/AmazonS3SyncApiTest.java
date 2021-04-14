@@ -19,8 +19,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -86,26 +84,26 @@ public class AmazonS3SyncApiTest {
     @Test
     public void testCreateBucket() {
         createBucket();
-        assertMetrics("createBucket");
+        assertMetrics("createBucket", 200);
     }
 
     @Test
     public void testDeleteBucket() {
         createBucketNoTxn();
         deleteBucket();
-        assertMetrics("deleteBucket");
+        assertMetrics("deleteBucket", 204);
     }
 
     @Test
     public void testListBuckets() {
         listBuckets();
-        assertMetrics("listBuckets");
+        assertMetrics("listBuckets", 200);
     }
 
     @Test
     public void testGetBucketLocation() {
         getBucketLocation();
-        assertMetrics("getBucketLocation");
+        assertMetrics("getBucketLocation", 200);
     }
 
     @Test
@@ -113,21 +111,21 @@ public class AmazonS3SyncApiTest {
         createBucketNoTxn();
         putObjectNoTxn();
         getObject();
-        assertMetrics("getObject");
+        assertMetrics("getObject", null);
     }
 
     @Test
     public void testListObjects() {
         createBucketNoTxn();
         listObjects();
-        assertMetrics("listObjects");
+        assertMetrics("listObjects", 200);
     }
 
     @Test
     public void testPutObject() {
         createBucketNoTxn();
         putObject();
-        assertMetrics("putObject");
+        assertMetrics("putObject", 200);
     }
 
     @Test
@@ -135,7 +133,7 @@ public class AmazonS3SyncApiTest {
         createBucketNoTxn();
         putObjectNoTxn();
         deleteObject();
-        assertMetrics("deleteObject");
+        assertMetrics("deleteObject", 204);
     }
 
     @Test
@@ -143,7 +141,7 @@ public class AmazonS3SyncApiTest {
         createBucketNoTxn();
         putObjectNoTxn();
         deleteObjects();
-        assertMetrics("deleteObjects");
+        assertMetrics("deleteObjects", 200);
     }
 
     @Trace(dispatcher = true)
