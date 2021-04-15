@@ -13,6 +13,8 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.bridge.external.URISupport;
 import com.newrelic.agent.tracers.IgnoreChildSocketCalls;
+import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
@@ -59,7 +61,7 @@ public abstract class HttpMethodBase implements HttpMethod {
             }
 
             // Set cross process headers for this outbound request
-            tx.getCrossProcessState().processOutboundRequestHeaders(new OutboundWrapper(this), method);
+            method.addOutboundRequestHeaders(new OutboundWrapper(this));
         }
 
         int responseCode = Weaver.callOriginal();
@@ -68,9 +70,13 @@ public abstract class HttpMethodBase implements HttpMethod {
             try {
                 InboundWrapper inboundHeaders = new InboundWrapper(this);
 
-                // Since this method does network I/O we need to pass "true" as the last parameter here
-                tx.getCrossProcessState().processInboundResponseHeaders(inboundHeaders, method, host, uri, true);
-
+                method.reportAsExternal(HttpParameters
+                        .library(LIBRARY)
+                        .uri(new java.net.URI(uri))
+                        .procedure("execute")
+                        .inboundHeaders(inboundHeaders)
+                        .status(responseCode, getStatusText())
+                        .build());
                 if (inboundHeaders.getHeader("X-NewRelic-App-Data") == null) {
                     // If this wasn't a cross process request, handle External/ metrics for CommonsHttp
                     ExternalMetrics.makeExternalComponentMetric(method, host, LIBRARY, false, uri, "execute");
