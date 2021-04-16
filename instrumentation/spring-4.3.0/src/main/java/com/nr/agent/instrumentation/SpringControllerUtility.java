@@ -79,9 +79,11 @@ public class SpringControllerUtility {
         if (rootPath == null && methodPath == null) {
             AgentBridge.getAgent().getLogger().log(Level.FINE, "No path was specified for SpringController {0}", matchedAnnotationClass.getName());
         } else {
-            String fullPath = SpringControllerUtility.getPath(rootPath, methodPath, httpMethod);
-            transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
-                    fullPath);
+            if(!SpringPlaceholderConfig.springPlaceholderValue){
+                String fullPath = SpringControllerUtility.getPath(rootPath, methodPath, httpMethod);
+                transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
+                        fullPath);
+            }
         }
     }
 
