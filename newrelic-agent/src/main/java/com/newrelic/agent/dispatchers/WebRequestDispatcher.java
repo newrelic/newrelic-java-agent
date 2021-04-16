@@ -27,6 +27,7 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.ExternalTimeTracker;
 import com.newrelic.agent.transaction.TransactionNamer;
 import com.newrelic.agent.transaction.WebTransactionNamer;
+import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
@@ -37,7 +38,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-public class  WebRequestDispatcher extends DefaultDispatcher implements WebResponse {
+public class WebRequestDispatcher extends DefaultDispatcher implements WebResponse {
 
     private static final String UNKNOWN_URI = "/Unknown";
 

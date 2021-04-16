@@ -20,9 +20,7 @@ public class UrlPathHelper {
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
 
         if(SpringPlaceholderConfig.springPlaceholderValue && result != null && tx != null){
-            tx.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
-                    result);
-
+            tx.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController", result);
         }
 
         return result;
