@@ -94,12 +94,6 @@ public class CompletableFuture_Instrumentation<T> {
         return result;
     }
 
-    final CompletableFuture<T> postFire(CompletableFuture<?> a, int mode) {
-        CompletableFuture<T> result = Weaver.callOriginal();
-        finishCompletableFuture();
-        return result;
-    }
-
     /**
      * Expire any tokens that we've created and used on this CompletableFuture since it is now finished executing
      */
