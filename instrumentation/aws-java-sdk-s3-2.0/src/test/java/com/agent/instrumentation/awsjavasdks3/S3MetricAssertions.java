@@ -86,7 +86,10 @@ class S3MetricAssertions {
         assertEquals(expectedStatusCode, externalRequest.getStatusCode());
 
         String expectedStatusText = statusCodeText.get(expectedStatusCode);
-        assertEquals(expectedStatusText, externalRequest.getStatusText());
+
+        if (!"getObject".equals(operation)) {
+            assertEquals(expectedStatusText, externalRequest.getStatusText());
+        }
     }
 
 }

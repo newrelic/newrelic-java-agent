@@ -13,6 +13,8 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -30,9 +32,10 @@ import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Weave(type = MatchType.Interface, originalName = "software.amazon.awssdk.services.s3.S3Client")
 public class S3Client_Instrumentation {
@@ -89,11 +92,30 @@ public class S3Client_Instrumentation {
         }
     }
 
+    /*
+     * This method does not return an S3Response like all the others, so the instrumentation is drastically different.
+     * If the method returns properly, it is assumed as a 200 status.
+     * Exceptional cases either use the status on the exception or assume a specific value.
+     * The original method may throw a SdkClientException, which may happen before the request is made, thus no status code.
+     * statusCode is an Integer to account for this last case.
+     */
     @Trace
-    public <T> T getObject(GetObjectRequest getObjectRequest, ResponseTransformer ResponseTransformer) {
+    public <T> T getObject(GetObjectRequest getObjectRequest, ResponseTransformer responseTransformer) {
         String uri = "s3://" + getObjectRequest.bucket() + "/" + getObjectRequest.key();
-        S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri,"getObject");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            T t = Weaver.callOriginal();
+            statusCode = 200;
+            return t;
+        } catch (NoSuchKeyException noSuchKeyException) {
+            statusCode = 404;
+            throw noSuchKeyException;
+        } catch (AwsServiceException awsServiceException) {
+            statusCode = awsServiceException.statusCode();
+            throw awsServiceException;
+        } finally {
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "getObject");
+        }
     }
 
     @Trace

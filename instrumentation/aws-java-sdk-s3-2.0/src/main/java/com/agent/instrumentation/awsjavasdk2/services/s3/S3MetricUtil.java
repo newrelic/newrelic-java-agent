@@ -55,4 +55,18 @@ public abstract class S3MetricUtil {
             AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());
         }
     }
+
+    public static void reportExternalMetrics(TracedMethod tracedMethod, String uri, Integer statusCode, String operationName) {
+        try {
+            HttpParameters httpParameters = HttpParameters.library(SERVICE)
+                    .uri(new URI(uri))
+                    .procedure(operationName)
+                    .noInboundHeaders()
+                    .status(statusCode, null)
+                    .build();
+            tracedMethod.reportAsExternal(httpParameters);
+        } catch (URISyntaxException e) {
+            AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());
+        }
+    }
 }

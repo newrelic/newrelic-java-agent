@@ -12,6 +12,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.api.agent.Trace;
 import io.findify.s3mock.S3Mock;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
@@ -111,7 +113,19 @@ public class AmazonS3SyncApiTest {
         createBucketNoTxn();
         putObjectNoTxn();
         getObject();
-        assertMetrics("getObject", null);
+        assertMetrics("getObject", 200);
+    }
+
+    @Test
+    public void testGetObjectNonexistent() {
+        createBucketNoTxn();
+        try {
+            getObject();
+            Assert.fail("Exception was expected.");
+        } catch (NoSuchKeyException exception) {
+            // this exception was expected, let the assertions begin
+        }
+        assertMetrics("getObject", 404);
     }
 
     @Test
