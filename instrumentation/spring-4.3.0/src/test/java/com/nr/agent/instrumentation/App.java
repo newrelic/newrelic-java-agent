@@ -7,9 +7,9 @@
 
 package com.nr.agent.instrumentation;
 
-import java.util.Collections;
-
 import com.newrelic.api.agent.Trace;
+
+import java.util.Collections;
 
 public class App {
 
@@ -82,4 +82,10 @@ public class App {
     public static String delete() {
         return new VerbTests().deleteMapping();
     }
+
+    @Trace(dispatcher = true)
+    public static String placeholder(){
+        return new PlaceHolderPath().path();
+    }
+
 }

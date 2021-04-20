@@ -7,17 +7,16 @@
 
 package com.nr.agent.instrumentation;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Map;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation" })
@@ -91,6 +90,15 @@ public class SpringControllerTests {
         String expectedTransactionName = "OtherTransaction/SpringController/path/value (GET)";
         Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(expectedTransactionName);
         assertEquals(1, metrics.get("Java/com.nr.agent.instrumentation.PathAndValueTest/pathAndValue").getCallCount());
+    }
+    @Test
+    public void testPlaceHolderPath() {
+        assertEquals("path", App.placeholder());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        String expectedTransactionName = "OtherTransaction/SpringController/placeHolder (GET)";
+        Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(expectedTransactionName);
+        assertEquals(1, metrics.get("Java/com.nr.agent.instrumentation.PlaceHolderPath/placeHolder").getCallCount());
     }
 
     @Test
