@@ -28,7 +28,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "akka", "scala", "com.agent", "com.nr" })
+@InstrumentationTestConfig(includePrefixes = { "akka", "scala" })
 public class AkkaHttpRoutesTest {
 
     private static final long TIMEOUT = 30000;
