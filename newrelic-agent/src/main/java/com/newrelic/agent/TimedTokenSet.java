@@ -7,11 +7,10 @@
 
 package com.newrelic.agent;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalCause;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.util.TimeConversion;
 
@@ -37,14 +36,13 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
         // onRemoval happens immediately after put, so we can hit onRemoval logic before getToken() even finishes
         long timeOutMilli = TimeConversion.convertToMilliWithLowerBound(timeOut, unit, 250L);
 
-        activeTokens = CacheBuilder.newBuilder()
-                .concurrencyLevel(8)
+        activeTokens = Caffeine.newBuilder()
+                .initialCapacity(8)
                 .expireAfterAccess(timeOutMilli, TimeUnit.MILLISECONDS)
+                .executor(Runnable::run)
                 .removalListener(new RemovalListener<TokenImpl, TokenImpl>() {
                     @Override
-                    public void onRemoval(RemovalNotification<TokenImpl, TokenImpl> notification) {
-                        RemovalCause cause = notification.getCause();
-                        final TokenImpl token = notification.getKey();
+                    public void onRemoval(TokenImpl token, TokenImpl value, RemovalCause cause) {
                         Transaction tx = token.getTransaction().getTransactionIfExists();
 
                         try {

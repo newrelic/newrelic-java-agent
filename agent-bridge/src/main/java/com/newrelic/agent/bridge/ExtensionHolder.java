@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge;
 
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * A holder for Weaver extension classes.
@@ -17,7 +18,7 @@ public interface ExtensionHolder<T> {
      * Return the value associated with the instance in this ExtensionHolder. If the value is not present it will be
      * initialized (in a thread-safe manner) using valueLoader.
      */
-    public T getExtension(Object instance, Callable<T> valueLoader);
+    public T getExtension(Object instance, Supplier<T> valueLoader);
 
     /**
      * Return the value associated with the instance in this ExtensionHolder.<br/>

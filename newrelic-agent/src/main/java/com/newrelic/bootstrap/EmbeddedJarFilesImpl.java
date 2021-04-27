@@ -13,11 +13,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.ExecutionException;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 
 public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
 
@@ -29,7 +28,7 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
     /**
      * A map of jar names to the temp files containing those jars.
      */
-    private final LoadingCache<String, File> embeddedAgentJarFiles = CacheBuilder.newBuilder().build(
+    private final LoadingCache<String, File> embeddedAgentJarFiles = Caffeine.newBuilder().build(
             new CacheLoader<String, File>() {
 
                 @Override
@@ -66,17 +65,7 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
 
     @Override
     public File getJarFileInAgent(String jarNameWithoutExtension) throws IOException {
-        try {
-            return embeddedAgentJarFiles.get(jarNameWithoutExtension);
-        } catch (ExecutionException e) {
-            try {
-                throw e.getCause();
-            } catch (IOException ex) {
-                throw ex;
-            } catch (Throwable ex) {
-                throw new RuntimeException(ex);
-            }
-        }
+        return embeddedAgentJarFiles.get(jarNameWithoutExtension);
     }
 
     @Override

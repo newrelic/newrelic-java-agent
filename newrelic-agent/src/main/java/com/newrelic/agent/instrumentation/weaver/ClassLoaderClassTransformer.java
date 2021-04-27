@@ -22,7 +22,7 @@ import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
-import com.newrelic.agent.instrumentation.weaver.extension.GuavaBackedExtensionClass;
+import com.newrelic.agent.instrumentation.weaver.extension.CaffeineBackedExtensionClass;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.ClassCache;
@@ -128,7 +128,7 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
         // Try to use a custom Guava-based extension template to make NewField access better
         try {
             extensionTemplate = WeaveUtils.convertToClassNode(WeaveUtils.getClassBytesFromClassLoaderResource(
-                    GuavaBackedExtensionClass.class.getName(), GuavaBackedExtensionClass.class.getClassLoader()));
+                    CaffeineBackedExtensionClass.class.getName(), CaffeineBackedExtensionClass.class.getClassLoader()));
         } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.WARNING, e, "Unable to initialize custom extension class "
                     + "template. Falling back to default java NewField implementation");

@@ -18,9 +18,8 @@ import java.util.List;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.threads.BasicThreadInfo;
 import com.newrelic.agent.threads.ThreadNameNormalizer;
 
@@ -41,15 +40,8 @@ public class DiscoveryProfile implements JSONStreamAware {
         this.threadNameNormalizer = threadNameNormalizer;
         this.profile = profile;
         discoveryProfileTrees = 
-            CacheBuilder.newBuilder().build(
-                new CacheLoader<Object, ProfileTree>() {
-
-                    @Override
-                    public ProfileTree load(Object threadNameKey) throws Exception {
-                        return new ProfileTree(DiscoveryProfile.this.profile, false);
-                    }
-                    
-                });
+            Caffeine.newBuilder().build(
+                    threadNameKey -> new ProfileTree(DiscoveryProfile.this.profile, false));
     }
 
     public void noticeStartTracer(int signatureId) {
@@ -57,7 +49,7 @@ public class DiscoveryProfile implements JSONStreamAware {
         String threadName = threadNameNormalizer.getNormalizedThreadName(new BasicThreadInfo(Thread.currentThread()));
         Object key = profile.getStringMap().addString(threadName);
         
-        discoveryProfileTrees.getUnchecked(key).addStackTrace(getScrubbedCurrentThreadStackTrace(), true);
+        discoveryProfileTrees.get(key).addStackTrace(getScrubbedCurrentThreadStackTrace(), true);
     }
     
     static List<StackTraceElement> getScrubbedCurrentThreadStackTrace() {
