@@ -7,9 +7,10 @@
 
 package com.newrelic.agent.profile.v2;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.instrumentation.InstrumentedClass;
 import com.newrelic.agent.instrumentation.InstrumentedMethod;
@@ -81,7 +82,7 @@ public class Profile implements IProfile {
     private int runnableThreadCount = 0;
     private final ThreadMXBean threadMXBean;
     private final LoadingCache<Long, Long> startThreadCpuTimes = 
-        CacheBuilder.newBuilder().build(
+        Caffeine.newBuilder().build(
             new CacheLoader<Long, Long>() {
 
                 @Override
@@ -94,7 +95,7 @@ public class Profile implements IProfile {
     
     private final Map<Long, ProfileTree> threadIdToProfileTrees = new HashMap<>();
     private final LoadingCache<String, ProfileTree> profileTrees =
-            CacheBuilder.newBuilder().build(createCacheLoader(true));
+            Caffeine.newBuilder().build(createCacheLoader(true));
     
     private final StringMap stringMap = new Murmur3StringMap();
     private final ProfiledMethodFactory profiledMethodFactory;
@@ -144,7 +145,7 @@ public class Profile implements IProfile {
 
     @Override
     public ProfileTree getProfileTree(String normalizedThreadName) {
-        return profileTrees.getUnchecked(normalizedThreadName);
+        return profileTrees.get(normalizedThreadName);
     }
 
     /**
@@ -175,7 +176,7 @@ public class Profile implements IProfile {
         Map<Long, Long> endThreadCpuTimes = getThreadCpuTimes();
 
         for (Entry<Long, Long> entry : endThreadCpuTimes.entrySet()) {
-            Long startTime = startThreadCpuTimes.getUnchecked(entry.getKey());
+            Long startTime = startThreadCpuTimes.get(entry.getKey());
             if (startTime == null) {
                 startTime = 0l;
             }
@@ -426,7 +427,7 @@ public class Profile implements IProfile {
         }
         
         // make sure this thread is in our start time cache
-        startThreadCpuTimes.getUnchecked(threadInfo.getId());
+        startThreadCpuTimes.get(threadInfo.getId());
 
         incrementThreadCounts(runnable);
 

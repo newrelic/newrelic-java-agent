@@ -8,9 +8,8 @@
 package com.newrelic.agent.service.analytics;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.Harvestable;
@@ -60,13 +59,8 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
     // Key is app name, value is collection of per-transaction analytic events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<CustomInsightsEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
-    private static final LoadingCache<String, String> stringCache = CacheBuilder.newBuilder().maximumSize(1000)
-            .expireAfterAccess(70, TimeUnit.SECONDS).build(new CacheLoader<String, String>() {
-                @Override
-                public String load(String key) throws Exception {
-                    return key;
-                }
-            });
+    private static final LoadingCache<String, String> stringCache = Caffeine.newBuilder().maximumSize(1000)
+            .expireAfterAccess(70, TimeUnit.SECONDS).build(key -> key);
 
     protected final ExtendedTransactionListener transactionListener = new ExtendedTransactionListener() {
 
@@ -368,11 +362,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         // Note that the interning occurs on the *input* to the validation code. If the validation code truncates or
         // otherwise replaces the "interned" string, the new string will not be "interned" by this cache. See the
         // comment below for more information.
-        try {
-            return stringCache.get(value);
-        } catch (ExecutionException e) {
-            return value;
-        }
+        return stringCache.get(value);
     }
 
     private static CustomInsightsEvent createValidatedEvent(String eventType, Map<String, ?> attributes) {
