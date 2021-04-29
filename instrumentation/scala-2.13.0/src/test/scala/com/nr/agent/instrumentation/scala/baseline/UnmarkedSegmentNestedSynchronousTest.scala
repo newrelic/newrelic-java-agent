@@ -74,16 +74,13 @@ class UnmarkedSegmentNestedSynchronousTest {
   def getThreeResults: Int = getFirstNumber + getSecondNumber + getThirdNumber
 
   def getFirstNumber: Int = {
-    println(s"${Thread.currentThread.getName}: getFirstNumber")
     1
   }
 
   def getSecondNumber: Int = {
-    println(s"${Thread.currentThread.getName}: getSecondNumber")
     2
   }
   def getThirdNumber: Int = {
-    println(s"${Thread.currentThread.getName}: getThirdNumber")
     3
   }
 }

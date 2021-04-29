@@ -111,28 +111,23 @@ class InstrumentedUnmarkedSegmentNestedAsynchronousMultipleThreadTest {
   def getThreeNestedResults: Future[Int] = Future.reduceLeft(Seq(getFirstNumber, getNestedSecondNumber, getNestedThirdNumber))(_ + _)(threadPoolThree)
 
   def getFirstNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getFirstNumber")
     1
   }(threadPoolOne)
 
   def getSecondNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getSecondNumber")
     2
   }(threadPoolTwo)
 
   def getNestedSecondNumber: Future[Int] = {
-    println(s"${Thread.currentThread.getName}: getNestedSecondNumber")
     Future.reduceLeft(Seq(getFirstNumber, getFirstNumber))(_ + _)(threadPoolThree)
   }
 
   def getThirdNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getThirdNumber")
     3
   }(threadPoolThree)
 
   def getNestedThirdNumber: Future[Int] = {
     implicit val ec: ExecutionContext = threadPoolOne
-    println(s"${Thread.currentThread.getName}: getNestedThirdNumber")
     getFirstNumber.flatMap(x => getFirstNumber.flatMap(y => getFirstNumber.map(z => x + y +z)))
   }
 }

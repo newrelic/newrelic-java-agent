@@ -81,19 +81,16 @@ class TransactionNestedAsynchronousSingleThreadTest {
 
   @Trace(dispatcher = true)
   def getFirstNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getFirstNumber")
     1
   }
 
   @Trace(dispatcher = true)
   def getSecondNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getSecondNumber")
     2
   }
 
   @Trace(dispatcher = true)
   def getThirdNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getThirdNumber")
     3
   }
 }

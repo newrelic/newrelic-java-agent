@@ -83,19 +83,16 @@ class SegmentNestedAsynchronousMultipleThreadTest {
 
   @Trace
   def getFirstNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getFirstNumber")
     1
   }(threadPoolOne)
 
   @Trace
   def getSecondNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getSecondNumber")
     2
   }(threadPoolTwo)
 
   @Trace
   def getThirdNumber: Future[Int] = Future{
-    println(s"${Thread.currentThread.getName}: getThirdNumber")
     3
   }(threadPoolThree)
 }

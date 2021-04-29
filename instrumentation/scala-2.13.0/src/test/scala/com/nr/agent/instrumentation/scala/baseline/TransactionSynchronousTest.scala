@@ -56,19 +56,16 @@ class TransactionSynchronousTest {
 
   @Trace(dispatcher = true)
   def getFirstNumber: Int = {
-    println(s"${Thread.currentThread.getName}: getFirstNumber")
     1
   }
 
   @Trace(dispatcher = true)
   def getSecondNumber: Int = {
-    println(s"${Thread.currentThread.getName}: getSecondNumber")
     2
   }
 
   @Trace(dispatcher = true)
   def getThirdNumber: Int = {
-    println(s"${Thread.currentThread.getName}: getThirdNumber")
     3
   }
 }
