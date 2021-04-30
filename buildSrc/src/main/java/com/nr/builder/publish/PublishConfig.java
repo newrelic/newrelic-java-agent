@@ -20,10 +20,14 @@ public class PublishConfig {
      * @param setArtifacts An {@link Action} called to configure the published artifacts.
      */
     public static void config(Project project, String name, String description, Action<? super MavenPublication> setArtifacts) {
+        config("mavenJava", project, name, description, setArtifacts);
+    }
+
+    public static void config(String containerName, Project project, String name, String description, Action<? super MavenPublication> setArtifacts) {
         project.getExtensions().configure(PublishingExtension.class, ext -> {
 
             ext.publications(container ->
-                    container.create("mavenJava", MavenPublication.class, publication -> {
+                    container.create(containerName, MavenPublication.class, publication -> {
                         setArtifacts.execute(publication);
                         publication.pom(pom -> {
                             pom.getName().set(name);
@@ -42,7 +46,6 @@ public class PublishConfig {
             );
         });
     }
-
     @SuppressWarnings("UnstableApiUsage") // useInMemoryPgpKeys
     private static void configureSigning(Project project, MavenPublication publication) {
         project.getExtensions().configure(SigningExtension.class, ext -> {

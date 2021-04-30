@@ -10,14 +10,11 @@ package scala.concurrent.impl;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.Segment;
-import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.scala.ScalaUtils;
-import scala.Function1;
-import scala.concurrent.ExecutionContext;
 import scala.util.Try;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.nr.agent.instrumentation.scala.ScalaUtils.scalaFuturesAsSegments;
 
 @Weave(originalName = "scala.concurrent.impl.Promise$Transformation")
-public class Transformation_Instrumentation<T>  {
+public class Transformation_Instrumentation<T> {
     private Try<T> _arg = Weaver.callOriginal();
     @NewField
     private AgentBridge.TokenAndRefCount tokenAndRefCount;
@@ -59,8 +56,10 @@ public class Transformation_Instrumentation<T>  {
             // order to correctly remove the "activeToken" from the thread local after the original run() method executes
             remove = AgentBridge.activeToken.get() == null;
             AgentBridge.activeToken.set(tokenAndRefCount);
+
+            // getTransaction implicitly makes Transaction available on Thread to runnable
+            Transaction tx = AgentBridge.getAgent().getTransaction(false);
             if (scalaFuturesAsSegments && remove) {
-                Transaction tx = AgentBridge.getAgent().getTransaction(false);
                 if (tx != null) {
                     segment = tx.startSegment("Scala", "Callback");
                     segment.setMetricName("Scala", "Callback",
@@ -76,11 +75,9 @@ public class Transformation_Instrumentation<T>  {
                 if (segment != null) {
                     segment.end();
                 }
-
                 if (remove) {
                     AgentBridge.activeToken.remove();
                 }
-
                 if (tokenAndRefCount.refCount.decrementAndGet() == 0) {
                     tokenAndRefCount.token.expire();
                     tokenAndRefCount.token = null;
