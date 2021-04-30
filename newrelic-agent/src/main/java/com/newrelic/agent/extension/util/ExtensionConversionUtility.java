@@ -22,7 +22,9 @@ import com.newrelic.agent.instrumentation.classmatchers.ExactClassMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.InterfaceMatcher;
 import com.newrelic.agent.instrumentation.custom.ExtensionClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.AnnotationMethodMatcher;
+import com.newrelic.agent.instrumentation.methodmatchers.LambdaMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.MethodMatcher;
+import com.newrelic.agent.instrumentation.methodmatchers.ReturnTypeMethodMatcher;
 import com.newrelic.agent.instrumentation.tracing.ParameterAttributeName;
 import org.objectweb.asm.Type;
 
@@ -278,10 +280,15 @@ public final class ExtensionConversionUtility {
     private static MethodMatcher createMethodMatcher(final Pointcut cut, final String pExtName,
             final Map<String, MethodMapper> classesToMethods) throws XmlException {
         List<Method> methods = cut.getMethod();
+        List<String> traceReturnTypeDescriptors = cut.getTraceReturnTypeDescriptors();
         if (methods != null && !methods.isEmpty()) {
             return MethodMatcherUtility.createMethodMatcher(getClassName(cut), methods, classesToMethods, pExtName);
         } else if (cut.getMethodAnnotation() != null) {
             return new AnnotationMethodMatcher(Type.getObjectType(cut.getMethodAnnotation().replace('.', '/')));
+        } else if (cut.isTraceLambda()) {
+            return new LambdaMethodMatcher(cut.getPattern(), cut.getIncludeNonstatic());
+        } else if (traceReturnTypeDescriptors != null && !traceReturnTypeDescriptors.isEmpty()) {
+            return new ReturnTypeMethodMatcher(traceReturnTypeDescriptors);
         } else {
             throw new XmlException(MessageFormat.format(XmlParsingMessages.NO_METHOD, pExtName));
         }
