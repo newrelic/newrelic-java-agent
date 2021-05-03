@@ -60,44 +60,44 @@ public class CompletableFuture_Instrumentation<T> {
 
     final boolean internalComplete(Object r) {
         boolean result = Weaver.callOriginal();
-        finishCompletableFuture(result);
+        finishCompletableFuture();
         return result;
     }
 
     final boolean completeNull() {
         boolean result = Weaver.callOriginal();
-        finishCompletableFuture(result);
+        finishCompletableFuture();
         return result;
     }
 
     final boolean completeValue(T t) {
         boolean result = Weaver.callOriginal();
-        finishCompletableFuture(result);
+        finishCompletableFuture();
         return result;
     }
 
     final boolean completeThrowable(Throwable x) {
         boolean result = Weaver.callOriginal();
-        finishCompletableFuture(result);
+        finishCompletableFuture();
         return result;
     }
 
     final boolean completeThrowable(Throwable x, Object r) {
         boolean result = Weaver.callOriginal();
-        finishCompletableFuture(result);
+        finishCompletableFuture();
         return result;
     }
 
     final boolean completeRelay(Object r) {
         boolean result = Weaver.callOriginal();
-        finishCompletableFuture(result);
+        finishCompletableFuture();
         return result;
     }
 
     /**
      * Expire any tokens that we've created and used on this CompletableFuture since it is now finished executing
      */
-    private void finishCompletableFuture(boolean result) {
+    private void finishCompletableFuture() {
         if (this.completableToken != null) {
             this.completableToken.expire();
             this.completableToken = null;

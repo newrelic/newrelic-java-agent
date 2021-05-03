@@ -7,8 +7,11 @@
 
 package com.nr.agent.instrumentation.scala
 
-import com.newrelic.agent.introspec.TraceSegment;
+import com.newrelic.agent.introspec.{Introspector, TraceSegment, TransactionTrace}
 import org.junit.Assert
+
+import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.jdk.CollectionConverters._
 
 object TracerSegmentUtils {
 
@@ -64,5 +67,16 @@ object TracerSegmentUtils {
       idx = idx + 1
     }
     res
+  }
+
+  def getTraces()(implicit introspector: Introspector): Iterable[TransactionTrace] =
+    introspector.getTransactionNames.asScala.flatMap(transactionName => introspector.getTransactionTracesForTransaction(transactionName).asScala)
+
+  def getSegments(traces : Iterable[TransactionTrace]): Iterable[TraceSegment] =
+    traces.flatMap(trace => this.getSegments(trace.getInitialTraceSegment))
+
+  private def getSegments(segment: TraceSegment): List[TraceSegment] = {
+    val childSegments = segment.getChildren.asScala.flatMap(childSegment => getSegments(childSegment)).toList
+    segment :: childSegments
   }
 }
