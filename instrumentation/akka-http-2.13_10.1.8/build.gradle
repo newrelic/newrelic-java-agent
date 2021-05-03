@@ -1,0 +1,41 @@
+apply plugin: 'scala'
+
+sourceSets.test.scala.srcDir "src/test/java"
+sourceSets.test.java.srcDirs = []
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-2.13_10.1.8' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.typesafe.akka:akka-http_2.13:10.1.8")
+    implementation("com.typesafe.akka:akka-stream_2.13:2.5.23")
+    implementation("com.typesafe.akka:akka-actor_2.13:2.5.23")
+
+    testImplementation(project(":instrumentation:akka-2.2")) { transitive = false }
+    testImplementation(project(":instrumentation:scala-2.13.0")) { transitive = false }
+    testImplementation("com.jayway.restassured:rest-assured:2.7.0")
+    testImplementation("javax.xml.bind:jaxb-api:2.3.0")
+}
+
+verifyInstrumentation {
+    passesOnly('com.typesafe.akka:akka-http_2.13:[10.1.8,)') {
+        compile("com.typesafe.akka:akka-stream_2.13:2.5.23")
+    }
+    excludeRegex 'com.typesafe.akka:akka-http_2.13:.*(RC|M)[0-9]*$'
+    excludeRegex 'com.typesafe.akka:akka-http_2.13:.*-[0-9a-f]{8}$'
+}
+
+site {
+    title 'Akka Http'
+    type 'Framework'
+}
+
+test {
+    // our dependency on rest-assured precludes running the tests on java 1.7 due to
+    // akka http only being able to run on java 1.8 and above from this version onward
+    onlyIf {
+        !project.hasProperty("test7")
+    }
+}
