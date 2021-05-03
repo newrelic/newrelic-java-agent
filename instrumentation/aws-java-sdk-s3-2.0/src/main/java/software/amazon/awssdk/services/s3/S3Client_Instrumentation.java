@@ -95,9 +95,8 @@ public class S3Client_Instrumentation {
     /*
      * This method does not return an S3Response like all the others, so the instrumentation is drastically different.
      * If the method returns properly, it is assumed as a 200 status.
-     * Exceptional cases either use the status on the exception or assume a specific value.
-     * The original method may throw a SdkClientException, which may happen before the request is made, thus no status code.
-     * statusCode is an Integer to account for this last case.
+     * When AwsServiceException is thrown, the status code is retrieved from the exception.
+     * Other exceptions may be thrown, but they indicate something happened before the HTTP request, so there would be no status to record.
      */
     @Trace
     public <T> T getObject(GetObjectRequest getObjectRequest, ResponseTransformer responseTransformer) {
@@ -107,9 +106,6 @@ public class S3Client_Instrumentation {
             T t = Weaver.callOriginal();
             statusCode = 200;
             return t;
-        } catch (NoSuchKeyException noSuchKeyException) {
-            statusCode = 404;
-            throw noSuchKeyException;
         } catch (AwsServiceException awsServiceException) {
             statusCode = awsServiceException.statusCode();
             throw awsServiceException;

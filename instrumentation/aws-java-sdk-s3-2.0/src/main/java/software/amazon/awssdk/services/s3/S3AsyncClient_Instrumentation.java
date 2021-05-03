@@ -14,6 +14,7 @@ import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import java.util.Optional;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -160,9 +161,9 @@ public class S3AsyncClient_Instrumentation {
         }
 
         @Override
-        public void accept(T t, U u) {
+        public void accept(T s3Response, U u) {
             try {
-                S3MetricUtil.reportExternalMetrics(segment, uri, operationName);
+                S3MetricUtil.reportExternalMetrics(segment, uri, s3Response, operationName);
                 segment.end();
             } catch (Throwable t1) {
                 AgentBridge.instrumentation.noticeInstrumentationError(t1, Weaver.getImplementationTitle());
