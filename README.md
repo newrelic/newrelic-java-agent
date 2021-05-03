@@ -36,10 +36,9 @@ The Java agent uses a variety of JDK versions when building and running tests. T
 
 Edit or create the `~/.gradle/gradle.properties` file and add the following JDKs, ensuring that the vendors/versions match what is installed in your environment (Mac OS X examples shown).
 
-JDK 7 and JDK 8 are required to build the agent:
+JDK 8 is required to build the agent:
 
 ```
-jdk7=/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home
 jdk8=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
 ```
 
@@ -51,7 +50,7 @@ jdk9=/Library/Java/JavaVirtualMachines/adoptopenjdk-9.jdk/Contents/Home
 
 #### Gradle build
 
-The Java agent requires JDK 1.8 to build; your `JAVA_HOME` must be set to this JDK version.
+The Java agent requires JDK 8 to build; your `JAVA_HOME` must be set to this JDK version.
 
 To build the agent jar, run the following command from the project root directory:  
 `./gradlew clean jar --parallel`
@@ -74,9 +73,9 @@ We recommend using IntelliJ IDEA for development on this project. Configure as f
 5. Add Java 8 SDK: select `File > Project Structure... > Platform Settings > SDKs > Add New SDK`.
 6. Configure project SDK and target language level: select `File > Project Structure... > Project Settings > Project`.
     - Set `Project SDK` to JDK 1.8
-    - Set `Project language level` to 7  
+    - Set `Project language level` to 8
 ![IntelliJ screen shot for Project SDK and Language Level](./wiki-images/project-sdk-language-level.png)
-7. Increase Intellij memory heap﻿ if you encounter "Low Memory" issues. Recommended: 2048 MB. To do this, select `Help > Change Memory Settings > Save and Restart`.
+7. Increase Intellij memory heap if you encounter "Low Memory" issues. Recommended: 2048 MB. To do this, select `Help > Change Memory Settings > Save and Restart`.
 
 ## Testing
 
