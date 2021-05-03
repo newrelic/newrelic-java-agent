@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 6.5.0 (2021-4-26)
+
+### New Features and Improvements:
+* The agent no longer bundles SSL certificates with it and the `use_private_ssl` option that configured the agent to use
+  the previously bundled certificates has been removed. By default, the agent will use the SSL truststore provided by 
+  the JVM unless it is explicitly configured to use a different truststore with the ca_bundle_path option. See
+  [Configuring your SSL certificates](https://docs.newrelic.com/docs/agents/java-agent/configuration/configuring-your-ssl-certificates/)
+  for more details.
+  ([#245](https://github.com/newrelic/newrelic-java-agent/pull/245))
+
+### Fixes:
+* Fixes an issue that could cause incorrect transaction naming when using JAX-RS sub-resources.
+  ([#234](https://github.com/newrelic/newrelic-java-agent/pull/234))
+* Reactor Netty instrumentation improvements and fixes.
+  ([#237](https://github.com/newrelic/newrelic-java-agent/pull/237),
+  [#239](https://github.com/newrelic/newrelic-java-agent/pull/239),
+  [#243](https://github.com/newrelic/newrelic-java-agent/pull/243))
+
+### Deprecation Notice
+
+* Java 7 compatibility deprecation
+
+In order to continue to innovate and efficiently provide new capabilities to our customers who run on the JVM, Java 7 
+support has been deprecated and this will be the last version of the agent compatible with it.
+
+If you are running Java 7, you may continue to use Java agent 6.5.0 or lower.
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
 ## Version 6.4.0 (2021-1-27)
 
 ### New Features and Improvements:
@@ -32,8 +64,9 @@ See [documentation here](https://docs.newrelic.com/docs/agents/java-agent/config
 ([#183](https://github.com/newrelic/newrelic-java-agent/pull/183))
 
 ### Support statement:
-* New Relic recommends that you upgrade the agent regularly and at a minimum every 3 months. As of this release,
-the oldest supported version is [4.10.0](https://docs.newrelic.com/docs/release-notes/agent-release-notes/java-release-notes/java-agent-4100).
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
 
 ## Version 6.3.0 (2020-12-17)
 
@@ -48,7 +81,9 @@ the oldest supported version is [4.10.0](https://docs.newrelic.com/docs/release-
 * Spring Webclient could report the [wrong URL when multiple HTTP calls to several URLs occurred in parallel](https://github.com/newrelic/newrelic-java-agent/pull/129). Thank you [veklov](https://github.com/veklov) for contributing this fix.
 
 ### Support statement:
-* New Relic recommends that you upgrade the agent regularly and at a minimum every 3 months. As of this release, the oldest supported version is [4.8.0](https://docs.newrelic.com/docs/release-notes/agent-release-notes/java-release-notes/java-agent-480).
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
 
 ## Version 6.2.1 (2020-11-17)
 [Fixes an issue where Spring-Webflux applications with endpoints returning no or empty content could become unresponsive](https://github.com/newrelic/newrelic-java-agent/pull/115)
@@ -77,7 +112,9 @@ the oldest supported version is [4.10.0](https://docs.newrelic.com/docs/release-
 This fix also came with the reintroduction of the `use_private_ssl` config, which can be set to add our agent certs to the truststore.
 
 ### Support statement:
-* New Relic recommends that you upgrade the agent regularly and at a minimum every 3 months. As of this release, the oldest supported version is [4.8.0](https://docs.newrelic.com/docs/release-notes/agent-release-notes/java-release-notes/java-agent-480).
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
 
 ## Version 6.1.0 (2020-09-30)
 * Support for Java 15
