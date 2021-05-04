@@ -35,7 +35,7 @@ public class UtilizationDataConfig extends BaseConfig {
 
     private String parseConfigVal(String key) {
         if (getProperty(key) != null) {
-            return String.valueOf(getProperty(key));
+            return getProperty(key).toString();
         }
         return null;
     }
