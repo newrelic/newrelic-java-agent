@@ -59,8 +59,8 @@ public class JfrServiceTest {
     public void jfrLoopDoesNotStartWhenCoreApiIsFalse() throws JfrRecorderException {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
-        doReturn(false).when(spyJfr).coreApisExist();
-        doReturn(true).when(spyJfr).isEnabled();
+        when(spyJfr.coreApisExist()).thenReturn(false);
+        when(spyJfr.isEnabled()).thenReturn(true);
 
         spyJfr.doStart();
 
@@ -72,8 +72,8 @@ public class JfrServiceTest {
     public void jfrLoopDoesNotStartWhenIsEnabledIsFalse() throws JfrRecorderException {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
-        doReturn(true).when(spyJfr).coreApisExist();
-        doReturn(false).when(spyJfr).isEnabled();
+        when(spyJfr.coreApisExist()).thenReturn(true);
+        when(spyJfr.isEnabled()).thenReturn(false);
 
         spyJfr.doStart();
 
@@ -85,8 +85,8 @@ public class JfrServiceTest {
     public void jfrLoopDoesStart() {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
-        doReturn(true).when(spyJfr).coreApisExist();
-        doReturn(true).when(spyJfr).isEnabled();
+        when(spyJfr.coreApisExist()).thenReturn(true);
+        when(spyJfr.isEnabled()).thenReturn(true);
 
         MockServiceManager manager = new MockServiceManager();
         ServiceFactory.setServiceManager(manager);

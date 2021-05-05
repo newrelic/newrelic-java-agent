@@ -13,8 +13,7 @@ java {
 
 dependencies {
     implementation("com.newrelic.agent.java:infinite-tracing-protobuf:3.2")
-//    implementation("com.google.guava:guava:28.2-android")
-    implementation("com.google.guava:guava:28.2-jre")
+    implementation("com.google.guava:guava:30.1.1-jre")
     implementation(project(":agent-model"))
     implementation(project(":agent-interfaces"))
     implementation(project(":newrelic-api"))
