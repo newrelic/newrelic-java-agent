@@ -56,15 +56,12 @@ public class JfrService extends AbstractService {
 
                 ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor();
                 jfrMonitorService.submit(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    startJfrLoop();
-                                } catch (JfrRecorderException e) {
-                                    Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
-                                    jfrController.shutdown();
-                                }
+                        () -> {
+                            try {
+                                startJfrLoop();
+                            } catch (JfrRecorderException e) {
+                                Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
+                                jfrController.shutdown();
                             }
                         });
             } catch (Throwable t) {

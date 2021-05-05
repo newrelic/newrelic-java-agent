@@ -1,5 +1,8 @@
 package com.newrelic.agent.jfr;
 
+import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.RPMService;
+import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.ServiceFactory;
@@ -8,7 +11,6 @@ import com.newrelic.jfr.daemon.JfrRecorderException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_EVENT_INGEST_URI;
@@ -86,10 +88,16 @@ public class JfrServiceTest {
         doReturn(true).when(spyJfr).coreApisExist();
         doReturn(true).when(spyJfr).isEnabled();
 
-        try (MockedStatic<ServiceFactory> mockedUuid = mockStatic(ServiceFactory.class, RETURNS_DEEP_STUBS)) {
-            mockedUuid.when(() -> ServiceFactory.getRPMService().getEntityGuid()).thenReturn("test_guid");
+        MockServiceManager manager = new MockServiceManager();
+        ServiceFactory.setServiceManager(manager);
+        RPMServiceManager mockRPMServiceManager = manager.getRPMServiceManager();
+        RPMService mockRPMService = mock(RPMService.class);
+        when(mockRPMServiceManager.getRPMService()).thenReturn(mockRPMService);
+        when(mockRPMService.getEntityGuid()).thenReturn("test_guid");
 
-            spyJfr.doStart();
+        spyJfr.doStart();
+
+        try {
             //The timeout wait is necessary because jfr loop is being executed on async thread.
             //Tested with 100 consective runs in 10 batches, no failures.
             verify(spyJfr, timeout(100)).startJfrLoop();
