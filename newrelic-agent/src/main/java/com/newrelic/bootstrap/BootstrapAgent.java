@@ -9,10 +9,7 @@ package com.newrelic.bootstrap;
 
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
-import com.newrelic.agent.modules.ClassLoaderUtil;
-import com.newrelic.agent.modules.ClassLoaderUtilImpl;
-import com.newrelic.agent.modules.ModuleUtil;
-import com.newrelic.agent.modules.ModuleUtilImpl;
+import com.newrelic.agent.modules.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -173,7 +170,8 @@ public class BootstrapAgent {
 
                 classLoader = new JVMAgentClassLoader(codeSource, agentClassLoaderParent);
 
-                exportModulesToUnnamedModule(inst, classLoader);
+                redefineJavaBaseModule(inst, classLoader);
+                addReadUnnamedModuleToHttpModule(inst, agentClassLoaderParent);
             }
 
             Class<?> agentClass = classLoader.loadClass(AGENT_CLASS_NAME);
@@ -211,10 +209,30 @@ public class BootstrapAgent {
      * @param inst The premain {@link Instrumentation} interface.
      * @param agentClassLoader The class loader used for loading agent classes.
      */
-    private static void exportModulesToUnnamedModule(Instrumentation inst, ClassLoader agentClassLoader) {
+    private static void redefineJavaBaseModule(Instrumentation inst, ClassLoader agentClassLoader) {
         try {
             ModuleUtil util = new ModuleUtilImpl();
-            util.redefineModules(inst, agentClassLoader);
+            util.redefineJavaBaseModule(inst, agentClassLoader);
+        } catch (Throwable t) {
+            System.err.println("The agent failed to redefine modules as necessary. " + t);
+        }
+    }
+
+    /**
+     * Modify the java.net.http module so that it can read from the platform classloader's
+     * unnamed module. The agent http client instrumentation utility classes are
+     * in this specific unnamed module.
+     *
+     * <p>{@link ModuleUtil} is compiled in a multi-release jar. In Java &lt; 11, this
+     * results in a no-op implementation.</p>
+     *
+     * @param inst The premain {@link Instrumentation} interface.
+     * @param platformClassLoader
+     */
+    private static void addReadUnnamedModuleToHttpModule(Instrumentation inst, ClassLoader platformClassLoader) {
+        try {
+            HttpModuleUtil util = new HttpModuleUtilImpl();
+            util.addReadHttpModule(inst, platformClassLoader);
         } catch (Throwable t) {
             System.err.println("The agent failed to redefine modules as necessary. " + t);
         }
