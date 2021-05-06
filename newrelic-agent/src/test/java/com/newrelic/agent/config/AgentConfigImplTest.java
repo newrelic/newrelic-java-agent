@@ -322,6 +322,24 @@ public class AgentConfigImplTest {
     }
 
     @Test
+    public void eventsIngestUriDefault() {
+        Map<String, Object> localMap = new HashMap<>();
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertEquals(AgentConfigImpl.DEFAULT_EVENT_INGEST_URI, config.getEventIngestUri());
+    }
+
+    @Test
+    public void eventsIngestUri() {
+        Map<String, Object> localMap = new HashMap<>();
+        String key = "OMG IM A KEEEEEEEYYYYYYY";
+        localMap.put(AgentConfigImpl.EVENT_INGEST_URI, key);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertEquals(key, config.getEventIngestUri());
+    }
+
+    @Test
     public void waitForRPMConnect() throws Exception {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.WAIT_FOR_RPM_CONNECT, !AgentConfigImpl.DEFAULT_WAIT_FOR_RPM_CONNECT);

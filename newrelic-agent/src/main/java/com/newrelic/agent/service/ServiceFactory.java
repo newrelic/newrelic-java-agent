@@ -24,6 +24,7 @@ import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
+import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -99,6 +100,10 @@ public class ServiceFactory {
 
     public static CommandParser getCommandParser() {
         return SERVICE_MANAGER.getCommandParser();
+    }
+
+    public static JfrService getJfrService() {
+        return SERVICE_MANAGER.getJfrService();
     }
 
     public static JmxService getJmxService() {

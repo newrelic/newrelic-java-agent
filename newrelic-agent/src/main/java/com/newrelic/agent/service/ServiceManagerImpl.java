@@ -10,17 +10,7 @@ package com.newrelic.agent.service;
 import com.newrelic.Function;
 import com.newrelic.InfiniteTracing;
 import com.newrelic.InfiniteTracingConfig;
-import com.newrelic.agent.Agent;
-import com.newrelic.agent.AgentConnectionEstablishedListener;
-import com.newrelic.agent.ExpirationService;
-import com.newrelic.agent.GCService;
-import com.newrelic.agent.HarvestService;
-import com.newrelic.agent.HarvestServiceImpl;
-import com.newrelic.agent.RPMServiceManager;
-import com.newrelic.agent.RPMServiceManagerImpl;
-import com.newrelic.agent.ThreadService;
-import com.newrelic.agent.TracerService;
-import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.*;
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.browser.BrowserService;
 import com.newrelic.agent.browser.BrowserServiceImpl;
@@ -29,6 +19,7 @@ import com.newrelic.agent.circuitbreaker.CircuitBreakerService;
 import com.newrelic.agent.commands.CommandParser;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.config.JmxConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
@@ -38,6 +29,7 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.instrumentation.ClassTransformerServiceImpl;
+import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -51,23 +43,9 @@ import com.newrelic.agent.samplers.CPUSamplerService;
 import com.newrelic.agent.samplers.NoopSamplerService;
 import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.samplers.SamplerServiceImpl;
-import com.newrelic.agent.service.analytics.InfiniteTracingEnabledCheck;
-import com.newrelic.agent.service.analytics.InsightsService;
-import com.newrelic.agent.service.analytics.InsightsServiceImpl;
-import com.newrelic.agent.service.analytics.SpanEventCreationDecider;
-import com.newrelic.agent.service.analytics.SpanEventsService;
-import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
-import com.newrelic.agent.service.analytics.TransactionEventsService;
+import com.newrelic.agent.service.analytics.*;
 import com.newrelic.agent.service.async.AsyncTransactionService;
-import com.newrelic.agent.service.module.JarAnalystFactory;
-import com.newrelic.agent.service.module.JarCollectorConnectionListener;
-import com.newrelic.agent.service.module.JarCollectorHarvestListener;
-import com.newrelic.agent.service.module.JarCollectorInputs;
-import com.newrelic.agent.service.module.JarCollectorService;
-import com.newrelic.agent.service.module.JarCollectorServiceImpl;
-import com.newrelic.agent.service.module.JarCollectorServiceProcessor;
-import com.newrelic.agent.service.module.JarData;
-import com.newrelic.agent.service.module.TrackedAddSet;
+import com.newrelic.agent.service.module.*;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.stats.StatsEngine;
@@ -113,6 +91,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile HarvestService harvestService;
     private volatile Service gcService;
     private volatile TransactionService transactionService;
+    private volatile JfrService jfrService;
     private volatile JmxService jmxService;
     private volatile TransactionEventsService transactionEventsService;
     private volatile CommandParser commandParser;
@@ -230,11 +209,15 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         AgentConnectionEstablishedListener agentConnectionEstablishedListener = new UpdateInfiniteTracingAfterConnect(infiniteTracingEnabledCheck,
                 infiniteTracing);
 
+        JfrConfig jfrConfig = config.getJfrConfig();
+        jfrService = new JfrService(jfrConfig, configService.getDefaultAgentConfig());
+        AgentConnectionEstablishedListener jfrServiceConnectionListener = new JfrServiceConnectionListener(jfrService);
+
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
 
-        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener);
+        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener, jfrServiceConnectionListener);
         normalizationService = new NormalizationServiceImpl();
         harvestService = new HarvestServiceImpl();
         gcService = realAgent ? new GCService() : new NoopService("GC Service");
@@ -349,6 +332,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         transactionEventsService.stop();
         profilerService.stop();
         commandParser.stop();
+        jfrService.stop();
         jmxService.stop();
         rpmServiceManager.stop();
         environmentService.stop();
@@ -417,6 +401,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         config.put("CommandParser", serviceInfo);
 
         serviceInfo = new HashMap<>();
+        serviceInfo.put("enabled", jfrService.isEnabled());
+        config.put("JfrService", serviceInfo);
+
+        serviceInfo = new HashMap<>();
         serviceInfo.put("enabled", jmxService.isEnabled());
         config.put("JmxService", serviceInfo);
 
@@ -475,6 +463,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public TransactionService getTransactionService() {
         return transactionService;
+    }
+
+    @Override
+    public JfrService getJfrService() {
+        return jfrService;
     }
 
     @Override

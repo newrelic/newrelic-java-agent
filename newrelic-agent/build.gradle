@@ -69,7 +69,7 @@ dependencies {
     }
 
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.0")
-
+    shadowIntoJar("com.newrelic:jfr-daemon:1.2.0")
     shadowIntoJar 'org.ow2.asm:asm:8.0.1'
     shadowIntoJar 'org.ow2.asm:asm-tree:8.0.1'
     shadowIntoJar 'org.ow2.asm:asm-commons:8.0.1'
@@ -92,7 +92,7 @@ dependencies {
 
     shadowIntoJar 'com.googlecode.json-simple:json-simple:1.1'
 
-    shadowIntoJar('com.google.guava:guava:28.2-jre') 
+    shadowIntoJar('com.google.guava:guava:30.1.1-jre')
 
     shadowIntoJar("org.yaml:snakeyaml:1.27")
 
@@ -170,7 +170,7 @@ task relocatedShadowJar(type: ShadowJar) {
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",
             "org.checkerframework", "org.dom4j", "org.zeromq", "org.apache.kafka",
             "com.lmax", "com.conversantmedia", "org.jctools",
-            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource"
+            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource", "kotlin", "org.jetbrains"
     ].each {
         relocate(it, "com.newrelic.agent.deps.$it")
     }
