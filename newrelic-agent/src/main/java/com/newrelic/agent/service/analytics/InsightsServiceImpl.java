@@ -302,7 +302,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
 
                 if (reservoir.size() < reservoir.getNumberOfTries()) {
                     int dropped = reservoir.getNumberOfTries() - reservoir.size();
-                    Agent.LOG.log(Level.WARNING, "Dropped {0} custom events out of {1}.", dropped, reservoir.getNumberOfTries());
+                    Agent.LOG.log(Level.FINE, "Dropped {0} custom events out of {1}.", dropped, reservoir.getNumberOfTries());
                 }
             } catch (HttpError e) {
                 if (!e.discardHarvestData()) {
