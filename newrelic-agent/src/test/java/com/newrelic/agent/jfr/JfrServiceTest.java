@@ -8,8 +8,12 @@ import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
+import com.newrelic.test.marker.Java10IncompatibleTest;
+import com.newrelic.test.marker.Java7IncompatibleTest;
+import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -18,6 +22,7 @@ import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_METRIC_INGEST_UR
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+@Category({ Java7IncompatibleTest.class, Java9IncompatibleTest.class, Java10IncompatibleTest.class })
 public class JfrServiceTest {
 
     @Mock
@@ -99,7 +104,6 @@ public class JfrServiceTest {
 
         try {
             //The timeout wait is necessary because jfr loop is being executed on async thread.
-            //Tested with 100 consective runs in 10 batches, no failures.
             verify(spyJfr, timeout(100)).startJfrLoop();
             spyJfr.doStop();
         } catch (JfrRecorderException e) {
