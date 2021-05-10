@@ -34,6 +34,8 @@ support has been deprecated and this will be the last version of the agent compa
 
 If you are running Java 7, you may continue to use Java agent 6.5.0 or lower.
 
+For more information, see the [Explorers Hub post](https://discuss.newrelic.com/t/important-upcoming-changes-to-capabilities-across-synthetics-apm-java-php-infrastructure-mobile-agents-health-maps-statsd-and-legacy-dashboards/147982).
+
 ### Support statement:
 * New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
   performance benefits. Additionally, older releases will no longer be supported when they reach
