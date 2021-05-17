@@ -11,13 +11,7 @@ import com.google.common.collect.ImmutableSet;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.bridge.AgentBridge;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorCollectorConfig {
@@ -43,7 +37,7 @@ public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorC
     public static final boolean DEFAULT_CAPTURE_EVENTS = true;
     public static final String MAX_EVENT_SAMPLES_STORED = "max_event_samples_stored"; // local/server config
     public static final int DEFAULT_MAX_EVENT_SAMPLES_STORED = 100;
-    private static final boolean DEFAULT_IGNORE_ERROR_PRIORITY = true;
+    private static final boolean DEFAULT_IGNORE_ERROR_PRIORITY = false;
     private static final Object DEFAULT_EXCEPTION_HANDLERS = Collections.emptyList();
 
     // Expected errors
