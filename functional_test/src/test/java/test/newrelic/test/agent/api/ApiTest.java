@@ -8,11 +8,8 @@
 package test.newrelic.test.agent.api;
 
 import com.google.common.collect.Maps;
-import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.TransactionData;
-import com.newrelic.agent.TransactionDataList;
-import com.newrelic.agent.TransactionListener;
+import com.newrelic.agent.*;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.browser.BrowserConfigTest;
@@ -39,20 +36,7 @@ import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionThrowable;
 import com.newrelic.agent.util.Obfuscator;
-import com.newrelic.api.agent.DatastoreParameters;
-import com.newrelic.api.agent.DestinationType;
-import com.newrelic.api.agent.ExtendedRequest;
-import com.newrelic.api.agent.ExternalParameters;
-import com.newrelic.api.agent.GenericParameters;
-import com.newrelic.api.agent.HeaderType;
-import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.MessageConsumeParameters;
-import com.newrelic.api.agent.MessageProduceParameters;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.QueryConverter;
-import com.newrelic.api.agent.Request;
-import com.newrelic.api.agent.Response;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -75,12 +59,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /* (non-javadoc)
  * Note: the "beacon" was a predecessor technology for correlated transaction traces with the browser.
@@ -951,7 +930,7 @@ public class ApiTest implements TransactionListener {
             Method m = c.getDeclaredMethod("getThrowable");
             TransactionThrowable transactionThrowable = (TransactionThrowable) m.invoke(tx);
             Assert.assertNotNull(transactionThrowable.throwable);
-            Assert.assertEquals("boom2", transactionThrowable.throwable.getMessage());
+            Assert.assertEquals("boom", transactionThrowable.throwable.getMessage());
         } catch (SecurityException | InvocationTargetException | IllegalArgumentException | NoSuchMethodException | IllegalAccessException e) {
         }
 
