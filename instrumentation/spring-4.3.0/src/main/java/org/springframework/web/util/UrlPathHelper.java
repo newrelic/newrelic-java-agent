@@ -6,6 +6,7 @@ import com.newrelic.api.agent.TransactionNamePriority;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.SpringPlaceholderConfig;
+
 import javax.servlet.http.HttpServletRequest;
 
 @Weave
@@ -18,7 +19,9 @@ public class UrlPathHelper {
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
 
         if(SpringPlaceholderConfig.springPlaceholderValue && result != null && tx != null){
-            tx.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController", result);
+            String methodName = (request.getMethod() != null) ? " ("+request.getMethod()+")" : "";
+            tx.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
+                    result + methodName);
         }
 
         return result;
