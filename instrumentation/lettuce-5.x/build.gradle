@@ -1,0 +1,26 @@
+dependencies {
+ implementation(project(":agent-bridge"))
+ implementation group: 'io.lettuce', name: 'lettuce-core', version: '5.0.3.RELEASE'
+    
+   testImplementation('io.lettuce:lettuce-core:5.0.0.RELEASE')
+   testImplementation 'com.github.kstyrc:embedded-redis:0.6'
+   testImplementation 'junit:junit:4.12'
+   testImplementation fileTree(include: ['*.jar'], dir: '../libs')
+    
+}
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'com.newrelic.instrumentation.lettuce-5.x'
+  }
+}
+
+verifyInstrumentation {
+    passes 'io.lettuce:lettuce-core:[5.0.0.RELEASE,6.0.0.RELEASE)'
+    excludeRegex '.*RC.*'
+}
+
+site {
+    title 'Lettuce 5.x'
+    type 'Framework'
+}
