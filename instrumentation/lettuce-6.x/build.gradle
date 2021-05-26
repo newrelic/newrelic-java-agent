@@ -5,11 +5,8 @@ apply plugin: 'java'
 
 dependencies {
   implementation group: 'io.lettuce', name: 'lettuce-core', version: '6.0.0.RELEASE'
+  implementation(project(":agent-bridge"))
 
-   // New Relic Java Agent dependencies
-   implementation 'com.newrelic.agent.java:newrelic-agent:6.0.0'
-   implementation 'com.newrelic.agent.java:newrelic-api:6.0.0'
-   implementation fileTree(include: ['*.jar'], dir: '../libs')
 }
 
 jar {
