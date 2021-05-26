@@ -1,0 +1,26 @@
+dependencies {
+ implementation(project(":newrelic-weaver-api"))
+ implementation(project(":agent-bridge"))
+ implementation  'biz.paluch.redis:lettuce:4.4.1.Final'
+
+   
+    testImplementation 'com.github.kstyrc:embedded-redis:0.6'
+   testImplementation fileTree(include: ['*.jar'], dir: '../libs')
+   testImplementation 'junit:junit:4.12'
+   
+}
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'com.newrelic.instrumentation.lettuce-4.x'
+  }
+}
+
+verifyInstrumentation {
+ passes 'biz.paluch.redis:lettuce:[4.3.0,4.4.4.Final]'
+        excludeRegex '.*SNAPSHOT'
+}
+
+site {
+    title 'Lettuce 4.x'
+}

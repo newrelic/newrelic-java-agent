@@ -1,0 +1,27 @@
+
+// Build.gradle generated for instrumentation module Lettuce-6.0
+
+apply plugin: 'java'
+
+dependencies {
+  implementation group: 'io.lettuce', name: 'lettuce-core', version: '6.0.0.RELEASE'
+
+   // New Relic Java Agent dependencies
+   implementation 'com.newrelic.agent.java:newrelic-agent:6.0.0'
+   implementation 'com.newrelic.agent.java:newrelic-api:6.0.0'
+   implementation fileTree(include: ['*.jar'], dir: '../libs')
+}
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'com.newrelic.instrumentation.Lettuce-6.0'
+    attributes 'Implementation-Vendor': 'New Relic'
+    attributes 'Implementation-Vendor-Id': 'com.newrelic'
+    attributes 'Implementation-Version': 1.0
+  }
+}
+
+verifyInstrumentation {
+    passes 'io.lettuce:lettuce-core:[6.0.0.RELEASE,)'
+    excludeRegex '.*RC.*'
+}
