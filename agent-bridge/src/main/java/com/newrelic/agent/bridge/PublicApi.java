@@ -23,7 +23,7 @@ public interface PublicApi {
      * Notice an exception and report it to New Relic. If this method is called within a transaction, the exception will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * @param throwable The throwable to notice and report.
      * @param params Custom parameters to include in the traced error. May be null.
@@ -42,7 +42,7 @@ public interface PublicApi {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * @param message The error message to be reported.
      * @param params Custom parameters to include in the traced error. May be null.
@@ -53,7 +53,7 @@ public interface PublicApi {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * @param message Message to report with a transaction when it finishes.
      */
@@ -63,7 +63,7 @@ public interface PublicApi {
      * Notice an exception and report it to New Relic. If this method is called within a transaction, the exception will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * Expected errors do not increment an application's error count or contribute towards its Apdex score.
      *
@@ -94,7 +94,7 @@ public interface PublicApi {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * Expected errors do not increment an application's error count or contribute towards its Apdex score.
      *
@@ -114,7 +114,7 @@ public interface PublicApi {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * Expected errors do not increment an application's error count or contribute towards its Apdex score.
      *
