@@ -274,7 +274,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         debug = Boolean.getBoolean(DEBUG);
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         licenseKey = getProperty(LICENSE_KEY);
-        host = parseHost(licenseKey);
+        String region = parseRegion(licenseKey);
+        host = parseHost(region);
+        metricIngestUri = parseMetricIngestUri(region);
+        eventIngestUri = parseEventIngestUri(region);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
@@ -301,8 +304,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         ibmWorkaroundEnabled = getProperty(IBM_WORKAROUND, DEFAULT_IBM_WORKAROUND);
         transactionNamingMode = parseTransactionNamingMode();
         maxStackTraceLines = getProperty(MAX_STACK_TRACE_LINES, DEFAULT_MAX_STACK_TRACE_LINES);
-        metricIngestUri = getProperty(METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
-        eventIngestUri = getProperty(EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
         String[] jdbcSupport = getProperty(JDBC_SUPPORT, DEFAULT_JDBC_SUPPORT).split(",");
         this.jdbcSupport = new HashSet<>(Arrays.asList(jdbcSupport));
         genericJdbcSupportEnabled = this.jdbcSupport.contains(GENERIC_JDBC_SUPPORT);
@@ -376,7 +377,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * 6 characters are the region. Format is: [A-Z]{2,3}[0-9]{2} with 'x' padding until it's 6 characters long.
      * The spec only requires it to pass the regex, and not to check length requirements, to maintain flexibility.
      */
-    private String parseRegion(String licenseKey) { // TODO use this to check region when setting metric/event ingest URIs
+    private String parseRegion(String licenseKey) {
         if (licenseKey != null) {
             licenseKey = licenseKey.toLowerCase();
             if (REGION_AWARE.matcher(licenseKey).find()) {
@@ -387,18 +388,17 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /**
-     * If host was set explicitly, then always use it and don't construct the collector host from the license key.
-     * If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the new
-     * host using the region section of the license key.
+     * If host was set explicitly, then always use it and don't construct the collector host from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the
+     * new host using the region section of the license key.
      */
-    private String parseHost(String licenseKey) {
+    private String parseHost(String region) {
         String host = getProperty(HOST);
         if (host != null) {
             Agent.LOG.log(Level.INFO, "Using configured collector host: {0}", host);
             return host;
         }
 
-        String region = parseRegion(licenseKey);
         if (region.isEmpty()) {
             Agent.LOG.log(Level.INFO, "Using default collector host: {0}", DEFAULT_HOST);
             return DEFAULT_HOST;
@@ -408,6 +408,64 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         Agent.LOG.log(Level.INFO, "Using region aware collector host: {0}", host);
 
         return host;
+    }
+
+    /**
+     * If metric ingest URI was set explicitly, then always use it and don't construct the metric ingest URI from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default metric ingest URI, otherwise construct the
+     * new metric ingest URI using the region section of the license key.
+     *
+     * US Prod metric ingest URI: https://metric-api.newrelic.com/metric/v1
+     * EU Prod metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+     */
+    private String parseMetricIngestUri(String region) {
+        String metricIngestUri = getProperty(METRIC_INGEST_URI);
+        if (metricIngestUri != null) {
+            Agent.LOG.log(Level.INFO, "Using configured metric ingest URI: {0}", metricIngestUri);
+            return metricIngestUri;
+        }
+
+        if (region.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "Using default metric ingest URI: {0}", DEFAULT_METRIC_INGEST_URI);
+            return DEFAULT_METRIC_INGEST_URI;
+        }
+
+        if (region.toLowerCase().contains("eu")) {
+            Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", EU_METRIC_INGEST_URI);
+            return EU_METRIC_INGEST_URI;
+        }
+
+        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}", METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
+        return DEFAULT_METRIC_INGEST_URI;
+    }
+
+    /**
+     * If event ingest URI was set explicitly, then always use it and don't construct the event ingest URI from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default event ingest URI, otherwise construct the
+     * new event ingest URI using the region section of the license key.
+     *
+     * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+     * EU Prod event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+     */
+    private String parseEventIngestUri(String region) {
+        String eventIngestUri = getProperty(EVENT_INGEST_URI);
+        if (eventIngestUri != null) {
+            Agent.LOG.log(Level.INFO, "Using configured event ingest URI: {0}", eventIngestUri);
+            return eventIngestUri;
+        }
+
+        if (region.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "Using default event ingest URI: {0}", DEFAULT_EVENT_INGEST_URI);
+            return DEFAULT_EVENT_INGEST_URI;
+        }
+
+        if (region.toLowerCase().contains("eu")) {
+            Agent.LOG.log(Level.INFO, "Using region aware event ingest URI: {0}", EU_EVENT_INGEST_URI);
+            return EU_EVENT_INGEST_URI;
+        }
+
+        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}", EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
+        return DEFAULT_EVENT_INGEST_URI;
     }
 
     private OpenTracingConfig initOpenTracingConfig() {

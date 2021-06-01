@@ -46,7 +46,7 @@ public class JfrServiceTest {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         DaemonConfig daemonConfig = jfrService.buildDaemonConfig();
 
-        assertTrue(daemonConfig.isUseLicenseKey());
+        assertTrue(daemonConfig.isUseLicenseKey()); // TODO refactor this to daemonConfig.useLicenseKey() when updating from jfr-daemon 1.2.0
         assertEquals("test_1234_license_key", daemonConfig.getApiKey());
         assertEquals("test_app_name", daemonConfig.getMonitoredAppName());
         assertEquals(DEFAULT_METRIC_INGEST_URI, daemonConfig.getMetricsUri().toString());
