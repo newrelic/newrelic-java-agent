@@ -274,7 +274,8 @@ common: &default_settings
   # Real-time profiling using Java Flight Recorder (JFR).
   # This feature reports dimensional metrics to the ingest endpoint configured by
   # metric_ingest_uri and events to the ingest endpoint configured by event_ingest_uri.
-  # Both ingest endpoints default to US production, see those configs to change them to EU production.
+  # Both ingest endpoints default to US production but they will be automatically set to EU
+  # production when using an EU license key. Other ingest endpoints can be configured manually.
   # Requires a JVM that provides the JFR library.
   jfr:
 
