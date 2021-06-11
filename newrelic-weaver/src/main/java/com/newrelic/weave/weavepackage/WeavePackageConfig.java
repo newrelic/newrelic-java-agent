@@ -89,6 +89,7 @@ public class WeavePackageConfig {
         public Builder vendorId(String vendorId) {
             if (null != vendorId) {
                 this.vendorId = vendorId;
+                this.custom = true;
             }
             return this;
         }
