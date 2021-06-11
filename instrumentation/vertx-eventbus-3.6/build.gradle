@@ -1,0 +1,25 @@
+
+dependencies {
+   implementation 'io.vertx:vertx-core:3.6.0'
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    
+    testImplementation 'org.nanohttpd:nanohttpd:2.3.1'
+    testImplementation 'io.vertx:vertx-hazelcast:3.6.0'
+    
+}
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'com.newrelic.instrumentation.Vertx-EventBus-3.6'
+  }
+}
+
+verifyInstrumentation {
+  	passes 'io.vertx:vertx-core:[3.6.0,3.7.1)'
+   	excludeRegex '.*SNAPSHOT.*'
+  	excludeRegex '.*milestone.*'
+ 	excludeRegex '.*CR.*'
+
+}
