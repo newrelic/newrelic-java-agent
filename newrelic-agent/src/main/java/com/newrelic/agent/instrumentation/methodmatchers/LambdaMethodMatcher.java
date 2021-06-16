@@ -29,7 +29,7 @@ public final class LambdaMethodMatcher implements MethodMatcher {
 
     @Override
     public boolean matches(int access, String name, String desc, Set<String> annotations) {
-        return (includeNonstatic || access == Opcodes.ACC_STATIC) && lambdaMethodPattern.matcher(name).matches();
+        return (includeNonstatic || access == Opcodes.F_NEW) && lambdaMethodPattern.matcher(name).matches();
     }
 
     @Override

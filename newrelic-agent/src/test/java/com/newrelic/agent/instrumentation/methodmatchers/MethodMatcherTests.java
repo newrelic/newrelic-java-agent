@@ -342,9 +342,9 @@ public class MethodMatcherTests {
 
     @Test
     public void testLambdaMethodMatcher() {
-        Assert.assertFalse(new LambdaMethodMatcher("", false).matches(Opcodes.ACC_STATIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertFalse(new LambdaMethodMatcher("", false).matches(Opcodes.F_NEW, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
         Assert.assertFalse(new LambdaMethodMatcher("methodName", false).matches(Opcodes.ACC_PUBLIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
-        Assert.assertTrue(new LambdaMethodMatcher("methodName", false).matches(Opcodes.ACC_STATIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertTrue(new LambdaMethodMatcher("methodName", false).matches(Opcodes.F_NEW, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
         Assert.assertFalse(new LambdaMethodMatcher("", true).matches(Opcodes.ACC_PUBLIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
         Assert.assertTrue(new LambdaMethodMatcher("methodName", true).matches(Opcodes.ACC_PUBLIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
     }
