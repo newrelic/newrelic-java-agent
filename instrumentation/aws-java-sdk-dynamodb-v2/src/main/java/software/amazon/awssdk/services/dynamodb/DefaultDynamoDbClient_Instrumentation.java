@@ -8,22 +8,21 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.dynamodb_v2.DynamoDBMetricUtil;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
-import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 
 import java.net.URI;
-import java.util.concurrent.CompletableFuture;
 
-@Weave(originalName = "software.amazon.awssdk.services.dynamodb.DefaultDynamoDbAsyncClient", type = MatchType.ExactClass)
-final class DefaultDynamoDbAsyncClient_Instrumentation {
-
+@Weave(originalName = "software.amazon.awssdk.services.dynamodb.DefaultDynamoDbClient", type = MatchType.ExactClass)
+final class DefaultDynamoDbClient_Instrumentation {
     private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
 
     @Trace
-    public CompletableFuture<ScanResponse> scan(ScanRequest scanRequest) {
+    public GetItemResponse getItem(GetItemRequest getItemRequest) {
         URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
-        System.out.println("logging async client endpoint: " + endpoint.toString());
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", scanRequest.tableName(), endpoint);
+        System.out.println("logging sync client endpoint: " + endpoint.toString());
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", getItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
+
 }
