@@ -18,12 +18,12 @@ import java.util.concurrent.CompletableFuture;
 final class DefaultDynamoDbAsyncClient_Instrumentation {
 
     private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
+    private final URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
 
     @Trace
     public CompletableFuture<ScanResponse> scan(ScanRequest scanRequest) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
-        System.out.println("logging async client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", scanRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
+
 }
