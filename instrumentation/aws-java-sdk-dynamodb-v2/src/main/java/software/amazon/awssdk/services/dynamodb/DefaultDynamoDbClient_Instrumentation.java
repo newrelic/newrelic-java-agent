@@ -126,19 +126,19 @@ final class DefaultDynamoDbClient_Instrumentation {
     // TODO: Batch operations need a 'collection' parameter since 'table()' is unavailable on the requests
     @Trace
     public BatchExecuteStatementResponse batchExecuteStatement(BatchExecuteStatementRequest batchExecuteStatementRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchExecuteStatement", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchExecuteStatement", "batch", endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public BatchGetItemResponse batchGetItem(BatchGetItemRequest batchGetItemRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchGetItem", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchGetItem", "batch", endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public BatchGetItemIterable batchGetItemPaginator(BatchGetItemRequest batchGetItemRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchGetItemPaginator", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchGetItemPaginator", "batch", endpoint);
         return Weaver.callOriginal();
     }
 
