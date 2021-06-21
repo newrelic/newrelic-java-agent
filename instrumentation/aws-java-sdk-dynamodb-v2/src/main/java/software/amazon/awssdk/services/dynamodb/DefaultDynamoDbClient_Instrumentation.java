@@ -168,7 +168,7 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public CreateTableResponse createTable(CreateTableRequest createTableRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "createTable", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "createTable", createTableRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
@@ -180,13 +180,13 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public DeleteItemResponse deleteItem(DeleteItemRequest deleteItemRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteItem", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteItem", deleteItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public DeleteTableResponse deleteTable(DeleteTableRequest deleteTableRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteTable", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteTable", deleteTableRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
@@ -198,13 +198,14 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public DescribeContinuousBackupsResponse describeContinuousBackups(DescribeContinuousBackupsRequest describeContinuousBackupsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeContinuousBackups", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeContinuousBackups", describeContinuousBackupsRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public DescribeContributorInsightsResponse describeContributorInsights(DescribeContributorInsightsRequest describeContributorInsightsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeContributorInsights", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeContributorInsights", describeContributorInsightsRequest.tableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
@@ -222,20 +223,22 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public DescribeGlobalTableResponse describeGlobalTable(DescribeGlobalTableRequest describeGlobalTableRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTable", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTable", describeGlobalTableRequest.globalTableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public DescribeGlobalTableSettingsResponse describeGlobalTableSettings(DescribeGlobalTableSettingsRequest describeGlobalTableSettingsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTableSettings", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTableSettings", describeGlobalTableSettingsRequest.globalTableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public DescribeKinesisStreamingDestinationResponse describeKinesisStreamingDestination(
             DescribeKinesisStreamingDestinationRequest describeKinesisStreamingDestinationRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeKinesisStreamingDestination", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeKinesisStreamingDestination",
+                describeKinesisStreamingDestinationRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
@@ -247,148 +250,154 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public DescribeTableResponse describeTable(DescribeTableRequest describeTableRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTable", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTable", describeTableRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public DescribeTableReplicaAutoScalingResponse describeTableReplicaAutoScaling(
             DescribeTableReplicaAutoScalingRequest describeTableReplicaAutoScalingRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTableReplicaAutoScaling", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTableReplicaAutoScaling", describeTableReplicaAutoScalingRequest.tableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public DescribeTimeToLiveResponse describeTimeToLive(DescribeTimeToLiveRequest describeTimeToLiveRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTimeToLive", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTimeToLive", describeTimeToLiveRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public DisableKinesisStreamingDestinationResponse disableKinesisStreamingDestination(
             DisableKinesisStreamingDestinationRequest disableKinesisStreamingDestinationRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "disableKinesisStreamingDestination", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "disableKinesisStreamingDestination",
+                disableKinesisStreamingDestinationRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public EnableKinesisStreamingDestinationResponse enableKinesisStreamingDestination(
             EnableKinesisStreamingDestinationRequest enableKinesisStreamingDestinationRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "enableKinesisStreamingDestination", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "enableKinesisStreamingDestination",
+                enableKinesisStreamingDestinationRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ExecuteStatementResponse executeStatement(ExecuteStatementRequest executeStatementRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "executeStatement", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "executeStatement", "statement", endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ExecuteTransactionResponse executeTransaction(ExecuteTransactionRequest executeTransactionRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "executeTransaction", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "executeTransaction", "transaction", endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ExportTableToPointInTimeResponse exportTableToPointInTime(ExportTableToPointInTimeRequest exportTableToPointInTimeRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "exportTableToPointInTime", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "exportTableToPointInTime", exportTableToPointInTimeRequest.tableArn(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListBackupsResponse listBackups(ListBackupsRequest listBackupsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listBackups", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listBackups", listBackupsRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListContributorInsightsResponse listContributorInsights(ListContributorInsightsRequest listContributorInsightsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listContributorInsights", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listContributorInsights", listContributorInsightsRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListContributorInsightsIterable listContributorInsightsPaginator(ListContributorInsightsRequest listContributorInsightsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listContributorInsightsPaginator", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listContributorInsightsPaginator", listContributorInsightsRequest.tableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListExportsResponse listExports(ListExportsRequest listExportsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listExports", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listExports", listExportsRequest.tableArn(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListExportsIterable listExportsPaginator(ListExportsRequest listExportsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listExportsPaginator", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listExportsPaginator", listExportsRequest.tableArn(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListGlobalTablesResponse listGlobalTables(ListGlobalTablesRequest listGlobalTablesRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listGlobalTables", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listGlobalTables", listGlobalTablesRequest.exclusiveStartGlobalTableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListTablesResponse listTables(ListTablesRequest listTablesRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTables", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTables", listTablesRequest.exclusiveStartTableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListTablesIterable listTablesPaginator(ListTablesRequest listTablesRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTablesPaginator", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTablesPaginator", listTablesRequest.exclusiveStartTableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ListTagsOfResourceResponse listTagsOfResource(ListTagsOfResourceRequest listTagsOfResourceRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTagsOfResource", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTagsOfResource", "list", endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public PutItemResponse putItem(PutItemRequest putItemRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "putItem", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "putItem", putItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public QueryResponse query(QueryRequest queryRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "query", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "query", queryRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public QueryIterable queryPaginator(QueryRequest queryRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "queryPaginator", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "queryPaginator", queryRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public RestoreTableFromBackupResponse restoreTableFromBackup(RestoreTableFromBackupRequest restoreTableFromBackupRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableFromBackup", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableFromBackup", restoreTableFromBackupRequest.targetTableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public RestoreTableToPointInTimeResponse restoreTableToPointInTime(RestoreTableToPointInTimeRequest restoreTableToPointInTimeRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableToPointInTime", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableToPointInTime", restoreTableToPointInTimeRequest.targetTableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ScanResponse scan(ScanRequest scanRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", scanRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ScanIterable scanPaginator(ScanRequest scanRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scanPaginator", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scanPaginator", scanRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
@@ -418,13 +427,13 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public UpdateContinuousBackupsResponse updateContinuousBackups(UpdateContinuousBackupsRequest updateContinuousBackupsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateContinuousBackups", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateContinuousBackups", updateContinuousBackupsRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public UpdateContributorInsightsResponse updateContributorInsights(UpdateContributorInsightsRequest updateContributorInsightsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateContributorInsights", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateContributorInsights", updateContributorInsightsRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
@@ -436,43 +445,45 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public UpdateGlobalTableSettingsResponse updateGlobalTableSettings(UpdateGlobalTableSettingsRequest updateGlobalTableSettingsRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateGlobalTableSettings", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateGlobalTableSettings", updateGlobalTableSettingsRequest.globalTableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public UpdateItemResponse updateItem(UpdateItemRequest updateItemRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateItem", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateItem", updateItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public UpdateTableResponse updateTable(UpdateTableRequest updateTableRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTable", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTable", updateTableRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public UpdateTableReplicaAutoScalingResponse updateTableReplicaAutoScaling(UpdateTableReplicaAutoScalingRequest updateTableReplicaAutoScalingRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTableReplicaAutoScaling", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTableReplicaAutoScaling", updateTableReplicaAutoScalingRequest.tableName(),
+                endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public UpdateTimeToLiveResponse updateTimeToLive(UpdateTimeToLiveRequest updateTimeToLiveRequest) {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTimeToLive", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTimeToLive", updateTimeToLiveRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
     public void close() {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "close", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "close", "close", endpoint);
         Weaver.callOriginal();
     }
 
     @Trace
     public DynamoDbWaiter waiter() {
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "waiter", "????", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "waiter", "waiter", endpoint);
         return Weaver.callOriginal();
     }
 }
