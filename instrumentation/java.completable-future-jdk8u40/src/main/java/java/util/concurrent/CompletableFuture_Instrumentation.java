@@ -32,11 +32,14 @@ public class CompletableFuture_Instrumentation<T> {
 
         UniCompletion(Executor executor, CompletableFuture_Instrumentation<V> dep, CompletableFuture_Instrumentation<T> src) {
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
-            if (tx != null && tx.isStarted() && AgentBridge.getAgent().getTracedMethod().trackChildThreads()) {
-                if (dep.completableToken == null) {
-                    dep.completableToken = tx.getToken();
+            // TODO: Uncomment for async work
+            //if(!this.getClass().getName().contains("UniCompose")) {
+                if (tx != null && tx.isStarted() && AgentBridge.getAgent().getTracedMethod().trackChildThreads()) {
+                    if (dep.completableToken == null) {
+                        dep.completableToken = tx.getToken();
+                    }
                 }
-            }
+            //}
         }
 
         @Trace(async = true, excludeFromTransactionTrace = true)
