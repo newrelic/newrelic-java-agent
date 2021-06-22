@@ -23,7 +23,7 @@ public abstract class ExchangeCodec_Instrumentation {
         Weaver.callOriginal();
     }
 
-    @Trace
+    @Trace(dispatcher = true)
     public Response.Builder readResponseHeaders(boolean expectContinue) {
         return Weaver.callOriginal();
     }

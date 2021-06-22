@@ -24,6 +24,7 @@ import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
 import com.newrelic.api.agent.DatastoreParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.QueryConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONAware;
@@ -43,6 +44,9 @@ import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.metricname.MetricNameFormat;
+
+import static com.newrelic.agent.bridge.external.ExternalEvents.EXTERNAL_CALL_EVENT;
+import static com.newrelic.agent.bridge.external.ExternalEvents.getExternalParametersMap;
 
 public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Comparable<DefaultSqlTracer> {
 
@@ -274,24 +278,32 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             String hostToReport = DatastoreMetrics.replaceLocalhost(getHost());
 
             if (getIdentifier() != null) {
-                this.reportAsExternal(DatastoreParameters
+                DatastoreParameters datastoreParameters = DatastoreParameters
                         .product(getDatabaseVendor().getDatastoreVendor().name())
                         .collection(parsedDatabaseStatement.getModel())
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, getIdentifier())
                         .databaseName(getDatabaseName())
                         .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
-                        .build());
+                        .build();
+                this.reportAsExternal(datastoreParameters);
+                // TODO config to send External events
+                // TODO directly add slowQuery query here? is that safe?
+                NewRelic.getAgent().getInsights().recordCustomEvent(EXTERNAL_CALL_EVENT, getExternalParametersMap(datastoreParameters));
             } else {
                 String portToReport = DatastoreMetrics.replacePort(getPort());
-                this.reportAsExternal(DatastoreParameters
+                DatastoreParameters datastoreParameters = DatastoreParameters
                         .product(getDatabaseVendor().getDatastoreVendor().name())
                         .collection(parsedDatabaseStatement.getModel())
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, portToReport)
                         .databaseName(getDatabaseName())
                         .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
-                        .build());
+                        .build();
+                this.reportAsExternal(datastoreParameters);
+                // TODO config to send External events
+                // TODO directly add slowQuery query here? is that safe?
+                NewRelic.getAgent().getInsights().recordCustomEvent(EXTERNAL_CALL_EVENT, getExternalParametersMap(datastoreParameters));
             }
 
             if (parsedDatabaseStatement == DatabaseStatementParser.UNPARSEABLE_STATEMENT) {

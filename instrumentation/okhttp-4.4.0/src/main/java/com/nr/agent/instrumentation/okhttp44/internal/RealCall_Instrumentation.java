@@ -27,12 +27,12 @@ public abstract class RealCall_Instrumentation {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace(dispatcher = true, leaf = true)
     public Response execute() {
         return Weaver.callOriginal();
     }
 
-    @Trace
+    @Trace(dispatcher = true)
     public void enqueue(Callback responseCallback) {
         Weaver.callOriginal();
     }

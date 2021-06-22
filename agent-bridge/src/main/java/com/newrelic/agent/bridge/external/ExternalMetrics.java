@@ -7,10 +7,13 @@
 
 package com.newrelic.agent.bridge.external;
 
+import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.NewRelic;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 
@@ -54,7 +57,7 @@ public class ExternalMetrics {
         // transaction segment name always contains operations; metric name may or may not
         String operationsPath = fixOperations(operations);
 
-        if(operationsPath == null) {
+        if (operationsPath == null) {
             String metricName = MessageFormat.format(METRIC_NAME, host, library);
             method.setMetricNameFormatInfo(metricName, metricName, uri);
         } else {
@@ -89,7 +92,7 @@ public class ExternalMetrics {
 
         makeExternalComponentMetric(method, hostName, library, includeOperationInMetric, uri, operations);
 
-        if(UNKNOWN_HOST.equals(hostName)) {
+        if (UNKNOWN_HOST.equals(hostName)) {
             return; // NR doesn't add rollup metrics for "UnknownHost"
         }
 
@@ -106,6 +109,42 @@ public class ExternalMetrics {
 
         // create a roll up of external calls by host
         method.addExclusiveRollupMetricName(MessageFormat.format(ALL_HOST, hostName));
+    }
+
+    // TODO what are the metric values??? We don't have access to any traced response time
+    // TODO some check if this option is enabled
+    // TODO NewRelic.recordMetric vs NewRelic.recordResponseTimeMetric, which makes sense?
+    public static void recordUnscopedExternalMetrics(URI uri) {
+//        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_REPORT_AS_EXTERNAL);
+        URI sanitizedURI = sanitizeURI(uri);
+        String host = (sanitizedURI != null) ? sanitizedURI.getHost() : UNKNOWN_HOST;
+        NewRelic.recordResponseTimeMetric(ALL, 1);
+        // TODO some kind of check for web or other?
+        NewRelic.recordResponseTimeMetric(ALL_OTHER, 1);
+        NewRelic.recordResponseTimeMetric(MessageFormat.format(ALL_HOST, host), 1);
+//        setMetricNameFormat - External/example.com/CommonsHttp/execute
+//        DefaultTracer.recordMetrics is where the bulk of metric generation occurs
+//        new ResponseTimeStatsImpl();
+//        stats.recordResponseTimeInNanos(getExclusiveDuration(), getExclusiveDuration());
+    }
+
+    /**
+     * Reconstruct a URI, stripping out query parameters, user info, and fragment.
+     *
+     * @param uri uri to sanitize
+     * @return reconstructed URI without userInfo, query parameters, or fragment.
+     */
+    public static URI sanitizeURI(URI uri) {
+        try {
+            if (uri == null || uri.getScheme() == null || uri.getHost() == null) {
+//                Agent.LOG.log(Level.FINE, "Invalid URI. URI parameter passed should include a valid scheme and host");
+                return null;
+            }
+
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
+        } catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     /**

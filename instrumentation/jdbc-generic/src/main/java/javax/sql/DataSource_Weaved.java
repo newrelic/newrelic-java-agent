@@ -33,7 +33,7 @@ public abstract class DataSource_Weaved {
 
     // This is a leaf tracer because it's common for these methods to delegate to each other and we don't want double
     // counts
-    @Trace(leaf = true)
+    @Trace(dispatcher = true, leaf = true)
     public Connection getConnection() throws Exception {
         boolean firstInConnectPath = !DatastoreInstanceDetection.shouldDetectConnectionAddress();
 
@@ -69,7 +69,7 @@ public abstract class DataSource_Weaved {
 
     // This is a leaf tracer because it's common for these methods to delegate to each other and we don't want double
     // counts
-    @Trace(leaf = true)
+    @Trace(dispatcher = true, leaf = true)
     public Connection getConnection(String username, String password) throws Exception {
         boolean firstInConnectPath = !DatastoreInstanceDetection.shouldDetectConnectionAddress();
         try {

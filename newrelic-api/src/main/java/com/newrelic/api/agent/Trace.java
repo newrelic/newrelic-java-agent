@@ -126,4 +126,10 @@ public @interface Trace {
      * @since 3.37.0
      */
     boolean async() default false;
+
+//    /**
+//     * Indicates that an external call (HTTP, datastore, JMS, generic) is being made by the traced method.
+//     * @return True if an external call is being made by the traced method.
+//     */
+//    boolean external() default false;
 }

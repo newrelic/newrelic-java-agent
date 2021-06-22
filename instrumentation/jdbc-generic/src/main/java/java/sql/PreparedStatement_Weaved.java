@@ -28,7 +28,7 @@ public abstract class PreparedStatement_Weaved {
     @NewField
     String preparedSql;
 
-    @Trace(leaf = true)
+    @Trace(dispatcher = true, leaf = true)
     public ResultSet executeQuery() throws SQLException {
         if (preparedSql == null) {
             preparedSql = JdbcHelper.getSql((Statement) this);
@@ -37,7 +37,7 @@ public abstract class PreparedStatement_Weaved {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace(dispatcher = true, leaf = true)
     public int executeUpdate() throws SQLException {
         if (preparedSql == null) {
             preparedSql = JdbcHelper.getSql((Statement) this);
@@ -46,7 +46,7 @@ public abstract class PreparedStatement_Weaved {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace(dispatcher = true, leaf = true)
     public boolean execute() throws SQLException {
         if (preparedSql == null) {
             preparedSql = JdbcHelper.getSql((Statement) this);

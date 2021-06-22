@@ -225,7 +225,7 @@ public class DefaultTracer extends AbstractTracer {
     // this is public for testing - do not call directly unless testing
     public void performFinishWork(long finishTime, int opcode, Object returnValue) {
         // Believe it or not, it's possible to get a negative value!
-        // (At least on some old, broken Linux kernels is is.)
+        // (At least on some old, broken Linux kernels it is.)
         duration = Math.max(0, finishTime - getStartTime());
         exclusiveDuration += duration;
         if (exclusiveDuration < 0 || exclusiveDuration > duration) {

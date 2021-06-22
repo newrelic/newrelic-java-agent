@@ -149,6 +149,10 @@ public class InstrumentationImpl implements Instrumentation {
                     Tracer initiatingTracer = (Tracer) AgentBridge.activeToken.get().tracedMethod.getAndSet(tracer);
                     tx.startFastAsyncWork(txa, initiatingTracer);
                     return noticeTracer(signatureId, flags, tracer);
+//                } else if (TracerFlags.isExternal(flags)) { // FIXME && externalTransactions Agent Config Enabled
+//                    // Create an "unscoped" transaction for external calls
+//                    com.newrelic.agent.Transaction.getTransaction(true);
+//                    txa = TransactionActivity.get();
                 } else if (TracerFlags.isDispatcher(flags)) {
                     // Traditional first-time creation of a new transaction
                     com.newrelic.agent.Transaction.getTransaction(true);
@@ -263,7 +267,11 @@ public class InstrumentationImpl implements Instrumentation {
                     Tracer initiatingTracer = (Tracer) tokenAndRefCount.tracedMethod.getAndSet(tracer);
                     tx.startFastAsyncWork(txa, initiatingTracer);
                     return tracer;
-                } else if (TracerFlags.isDispatcher(flags)) {
+//                } else if (TracerFlags.isExternal(flags)) { // FIXME && externalTransactions Agent Config Enabled
+//                    // Create an "unscoped" transaction for external calls
+//                    com.newrelic.agent.Transaction.getTransaction(true);
+//                    txa = TransactionActivity.get();
+                } else if (TracerFlags.isDispatcher(flags)) { // here is where a sql transaction is started
                     // Traditional first-time creation of a new transaction
                     com.newrelic.agent.Transaction.getTransaction(true);
                     txa = TransactionActivity.get();
