@@ -73,7 +73,7 @@ public final class NewRelic {
      * Notice an exception and report it to New Relic. If this method is called within a transaction, the exception will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * <p>
      * <b>Note:</b> The key and value pairs in custom parameters {@code params} will be dropped or modified in the
@@ -102,7 +102,7 @@ public final class NewRelic {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * <p>
      * <b>Note:</b> The key and value pairs in custom parameters {@code params} will be dropped or modified in the
@@ -121,7 +121,7 @@ public final class NewRelic {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * @param message Message to report with a transaction when it finishes.
      * @since 2.21.0
@@ -133,7 +133,7 @@ public final class NewRelic {
      * Notice an exception and report it to New Relic. If this method is called within a transaction, the exception will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * Expected errors do not increment an application's error count or contribute towards its Apdex score.
      *
@@ -168,7 +168,7 @@ public final class NewRelic {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * Expected errors do not increment an application's error count or contribute towards its Apdex score.
      *
@@ -190,7 +190,7 @@ public final class NewRelic {
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
-     * first error will be reported.
+     * last error will be reported.
      *
      * Expected errors do not increment an application's error count or contribute towards its Apdex score.
      *

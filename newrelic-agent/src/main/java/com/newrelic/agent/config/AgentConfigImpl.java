@@ -55,6 +55,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String LOG_LIMIT = "log_limit_in_kbytes";
     public static final String MAX_STACK_TRACE_LINES = "max_stack_trace_lines";
     public static final String METRIC_INGEST_URI = "metric_ingest_uri";
+    public static final String EVENT_INGEST_URI = "event_ingest_uri";
     public static final String DEBUG = "newrelic.debug";
     public static final String PLATFORM_INFORMATION_ENABLED = "platform_information_enabled";
     public static final String PORT = "port";
@@ -99,6 +100,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String INSTRUMENTATION = "instrumentation";
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
+    public static final String JFR = "jfr";
     public static final String OPEN_TRACING = "open_tracing";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
@@ -137,7 +139,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_LOG_LEVEL = "info";
     public static final int DEFAULT_LOG_LIMIT = 0;
     public static final int DEFAULT_MAX_STACK_TRACE_LINES = 30;
-    public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com";
+    public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com/metric/v1";
+    public static final String DEFAULT_EVENT_INGEST_URI = "https://insights-collector.newrelic.com/v1/accounts/events";
+    public static final String EU_METRIC_INGEST_URI = "https://metric-api.eu.newrelic.com/metric/v1";
+    public static final String EU_EVENT_INGEST_URI = "https://insights-collector.eu01.nr-data.net/v1/accounts/events";
     public static final boolean DEFAULT_PLATFORM_INFORMATION_ENABLED = true;
     public static final int DEFAULT_PORT = 80;
     public static final String DEFAULT_PROXY_HOST = null;
@@ -191,6 +196,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final String logLevel;
     private final int maxStackTraceLines;
     private final String metricIngestUri;
+    private final String eventIngestUri;
     private final boolean platformInformationEnabled;
     private final int port;
     private final String proxyHost;
@@ -229,6 +235,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final InsightsConfig insightsConfig;
     private final Config instrumentationConfig;
     private final JarCollectorConfig jarCollectorConfig;
+    private final JfrConfig jfrConfig;
     private final JmxConfig jmxConfig;
     private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
@@ -267,7 +274,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         debug = Boolean.getBoolean(DEBUG);
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         licenseKey = getProperty(LICENSE_KEY);
-        host = parseHost(licenseKey);
+        String region = parseRegion(licenseKey);
+        host = parseHost(region);
+        metricIngestUri = parseMetricIngestUri(region);
+        eventIngestUri = parseEventIngestUri(region);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
@@ -294,7 +304,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         ibmWorkaroundEnabled = getProperty(IBM_WORKAROUND, DEFAULT_IBM_WORKAROUND);
         transactionNamingMode = parseTransactionNamingMode();
         maxStackTraceLines = getProperty(MAX_STACK_TRACE_LINES, DEFAULT_MAX_STACK_TRACE_LINES);
-        metricIngestUri = getProperty(METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
         String[] jdbcSupport = getProperty(JDBC_SUPPORT, DEFAULT_JDBC_SUPPORT).split(",");
         this.jdbcSupport = new HashSet<>(Arrays.asList(jdbcSupport));
         genericJdbcSupportEnabled = this.jdbcSupport.contains(GENERIC_JDBC_SUPPORT);
@@ -317,6 +326,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         utilizationConfig = initUtilizationConfig();
         datastoreConfig = initDatastoreConfig();
         externalTracerConfig = initExternalTracerConfig();
+        jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
@@ -378,18 +388,17 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /**
-     * If host was set explicitly, then always use it and don't construct the collector host from the license key.
-     * If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the new
-     * host using the region section of the license key.
+     * If host was set explicitly, then always use it and don't construct the collector host from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the
+     * new host using the region section of the license key.
      */
-    private String parseHost(String licenseKey) {
+    private String parseHost(String region) {
         String host = getProperty(HOST);
         if (host != null) {
             Agent.LOG.log(Level.INFO, "Using configured collector host: {0}", host);
             return host;
         }
 
-        String region = parseRegion(licenseKey);
         if (region.isEmpty()) {
             Agent.LOG.log(Level.INFO, "Using default collector host: {0}", DEFAULT_HOST);
             return DEFAULT_HOST;
@@ -399,6 +408,64 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         Agent.LOG.log(Level.INFO, "Using region aware collector host: {0}", host);
 
         return host;
+    }
+
+    /**
+     * If metric ingest URI was set explicitly, then always use it and don't construct the metric ingest URI from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default metric ingest URI, otherwise construct the
+     * new metric ingest URI using the region section of the license key.
+     *
+     * US Prod metric ingest URI: https://metric-api.newrelic.com/metric/v1
+     * EU Prod metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+     */
+    private String parseMetricIngestUri(String region) {
+        String metricIngestUri = getProperty(METRIC_INGEST_URI);
+        if (metricIngestUri != null) {
+            Agent.LOG.log(Level.INFO, "Using configured metric ingest URI: {0}", metricIngestUri);
+            return metricIngestUri;
+        }
+
+        if (region.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "Using default metric ingest URI: {0}", DEFAULT_METRIC_INGEST_URI);
+            return DEFAULT_METRIC_INGEST_URI;
+        }
+
+        if (region.toLowerCase().contains("eu")) {
+            Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", EU_METRIC_INGEST_URI);
+            return EU_METRIC_INGEST_URI;
+        }
+
+        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}", METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
+        return DEFAULT_METRIC_INGEST_URI;
+    }
+
+    /**
+     * If event ingest URI was set explicitly, then always use it and don't construct the event ingest URI from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default event ingest URI, otherwise construct the
+     * new event ingest URI using the region section of the license key.
+     *
+     * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+     * EU Prod event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+     */
+    private String parseEventIngestUri(String region) {
+        String eventIngestUri = getProperty(EVENT_INGEST_URI);
+        if (eventIngestUri != null) {
+            Agent.LOG.log(Level.INFO, "Using configured event ingest URI: {0}", eventIngestUri);
+            return eventIngestUri;
+        }
+
+        if (region.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "Using default event ingest URI: {0}", DEFAULT_EVENT_INGEST_URI);
+            return DEFAULT_EVENT_INGEST_URI;
+        }
+
+        if (region.toLowerCase().contains("eu")) {
+            Agent.LOG.log(Level.INFO, "Using region aware event ingest URI: {0}", EU_EVENT_INGEST_URI);
+            return EU_EVENT_INGEST_URI;
+        }
+
+        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}", EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
+        return DEFAULT_EVENT_INGEST_URI;
     }
 
     private OpenTracingConfig initOpenTracingConfig() {
@@ -595,6 +662,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             Agent.LOG.info("Agent is configured to use longer sql id for sql traces");
         }
         return sqlTraceConfig;
+    }
+
+    private JfrConfig initJfrConfig() {
+        Map<String, Object> props = nestedProps(JFR);
+        return JfrConfigImpl.createJfrConfig(props);
     }
 
     private JmxConfig initJmxConfig() {
@@ -1040,6 +1112,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
+    public JfrConfig getJfrConfig() {
+        return jfrConfig;
+    }
+
+    @Override
     public JmxConfig getJmxConfig() {
         return jmxConfig;
     }
@@ -1135,6 +1212,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public String getMetricIngestUri() {
         return metricIngestUri;
+    }
+
+    @Override
+    public String getEventIngestUri() {
+        return eventIngestUri;
     }
 
     @Override

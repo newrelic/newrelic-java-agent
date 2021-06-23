@@ -11,22 +11,14 @@ import com.google.common.collect.MapMaker;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.stats.StatsService;
-import com.newrelic.agent.stats.StatsWork;
-import com.newrelic.agent.stats.StatsWorks;
-import com.newrelic.agent.stats.TransactionStats;
+import com.newrelic.agent.stats.*;
 import com.newrelic.agent.transaction.MergeStatsEngineResolvingScope;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.util.TimeConversion;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -71,12 +63,7 @@ public class TransactionService extends AbstractService {
 
         // run as daemon to not prevent shutdown of application
         scheduler = Executors.newScheduledThreadPool(numMaintenanceThreads, new DefaultThreadFactory(TRANSACTION_SERVICE_PROCESSOR_THREAD_NAME, true));
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                processQueue();
-            }
-        }, initialDelayMilli, delayMilli, TimeUnit.MILLISECONDS);
+        scheduler.scheduleWithFixedDelay(() -> TransactionService.this.processQueue(), initialDelayMilli, delayMilli, TimeUnit.MILLISECONDS);
     }
 
     /**
