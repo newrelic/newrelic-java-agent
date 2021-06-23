@@ -713,7 +713,7 @@ public class Extension {
              *
              * @return possible object is {@link Boolean }
              */
-            public Boolean getIncludeNonstatic() {
+            public boolean getIncludeNonstatic() {
                 return includeNonstatic;
             }
 
@@ -722,7 +722,7 @@ public class Extension {
              *
              * @param value allowed object is {@link Boolean }
              */
-            public void setIncludeNonstatic(Boolean value) {
+            public void setIncludeNonstatic(boolean value) {
                 includeNonstatic = value;
             }
 

@@ -250,7 +250,7 @@ public class ExtensionDomParser {
                                 } else if (node.getNodeName().equals("traceLambda") || node.getNodeName().endsWith(":traceLambda")) {
                                     pointcut.setTraceLambda(Boolean.valueOf(node.getTextContent()));
                                     pointcut.setPattern(getAttribute("pattern", node, "^\\$?(lambda|anonfun)\\$(?<name>.*)"));
-                                    pointcut.setIncludeNonstatic(Boolean.valueOf(getAttribute("includeNonstatic", node, "false")));
+                                    pointcut.setIncludeNonstatic(Boolean.parseBoolean(getAttribute("includeNonstatic", node, "false")));
                                 } else if (node.getNodeName().equals("traceByReturnType") || node.getNodeName().endsWith(":traceByReturnType")) {
                                     traceReturnTypeDescriptors.add(node.getTextContent());
                                 } else if (node.getNodeName().equals("method") || node.getNodeName().endsWith(":method")) {

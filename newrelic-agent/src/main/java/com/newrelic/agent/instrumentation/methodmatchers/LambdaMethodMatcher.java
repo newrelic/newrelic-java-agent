@@ -18,8 +18,9 @@ import java.util.regex.Pattern;
  */
 public final class LambdaMethodMatcher implements MethodMatcher {
 
+    private final int ACCESS_SYNTHETIC_STATIC = 4121;
     private final Pattern lambdaMethodPattern;
-    private final Boolean includeNonstatic;
+    private final boolean includeNonstatic;
 
     public LambdaMethodMatcher(String pattern, boolean includeNonstatic) {
         super();
@@ -29,7 +30,7 @@ public final class LambdaMethodMatcher implements MethodMatcher {
 
     @Override
     public boolean matches(int access, String name, String desc, Set<String> annotations) {
-        return (includeNonstatic || access == 4121 || access == Opcodes.F_NEW) && lambdaMethodPattern.matcher(name).matches();
+        return (includeNonstatic || access == ACCESS_SYNTHETIC_STATIC || access == Opcodes.F_NEW) && lambdaMethodPattern.matcher(name).matches();
     }
 
     @Override
