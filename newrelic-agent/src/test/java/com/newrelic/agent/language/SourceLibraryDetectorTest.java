@@ -17,10 +17,7 @@ import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class SourceLibraryDetectorTest {
 
@@ -47,7 +44,8 @@ public class SourceLibraryDetectorTest {
     public void testSamplerRun() throws Exception {
         sourceLibraryDetector.run();
         ArgumentCaptor<StatsWork> captor = ArgumentCaptor.forClass(StatsWork.class);
-        verify(ServiceFactory.getStatsService(), times(2)).doStatsWork(captor.capture());
+        //As of 7.0.0 we are pulling in kotlin as a transitive dependency of JFR-Daemon 
+        verify(ServiceFactory.getStatsService(), times(3)).doStatsWork(captor.capture());
 
         StatsWork statsWork = captor.getValue();
 

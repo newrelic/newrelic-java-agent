@@ -4,7 +4,7 @@ sourceSets.test.scala.srcDir "src/test/java"
 sourceSets.test.java.srcDirs = []
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-2.4.5' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-2.11_2.4.5' }
 }
 
 dependencies {
@@ -21,18 +21,21 @@ dependencies {
 
 verifyInstrumentation {
     passesOnly 'com.typesafe.akka:akka-http-experimental_2.11:[2.4.5,)'
-    passesOnly 'com.typesafe.akka:akka-http-experimental_2.10:[2.4.5,)'
-    passesOnly 'com.typesafe.akka:akka-http_2.10:[2.4.5,)'
-    passesOnly('com.typesafe.akka:akka-http_2.11:[2.4.5,)') {
+    passesOnly('com.typesafe.akka:akka-http_2.11:[10.0.0,)') {
         compile("com.typesafe.akka:akka-stream_2.11:2.5.19")
     }
-    passesOnly('com.typesafe.akka:akka-http_2.12:[2.4.5,)') {
+    passesOnly('com.typesafe.akka:akka-http_2.12:[10.0.0,)') {
         compile("com.typesafe.akka:akka-stream_2.11:2.5.19")
     }
+    fails('com.typesafe.akka:akka-http_2.13:[10.1.8,)')
 
     excludeRegex 'com.typesafe.akka:akka-http-experimental_2.11:.*(RC|M)[0-9]*$'
+    excludeRegex 'com.typesafe.akka:akka-http_2.11:.*(RC|M)[0-9]*$'
+    excludeRegex 'com.typesafe.akka:akka-http_2.12:.*(RC|M)[0-9]*$'
+    excludeRegex 'com.typesafe.akka:akka-http_2.13:.*(RC|M)[0-9]*$'
     excludeRegex 'com.typesafe.akka:akka-http_2.11:.*-[0-9a-f]{8}$'
     excludeRegex 'com.typesafe.akka:akka-http_2.12:.*-[0-9a-f]{8}$'
+    excludeRegex 'com.typesafe.akka:akka-http_2.13:.*-[0-9a-f]{8}$'
 }
 
 site {

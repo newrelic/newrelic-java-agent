@@ -157,21 +157,25 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
         linkingMetadata.put("span.id", spanId);
 
         AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
-        if (!entityGuid.isEmpty()) {
-            linkingMetadata.put("entity.name", agentConfig.getApplicationName());
-            linkingMetadata.put("entity.type", "SERVICE");
-            linkingMetadata.put("entity.guid", entityGuid);
-        }
-
         linkingMetadata.put("hostname", getLinkingMetaHostname(agentConfig));
+        try {
+            String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
+            if (!entityGuid.isEmpty()) {
+                linkingMetadata.put("entity.name", agentConfig.getApplicationName());
+                linkingMetadata.put("entity.type", "SERVICE");
+                linkingMetadata.put("entity.guid", entityGuid);
+            }
+        } catch (NullPointerException ignored) {
+            // it's possible to call getLinkingMetadata in the premain before RPMService has been initialized which will NPE
+            Agent.LOG.log(Level.WARNING, "Cannot get entity.guid from getLinkingMetadata() until RPMService has initialized.");
+        }
 
         return linkingMetadata;
     }
 
     private String getLinkingMetaHostname(AgentConfig agentConfig) {
         String fullHostname = Hostname.getFullHostname(agentConfig);
-        if(fullHostname == null || fullHostname.isEmpty() || fullHostname.equals("localhost")) {
+        if (fullHostname == null || fullHostname.isEmpty() || fullHostname.equals("localhost")) {
             return Hostname.getHostname(agentConfig);
         }
         return fullHostname;

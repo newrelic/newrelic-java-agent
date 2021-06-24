@@ -91,6 +91,122 @@ public class AgentConfigImplTest {
     }
 
     @Test
+    public void defaultMetricIngestUri() throws Exception {
+        Map<String, Object> localMap = new HashMap<>();
+
+        // regular pre-protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "0123456789abcdef0123456789abcdef01234567");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.DEFAULT_METRIC_INGEST_URI, config.getMetricIngestUri());
+
+        // improper padding
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "xEU016789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.DEFAULT_METRIC_INGEST_URI, config.getMetricIngestUri());
+
+        // no padding
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "EU0076789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.DEFAULT_METRIC_INGEST_URI, config.getMetricIngestUri());
+    }
+
+    @Test
+    public void regionAwareMetricIngestUri() throws Exception {
+        Map<String, Object> localMap = new HashMap<>();
+
+        // proper 4 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "eu01xX6789abcdef0123456789abcdef01234567");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.EU_METRIC_INGEST_URI, config.getMetricIngestUri());
+
+        // proper 5 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "euV09x6789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.EU_METRIC_INGEST_URI, config.getMetricIngestUri());
+
+        // proper 4 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "eu03XX6789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.EU_METRIC_INGEST_URI, config.getMetricIngestUri());
+    }
+
+    @Test
+    public void setMetricIngestUri() {
+        Map<String, Object> localMap = new HashMap<>();
+        String stagingMetricIngestUri = "https://staging-metric-api.newrelic.com/metric/v1";
+
+        // if host is set explicitly, never parse the license key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "0123456789abcdef0123456789abcdef01234567");
+        localMap.put(AgentConfigImpl.METRIC_INGEST_URI, stagingMetricIngestUri);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(stagingMetricIngestUri, config.getMetricIngestUri());
+
+        // if host is set explicitly, never parse the license key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "eu01xx6789abcdef0123456789abcdef01234567");
+        localMap.put(AgentConfigImpl.METRIC_INGEST_URI, stagingMetricIngestUri);
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(stagingMetricIngestUri, config.getMetricIngestUri());
+    }
+
+    @Test
+    public void defaultEventIngestUri() throws Exception {
+        Map<String, Object> localMap = new HashMap<>();
+
+        // regular pre-protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "0123456789abcdef0123456789abcdef01234567");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.DEFAULT_EVENT_INGEST_URI, config.getEventIngestUri());
+
+        // improper padding
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "xEU016789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.DEFAULT_EVENT_INGEST_URI, config.getEventIngestUri());
+
+        // no padding
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "EU0076789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.DEFAULT_EVENT_INGEST_URI, config.getEventIngestUri());
+    }
+
+    @Test
+    public void regionAwareEventIngestUri() throws Exception {
+        Map<String, Object> localMap = new HashMap<>();
+
+        // proper 4 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "eu01xX6789abcdef0123456789abcdef01234567");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.EU_EVENT_INGEST_URI, config.getEventIngestUri());
+
+        // proper 5 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "euV09x6789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.EU_EVENT_INGEST_URI, config.getEventIngestUri());
+
+        // proper 4 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "eu03XX6789abcdef0123456789abcdef01234567");
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(AgentConfigImpl.EU_EVENT_INGEST_URI, config.getEventIngestUri());
+    }
+
+    @Test
+    public void setEventIngestUri() {
+        Map<String, Object> localMap = new HashMap<>();
+        String stagingEventIngestUri = "https://staging-insights-collector.newrelic.com/v1/accounts/events";
+
+        // if host is set explicitly, never parse the license key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "0123456789abcdef0123456789abcdef01234567");
+        localMap.put(AgentConfigImpl.EVENT_INGEST_URI, stagingEventIngestUri);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(stagingEventIngestUri, config.getEventIngestUri());
+
+        // if host is set explicitly, never parse the license key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "eu01xx6789abcdef0123456789abcdef01234567");
+        localMap.put(AgentConfigImpl.EVENT_INGEST_URI, stagingEventIngestUri);
+        config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(stagingEventIngestUri, config.getEventIngestUri());
+    }
+
+    @Test
     public void extensionReloadAsDottedInYaml() {
         AgentConfig hasDefaultReloadModified = AgentConfigImpl.createAgentConfig(Collections.<String, Object>emptyMap());
         boolean defaultReloadModified = hasDefaultReloadModified.getExtensionsConfig().shouldReloadModified();
@@ -319,6 +435,24 @@ public class AgentConfigImplTest {
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertEquals(key, config.getMetricIngestUri());
+    }
+
+    @Test
+    public void eventsIngestUriDefault() {
+        Map<String, Object> localMap = new HashMap<>();
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertEquals(AgentConfigImpl.DEFAULT_EVENT_INGEST_URI, config.getEventIngestUri());
+    }
+
+    @Test
+    public void eventsIngestUri() {
+        Map<String, Object> localMap = new HashMap<>();
+        String key = "OMG IM A KEEEEEEEYYYYYYY";
+        localMap.put(AgentConfigImpl.EVENT_INGEST_URI, key);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertEquals(key, config.getEventIngestUri());
     }
 
     @Test

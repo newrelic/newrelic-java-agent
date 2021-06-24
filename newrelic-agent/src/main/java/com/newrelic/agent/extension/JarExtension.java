@@ -76,7 +76,7 @@ public class JarExtension {
             if (null != agentClass) {
                 logger.log(Level.FINE, "Detected agentmain class {0} in {1}", agentClass, file.getAbsolutePath());
                 if (BootstrapAgent.class.getName().equals(agentClass)) {
-                    throw new IOException("Attempt to load the New Relic agent from the extentions directory.  Remove " +
+                    throw new IOException("Attempt to load the New Relic agent from the extensions directory.  Remove " +
                             file.getName() + " from directory " + file.getParent());
                 }
 
@@ -94,7 +94,6 @@ public class JarExtension {
 
         if (agentClass != null) {
             ext.invokeMainMethod(logger, agentClass);
-
         }
 
         return ext;
@@ -285,7 +284,6 @@ public class JarExtension {
             } catch (IOException e) {
                 Agent.LOG.debug("Unable to read classes in " + file.getAbsolutePath() + ".  " + e.getMessage());
             }
-            // eh
         }
         return Collections.emptyList();
     }
@@ -357,7 +355,6 @@ public class JarExtension {
             logger.log(Level.INFO, "Unable to invoke {0}.premain", agentClass);
             logger.log(Level.FINEST, e, e.getMessage());
         }
-
     }
 
     private static File writeTempJar(IAgentLogger logger, File file, byte[] newBytes) throws IOException {

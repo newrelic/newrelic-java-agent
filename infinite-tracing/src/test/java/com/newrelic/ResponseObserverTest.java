@@ -13,16 +13,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.logging.Level;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class ResponseObserverTest {
 
@@ -98,7 +90,7 @@ class ResponseObserverTest {
 
         target.shutdownChannelAndBackoff(status);
 
-        verify(logger).log(eq(Level.FINE), any(Throwable.class), anyString(), any());
+        verify(logger).log(eq(Level.FINE), any(Throwable.class), anyString(), anyString());
         verify(channelManager).shutdownChannelAndBackoff(0);
     }
 
@@ -109,7 +101,7 @@ class ResponseObserverTest {
 
         target.shutdownChannelAndBackoff(Status.FAILED_PRECONDITION);
 
-        verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), any());
+        verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), anyString());
         verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(backoffSeconds);
     }
 
@@ -120,7 +112,7 @@ class ResponseObserverTest {
 
         target.shutdownChannelAndBackoff(Status.UNKNOWN);
 
-        verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), any());
+        verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), anyString());
         verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(backoffSeconds);
     }
 

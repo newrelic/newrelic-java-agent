@@ -11,8 +11,7 @@ dependencies {
 }
 
 verifyInstrumentation {
-    fails('com.typesafe.akka:akka-http-core-experimental_2.13:[1.0,10.1.8)')
-    passesOnly('com.typesafe.akka:akka-http-core_2.13:[10.2.0-RC1,)') {
+    passesOnly('com.typesafe.akka:akka-http-core_2.13:[10.2.0-RC2,)') {
         compile("com.typesafe.akka:akka-stream_2.13:2.5.23")
     }
     fails('com.typesafe.akka:akka-http-core_2.12:[10.2.0-RC1,)') {
