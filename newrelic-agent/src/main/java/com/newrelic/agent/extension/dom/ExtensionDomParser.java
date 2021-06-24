@@ -233,6 +233,7 @@ public class ExtensionDomParser {
                             pointcut.setTransactionType(getAttribute("transactionType", instrumentationChildNode, null));
 
                             List<Extension.Instrumentation.Pointcut.Method> methods = pointcut.getMethod();
+                            List<String> traceReturnTypeDescriptors = pointcut.getTraceReturnTypeDescriptors();
 
                             NodeList pointcutChildNodes = instrumentationChildNode.getChildNodes();
                             for (int p = 0; p < pointcutChildNodes.getLength(); p++) {
@@ -246,6 +247,12 @@ public class ExtensionDomParser {
                                     pointcut.setInterfaceName(node.getTextContent());
                                 } else if (node.getNodeName().equals("methodAnnotation") || node.getNodeName().endsWith(":methodAnnotation")) {
                                     pointcut.setMethodAnnotation(node.getTextContent());
+                                } else if (node.getNodeName().equals("traceLambda") || node.getNodeName().endsWith(":traceLambda")) {
+                                    pointcut.setTraceLambda(Boolean.valueOf(node.getTextContent()));
+                                    pointcut.setPattern(getAttribute("pattern", node, "^\\$?(lambda|anonfun)\\$(?<name>.*)"));
+                                    pointcut.setIncludeNonstatic(Boolean.parseBoolean(getAttribute("includeNonstatic", node, "false")));
+                                } else if (node.getNodeName().equals("traceByReturnType") || node.getNodeName().endsWith(":traceByReturnType")) {
+                                    traceReturnTypeDescriptors.add(node.getTextContent());
                                 } else if (node.getNodeName().equals("method") || node.getNodeName().endsWith(":method")) {
                                     NodeList methodChildNodes = node.getChildNodes();
                                     Extension.Instrumentation.Pointcut.Method method = new Extension.Instrumentation.Pointcut.Method();
