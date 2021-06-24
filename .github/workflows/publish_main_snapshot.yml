@@ -3,7 +3,8 @@ name: Publish snapshot on main merge
 on:
   push:
     branches: [ main ]
-
+  workflow_dispatch:
+    
 jobs:
   publish_snapshot:
     runs-on: ubuntu-latest
