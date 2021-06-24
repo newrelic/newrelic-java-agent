@@ -19,10 +19,10 @@ public final class TracerFlags {
     public static final int CUSTOM = (1 << 4);
     public static final int LEAF = (1 << 5);
     public static final int ASYNC = (1 << 6);
-//    public static final int EXTERNAL = (1 << 7);
+    public static final int EXTERNAL = (1 << 7);
 
     public static boolean isRoot(int flags) {
-        return isDispatcher(flags) || isAsync(flags);
+        return isDispatcher(flags) || isAsync(flags) || isExternal(flags);
     }
 
     public static int forceMandatoryRootFlags(int flags) {
@@ -53,7 +53,7 @@ public final class TracerFlags {
         return dispatcher ? DISPATCHER : 0;
     }
 
-//    public static boolean isExternal(int flags) {
-//        return (flags & EXTERNAL) == EXTERNAL;
-//    }
+    public static boolean isExternal(int flags) {
+        return (flags & EXTERNAL) == EXTERNAL;
+    }
 }

@@ -180,6 +180,11 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
         return false;
     }
 
+    @Override
+    public boolean isExternal() {
+        return false;
+    }
+
     protected Set<String> getRollupMetricNames() {
         return rollupMetricNames;
     }

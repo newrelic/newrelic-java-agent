@@ -38,6 +38,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final String MAX_STACK_TRACE = "max_stack_trace";
     public static final String OBFUSCATED_SQL_FIELDS = "obfuscated_sql_fields";
     public static final String RECORD_SQL = "record_sql";
+    public static final String RECORD_EXTERNALS = "record_externals";
     @Deprecated
     public static final String SLOW_QUERY_WHITELIST = "slow_query_whitelist";
     public static final String COLLECT_SLOW_QUERIES_FROM = "collect_slow_queries_from";
@@ -53,6 +54,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final boolean DEFAULT_GC_TIME_ENABLED = false; // this is disabled by default because it is incorrect in all async scenarios
     public static final int DEFAULT_INSERT_SQL_MAX_LENGTH = 2000;
     public static final boolean DEFAULT_LOG_SQL = false;
+    public static final boolean DEFAULT_RECORD_EXTERNALS = false;
     public static final int DEFAULT_MAX_EXPLAIN_PLANS = 20;
     public static final int DEFAULT_MAX_STACK_TRACE = 20;
     public static final String DEFAULT_RECORD_SQL = SqlObfuscator.OBFUSCATED_SETTING;
@@ -69,6 +71,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     private final boolean isEnabled;
     private final boolean isExplainEnabled;
     private final boolean isLogSql;
+    private final boolean isRecordExternals;
     private final String recordSql;
     private final Set<String> collectSlowQueriesFromModules;
     private final double explainThreshold;
@@ -91,6 +94,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
         super(props, systemPropertyRoot);
         this.inheritedFromSystemPropertyRoot = inheritedFromSystemPropertyRoot;
         isEnabled = initEnabled();
+        isRecordExternals = initRecordExternals(highSecurity);
         isLogSql = getProperty(LOG_SQL, DEFAULT_LOG_SQL);
         // recordSql must be off or obfuscated if high security is true
         recordSql = initRecordSql(highSecurity).intern(); // some code does an identity equals (==) on this value
@@ -116,6 +120,11 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
         // required server property - false if subscription does not permit transaction traces
         boolean canCollectTraces = getProperty(COLLECT_TRACES, DEFAULT_COLLECT_TRACES);
         return isEnabled && canCollectTraces;
+    }
+
+    private boolean initRecordExternals(boolean highSecurity) {
+        // FIXME there may be some high security considerations with externals
+        return getProperty(RECORD_EXTERNALS, DEFAULT_RECORD_EXTERNALS);
     }
 
     private boolean initExplainEnabled(RecordSql recordSql) {
@@ -304,6 +313,11 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     @Override
     public boolean isLogSql() {
         return isLogSql;
+    }
+
+    @Override
+    public boolean isRecordExternals() {
+        return isRecordExternals;
     }
 
     @Override

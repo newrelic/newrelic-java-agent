@@ -111,21 +111,16 @@ public class ExternalMetrics {
         method.addExclusiveRollupMetricName(MessageFormat.format(ALL_HOST, hostName));
     }
 
-    // TODO what are the metric values??? We don't have access to any traced response time
-    // TODO some check if this option is enabled
-    // TODO NewRelic.recordMetric vs NewRelic.recordResponseTimeMetric, which makes sense?
-    public static void recordUnscopedExternalMetrics(URI uri) {
-//        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_REPORT_AS_EXTERNAL);
+    // We don't have access to any traced response time since there was no transaction in progress.
+    // Value reported with metric is arbitrary and would skew HTTP external response metrics.
+    // TODO some check if this option is enabled?
+    public static void recordUnscopedHttpExternalMetrics(URI uri) {
         URI sanitizedURI = sanitizeURI(uri);
         String host = (sanitizedURI != null) ? sanitizedURI.getHost() : UNKNOWN_HOST;
         NewRelic.recordResponseTimeMetric(ALL, 1);
         // TODO some kind of check for web or other?
         NewRelic.recordResponseTimeMetric(ALL_OTHER, 1);
         NewRelic.recordResponseTimeMetric(MessageFormat.format(ALL_HOST, host), 1);
-//        setMetricNameFormat - External/example.com/CommonsHttp/execute
-//        DefaultTracer.recordMetrics is where the bulk of metric generation occurs
-//        new ResponseTimeStatsImpl();
-//        stats.recordResponseTimeInNanos(getExclusiveDuration(), getExclusiveDuration());
     }
 
     /**

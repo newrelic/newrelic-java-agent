@@ -50,6 +50,12 @@ public interface TraceDetails {
      */
     boolean async();
 
+    /**
+     * If true, transaction will be created for external calls.
+     *
+     */
+    boolean external();
+
     TransactionName transactionName();
 
     /**

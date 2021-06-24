@@ -528,6 +528,11 @@ public class DefaultTracer extends AbstractTracer {
         return TracerFlags.isAsync(tracerFlags);
     }
 
+    @Override
+    public final boolean isExternal() {
+        return TracerFlags.isExternal(tracerFlags);
+    }
+
     /**
      * Gets the field childHasStackTrace.
      *

@@ -27,6 +27,7 @@ public class TraceDetailsBuilder {
     private boolean ignoreTransaction;
     private boolean nameTransaction;
     private boolean custom;
+    private boolean external;
     private boolean webTransaction;
     private TransactionName transactionName;
     // the instrumentation type and source name should match up on each index
@@ -46,6 +47,7 @@ public class TraceDetailsBuilder {
     public static TraceDetailsBuilder newBuilder(TraceDetails traceDetails) {
         TraceDetailsBuilder builder = new TraceDetailsBuilder();
 
+        builder.external = traceDetails.external();
         builder.custom = traceDetails.isCustom();
         builder.dispatcher = traceDetails.dispatcher();
         builder.async = traceDetails.async();
@@ -105,6 +107,11 @@ public class TraceDetailsBuilder {
 
     public TraceDetailsBuilder setCustom(boolean custom) {
         this.custom = custom;
+        return this;
+    }
+
+    public TraceDetailsBuilder setExternal(boolean external) {
+        this.external = external;
         return this;
     }
 
@@ -174,6 +181,9 @@ public class TraceDetailsBuilder {
         if (!async) {
             async = otherDetails.async();
         }
+        if (!external) {
+            external = otherDetails.external();
+        }
         if (!excludeFromTransactionTrace) {
             excludeFromTransactionTrace = otherDetails.excludeFromTransactionTrace();
         }
@@ -221,6 +231,7 @@ public class TraceDetailsBuilder {
         private final boolean excludeFromTransactionTrace;
         private final boolean ignoreTransaction;
         private final boolean custom;
+        private final boolean external;
         private final boolean webTransaction;
         private final List<InstrumentationType> instrumentationTypes;
         private final List<String> instrumentationSourceNames;
@@ -237,6 +248,7 @@ public class TraceDetailsBuilder {
             excludeFromTransactionTrace = builder.excludeFromTransactionTrace;
             ignoreTransaction = builder.ignoreTransaction;
             custom = builder.custom;
+            external = builder.external;
             if (builder.nameTransaction) {
                 transactionName = custom ? TransactionName.CUSTOM_DEFAULT : TransactionName.BUILT_IN_DEFAULT;
             } else {
@@ -279,6 +291,11 @@ public class TraceDetailsBuilder {
         @Override
         public boolean async() {
             return async;
+        }
+
+        @Override
+        public boolean external() {
+            return external;
         }
 
         @Override

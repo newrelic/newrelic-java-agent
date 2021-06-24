@@ -224,6 +224,11 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
+    public boolean isExternal() {
+        return false;
+    }
+
+    @Override
     public void setCustomMetricPrefix(String prefix) {
     }
 

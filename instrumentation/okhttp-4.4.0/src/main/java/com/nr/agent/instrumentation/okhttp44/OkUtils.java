@@ -70,8 +70,8 @@ public class OkUtils {
             TracedMethod tracedMethod = NewRelic.getAgent().getTracedMethod();
             // TODO config to send unscoped external metrics
             if (tracedMethod instanceof NoOpTracedMethod) {
-                // this would create unscoped external metrics for the externals page but they wouldn't have correct response times
-//                ExternalMetrics.recordUnscopedExternalMetrics(requestUri);
+                // this would create unscoped external metrics for the externals page but they wouldn't have correct response times, not recommended
+//                ExternalMetrics.recordUnscopedHttpExternalMetrics(requestUri);
             } else {
                 tracedMethod.reportAsExternal(httpParameters);
             }

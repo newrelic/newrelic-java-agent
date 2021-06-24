@@ -38,6 +38,11 @@ public interface TransactionTracerConfig {
     boolean isLogSql();
 
     /**
+     * If <code>true</code>, send recorded SQL to the agent log file, but do not report it to New Relic.
+     */
+    boolean isRecordExternals();
+
+    /**
      * The limit on the length of a SQL statement sent to New Relic.
      *
      * @return the maximum length

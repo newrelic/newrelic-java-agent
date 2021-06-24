@@ -127,9 +127,12 @@ public @interface Trace {
      */
     boolean async() default false;
 
-//    /**
-//     * Indicates that an external call (HTTP, datastore, JMS, generic) is being made by the traced method.
-//     * @return True if an external call is being made by the traced method.
-//     */
-//    boolean external() default false;
+    /**
+     * Indicates that an external call (HTTP, datastore, JMS, generic) is being made by the traced method.
+     * If @Trace(external=true) and the agent is configured with transaction_tracer.record_externals=true,
+     * then a transaction will be started to record the external call if a transaction wasn't already active.
+     *
+     * @return True if an external call is being made by the traced method.
+     */
+    boolean external() default false;
 }

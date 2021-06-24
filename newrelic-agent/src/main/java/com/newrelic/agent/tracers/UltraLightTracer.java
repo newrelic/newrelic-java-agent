@@ -288,6 +288,11 @@ public class UltraLightTracer implements Tracer {
     }
 
     @Override
+    public boolean isExternal() {
+        return false;
+    }
+
+    @Override
     public void removeTransactionSegment() {
         // no-op because this is never a transaction segment.
     }

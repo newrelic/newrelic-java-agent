@@ -16,6 +16,8 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.Instrumentation;
 import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.agent.config.TransactionTracerConfig;
+import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.instrumentation.classmatchers.DefaultClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.ExactClassMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.HashSafeClassAndMethodMatcher;
@@ -139,7 +141,7 @@ public class InstrumentationImpl implements Instrumentation {
                     ClassMethodSignature sig = ClassMethodSignatures.get().get(signatureId);
                     MetricNameFormat mnf = MetricNameFormats.getFormatter(invocationTarget, sig, metricName, flags);
                     Tracer tracer;
-                    if (TracerFlags.isRoot(flags)) { // Dispatcher || Async
+                    if (TracerFlags.isRoot(flags)) { // Dispatcher || Async || External
                         tracer = new OtherRootTracer(txa, sig, invocationTarget, mnf, flags);
                     } else {
                         tracer = new DefaultTracer(txa, sig, invocationTarget, mnf, flags);
@@ -149,10 +151,10 @@ public class InstrumentationImpl implements Instrumentation {
                     Tracer initiatingTracer = (Tracer) AgentBridge.activeToken.get().tracedMethod.getAndSet(tracer);
                     tx.startFastAsyncWork(txa, initiatingTracer);
                     return noticeTracer(signatureId, flags, tracer);
-//                } else if (TracerFlags.isExternal(flags)) { // FIXME && externalTransactions Agent Config Enabled
-//                    // Create an "unscoped" transaction for external calls
-//                    com.newrelic.agent.Transaction.getTransaction(true);
-//                    txa = TransactionActivity.get();
+                } else if (startTxnForExternalCall(flags)) {
+                    // Create an "unscoped" transaction for external calls if @Trace(external=true) && transaction_tracer.record_externals=true
+                    com.newrelic.agent.Transaction.getTransaction(true);
+                    txa = TransactionActivity.get();
                 } else if (TracerFlags.isDispatcher(flags)) {
                     // Traditional first-time creation of a new transaction
                     com.newrelic.agent.Transaction.getTransaction(true);
@@ -254,7 +256,7 @@ public class InstrumentationImpl implements Instrumentation {
                     MetricNameFormat mnf = MetricNameFormats.getFormatter(invocationTarget, sig, metricName, flags);
                     Tracer tracer;
 
-                    if (TracerFlags.isRoot(flags)) { // Dispatcher || Async
+                    if (TracerFlags.isRoot(flags)) { // Dispatcher || Async || External
                         tracer = new OtherRootSqlTracer(txa, sig, invocationTarget, mnf, flags);
                     } else if (overSegmentLimit(txa)) {
                         logger.log(Level.FINEST, "Transaction has exceeded tracer segment limit. Returning ultralight sql tracer.");
@@ -267,10 +269,10 @@ public class InstrumentationImpl implements Instrumentation {
                     Tracer initiatingTracer = (Tracer) tokenAndRefCount.tracedMethod.getAndSet(tracer);
                     tx.startFastAsyncWork(txa, initiatingTracer);
                     return tracer;
-//                } else if (TracerFlags.isExternal(flags)) { // FIXME && externalTransactions Agent Config Enabled
-//                    // Create an "unscoped" transaction for external calls
-//                    com.newrelic.agent.Transaction.getTransaction(true);
-//                    txa = TransactionActivity.get();
+                } else if (startTxnForExternalCall(flags)) {
+                    // Create an "unscoped" transaction for external calls if @Trace(external=true) && transaction_tracer.record_externals=true
+                    com.newrelic.agent.Transaction.getTransaction(true);
+                    txa = TransactionActivity.get();
                 } else if (TracerFlags.isDispatcher(flags)) { // here is where a sql transaction is started
                     // Traditional first-time creation of a new transaction
                     com.newrelic.agent.Transaction.getTransaction(true);
@@ -333,6 +335,10 @@ public class InstrumentationImpl implements Instrumentation {
         }
     }
 
+    private boolean startTxnForExternalCall(int flags) {
+        return TracerFlags.isExternal(flags) && ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().isRecordExternals();
+    }
+
     private boolean overSegmentLimit(TransactionActivity transactionActivity) {
         Transaction transaction;
         if (transactionActivity == null) {
@@ -364,8 +370,17 @@ public class InstrumentationImpl implements Instrumentation {
         ClassMethodSignature sig = ClassMethodSignatures.get().get(signatureId);
         MetricNameFormat mnf = MetricNameFormats.getFormatter(target, sig, metricName, flags);
         Tracer tracer;
-        if (TracerFlags.isRoot(flags)) { // Dispatcher || Async
-            tracer = new OtherRootTracer(txa, sig, target, mnf, flags, System.nanoTime());
+        if (TracerFlags.isRoot(flags)) { // Dispatcher || Async || External
+            if (!TracerFlags.isExternal(flags)) {
+                // Dispatcher || Async root
+                tracer = new OtherRootTracer(txa, sig, target, mnf, flags, System.nanoTime());
+            } else if ((txa.getRootTracer() == null) && TracerFlags.isExternal(flags) && ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().isRecordExternals()) {
+                // External root
+                tracer = new DefaultTracer(txa, sig, target, mnf, flags);
+            } else {
+                // External but transaction already has root tracer
+                tracer = new DefaultSqlTracer(txa, sig, target, mnf, flags);
+            }
         } else {
             tracer = new DefaultTracer(txa, sig, target, mnf, flags);
         }
@@ -377,9 +392,19 @@ public class InstrumentationImpl implements Instrumentation {
         ClassMethodSignature sig = ClassMethodSignatures.get().get(signatureId);
         MetricNameFormat mnf = MetricNameFormats.getFormatter(target, sig, metricName, flags);
         Tracer tracer;
-        if (TracerFlags.isRoot(flags)) { // Dispatcher || Async
-            tracer = new OtherRootSqlTracer(txa, sig, target, mnf, flags, System.nanoTime());
-        } else {
+        if (TracerFlags.isRoot(flags)) { // Dispatcher || Async || External
+            if (!TracerFlags.isExternal(flags)) {
+                // Dispatcher || Async root
+                tracer = new OtherRootSqlTracer(txa, sig, target, mnf, flags, System.nanoTime());
+            } else if ((txa.getRootTracer() == null) && TracerFlags.isExternal(flags) && ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().isRecordExternals()) {
+                // External root
+                tracer = new OtherRootSqlTracer(txa, sig, target, mnf, flags, System.nanoTime());
+            } else {
+                // External but transaction already has root tracer
+                tracer = new DefaultSqlTracer(txa, sig, target, mnf, flags);
+            }
+        }
+        else {
             tracer = new DefaultSqlTracer(txa, sig, target, mnf, flags);
         }
         txa.tracerStarted(tracer);

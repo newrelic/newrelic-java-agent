@@ -89,6 +89,11 @@ public class Annotation extends AnnotationVisitor {
             }
         }
 
+        boolean external = getBoolean("external");
+        if (external) {
+            traceDetailsBuilder.setExternal(true);
+        }
+
         return new DelegatingTraceDetails(
                 traceDetailsBuilder.setMetricName(metricName).setDispatcher(dispatcher).setTracerFactoryName(
                         (String) getValues().get("tracerFactoryName")).setExcludeFromTransactionTrace(

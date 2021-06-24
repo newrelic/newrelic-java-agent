@@ -158,6 +158,9 @@ public class TraceMethodVisitor extends AdviceAdapter {
         if (!traceDetails.excludeFromTransactionTrace()) {
             tracerFlags |= TracerFlags.TRANSACTION_TRACER_SEGMENT;
         }
+        if (traceDetails.external()) {
+            tracerFlags |= TracerFlags.EXTERNAL;
+        }
         if (customTracer) {
             tracerFlags |= TracerFlags.CUSTOM;
         }

@@ -145,6 +145,8 @@ public interface Tracer extends TimedItem, ExitTracer, ErrorTracer {
 
     boolean isAsync();
 
+    boolean isExternal();
+
     void removeTransactionSegment();
 
     void markFinishTime();

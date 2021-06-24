@@ -35,6 +35,11 @@ public class DelegatingTraceDetails implements TraceDetails {
     }
 
     @Override
+    public boolean external() {
+        return delegate.external();
+    }
+
+    @Override
     public String tracerFactoryName() {
         return delegate.tracerFactoryName();
     }
