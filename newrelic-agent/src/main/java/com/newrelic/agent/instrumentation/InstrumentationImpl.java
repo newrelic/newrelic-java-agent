@@ -376,10 +376,10 @@ public class InstrumentationImpl implements Instrumentation {
                 tracer = new OtherRootTracer(txa, sig, target, mnf, flags, System.nanoTime());
             } else if ((txa.getRootTracer() == null) && TracerFlags.isExternal(flags) && ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().isRecordExternals()) {
                 // External root
-                tracer = new DefaultTracer(txa, sig, target, mnf, flags);
+                tracer = new OtherRootTracer(txa, sig, target, mnf, flags, System.nanoTime());
             } else {
                 // External but transaction already has root tracer
-                tracer = new DefaultSqlTracer(txa, sig, target, mnf, flags);
+                tracer = new DefaultTracer(txa, sig, target, mnf, flags);
             }
         } else {
             tracer = new DefaultTracer(txa, sig, target, mnf, flags);
