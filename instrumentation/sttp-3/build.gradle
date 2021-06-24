@@ -14,13 +14,14 @@ dependencies {
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.sttp-3',
-            'Implementation-Title-Alias': 'sttp_instrumentation' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.sttp-3', 'Implementation-Title-Alias': 'sttp_instrumentation' }
 }
 
 verifyInstrumentation {
-    passes 'org.scala-lang:scala-library:[2.13.0,)'
-    fails 'org.scala-lang:scala-library:(,2.13.0-M4]'
+    passesOnly 'com.softwaremill.sttp.client3:core_2.11:[3.1.3,)'
+    passesOnly 'com.softwaremill.sttp.client3:core_2.12:[3.1.3,)'
+    passesOnly 'com.softwaremill.sttp.client3:core_2.13:[3.1.3,)'
+    passesOnly 'com.softwaremill.sttp.client3:core_3:[3.1.3,)'
 }
 
 test {
