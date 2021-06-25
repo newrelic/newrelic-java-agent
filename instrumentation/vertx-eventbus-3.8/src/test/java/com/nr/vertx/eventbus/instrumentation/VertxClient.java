@@ -73,9 +73,7 @@ public class VertxClient {
 		Set<String> keys = metrics.keySet();
 		assertTrue("Publish Not Found",keys.contains(MESSAGEPUBLISH));
 		assertTrue("Message Handle Not Found",keys.contains(MESSAGEHANDLE));
-		assertTrue("Message Received Not Found",keys.contains(MESSAGERECEIVED));
-		
-		
+		assertTrue("Message Received Not Found",keys.contains(MESSAGERECEIVED));		
 
 	}
 
