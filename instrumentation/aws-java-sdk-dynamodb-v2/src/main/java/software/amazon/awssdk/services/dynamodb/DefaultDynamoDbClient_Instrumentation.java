@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 import java.net.URI;
@@ -67,7 +68,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     }
 
     @Trace
-    public ScanResponse scan(DescribeTableRequest request) {
+    public ScanResponse scan(ScanRequest request) {
         URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
         System.out.println("scan -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", request.tableName(), endpoint);
