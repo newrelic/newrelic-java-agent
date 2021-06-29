@@ -31,6 +31,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -77,26 +79,15 @@ public class DynamoApiTest {
     private static final String ASYNC_TABLE_NAME = "test-async";
 
     @Test
-    public void testCreateTable() {
+    public void testListAndCreateTable() {
         createTableTxn();
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(10000));
 
         String txName = introspector.getTransactionNames().iterator().next();
         DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
-        helper.assertScopedStatementMetricCount(txName, "createTable", TABLE_NAME, 1);
-        helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
-    }
-
-    @Test
-    public void testListTable() {
-        listTablesTxn();
-        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        assertEquals(1, introspector.getFinishedTransactionCount(10000));
-
-        String txName = introspector.getTransactionNames().iterator().next();
-        DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
         helper.assertScopedOperationMetricCount(txName, "listTables", 1);
+        helper.assertScopedStatementMetricCount(txName, "createTable", TABLE_NAME, 1);
         helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
     }
 
@@ -158,6 +149,23 @@ public class DynamoApiTest {
         helper.assertScopedStatementMetricCount(txName, "deleteTable", TABLE_NAME, 1);
         helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
     }
+
+    //Async Client Tests
+
+    @Test
+    public void testListAndCreateTableAsync() throws ExecutionException, InterruptedException {
+        createTableAsyncTxn();
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount(10000));
+
+        String txName = introspector.getTransactionNames().iterator().next();
+        DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
+        helper.assertScopedOperationMetricCount(txName, "listTables", 1);
+        helper.assertScopedStatementMetricCount(txName, "createTable", ASYNC_TABLE_NAME, 1);
+        helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
+    }
+
+    //sync test helpers
 
     @Trace(dispatcher = true)
     private void createTableTxn() {
@@ -242,6 +250,28 @@ public class DynamoApiTest {
                 .billingMode(BillingMode.PAY_PER_REQUEST)
                 .build();
         syncDynamoDbClient.createTable(request);
+    }
+
+    //async test helpers
+    @Trace(dispatcher = true)
+    private void createTableAsyncTxn() throws ExecutionException, InterruptedException {
+        if (tableExistsAsync(ASYNC_TABLE_NAME)) {
+            return;
+        }
+        CreateTableRequest request = CreateTableRequest.builder()
+                .tableName(ASYNC_TABLE_NAME)
+                .keySchema(KeySchemaElement.builder().attributeName("artist").keyType(KeyType.HASH).build())
+                .attributeDefinitions(AttributeDefinition.builder().attributeName("artist").attributeType(ScalarAttributeType.S).build())
+                .billingMode(BillingMode.PAY_PER_REQUEST)
+                .build();
+        asyncDynamoDbClient.createTable(request);
+    }
+
+    private boolean tableExistsAsync(String table) throws ExecutionException, InterruptedException {
+        ListTablesRequest request = ListTablesRequest.builder().build();
+        CompletableFuture<ListTablesResponse> listTableResponse = asyncDynamoDbClient.listTables(request);
+        return listTableResponse.get().tableNames().contains(table);
+
     }
 
 //    @Test
