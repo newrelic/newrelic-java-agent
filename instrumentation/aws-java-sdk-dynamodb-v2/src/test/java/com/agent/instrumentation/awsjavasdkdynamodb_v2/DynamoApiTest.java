@@ -80,9 +80,14 @@ public class DynamoApiTest {
 
     @Test
     public void testListAndCreateTable() {
-        createTableTxn();
+        //tests are run in random order. Must create table in order for metric to be generated.
+        deleteTableTxn();
+
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(10000));
+        introspector.clear();
+
+        createTableTxn();
 
         String txName = introspector.getTransactionNames().iterator().next();
         DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
@@ -106,8 +111,8 @@ public class DynamoApiTest {
     }
 
     @Test
-    public void testPutAndGetItem() {
-        putAndGetTxn();
+    public void testPutGetDeleteItem() {
+        putGetDeleteTxn();
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
@@ -117,6 +122,7 @@ public class DynamoApiTest {
 
         helper.assertScopedStatementMetricCount(txName, "putItem", TABLE_NAME, 1);
         helper.assertScopedStatementMetricCount(txName, "getItem", TABLE_NAME, 1);
+        helper.assertScopedStatementMetricCount(txName, "deleteItem", TABLE_NAME, 1);
         helper.assertAggregateMetrics();
         helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
     }
@@ -153,9 +159,14 @@ public class DynamoApiTest {
 
     @Test
     public void testListAndCreateTableAsync() throws ExecutionException, InterruptedException {
-        createTableAsyncTxn();
+        //tests are run in random order. Must create table in order for metric to be generated.
+        deleteTableAsyncTxn();
+
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(10000));
+        introspector.clear();
+
+        createTableAsyncTxn();
 
         String txName = introspector.getTransactionNames().iterator().next();
         DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
@@ -246,10 +257,11 @@ public class DynamoApiTest {
     }
 
     @Trace(dispatcher = true)
-    private void putAndGetTxn() {
+    private void putGetDeleteTxn() {
         createTable(TABLE_NAME);
         putItem();
         getItem();
+        deleteItem();
     }
 
     @Trace(dispatcher = true)
@@ -280,6 +292,14 @@ public class DynamoApiTest {
                 .item(createDefaultItem())
                 .build();
         syncDynamoDbClient.putItem(request);
+    }
+
+    private void deleteItem() {
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .tableName(TABLE_NAME)
+                .key(Collections.singletonMap("artist", AttributeValue.builder().s("Pink").build()))
+                .build();
+        syncDynamoDbClient.deleteItem(request);
     }
 
     private Map<String, AttributeValue> createDefaultItem() {
