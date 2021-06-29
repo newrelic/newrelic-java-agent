@@ -18,7 +18,7 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public GetItemResponse getItem(GetItemRequest getItemRequest) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
         System.out.println("getItem -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "getItem", getItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
@@ -26,15 +26,22 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public PutItemResponse putItem(PutItemRequest putItemRequest) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
         System.out.println("putItem -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "putItem", putItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
     @Trace
+    public DeleteItemResponse deleteItem(DeleteItemRequest request) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteItem", request.tableName(), endpoint);
+        return Weaver.callOriginal();
+    }
+
+    @Trace
     public ListTablesResponse listTables(ListTablesRequest request) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
         System.out.println("listTables -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTables", request.exclusiveStartTableName(), endpoint);
         return Weaver.callOriginal();
@@ -42,7 +49,7 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public CreateTableResponse createTable(CreateTableRequest request) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
         System.out.println("createTable -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "createTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
@@ -50,7 +57,7 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public DeleteTableResponse deleteTable(DeleteTableRequest request) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
         System.out.println("deleteTable -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
@@ -58,7 +65,7 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public DescribeTableResponse describeTable(DescribeTableRequest request) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
         System.out.println("describeTable -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
@@ -66,7 +73,7 @@ final class DefaultDynamoDbClient_Instrumentation {
 
     @Trace
     public ScanResponse scan(ScanRequest request) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
         System.out.println("scan -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", request.tableName(), endpoint);
         return Weaver.callOriginal();
