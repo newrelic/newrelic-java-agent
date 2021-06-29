@@ -172,9 +172,7 @@ public class DynamoApiTest {
 
     @Trace(dispatcher = true)
     private void describeTableTxn() {
-        if (!tableExists(TABLE_NAME)) {
-            createTable(TABLE_NAME);
-        }
+        createTable(TABLE_NAME);
         DescribeTableRequest request = DescribeTableRequest.builder()
                 .tableName(TABLE_NAME)
                 .build();
@@ -183,27 +181,21 @@ public class DynamoApiTest {
 
     @Trace(dispatcher = true)
     private void putAndGetTxn() {
-        if (!tableExists(TABLE_NAME)) {
-            createTable(TABLE_NAME);
-        }
+        createTable(TABLE_NAME);
         putItem();
         getItem();
     }
 
     @Trace(dispatcher = true)
     private void scanTableTxn() {
-        if (!tableExists(TABLE_NAME)) {
-            createTable(TABLE_NAME);
-        }
+        createTable(TABLE_NAME);
         ScanRequest scanRequest = ScanRequest.builder().tableName(TABLE_NAME).build();
         syncDynamoDbClient.scan(scanRequest);
     }
 
     @Trace(dispatcher = true)
     private void deleteTableTxn() {
-        if (!tableExists(TABLE_NAME)) {
-            createTable(TABLE_NAME);
-        }
+        createTable(TABLE_NAME);
         DeleteTableRequest request = DeleteTableRequest.builder().tableName(TABLE_NAME).build();
         syncDynamoDbClient.deleteTable(request);
     }
@@ -240,6 +232,9 @@ public class DynamoApiTest {
     }
 
     private void createTable(String table) {
+        if (tableExists(TABLE_NAME)) {
+            return;
+        }
         CreateTableRequest request = CreateTableRequest.builder()
                 .tableName(table)
                 .keySchema(KeySchemaElement.builder().attributeName("artist").keyType(KeyType.HASH).build())
