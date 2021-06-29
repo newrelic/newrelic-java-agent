@@ -16,6 +16,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.Trace;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +28,9 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -36,8 +40,8 @@ public class DynamoApiTest {
 
     private static String hostName;
     private static DynamoDBProxyServer server;
-    private static DynamoDbClient amazonDynamoDB;
-    private static DynamoDbAsyncClient amazonDynamoDBAsync;
+    private static DynamoDbClient syncDynamoDbClient;
+    private static DynamoDbAsyncClient asyncDynamoDbClient;
     private static String port;
 
     @BeforeClass
@@ -47,12 +51,12 @@ public class DynamoApiTest {
         server = ServerRunner.createServerFromCommandLineArgs(new String[]{"-inMemory", "-port", port});
         server.start();
 
-        amazonDynamoDB = DynamoDbClient.builder()
+        syncDynamoDbClient = DynamoDbClient.builder()
                 .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .endpointOverride(new URI("http://localhost:" + port))
                 .region(Region.US_WEST_1).build();
 
-        amazonDynamoDBAsync = DynamoDbAsyncClient.builder()
+        asyncDynamoDbClient = DynamoDbAsyncClient.builder()
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .endpointOverride(new URI("http://localhost:" + port))
                 .region(Region.US_WEST_1).build();
@@ -84,19 +88,165 @@ public class DynamoApiTest {
         helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
     }
 
-    @Trace(dispatcher = true)
-    private void createTableTxn() {
-        getOrCreateTable(TABLE_NAME);
+    @Test
+    public void testListTable() {
+        listTablesTxn();
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount(10000));
+
+        String txName = introspector.getTransactionNames().iterator().next();
+        DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
+        helper.assertScopedOperationMetricCount(txName, "listTables", 1);
+        helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
     }
 
-    private void getOrCreateTable(String table) {
+    @Test
+    public void testDescribeTable() {
+        describeTableTxn();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
+
+        String txName = introspector.getTransactionNames().iterator().next();
+        DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
+        helper.assertScopedStatementMetricCount(txName, "describeTable", TABLE_NAME, 1);
+        helper.assertAggregateMetrics();
+        helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
+    }
+
+    @Test
+    public void testPutAndGetItem() {
+        putAndGetTxn();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
+
+        String txName = introspector.getTransactionNames().iterator().next();
+        DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
+
+        helper.assertScopedStatementMetricCount(txName, "putItem", TABLE_NAME, 1);
+        helper.assertScopedStatementMetricCount(txName, "getItem", TABLE_NAME, 1);
+        helper.assertAggregateMetrics();
+        helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
+    }
+
+    @Test
+    public void testScanTable() {
+//        putItem();
+        scanTableTxn();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
+
+        String txName = introspector.getTransactionNames().iterator().next();
+        DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
+
+        helper.assertScopedStatementMetricCount(txName, "scan", TABLE_NAME, 1);
+        helper.assertAggregateMetrics();
+        helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
+    }
+
+    @Test
+    public void testDeleteTable() {
+        deleteTableTxn();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
+
+        String txName = introspector.getTransactionNames().iterator().next();
+        DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
+        helper.assertScopedStatementMetricCount(txName, "deleteTable", TABLE_NAME, 1);
+        helper.assertInstanceLevelMetric(DYNAMODB_PRODUCT, hostName, port);
+    }
+
+    @Trace(dispatcher = true)
+    private void createTableTxn() {
+        createTable(TABLE_NAME);
+    }
+
+    @Trace(dispatcher = true)
+    private void listTablesTxn() {
+        ListTablesRequest request = ListTablesRequest.builder().build();
+        ListTablesResponse listTableResponse = syncDynamoDbClient.listTables(request);
+    }
+
+    @Trace(dispatcher = true)
+    private void describeTableTxn() {
+        if (!tableExists(TABLE_NAME)) {
+            createTable(TABLE_NAME);
+        }
+        DescribeTableRequest request = DescribeTableRequest.builder()
+                .tableName(TABLE_NAME)
+                .build();
+        syncDynamoDbClient.describeTable(request).table();
+    }
+
+    @Trace(dispatcher = true)
+    private void putAndGetTxn() {
+        if (!tableExists(TABLE_NAME)) {
+            createTable(TABLE_NAME);
+        }
+        putItem();
+        getItem();
+    }
+
+    @Trace(dispatcher = true)
+    private void scanTableTxn() {
+        if (!tableExists(TABLE_NAME)) {
+            createTable(TABLE_NAME);
+        }
+        ScanRequest scanRequest = ScanRequest.builder().tableName(TABLE_NAME).build();
+        syncDynamoDbClient.scan(scanRequest);
+    }
+
+    @Trace(dispatcher = true)
+    private void deleteTableTxn() {
+        if (!tableExists(TABLE_NAME)) {
+            createTable(TABLE_NAME);
+        }
+        DeleteTableRequest request = DeleteTableRequest.builder().tableName(TABLE_NAME).build();
+        syncDynamoDbClient.deleteTable(request);
+    }
+
+    private void getItem() {
+        GetItemRequest request = GetItemRequest.builder()
+                .tableName(TABLE_NAME)
+                .key(Collections.singletonMap("artist", AttributeValue.builder().s("Pink").build()))
+                .build();
+        syncDynamoDbClient.getItem(request).item();
+    }
+
+    private void putItem() {
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName(TABLE_NAME)
+                .item(createDefaultItem())
+                .build();
+        syncDynamoDbClient.putItem(request);
+    }
+
+    private Map<String, AttributeValue> createDefaultItem() {
+        HashMap<String, AttributeValue> itemValues = new HashMap<String, AttributeValue>();
+
+        // Add all content to the table
+        itemValues.put("artist", AttributeValue.builder().s("Pink").build());
+        itemValues.put("songTitle", AttributeValue.builder().s("lazy river").build());
+        return itemValues;
+    }
+
+    private boolean tableExists(String table) {
+        ListTablesRequest request = ListTablesRequest.builder().build();
+        ListTablesResponse listTableResponse = syncDynamoDbClient.listTables(request);
+        return listTableResponse.tableNames().contains(table);
+    }
+
+    private void createTable(String table) {
         CreateTableRequest request = CreateTableRequest.builder()
                 .tableName(table)
                 .keySchema(KeySchemaElement.builder().attributeName("artist").keyType(KeyType.HASH).build())
                 .attributeDefinitions(AttributeDefinition.builder().attributeName("artist").attributeType(ScalarAttributeType.S).build())
                 .billingMode(BillingMode.PAY_PER_REQUEST)
                 .build();
-        amazonDynamoDB.createTable(request);
+        syncDynamoDbClient.createTable(request);
     }
 
 //    @Test

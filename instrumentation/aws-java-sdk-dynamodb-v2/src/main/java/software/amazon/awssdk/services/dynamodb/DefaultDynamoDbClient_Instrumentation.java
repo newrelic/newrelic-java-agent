@@ -8,18 +8,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.dynamodb_v2.DynamoDBMetricUtil;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.CreateTableResponse;
-import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DeleteTableResponse;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
-import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
-import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
-import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.net.URI;
 
@@ -32,6 +21,14 @@ final class DefaultDynamoDbClient_Instrumentation {
         URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
         System.out.println("getItem -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "getItem", getItemRequest.tableName(), endpoint);
+        return Weaver.callOriginal();
+    }
+
+    @Trace
+    public PutItemResponse putItem(PutItemRequest putItemRequest) {
+        URI endpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        System.out.println("putItem -> sync client endpoint: " + endpoint.toString());
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "putItem", putItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
 
