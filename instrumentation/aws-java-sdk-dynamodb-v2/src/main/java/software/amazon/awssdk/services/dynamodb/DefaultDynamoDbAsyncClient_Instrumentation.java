@@ -22,7 +22,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<ScanResponse> scan(ScanRequest scanRequest) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> scan async on endpoint: " + endpoint.toString());
+//        System.out.println("-> scan async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", scanRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -30,7 +30,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<PutItemResponse> putItem(PutItemRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> putItem async on endpoint: " + endpoint.toString());
+//        System.out.println("-> putItem async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "putItem", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -38,7 +38,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<GetItemResponse> getItem(GetItemRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> getItem async on endpoint: " + endpoint.toString());
+//        System.out.println("-> getItem async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "getItem", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -46,7 +46,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<DeleteItemResponse> deleteItem(DeleteItemRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> deleteItem async on endpoint: " + endpoint.toString());
+//        System.out.println("-> deleteItem async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteItem", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -54,7 +54,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<ListTablesResponse> listTables(ListTablesRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> listTables async on endpoint: " + endpoint.toString());
+//        System.out.println("-> listTables async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTables", request.exclusiveStartTableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -62,7 +62,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<DescribeTableResponse> describeTable(DescribeTableRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> describeTable async on endpoint: " + endpoint.toString());
+//        System.out.println("-> describeTable async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -70,7 +70,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<CreateTableResponse> createTable(CreateTableRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> createTable async on endpoint: " + endpoint.toString());
+//        System.out.println("-> createTable async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "createTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -78,7 +78,7 @@ final class DefaultDynamoDbAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<DeleteTableResponse> deleteTable(DeleteTableRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("-> deleteTable async on endpoint: " + endpoint.toString());
+//        System.out.println("-> deleteTable async on endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }

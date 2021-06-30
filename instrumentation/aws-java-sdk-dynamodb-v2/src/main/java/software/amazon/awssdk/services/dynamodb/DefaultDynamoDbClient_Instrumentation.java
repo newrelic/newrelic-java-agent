@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.dynamodb.model.*;
 import software.amazon.awssdk.services.dynamodb.paginators.ListTablesIterable;
+import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
 
 import java.net.URI;
 
@@ -20,7 +21,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     @Trace
     public GetItemResponse getItem(GetItemRequest getItemRequest) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("getItem -> sync client endpoint: " + endpoint.toString());
+//        System.out.println("getItem -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "getItem", getItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -28,7 +29,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     @Trace
     public PutItemResponse putItem(PutItemRequest putItemRequest) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("putItem -> sync client endpoint: " + endpoint.toString());
+//        System.out.println("putItem -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "putItem", putItemRequest.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -43,7 +44,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     @Trace
     public ListTablesResponse listTables(ListTablesRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("listTables -> sync client endpoint: " + endpoint.toString());
+//        System.out.println("listTables -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTables", request.exclusiveStartTableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -51,7 +52,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     @Trace
     public CreateTableResponse createTable(CreateTableRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("createTable -> sync client endpoint: " + endpoint.toString());
+//        System.out.println("createTable -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "createTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -59,7 +60,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     @Trace
     public DeleteTableResponse deleteTable(DeleteTableRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("deleteTable -> sync client endpoint: " + endpoint.toString());
+//        System.out.println("deleteTable -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -67,7 +68,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     @Trace
     public DescribeTableResponse describeTable(DescribeTableRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("describeTable -> sync client endpoint: " + endpoint.toString());
+//        System.out.println("describeTable -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTable", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -75,7 +76,7 @@ final class DefaultDynamoDbClient_Instrumentation {
     @Trace
     public ScanResponse scan(ScanRequest request) {
         URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-        System.out.println("scan -> sync client endpoint: " + endpoint.toString());
+//        System.out.println("scan -> sync client endpoint: " + endpoint.toString());
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", request.tableName(), endpoint);
         return Weaver.callOriginal();
     }
@@ -117,26 +118,26 @@ final class DefaultDynamoDbClient_Instrumentation {
 //        return Weaver.callOriginal();
 //    }
 
-//    @Trace
+    //    @Trace
 //    public DescribeExportResponse describeExport(DescribeExportRequest describeExportRequest) {
 //        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
 //        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeExport", describeExportRequest.tableName(), endpoint);
 //        return Weaver.callOriginal();
 //    }
 //
-//    @Trace
-//    public DescribeGlobalTableResponse describeGlobalTable(DescribeGlobalTableRequest describeGlobalTableRequest) {
-//        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-//        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTable", describeGlobalTableRequest.tableName(), endpoint);
-//        return Weaver.callOriginal();
-//    }
-//
-//    @Trace
-//    public DescribeGlobalTableSettingsResponse describeGlobalTableSettings(DescribeGlobalTableSettingsRequest describeGlobalTableSettingsRequest) {
-//        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-//        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTableSettings", describeGlobalTableSettingsRequest.tableName(), endpoint);
-//        return Weaver.callOriginal();
-//    }
+    @Trace
+    public DescribeGlobalTableResponse describeGlobalTable(DescribeGlobalTableRequest describeGlobalTableRequest) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTable", describeGlobalTableRequest.globalTableName(), endpoint);
+        return Weaver.callOriginal();
+    }
+
+    @Trace
+    public DescribeGlobalTableSettingsResponse describeGlobalTableSettings(DescribeGlobalTableSettingsRequest describeGlobalTableSettingsRequest) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeGlobalTableSettings", describeGlobalTableSettingsRequest.globalTableName(), endpoint);
+        return Weaver.callOriginal();
+    }
 //
 //    @Trace
 //    public DescribeKinesisStreamingDestinationResponse describeKinesisStreamingDestination(DescribeKinesisStreamingDestinationRequest describeKinesisStreamingDestinationRequest) {
@@ -264,26 +265,26 @@ final class DefaultDynamoDbClient_Instrumentation {
 //        return Weaver.callOriginal();
 //    }
 
-//    @Trace
-//    public RestoreTableFromBackupResponse restoreTableFromBackup(RestoreTableFromBackupRequest restoreTableFromBackupRequest) {
-//        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-//        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableFromBackup", restoreTableFromBackupRequest.tableName(), endpoint);
-//        return Weaver.callOriginal();
-//    }
+    @Trace
+    public RestoreTableFromBackupResponse restoreTableFromBackup(RestoreTableFromBackupRequest restoreTableFromBackupRequest) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableFromBackup", restoreTableFromBackupRequest.targetTableName(), endpoint);
+        return Weaver.callOriginal();
+    }
 
-//    @Trace
-//    public RestoreTableToPointInTimeResponse restoreTableToPointInTime(RestoreTableToPointInTimeRequest restoreTableToPointInTimeRequest) {
-//        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-//        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableToPointInTime", restoreTableToPointInTimeRequest.tableName(), endpoint);
-//        return Weaver.callOriginal();
-//    }
+    @Trace
+    public RestoreTableToPointInTimeResponse restoreTableToPointInTime(RestoreTableToPointInTimeRequest restoreTableToPointInTimeRequest) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "restoreTableToPointInTime", restoreTableToPointInTimeRequest.targetTableName(), endpoint);
+        return Weaver.callOriginal();
+    }
 
-//    @Trace
-//    public ScanIterable scanPaginator(ScanRequest scanRequest) {
-//        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-//        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scanPaginator", scanRequest.tableName(), endpoint);
-//        return Weaver.callOriginal();
-//    }
+    @Trace
+    public ScanIterable scanPaginator(ScanRequest scanRequest) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scanPaginator", scanRequest.tableName(), endpoint);
+        return Weaver.callOriginal();
+    }
 
 //    @Trace
 //    public TagResourceResponse tagResource(TagResourceRequest tagResourceRequest) {
@@ -327,19 +328,19 @@ final class DefaultDynamoDbClient_Instrumentation {
 //        return Weaver.callOriginal();
 //    }
 
-//    @Trace
-//    public UpdateGlobalTableResponse updateGlobalTable(UpdateGlobalTableRequest updateGlobalTableRequest) {
-//        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-//        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateGlobalTable", updateGlobalTableRequest.tableName(), endpoint);
-//        return Weaver.callOriginal();
-//    }
-//
-//    @Trace
-//    public UpdateGlobalTableSettingsResponse updateGlobalTableSettings(UpdateGlobalTableSettingsRequest updateGlobalTableSettingsRequest) {
-//        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
-//        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateGlobalTableSettings", updateGlobalTableSettingsRequest.tableName(), endpoint);
-//        return Weaver.callOriginal();
-//    }
+    @Trace
+    public UpdateGlobalTableResponse updateGlobalTable(UpdateGlobalTableRequest updateGlobalTableRequest) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateGlobalTable", updateGlobalTableRequest.globalTableName(), endpoint);
+        return Weaver.callOriginal();
+    }
+
+    @Trace
+    public UpdateGlobalTableSettingsResponse updateGlobalTableSettings(UpdateGlobalTableSettingsRequest updateGlobalTableSettingsRequest) {
+        URI endpoint = clientConfiguration != null ? clientConfiguration.option(SdkClientOption.ENDPOINT) : null;
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateGlobalTableSettings", updateGlobalTableSettingsRequest.globalTableName(), endpoint);
+        return Weaver.callOriginal();
+    }
 
     @Trace
     public UpdateItemResponse updateItem(UpdateItemRequest updateItemRequest) {
