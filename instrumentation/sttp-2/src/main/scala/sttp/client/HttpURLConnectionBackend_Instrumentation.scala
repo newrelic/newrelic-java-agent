@@ -10,12 +10,11 @@ package sttp.client
 import com.newrelic.api.agent.weaver.Weaver
 import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
 import com.nr.agent.instrumentation.sttp.DelegateIdentity
-import sttp.client3.HttpURLConnectionBackend.EncodingHandler
-import sttp.client3.{Identity, SttpBackend, SttpBackendOptions}
+import sttp.client.HttpURLConnectionBackend.EncodingHandler
 
 import java.net.{HttpURLConnection, URL, URLConnection}
 
-@ScalaWeave(`type` = ScalaMatchType.Object, `originalName` = "sttp.client3.HttpURLConnectionBackend")
+@ScalaWeave(`type` = ScalaMatchType.Object, `originalName` = "sttp.client.HttpURLConnectionBackend")
 class HttpURLConnectionBackend_Instrumentation {
   def apply(
              options: SttpBackendOptions,
@@ -23,5 +22,5 @@ class HttpURLConnectionBackend_Instrumentation {
              createURL: String => URL,
              openConnection: (URL, Option[java.net.Proxy]) => URLConnection,
              customEncodingHandler: EncodingHandler
-           ): SttpBackend[Identity, Any] = new DelegateIdentity(Weaver.callOriginal())
+           ): SttpBackend[Identity, Nothing, NothingT] = new DelegateIdentity(Weaver.callOriginal())
 }

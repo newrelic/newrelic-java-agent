@@ -9,21 +9,21 @@ package sttp.client
 
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.HttpsConnectionContext
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.ws.WebSocketRequest
 import akka.http.scaladsl.settings.ConnectionPoolSettings
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import com.newrelic.api.agent.weaver.Weaver
 import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
 import com.nr.agent.instrumentation.sttp.DelegateFuture
-import sttp.capabilities.WebSockets
-import sttp.capabilities.akka.AkkaStreams
-import sttp.client3.akkahttp.AkkaHttpBackend.EncodingHandler
-import sttp.client3.{SttpBackend, SttpBackendOptions}
+import sttp.client.akkahttp.AkkaHttpBackend.EncodingHandler
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@ScalaWeave(`type` = ScalaMatchType.Object, `originalName` = "sttp.client3.akkahttp.AkkaHttpBackend")
-class AkkaHttpBackend_Instrumentation {
+
+@ScalaWeave(`type` = ScalaMatchType.Object, `originalName` = "sttp.client.akkahttp.AkkaHttpBackend")
+private class AkkaHttpBackend_Instrumentation {
   def apply(
              options: SttpBackendOptions,
              customHttpsContext: Option[HttpsConnectionContext],
@@ -31,9 +31,8 @@ class AkkaHttpBackend_Instrumentation {
              customLog: Option[LoggingAdapter],
              customizeRequest: HttpRequest => HttpRequest,
              customizeWebsocketRequest: WebSocketRequest => WebSocketRequest,
-             customizeResponse: (HttpRequest, HttpResponse) => HttpResponse,
              customEncodingHandler: EncodingHandler
            )(implicit
-             ec: Option[ExecutionContext]
-           ): SttpBackend[Future, AkkaStreams with WebSockets] = new DelegateFuture(Weaver.callOriginal())
+             ec: ExecutionContext = ExecutionContext.global
+           ): SttpBackend[Future, Source[ByteString, Any], Any] = new DelegateFuture(Weaver.callOriginal())
 }

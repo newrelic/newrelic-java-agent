@@ -10,14 +10,14 @@ package com.nr.agent.instrumentation.sttp
 import com.newrelic.agent.introspec.internal.HttpServerRule
 import com.newrelic.agent.introspec.{Introspector, TraceSegment, TransactionTrace}
 import com.newrelic.api.agent.Trace
-import sttp.client3.{SttpBackend, UriContext, basicRequest}
+import sttp.client3.{Response, SttpBackend, UriContext, basicRequest}
 
 import scala.jdk.CollectionConverters._
 
-object SttpTestUtils {
+object Sttp3TestUtils {
 
   @Trace(dispatcher = true)
-  def makeRequest[F[_]](implicit backend: SttpBackend[F, Any], server: HttpServerRule) = {
+  def makeRequest[F[_]](implicit backend: SttpBackend[F, Any], server: HttpServerRule): F[Response[Either[String, String]]] = {
     basicRequest.get(uri"${server.getEndPoint}?no-transaction=1").send(backend)
   }
 

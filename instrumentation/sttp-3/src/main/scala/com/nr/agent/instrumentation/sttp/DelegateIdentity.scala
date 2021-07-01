@@ -7,7 +7,7 @@
 
 package com.nr.agent.instrumentation.sttp
 
-import com.nr.agent.instrumentation.sttp.SttpUtils.{finishSegment, startSegment}
+import com.nr.agent.instrumentation.sttp.Sttp3Utils.{finishSegment, startSegment}
 import sttp.capabilities.Effect
 import sttp.client3.{DelegateSttpBackend, Identity, Request, Response, SttpBackend}
 
@@ -15,7 +15,7 @@ class DelegateIdentity(delegate: SttpBackend[Identity, Any]) extends DelegateStt
   override def send[T, R >: Any with Effect[Identity] ](request: Request[T, R]): Response[T] = {
     val segment = startSegment(request)
 
-    val response: Response[T] = delegate.send(request)
+    val response = delegate.send(request)
 
     finishSegment(request, segment, response)
 
