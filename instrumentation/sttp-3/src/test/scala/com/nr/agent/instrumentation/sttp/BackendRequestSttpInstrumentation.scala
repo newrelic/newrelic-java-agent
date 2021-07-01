@@ -10,7 +10,7 @@ package com.nr.agent.instrumentation.sttp
 import cats.effect.{Blocker, ContextShift, IO}
 import com.newrelic.agent.introspec.internal.HttpServerRule
 import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner, Introspector}
-import com.nr.agent.instrumentation.sttp.SttpTestUtils.{getSegments, getTraces, makeRequest}
+import com.nr.agent.instrumentation.sttp.Sttp3TestUtils.{getSegments, getTraces, makeRequest}
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.junit.{Assert, Rule, Test}
 import org.junit.runner.RunWith
@@ -29,7 +29,7 @@ class BackendRequestSttpInstrumentation {
   val _server = new HttpServerRule()
 
   @Rule
-  implicit def server = _server
+  implicit def server: HttpServerRule = _server
 
   @Test
   def httpURLConnectionBackend(): Unit = {

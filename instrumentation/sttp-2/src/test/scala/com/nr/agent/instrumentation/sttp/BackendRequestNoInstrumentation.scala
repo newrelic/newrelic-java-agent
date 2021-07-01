@@ -10,13 +10,12 @@ package com.nr.agent.instrumentation.sttp
 import cats.effect.{Blocker, ContextShift, IO}
 import com.newrelic.agent.introspec.internal.HttpServerRule
 import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner, Introspector}
-import com.nr.agent.instrumentation.sttp.Sttp3TestUtils.{getSegments, getTraces, makeRequest}
-import org.http4s.client.blaze.BlazeClientBuilder
+import com.nr.agent.instrumentation.sttp.Sttp2TestUtils.{getSegments, getTraces, makeRequest}
 import org.junit.{Assert, Rule, Test}
 import org.junit.runner.RunWith
-import sttp.client3.{HttpURLConnectionBackend, _}
-import sttp.client3.akkahttp.AkkaHttpBackend
-import sttp.client3.http4s.Http4sBackend
+import sttp.client.{HttpURLConnectionBackend, _}
+import sttp.client.akkahttp.AkkaHttpBackend
+import sttp.client.http4s.Http4sBackend
 
 import scala.concurrent.duration.DurationInt
 import java.util.concurrent.TimeUnit
@@ -35,7 +34,7 @@ class BackendRequestNoInstrumentation {
   def httpURLConnectionBackend(): Unit = {
     //Given
     implicit val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-    implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+    implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
 
     //When
     val response = makeRequest
@@ -56,7 +55,7 @@ class BackendRequestNoInstrumentation {
   def akkaHttpBackend(): Unit = {
     //Given
     implicit val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-    implicit val backend: SttpBackend[Future, Any] = AkkaHttpBackend()
+    implicit val backend: SttpBackend[Future, Nothing, NothingT] = AkkaHttpBackend()
 
     //When
     val response = Await.result(makeRequest, 10.seconds)
@@ -80,12 +79,7 @@ class BackendRequestNoInstrumentation {
     implicit val introspector: Introspector = InstrumentationTestRunner.getIntrospector
 
     //When
-    val response = Blocker[IO].use(blocker => {
-      BlazeClientBuilder[IO](blocker.blockingContext).resource.use(client => {
-        implicit val backend: SttpBackend[IO, Any] = Http4sBackend.usingClient(client, blocker)
-        makeRequest
-      })
-    }).unsafeRunSync()
+    val response = Blocker[IO].flatMap(Http4sBackend.usingDefaultClientBuilder[IO](_)).use { implicit backend => makeRequest }.unsafeRunSync()
 
     //Then
     introspector.getFinishedTransactionCount(TimeUnit.SECONDS.toMillis(10))

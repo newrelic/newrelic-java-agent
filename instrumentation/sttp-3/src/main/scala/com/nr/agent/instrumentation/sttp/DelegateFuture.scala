@@ -7,23 +7,22 @@
 
 package com.nr.agent.instrumentation.sttp
 
-import com.nr.agent.instrumentation.sttp.SttpUtils.{finishSegment, startSegment}
-import sttp.capabilities.{Effect, WebSockets}
-import sttp.capabilities.akka.AkkaStreams
+import com.nr.agent.instrumentation.sttp.Sttp3Utils.{finishSegment, startSegment}
+import sttp.capabilities.Effect
 import sttp.client3.{DelegateSttpBackend, Request, Response, SttpBackend}
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
 
-class DelegateFutureAkkaStreams(delegate: SttpBackend[Future, AkkaStreams with WebSockets]) extends DelegateSttpBackend[Future, AkkaStreams with WebSockets] (delegate) {
+class DelegateFuture[WS](delegate: SttpBackend[Future, WS]) extends DelegateSttpBackend[Future, WS] (delegate) {
 
   implicit val executor: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
 
-  override def send[T, R >: AkkaStreams with WebSockets with Effect[Future]](request: Request[T, R]): Future[Response[T]] = {
+  override def send[T, R >: WS with Effect[Future]](request: Request[T, R]): Future[Response[T]] = {
     val segment = startSegment(request)
 
-    val response: Future[Response[T]] = delegate.send(request)
+    val response = delegate.send(request)
 
     response onComplete {
       case Success(response) => finishSegment(request, segment, response)

@@ -13,7 +13,7 @@ import sttp.client3.{Request, Response}
 import java.net.URI
 
 
-object SttpUtils {
+object Sttp3Utils {
 
   def startSegment[R, T](request: Request[T, R]) = {
     NewRelic.getAgent.getTransaction.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, "Sttp", "send");
