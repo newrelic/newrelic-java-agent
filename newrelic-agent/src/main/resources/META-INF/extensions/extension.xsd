@@ -81,7 +81,8 @@
                                                         </xs:annotation>
                                                     </xs:element>
                                                 </xs:choice>
-                                                <xs:element name="method" minOccurs="1" maxOccurs="unbounded">
+                                                <xs:choice minOccurs="1">
+                                                    <xs:element name="method" maxOccurs="unbounded">
                                                     <xs:complexType>
 														<xs:choice minOccurs="1">
 			                                                <xs:element name="returnType" type="xs:string" minOccurs="0">
@@ -136,6 +137,18 @@
                                                         
                                                     </xs:complexType>
                                                 </xs:element>
+                                                    <xs:element name="traceLambda">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:boolean">
+                                                                    <xs:attribute type="xs:string" name="pattern"/>
+                                                                    <xs:attribute type="xs:boolean" name="includeNonstatic"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <xs:element maxOccurs="unbounded" name="traceByReturnType"/>
+                                                </xs:choice>
                                             </xs:sequence>
                                         </xs:choice>
                                     </xs:sequence>
