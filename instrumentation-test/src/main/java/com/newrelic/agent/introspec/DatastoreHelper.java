@@ -161,15 +161,24 @@ public class DatastoreHelper {
     }
 
     public void assertInstanceLevelMetric(String dbVendor, String host, String portOrIdentifier) {
-        Map<String, TracedMetricData> unscopedMetrics = InstrumentationTestRunner.getIntrospector().getUnscopedMetrics();
+        Map<String, TracedMetricData> unscopedMetrics = getMetricsWithCurrentTestRunner();
         String instanceMetric = com.newrelic.agent.database.DatastoreMetrics.buildInstanceMetric(dbVendor, host, null,
                 portOrIdentifier);
         assertTrue("Instance metric " + instanceMetric + " not found. Other instance metrics found: "
                 + otherInstanceMetrics(), unscopedMetrics.containsKey(instanceMetric));
     }
 
+    private Map<String, TracedMetricData> getMetricsWithCurrentTestRunner() {
+        Map<String, TracedMetricData> unscopedMetrics;
+        if (InstrumentationTestRunner.getIntrospector() != null) {
+            return unscopedMetrics = InstrumentationTestRunner.getIntrospector().getUnscopedMetrics();
+        } else {
+            return unscopedMetrics = InstrumentationTestRunnerWithParameters.getIntrospector().getUnscopedMetrics();
+        }
+    }
+
     private String otherInstanceMetrics() {
-        Map<String, TracedMetricData> unscopedMetrics = InstrumentationTestRunner.getIntrospector().getUnscopedMetrics();
+        Map<String, TracedMetricData> unscopedMetrics = getMetricsWithCurrentTestRunner();
         StringBuilder sb = new StringBuilder();
         for (String metric : unscopedMetrics.keySet()) {
             if (metric.startsWith("Datastore/instance")) {

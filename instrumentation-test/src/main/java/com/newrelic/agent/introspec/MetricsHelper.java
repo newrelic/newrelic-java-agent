@@ -22,8 +22,12 @@ public class MetricsHelper {
      * @return call count for the specified scoped metric name
      */
     public static int getScopedMetricCount(String transactionName, String metricName) {
-        TracedMetricData data = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(
-                transactionName).get(metricName);
+        TracedMetricData data;
+        if (InstrumentationTestRunner.getIntrospector() != null) {
+            data = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(transactionName).get(metricName);
+        } else {
+            data = InstrumentationTestRunnerWithParameters.getIntrospector().getMetricsForTransaction(transactionName).get(metricName);
+        }
         return data == null ? 0 : data.getCallCount();
     }
 
