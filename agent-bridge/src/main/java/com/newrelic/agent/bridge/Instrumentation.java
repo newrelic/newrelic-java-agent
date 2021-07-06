@@ -55,6 +55,8 @@ public interface Instrumentation {
      */
     ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags);
 
+    ExitTracer createScalaTxnTracer();
+
     /**
      * Returns the current transaction. This should not be called directly - instead use {@link Agent#getTransaction()}.
      *
