@@ -11,4 +11,4 @@ import com.newrelic.api.agent.weaver.SkipIfPresent;
 
 // This instrumentation will cause Segment timeouts if it applies to the reactive driver
 @SkipIfPresent
-public class MongoClients {}
+final class MongoClients {}
