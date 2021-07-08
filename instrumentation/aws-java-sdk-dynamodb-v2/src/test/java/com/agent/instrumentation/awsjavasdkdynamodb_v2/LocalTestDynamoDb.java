@@ -7,28 +7,11 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
-import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
-import software.amazon.awssdk.services.dynamodb.model.BillingMode;
-import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
-import software.amazon.awssdk.services.dynamodb.model.KeyType;
-import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
-import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +29,7 @@ public class LocalTestDynamoDb {
     private LocalTestDynamoDb() throws Exception {
         port = String.valueOf(InstrumentationTestRunner.getIntrospector().getRandomPort());
         hostName = InetAddress.getLocalHost().getHostName();
-        server = ServerRunner.createServerFromCommandLineArgs(new String[] { "-inMemory", "-port", port });
+        server = ServerRunner.createServerFromCommandLineArgs(new String[]{"-inMemory", "-port", port});
         client = DynamoDbClient.builder()
                 .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .endpointOverride(new URI("http://localhost:" + port))
@@ -85,6 +68,113 @@ public class LocalTestDynamoDb {
         server.stop();
     }
 
+    public boolean tableExists() {
+        ListTablesRequest request = ListTablesRequest.builder().build();
+        ListTablesResponse listTableResponse = client.listTables(request);
+        return listTableResponse.tableNames().contains(TABLE_NAME);
+    }
+
+
+    // AWS service call simulations
+    // NOTE: We cannot simulate 'tag' methods for DynamoDb API test purpose
+    //       because tags are not supported by the DynamoDBLocal.
+    //       See DefaultDynamoDbClient_InstrumentationTagMethodsTest for instrumentation validation on these methods.
+
+    public void describeTimeToLive() {
+        client.describeTimeToLive(describeTimeToLiveRequest());
+    }
+
+    public void describeTimeToLiveAsync() {
+        tryToGetCompletableFuture(asyncClient.describeTimeToLive(describeTimeToLiveRequest()));
+    }
+
+    private DescribeTimeToLiveRequest describeTimeToLiveRequest() {
+        return DescribeTimeToLiveRequest.builder().tableName(TABLE_NAME).build();
+    }
+
+    public void describeLimits() {
+        client.describeLimits(DescribeLimitsRequest.builder().build());
+    }
+
+    public void describeLimitsAsync() {
+        tryToGetCompletableFuture(asyncClient.describeLimits(DescribeLimitsRequest.builder().build()));
+    }
+
+    public void updateTable() {
+        client.updateTable(updateTableRequest());
+    }
+
+    public void updateTableAsync() {
+        tryToGetCompletableFuture(asyncClient.updateTable(updateTableRequest()));
+    }
+
+    private UpdateTableRequest updateTableRequest() {
+        return UpdateTableRequest.builder()
+                .tableName(TABLE_NAME)
+                .billingMode(BillingMode.PAY_PER_REQUEST)
+                .build();
+    }
+
+    public void updateTimeToLive() {
+        client.updateTimeToLive(updateTimeToLiveRequest());
+    }
+
+    public void updateTimeToLiveAsync() {
+        tryToGetCompletableFuture(asyncClient.updateTimeToLive(updateTimeToLiveRequest()));
+    }
+
+    private UpdateTimeToLiveRequest updateTimeToLiveRequest() {
+        TimeToLiveSpecification spec = TimeToLiveSpecification.builder()
+                .attributeName("ttl")
+                .enabled(true)
+                .build();
+        return UpdateTimeToLiveRequest.builder()
+                .tableName(TABLE_NAME)
+                .timeToLiveSpecification(spec)
+                .build();
+    }
+
+    public void batchWriteItem() {
+        client.batchWriteItem(batchWriteItemRequest());
+    }
+
+    public void batchWriteItemAsync() {
+        tryToGetCompletableFuture(asyncClient.batchWriteItem(batchWriteItemRequest()));
+    }
+
+    public BatchWriteItemRequest batchWriteItemRequest() {
+        Map<String, Collection<WriteRequest>> itemValues = new HashMap<>();
+        PutRequest putRequest = PutRequest.builder()
+                .item(defaultItem()).build();
+        WriteRequest writeRequest = WriteRequest.builder()
+                .putRequest(putRequest).build();
+        itemValues.put(TABLE_NAME, Collections.singletonList(writeRequest));
+        return BatchWriteItemRequest.builder()
+                .requestItems(itemValues)
+                .build();
+    }
+
+    public void batchGetItem() {
+        client.batchGetItem(batchGetItemRequest());
+    }
+
+    public void batchGetItemAsync() {
+        tryToGetCompletableFuture(asyncClient.batchGetItem(batchGetItemRequest()));
+    }
+
+    private BatchGetItemRequest batchGetItemRequest() {
+        Map<String, AttributeValue> key1 = new HashMap<>();
+        key1.put("artist", AttributeValue.builder().s("Pink").build());
+        KeysAndAttributes keysAndAttributes =
+                KeysAndAttributes.builder().keys(Collections.singletonList(key1)).build();
+        Map<String, KeysAndAttributes> requestItems = new HashMap<>();
+        requestItems.put(TABLE_NAME, keysAndAttributes);
+
+        return BatchGetItemRequest.builder()
+                .requestItems(requestItems)
+                .build();
+    }
+
     public void getItem() {
         client.getItem(getItemRequest());
     }
@@ -111,7 +201,7 @@ public class LocalTestDynamoDb {
     private PutItemRequest putItemRequest() {
         return PutItemRequest.builder()
                 .tableName(TABLE_NAME)
-                .item(createDefaultItem())
+                .item(defaultItem())
                 .build();
     }
 
@@ -157,10 +247,8 @@ public class LocalTestDynamoDb {
                 .build();
     }
 
-    public Map<String, AttributeValue> createDefaultItem() {
+    public Map<String, AttributeValue> defaultItem() {
         Map<String, AttributeValue> itemValues = new HashMap<>();
-
-        // Add all content to the table
         itemValues.put("artist", AttributeValue.builder().s("Pink").build());
         itemValues.put("songTitle", AttributeValue.builder().s("lazy river").build());
         return itemValues;
@@ -203,12 +291,6 @@ public class LocalTestDynamoDb {
 
     public void scanAsync() {
         tryToGetCompletableFuture(asyncClient.scan(ScanRequest.builder().tableName(TABLE_NAME).build()));
-    }
-
-    public boolean tableExists() {
-        ListTablesRequest request = ListTablesRequest.builder().build();
-        ListTablesResponse listTableResponse = client.listTables(request);
-        return listTableResponse.tableNames().contains(TABLE_NAME);
     }
 
     public void deleteTable() {
