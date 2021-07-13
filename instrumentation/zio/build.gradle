@@ -1,0 +1,22 @@
+apply plugin: 'scala'
+
+dependencies {
+    implementation("dev.zio:zio_2.13:1.0.9")
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.scala-lang:scala-library:2.13.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.zio',
+            'Implementation-Title-Alias': 'zio_instrumentation' }
+}
+
+verifyInstrumentation {
+    passes 'dev.zio:zio_2.13:[1.0.9,)'
+}
+
+site {
+    title 'Scala'
+    type 'Other'
+}
