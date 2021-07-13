@@ -1,0 +1,19 @@
+apply plugin: 'scala'
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation(project(":newrelic-scala-zio-api"))
+    implementation("org.scala-lang:scala-library:2.13.3")
+    implementation("dev.zio:zio_2.13:1.0.9")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.newrelic-scala-zio-api',
+            'Implementation-Title-Alias': 'newrelic-scala-zio-api_instrumentation' }
+}
+
+verifyInstrumentation {
+    verifyClasspath = false //can't verify, newrelic-scala-cats-api is a sub project
+}
