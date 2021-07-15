@@ -1,0 +1,20 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.graphql-java-tools-5.2.4' }
+}
+
+verifyInstrumentation {
+    passes 'com.graphql-java:graphql-java-tools:[5.2.4,)'
+}
+
+site {
+    title 'GraphQL Java Tools'
+    type 'Framework'
+}
