@@ -454,6 +454,10 @@ public class Extension {
             protected boolean excludeFromTransactionTrace;
             protected boolean leaf;
             protected boolean ignoreTransaction;
+            protected boolean traceLambda;
+            protected String pattern;
+            protected boolean includeNonstatic;
+            protected List<String> traceReturnTypeDescriptors;
             protected String transactionType;
 
             /**
@@ -641,6 +645,85 @@ public class Extension {
              */
             public void setIgnoreTransaction(Boolean value) {
                 ignoreTransaction = value;
+            }
+
+            /**
+             * Gets the value of the traceLambda property.
+             *
+             * @return possible object is {@link Boolean }
+             */
+            public boolean isTraceLambda() {
+                return traceLambda;
+            }
+
+            /**
+             * Sets the value of the traceLambda property.
+             *
+             * @param value allowed object is {@link Boolean }
+             */
+            public void setTraceLambda(Boolean value) {
+                traceLambda = value;
+            }
+
+            /**
+             * Gets the value of the traceReturnTypeDescriptors property.
+             *
+             * <p>
+             * This accessor traceReturnTypeDescriptors returns a reference to the live list,
+             * not a snapshot. Therefore any modification you make to the
+             * returned list will be present inside the object.
+             * This is why there is not a <CODE>set</CODE> traceReturnTypeDescriptors for the traceReturnTypeDescriptors property.
+             *
+             * <p>
+             * For example, to add a new item, do as follows:
+             * <pre>
+             *    getTraceReturnTypeDescriptors().add(newItem);
+             * </pre>
+             *
+             * <p>
+             * Objects of the following type(s) are allowed in the list {@link java.lang.String }
+             */
+            public List<String> getTraceReturnTypeDescriptors() {
+                if (traceReturnTypeDescriptors == null) {
+                    traceReturnTypeDescriptors = new ArrayList<>();
+                }
+                return traceReturnTypeDescriptors;
+            }
+
+            /**
+             * Gets the value of the pattern property.
+             *
+             * @return possible object is {@link String }
+             */
+            public String getPattern() {
+                return pattern;
+            }
+
+            /**
+             * Sets the value of the pattern property.
+             *
+             * @param value allowed object is {@link String }
+             */
+            public void setPattern(String value) {
+                pattern = value;
+            }
+
+            /**
+             * Gets the value of the includeNonstatic property.
+             *
+             * @return possible object is {@link Boolean }
+             */
+            public boolean getIncludeNonstatic() {
+                return includeNonstatic;
+            }
+
+            /**
+             * Sets the value of the includeNonstatic property.
+             *
+             * @param value allowed object is {@link Boolean }
+             */
+            public void setIncludeNonstatic(boolean value) {
+                includeNonstatic = value;
             }
 
             /**

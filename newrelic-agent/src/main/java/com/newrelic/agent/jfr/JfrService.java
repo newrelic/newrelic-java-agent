@@ -9,10 +9,12 @@ package com.newrelic.agent.jfr;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.*;
 import com.newrelic.telemetry.Attributes;
 
@@ -51,7 +53,8 @@ public class JfrService extends AbstractService {
                 commonAttrs.put(ENTITY_GUID, entityGuid);
 
                 final JFRUploader uploader = buildUploader(daemonConfig);
-                uploader.readyToSend(new EventConverter(commonAttrs));
+                String pattern = defaultAgentConfig.getValue(ThreadService.NAME_PATTERN_CFG_KEY, ThreadNameNormalizer.DEFAULT_PATTERN);
+                uploader.readyToSend(new EventConverter(commonAttrs, pattern));
                 jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
 
                 ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor();

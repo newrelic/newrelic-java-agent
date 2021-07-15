@@ -7,6 +7,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.1.0 (2021-7-7)
+
+### New features and improvements:
+
+* Java instrumentation by XML new properties [#288](https://github.com/newrelic/newrelic-java-agent/pull/288)
+  * traceLambda - to trace lambdas inside a method
+  * traceByReturnType - to trace all methods in a class that return a given type
+
+  These are compatible with Java and Scala. For more information, see
+  [Java instrumentation by XML](https://docs.newrelic.com/docs/agents/java-agent/custom-instrumentation/java-instrumentation-xml/).
+
+
+* Scala APIs [#254](https://github.com/newrelic/newrelic-java-agent/pull/254)
+
+  New artifacts allow Scala code to be instrumented using a fluent Scala API
+  instead of the Java annotations. There are specific artifacts for versions
+  2.10, 2.11, 2.12, 2.13 of Scala. Scala 3.0 users can use the 2.13 artifact.
+
+  For more information, see
+  [Scala instrumentation](https://docs.newrelic.com/docs/agents/java-agent/frameworks/scala-installation-java/).
+
+
+* Real-time profiling for Java using JFR metrics  [#333](https://github.com/newrelic/newrelic-java-agent/pull/333)
+
+  [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/)
+  is now enabled by default.
+
+  **Notice:** this feature will cause an increase in the consumption of data.
+  The amount depends on the application. It can be disabled by adding the
+  following to the agent yaml config nested under the `common` stanza:
+  ```
+    jfr:
+      enabled: false
+  ```
+  For more information, see
+  [JFR core README](https://github.com/newrelic/newrelic-jfr-core/blob/main/README.md).
+
+## Version 7.0.1 (2021-6-15)
+
+### Fixes
+
+* Fixes an issue where the agent would break OkHttp versions 3.X and lower. [#324](https://github.com/newrelic/newrelic-java-agent/issues/324)
+
+
+## Version 7.0.0 (2021-6-9)
+
+### New features and improvements:
+
+* Real-time profiling for Java using JFR metrics  
+  [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/) is now fully integrated into the Java agent. See the [JFR core README](https://github.com/newrelic/newrelic-jfr-core/blob/main/README.md) for additional details.
+  
+  This feature requires a supported version of Java (Java 8 (specifically version `8u262`+) or Java 11+) and is currently disabled by default. To enable it set the following in your yaml (indented 2 spaces under the common stanza).
+
+    ```
+      jfr:
+        enabled: true
+    ```
+    
+    **Notice:** If you were previously using the [jfr-daemon jar](https://github.com/newrelic/newrelic-jfr-core) as an agent extension or standalone process you should remove that option to avoid potential conflicts with the JFR service that is now built into the agent.
+
+* Not compatible with Java 7  
+  In order to continue to innovate and efficiently provide new capabilities to our customers who run on the JVM, this and future agent versions are not compatible with Java 7. If you are running Java 7, you may continue to use Java agent 6.5.0 or lower. For details, see this topic on the [Explorers Hub](https://discuss.newrelic.com/t/important-upcoming-changes-to-capabilities-across-synthetics-apm-java-php-infrastructure-mobile-agents-health-maps-statsd-and-legacy-dashboards/147982).
+
+* Adds support for akka http with Scala 2.13 [#271](https://github.com/newrelic/newrelic-java-agent/pull/271)
+
+* Class annotation to trace lambda methods [#274](https://github.com/newrelic/newrelic-java-agent/pull/274)
+
+* Class annotation to trace methods by return type [#275](https://github.com/newrelic/newrelic-java-agent/pull/275)
+
+### Fixes:
+
+* Fixes an issue that could cause multiple versions of `akka-http-core` instrumentation to apply at the same time. [#208](https://github.com/newrelic/newrelic-java-agent/pull/208)
+
+* The agent will now log dropped events at `FINE` instead of `WARN` to decrease verbosity. [#296](https://github.com/newrelic/newrelic-java-agent/pull/296)
+
+* Fixes Javadoc comments that incorrectly stated that, when calling the `noticeError` API multiple times, the first error would be reported when in fact it is the last error that is reported. [#313](https://github.com/newrelic/newrelic-java-agent/pull/313)
+
+### Support statement:
+
+New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
 ## Version 6.5.0 (2021-4-26)
 
 ### New Features and Improvements:

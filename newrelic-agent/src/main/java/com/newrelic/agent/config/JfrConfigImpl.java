@@ -14,7 +14,7 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
 
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.jfr.";
     public static final String ENABLED = "enabled";
-    public static final Boolean ENABLED_DEFAULT = Boolean.FALSE;
+    public static final Boolean ENABLED_DEFAULT = Boolean.TRUE;
     public static final String AUDIT_LOGGING = "audit_logging";
     public static final Boolean AUDIT_LOGGING_DEFAULT = Boolean.FALSE;
     public static final Boolean USE_LICENSE_KEY_DEFAULT = Boolean.TRUE;
