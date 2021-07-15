@@ -8,13 +8,13 @@
 package com.nr.agent.instrumentation.sttp
 
 import cats.effect.{ConcurrentEffect, ContextShift}
-import com.nr.agent.instrumentation.sttp.Sttp2Utils.{finishSegment, startSegment}
+import com.nr.agent.instrumentation.sttp.SttpHttp4s2Utils.{finishSegment, startSegment}
 import fs2.Stream
 import sttp.client.monad.MonadError
 import sttp.client.ws.WebSocketResponse
 import sttp.client.{FollowRedirectsBackend, NothingT, Request, Response, SttpBackend}
 
-class DelegateAsync[F[_]: ConcurrentEffect: ContextShift](delegate: FollowRedirectsBackend[F, Stream[F, Byte], NothingT]) extends SttpBackend[F, Stream[F, Byte], NothingT] {
+class DelegateConcurrentEffect[F[_]: ConcurrentEffect: ContextShift](delegate: FollowRedirectsBackend[F, Stream[F, Byte], NothingT]) extends SttpBackend[F, Stream[F, Byte], NothingT] {
 
   override def send[T](request: Request[T, Stream[F, Byte]]): F[Response[T]] = {
     val segment = startSegment(request)

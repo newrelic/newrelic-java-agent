@@ -8,7 +8,7 @@
 package com.nr.agent.instrumentation.sttp
 
 import cats.effect.Async
-import com.nr.agent.instrumentation.sttp.Sttp3Utils.{finishSegment, startSegment}
+import com.nr.agent.instrumentation.sttp.SttpHttp4s3Utils.{finishSegment, startSegment}
 import sttp.capabilities.Effect
 import sttp.client3.{DelegateSttpBackend, Request, Response, SttpBackend}
 

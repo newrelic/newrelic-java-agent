@@ -7,7 +7,7 @@
 
 package com.nr.agent.instrumentation.sttp
 
-import com.nr.agent.instrumentation.sttp.Sttp3Utils.{finishSegment, startSegment}
+import com.nr.agent.instrumentation.sttp.SttpAkka3Utils.{finishSegment, startSegment}
 import sttp.capabilities.Effect
 import sttp.client3.{DelegateSttpBackend, Request, Response, SttpBackend}
 

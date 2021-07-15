@@ -15,14 +15,14 @@ import java.net.URI
 
 object Sttp3Utils {
 
-  def startSegment[R, T](request: Request[T, R]) = {
-    NewRelic.getAgent.getTransaction.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, "Sttp", "send");
+  def startSegment[R, T](request: Request[T, R]): Segment = {
+    NewRelic.getAgent.getTransaction.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, "Sttp", "send")
     val segment = NewRelic.getAgent.getTransaction.startSegment("SttpBackend", "send")
     segment.addOutboundRequestHeaders(new OutboundHttpHeaders(request))
     segment
   }
 
-  def finishSegment[R, T](request: Request[T, R], segment: Segment, response: Response[T]) = {
+  def finishSegment[R, T](request: Request[T, R], segment: Segment, response: Response[T]): Unit = {
     segment.reportAsExternal(HttpParameters
       .library("Sttp")
       .uri(new URI(request.uri.toString()))

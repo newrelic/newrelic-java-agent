@@ -11,7 +11,7 @@ import sttp.client.monad.MonadError
 import sttp.client.ws.WebSocketResponse
 import sttp.client.Request
 import sttp.client.{FollowRedirectsBackend, Response, SttpBackend}
-import com.nr.agent.instrumentation.sttp.Sttp2Utils.{finishSegment, startSegment}
+import com.nr.agent.instrumentation.sttp.SttpAkka2Utils.{finishSegment, startSegment}
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
