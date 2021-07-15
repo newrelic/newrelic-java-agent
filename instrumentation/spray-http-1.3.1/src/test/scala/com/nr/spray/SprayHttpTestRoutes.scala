@@ -11,6 +11,7 @@ import spray.routing.Directives._
 import spray.routing.RequestContext
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object SprayHttpTestRoutes {
   val routes = {
