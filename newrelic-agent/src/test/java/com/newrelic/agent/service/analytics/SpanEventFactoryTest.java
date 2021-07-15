@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static com.newrelic.agent.service.analytics.SpanEventFactory.DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -119,6 +120,50 @@ public class SpanEventFactoryTest {
 
         assertEquals("library", spanEvent.getIntrinsics().get("component"));
         assertNull(spanEvent.getAgentAttributes().get("http.method"));
+    }
+
+    @Test
+    public void shouldSetStatusCode() {
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(418).build();
+
+        assertEquals(418, spanEvent.getAgentAttributes().get("http.statusCode"));
+    }
+
+    @Test
+    public void shouldNotSetStatusCodeWhenFiltering() {
+        SpanEventFactory factory = new SpanEventFactory("blerb", new PassNothingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+        SpanEvent spanEvent = factory.setHttpStatusCode(418).build();
+
+        assertNull(spanEvent.getAgentAttributes().get("http.statusCode"));
+    }
+
+    @Test
+    public void shouldNotSetNullStatusCode() {
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(null).build();
+
+        assertFalse(spanEvent.getAgentAttributes().containsKey("http.statusCode"));
+    }
+
+    @Test
+    public void shouldSetStatusText() {
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusText("I'm a teapot.").build();
+
+        assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("http.statusText"));
+    }
+
+    @Test
+    public void shouldNotSetStatusTextWhenFiltering() {
+        SpanEventFactory factory = new SpanEventFactory("blerb", new PassNothingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+        SpanEvent spanEvent = factory.setHttpStatusText("I'm a teapot.").build();
+
+        assertNull(spanEvent.getAgentAttributes().get("http.statusText"));
+    }
+
+    @Test
+    public void shouldNotSetNullStatusText() {
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusText(null).build();
+
+        assertFalse(spanEvent.getAgentAttributes().containsKey("http.statusText"));
     }
 
     @Test

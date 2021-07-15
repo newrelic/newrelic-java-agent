@@ -57,6 +57,8 @@ public class HttpClientSpanTests {
         assertEquals(endpoint.toString(), externalSpanEvent.getHttpUrl());
         assertEquals("CommonsHttp", externalSpanEvent.getHttpComponent());
         assertEquals("execute", externalSpanEvent.getHttpMethod());
+        assertEquals(Integer.valueOf(200), externalSpanEvent.getStatusCode());
+        assertEquals("OK", externalSpanEvent.getStatusText());
     }
 
     /**

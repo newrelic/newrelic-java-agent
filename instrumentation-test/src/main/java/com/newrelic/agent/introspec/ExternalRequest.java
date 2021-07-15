@@ -17,6 +17,10 @@ public interface ExternalRequest {
 
     String getLibrary();
 
+    Integer getStatusCode();
+
+    String getStatusText();
+
     String getOperation();
 
     String getTransactionGuild();

@@ -74,6 +74,7 @@ public abstract class HttpMethodBase implements HttpMethod {
                         .uri(netURI)
                         .procedure("execute")
                         .inboundHeaders(inboundHeaders)
+                        .status(responseCode, this.getStatusText())
                         .build());
             } catch (Throwable e) {
                 AgentBridge.getAgent().getLogger().log(Level.FINER, e,

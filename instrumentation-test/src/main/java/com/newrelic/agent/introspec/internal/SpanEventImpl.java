@@ -61,4 +61,15 @@ public class SpanEventImpl implements SpanEvent {
     public String getTransactionId() {
         return (String) spanEvent.getIntrinsics().get("transactionId");
     }
+
+    @Override
+    public Integer getStatusCode() {
+        return (Integer) spanEvent.getAgentAttributes().get("http.statusCode");
+    }
+
+    @Override
+    public String getStatusText() {
+        return (String) spanEvent.getAgentAttributes().get("http.statusText");
+    }
+
 }

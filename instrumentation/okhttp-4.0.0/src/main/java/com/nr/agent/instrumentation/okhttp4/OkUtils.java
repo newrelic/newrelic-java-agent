@@ -51,6 +51,7 @@ public class OkUtils {
                     .uri(requestUri)
                     .procedure(PROCEDURE)
                     .inboundHeaders(new InboundWrapper(response))
+                    .status(response.code(), response.message())
                     .build());
         }
     }

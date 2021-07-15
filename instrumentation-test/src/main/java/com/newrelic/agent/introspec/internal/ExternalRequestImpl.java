@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
 
 import com.newrelic.agent.introspec.ExternalRequest;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.HttpParameters;
 
 class ExternalRequestImpl extends RequestImpl implements ExternalRequest {
 
@@ -23,15 +25,19 @@ class ExternalRequestImpl extends RequestImpl implements ExternalRequest {
 
     private String library;
     private String operation;
+    private Integer statusCode;
+    private String statusText;
     private String segmentName;
     private String catTransactionGuid;
 
-    private ExternalRequestImpl(String originalMetric, String segmentName, String host, String lib, String operation,
+    private ExternalRequestImpl(String originalMetric, String segmentName, String host, String lib, String operation, Integer statusCode, String statusText,
             String catTransactionGuid) {
         super(originalMetric, host);
         this.library = lib;
         this.segmentName = segmentName;
         this.operation = operation;
+        this.statusCode = statusCode;
+        this.statusText = statusText;
         this.catTransactionGuid = catTransactionGuid;
     }
 
@@ -41,6 +47,15 @@ class ExternalRequestImpl extends RequestImpl implements ExternalRequest {
         String metricName = transactionSegment.getMetricName();
         Matcher segMatcher = EXTERNAL_SEGMENT.matcher(transactionSegmentName);
         Matcher metricMatcher = EXTERNAL_METRIC.matcher(metricName);
+
+        Integer statusCode = null;
+        String statusText = null;
+        if (transactionSegment.getExternalParameters() instanceof HttpParameters) {
+            HttpParameters httpParams = (HttpParameters) transactionSegment.getExternalParameters();
+            statusCode = httpParams.getStatusCode();
+            statusText = httpParams.getStatusText();
+        }
+
         if (segMatcher.matches() && (segMatcher.groupCount() == 2 || segMatcher.groupCount() == 4)
                 && metricMatcher.matches() && metricMatcher.groupCount() == 2) {
             String host = segMatcher.group(1);
@@ -49,7 +64,7 @@ class ExternalRequestImpl extends RequestImpl implements ExternalRequest {
             if (segMatcher.groupCount() == 4) {
                 op = segMatcher.group(4);
             }
-            return new ExternalRequestImpl(metricName, transactionSegmentName, host, lib, op,
+            return new ExternalRequestImpl(metricName, transactionSegmentName, host, lib, op, statusCode, statusText,
                     (String) transactionSegment.getAgentAttribute("transaction_guid"));
         } else {
             segMatcher = EXTERNAL_TX_METRIC.matcher(transactionSegmentName);
@@ -59,7 +74,7 @@ class ExternalRequestImpl extends RequestImpl implements ExternalRequest {
                 String host = segMatcher.group(1);
                 String lib = null;
                 String op = null;
-                return new ExternalRequestImpl(metricName, transactionSegmentName, host, lib, op,
+                return new ExternalRequestImpl(metricName, transactionSegmentName, host, lib, op, statusCode, statusText,
                         (String) transactionSegment.getAgentAttribute("transaction_guid"));
             }
         }
@@ -81,6 +96,16 @@ class ExternalRequestImpl extends RequestImpl implements ExternalRequest {
     @Override
     public String getLibrary() {
         return library;
+    }
+
+    @Override
+    public Integer getStatusCode() {
+        return statusCode;
+    }
+
+    @Override
+    public String getStatusText() {
+        return statusText;
     }
 
     @Override

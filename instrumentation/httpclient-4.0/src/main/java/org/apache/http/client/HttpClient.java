@@ -63,6 +63,7 @@ public abstract class HttpClient {
                 .uri(requestURI)
                 .procedure(PROCEDURE)
                 .inboundHeaders(inboundCatWrapper)
+                .status(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase())
                 .build());
     }
 
@@ -219,6 +220,7 @@ public abstract class HttpClient {
                     .uri(requestURI)
                     .procedure(PROCEDURE)
                     .inboundHeaders(inboundCatWrapper)
+                    .status(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase())
                     .build());
         }
     }
