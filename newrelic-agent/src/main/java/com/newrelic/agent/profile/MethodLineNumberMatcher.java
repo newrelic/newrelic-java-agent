@@ -66,14 +66,14 @@ public class MethodLineNumberMatcher {
         private String actualMethodDesc;
 
         public LineNumberClassVisitor(ClassVisitor cv, String mName, int lNumber) {
-            super(Opcodes.ASM7, cv);
+            super(Opcodes.ASM9, cv);
             methodName = mName;
             lineNumber = lNumber;
             actualMethodDesc = null;
         }
 
         public LineNumberClassVisitor(String mName, int lNumber) {
-            super(Opcodes.ASM7);
+            super(Opcodes.ASM9);
             methodName = mName;
             lineNumber = lNumber;
             actualMethodDesc = null;
@@ -84,7 +84,7 @@ public class MethodLineNumberMatcher {
                 String signature, String[] exceptions) {
             MethodVisitor mv = super.visitMethod(access, pMethodName, methodDesc, signature, exceptions);
             if (methodName.equals(pMethodName)) {
-                mv = new MethodVisitor(Opcodes.ASM7, mv) {
+                mv = new MethodVisitor(Opcodes.ASM9, mv) {
 
                     @Override
                     public void visitLineNumber(int line, Label start) {
