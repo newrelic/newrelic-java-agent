@@ -7,8 +7,8 @@
 
 package com.newrelic.agent;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -21,9 +21,7 @@ import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -34,7 +32,7 @@ public class ThreadService extends AbstractService implements ThreadNames {
 
     public static final String NAME_PATTERN_CFG_KEY = "thread_sampler.name_pattern";
     private final Map<Long, Boolean> agentThreadIds;
-    private final Cache<Long, String> threadIdToName = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
+    private final Cache<Long, String> threadIdToName = Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
     private volatile ThreadNameNormalizer threadNameNormalizer;
 
     public ThreadService() {
@@ -84,20 +82,7 @@ public class ThreadService extends AbstractService implements ThreadNames {
 
     @Override
     public String getThreadName(final BasicThreadInfo threadInfo) {
-        String name = threadIdToName.getIfPresent(threadInfo.getId());
-        if (null == name) {
-            try {
-                return threadIdToName.get(threadInfo.getId(), new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return threadInfo.getName();
-                    }
-                });
-            } catch (ExecutionException e) {
-                return threadInfo.getName();
-            }
-        }
-        return name;
+        return threadIdToName.get(threadInfo.getId(), id -> threadInfo.getName());
     }
 
     /**

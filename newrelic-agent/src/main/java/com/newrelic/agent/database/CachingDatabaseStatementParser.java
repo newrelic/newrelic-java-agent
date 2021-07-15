@@ -7,15 +7,12 @@
 
 package com.newrelic.agent.database;
 
-import java.sql.ResultSetMetaData;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
+import java.sql.ResultSetMetaData;
+import java.util.logging.Level;
 
 /**
  * Cache a limited number of parsed database statements. <br>
@@ -38,7 +35,7 @@ public class CachingDatabaseStatementParser implements DatabaseStatementParser {
         if (null == statements) {
             synchronized (this) {
                 if (null == statements) {
-                    statements = CacheBuilder.newBuilder().maximumSize(1000).weakKeys().build();
+                    statements = Caffeine.newBuilder().maximumSize(1000).weakKeys().build();
                 }
             }
         }
@@ -62,18 +59,10 @@ public class CachingDatabaseStatementParser implements DatabaseStatementParser {
                 return UNPARSEABLE_STATEMENT;
             }
 
-            return getOrCreateCache().get(statement, new Callable<ParsedDatabaseStatement>() {
-                @Override
-                public ParsedDatabaseStatement call() throws Exception {
-                    return databaseStatementParser.getParsedDatabaseStatement(databaseVendor, statement, resultSetMetaData);
-                }
-            });
-        } catch (ExecutionException ee) {
-            toLog = ee;
-            if (ee.getCause() != null) {
-                toLog = ee.getCause();
-            }
-        } catch (Exception ex) {
+            return getOrCreateCache().get(
+                    statement,
+                    s -> databaseStatementParser.getParsedDatabaseStatement(databaseVendor, statement, resultSetMetaData));
+        } catch (RuntimeException ex) {
             toLog = ex;
         }
 

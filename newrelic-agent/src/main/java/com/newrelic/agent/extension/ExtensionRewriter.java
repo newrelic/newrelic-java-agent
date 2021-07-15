@@ -27,7 +27,7 @@ import java.util.jar.JarOutputStream;
 public class ExtensionRewriter {
 
     static final DependencyRemapper REMAPPER = new DependencyRemapper(ImmutableSet.of("org/objectweb/asm/",
-            "com/google/", "org/apache/commons/"));
+            "com/github/benmanes/caffeine/", "com/google/", "org/apache/commons/"));
 
     private ExtensionRewriter() {
     }

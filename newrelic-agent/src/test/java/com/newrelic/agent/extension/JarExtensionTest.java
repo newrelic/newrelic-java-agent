@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.objectweb.asm.Type;
 
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
@@ -69,8 +69,8 @@ public class JarExtensionTest {
         public static void premain(String agentArgs, Instrumentation inst) {
             AgentBridge.getAgent().getLogger().log(Level.INFO, "My cool extension started! {0}", inst);
 
-            // reference a google class so the jar gets rewritten
-            CacheBuilder<?, ?> builder = CacheBuilder.newBuilder();
+            // Reference a Caffeine class so the jar gets rewritten.
+            Caffeine<?, ?> builder = Caffeine.newBuilder();
         }
     }
 }
