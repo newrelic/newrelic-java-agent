@@ -16,11 +16,9 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'com.softwaremill.sttp.client3:akka-http-backend_2.11:[3.0.0,)'
-    passesOnly 'com.softwaremill.sttp.client3:akka-http-backend_2.12:[3.0.0,)'
     passesOnly 'com.softwaremill.sttp.client3:akka-http-backend_2.13:[3.0.0,)'
     passesOnly 'com.softwaremill.sttp.client3:akka-http-backend_3:[3.0.0,)'
-    excludeRegex ".*RC.*"
+    excludeRegex ".*(RC|M)[0-9]*"
 }
 
 test {

@@ -9,7 +9,7 @@ package com.nr.agent.instrumentation.sttp
 
 import com.newrelic.api.agent.{ExtendedInboundHeaders, HeaderType}
 import sttp.client.Response
-import scala.jdk.CollectionConverters._
+import collection.JavaConverters._
 
 import java.util
 

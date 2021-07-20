@@ -12,7 +12,8 @@ import com.newrelic.agent.introspec.{Introspector, TraceSegment, TransactionTrac
 import com.newrelic.api.agent.Trace
 import sttp.client.{NothingT, Response, SttpBackend, UriContext, basicRequest}
 
-import scala.jdk.CollectionConverters._
+import collection.JavaConverters._
+import scala.language.higherKinds
 
 object Sttp2TestUtils {
 
