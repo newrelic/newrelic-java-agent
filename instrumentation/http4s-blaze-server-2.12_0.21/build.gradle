@@ -1,0 +1,29 @@
+apply plugin: 'scala'
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.scala-lang:scala-library:2.12.14")
+    implementation('org.http4s:http4s-blaze-server_2.12:0.21.24')
+    testImplementation(project(":instrumentation:cats-effect-2")) { transitive = false }
+    testImplementation("org.http4s:http4s-dsl_2.12:0.21.24")
+
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.http4s-blaze-server-2.12_0.21'
+        attributes 'Implementation-Vendor': 'New Relic'
+        attributes 'Implementation-Vendor-Id': 'com.newrelic'
+        attributes 'Implementation-Version': 1.0
+    }
+}
+verifyInstrumentation {
+    passes 'org.http4s:http4s-blaze-server_2.12:[0.21,0.22)'
+    excludeRegex '.*(RC|M)[0-9]*'
+
+}
+
+sourceSets.main.scala.srcDirs = ['src/main/scala', 'src/main/java']
+sourceSets.main.java.srcDirs = []
