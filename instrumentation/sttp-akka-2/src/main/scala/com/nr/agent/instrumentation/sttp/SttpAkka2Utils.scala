@@ -15,7 +15,6 @@ import java.net.URI
 object SttpAkka2Utils {
 
   def startSegment[R, T](request: Request[T, R]): Segment = {
-    NewRelic.getAgent.getTransaction.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, "Sttp", "send")
     val segment = NewRelic.getAgent.getTransaction.startSegment("SttpBackend", "send")
     segment.addOutboundRequestHeaders(new OutboundHttpHeaders(request))
     segment
