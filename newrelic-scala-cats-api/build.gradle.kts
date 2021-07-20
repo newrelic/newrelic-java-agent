@@ -5,8 +5,6 @@ plugins {
     `signing`
     id("com.github.prokod.gradle-crossbuild-scala")
 }
-evaluationDependsOn(":newrelic-agent")
-evaluationDependsOn(":instrumentation:newrelic-scala-cats-api")
 evaluationDependsOn(":newrelic-api")
 
 crossBuild {
@@ -27,11 +25,10 @@ dependencies {
     implementation("org.scala-lang:scala-library:2.13.5")
     implementation("org.typelevel:cats-effect_2.13:2.5.1")
     implementation(project(":newrelic-api"))
-
     testImplementation(project(":instrumentation-test"))
-    testImplementation(project(":instrumentation:newrelic-scala-cats-api"))
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
-
+    testImplementation("org.http4s:http4s-blaze-server_2.13:0.21.24")
+    testImplementation("org.http4s:http4s-dsl_2.13:0.21.24")
 }
 
 val crossBuildScala_212Jar by tasks.getting
@@ -107,6 +104,7 @@ tasks {
         )
         jvmArgs(functionalTestArgs + "-Dnewrelic.config.extensions.dir=${projectDir}/src/test/resources/xml_files")
     }
+
     //no scaladoc jar task, instead this work around makes scaladoc destination folder javadoc to ensure included in jar
     javadoc {
         dependsOn("scaladoc")

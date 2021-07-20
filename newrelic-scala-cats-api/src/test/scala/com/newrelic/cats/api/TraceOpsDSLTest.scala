@@ -58,7 +58,7 @@ class CatsEffectIOTest2 {
     //When
 
     val txnBlock: IO[Int] = txn(
-      asyncTrace("getNumber")(IO(1))
+      asyncTrace("getNumber"){IO(1)}
         .map(traceFun("incrementNumber")(_ + 1))
         .flatMap(asyncTraceFun("flatMapIncrementNumber")(res => IO(res + 1)))
     )

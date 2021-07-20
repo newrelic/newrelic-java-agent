@@ -1,6 +1,8 @@
 package com.newrelic.cats.api
 
-import cats.effect.IO
+import cats.{Applicative}
+import cats.effect.Sync
+import cats.implicits._
 import com.newrelic.api.agent.{NewRelic, Segment, Trace, Transaction}
 
 object TraceOps {
@@ -40,15 +42,15 @@ object TraceOps {
   }
 
 
-  private def startSegment(segmentName: String): IO[Segment] = IO {
+  private def startSegment[F[_]: Sync](segmentName: String): F[Segment] = Sync[F].delay {
     val txn = NewRelic.getAgent.getTransaction()
     txn.startSegment(segmentName)
   }
 
-  private def endSegmentOnError[S](io: IO[S], segment: Segment) =
+  private def endSegmentOnError[S, F[_]: Sync](io: F[S], segment: Segment) =
     io.handleErrorWith(t => {
       segment.end()
-      IO.raiseError(t)
+      Sync[F].raiseError(t)
     })
 
   /**
@@ -73,10 +75,10 @@ object TraceOps {
     * @tparam S Type returned from completed asynchronous code block
     * @return Value returned from completed asynchronous code block
     */
-  def asyncTrace[S](segmentName: String)(block: IO[S]): IO[S] = for {
+  def asyncTrace[S, F[_]: Sync](segmentName: String)(block: F[S]): F[S] = for {
     segment <- startSegment(segmentName)
     res <- endSegmentOnError(block, segment)
-    _ <- IO(segment.end())
+    _ <- Sync[F].delay(segment.end())
   } yield res
 
 
@@ -130,11 +132,11 @@ object TraceOps {
     * @tparam S Type returned from completed asynchronous function
     * @return Value returned from completed asynchronous function
     */
-  def asyncTraceFun[T, S](segmentName: String)(f: T => IO[S]): T => IO[S] = { t: T =>
+  def asyncTraceFun[T, S, F[_]:Sync](segmentName: String)(f: T => F[S]): T => F[S] = { t: T =>
     for {
       segment <- startSegment(segmentName)
       evaluatedFunc <- endSegmentOnError(f(t), segment)
-      _ <- IO(segment.end())
+      _ <- Sync[F].delay(segment.end())
     } yield evaluatedFunc
   }
 
@@ -163,6 +165,6 @@ object TraceOps {
     * @return Value returned by code block
     */
 
-  def txn[S](body: IO[S]): IO[S] = body
+  def txn[S, F[_]:Sync](body: F[S]): F[S] = body
 
 }
