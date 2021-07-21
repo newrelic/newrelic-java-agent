@@ -1,16 +1,10 @@
 apply plugin: 'scala'
 
-repositories {
-    maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
-    }
-}
-
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
-    implementation("com.typesafe.play:play_2.10:2.3.0")
+    implementation("com.typesafe.play:play_2.10:2.3.9")
     implementation("org.scala-lang:scala-library:2.10.7")
 }
 
