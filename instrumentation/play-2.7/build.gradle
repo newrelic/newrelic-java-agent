@@ -5,18 +5,11 @@ import scala.collection.JavaConversions
 
 apply plugin: 'scala'
 
-repositories {
-    maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
-    }
-}
-
 buildscript {
     dependencies {
         classpath 'com.typesafe.play:routes-compiler_2.11:2.7.0-M2'
     }
     repositories {
-        jcenter()
         mavenCentral()
     }
 }
