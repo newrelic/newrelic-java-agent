@@ -9,12 +9,12 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static org.junit.Assert.*;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"com.graphql", "com.nr.instrumentation"})
@@ -40,6 +40,6 @@ public class GraphQL_InstrumentationTest {
 
     @Test
     public void test() {
-        Assert.assertNotNull(graphQL);
+        assertNotNull(graphQL);
     }
 }
