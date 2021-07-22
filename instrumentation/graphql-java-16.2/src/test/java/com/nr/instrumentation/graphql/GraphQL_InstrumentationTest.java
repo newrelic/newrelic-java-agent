@@ -2,6 +2,7 @@ package com.nr.instrumentation.graphql;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.StaticDataFetcher;
@@ -40,6 +41,11 @@ public class GraphQL_InstrumentationTest {
 
     @Test
     public void test() {
-        assertNotNull(graphQL);
+        //given
+        String query = "{hello}";
+        //when
+        ExecutionResult result = graphQL.execute(query);
+        //then
+        assertEquals("{hello=world}", result.getData().toString());
     }
 }
