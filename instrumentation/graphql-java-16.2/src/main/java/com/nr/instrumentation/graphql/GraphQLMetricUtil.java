@@ -10,6 +10,7 @@ package com.nr.instrumentation.graphql;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.weaver.Weaver;
+import graphql.ExecutionInput;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,7 +41,7 @@ public abstract class GraphQLMetricUtil {
 
     }
 
-    public static void metrics(TracedMethod tracedMethod, String operationName) {
+    public static void metrics(TracedMethod tracedMethod, String operationName, ExecutionInput input) {
         try {
             GenericParameters params = GenericParameters
                     .library("GraphQL")
