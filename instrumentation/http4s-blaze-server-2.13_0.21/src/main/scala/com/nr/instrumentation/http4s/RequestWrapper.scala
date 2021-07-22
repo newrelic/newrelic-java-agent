@@ -1,11 +1,11 @@
 package com.nr.instrumentation.http4s
 
 import cats.effect.Sync
-
 import org.http4s.Request
 
 import java.util
 import com.newrelic.api.agent.{ExtendedRequest, HeaderType}
+import org.http4s.util.CaseInsensitiveString
 
 import scala.jdk.CollectionConverters._
 
@@ -47,13 +47,13 @@ class RequestWrapper[F[_] : Sync](request: Request[F]) extends ExtendedRequest {
 
   def getHeader(name: String): String =
     request.headers
-           .find(_.name == name)
+           .find(_.name == CaseInsensitiveString(name))
            .map(_.value)
            .orNull
 
   override def getHeaders(name: String): util.List[String] =
     request.headers
-           .filter(_.name == name)
+           .filter(_.name == CaseInsensitiveString(name))
            .toList
            .map(_.value)
            .asJava

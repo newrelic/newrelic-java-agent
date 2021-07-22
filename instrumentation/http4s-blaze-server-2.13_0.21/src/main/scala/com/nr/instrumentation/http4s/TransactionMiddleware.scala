@@ -40,7 +40,7 @@ object TransactionMiddleware {
 
   private def attachErrorEvent[S, F[_] : Sync](body: F[S], tracer: ExitTracer, token: Token) =
     body.handleErrorWith(throwable => {
-      token.expire();
+      token.expire()
       tracer.finish(throwable)
       Sync[F].raiseError(throwable)
     })

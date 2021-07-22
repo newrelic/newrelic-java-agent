@@ -2,10 +2,10 @@ package com.nr.instrumentation.http4s
 
 import cats.data.Kleisli
 import cats.effect.Sync
-import com.newrelic.api.agent.{NewRelic, Token, Trace}
-import org.http4s.{HttpApp, Request, Response}
 import cats.implicits._
 import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction, TransactionNamePriority}
+import com.newrelic.api.agent.Token
+import org.http4s.{Request, Response}
 
 object TransactionMiddleware {
   def genHttpApp[F[_] : Sync](httpApp: Kleisli[F, Request[F], Response[F]]): Kleisli[F, Request[F], Response[F]] =
@@ -39,7 +39,7 @@ object TransactionMiddleware {
 
   private def attachErrorEvent[S, F[_]: Sync](body: F[S], tracer: ExitTracer, token: Token) =
     body.handleErrorWith(throwable => {
-      token.expire();
+      token.expire()
       tracer.finish(throwable)
       Sync[F].raiseError(throwable)
     })

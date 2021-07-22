@@ -1,6 +1,6 @@
 package com.nr.http4s
 
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner, Introspector, TransactionTrace}
 import org.http4s.Method.GET
 import org.http4s.dsl.io._
@@ -12,8 +12,8 @@ import collection.JavaConverters._
 import org.junit.{After, Assert, Before, Test}
 
 import java.net.URL
+import scala.concurrent.duration.DurationInt
 import scala.io.Source
-import scala.util.Try
 
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("org.http4s", "cats.effect"))
@@ -34,10 +34,10 @@ class BlazeServerBuilderTest {
     blazeServer.stop()
   }
 
-  def get(hostname: String, port: Int, path: String): Try[String] =
-    Try(Source.fromURL(new URL(s"http://$hostname:$port$path"))
-              .getLines().mkString)
-
+  def get(hostname: String, port: Int, path: String): Option[String] =
+    Resource.fromAutoCloseable(IO(Source.fromURL(new URL(s"http://$hostname:$port$path"))))
+            .use(body => IO(body.getLines().mkString))
+            .unsafeRunTimed(2.seconds)
 
   @Test
   def blazeServerTest: Unit = {
@@ -48,7 +48,7 @@ class BlazeServerBuilderTest {
     val txnCount = introspector.getFinishedTransactionCount()
     val webTxnName = introspector.getTransactionNames.asScala.headOption
     val traces = getTraces(introspector)
-    Assert.assertTrue("Web request successful", request.isSuccess)
+    Assert.assertTrue("Web request successful", request.isDefined)
     Assert.assertEquals("Transaction count correct", 1, txnCount)
     Assert.assertEquals("Trace present", 1, traces.size)
     Assert.assertEquals("Transaction name correct", Some("WebTransaction/HTTP4s/BlazeServerHandler"), webTxnName)
