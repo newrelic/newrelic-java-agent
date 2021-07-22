@@ -14,15 +14,9 @@ import collection.JavaConverters._
 import java.util
 
 class InboundHttpHeaders[T](response: Response[T]) extends ExtendedInboundHeaders {
-  override def getHeader(name: String): String = {
-    response.header(name).orNull
-  }
+  override def getHeader(name: String): String = response.header(name).orNull
 
-  override def getHeaders(name: String): util.List[String] = {
-    response.headers.map(x => x.name).toList.asJava
-  }
+  override def getHeaders(name: String): util.List[String] = response.headers.map(x => x.name).toList.asJava
 
-  override def getHeaderType: HeaderType = {
-    HeaderType.HTTP
-  }
+  override def getHeaderType: HeaderType = HeaderType.HTTP
 }

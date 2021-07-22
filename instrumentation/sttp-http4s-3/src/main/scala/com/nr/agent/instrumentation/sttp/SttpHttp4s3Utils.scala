@@ -12,7 +12,6 @@ import sttp.client3.{Request, Response}
 
 import java.net.URI
 
-
 object SttpHttp4s3Utils {
 
   def startSegment[R, T](request: Request[T, R]): Segment = {
