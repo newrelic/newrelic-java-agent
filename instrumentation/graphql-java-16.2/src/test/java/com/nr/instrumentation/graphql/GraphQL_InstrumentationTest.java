@@ -53,7 +53,7 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        assertOperation("operation");
+        assertOperation("QUERY/<anonymous>/hello");
     }
 
     @Test
@@ -83,28 +83,12 @@ public class GraphQL_InstrumentationTest {
         Arrays.stream(actions).forEach(Runnable::run);
     }
 
-    private void assertOperation(String operation) {
+    private void assertOperation(String expectedTransactionSuffix) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
 
         String txName = introspector.getTransactionNames().iterator().next();
-        assertEquals("Transaction name is incorrect", "post /query/<anonymous>/hello", txName);
-//        DatastoreHelper helper = new DatastoreHelper(GRAPHQL_PRODUCT);
-//        helper.assertAggregateMetrics();
-//        helper.assertScopedOperationMetricCount(txName, operation, 1);
-//        helper.assertInstanceLevelMetric(GRAPHQL_PRODUCT, dynamoDb.getHostName(), dynamoDb.getPort());
-    }
-
-    private void assertScopedStatementMetric(String operation, String collection) {
-        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
-
-
-//        String txName = introspector.getTransactionNames().iterator().next();
-//        DatastoreHelper helper = new DatastoreHelper(GRAPHQL_PRODUCT);
-//        helper.assertAggregateMetrics();
-//        helper.assertScopedStatementMetricCount(txName, operation, collection, 1);
-//        helper.assertInstanceLevelMetric(GRAPHQL_PRODUCT, dynamoDb.getHostName(), dynamoDb.getPort());
+        assertEquals("Transaction name is incorrect", "OtherTransaction/GraphQL/" + expectedTransactionSuffix, txName);
     }
 
     private Runnable createRunnable(final String query){
