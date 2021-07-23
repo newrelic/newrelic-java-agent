@@ -66,13 +66,23 @@ public class GraphQLTransactionNameTest {
 
     @Ignore
     @Test
+    public void testUnionTypesAndInlineFragmentQuery() {
+        //given
+        Document document = parse("unionTypesAndInlineFragmentQuery");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/QUERY/example/search<Author>.name", transactionName);
+    }
+
+    @Test
     public void testUnionTypesAndInlineFragmentsQuery() {
         //given
         Document document = parse("unionTypesAndInlineFragmentsQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
-        assertEquals("/QUERY/example/search<Author>.name", transactionName);
+        assertEquals("/QUERY/example/search", transactionName);
     }
 
     private static Document parse(String filename) {
