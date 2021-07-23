@@ -2,7 +2,6 @@ package com.nr.instrumentation.graphql;
 
 import graphql.language.Document;
 import graphql.parser.Parser;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,6 +31,26 @@ public class GraphQLTransactionNameTest {
         String transactionName = GraphQLTransactionName.from(document);
         //then
         assertEquals("/QUERY/<anonymous>/libraries.books", transactionName);
+    }
+
+    @Test
+    public void testDeepestUniquePathQuery() {
+        //given
+        Document document = parse("deepestUniquePathQuery");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/QUERY/<anonymous>/libraries", transactionName);
+    }
+
+    @Test
+    public void testDeepestUniqueSinglePathQuery() {
+        //given
+        Document document = parse("deepestUniqueSinglePathQuery");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/QUERY/<anonymous>/libraries.booksInStock.title", transactionName);
     }
 
     private static Document parse(String filename) {

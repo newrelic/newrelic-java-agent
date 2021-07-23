@@ -2,6 +2,7 @@ package com.nr.instrumentation.graphql;
 
 import graphql.language.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GraphQLTransactionName {
@@ -20,15 +21,18 @@ public class GraphQLTransactionName {
 
         SelectionSet selectionSet = operationDefinition.getSelectionSet();
         String firstName = firstName(selectionSet);
-        if(firstName != null) {
-            sb.append(firstName(selectionSet));
-            firstName = firstName(((Field) selectionSet.getSelections().get(0)).getSelectionSet());
-            if(firstName != null) {
-                sb.append(".");
-                sb.append(firstName);
-            }
+        List<String> names = new ArrayList<>();
+        while(firstName != null) {
+            names.add(firstName);
+            selectionSet = nextSelectionSetFrom(selectionSet);
+            firstName = firstName(selectionSet);
         }
+        sb.append(String.join(".", names));
         return sb.toString();
+    }
+
+    private static SelectionSet nextSelectionSetFrom(SelectionSet selectionSet) {
+        return ((Field) selectionSet.getSelections().get(0)).getSelectionSet();
     }
 
     private static String firstName(SelectionSet selectionSet) {
@@ -36,7 +40,7 @@ public class GraphQLTransactionName {
             return null;
         }
         List<Selection> selections = selectionSet.getSelections();
-        if(!selections.isEmpty()) {
+        if(selections.size() == 1) {
             return ((Field) selectionSet.getSelections().get(0)).getName();
         }
         return null;
