@@ -64,7 +64,7 @@ public class GraphQLTransactionNameTest {
         assertEquals("/QUERY/<anonymous>/libraries.branch", transactionName);
     }
 
-    @Ignore
+    @Ignore // TODO: needs implementation with better handling of fragments
     @Test
     public void testUnionTypesAndInlineFragmentQuery() {
         //given
@@ -104,6 +104,17 @@ public class GraphQLTransactionNameTest {
         String transactionName = GraphQLTransactionName.from(document);
         //then
         assertEquals("/*", transactionName);
+    }
+
+    @Ignore // TODO: not sure Java GraphQL supports batch queries based on parsing errors
+    @Test
+    public void testBatchQueries() {
+        //given
+        Document document = parse("batchQueries");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/batch/query/GetBookForLibrary/library.books/mutation/<anonymous>/addThing", transactionName);
     }
 
     private static Document parse(String filename) {

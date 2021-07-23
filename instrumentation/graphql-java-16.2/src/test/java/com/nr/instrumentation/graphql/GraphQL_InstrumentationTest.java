@@ -23,8 +23,6 @@ import static junit.framework.TestCase.assertEquals;
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"graphql", "com.nr.instrumentation"})
 public class GraphQL_InstrumentationTest {
-    private static final String GRAPHQL_PRODUCT = "GraphQL"; //DatastoreVendor.DynamoDB.toString();
-    private static final String OPERATION_NAME = "test";
     private static final long DEFAULT_TIMEOUT_IN_MILLIS = 10_000;
 
     private static GraphQL graphQL;
@@ -37,7 +35,8 @@ public class GraphQL_InstrumentationTest {
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
 
         RuntimeWiring runtimeWiring = newRuntimeWiring()
-                .type("Query", builder -> builder.dataFetcher("hello", new StaticDataFetcher("world")))
+                .type("Query", builder -> builder.dataFetcher("hello",
+                        new StaticDataFetcher("world")))
                 .build();
 
         SchemaGenerator schemaGenerator = new SchemaGenerator();
@@ -56,23 +55,6 @@ public class GraphQL_InstrumentationTest {
         assertOperation("QUERY/<anonymous>/hello");
     }
 
-    @Test
-    public void anotherTest() {
-        trace(createRunnable("query {\n" +
-                "    recentPosts(count: 10, offset: 0) {\n" +
-                "        id\n" +
-                "        title\n" +
-                "        category\n" +
-                "        text\n" +
-                "        author {\n" +
-                "            id\n" +
-                "            name\n" +
-                "            thumbnail\n" +
-                "        }\n" +
-                "    }\n" +
-                "}"));
-    }
-
     @Trace(dispatcher = true)
     private void trace(Runnable runnable) {
         runnable.run();
@@ -88,7 +70,8 @@ public class GraphQL_InstrumentationTest {
         assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
 
         String txName = introspector.getTransactionNames().iterator().next();
-        assertEquals("Transaction name is incorrect", "OtherTransaction/GraphQL/" + expectedTransactionSuffix, txName);
+        assertEquals("Transaction name is incorrect",
+                "OtherTransaction/GraphQL/" + expectedTransactionSuffix, txName);
     }
 
     private Runnable createRunnable(final String query){

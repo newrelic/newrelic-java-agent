@@ -13,7 +13,6 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.graphql.GraphQLTransactionName;
-import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionContextBuilder;
 import graphql.language.Document;
 
@@ -24,8 +23,8 @@ public class ExecutionContextBuilder_Instrumentation {
     public ExecutionContextBuilder document(Document document) {
         System.out.println("ExecutionContextBuilder.document()");
         String transactionName = GraphQLTransactionName.from(document);
+        System.out.println("Setting transaction name to [" + transactionName +"]");
         NewRelic.setTransactionName("GraphQL", transactionName);
         return Weaver.callOriginal();
     }
-
 }
