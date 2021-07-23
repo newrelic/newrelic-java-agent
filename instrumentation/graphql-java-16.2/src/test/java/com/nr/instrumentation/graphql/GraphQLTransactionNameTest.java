@@ -85,6 +85,27 @@ public class GraphQLTransactionNameTest {
         assertEquals("/QUERY/example/search", transactionName);
     }
 
+    @Test
+    public void testValidationErrors_ShouldShowNameSame() {
+        //given
+        Document document = parse("validationErrors");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/QUERY/GetBooksByLibrary/libraries.books.doesnotexist.name", transactionName);
+    }
+
+    @Ignore // TODO: probably handle at a different level
+    @Test
+    public void testParsingErrors() {
+        //given
+        Document document = parse("parsingErrors");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/*", transactionName);
+    }
+
     private static Document parse(String filename) {
         return Parser.parse(readText(filename));
     }
