@@ -53,6 +53,16 @@ public class GraphQLTransactionNameTest {
         assertEquals("/QUERY/<anonymous>/libraries.booksInStock.title", transactionName);
     }
 
+    @Test
+    public void testFederatedSubGraphQuery() {
+        //given
+        Document document = parse("federatedSubGraphQuery");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/QUERY/<anonymous>/libraries.branch", transactionName);
+    }
+
     private static Document parse(String filename) {
         return Parser.parse(readText(filename));
     }
