@@ -35,7 +35,18 @@ public class GraphQLTransactionName {
     }
 
     private static SelectionSet nextSelectionSetFrom(SelectionSet selectionSet) {
-        return ((Field) selectionSet.getSelections().get(0)).getSelectionSet();
+        List<Selection> selections = selectionSet.getSelections();
+        if(selections == null || selections.isEmpty()) {
+            return null;
+        }
+        Selection selection = selections.get(0);
+        if(selection instanceof Field) {
+            return ((Field) selection).getSelectionSet();
+        }
+        if(selection instanceof InlineFragment) {
+            return ((InlineFragment) selection).getSelectionSet();
+        }
+        return null;
     }
 
     private final static String TYPENAME = "__typename";
@@ -43,6 +54,10 @@ public class GraphQLTransactionName {
 
     private static boolean notFederatedFieldName(String fieldName) {
         return !(TYPENAME.equals(fieldName) || ID.equals(fieldName));
+    }
+
+    private static boolean isInlineFragment(String name) {
+        return name != null && name.startsWith("<") && name.endsWith(">");
     }
 
     private static String firstAndOnlyNonFederatedFieldName(SelectionSet selectionSet) {
@@ -69,6 +84,9 @@ public class GraphQLTransactionName {
     private static String fieldNameFrom(Selection selection) {
         if(selection instanceof Field) {
             return ((Field) selection).getName();
+        }
+        if(selection instanceof InlineFragment) {
+            return "<" + ((InlineFragment) selection).getTypeCondition().getName() + ">";
         }
         return null;
     }

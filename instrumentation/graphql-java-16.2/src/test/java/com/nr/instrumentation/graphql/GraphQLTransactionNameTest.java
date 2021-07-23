@@ -2,6 +2,7 @@ package com.nr.instrumentation.graphql;
 
 import graphql.language.Document;
 import graphql.parser.Parser;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -61,6 +62,17 @@ public class GraphQLTransactionNameTest {
         String transactionName = GraphQLTransactionName.from(document);
         //then
         assertEquals("/QUERY/<anonymous>/libraries.branch", transactionName);
+    }
+
+    @Ignore
+    @Test
+    public void testUnionTypesAndInlineFragmentsQuery() {
+        //given
+        Document document = parse("unionTypesAndInlineFragmentsQuery");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/QUERY/example/search<Author>.name", transactionName);
     }
 
     private static Document parse(String filename) {
