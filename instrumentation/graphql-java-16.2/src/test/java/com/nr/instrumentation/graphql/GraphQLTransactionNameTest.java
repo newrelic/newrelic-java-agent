@@ -15,9 +15,19 @@ import static org.junit.Assert.assertEquals;
 public class GraphQLTransactionNameTest {
 
     @Test
-    public void test() throws IOException {
+    public void testSimpleQuery() {
         //given
         Document document = parse("simpleQuery");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/QUERY/simple/libraries.books", transactionName);
+    }
+
+    @Test
+    public void testSimpleAnonymousQuery() {
+        //given
+        Document document = parse("simpleAnonymousQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
