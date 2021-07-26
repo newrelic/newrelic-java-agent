@@ -37,5 +37,8 @@ object NewrelicClientMiddleware {
         )
       } yield newRes
     }
+
+  def resource[F[_] : ConcurrentEffect](delegate: Resource[F, Client[F]]): Resource[F, Client[F]] =
+    delegate.map(clientResource(_))
 }
 
