@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.1.1 (2021-7-15)
+
+ Due to overhead caused in some applications [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/)
+is now disabled by default.
+
+It can be enabled following the instructions [here](#enabling-jfr).
+
+
 ## Version 7.1.0 (2021-7-7)
+
+### Known issue
+Some customers saw increased overhead when Real-time profiling is enabled.
+See instructions to disable Real-time profiling in the [notice](#disabling-jfr) below.
 
 ### New features and improvements:
 
@@ -35,8 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is now enabled by default.
 
   **Notice:** this feature will cause an increase in the consumption of data.
-  The amount depends on the application. It can be disabled by adding the
+  The amount depends on the application. <a id="disabling-jfr"></a> It can be disabled by adding the
   following to the agent yaml config nested under the `common` stanza:
+  
   ```
     jfr:
       enabled: false
@@ -58,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Real-time profiling for Java using JFR metrics  
   [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/) is now fully integrated into the Java agent. See the [JFR core README](https://github.com/newrelic/newrelic-jfr-core/blob/main/README.md) for additional details.
   
+  <a id="enabling-jfr"></a>
   This feature requires a supported version of Java (Java 8 (specifically version `8u262`+) or Java 11+) and is currently disabled by default. To enable it set the following in your yaml (indented 2 spaces under the common stanza).
 
     ```
