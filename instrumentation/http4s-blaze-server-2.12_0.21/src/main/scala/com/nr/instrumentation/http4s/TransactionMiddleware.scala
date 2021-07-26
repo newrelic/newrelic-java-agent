@@ -33,7 +33,7 @@ object TransactionMiddleware {
   private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {
     token.expire()
     tracer.finish(176, null)
-  }
+  }.handleErrorWith(_ => Sync[F].unit)
 
   private def construct[F[_]: Sync, T](t: T): F[T] = Sync[F].delay(t)
 
