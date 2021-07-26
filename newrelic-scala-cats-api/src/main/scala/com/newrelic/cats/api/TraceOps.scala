@@ -1,14 +1,10 @@
 package com.newrelic.cats.api
 
-import cats.{Applicative}
 import cats.effect.Sync
 import cats.implicits._
-import com.newrelic.api.agent.{NewRelic, Segment, Trace, Transaction}
+import com.newrelic.api.agent.{NewRelic, Segment}
 
 object TraceOps {
-
-  implicit def txnWrapper =
-    NewRelic.getAgent().getTransaction()
 
   /**
     * Creates a segment to capture metrics for a given block of code, this will call {@link com.newrelic.api.agent.Transaction# startSegment ( String )},
@@ -41,22 +37,11 @@ object TraceOps {
     }
   }
 
-
-  private def startSegment[F[_]: Sync](segmentName: String): F[Segment] = Sync[F].delay {
-    val txn = NewRelic.getAgent.getTransaction()
-    txn.startSegment(segmentName)
-  }
-
-  private def endSegmentOnError[S, F[_]: Sync](io: F[S], segment: Segment) =
-    io.handleErrorWith(t => {
-      segment.end()
-      Sync[F].raiseError(t)
-    })
-
   /**
-    * Creates a segment to capture metrics for a cats effect IO code block, this will create a new IO object {@link com.newrelic.api.agent.Transaction# startSegment ( String )}
-    * that execute the code block, then call {@link com.newrelic.api.agent.Segment# end ( )} on the completion of the
-    * asynchronous code block.
+    * Creates a segment to capture metrics for a value in a context F[A] where there is a
+    * cats effect Sync Type Class instance for the context F, this will typically be cats effect IO
+    * When run the returned F[S] calls {@link com.newrelic.api.agent.Transaction# startSegment ( String )},
+    * executes the input F[S], then calls {@link com.newrelic.api.agent.Segment# end ( )}
     * This {@link Segment} will show up in the Transaction Breakdown table, as well as the Transaction Trace page. This {@link Segment} will be reported in the "Custom/" metric
     * e.g. The code below will produce 2 segments <i>trace segment 1</i> and <i>trace segment 2</i>
     * <pre>
@@ -70,12 +55,11 @@ object TraceOps {
     *                    This name will show up in the Transaction Breakdown table, as well as the Transaction Trace page.
     *                    <p>
     *                    if null or an empty String, the agent will report "Unnamed Segment".
-    * @param block       Asynchronous code block segment is to capture metrics for.
+    * @param block       F[S] value the segment is to capture metrics for.
     *                    The block should return a { @link IO}
-    * @tparam S Type returned from completed asynchronous code block
     * @return Value returned from completed asynchronous code block
     */
-  def asyncTrace[S, F[_]: Sync](segmentName: String)(block: F[S]): F[S] = for {
+  def asyncTrace[S, F[_] : Sync](segmentName: String)(block: F[S]): F[S] = for {
     segment <- startSegment(segmentName)
     res <- endSegmentOnError(block, segment)
     _ <- Sync[F].delay(segment.end())
@@ -86,7 +70,7 @@ object TraceOps {
     * Creates a segment to capture metrics for a given function, this will call {@link com.newrelic.api.agent.Transaction# startSegment ( String )},
     * execute the function, then call {@link com.newrelic.api.agent.Segment# end ( )}. This {@link Segment} will show up in the Transaction Breakdown
     * table, as well as the Transaction Trace page. This {@link Segment} will be reported in the "Custom/" metric
-    * e.g. the code below will produce 2 segments <i>trace map segment</i> and <i>trace filter segment</i>
+    * e.g. the code below will produce a segment <i>trace map segment</i>
     * <pre>
     * IO(1)
     * .map(traceFun("trace map segment")(i => i + 1))
@@ -113,10 +97,11 @@ object TraceOps {
       }
   }
 
-
   /**
-    * Creates a segment to capture metrics for a given asynchronous function, this will call {@link com.newrelic.api.agent.Transaction# startSegment ( String )},
-    * execute the function, then call {@link com.newrelic.api.agent.Segment# end ( )} on the <b>completion</b> of the asynchronous function.
+    * Creates a segment to capture metrics for given asynchronous function of return type :F[S],
+    * When run the returned F[S] calls {@link com.newrelic.api.agent.Transaction# startSegment ( String )},
+    * executes the function,
+    * then call {@link com.newrelic.api.agent.Segment# end ( )}
     * This {@link Segment} will show up in the Transaction Breakdown table, as well as the Transaction Trace page. This {@link Segment} will be reported in the "Custom/" metric
     * e.g. The code below will produce 1 segment <i>trace flatMap segment</i>
     * <pre>
@@ -132,7 +117,7 @@ object TraceOps {
     * @tparam S Type returned from completed asynchronous function
     * @return Value returned from completed asynchronous function
     */
-  def asyncTraceFun[T, S, F[_]:Sync](segmentName: String)(f: T => F[S]): T => F[S] = { t: T =>
+  def asyncTraceFun[T, S, F[_] : Sync](segmentName: String)(f: T => F[S]): T => F[S] = { t: T =>
     for {
       segment <- startSegment(segmentName)
       evaluatedFunc <- endSegmentOnError(f(t), segment)
@@ -141,22 +126,14 @@ object TraceOps {
   }
 
   /**
-    * Starts a {@link com.newrelic.api.agent.Transaction} for a given block of code.
+    * Wraps a given block of code so that a {@link com.newrelic.api.agent.Transaction} will be started and completed
+    * before and after the code is run.
     * When this method is invoked within the context of an existing transaction this has no effect.
     * The newly created {@link com.newrelic.api.agent.Transaction} will complete once the code block has been executed
-    * e.g. the code below will create a Transaction and with 2 segments <i>trace option creation</i> and <i>trace map option</i>
-    * <pre>
-    * txn {
-    * val o1 = trace("trace option creation")(Some(1))
-    * o1.map(traceFun("trace map option")(i => i + 1))
-    * }
-    * </pre>
     * e.g. the code below will create a Transaction and with 2 segments <i>trace map IO</i> and <i>trace filter IO</i>
     * <pre>
     * txn {
-    * IO(1)
-    * .map(traceFun("trace map IO")(i => i + 1))
-    * .filter(traceFun("trace filter IO")(i => i % 2 == 0))
+    * IO(1).map(traceFun("trace map IO")(i => i + 1))
     * }
     * </pre>
     *
@@ -164,7 +141,16 @@ object TraceOps {
     * @tparam S Type returned by code block
     * @return Value returned by code block
     */
+  def txn[S, F[_] : Sync](body: F[S]): F[S] = body
 
-  def txn[S, F[_]:Sync](body: F[S]): F[S] = body
+  private def startSegment[F[_] : Sync](segmentName: String): F[Segment] = Sync[F].delay {
+    val txn = NewRelic.getAgent.getTransaction()
+    txn.startSegment(segmentName)
+  }
 
+  private def endSegmentOnError[S, F[_] : Sync](io: F[S], segment: Segment) =
+    io.handleErrorWith(t => {
+      segment.end()
+      Sync[F].raiseError(t)
+    })
 }
