@@ -2,26 +2,29 @@ package com.nr.instrumentation.graphql;
 
 import graphql.language.Document;
 import graphql.parser.Parser;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GraphQLTransactionNameTest {
 
-    @Test
-    public void testSimpleQuery() {
+    @ParameterizedTest
+    @CsvFileSource(resources = "/transaction-name-test-data.csv")
+    public void testQuery(String testFileName, String expectedTransactionName) {
         //given
-        Document document = parse("simpleQuery");
+        Document document = parse(testFileName);
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
-        assertEquals("/QUERY/simple/libraries.books", transactionName);
+        assertEquals(expectedTransactionName, transactionName);
     }
 
     @Test
@@ -64,7 +67,7 @@ public class GraphQLTransactionNameTest {
         assertEquals("/QUERY/<anonymous>/libraries.branch", transactionName);
     }
 
-    @Ignore // TODO: needs implementation with better handling of fragments
+    @Disabled // TODO: needs implementation with better handling of fragments
     @Test
     public void testUnionTypesAndInlineFragmentQuery() {
         //given
@@ -95,7 +98,7 @@ public class GraphQLTransactionNameTest {
         assertEquals("/QUERY/GetBooksByLibrary/libraries.books.doesnotexist.name", transactionName);
     }
 
-    @Ignore // TODO: probably handle at a different level
+    @Disabled // TODO: probably handle at a different level
     @Test
     public void testParsingErrors() {
         //given
@@ -106,7 +109,7 @@ public class GraphQLTransactionNameTest {
         assertEquals("/*", transactionName);
     }
 
-    @Ignore // TODO: not sure Java GraphQL supports batch queries based on parsing errors
+    @Disabled // TODO: not sure Java GraphQL supports batch queries based on parsing errors
     @Test
     public void testBatchQueries() {
         //given
