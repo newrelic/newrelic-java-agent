@@ -17,8 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class GraphQLTransactionNameTest {
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/transaction-name-test-data.csv")
+    @CsvFileSource(resources = "/transaction-name-test-data.csv", delimiter = '|', numLinesToSkip = 2)
     public void testQuery(String testFileName, String expectedTransactionName) {
+        //setup
+        testFileName = testFileName.trim();
+        expectedTransactionName = expectedTransactionName.trim();
         //given
         Document document = parse(testFileName);
         //when
