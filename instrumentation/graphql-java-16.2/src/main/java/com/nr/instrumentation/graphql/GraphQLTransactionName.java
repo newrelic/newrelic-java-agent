@@ -25,17 +25,38 @@ public class GraphQLTransactionName {
                 .append("/");
 
         SelectionSet selectionSet = operationDefinition.getSelectionSet();
-        NamedNode<?> namedNode = firstAndOnlyNonFederatedNamedNode(selectionSet);
-        List<NamedNode<?>> namedNodes = new ArrayList<>();
-        while(namedNode != null) {
-            namedNodes.add(namedNode);
-            namedNode = nextNonFederatedNamedNode(namedNode);
+        Selection selection = firstAndOnlyNonFederatedNamedNode(selectionSet);
+        List<Selection> selections = new ArrayList<>();
+        while(selection != null) {
+            selections.add(selection);
+            selection = nextNonFederatedNamedNode(selection);
         }
-        sb.append(namedNodes.stream().map(NamedNode::getName).collect(Collectors.joining(".")));
+        sb.append(pathSuffixFrom(selections));
         return sb.toString();
     }
 
-    private static NamedNode<?> firstAndOnlyNonFederatedNamedNode(SelectionSet selectionSet) {
+    private static String pathSuffixFrom(List<Selection> selections) {
+        if(selections == null || selections.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder(getName(selections.get(0)));
+        int length = selections.size();
+        for (int i = 1; i < length; i++) {
+            Selection selection = selections.get(i);
+            if(selection instanceof Field) {
+                sb.append(".");
+                sb.append(getName(selection));
+            }
+            else if(selection instanceof InlineFragment) {
+                sb.append("<");
+                sb.append(getName(selection));
+                sb.append(">");
+            }
+        }
+        return sb.toString();
+    }
+
+    private static Selection firstAndOnlyNonFederatedNamedNode(SelectionSet selectionSet) {
         if(selectionSet == null) {
             return null;
         }
@@ -43,19 +64,27 @@ public class GraphQLTransactionName {
         if(selections == null || selections.isEmpty()) {
             return null;
         }
-        List<NamedNode<?>> namedNodes = selections.stream()
-                .filter(selection -> selection instanceof NamedNode)
-                .map(selection -> (NamedNode<?>) selection)
-                .filter(namedNode -> notFederatedFieldName(namedNode.getName()))
+        List<Selection> selection = selections.stream()
+                .filter(namedNode -> notFederatedFieldName(getName(namedNode)))
                 .collect(Collectors.toList());
-        return namedNodes.size() == 1 ? namedNodes.get(0) : null;
+        return selection.size() == 1 ? selection.get(0) : null;
     }
 
-    private static NamedNode<?> nextNonFederatedNamedNode(NamedNode<?> namedNode) {
-        if(!(namedNode instanceof SelectionSetContainer)) {
+    private static String getName(Selection selection) {
+        if(selection instanceof Field) {
+            return ((Field) selection).getName();
+        }
+        if(selection instanceof InlineFragment) {
+            return ((InlineFragment) selection).getTypeCondition().getName();
+        }
+        return null;
+    }
+
+    private static Selection nextNonFederatedNamedNode(Selection selection) {
+        if(!(selection instanceof SelectionSetContainer)) {
             return null;
         }
-        SelectionSet selectionSet = ((SelectionSetContainer<?>) namedNode).getSelectionSet();
+        SelectionSet selectionSet = ((SelectionSetContainer<?>) selection).getSelectionSet();
         return firstAndOnlyNonFederatedNamedNode(selectionSet);
     }
 

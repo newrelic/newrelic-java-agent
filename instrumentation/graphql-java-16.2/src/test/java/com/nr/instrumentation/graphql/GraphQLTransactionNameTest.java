@@ -31,16 +31,6 @@ public class GraphQLTransactionNameTest {
         assertEquals(expectedTransactionName, transactionName);
     }
 
-    @Test
-    public void testUnionTypesAndInlineFragmentQuery() {
-        //given
-        Document document = parse("transactionNameTestData/unionTypesAndInlineFragmentQuery");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/QUERY/example/search<Author>.name", transactionName);
-    }
-
     @Disabled // TODO: not sure Java GraphQL supports batch queries based on parsing errors
     @Test
     public void testBatchQueries() {
