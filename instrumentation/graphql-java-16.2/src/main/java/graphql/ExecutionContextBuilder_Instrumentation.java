@@ -25,6 +25,19 @@ public class ExecutionContextBuilder_Instrumentation {
         String transactionName = GraphQLTransactionName.from(document);
         System.out.println("Setting transaction name to [" + transactionName +"]");
         NewRelic.setTransactionName("GraphQL", transactionName);
+
+        /* Currently, this is the first place we can tap into the Document, which contains a parsed query.
+        By tracing it and renaming this tracer, the DT UI should look like the following:
+
+        GraphQL.executeAsync...
+           GraphQL + transactionName...
+              resolver + field 1...
+              resolver + field 2...
+              ...
+         */
+
+        System.out.println("Setting tracer name to [" + transactionName +"]");
+        NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/" + transactionName);
         return Weaver.callOriginal();
     }
 }
