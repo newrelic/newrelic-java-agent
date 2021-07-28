@@ -21,7 +21,7 @@ import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static junit.framework.TestCase.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = {"graphql", "com.nr.instrumentation"})
+@InstrumentationTestConfig(includePrefixes = {"graphql", "com.nr.instrumentation"}, configName = "distributed_tracing.yml")
 public class GraphQL_InstrumentationTest {
     private static final long DEFAULT_TIMEOUT_IN_MILLIS = 10_000;
 
