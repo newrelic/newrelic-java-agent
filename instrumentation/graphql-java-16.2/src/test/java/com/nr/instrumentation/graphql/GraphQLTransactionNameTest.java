@@ -32,47 +32,6 @@ public class GraphQLTransactionNameTest {
     }
 
     @Test
-    public void testSimpleAnonymousQuery() {
-        //given
-        Document document = parse("transactionNameTestData/simpleAnonymousQuery");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/QUERY/<anonymous>/libraries.books", transactionName);
-    }
-
-    @Test
-    public void testDeepestUniquePathQuery() {
-        //given
-        Document document = parse("transactionNameTestData/deepestUniquePathQuery");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/QUERY/<anonymous>/libraries", transactionName);
-    }
-
-    @Test
-    public void testDeepestUniqueSinglePathQuery() {
-        //given
-        Document document = parse("transactionNameTestData/deepestUniqueSinglePathQuery");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/QUERY/<anonymous>/libraries.booksInStock.title", transactionName);
-    }
-
-    @Test
-    public void testFederatedSubGraphQuery() {
-        //given
-        Document document = parse("transactionNameTestData/federatedSubGraphQuery");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/QUERY/<anonymous>/libraries.branch", transactionName);
-    }
-
-    @Disabled // TODO: needs implementation with better handling of fragments
-    @Test
     public void testUnionTypesAndInlineFragmentQuery() {
         //given
         Document document = parse("transactionNameTestData/unionTypesAndInlineFragmentQuery");
@@ -80,37 +39,6 @@ public class GraphQLTransactionNameTest {
         String transactionName = GraphQLTransactionName.from(document);
         //then
         assertEquals("/QUERY/example/search<Author>.name", transactionName);
-    }
-
-    @Test
-    public void testUnionTypesAndInlineFragmentsQuery() {
-        //given
-        Document document = parse("transactionNameTestData/unionTypesAndInlineFragmentsQuery");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/QUERY/example/search", transactionName);
-    }
-
-    @Test
-    public void testValidationErrors_ShouldShowNameSame() {
-        //given
-        Document document = parse("transactionNameTestData/validationErrors");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/QUERY/GetBooksByLibrary/libraries.books.doesnotexist.name", transactionName);
-    }
-
-    @Disabled // TODO: probably handle at a different level
-    @Test
-    public void testParsingErrors() {
-        //given
-        Document document = parse("transactionNameTestData/parsingErrors");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/*", transactionName);
     }
 
     @Disabled // TODO: not sure Java GraphQL supports batch queries based on parsing errors
@@ -122,6 +50,17 @@ public class GraphQLTransactionNameTest {
         String transactionName = GraphQLTransactionName.from(document);
         //then
         assertEquals("/batch/query/GetBookForLibrary/library.books/mutation/<anonymous>/addThing", transactionName);
+    }
+
+    @Disabled // TODO: probably handle at a different level
+    @Test
+    public void testParsingErrors() {
+        //given
+        Document document = parse("transactionNameTestData/parsingErrors");
+        //when
+        String transactionName = GraphQLTransactionName.from(document);
+        //then
+        assertEquals("/*", transactionName);
     }
 
     private static Document parse(String filename) {

@@ -4,10 +4,12 @@ import graphql.language.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GraphQLTransactionName {
 
-    private static Selection<Field> selection;
+    private final static String TYPENAME = "__typename";
+    private final static String ID = "id";
 
     public static String from(Document document) {
         OperationDefinition operationDefinition = (OperationDefinition) document.getDefinitions().get(0);
@@ -23,73 +25,42 @@ public class GraphQLTransactionName {
                 .append("/");
 
         SelectionSet selectionSet = operationDefinition.getSelectionSet();
-        String firstName = firstAndOnlyNonFederatedFieldName(selectionSet);
-        List<String> names = new ArrayList<>();
-        while(firstName != null) {
-            names.add(firstName);
-            selectionSet = nextSelectionSetFrom(selectionSet);
-            firstName = firstAndOnlyNonFederatedFieldName(selectionSet);
+        NamedNode<?> namedNode = firstAndOnlyNonFederatedNamedNode(selectionSet);
+        List<NamedNode<?>> namedNodes = new ArrayList<>();
+        while(namedNode != null) {
+            namedNodes.add(namedNode);
+            namedNode = nextNonFederatedNamedNode(namedNode);
         }
-        sb.append(String.join(".", names));
+        sb.append(namedNodes.stream().map(NamedNode::getName).collect(Collectors.joining(".")));
         return sb.toString();
     }
 
-    private static SelectionSet nextSelectionSetFrom(SelectionSet selectionSet) {
+    private static NamedNode<?> firstAndOnlyNonFederatedNamedNode(SelectionSet selectionSet) {
+        if(selectionSet == null) {
+            return null;
+        }
         List<Selection> selections = selectionSet.getSelections();
         if(selections == null || selections.isEmpty()) {
             return null;
         }
-        Selection selection = selections.get(0);
-        if(selection instanceof Field) {
-            return ((Field) selection).getSelectionSet();
-        }
-        if(selection instanceof InlineFragment) {
-            return ((InlineFragment) selection).getSelectionSet();
-        }
-        return null;
+        List<NamedNode<?>> namedNodes = selections.stream()
+                .filter(selection -> selection instanceof NamedNode)
+                .map(selection -> (NamedNode<?>) selection)
+                .filter(namedNode -> notFederatedFieldName(namedNode.getName()))
+                .collect(Collectors.toList());
+        return namedNodes.size() == 1 ? namedNodes.get(0) : null;
     }
 
-    private final static String TYPENAME = "__typename";
-    private final static String ID = "id";
+    private static NamedNode<?> nextNonFederatedNamedNode(NamedNode<?> namedNode) {
+        if(!(namedNode instanceof SelectionSetContainer)) {
+            return null;
+        }
+        SelectionSet selectionSet = ((SelectionSetContainer<?>) namedNode).getSelectionSet();
+        return firstAndOnlyNonFederatedNamedNode(selectionSet);
+    }
 
     private static boolean notFederatedFieldName(String fieldName) {
         return !(TYPENAME.equals(fieldName) || ID.equals(fieldName));
     }
-
-    private static boolean isInlineFragment(String name) {
-        return name != null && name.startsWith("<") && name.endsWith(">");
-    }
-
-    private static String firstAndOnlyNonFederatedFieldName(SelectionSet selectionSet) {
-        if(selectionSet == null) {
-            return null;
-        }
-        String name = null;
-        for (Selection selection : selectionSet.getSelections()) {
-            String nextFieldName = fieldNameFrom(selection);
-            if(nextFieldName != null) {
-                if(notFederatedFieldName(nextFieldName)) {
-                    if(name != null) {
-                        return null;
-                    }
-                    else {
-                        name = nextFieldName;
-                    }
-                }
-            }
-        }
-        return name;
-    }
-
-    private static String fieldNameFrom(Selection selection) {
-        if(selection instanceof Field) {
-            return ((Field) selection).getName();
-        }
-        if(selection instanceof InlineFragment) {
-            return "<" + ((InlineFragment) selection).getTypeCondition().getName() + ">";
-        }
-        return null;
-    }
-
 
 }
