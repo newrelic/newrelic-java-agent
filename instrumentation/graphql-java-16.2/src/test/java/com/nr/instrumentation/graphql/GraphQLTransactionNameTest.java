@@ -2,7 +2,6 @@ package com.nr.instrumentation.graphql;
 
 import graphql.language.Document;
 import graphql.parser.Parser;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,11 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GraphQLTransactionNameTest {
 
+    private final static String TEST_DATA_DIR = "transactionNameTestData";
+
     @ParameterizedTest
-    @CsvFileSource(resources = "/transaction-name-test-data.csv", delimiter = '|', numLinesToSkip = 2)
+    @CsvFileSource(resources = "/transactionNameTestData/transaction-name-test-data.csv", delimiter = '|', numLinesToSkip = 2)
     public void testQuery(String testFileName, String expectedTransactionName) {
         //setup
-        testFileName = testFileName.trim();
+        testFileName = TEST_DATA_DIR + "/" + testFileName.trim();
         expectedTransactionName = expectedTransactionName.trim();
         //given
         Document document = parse(testFileName);
@@ -33,7 +34,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testSimpleAnonymousQuery() {
         //given
-        Document document = parse("simpleAnonymousQuery");
+        Document document = parse("transactionNameTestData/simpleAnonymousQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -43,7 +44,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testDeepestUniquePathQuery() {
         //given
-        Document document = parse("deepestUniquePathQuery");
+        Document document = parse("transactionNameTestData/deepestUniquePathQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -53,7 +54,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testDeepestUniqueSinglePathQuery() {
         //given
-        Document document = parse("deepestUniqueSinglePathQuery");
+        Document document = parse("transactionNameTestData/deepestUniqueSinglePathQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -63,7 +64,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testFederatedSubGraphQuery() {
         //given
-        Document document = parse("federatedSubGraphQuery");
+        Document document = parse("transactionNameTestData/federatedSubGraphQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -74,7 +75,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testUnionTypesAndInlineFragmentQuery() {
         //given
-        Document document = parse("unionTypesAndInlineFragmentQuery");
+        Document document = parse("transactionNameTestData/unionTypesAndInlineFragmentQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -84,7 +85,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testUnionTypesAndInlineFragmentsQuery() {
         //given
-        Document document = parse("unionTypesAndInlineFragmentsQuery");
+        Document document = parse("transactionNameTestData/unionTypesAndInlineFragmentsQuery");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -94,7 +95,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testValidationErrors_ShouldShowNameSame() {
         //given
-        Document document = parse("validationErrors");
+        Document document = parse("transactionNameTestData/validationErrors");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -105,7 +106,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testParsingErrors() {
         //given
-        Document document = parse("parsingErrors");
+        Document document = parse("transactionNameTestData/parsingErrors");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
@@ -116,7 +117,7 @@ public class GraphQLTransactionNameTest {
     @Test
     public void testBatchQueries() {
         //given
-        Document document = parse("batchQueries");
+        Document document = parse("transactionNameTestData/batchQueries");
         //when
         String transactionName = GraphQLTransactionName.from(document);
         //then
