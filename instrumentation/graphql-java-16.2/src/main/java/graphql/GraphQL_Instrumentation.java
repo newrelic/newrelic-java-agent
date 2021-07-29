@@ -6,9 +6,9 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+
+import static com.nr.instrumentation.graphql.GraphQLErrorHelper.maybeReportExecutionResultError;
 
 @Weave(originalName = "graphql.GraphQL", type = MatchType.ExactClass)
 public class GraphQL_Instrumentation {
@@ -27,17 +27,9 @@ public class GraphQL_Instrumentation {
         //todo: Ideally, this tracer/span name does reflect the query. We could use the graphQL parser ourselves to get the Document?
         // Document document = Parser.parse(executionInput.getQuery())
         // This feels bad...Our instrumention would call the Parser on the query and then Graphql will repeat it again.
-
         CompletableFuture<ExecutionResult> executionResult = Weaver.callOriginal();
-        if(executionResult.isDone()){
-            try {
-               List<GraphQLError> errors = executionResult.get().getErrors();
-               if(!errors.isEmpty()){
-                   NewRelic.noticeError(errors.get(0).getMessage());
-               }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+        if(executionResult != null && executionResult.isDone()){
+            maybeReportExecutionResultError(executionResult);
         }
         return executionResult;
     }
