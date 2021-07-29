@@ -55,6 +55,28 @@ public class GraphQL_InstrumentationTest {
         assertOperation("QUERY/<anonymous>/hello");
     }
 
+    @Test
+    public void parsingError() {
+        //given
+        String query = "not going to work";
+        //when
+        trace(createRunnable(query));
+        //then
+        //fixme this test doesn't pass, just for triggering code path
+        assertOperation("QUERY/<anonymous>/hello");
+    }
+
+    @Test
+    public void validationError() {
+        //given
+        String query = "{noSuchField}";
+        //when
+        trace(createRunnable(query));
+        //then
+        //fixme this test doesn't pass, just for triggering code path
+        assertOperation("QUERY/<anonymous>/hello");
+    }
+
     @Trace(dispatcher = true)
     private void trace(Runnable runnable) {
         runnable.run();
