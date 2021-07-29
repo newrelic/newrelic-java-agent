@@ -1,13 +1,14 @@
 package graphql;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Weave(originalName = "graphql.GraphQL", type = MatchType.ExactClass)
 public class GraphQL_Instrumentation {
@@ -27,14 +28,17 @@ public class GraphQL_Instrumentation {
         // Document document = Parser.parse(executionInput.getQuery())
         // This feels bad...Our instrumention would call the Parser on the query and then Graphql will repeat it again.
 
-        /*Using the available agent Apis, this is how to add additional "agentAttributes" to this tracer.
-        Although this works (tracer does get more agentAttributes), these attributes will not end up on the span
-        created from this tracer.
-
-        TracerToSpanEvent in the agent only copies agentAttributes to the span created from the root Tracer of a TX.
-        */
-        AgentBridge.privateApi.addTracerParameter("graphql.attribute", "addTracerParameter-graphql");
-
-        return Weaver.callOriginal();
+        CompletableFuture<ExecutionResult> executionResult = Weaver.callOriginal();
+        if(executionResult.isDone()){
+            try {
+               List<GraphQLError> errors = executionResult.get().getErrors();
+               if(!errors.isEmpty()){
+                   NewRelic.noticeError(errors.get(0).getMessage());
+               }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        return executionResult;
     }
 }
