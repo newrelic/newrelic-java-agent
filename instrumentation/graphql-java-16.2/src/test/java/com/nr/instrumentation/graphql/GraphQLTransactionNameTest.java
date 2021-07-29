@@ -31,35 +31,13 @@ public class GraphQLTransactionNameTest {
         assertEquals(expectedTransactionName, transactionName);
     }
 
-    @Disabled // TODO: not sure Java GraphQL supports batch queries based on parsing errors
-    @Test
-    public void testBatchQueries() {
-        //given
-        Document document = parse("transactionNameTestData/batchQueries");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/batch/query/GetBookForLibrary/library.books/mutation/<anonymous>/addThing", transactionName);
-    }
-
-    @Disabled // TODO: probably handle at a different level
-    @Test
-    public void testParsingErrors() {
-        //given
-        Document document = parse("transactionNameTestData/parsingErrors");
-        //when
-        String transactionName = GraphQLTransactionName.from(document);
-        //then
-        assertEquals("/*", transactionName);
-    }
-
     private static Document parse(String filename) {
         return Parser.parse(readText(filename));
     }
 
     private static String readText(String filename) {
         try {
-            return new String(Files.readAllBytes(Paths.get("src/test/resources/" + filename)));
+            return new String(Files.readAllBytes(Paths.get("src/test/resources/" + filename + ".gql")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
