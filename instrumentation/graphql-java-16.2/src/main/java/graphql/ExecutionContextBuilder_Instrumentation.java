@@ -21,23 +21,28 @@ public class ExecutionContextBuilder_Instrumentation {
 
     @Trace
     public ExecutionContextBuilder document(Document document) {
-        System.out.println("ExecutionContextBuilder.document()");
         String transactionName = GraphQLTransactionName.from(document);
-        System.out.println("Setting transaction name to [" + transactionName +"]");
         NewRelic.setTransactionName("GraphQL", transactionName);
+        NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation/" + transactionName);
 
-        /* Currently, this is the first place we can tap into the Document, which contains a parsed query.
-        By tracing it and renaming this tracer, the DT UI should look like the following:
+        //todo running test() and debugging the introspector, you  can see the spans created from this tx. introspector.getSpanEvents()
 
-        GraphQL.executeAsync...
-           GraphQL + transactionName...
-              resolver + field 1...
-              resolver + field 2...
-              ...
+        /*
+        If the query was
+        query fastAndFun {
+            bookById (id: "book-1") {
+                title
+            }
+        }
+
+        These attributes and string values should be added
+
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", query );
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.name", fastAndFun );
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", {book (???) {title}});
+
          */
 
-        System.out.println("Setting tracer name to [" + transactionName +"]");
-        NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/" + transactionName);
         return Weaver.callOriginal();
     }
 }
