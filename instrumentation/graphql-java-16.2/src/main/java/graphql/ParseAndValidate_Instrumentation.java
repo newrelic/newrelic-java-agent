@@ -18,22 +18,20 @@ import static com.nr.instrumentation.graphql.GraphQLErrorHelper.reportGraphQLErr
 public class ParseAndValidate_Instrumentation {
     @Trace
     public static ParseAndValidateResult parse(ExecutionInput executionInput) {
-        //fixme  with correct atttribute value
-        AgentBridge.privateApi.addTracerParameter("graphql.attribute", "parse method");
         ParseAndValidateResult result = Weaver.callOriginal();
         if(result != null && result.isFailure()) {
             reportGraphQLException(result.getSyntaxException());
+            //fixme if this happens, the tx name will need to be renamed to reflect this situation
         }
         return result;
     }
 
     @Trace
     public static List<ValidationError> validate(GraphQLSchema graphQLSchema, Document parsedDocument) {
-        //todo: fix with correct atttribute value
-        AgentBridge.privateApi.addTracerParameter("graphql.attribute", "validate method");
         List<ValidationError> errors = Weaver.callOriginal();
         if (errors != null && !errors.isEmpty()) {
             reportGraphQLError(errors.get(0));
+            //fixme if this happens, the tx name will need to be renamed to reflect this situation
         }
         return errors;
     }
