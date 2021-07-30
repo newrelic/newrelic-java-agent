@@ -6,57 +6,96 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Generates GraphQL transaction names based on details referenced in Node instrumentation.
+ *
+ * @see <a href="https://github.com/newrelic/newrelic-node-apollo-server-plugin/blob/main/docs/transactions.md">
+ *     NewRelic Node Apollo Server Plugin - Transactions
+ *     </a>
+ *
+ * Batch queries are not supported by GraphQL Java implementation at this time
+ * and transaction names for parse errors must be set elsewhere because this class
+ * relies on the GraphQL Document that is the artifact of a successful parse.
+ */
 public class GraphQLTransactionName {
 
+    private final static String DEFAULT_TRANSACTION_NAME = "";
+
+    // federated field names to exclude from path calculations
     private final static String TYPENAME = "__typename";
     private final static String ID = "id";
 
-    public static String from(Document document) {
-        OperationDefinition operationDefinition = (OperationDefinition) document.getDefinitions().get(0);
-        String name = operationDefinition.getName();
-        String operation = operationDefinition.getOperation().name();
-        if(name == null) {
-            name = "<anonymous>";
-        }
-        StringBuilder sb = new StringBuilder("/")
-                .append(operation)
-                .append("/")
-                .append(name)
-                .append("/");
+    /**
+     * Generates a transaction name based on a valid, parsed GraphQL Document
+     *
+     * @param document  parsed GraphQL Document
+     * @return  a transaction name based on given document
+     */
+    public static String from(final Document document) {
+        // can this be an assertion that throws an exception?
+        if(document == null) return DEFAULT_TRANSACTION_NAME;
+        OperationDefinition operationDefinition = getFirstOperationDefinitionFrom(document);
+        if(operationDefinition == null) return DEFAULT_TRANSACTION_NAME;
+        return createBeginningOfTransactionNameFrom(operationDefinition) +
+                createEndOfTransactionNameFrom(operationDefinition.getSelectionSet());
+    }
 
-        SelectionSet selectionSet = operationDefinition.getSelectionSet();
-        Selection selection = firstAndOnlyNonFederatedNamedNode(selectionSet);
+    // TODO: Remove and call GraphQLOperationDefinition directly
+    public static OperationDefinition getFirstOperationDefinitionFrom(final Document document) {
+        return GraphQLOperationDefinition.firstFrom(document);
+    }
+
+    private static String createBeginningOfTransactionNameFrom(final OperationDefinition operationDefinition) {
+        String operationType = getOperationTypeFrom(operationDefinition);
+        String operationName = getOperationNameFrom(operationDefinition);
+        return String.format("/%s/%s", operationType, operationName);
+    }
+
+    // TODO: Remove and call GraphQLOperationDefinition directly
+    public static String getOperationNameFrom(final OperationDefinition operationDefinition) {
+        return GraphQLOperationDefinition.getOperationNameFrom(operationDefinition);
+    }
+
+    // TODO: Remove and call GraphQLOperationDefinition directly
+    public static String getOperationTypeFrom(final OperationDefinition operationDefinition) {
+        return GraphQLOperationDefinition.getOperationTypeFrom(operationDefinition);
+    }
+
+    private static String createEndOfTransactionNameFrom(final SelectionSet selectionSet) {
+        Selection selection = onlyNonFederatedSelectionOrNoneFrom(selectionSet);
+        if(selection == null) return null;
         List<Selection> selections = new ArrayList<>();
         while(selection != null) {
             selections.add(selection);
-            selection = nextNonFederatedNamedNode(selection);
+            selection = nextNonFederatedSelectionChildFrom(selection);
         }
-        sb.append(pathSuffixFrom(selections));
-        return sb.toString();
+        return createPathSuffixFrom(selections);
     }
 
-    private static String pathSuffixFrom(List<Selection> selections) {
+    private static String createPathSuffixFrom(final List<Selection> selections) {
         if(selections == null || selections.isEmpty()) {
             return "";
         }
-        StringBuilder sb = new StringBuilder(getName(selections.get(0)));
+        StringBuilder sb = new StringBuilder("/").append(getNameFrom(selections.get(0)));
         int length = selections.size();
+        // skip first element, it is already added without extra formatting
         for (int i = 1; i < length; i++) {
-            Selection selection = selections.get(i);
-            if(selection instanceof Field) {
-                sb.append(".");
-                sb.append(getName(selection));
-            }
-            else if(selection instanceof InlineFragment) {
-                sb.append("<");
-                sb.append(getName(selection));
-                sb.append(">");
-            }
+            sb.append(getFormattedNameFor(selections.get(i)));
         }
         return sb.toString();
     }
 
-    private static Selection firstAndOnlyNonFederatedNamedNode(SelectionSet selectionSet) {
+    private static String getFormattedNameFor(Selection selection) {
+        if(selection instanceof Field) {
+            return String.format(".%s", getNameFrom((Field) selection));
+        }
+        if(selection instanceof InlineFragment) {
+            return String.format("<%s>", getNameFrom((InlineFragment) selection));
+        }
+        return "";
+    }
+
+    private static Selection onlyNonFederatedSelectionOrNoneFrom(final SelectionSet selectionSet) {
         if(selectionSet == null) {
             return null;
         }
@@ -65,31 +104,44 @@ public class GraphQLTransactionName {
             return null;
         }
         List<Selection> selection = selections.stream()
-                .filter(namedNode -> notFederatedFieldName(getName(namedNode)))
+                .filter(namedNode -> notFederatedFieldName(getNameFrom(namedNode)))
                 .collect(Collectors.toList());
+        // there can be only one
         return selection.size() == 1 ? selection.get(0) : null;
     }
 
-    private static String getName(Selection selection) {
+    private static String getNameFrom(final Selection selection) {
         if(selection instanceof Field) {
-            return ((Field) selection).getName();
+            return getNameFrom((Field) selection);
         }
         if(selection instanceof InlineFragment) {
-            return ((InlineFragment) selection).getTypeCondition().getName();
+            return getNameFrom((InlineFragment) selection);
         }
+        // FragmentSpread also implements Selection but not sure how that might apply here
         return null;
     }
 
-    private static Selection nextNonFederatedNamedNode(Selection selection) {
+    private static String getNameFrom(final Field field) {
+        return field.getName();
+    }
+
+    private static String getNameFrom(final InlineFragment inlineFragment) {
+        TypeName typeCondition = inlineFragment.getTypeCondition();
+        if(typeCondition != null) {
+            return typeCondition.getName();
+        }
+        return "";
+    }
+
+    private static Selection nextNonFederatedSelectionChildFrom(final Selection selection) {
         if(!(selection instanceof SelectionSetContainer)) {
             return null;
         }
         SelectionSet selectionSet = ((SelectionSetContainer<?>) selection).getSelectionSet();
-        return firstAndOnlyNonFederatedNamedNode(selectionSet);
+        return onlyNonFederatedSelectionOrNoneFrom(selectionSet);
     }
 
-    private static boolean notFederatedFieldName(String fieldName) {
+    private static boolean notFederatedFieldName(final String fieldName) {
         return !(TYPENAME.equals(fieldName) || ID.equals(fieldName));
     }
-
 }
