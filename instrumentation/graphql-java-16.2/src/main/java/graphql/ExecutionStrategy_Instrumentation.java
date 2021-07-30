@@ -16,6 +16,7 @@ public class ExecutionStrategy_Instrumentation {
     @Trace
     protected CompletableFuture<FieldValueInfo> resolveFieldWithInfo(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
         NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/resolve/" + parameters.getPath().getSegmentName());
+        NewRelic.getAgent().getTracedMethod().addRollupMetricName("GraphQL/resolve", parameters.getPath().getSegmentName());
         //todo complete the following attributes
 
         /*

@@ -23,8 +23,10 @@ public class ExecutionContextBuilder_Instrumentation {
     public ExecutionContextBuilder document(Document document) {
         String transactionName = GraphQLTransactionName.from(document);
         NewRelic.setTransactionName("GraphQL", transactionName);
-        NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation/" + transactionName);
-
+        NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation" + transactionName);
+        //fixme transactionname is "/rest of name", rollUp joins parts with delimiter of "/". String
+        // ends up GraphQL/operation//rest of name.
+        NewRelic.getAgent().getTracedMethod().addRollupMetricName("GraphQL/operation", transactionName);
         //todo running test() and debugging the introspector, you  can see the spans created from this tx. introspector.getSpanEvents()
 
         /*
