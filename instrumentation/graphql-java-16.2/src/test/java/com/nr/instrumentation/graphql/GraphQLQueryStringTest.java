@@ -2,6 +2,8 @@ package com.nr.instrumentation.graphql;
 
 import graphql.language.Document;
 import graphql.parser.Parser;
+import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
@@ -16,6 +18,7 @@ public class GraphQLQueryStringTest {
 
     private final static String TEST_DATA_DIR = "queryStringTestData";
 
+    @Disabled
     @Test
     public void testQuery() {
         //given
