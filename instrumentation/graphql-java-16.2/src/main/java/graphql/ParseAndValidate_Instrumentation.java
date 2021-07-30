@@ -22,6 +22,7 @@ public class ParseAndValidate_Instrumentation {
         ParseAndValidateResult result = Weaver.callOriginal();
         if(result != null && result.isFailure()) {
             reportGraphQLException(result.getSyntaxException());
+            //fixme post /*
             NewRelic.setTransactionName("Graphql", "parseError");
         }
         return result;

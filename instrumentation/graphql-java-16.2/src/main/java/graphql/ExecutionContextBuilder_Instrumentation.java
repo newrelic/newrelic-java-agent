@@ -43,7 +43,7 @@ public class ExecutionContextBuilder_Instrumentation {
 
         This would be the query string value for the attribute
 
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", "{book (id: ???) {title}}");
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", "{book (***) {title}}");
 
          */
         OperationDefinition definition = getFirstOperationDefinitionFrom(document);

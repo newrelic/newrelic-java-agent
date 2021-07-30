@@ -20,31 +20,49 @@ public class ExecutionStrategy_Instrumentation {
         //todo complete the following attributes
 
         /*
-         If the query was
-        query fastAndFun {
-            bookById (id: "book-1") {
-                title
-            }
-        }
 
         the resolver spans in the UI should look like
 
         resolve/..../bookById
-           resolve/..../title
+           resolve/..../title - these spans are removed because they return Scalar,
 
+           unless top level item.
+        query {
+            hello {
+             this returns a string "World"
+            }
+        }
+
+        Example query:
+
+         query fastAndFun {
+            bookById (id: "book-1", title: "furious") {
+                title
+            }
+        }
 
        I think the attributes for resolver span  - bookById - should be:
         graphql.field.path  - bookById
         graphql.field.parentType  - Query
         graphql.field.name - bookById
-        graphql.field.returnType - Book
-        graphql.field.args - <"id", "book-1">
+        graphql.field.returnType - Book -> this from scraping the TypeDef, look in the schema.
+                                        Or, look up the parentType and it may have the TypeDef.
 
-       I think the attributes for resolver span  - title - should be:
-        graphql.field.path  - bookById.title (I'm not sure...???)
-        graphql.field.parentType  - bookById ( not sure...???)
+        graphql.field.args.<name>(so graphql.field.args.id) - book-1
+
+        query fastAndFun {
+            bookById (id: "book-1", title: "furious") {
+                title {
+                 id
+                }
+            }
+        }
+
+       I think the attributes for resolver span  - title - :
+        graphql.field.path  - bookById.title
+        graphql.field.parentType  - Book
         graphql.field.name - title
-        graphql.field.returnType - String
+        graphql.field.returnType - Title
         graphql.field.args - NA, don't report
 
          */
