@@ -30,7 +30,7 @@ public class GraphQL_InstrumentationTest {
 
     @BeforeClass
     public static void initialize() {
-        String schema = "type Query{hello: String}";
+        String schema = "type Query{hello(arg: String): String}";
 
         SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
@@ -56,7 +56,17 @@ public class GraphQL_InstrumentationTest {
         assertOperation("QUERY/<anonymous>/hello");
     }
 
-    @Ignore
+    @Test
+    public void testWithArg() {
+        //given
+        String query = "{hello (arg: \"foo\")}";
+        //when
+        trace(createRunnable(query));
+        //then
+        assertOperation("QUERY/<anonymous>/hello");
+    }
+
+//    @Ignore
     @Test
     public void parsingError() {
         //given
