@@ -17,8 +17,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
@@ -66,16 +68,14 @@ public class GraphQL_InstrumentationTest {
         assertOperation("QUERY/<anonymous>/hello");
     }
 
-//    @Ignore
     @Test
     public void parsingError() {
         //given
-        String query = "not going to work";
+        String query = "cause a parse error";
         //when
         trace(createRunnable(query));
         //then
-        //fixme this test doesn't pass, just for triggering code path
-        assertOperation("QUERY/<anonymous>/hello");
+        assertParseErrorOperation("post/*");
     }
 
     @Ignore
@@ -107,6 +107,22 @@ public class GraphQL_InstrumentationTest {
         String txName = introspector.getTransactionNames().iterator().next();
         assertEquals("Transaction name is incorrect",
                 "OtherTransaction/GraphQL/" + expectedTransactionSuffix, txName);
+    }
+
+    private void assertParseErrorOperation(String expectedTransactionSuffix) {
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
+
+        String txName = introspector.getTransactionNames().iterator().next();
+        assertEquals("Transaction name is incorrect",
+                "OtherTransaction/" + expectedTransactionSuffix, txName);
+
+        assertTrue(
+                introspector.getSpanEvents().stream().anyMatch(spanEvent -> {
+           Optional<String> value = Optional.ofNullable((String) spanEvent.getAgentAttributes().get("error.class"));
+            return value.map(s -> s.contains("InvalidSyntaxException")).orElse(false);
+        })
+        );
     }
 
     private Runnable createRunnable(final String query){
