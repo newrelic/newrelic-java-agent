@@ -108,8 +108,9 @@ test {
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
     //testLogging.showStandardStreams = true
-
-    if (project.hasProperty("test15")) {
+    if (project.hasProperty("test16")) {
+        executable = jdk16 + '/bin/java'
+    } else if (project.hasProperty("test15")) {
         executable = jdk15 + '/bin/java'
     } else if (project.hasProperty("test14")) {
         executable = jdk14 + '/bin/java'
