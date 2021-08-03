@@ -31,6 +31,7 @@ public class GraphQLTransactionNameTest {
 
     @Ignore
     @Test
+    //todo remove me when obfuscater is all done
     public void testBuildQuery() {
         //setup
         String testFileName = "buildQueryString";

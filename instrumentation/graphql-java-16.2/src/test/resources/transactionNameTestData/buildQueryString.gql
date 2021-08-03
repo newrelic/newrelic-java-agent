@@ -1,22 +1,22 @@
 query {
   FIRST: libraries (id: 123, name: "me bro") {
      branch
-    booksInStock {
-      title,
+    booksInStock (password: "hide me") {
+      title (id: 123),
       author
     }
-    bathroomReading: magazinesInStock {
+    bathroomReading: magazinesInStock (password: "hide me") {
       magissue,
       magtitle
     }
   }
     SECOND: Slibraries (id: 456, name: "no bro") {
       Sbranch
-      profitCenter: SbooksInStock {
+      profitCenter: SbooksInStock (password: "hide me") {
         Sisbn,
         Stitle,
       }
-      SmagazinesInStock {
+      SmagazinesInStock (password: "hide me") {
         Smagissue,
         Smagtitle
       }
