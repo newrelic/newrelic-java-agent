@@ -1,0 +1,24 @@
+QUERY {
+  FIRST: libraries(***){
+    branch
+    booksInStock(***){
+      title(***)
+      author
+    }
+    bathroomReading: magazinesInStock(***){
+        magissue
+        magtitle
+    }
+  }
+  SECOND: Slibraries(***){
+      Sbranch
+      profitCenter: SbooksInStock(***){
+        Sisbn
+        Stitle
+      }
+      SmagazinesInStock(***){
+          Smagissue
+          Smagtitle
+      }
+  }
+}

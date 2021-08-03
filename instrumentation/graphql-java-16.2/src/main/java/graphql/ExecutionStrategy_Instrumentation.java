@@ -66,7 +66,7 @@ public class ExecutionStrategy_Instrumentation {
          */
 
         AgentBridge.privateApi.addTracerParameter("graphql.field.path", parameters.getPath().getSegmentName());
-        //this isn't correct
+        //fixme this isn't correct
         AgentBridge.privateApi.addTracerParameter("graphql.field.parentType", parameters.getParent().getExecutionStepInfo().getType().toString());
         AgentBridge.privateApi.addTracerParameter("graphql.field.name", parameters.getField().getName());
         //AgentBridge.privateApi.addTracerParameter("graphql.field.returnType", TBD);
