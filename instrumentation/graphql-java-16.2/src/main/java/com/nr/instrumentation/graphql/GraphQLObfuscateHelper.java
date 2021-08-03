@@ -8,37 +8,36 @@ public class GraphQLObfuscateHelper {
     public static String obfuscate(Document document) {
         StringBuilder queryBuilder = new StringBuilder();
 
-        //document.getDefinitions().get(0) - the OperationDefinition.
-        //How is it possible to get a list of definitions??? Research this.
-
+        //How is it possible to get a list of definitions?
         OperationDefinition operationDefinition = GraphQLTransactionName.getFirstOperationDefinitionFrom(document);
         if(operationDefinition != null){
             operationDefinition = (OperationDefinition) document.getDefinitions().get(0);
-            queryBuilder.append(operationDefinition.getOperation().name());
-            queryBuilder.append(" ");
-            queryBuilder.append(operationDefinition.getName() == null ? "" : operationDefinition.getName());
-            queryBuilder.append("{");
-
-            //At this point of the first layer, the structure repeats into the layers.
-            //List<Fields -> Field -> SelectionSet -> List<Fields> -> Field -> SelectionSet
+            makeOperationAndNameString(queryBuilder, operationDefinition);
             List<Node> fields = operationDefinition.getSelectionSet().getChildren();
             return buildGraph(queryBuilder, fields, 1).append("\n").append("}").toString();
         }
         return "no document definition found";
     }
 
+    private static void makeOperationAndNameString(StringBuilder queryBuilder, OperationDefinition operationDefinition) {
+        queryBuilder.append(operationDefinition.getOperation().name());
+        queryBuilder.append(" ");
+        queryBuilder.append(operationDefinition.getName() == null ? "" : operationDefinition.getName());
+        queryBuilder.append("{");
+    }
+
     private static StringBuilder buildGraph(StringBuilder builder, List<Node> fields, int queryLayer) {
         String indent = new String(new char[queryLayer * 2]).replace("\0", " ");
         for (Node field : fields) {
-            Field castField = (Field) field;
-            SelectionSet selectionSet = castField.getSelectionSet();
+            NodeChildrenContainer children = field.getNamedChildren();
+            SelectionSet selectionSet = children.getChildOrNull("selectionSet");
             //base case
             if (selectionSet == null) {
                 builder.append("\n").append(indent);
-                makeFieldString(builder,castField);
+                makeString(builder, field);
             } else {
                 builder.append("\n").append(indent);
-                makeFieldString(builder,castField);
+                makeString(builder, field);
                 builder.append("{");
                 //recursion
                 buildGraph(builder, selectionSet.getChildren(), ++queryLayer);
@@ -49,10 +48,25 @@ public class GraphQLObfuscateHelper {
         return builder;
     }
 
+    private static void makeString(StringBuilder builder, Node field) {
+        if (field instanceof Field) {
+            Field castField = (Field) field;
+            makeFieldString(builder, castField);
+        }
+        if (field instanceof InlineFragment) {
+            InlineFragment fragment = (InlineFragment) field;
+            makeFragmentString(builder, fragment);
+        }
+    }
+
     private static void makeFieldString(StringBuilder builder, Field field) {
         builder.append(getFieldAlias(field))
                 .append(getFieldName(field))
                 .append(obfuscateArguments(field));
+    }
+
+    private static void makeFragmentString(StringBuilder builder, InlineFragment fragment) {
+        builder.append("... on ").append(getFragmentName(fragment));
     }
 
     private static String obfuscateArguments(Field field) {
@@ -61,6 +75,14 @@ public class GraphQLObfuscateHelper {
 
     private static String getFieldName(Field field){
         return field.getName() != null ? field.getName() : "";
+    }
+
+    private static String getFragmentName(InlineFragment fragment){
+        TypeName typeCondition = fragment.getTypeCondition();
+        if(typeCondition != null) {
+            return typeCondition.getName();
+        }
+        return "";
     }
 
     private static String getFieldAlias(Field field){
