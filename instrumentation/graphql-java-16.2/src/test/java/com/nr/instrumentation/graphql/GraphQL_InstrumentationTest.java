@@ -101,7 +101,6 @@ public class GraphQL_InstrumentationTest {
         Arrays.stream(actions).forEach(Runnable::run);
     }
 
-
     private Runnable createRunnable(final String query){
         return () -> graphQL.execute(query);
     }

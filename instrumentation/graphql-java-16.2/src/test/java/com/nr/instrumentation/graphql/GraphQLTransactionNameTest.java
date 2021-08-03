@@ -2,8 +2,6 @@ package com.nr.instrumentation.graphql;
 
 import graphql.language.*;
 import graphql.parser.Parser;
-import org.junit.Ignore;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
@@ -16,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class GraphQLTransactionNameTest {
 
     private final static String TEST_DATA_DIR = "transactionNameTestData";
-    private final static String OBFUSCATE_DATA_DIR = "queryStringTestData";
 
     private static Document parse(String filename) {
         return Parser.parse(readText(filename));
@@ -28,22 +25,6 @@ public class GraphQLTransactionNameTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @ParameterizedTest
-    @CsvFileSource(resources = "/queryStringTestData/obfuscate-query-test-data.csv", delimiter = '|', numLinesToSkip = 2)
-    public void testBuildQuery(String queryToObfuscateFile, String expectedObfuscatedQueryFile) {
-        //setup
-        queryToObfuscateFile = OBFUSCATE_DATA_DIR + "/" + queryToObfuscateFile.trim();
-        expectedObfuscatedQueryFile = OBFUSCATE_DATA_DIR + "/" + expectedObfuscatedQueryFile.trim();
-        String expectedObfuscatedResult = readText(expectedObfuscatedQueryFile);
-
-        //given
-        Document document = parse(queryToObfuscateFile);
-
-        //when
-        String obfuscatedQuery = GraphQLObfuscateHelper.obfuscate(document);
-        assertEquals(expectedObfuscatedResult, obfuscatedQuery);
     }
 
     @ParameterizedTest

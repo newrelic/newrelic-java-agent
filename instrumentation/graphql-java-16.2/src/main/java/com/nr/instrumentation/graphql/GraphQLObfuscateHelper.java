@@ -5,9 +5,13 @@ import graphql.language.*;
 import java.util.List;
 
 public class GraphQLObfuscateHelper {
-    public static String obfuscate(Document document) {
-        StringBuilder queryBuilder = new StringBuilder();
 
+    private static final String OBFUSCATION = "(***)";
+    private static final String PREFIX_FRAGMENT = "... on ";
+    private static final String OBFUSCATION_ISSUE = "Issue with obfuscating query";
+
+    public static String getObfuscatedQuery(Document document) {
+        StringBuilder queryBuilder = new StringBuilder();
         //How is it possible to get a list of definitions?
         OperationDefinition operationDefinition = GraphQLTransactionName.getFirstOperationDefinitionFrom(document);
         if(operationDefinition != null){
@@ -16,7 +20,7 @@ public class GraphQLObfuscateHelper {
             List<Node> fields = operationDefinition.getSelectionSet().getChildren();
             return buildGraph(queryBuilder, fields, 1).append("\n").append("}").toString();
         }
-        return "no document definition found";
+        return OBFUSCATION_ISSUE;
     }
 
     private static void makeOperationAndNameString(StringBuilder queryBuilder, OperationDefinition operationDefinition) {
@@ -66,11 +70,11 @@ public class GraphQLObfuscateHelper {
     }
 
     private static void makeFragmentString(StringBuilder builder, InlineFragment fragment) {
-        builder.append("... on ").append(getFragmentName(fragment));
+        builder.append(PREFIX_FRAGMENT).append(getFragmentName(fragment));
     }
 
     private static String obfuscateArguments(Field field) {
-        return field.getArguments().isEmpty() ? "" : "(***)";
+        return field.getArguments().isEmpty() ? "" : OBFUSCATION;
     }
 
     private static String getFieldName(Field field){

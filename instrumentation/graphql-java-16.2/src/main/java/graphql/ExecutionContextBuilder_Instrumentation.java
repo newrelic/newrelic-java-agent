@@ -18,7 +18,7 @@ import graphql.execution.ExecutionContextBuilder;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
 
-import static com.nr.instrumentation.graphql.GraphQLObfuscateHelper.obfuscate;
+import static com.nr.instrumentation.graphql.GraphQLObfuscateHelper.getObfuscatedQuery;
 import static com.nr.instrumentation.graphql.GraphQLTransactionName.*;
 
 @Weave(originalName = "graphql.execution.ExecutionContextBuilder", type = MatchType.ExactClass)
@@ -33,7 +33,7 @@ public class ExecutionContextBuilder_Instrumentation {
         String operationName = definition.getName();
         AgentBridge.privateApi.addTracerParameter("graphql.operation.type", definition != null ? getOperationTypeFrom(definition) : "NA");
         AgentBridge.privateApi.addTracerParameter("graphql.operation.name", operationName != null ? operationName  : "<anonymous>");
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscate(document));
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", getObfuscatedQuery(document));
         return Weaver.callOriginal();
     }
 }
