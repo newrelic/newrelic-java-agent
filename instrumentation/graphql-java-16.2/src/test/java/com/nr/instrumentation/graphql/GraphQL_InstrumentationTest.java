@@ -65,12 +65,12 @@ public class GraphQL_InstrumentationTest {
     @Test
     public void testWithArg() {
         //given
-        String query = "{hello (arg: \"foo\")}";
+        String query = "{hello (arg: \"fo)o\")}";
         //when
         trace(createRunnable(query));
         //then
         //fixme this won't pass until argument obfuscation work is done
-        assertOperation("QUERY/<anonymous>/hello", "{hello ***}");
+        assertOperation("QUERY/<anonymous>/hello", "{hello (arg: \"fo)o\")}");
     }
 
     @Test
@@ -80,7 +80,7 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        assertErrorOperation("post/*", "ParseAndValidate/parse", "InvalidSyntaxException", "Invalid Syntax");
+        assertErrorOperation("post/*", "ParseAndValidate/parse", "InvalidSyntaxException", "Invalid Syntax", true);
     }
 
     @Test
@@ -90,9 +90,8 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        //fixme this tx name is temporary. It will change once validation error instrumentation is done
-        assertErrorOperation("Custom/com.nr.instrumentation.graphql.GraphQL_InstrumentationTest/trace",
-                "ParseAndValidate/validate", "GraphqlErrorException",  "Validation error");
+        assertErrorOperation("QUERY/<anonymous>/noSuchField",
+                "ParseAndValidate/validate", "GraphqlErrorException",  "Validation error", false);
     }
 
     @Trace(dispatcher = true)
@@ -110,10 +109,10 @@ public class GraphQL_InstrumentationTest {
         return () -> graphQL.execute(query);
     }
 
-    private void assertOneTxFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isError){
+    private void assertOneTxFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isParseError){
         assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
         String txName = introspector.getTransactionNames().iterator().next();
-        if(!isError) {
+        if(!isParseError) {
             assertEquals("Transaction name is incorrect",
                 "OtherTransaction/GraphQL/" + expectedTransactionSuffix, txName);
         } else {
@@ -141,9 +140,9 @@ public class GraphQL_InstrumentationTest {
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
     }
 
-    private void assertErrorOperation(String expectedTransactionSuffix, String spanName, String errorClass, String errorMessage) {
+    private void assertErrorOperation(String expectedTransactionSuffix, String spanName, String errorClass, String errorMessage, boolean isParseError) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, true);
+        assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, isParseError);
         assertTrue(attributeValueOnSpan(introspector, spanName, "error.class", errorClass));
         assertTrue(attributeValueOnSpan(introspector, spanName, "error.message", errorMessage));
     }

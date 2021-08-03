@@ -1,11 +1,11 @@
 package graphql;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.graphql.GraphQLTransactionName;
 import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationError;
@@ -32,8 +32,8 @@ public class ParseAndValidate_Instrumentation {
         List<ValidationError> errors = Weaver.callOriginal();
         if (errors != null && !errors.isEmpty()) {
             reportGraphQLError(errors.get(0));
-            //todo use the Document to figure out what caused the validation error and how to set tx name to reflect that
-            //NewRelic.setTransactionName()
+            String transactionName = GraphQLTransactionName.from(parsedDocument);
+            NewRelic.setTransactionName("GraphQL", transactionName);
         }
         return errors;
     }
