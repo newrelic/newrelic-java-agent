@@ -13,7 +13,6 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -58,10 +57,9 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        assertOperation("QUERY/<anonymous>/hello", "{hello}");
+        assertOperation("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello\n" + "}");
     }
 
-    @Ignore
     @Test
     public void testWithArg() {
         //given
@@ -69,8 +67,7 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        //fixme this won't pass until argument obfuscation work is done
-        assertOperation("QUERY/<anonymous>/hello", "{hello (arg: \"fo)o\")}");
+        assertOperation("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello(***)\n" + "}");
     }
 
     @Test

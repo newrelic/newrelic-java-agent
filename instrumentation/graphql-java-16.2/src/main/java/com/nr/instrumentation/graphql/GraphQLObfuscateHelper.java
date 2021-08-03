@@ -10,8 +10,9 @@ public class GraphQLObfuscateHelper {
 
         //document.getDefinitions().get(0) - the OperationDefinition.
         //How is it possible to get a list of definitions??? Research this.
-        OperationDefinition operationDefinition = null;
-        if(!document.getDefinitions().isEmpty()){
+
+        OperationDefinition operationDefinition = GraphQLTransactionName.getFirstOperationDefinitionFrom(document);
+        if(operationDefinition != null){
             operationDefinition = (OperationDefinition) document.getDefinitions().get(0);
             queryBuilder.append(operationDefinition.getOperation().name());
             queryBuilder.append(" ");
@@ -31,23 +32,39 @@ public class GraphQLObfuscateHelper {
         for (Node field : fields) {
             Field castField = (Field) field;
             SelectionSet selectionSet = castField.getSelectionSet();
+            //base case
             if (selectionSet == null) {
-                builder.append("\n");
-                builder.append(indent);
-
-                builder.append(castField.getName());
+                builder.append("\n").append(indent);
+                makeFieldString(builder,castField);
             } else {
-                builder.append("\n");
-                builder.append(indent);
-                builder.append(castField.getName());
+                builder.append("\n").append(indent);
+                makeFieldString(builder,castField);
                 builder.append("{");
+                //recursion
                 buildGraph(builder, selectionSet.getChildren(), ++queryLayer);
-                builder.append("\n");
-                builder.append(indent);
+                builder.append("\n").append(indent);
                 builder.append("}");
             }
         }
         return builder;
+    }
+
+    private static void makeFieldString(StringBuilder builder, Field field) {
+        builder.append(getFieldAlias(field))
+                .append(getFieldName(field))
+                .append(obfuscateArguments(field));
+    }
+
+    private static String obfuscateArguments(Field field) {
+        return field.getArguments().isEmpty() ? "" : "(***)";
+    }
+
+    private static String getFieldName(Field field){
+        return field.getName() != null ? field.getName() : "";
+    }
+
+    private static String getFieldAlias(Field field){
+        return field.getAlias() != null ? field.getAlias()+": " : "";
     }
 }
 
