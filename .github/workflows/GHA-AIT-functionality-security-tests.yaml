@@ -22,7 +22,7 @@ jobs:
           path: |
             ~/jdk_paths.txt
             jdk_paths.txt
-            /opt/hostedtoolcache/jdk/
+            /opt/hostedtoolcache/Java_Adopt_jdk/
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
           # key: ${{ runner.os }}-build-${{ env.cache-name }}
           restore-keys: |
@@ -100,7 +100,7 @@ jobs:
         run: |
           pwd
           echo "contents of cache dir: "
-          ls -la /opt/hostedtoolcache/jdk/
+          ls -la /opt/hostedtoolcache/Java_Adopt_jdk/
           echo "checking for jdk_paths.txt: "
           ls -la
           echo "checking for file in home: "
@@ -112,8 +112,8 @@ jobs:
         run: |
           touch jdk_paths.txt
           touch ~/jdk_paths.txt
-          ls -1v /opt/hostedtoolcache/jdk/ > jdk_paths.txt
-          ls -1v /opt/hostedtoolcache/jdk/ > ~/jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > ~/jdk_paths.txt
 
       # Create env variables for the jdks - this step not necessary here
       - name: Create env variables for the jdks
@@ -124,9 +124,9 @@ jobs:
           do
               echo $line
               echo The counter is $COUNTER
-              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/jdk/$line/x64" >> $GITHUB_ENV
+              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64" >> $GITHUB_ENV
               # Below only use for subsequent jobs, as the jdk build doesn't set these paths
-              # echo "/opt/hostedtoolcache/jdk/$line/x64/bin" >> $GITHUB_PATH
+              # echo "/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64/bin" >> $GITHUB_PATH
               let JAVA_VERSION=JAVA_VERSION+1
           done < jdk_paths.txt
 
@@ -251,7 +251,7 @@ jobs:
           path: |
             ~/jdk_paths.txt
             jdk_paths.txt
-            /opt/hostedtoolcache/jdk/
+            /opt/hostedtoolcache/Java_Adopt_jdk/
           key: ${{ runner.os }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
           # key: ${{ runner.os }}-build-${{ env.cache-name }}
           restore-keys: |
@@ -266,8 +266,8 @@ jobs:
         run: |
           touch jdk_paths.txt
           touch ~/jdk_paths.txt
-          ls -1v /opt/hostedtoolcache/jdk/ > jdk_paths.txt
-          ls -1v /opt/hostedtoolcache/jdk/ > ~/jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > ~/jdk_paths.txt
 
       # Create env variables for the jdks
       - name: Create env variables for the jdks
@@ -278,9 +278,9 @@ jobs:
           do
               echo $line
               echo The counter is $COUNTER
-              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/jdk/$line/x64" >> $GITHUB_ENV
+              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64" >> $GITHUB_ENV
               # Below only use for subsequent jobs, as the jdk build doesn't set these paths
-              # echo "/opt/hostedtoolcache/jdk/$line/x64/bin" >> $GITHUB_PATH
+              # echo "/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64/bin" >> $GITHUB_PATH
               let JAVA_VERSION=JAVA_VERSION+1
           done < jdk_paths.txt
 
@@ -306,7 +306,7 @@ jobs:
       - name: Check new Java home path
         run: |
           echo "Current JAVA_HOME is ${JAVA_HOME}"
-          ls -la /opt/hostedtoolcache/jdk/8.0.302/x64
+          ls -la ${ORG_GRADLE_PROJECT_jdk8}
 
 
       # Replication of steps from ait README
