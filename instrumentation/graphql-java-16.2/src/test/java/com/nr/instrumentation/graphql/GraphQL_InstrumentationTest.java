@@ -29,12 +29,13 @@ import static junit.framework.TestCase.assertEquals;
 @InstrumentationTestConfig(includePrefixes = {"graphql", "com.nr.instrumentation"}, configName = "distributed_tracing.yml")
 public class GraphQL_InstrumentationTest {
     private static final long DEFAULT_TIMEOUT_IN_MILLIS = 10_000;
+    private static final String MY_ARG = "myarg";
 
     private static GraphQL graphQL;
 
     @BeforeClass
     public static void initialize() {
-        String schema = "type Query{hello(arg: String): String}";
+        String schema = "type Query{hello("+MY_ARG+": String): String}";
 
         SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
@@ -57,17 +58,17 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        assertOperation("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello\n" + "}");
+        assertRequestNoArg("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello\n" + "}");
     }
 
     @Test
     public void testWithArg() {
         //given
-        String query = "{hello (arg: \"fo)o\")}";
+        String query = "{hello ("+MY_ARG+": \"fo)o\")}";
         //when
         trace(createRunnable(query));
         //then
-        assertOperation("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello(***)\n" + "}");
+        assertRequestWithArg("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello(***)\n" + "}");
     }
 
     @Test
@@ -135,12 +136,22 @@ public class GraphQL_InstrumentationTest {
         return scoped && unscoped;
     }
 
-    private void assertOperation(String expectedTransactionSuffix, String expectedQueryAttribute) {
+    private void assertRequestNoArg(String expectedTransactionSuffix, String expectedQueryAttribute) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.name", "anonymous"));
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.type", "QUERY"));
+        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.parentType", "Query"));
+        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
+        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
+    }
+
+    private void assertRequestWithArg(String expectedTransactionSuffix, String expectedQueryAttribute) {
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
+        //fixme after casting in GraphQLAttributeUtil is right
+        //        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.arg."+MY_ARG, "this is wrong"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
     }

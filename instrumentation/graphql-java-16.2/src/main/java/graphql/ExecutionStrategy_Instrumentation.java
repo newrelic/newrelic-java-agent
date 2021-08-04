@@ -9,8 +9,12 @@ import com.newrelic.api.agent.weaver.Weaver;
 import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.FieldValueInfo;
+import graphql.schema.GraphQLObjectType;
 
 import java.util.concurrent.CompletableFuture;
+
+import static com.nr.instrumentation.graphql.GraphQLAttributeUtil.addAttributeForArgument;
+
 @Weave(originalName = "graphql.execution.ExecutionStrategy", type = MatchType.BaseClass)
 public class ExecutionStrategy_Instrumentation {
     @Trace
@@ -66,10 +70,12 @@ public class ExecutionStrategy_Instrumentation {
          */
 
         AgentBridge.privateApi.addTracerParameter("graphql.field.path", parameters.getPath().getSegmentName());
-        //fixme this isn't correct
-        AgentBridge.privateApi.addTracerParameter("graphql.field.parentType", parameters.getParent().getExecutionStepInfo().getType().toString());
+        GraphQLObjectType type = (GraphQLObjectType) parameters.getExecutionStepInfo().getType();
+        AgentBridge.privateApi.addTracerParameter("graphql.field.parentType", type.getName());
         AgentBridge.privateApi.addTracerParameter("graphql.field.name", parameters.getField().getName());
-        //AgentBridge.privateApi.addTracerParameter("graphql.field.returnType", TBD);
+        if (!parameters.getField().getSingleField().getArguments().isEmpty()) {
+            addAttributeForArgument(parameters.getField().getSingleField().getArguments());
+        }
         //AgentBridge.privateApi.addTracerParameter("graphql.field.args", TBD map);
 
         return Weaver.callOriginal();
