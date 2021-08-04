@@ -121,5 +121,14 @@
 			<methodAnnotation>com.example.myAnnotation</methodAnnotation>
 		</pointcut>
 
+		<pointcut transactionStartPoint="true">
+			<className>com.sample.SampleString</className>
+			<traceLambda>true</traceLambda>
+		</pointcut>
+
+		<pointcut transactionStartPoint="true">
+			<className>com.sample.SampleString</className>
+			<traceByReturnType>Lcom/sample/SampleString;</traceByReturnType>
+		</pointcut>
 	</instrumentation>
 </extension>

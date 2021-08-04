@@ -79,8 +79,10 @@ public class CallbackRunnable_Instrumentation<T> {
             // order to correctly remove the "activeToken" from the thread local after the original run() method executes
             remove = AgentBridge.activeToken.get() == null;
             AgentBridge.activeToken.set(wrapped.tokenAndRefCount);
+
+            // getTransaction implicitly makes Transaction available on Thread to runnable
+            Transaction tx = AgentBridge.getAgent().getTransaction(false);
             if (scalaFuturesAsSegments && remove) {
-                Transaction tx = AgentBridge.getAgent().getTransaction(false);
                 if (tx != null) {
                     segment = tx.startSegment("Scala", "Callback");
                     segment.setMetricName("Scala", "Callback",

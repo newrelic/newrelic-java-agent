@@ -165,7 +165,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
 
                 if (reservoir.size() < reservoir.getNumberOfTries()) {
                     int dropped = reservoir.getNumberOfTries() - reservoir.size();
-                    Agent.LOG.log(Level.WARNING, "Dropped {0} error events out of {1}.", dropped, reservoir.getNumberOfTries());
+                    Agent.LOG.log(Level.FINE, "Dropped {0} error events out of {1}.", dropped, reservoir.getNumberOfTries());
                 }
             } catch (HttpError e) {
                 if (!e.discardHarvestData()) {

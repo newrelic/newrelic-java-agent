@@ -1,0 +1,409 @@
+name: GHA AIT functionality server tests
+
+on:
+  # pull_request:
+  #   branches: [ main ]
+  push:
+    branches: [ gha-testing ]
+
+jobs:
+  install-all-java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # JDK cache
+      - name: Cache jdk dir
+        id: cache-check
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-jdk-dir ## See if this works and includes all versions
+        with:
+          path: |
+            ~/jdk_paths.txt
+            jdk_paths.txt
+            /opt/hostedtoolcache/jdk/
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
+          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      # Install 8
+      - name: Set up Java 8
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 8
+
+      # Install 9
+      - name: Set up Java 9
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 9
+
+      # Install 10
+      - name: Set up Java 10
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 10
+
+      # Install 11
+      - name: Set up Java 11
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+
+      # Install 12
+      - name: Set up Java 12
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 12
+
+      # Install 13
+      - name: Set up Java 13
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 13
+
+      # Install 14
+      - name: Set up Java 14
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 14
+
+      # Install 15
+      - name: Set up Java 15
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 15
+
+      # Check contents of cache path
+      - name: check cache dir
+        # if: steps.cache-check.outputs.cache-hit == 'true'
+        run: |
+          pwd
+          echo "contents of cache dir: "
+          ls -la /opt/hostedtoolcache/jdk/
+          echo "checking for jdk_paths.txt: "
+          ls -la
+          echo "checking for file in home: "
+          ls -la ~/
+
+      # Create jdk_paths.txt
+      - name: Create jdk_paths
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        run: |
+          touch jdk_paths.txt
+          touch ~/jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/jdk/ > jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/jdk/ > ~/jdk_paths.txt
+
+      # Create env variables for the jdks - this step not necessary here
+      - name: Create env variables for the jdks
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        run: |
+          JAVA_VERSION=8
+          while read line
+          do
+              echo $line
+              echo The counter is $COUNTER
+              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/jdk/$line/x64" >> $GITHUB_ENV
+              # Below only use for subsequent jobs, as the jdk build doesn't set these paths
+              # echo "/opt/hostedtoolcache/jdk/$line/x64/bin" >> $GITHUB_PATH
+              let JAVA_VERSION=JAVA_VERSION+1
+          done < jdk_paths.txt
+
+      # Check ENV variables
+      - name: Check environmental variables
+        run: printenv | sort -f
+
+      # Check $JAVA_HOME
+      - name: Check "$JAVA_HOME"
+        # if: steps.cache-check.outputs.cache-hit == 'true'
+        run: |
+          echo "Current $JAVA_HOME = " ${JAVA_HOME}
+          whereis java #determine dir to cache
+
+  ###
+
+  AIT_func_server:
+    needs: install-all-java
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    # Determine if easier to make the env strings below part of the matrix
+    env:
+      java_func_path: "tests/java/functionality"
+      java_func_type: "server"
+    strategy:
+      ##max-parallel: 1 ## used to force sequential
+      fail-fast: false
+      matrix:
+        # func_path: [akka, ejb, jaxrs, jms, netty, play, quartz, snap, spring, thrift]
+        func_tests:
+          - embedded_jetty.py
+          - glassfish.py
+          - jetty.py
+          - mule.py
+          - resin.py
+          - solr.py
+          - solr5.py
+          - tomcat.py
+          - tomee.py
+          - vertx.py
+          - was_liberty.py
+          - weblogic.py
+          - websphere.py
+          - wildfly.py
+
+    steps:
+      - uses: actions/checkout@v2
+
+      ## Ongoing tests with artifactory dependecies
+      - name: Checkout AIT repo test
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-agent-integration-tests
+          ref: gha-post-pr
+          token: ${{ secrets.AITPAT }}
+          path: agent-integration-tests
+
+      # Print Environmental variables
+      - name: Print Environmental variables
+        run: |
+          printenv | sort -f
+
+      # Apps repos/caches - this prpcess could be a candidate for custom action
+      - name: Checkout Cache 1
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-1
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache1
+          lfs: true
+
+      - name: Checkout Cache 2
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-2
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache2
+          lfs: true
+
+      - name: Checkout Cache 3
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-3
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache3
+          lfs: true
+
+      - name: Checkout Cache 4
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-4
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache4
+          lfs: true
+
+      # Consolidate caches into one directory
+      - name: Consolidate caches into Apps directory
+        run: |
+          ls -la
+          mkdir apps
+          mv appcache1/* apps/
+          mv appcache2/* apps/
+          mv appcache3/* apps/
+          mv appcache4/* apps/
+          cd apps
+          ls -la
+          ls -la java_test_webapp-master/
+          cd ../
+
+      ## restore jdk cache dir here
+
+      # JDK cache
+      - name: Cache jdk dir
+        id: cache-check
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-jdk-dir # See if this works and includes all versions
+        with:
+          path: |
+            ~/jdk_paths.txt
+            jdk_paths.txt
+            /opt/hostedtoolcache/jdk/
+          key: ${{ runner.os }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
+          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      # Create jdk_paths.txt
+      - name: Create jdk_paths
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        run: |
+          touch jdk_paths.txt
+          touch ~/jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/jdk/ > jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/jdk/ > ~/jdk_paths.txt
+
+      # Create env variables for the jdks
+      - name: Create env variables for the jdks
+        # if: steps.cache-check.outputs.cache-hit != 'true'
+        run: |
+          JAVA_VERSION=8
+          while read line
+          do
+              echo $line
+              echo The counter is $COUNTER
+              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/jdk/$line/x64" >> $GITHUB_ENV
+              # Below only use for subsequent jobs, as the jdk build doesn't set these paths
+              # echo "/opt/hostedtoolcache/jdk/$line/x64/bin" >> $GITHUB_PATH
+              let JAVA_VERSION=JAVA_VERSION+1
+          done < jdk_paths.txt
+
+      # Check ENV variables
+      - name: Check environmental variables
+        run: printenv | sort -f
+
+      # End Java restore section
+
+      # Restore the gradle cache
+      - name: Restore the gradle caches
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle
+          restore-keys: |
+            ${{ runner.os }}-gradle
+
+      ## TESTING SECTION
+
+      - name: Check new Java home path
+        run: |
+          echo "Current JAVA_HOME is ${JAVA_HOME}"
+          ls -la /opt/hostedtoolcache/jdk/8.0.302/x64
+
+
+      # Replication of steps from ait README
+
+      # Build the agent jar
+      - name: Build newrelicJar
+        run: |
+          echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
+          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
+          ls -la
+          ./gradlew clean jar --parallel
+          ls -la newrelic-agent/build/
+
+      - name: CD to agent-integration-tests dir.
+        run: |
+          cd agent-integration-tests/
+          ls -la
+
+      - name: Check disk space
+        run: |
+          df -h
+          du -a ${GITHUB_WORKSPACE} | sort -n -r | head -n 10
+
+      ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
+      ## TODO: This should really be a custom action, too many commands
+      - name: Create virtualenv and run AITs - ${{ matrix.func_tests}}
+        if: ${{ failure() || success() }}
+        run: |
+          cd agent-integration-tests
+          echo "conf/testenv complains of the path below - creating symlink for now"
+          ln -s ${GITHUB_WORKSPACE}/apps /home/runner/apps
+          ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
+          echo "still complains of file not found"
+          ls -la ${GITHUB_WORKSPACE}
+          sudo apt install virtualenv
+          virtualenv -p /usr/bin/python3.8 .
+          echo "What version of maven are we using?"
+          mvn --version
+          echo "are the files created?"
+          ls -la bin/
+          echo "checking conf"
+          ls -la conf/
+          echo "runnig bin/activate"
+          . bin/activate
+          bin/pip3 install -r conf/requirements.txt
+          echo "run autoconfigure"
+          JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
+          JAVA9JRE=${ORG_GRADLE_PROJECT_jdk9} \
+          JAVA10JRE=${ORG_GRADLE_PROJECT_jdk10} \
+          JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
+          JAVA12JRE=${ORG_GRADLE_PROJECT_jdk12} \
+          JAVA13JRE=${ORG_GRADLE_PROJECT_jdk13} \
+          JAVA14JRE=${ORG_GRADLE_PROJECT_jdk14} \
+          JAVA15JRE=${ORG_GRADLE_PROJECT_jdk15} \
+          conf/autoconfigure
+          echo "running conf/testenv java"
+          . conf/testenv java
+          echo "check local java config"
+          cat conf/java_local_config.yml
+          echo "Changing java_agent_dev_root values"
+          sed -i 's|java_agent_dev_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent|java_agent_dev_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar|' conf/java_local_config.yml
+          sed -i 's|app_root: /home/runner/apps|app_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/apps|' conf/java_local_config.yml
+          echo "verifying values have been changed"
+          cat conf/java_local_config.yml
+          echo "shell variables:"
+          set | sort -f
+          echo "GENERATE ARTIFACTS"
+          ## artifacts section for testing
+          mkdir testing-artifacts
+          echo "was the dir created?"
+          ls -la
+          touch testing-artifacts/shell-variables.txt
+          touch testing-artifacts/env-variables.txt
+          set | sort -f > testing-artifacts/shell-variables.txt
+          printenv | sort -f > testing-artifacts/env-variables.txt
+          cp conf/java_local_config.yml testing-artifacts/
+          echo "check the contents of testing-artifacts"
+          ls -la testing-artifacts/
+          echo "are we still in agent-integration-tests?"
+          pwd
+          ## End testing artifacts section
+          echo "RUN THE TESTS"
+          echo "Running ${{ matrix.func_basic_features }}"
+          TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
+          ./bin/runtest.sh ${java_func_path}/${java_func_type}/${{ matrix.func_tests }}
+
+      # Capture Testing Artifacts
+      - name: Capture testing artifacts
+        if: ${{ failure() || success() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ait-testing-artifacts
+          path: |
+            agent-integration-tests/testing-artifacts/*
+
+      # Print Environmental variables
+      - name: Print Environmental variables (verify activate has been sourced)
+        run: |
+          printenv |  sort -f

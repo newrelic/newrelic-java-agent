@@ -5,20 +5,23 @@ import scala.collection.JavaConversions
 
 apply plugin: 'scala'
 
-repositories {
-    maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
-    }
-}
-
 buildscript {
     dependencies {
         classpath 'com.typesafe.play:routes-compiler_2.11:2.6.0'
     }
+    // repositories {
+    //     jcenter()
+    //     mavenCentral()
+    // }
+    //GHA
     repositories {
-        jcenter()
         mavenCentral()
+        jcenter()
+        maven {
+            url 'https://repo.maven.apache.org/maven2/'
+        }
     }
+
 }
 
 sourceSets.test.scala.srcDir "src/test/java"

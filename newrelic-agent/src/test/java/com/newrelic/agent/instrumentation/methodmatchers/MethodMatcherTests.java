@@ -339,4 +339,22 @@ public class MethodMatcherTests {
         Assert.assertEquals(matcher.hashCode(), new NotMethodMatcher(allMatcher).hashCode());
         Assert.assertFalse(matcher.hashCode() == nestedMatcher.hashCode());
     }
+
+    @Test
+    public void testLambdaMethodMatcher() {
+        Assert.assertFalse(new LambdaMethodMatcher("", false).matches(Opcodes.F_NEW, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertFalse(new LambdaMethodMatcher("methodName", false).matches(Opcodes.ACC_PUBLIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertTrue(new LambdaMethodMatcher("methodName", false).matches(Opcodes.F_NEW, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertFalse(new LambdaMethodMatcher("", true).matches(Opcodes.ACC_PUBLIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertTrue(new LambdaMethodMatcher("methodName", true).matches(Opcodes.ACC_PUBLIC, "methodName", null, com.google.common.collect.ImmutableSet.<String> of()));
+    }
+
+    @Test
+    public void testReturnTypeMethodMatcher() {
+        Assert.assertFalse(new ReturnTypeMethodMatcher(Collections.<String>emptyList()).matches(Opcodes.ACC_PUBLIC, null, Type.getDescriptor(String.class), com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertFalse(new ReturnTypeMethodMatcher(Collections.singletonList(Type.getDescriptor(Boolean.class))).matches(Opcodes.ACC_PUBLIC, null, Type.getDescriptor(String.class), com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertTrue(new ReturnTypeMethodMatcher(Collections.singletonList(Type.getDescriptor(String.class))).matches(Opcodes.ACC_PUBLIC, null, Type.getDescriptor(String.class), com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertFalse(new ReturnTypeMethodMatcher(Arrays.asList(Type.getDescriptor(Boolean.class), Type.getDescriptor(Short.class))).matches(Opcodes.ACC_PUBLIC, null, Type.getDescriptor(String.class), com.google.common.collect.ImmutableSet.<String> of()));
+        Assert.assertTrue(new ReturnTypeMethodMatcher(Arrays.asList(Type.getDescriptor(Boolean.class), Type.getDescriptor(String.class))).matches(Opcodes.ACC_PUBLIC, null, Type.getDescriptor(String.class), com.google.common.collect.ImmutableSet.<String> of()));
+    }
 }

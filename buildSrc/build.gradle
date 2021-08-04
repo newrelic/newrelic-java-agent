@@ -4,10 +4,19 @@ plugins {
 
 sourceCompatibility = 1.8
 
+// repositories {
+//     mavenLocal()
+//     mavenCentral()
+//     jcenter()
+// }
+
 repositories {
-    mavenLocal()
     mavenCentral()
     jcenter()
+    // mavenlocal()
+    maven {
+        url 'https://repo.maven.apache.org/maven2/'
+    }
 }
 
 dependencies {

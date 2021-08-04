@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
 
 /**
@@ -60,7 +61,7 @@ public class ThreadNameNormalizer {
     private final ThreadNames threadNames;
 
     public ThreadNameNormalizer(AgentConfig config, ThreadNames threadNames) {
-        this(config.getValue("thread_sampler.name_pattern", DEFAULT_PATTERN), threadNames);
+        this(config.getValue(ThreadService.NAME_PATTERN_CFG_KEY, DEFAULT_PATTERN), threadNames);
     }
 
     /**
