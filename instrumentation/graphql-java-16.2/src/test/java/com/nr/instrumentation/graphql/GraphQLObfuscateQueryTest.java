@@ -39,7 +39,7 @@ public class GraphQLObfuscateQueryTest {
         Document document = parse(queryToObfuscateFile);
 
         //when
-        String obfuscatedQuery = GraphQLObfuscateHelper.getObfuscatedQuery(document);
+        String obfuscatedQuery = GraphQLObfuscateUtil.getObfuscatedQuery(document);
         assertEquals(expectedObfuscatedResult, obfuscatedQuery);
     }
 }

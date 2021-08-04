@@ -8,7 +8,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.nr.instrumentation.graphql.GraphQLErrorHelper.maybeReportExecutionResultError;
+import static com.nr.instrumentation.graphql.GraphQLErrorUtil.maybeReportExecutionResultError;
 
 @Weave(originalName = "graphql.GraphQL", type = MatchType.ExactClass)
 public class GraphQL_Instrumentation {

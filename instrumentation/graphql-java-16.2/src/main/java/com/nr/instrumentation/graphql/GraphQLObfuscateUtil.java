@@ -4,7 +4,7 @@ import graphql.language.*;
 
 import java.util.List;
 
-public class GraphQLObfuscateHelper {
+public class GraphQLObfuscateUtil {
 
     private static final String OBFUSCATION = "(***)";
     private static final String PREFIX_FRAGMENT = "... on ";

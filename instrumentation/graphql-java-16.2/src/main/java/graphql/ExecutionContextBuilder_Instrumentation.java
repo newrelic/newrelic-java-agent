@@ -18,7 +18,7 @@ import graphql.execution.ExecutionContextBuilder;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
 
-import static com.nr.instrumentation.graphql.GraphQLObfuscateHelper.getObfuscatedQuery;
+import static com.nr.instrumentation.graphql.GraphQLObfuscateUtil.getObfuscatedQuery;
 import static com.nr.instrumentation.graphql.GraphQLTransactionName.*;
 
 @Weave(originalName = "graphql.execution.ExecutionContextBuilder", type = MatchType.ExactClass)

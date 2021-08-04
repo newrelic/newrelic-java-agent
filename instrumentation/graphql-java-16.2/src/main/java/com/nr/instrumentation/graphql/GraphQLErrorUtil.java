@@ -8,14 +8,14 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-public class GraphQLErrorHelper {
+public class GraphQLErrorUtil {
 
     //This prevents double reporting of the same error. Parse and validation errors are reported in separate instrumentation.
     public static void maybeReportExecutionResultError(CompletableFuture<ExecutionResult> executionResult) {
         try {
             List<GraphQLError> errors = executionResult.get().getErrors();
             if(!errors.isEmpty()){
-                Optional<GraphQLError> error = errors.stream().filter(GraphQLErrorHelper::notSyntaxOrValidationError)
+                Optional<GraphQLError> error = errors.stream().filter(GraphQLErrorUtil::notSyntaxOrValidationError)
                         .findFirst();
                 error.ifPresent(graphQLError -> NewRelic.noticeError(graphQLError.getMessage()));
             }
