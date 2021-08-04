@@ -128,12 +128,21 @@ public class GraphQL_InstrumentationTest {
          });
     }
 
+    private boolean scopedAndUnscopedMetrics(Introspector introspector, String metricPrefix) {
+        boolean scoped = introspector.getMetricsForTransaction(introspector.getTransactionNames().iterator().next())
+                .keySet().stream().anyMatch(s -> s.contains(metricPrefix));
+        boolean unscoped = introspector.getUnscopedMetrics().keySet().stream().anyMatch(s -> s.contains(metricPrefix));
+        return scoped && unscoped;
+    }
+
     private void assertOperation(String expectedTransactionSuffix, String expectedQueryAttribute) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.name", "anonymous"));
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.type", "QUERY"));
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
+        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
+        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
     }
 
     private void assertErrorOperation(String expectedTransactionSuffix, String spanName, String errorClass, String errorMessage, boolean isParseError) {
