@@ -12,18 +12,19 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"graphql", "com.nr.instrumentation"}, configName = "distributed_tracing.yml")
@@ -51,6 +52,11 @@ public class GraphQL_InstrumentationTest {
         graphQL = GraphQL.newGraphQL(graphQLSchema).build();
     }
 
+    @AfterEach
+    public void cleanUp() {
+        InstrumentationTestRunner.getIntrospector().clear();
+    }
+
     @Test
     public void test() {
         //given
@@ -68,7 +74,7 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        assertRequestWithArg("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello(***)\n" + "}");
+        assertRequestWithArg("QUERY/<anonymous>/hello", "{hello (myarg: ***)}");
     }
 
     @Test
@@ -78,7 +84,8 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        assertErrorOperation("post/*", "ParseAndValidate/parse", "InvalidSyntaxException", "Invalid Syntax", true);
+        String expectedErrorMessage = "Invalid Syntax : offending token 'cause' at line 1 column 1";
+        assertErrorOperation("post/*", "ParseAndValidate/parse", "graphql.parser.InvalidSyntaxException", expectedErrorMessage, true);
     }
 
     @Test
@@ -88,8 +95,9 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
+        String expectedErrorMessage = "Validation error of type FieldUndefined: Field 'noSuchField' in type 'Query' is undefined @ 'noSuchField'";
         assertErrorOperation("QUERY/<anonymous>/noSuchField",
-                "ParseAndValidate/validate", "GraphqlErrorException",  "Validation error", false);
+                "ParseAndValidate/validate", "graphql.GraphqlErrorException",  expectedErrorMessage, false);
     }
 
     @Trace(dispatcher = true)
@@ -122,11 +130,10 @@ public class GraphQL_InstrumentationTest {
         List<SpanEvent> spanEvents = introspector.getSpanEvents().stream()
                 .filter(spanEvent -> spanEvent.getName().contains(spanName))
                 .collect(Collectors.toList());
-
-         return spanEvents.stream().anyMatch(spanEvent -> {
-             Optional<String> attributeValue = Optional.ofNullable((String) spanEvent.getAgentAttributes().get(attribute));
-             return attributeValue.map(s -> s.contains(value)).orElse(false);
-         });
+        Assert.assertEquals(1, spanEvents.size());
+        Assert.assertNotNull(spanEvents.get(0).getAgentAttributes().get(attribute));
+        Assert.assertEquals(value, spanEvents.get(0).getAgentAttributes().get(attribute));
+        return true;
     }
 
     private boolean scopedAndUnscopedMetrics(Introspector introspector, String metricPrefix) {
@@ -139,7 +146,7 @@ public class GraphQL_InstrumentationTest {
     private void assertRequestNoArg(String expectedTransactionSuffix, String expectedQueryAttribute) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
-        assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.name", "anonymous"));
+        assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.name", "<anonymous>"));
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.type", "QUERY"));
         assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.parentType", "Query"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
