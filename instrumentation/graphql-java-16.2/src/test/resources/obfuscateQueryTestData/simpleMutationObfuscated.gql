@@ -1,13 +1,13 @@
-MUTATION {
-  writePost(***){
-    id
-    title
-    category
-    text
-    author{
-      id
-      name
-      thumbnail
+mutation {
+    writePost(title: ***, text: ***, category: ***, author: ***) {
+        id
+        title
+        category
+        text
+        author {
+            id
+            name
+            thumbnail
+        }
     }
-  }
 }

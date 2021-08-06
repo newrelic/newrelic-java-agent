@@ -1,24 +1,24 @@
-QUERY {
-  FIRST: libraries(***){
-    branch
-    booksInStock(***){
-      title(***)
+query {
+  FIRST: libraries (id: ***, name: ***) {
+     branch
+    booksInStock (password: ***) {
+      title (id: ***),
       author
     }
-    bathroomReading: magazinesInStock(***){
-        magissue
-        magtitle
+    bathroomReading: magazinesInStock (password: ***) {
+      magissue,
+      magtitle
     }
   }
-  SECOND: Slibraries(***){
+    SECOND: Slibraries (id: ***, name: ***) {
       Sbranch
-      profitCenter: SbooksInStock(***){
-        Sisbn
-        Stitle
+      profitCenter: SbooksInStock (password: ***) {
+        Sisbn,
+        Stitle,
       }
-      SmagazinesInStock(***){
-          Smagissue
-          Smagtitle
+      SmagazinesInStock (password: ***) {
+        Smagissue,
+        Smagtitle
       }
-  }
+    }
 }

@@ -1,11 +1,11 @@
-QUERY example{
-  search(***){
-    __typename
-    ... on Author{
+query example {
+  search(contains: ***) {
+    ***typename
+    ... on Author {
       name
     }
-    ... on Book{
-        title
+    ... on Book {
+      title
     }
   }
 }

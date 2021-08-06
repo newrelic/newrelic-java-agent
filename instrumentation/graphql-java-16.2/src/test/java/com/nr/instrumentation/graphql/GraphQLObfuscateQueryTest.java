@@ -36,10 +36,10 @@ public class GraphQLObfuscateQueryTest {
         String expectedObfuscatedResult = readText(expectedObfuscatedQueryFile);
 
         //given
-        Document document = parse(queryToObfuscateFile);
+        String query = readText(queryToObfuscateFile);
 
         //when
-        String obfuscatedQuery = GraphQLObfuscateUtil.getObfuscatedQuery(document);
+        String obfuscatedQuery = GraphQLObfuscateUtil.obfuscateQuery(query);
         assertEquals(expectedObfuscatedResult, obfuscatedQuery);
     }
 }
