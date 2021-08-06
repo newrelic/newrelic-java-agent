@@ -150,8 +150,7 @@ public class GraphQL_InstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
-        //fixme after casting in GraphQLAttributeUtil is right
-        //        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.arg."+MY_ARG, "this is wrong"));
+        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.arg."+MY_ARG, "StringValue{value='fo)o'}"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
     }

@@ -31,7 +31,7 @@ public class ExecutionContextBuilder_Instrumentation {
         NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation" + transactionName);
         OperationDefinition definition = getFirstOperationDefinitionFrom(document);
         String operationName = definition.getName();
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", definition != null ? getOperationTypeFrom(definition) : "NA");
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", definition != null ? getOperationTypeFrom(definition) : "Unavailable");
         AgentBridge.privateApi.addTracerParameter("graphql.operation.name", operationName != null ? operationName  : "<anonymous>");
         AgentBridge.privateApi.addTracerParameter("graphql.operation.query", getObfuscatedQuery(document));
         return Weaver.callOriginal();
