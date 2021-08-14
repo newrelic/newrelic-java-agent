@@ -54,10 +54,10 @@ dependencies {
     testImplementation("com.sun.faces:jsf-impl:2.0.2")
     testImplementation("com.sun.faces.extensions:jsf-extensions-test-time:2.0")
 
-    testImplementation("org.ow2.asm:asm-commons:8.0.1")
-    testImplementation("org.ow2.asm:asm-tree:8.0.1")
-    testImplementation("org.ow2.asm:asm-analysis:8.0.1")
-    testImplementation("org.ow2.asm:asm-util:8.0.1")
+    testImplementation("org.ow2.asm:asm-commons:9.2")
+    testImplementation("org.ow2.asm:asm-tree:9.2")
+    testImplementation("org.ow2.asm:asm-analysis:9.2")
+    testImplementation("org.ow2.asm:asm-util:9.2")
 
     // javaassist is used by hibernate
     testImplementation("javassist:javassist:3.3")
@@ -109,7 +109,11 @@ test {
     maxParallelForks = Runtime.runtime.availableProcessors()
     //testLogging.showStandardStreams = true
 
-    if (project.hasProperty("test15")) {
+    if (project.hasProperty("test17")) {
+        executable = jdk17 + '/bin/java'
+    } else if (project.hasProperty("test16")) {
+        executable = jdk16 + '/bin/java'
+    } else if (project.hasProperty("test15")) {
         executable = jdk15 + '/bin/java'
     } else if (project.hasProperty("test14")) {
         executable = jdk14 + '/bin/java'
