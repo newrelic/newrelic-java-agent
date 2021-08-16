@@ -56,7 +56,7 @@ public final class WeaveUtils {
     /**
      * Version of ASM API used in the weaver.
      */
-    public static final int ASM_API_LEVEL = Opcodes.ASM7;
+    public static final int ASM_API_LEVEL = Opcodes.ASM9;
 
     /**
      * No op remapper used when inlining methods.

@@ -29,7 +29,7 @@ public class RemoveMethodsClassVisitor extends ClassVisitor {
      * @param methodsToRemove the methods to remove
      */
     public RemoveMethodsClassVisitor(ClassVisitor cv, Set<Method> methodsToRemove) {
-        super(Opcodes.ASM7, cv);
+        super(Opcodes.ASM9, cv);
         this.methodsToRemove = new HashSet<>(methodsToRemove);
     }
 
