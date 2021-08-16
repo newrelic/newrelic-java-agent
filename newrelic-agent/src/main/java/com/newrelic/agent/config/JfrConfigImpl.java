@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.jfr.daemon.DaemonConfig;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -18,12 +20,19 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     public static final String AUDIT_LOGGING = "audit_logging";
     public static final Boolean AUDIT_LOGGING_DEFAULT = Boolean.FALSE;
     public static final Boolean USE_LICENSE_KEY_DEFAULT = Boolean.TRUE;
+    public static final String HARVEST_INTERVAL = "harvest_interval";
+    public static final String QUEUE_SIZE = "queue_size";
 
     private final boolean isEnabled;
+    private final Integer harvestInterval;
+    private final Integer queueSize;
+    
 
     public JfrConfigImpl(Map<String, Object> pProps) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
         isEnabled = getProperty(ENABLED, ENABLED_DEFAULT);
+        harvestInterval = getProperty(HARVEST_INTERVAL, DaemonConfig.DEFAULT_HARVEST_INTERVAL);
+        queueSize = getProperty(QUEUE_SIZE, DaemonConfig.DEFAULT_QUEUE_SIZE);
     }
 
     static JfrConfigImpl createJfrConfig(Map<String, Object> settings) {
@@ -36,6 +45,16 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     @Override
     public boolean isEnabled() {
         return isEnabled;
+    }
+
+    @Override
+    public Integer getHarvestInterval() {
+        return harvestInterval;
+    }
+
+    @Override
+    public Integer getQueueSize() {
+        return queueSize;
     }
 
     @Override

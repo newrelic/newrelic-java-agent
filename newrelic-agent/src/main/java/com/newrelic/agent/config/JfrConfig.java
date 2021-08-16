@@ -17,6 +17,18 @@ public interface JfrConfig {
     boolean isEnabled();
 
     /**
+     * The harvest interval to be used by the JfrController to trigger a harvest.
+     * @return the amount of seconds between two JFR data harvests
+     */
+    Integer getHarvestInterval();
+
+    /**
+     * The size of the queue that holds JFR's RecordedEvents to be processed in each harvest.
+     * @return the number of events to process
+     */
+    Integer getQueueSize();
+
+    /**
      * Check if audit_logging is enabled for the JFR service.
      *
      * @return <code>true</code> is audit_logging is enabled for the JFR service is enabled, else <code>false</code>.

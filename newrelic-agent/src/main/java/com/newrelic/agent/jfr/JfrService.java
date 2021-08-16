@@ -114,6 +114,8 @@ public class JfrService extends AbstractService {
                 .apiKey(defaultAgentConfig.getLicenseKey())
                 .monitoredAppName(defaultAgentConfig.getApplicationName())
                 .auditLogging(jfrConfig.auditLoggingEnabled())
+                .harvestInterval(jfrConfig.getHarvestInterval())
+                .queueSize(jfrConfig.getQueueSize())
                 .metricsUri(URI.create(defaultAgentConfig.getMetricIngestUri()))
                 .eventsUri(URI.create(defaultAgentConfig.getEventIngestUri()))
                 .proxyHost(defaultAgentConfig.getProxyHost())
