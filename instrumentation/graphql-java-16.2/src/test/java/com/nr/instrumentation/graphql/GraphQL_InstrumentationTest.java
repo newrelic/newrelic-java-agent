@@ -30,13 +30,13 @@ import static org.junit.Assert.assertTrue;
 @InstrumentationTestConfig(includePrefixes = {"graphql", "com.nr.instrumentation"}, configName = "distributed_tracing.yml")
 public class GraphQL_InstrumentationTest {
     private static final long DEFAULT_TIMEOUT_IN_MILLIS = 10_000;
-    private static final String MY_ARG = "myarg";
+    private static final String TEST_ARG = "testArg";
 
     private static GraphQL graphQL;
 
     @BeforeClass
     public static void initialize() {
-        String schema = "type Query{hello("+MY_ARG+": String): String}";
+        String schema = "type Query{hello("+ TEST_ARG +": String): String}";
 
         SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
@@ -70,11 +70,11 @@ public class GraphQL_InstrumentationTest {
     @Test
     public void queryWithArg() {
         //given
-        String query = "{hello ("+MY_ARG+": \"fo)o\")}";
+        String query = "{hello ("+ TEST_ARG +": \"fo)o\")}";
         //when
         trace(createRunnable(query));
         //then
-        assertRequestWithArg("QUERY/<anonymous>/hello", "{hello (myarg: ***)}");
+        assertRequestWithArg("QUERY/<anonymous>/hello", "{hello ("+ TEST_ARG +": ***)}");
     }
 
     @Test
@@ -126,7 +126,7 @@ public class GraphQL_InstrumentationTest {
     }
 
     private GraphQL graphWithResolverException() {
-        String schema = "type Query{hello("+MY_ARG+": String): String}";
+        String schema = "type Query{hello("+ TEST_ARG +": String): String}";
 
         SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
@@ -188,7 +188,6 @@ public class GraphQL_InstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
-        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.arg."+MY_ARG, "StringValue{value='fo)o'}"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
     }
