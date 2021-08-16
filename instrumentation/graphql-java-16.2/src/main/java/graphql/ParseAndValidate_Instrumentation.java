@@ -12,8 +12,8 @@ import graphql.validation.ValidationError;
 
 import java.util.List;
 
-import static com.nr.instrumentation.graphql.GraphQLErrorUtil.reportGraphQLException;
-import static com.nr.instrumentation.graphql.GraphQLErrorUtil.reportGraphQLError;
+import static com.nr.instrumentation.graphql.GraphQLSpanUtil.reportGraphQLException;
+import static com.nr.instrumentation.graphql.GraphQLSpanUtil.reportGraphQLError;
 
 @Weave(originalName = "graphql.ParseAndValidate", type = MatchType.ExactClass)
 public class ParseAndValidate_Instrumentation {
