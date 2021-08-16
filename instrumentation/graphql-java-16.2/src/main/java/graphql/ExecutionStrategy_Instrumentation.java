@@ -17,6 +17,7 @@ import graphql.schema.GraphQLObjectType;
 import java.util.concurrent.CompletableFuture;
 
 import static com.nr.instrumentation.graphql.GraphQLAttributeUtil.addAttributeForArgument;
+import static com.nr.instrumentation.graphql.GraphQLErrorUtil.*;
 import static com.nr.instrumentation.graphql.GraphQLObfuscateUtil.obfuscateQuery;
 import static com.nr.instrumentation.graphql.GraphQLTransactionName.getFirstOperationDefinitionFrom;
 import static com.nr.instrumentation.graphql.GraphQLTransactionName.getOperationTypeFrom;
@@ -99,7 +100,10 @@ public class ExecutionStrategy_Instrumentation {
             addAttributeForArgument(parameters.getField().getSingleField().getArguments());
         }
         //AgentBridge.privateApi.addTracerParameter("graphql.field.args", TBD map);
-
-        return Weaver.callOriginal();
+        CompletableFuture<FieldValueInfo> resolveResult = Weaver.callOriginal();
+        if(!executionContext.getErrors().isEmpty()){
+            reportGraphQLError(executionContext.getErrors().get(0));
+        }
+        return resolveResult;
     }
 }

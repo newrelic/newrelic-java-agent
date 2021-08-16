@@ -18,11 +18,11 @@ import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -58,7 +58,7 @@ public class GraphQL_InstrumentationTest {
     }
 
     @Test
-    public void test() {
+    public void queryWithNoArg() {
         //given
         String query = "{hello}";
         //when
@@ -68,7 +68,7 @@ public class GraphQL_InstrumentationTest {
     }
 
     @Test
-    public void testWithArg() {
+    public void queryWithArg() {
         //given
         String query = "{hello ("+MY_ARG+": \"fo)o\")}";
         //when
@@ -78,7 +78,7 @@ public class GraphQL_InstrumentationTest {
     }
 
     @Test
-    public void parsingError() {
+    public void parsingException() {
         //given
         String query = "cause a parse error";
         //when
@@ -89,7 +89,7 @@ public class GraphQL_InstrumentationTest {
     }
 
     @Test
-    public void validationError() {
+    public void validationException() {
         //given
         String query = "{noSuchField}";
         //when
@@ -100,18 +100,49 @@ public class GraphQL_InstrumentationTest {
                 "ParseAndValidate/validate", "graphql.GraphqlErrorException",  expectedErrorMessage, false);
     }
 
+    @Test
+    public void resolverException() {
+        //given
+        String query = "{hello}";
+
+        //when
+        trace(createRunnable(query, graphWithResolverException()));
+        //then
+        String expectedErrorMessage = "Exception while fetching data (/hello) : null";
+        assertErrorOperation("QUERY/<anonymous>/hello", "GraphQL/resolve/hello", "graphql.GraphqlErrorException", expectedErrorMessage, false);
+    }
+
     @Trace(dispatcher = true)
     private void trace(Runnable runnable) {
         runnable.run();
     }
 
-    @Trace(dispatcher = true)
-    private void trace(Runnable[] actions) {
-        Arrays.stream(actions).forEach(Runnable::run);
-    }
-
     private Runnable createRunnable(final String query){
         return () -> graphQL.execute(query);
+    }
+
+    private Runnable createRunnable(final String query, GraphQL graphql){
+        return () -> graphql.execute(query);
+    }
+
+    private GraphQL graphWithResolverException() {
+        String schema = "type Query{hello("+MY_ARG+": String): String}";
+
+        SchemaParser schemaParser = new SchemaParser();
+        TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
+
+        RuntimeWiring runtimeWiring = newRuntimeWiring()
+                .type(newTypeWiring("Query")
+                        .dataFetcher("hello", environment -> {
+                            throw new RuntimeException();
+                        })
+                )
+                .build();
+
+        SchemaGenerator schemaGenerator = new SchemaGenerator();
+        GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
+
+        return GraphQL.newGraphQL(graphQLSchema).build();
     }
 
     private void assertOneTxFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isParseError){
