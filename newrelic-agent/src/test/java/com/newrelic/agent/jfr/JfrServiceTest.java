@@ -3,9 +3,11 @@ package com.newrelic.agent.jfr;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.RPMService;
 import com.newrelic.agent.RPMServiceManager;
+import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
 import com.newrelic.test.marker.Java10IncompatibleTest;
@@ -39,6 +41,8 @@ public class JfrServiceTest {
         when(agentConfig.getMetricIngestUri()).thenReturn(DEFAULT_METRIC_INGEST_URI);
         when(agentConfig.getEventIngestUri()).thenReturn(DEFAULT_EVENT_INGEST_URI);
         when(agentConfig.getLicenseKey()).thenReturn("test_1234_license_key");
+        when(agentConfig.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
+                .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
     }
 
     @Test

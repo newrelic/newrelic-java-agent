@@ -7,13 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.1.1 (2021-7-15)
+
+ Due to overhead caused in some applications [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/)
+is now disabled by default.
+
+It can be enabled following the instructions [here](#enabling-jfr).
+
+
+## Version 7.1.0 (2021-7-7)
+
+### Known issue
+Some customers saw increased overhead when Real-time profiling is enabled.
+See instructions to disable Real-time profiling in the [notice](#disabling-jfr) below.
+
+### New features and improvements:
+
+* Java instrumentation by XML new properties [#288](https://github.com/newrelic/newrelic-java-agent/pull/288)
+  * traceLambda - to trace lambdas inside a method
+  * traceByReturnType - to trace all methods in a class that return a given type
+
+  These are compatible with Java and Scala. For more information, see
+  [Java instrumentation by XML](https://docs.newrelic.com/docs/agents/java-agent/custom-instrumentation/java-instrumentation-xml/).
+
+
+* Scala APIs [#254](https://github.com/newrelic/newrelic-java-agent/pull/254)
+
+  New artifacts allow Scala code to be instrumented using a fluent Scala API
+  instead of the Java annotations. There are specific artifacts for versions
+  2.10, 2.11, 2.12, 2.13 of Scala. Scala 3.0 users can use the 2.13 artifact.
+
+  For more information, see
+  [Scala instrumentation](https://docs.newrelic.com/docs/agents/java-agent/frameworks/scala-installation-java/).
+
+
+* Real-time profiling for Java using JFR metrics  [#333](https://github.com/newrelic/newrelic-java-agent/pull/333)
+
+  [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/)
+  is now enabled by default.
+
+  **Notice:** this feature will cause an increase in the consumption of data.
+  The amount depends on the application. <a id="disabling-jfr"></a> It can be disabled by adding the
+  following to the agent yaml config nested under the `common` stanza:
+  
+  ```
+    jfr:
+      enabled: false
+  ```
+  For more information, see
+  [JFR core README](https://github.com/newrelic/newrelic-jfr-core/blob/main/README.md).
+
+## Version 7.0.1 (2021-6-15)
+
+### Fixes
+
+* Fixes an issue where the agent would break OkHttp versions 3.X and lower. [#324](https://github.com/newrelic/newrelic-java-agent/issues/324)
+
+
 ## Version 7.0.0 (2021-6-9)
 
-# New features and improvements:
+### New features and improvements:
 
 * Real-time profiling for Java using JFR metrics  
   [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/) is now fully integrated into the Java agent. See the [JFR core README](https://github.com/newrelic/newrelic-jfr-core/blob/main/README.md) for additional details.
   
+  <a id="enabling-jfr"></a>
   This feature requires a supported version of Java (Java 8 (specifically version `8u262`+) or Java 11+) and is currently disabled by default. To enable it set the following in your yaml (indented 2 spaces under the common stanza).
 
     ```
@@ -32,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Class annotation to trace methods by return type [#275](https://github.com/newrelic/newrelic-java-agent/pull/275)
 
-# Fixes:
+### Fixes:
 
 * Fixes an issue that could cause multiple versions of `akka-http-core` instrumentation to apply at the same time. [#208](https://github.com/newrelic/newrelic-java-agent/pull/208)
 
@@ -40,7 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Fixes Javadoc comments that incorrectly stated that, when calling the `noticeError` API multiple times, the first error would be reported when in fact it is the last error that is reported. [#313](https://github.com/newrelic/newrelic-java-agent/pull/313)
 
-# Support statement:
+### Support statement:
 
 New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
 
