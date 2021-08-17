@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 /**
- * This implementation relies on a guava cache, which is like a map. There is no set implementation which is why the
+ * This implementation relies on a caffeine cache, which is like a map ( it is built on top of ConcurrentHashMap). There is no set implementation which is why the
  * map stores the token reference as both the key and value.
  *
  * Note, changes to token behavior here should be made consistent with the old async api in AsyncTransactionService.

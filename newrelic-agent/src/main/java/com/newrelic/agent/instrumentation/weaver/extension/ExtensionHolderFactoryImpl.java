@@ -28,7 +28,7 @@ public class ExtensionHolderFactoryImpl implements ExtensionHolderFactory {
     }
 
     /**
-     * Uses a guava cache to store weaver extension classes.
+     * Uses a caffeine cache to store weaver extension classes.
      */
     public static class ExtensionHolderImpl<T> implements ExtensionHolder<T> {
         // @formatter:off

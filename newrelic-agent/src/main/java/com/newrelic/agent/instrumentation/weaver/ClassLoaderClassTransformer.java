@@ -125,7 +125,7 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
 
         AgentBridge.getAgent().getLogger().log(Level.FINER, "classloadersToSkip: {0}", classloadersToSkip);
 
-        // Try to use a custom Guava-based extension template to make NewField access better
+        // Try to use a custom Caffeine based extension template to make NewField access better
         try {
             extensionTemplate = WeaveUtils.convertToClassNode(WeaveUtils.getClassBytesFromClassLoaderResource(
                     CaffeineBackedExtensionClass.class.getName(), CaffeineBackedExtensionClass.class.getClassLoader()));
