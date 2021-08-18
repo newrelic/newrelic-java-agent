@@ -73,7 +73,7 @@ tasks {
 
         if (project.hasProperty("test16")) {
             executable = "$jdk16/bin/java"
-            jvmArgs("--add-opens=java.base/java.lang=ALL-UNNAMED")
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
         } else if (project.hasProperty("test15")) {
             executable = "$jdk15/bin/java"
         } else if (project.hasProperty("test14")) {
