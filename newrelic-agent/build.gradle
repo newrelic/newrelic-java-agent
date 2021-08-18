@@ -287,7 +287,8 @@ task newrelicVersionedAgentJar(type: Jar) {
                 'Agent-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Premain-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Main-Class': 'com.newrelic.bootstrap.BootstrapAgent',
-                'X-Git-SHA': System.getenv("GITHUB_SHA") ?: GitUtil.sha(project) ?: "UNKNOWN"
+                'X-Git-SHA': System.getenv("GITHUB_SHA") ?: GitUtil.sha(project) ?: "UNKNOWN",
+                'Add-Opens': 'java.base/java.lang'
     }
 }
 
