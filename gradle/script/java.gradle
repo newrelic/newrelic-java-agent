@@ -27,16 +27,6 @@ jar {
     includeEmptyDirs false
 }
 
-// JDK7 is required for scala 2.9 and 2.10. The scala gradle plugin does not allow changing the java compiler at runtime,
-// so we must set JAVA_HOME to point to 1.7 and set the java plugin to compile with 1.8
-//task requiresJava7 {
-//    doLast {
-//        if (!project.hasProperty('jdk7')) {
-//            throw new GradleException("Please set the jdk7 property to a valid jdk1.7 path in ~/.gradle/gradle.properties")
-//        }
-//    }
-//}
-
 // Some modules need to be compiled with JDK8.
 task requiresJava8 {
     doLast {
