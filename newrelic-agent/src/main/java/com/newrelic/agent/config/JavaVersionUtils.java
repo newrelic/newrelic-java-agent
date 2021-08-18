@@ -27,6 +27,7 @@ public class JavaVersionUtils {
     public static final String JAVA_14 = "14";
     public static final String JAVA_15 = "15";
     public static final String JAVA_16 = "16";
+    public static final String JAVA_17 = "17";
 
     public static String getJavaSpecificationVersion() {
         return System.getProperty("java.specification.version", "");
