@@ -33,7 +33,7 @@ jar {
 }
 
 test {
-    jvmArgs '-Djdk.attach.allowAttachSelf=true', '--add-opens=java.base/java.lang=ALL-UNNAMED'
+    jvmArgs '-Djdk.attach.allowAttachSelf=true'
 
     // instrumentation is incompatible with zulu
     useJUnit {
