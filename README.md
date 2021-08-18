@@ -118,7 +118,7 @@ Run all functional tests:
 
 Run an individual functional test: 
 ```
-./gradlew functional_test:test --parallel --tests test.newrelic.test.agent.AgentTest --parallel
+./gradlew functional_test:test --tests test.newrelic.test.agent.AgentTest --parallel
 ```
 
 #### Instrumentation module tests
