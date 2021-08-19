@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
@@ -145,7 +146,7 @@ public class GraphQL_InstrumentationTest {
         return GraphQL.newGraphQL(graphQLSchema).build();
     }
 
-    private void assertOneTxFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isParseError){
+    private void txFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isParseError){
         assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
         String txName = introspector.getTransactionNames().iterator().next();
         if(!isParseError) {
@@ -157,14 +158,13 @@ public class GraphQL_InstrumentationTest {
         }
     }
 
-    private boolean attributeValueOnSpan(Introspector introspector, String spanName, String attribute, String value) {
+    private void attributeValueOnSpan(Introspector introspector, String spanName, String attribute, String value) {
         List<SpanEvent> spanEvents = introspector.getSpanEvents().stream()
                 .filter(spanEvent -> spanEvent.getName().contains(spanName))
                 .collect(Collectors.toList());
         Assert.assertEquals(1, spanEvents.size());
         Assert.assertNotNull(spanEvents.get(0).getAgentAttributes().get(attribute));
         Assert.assertEquals(value, spanEvents.get(0).getAgentAttributes().get(attribute));
-        return true;
     }
 
     private boolean scopedAndUnscopedMetrics(Introspector introspector, String metricPrefix) {
@@ -174,47 +174,53 @@ public class GraphQL_InstrumentationTest {
         return scoped && unscoped;
     }
 
-    private boolean expectedMetrics(Introspector introspector) {
+    private void expectedMetrics(Introspector introspector) {
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
         assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
-        return true;
     }
 
-    private boolean expectedResolverAttributes(Introspector introspector) {
-        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.parentType", "Query"));
-        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.name", "hello"));
-        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.path", "hello"));
-        return true;
+    private void agentAttributeNotOnOtherSpans(Introspector introspector, String spanName, String attributeCategory) {
+        assertFalse(introspector.getSpanEvents().stream()
+                .filter(spanEvent -> !spanEvent.getName().contains(spanName))
+                .anyMatch(spanEvent -> spanEvent.getAgentAttributes().keySet().stream().anyMatch(key -> key.contains(attributeCategory)))
+        );
     }
 
-    private boolean expectedOperationAttributes(Introspector introspector, String spanName ) {
-        assertTrue(attributeValueOnSpan(introspector, spanName, "graphql.operation.name", "<anonymous>"));
-        assertTrue(attributeValueOnSpan(introspector, spanName, "graphql.operation.type", "QUERY"));
-        return true;
+    private void resolverAttributesOnCorrectSpan(Introspector introspector) {
+        attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.parentType", "Query");
+        attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.name", "hello");
+        attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.path", "hello");
+        agentAttributeNotOnOtherSpans(introspector, "GraphQL/resolve", "graphql.field");
+    }
+
+    private void operationAttributesOnCorrectSpan(Introspector introspector, String spanName ) {
+        attributeValueOnSpan(introspector, spanName, "graphql.operation.name", "<anonymous>");
+        attributeValueOnSpan(introspector, spanName, "graphql.operation.type", "QUERY");
+        agentAttributeNotOnOtherSpans(introspector, "GraphQL/operation", "graphql.operation");
     }
 
     private void assertRequestNoArg(String expectedTransactionSuffix, String expectedQueryAttribute) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
-        assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
-        expectedOperationAttributes(introspector, expectedTransactionSuffix);
-        expectedResolverAttributes(introspector);
+        txFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
+        attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute);
+        operationAttributesOnCorrectSpan(introspector, expectedTransactionSuffix);
+        resolverAttributesOnCorrectSpan(introspector);
         expectedMetrics(introspector);
     }
 
     private void assertRequestWithArg(String expectedTransactionSuffix, String expectedQueryAttribute) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
-        assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
-        expectedOperationAttributes(introspector, expectedTransactionSuffix);
-        expectedResolverAttributes(introspector);
+        txFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
+        attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute);
+        operationAttributesOnCorrectSpan(introspector, expectedTransactionSuffix);
+        resolverAttributesOnCorrectSpan(introspector);
         expectedMetrics(introspector);
     }
 
     private void assertErrorOperation(String expectedTransactionSuffix, String spanName, String errorClass, String errorMessage, boolean isParseError) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, isParseError);
-        assertTrue(attributeValueOnSpan(introspector, spanName, "error.class", errorClass));
-        assertTrue(attributeValueOnSpan(introspector, spanName, "error.message", errorMessage));
+        txFinishedWithExpectedName(introspector, expectedTransactionSuffix, isParseError);
+        attributeValueOnSpan(introspector, spanName, "error.class", errorClass);
+        attributeValueOnSpan(introspector, spanName, "error.message", errorMessage);
     }
 }
