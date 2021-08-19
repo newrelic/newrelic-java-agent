@@ -64,7 +64,7 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        assertRequestNoArg("QUERY/<anonymous>/hello", "QUERY {\n" + "  hello\n" + "}");
+        assertRequestNoArg("QUERY/<anonymous>/hello", "{hello}");
     }
 
     @Test
@@ -174,22 +174,41 @@ public class GraphQL_InstrumentationTest {
         return scoped && unscoped;
     }
 
+    private boolean expectedMetrics(Introspector introspector) {
+        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
+        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
+        return true;
+    }
+
+    private boolean expectedResolverAttributes(Introspector introspector) {
+        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.parentType", "Query"));
+        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.name", "hello"));
+        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.path", "hello"));
+        return true;
+    }
+
+    private boolean expectedOperationAttributes(Introspector introspector, String spanName ) {
+        assertTrue(attributeValueOnSpan(introspector, spanName, "graphql.operation.name", "<anonymous>"));
+        assertTrue(attributeValueOnSpan(introspector, spanName, "graphql.operation.type", "QUERY"));
+        return true;
+    }
+
     private void assertRequestNoArg(String expectedTransactionSuffix, String expectedQueryAttribute) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
-        assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.name", "<anonymous>"));
-        assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.type", "QUERY"));
-        assertTrue(attributeValueOnSpan(introspector, "GraphQL/resolve", "graphql.field.parentType", "Query"));
-        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
-        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
+        assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
+        expectedOperationAttributes(introspector, expectedTransactionSuffix);
+        expectedResolverAttributes(introspector);
+        expectedMetrics(introspector);
     }
 
     private void assertRequestWithArg(String expectedTransactionSuffix, String expectedQueryAttribute) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertOneTxFinishedWithExpectedName(introspector, expectedTransactionSuffix, false);
         assertTrue(attributeValueOnSpan(introspector, expectedTransactionSuffix, "graphql.operation.query", expectedQueryAttribute));
-        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
-        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
+        expectedOperationAttributes(introspector, expectedTransactionSuffix);
+        expectedResolverAttributes(introspector);
+        expectedMetrics(introspector);
     }
 
     private void assertErrorOperation(String expectedTransactionSuffix, String spanName, String errorClass, String errorMessage, boolean isParseError) {
