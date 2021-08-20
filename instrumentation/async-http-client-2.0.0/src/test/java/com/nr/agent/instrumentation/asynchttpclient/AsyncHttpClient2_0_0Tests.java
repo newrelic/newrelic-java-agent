@@ -18,11 +18,20 @@ import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.agent.introspec.TransactionTrace;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java10IncompatibleTest;
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java12IncompatibleTest;
+import com.newrelic.test.marker.Java13IncompatibleTest;
+import com.newrelic.test.marker.Java14IncompatibleTest;
+import com.newrelic.test.marker.Java15IncompatibleTest;
+import com.newrelic.test.marker.Java16IncompatibleTest;
+import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.Response;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.net.URI;
@@ -33,6 +42,8 @@ import java.util.concurrent.Future;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class,
+        Java13IncompatibleTest.class, Java14IncompatibleTest.class, Java15IncompatibleTest.class, Java16IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.asynchttpclient", "org.asynchttpclient" })
 public class AsyncHttpClient2_0_0Tests {
