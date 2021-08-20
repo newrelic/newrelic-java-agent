@@ -52,10 +52,8 @@ import static org.junit.Assert.assertTrue;
 
 /*
  * Gradle hangs indefinitely when these tests run on Java 16
- * 2021-08-20T16:06:53.584-0700 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
- * 2021-08-20T16:06:53.584-0700 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
  *
- * TODO capture jmap/jstack thread dumps?
+ * FIXME capture jmap/jstack thread dumps?
  */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.datastax.driver.core")
