@@ -27,6 +27,7 @@ import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionTrace;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java16IncompatibleTest;
 import com.newrelic.test.marker.Java7IncompatibleTest;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;
@@ -49,9 +50,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+/*
+ * Gradle hangs indefinitely when these tests run on Java 16
+ * 2021-08-20T16:06:53.584-0700 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
+ * 2021-08-20T16:06:53.584-0700 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
+ *
+ * TODO capture jmap/jstack thread dumps?
+ */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.datastax.driver.core")
-@Category({ Java7IncompatibleTest.class})
+@Category({ Java7IncompatibleTest.class, Java16IncompatibleTest.class})
 public class CassandraTest {
 
     private static final String CASSANDRA_PRODUCT = DatastoreVendor.Cassandra.toString();
@@ -65,7 +73,7 @@ public class CassandraTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         // Embedded Cassandra doesn't play nice in java9 - when you attempt to start it, it attempts to create and initialize
-        // a directory on the local file system. It uses the it's own FileUtils class do so, which contains a static
+        // a directory on the local file system. It uses its own FileUtils class do so, which contains a static
         // initialization block that tries to cast a ByteBuffer to a DirectBuffer, which doesn't exist in Java 9. This falls
         // through to a catch block, which subsequently calls JVMStabilityInspector.inspectThrowable(t), which in turn
         // calls DatabaseDescriptor.getDiskFailurePolicy(), and that, in turn, relies on the directory having been created.
