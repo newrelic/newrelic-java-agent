@@ -2,10 +2,14 @@
 name: GHA Functional Tests
 
 on:
-  # pull_request:
-  #   branches: [ main ]
+  pull_request:
+    branches: [ gha ] ## branches TBD
+    types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
     branches: [ gha-testing, gha ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
 
 jobs:
   install-all-java:
@@ -318,7 +322,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: unit-tests-results-java-${{ matrix.java-version }}
+          name: functional-tests-results-java-${{ matrix.java-version }}
           path: |
             functional_test/build/reports/tests/*
             # path/output/test-results

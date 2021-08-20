@@ -1,10 +1,17 @@
 name: GHA AIT functionality trace tests
+# We  need to set java home to JDK 8
+# Also configure workflow_dispatch fr all workflows - add github ref
+# Have to add Java 16 to all workflows
 
 on:
-  # pull_request:
-  #   branches: [ main ]
+  pull_request:
+    branches: [ gha ] ## branches TBD
+    types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
     branches: [ gha-testing, gha ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
 
 jobs:
   install-all-java:
@@ -93,6 +100,14 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 15
+
+      # Install 16
+      - name: Set up Java 16
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 16
 
       # Check contents of cache path
       - name: check cache dir

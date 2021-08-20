@@ -2,10 +2,14 @@
 name: GHA Unit Tests 2
 
 on:
-  # pull_request:
-  #   branches: [ main ]
+  pull_request:
+    branches: [ gha ] ## branches TBD
+    types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
     branches: [ gha-testing, gha ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
 
 jobs:
   install-all-java:
