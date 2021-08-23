@@ -29,12 +29,12 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
+          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
           # key: ${{ runner.os }}-build-${{ env.cache-name }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ github.workflow }}-build-${{ env.cache-name }}-
+            ${{ github.workflow }}-build-
+            ${{ github.workflow }}-
 
       # Install 8
       - name: Set up Java 8
@@ -267,13 +267,13 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ runner.os }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
+          key: ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
           # key: ${{ runner.os }}-build-${{ env.cache-name }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-
+            ${{ github.workflow }}-build-${{ env.cache-name }}-
+            ${{ github.workflow }}-build-
+            ${{ github.workflow }}-
 
       # Create jdk_paths.txt
       - name: Create jdk_paths
@@ -321,13 +321,14 @@ jobs:
       - name: Check new Java home path
         run: |
           echo "Current JAVA_HOME is ${JAVA_HOME}"
-          ls -la ${ORG_GRADLE_PROJECT_jdk8}
+          # ls -la ${ORG_GRADLE_PROJECT_jdk8}
 
 
       # Replication of steps from ait README
 
       # Build the agent jar
       - name: Build newrelicJar
+        if: ${{ failure() || success() }}
         run: |
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
@@ -403,6 +404,8 @@ jobs:
           echo "are we still in agent-integration-tests?"
           pwd
           ## End testing artifacts section
+          echo "Check the current value of JAVA_HOME"
+          echo "The current JAVA_HOME is ${JAVA_HOME}"
           echo "RUN THE TESTS"
           echo "Running ${{ matrix.func_basic_features }}"
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
