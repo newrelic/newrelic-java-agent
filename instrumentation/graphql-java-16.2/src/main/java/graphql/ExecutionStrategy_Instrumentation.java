@@ -34,6 +34,8 @@ public class ExecutionStrategy_Instrumentation {
         NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/resolve/" + parameters.getPath().getSegmentName());
         setResolverAttributes(parameters);
         CompletableFuture<FieldValueInfo> resolveResult = Weaver.callOriginal();
+        //fixme: A query will accumulate all the errors from multiple resolvers. So one error on a deep resolver will get picked up by this logic in all resolvers.
+        // a more targeted solution is needed.
         if(!executionContext.getErrors().isEmpty()){
             reportGraphQLError(executionContext.getErrors().get(0));
         }
