@@ -48,7 +48,7 @@ public class GraphQLTransactionName {
 
     private static String createEndOfTransactionNameFrom(final SelectionSet selectionSet) {
         Selection selection = onlyNonFederatedSelectionOrNoneFrom(selectionSet);
-        if(selection == null) return null;
+        if(selection == null) return "";
         List<Selection> selections = new ArrayList<>();
         while(selection != null) {
             selections.add(selection);
