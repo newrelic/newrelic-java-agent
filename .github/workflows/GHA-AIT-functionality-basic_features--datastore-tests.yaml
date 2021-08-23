@@ -580,7 +580,7 @@ jobs:
       - name: Check new Java home path
         run: |
           echo "Current JAVA_HOME is ${JAVA_HOME}"
-          ls -la ${ORG_GRADLE_PROJECT_jdk8}
+          # ls -la ${ORG_GRADLE_PROJECT_jdk8}
 
 
       # Replication of steps from ait README
@@ -588,6 +588,7 @@ jobs:
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
+        if: ${{ failure() || success() }}
         run: |
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
