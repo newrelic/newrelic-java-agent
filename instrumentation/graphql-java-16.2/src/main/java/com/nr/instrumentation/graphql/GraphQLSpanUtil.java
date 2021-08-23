@@ -12,16 +12,16 @@ import graphql.schema.GraphQLObjectType;
 import java.util.List;
 
 import static com.nr.instrumentation.graphql.GraphQLObfuscateUtil.obfuscateQuery;
-import static com.nr.instrumentation.graphql.GraphQLTransactionName.getFirstOperationDefinitionFrom;
-import static com.nr.instrumentation.graphql.GraphQLTransactionName.getOperationTypeFrom;
 
 
 public class GraphQLSpanUtil {
 
     public static void setOperationAttributes(Document document, String query){
-        OperationDefinition definition = getFirstOperationDefinitionFrom(document);
+        OperationDefinition definition = GraphQLOperationDefinition.firstFrom(document);
+        // TODO: null handler from definition
         String operationName = definition.getName();
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", definition != null ? getOperationTypeFrom(definition) : "Unavailable");
+        String operationType = definition != null ? GraphQLOperationDefinition.getOperationTypeFrom(definition) : "Unavailable";
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", operationType);
         AgentBridge.privateApi.addTracerParameter("graphql.operation.name", operationName != null ? operationName  : "<anonymous>");
         AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscateQuery(query));
     }

@@ -34,31 +34,16 @@ public class GraphQLTransactionName {
     public static String from(final Document document) {
         // can this be an assertion that throws an exception?
         if(document == null) return DEFAULT_TRANSACTION_NAME;
-        OperationDefinition operationDefinition = getFirstOperationDefinitionFrom(document);
+        OperationDefinition operationDefinition = GraphQLOperationDefinition.firstFrom(document);
         if(operationDefinition == null) return DEFAULT_TRANSACTION_NAME;
         return createBeginningOfTransactionNameFrom(operationDefinition) +
                 createEndOfTransactionNameFrom(operationDefinition.getSelectionSet());
     }
 
-    // TODO: Remove and call GraphQLOperationDefinition directly
-    public static OperationDefinition getFirstOperationDefinitionFrom(final Document document) {
-        return GraphQLOperationDefinition.firstFrom(document);
-    }
-
     private static String createBeginningOfTransactionNameFrom(final OperationDefinition operationDefinition) {
-        String operationType = getOperationTypeFrom(operationDefinition);
-        String operationName = getOperationNameFrom(operationDefinition);
+        String operationType = GraphQLOperationDefinition.getOperationTypeFrom(operationDefinition);
+        String operationName = GraphQLOperationDefinition.getOperationNameFrom(operationDefinition);
         return String.format("/%s/%s", operationType, operationName);
-    }
-
-    // TODO: Remove and call GraphQLOperationDefinition directly
-    public static String getOperationNameFrom(final OperationDefinition operationDefinition) {
-        return GraphQLOperationDefinition.getOperationNameFrom(operationDefinition);
-    }
-
-    // TODO: Remove and call GraphQLOperationDefinition directly
-    public static String getOperationTypeFrom(final OperationDefinition operationDefinition) {
-        return GraphQLOperationDefinition.getOperationTypeFrom(operationDefinition);
     }
 
     private static String createEndOfTransactionNameFrom(final SelectionSet selectionSet) {
