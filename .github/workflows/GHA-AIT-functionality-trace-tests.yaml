@@ -410,7 +410,7 @@ jobs:
         if: ${{ failure() || success() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ait-testing-artifacts
+          name: ait-testing-artifacts-{{ github.workflow }}-{{ github.job }}
           path: |
             agent-integration-tests/testing-artifacts/*
 
