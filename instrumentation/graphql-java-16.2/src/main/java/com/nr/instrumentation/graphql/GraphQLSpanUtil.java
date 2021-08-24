@@ -11,18 +11,39 @@ import graphql.schema.GraphQLObjectType;
 import java.util.List;
 
 import static com.nr.instrumentation.graphql.GraphQLObfuscator.obfuscate;
+import static com.nr.instrumentation.graphql.GraphQLOperationDefinition.getOperationTypeFrom;
 
 
 public class GraphQLSpanUtil {
 
-    public static void setOperationAttributes(Document document, String query){
+    private final static String DEFAULT_OPERATION_TYPE = "Unavailable";
+    private final static String DEFAULT_OPERATION_NAME = "<anonymous>";
+
+    public static void setOperationAttributes(final Document document, final String query){
+        String nonNullQuery = getValueOrDefault(query, "");
+        if(document == null) {
+            setDefaultOperationAttributes(nonNullQuery);
+            return;
+        }
         OperationDefinition definition = GraphQLOperationDefinition.firstFrom(document);
-        // TODO: null handler from definition
-        String operationName = definition.getName();
-        String operationType = definition != null ? GraphQLOperationDefinition.getOperationTypeFrom(definition) : "Unavailable";
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", operationType);
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.name", operationName != null ? operationName  : "<anonymous>");
+        if(definition == null) {
+            setDefaultOperationAttributes(nonNullQuery);
+        }
+        else {
+            setOperationAttributes(getOperationTypeFrom(definition), definition.getName(), nonNullQuery);
+        }
+    }
+
+    private static void setOperationAttributes(String type, String name, String query) {
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", getValueOrDefault(type, DEFAULT_OPERATION_TYPE) );
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.name", getValueOrDefault(name, DEFAULT_OPERATION_NAME));
         AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscate(query));
+    }
+
+    private static void setDefaultOperationAttributes(String query) {;
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.type", DEFAULT_OPERATION_TYPE);
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.name", DEFAULT_OPERATION_NAME);
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", query);
     }
 
     public static void setResolverAttributes(ExecutionStrategyParameters parameters){
@@ -58,5 +79,9 @@ public class GraphQLSpanUtil {
             String segment = (String) list.get(list.size()-1);
             return segment.equals(segmentName);
         } else return false;
+    }
+
+    public static <T> T getValueOrDefault(T value, T defaultValue) {
+        return value == null ? defaultValue : value;
     }
 }

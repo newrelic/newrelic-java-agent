@@ -20,4 +20,8 @@ public class GraphQLTestHelper {
             throw new RuntimeException(e);
         }
     }
+
+    public static Document parseDocumentFromText(String text) {
+        return Parser.parse(text);
+    }
 }

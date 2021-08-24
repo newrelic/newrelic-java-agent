@@ -1,4 +1,4 @@
-package com.nr.instrumentation.graphql;
+package graphql;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;

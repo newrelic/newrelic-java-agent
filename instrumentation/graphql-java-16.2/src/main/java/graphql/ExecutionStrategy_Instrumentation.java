@@ -44,14 +44,17 @@ public class ExecutionStrategy_Instrumentation {
         Weaver.callOriginal();
     }
 
+    // TODO: Still pretty fuzzy on this method
     protected FieldValueInfo completeValue(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
         FieldValueInfo result = Weaver.callOriginal();
         if (result != null) {
             CompletableFuture<ExecutionResult> exceptionResult = result.getFieldValue();
             if(exceptionResult != null && exceptionResult.isCompletedExceptionally()) {
                 try {
+                    // Why get it and do nothing with it?
                     exceptionResult.get();
                 } catch (InterruptedException e) {
+                    // TODO: We shouldn't do this I'm pretty sure
                     e.printStackTrace();
                 } catch (ExecutionException e) {
                     NewRelic.noticeError(e.getCause());
