@@ -23,7 +23,7 @@ jobs:
         id: cache-check
         uses: actions/cache@v2
         env:
-          cache-name: cache-jdk-dir ## See if this works and includes all versions
+          cache-name: cache-jdk-dir-${{ github.workflow }} ## See if this works and includes all versions
         with:
           path: |
             ~/jdk_paths.txt
@@ -263,7 +263,7 @@ jobs:
         id: cache-check
         uses: actions/cache@v2
         env:
-          cache-name: cache-jdk-dir # See if this works and includes all versions
+          cache-name: cache-jdk-dir-${{ github.workflow }} # See if this works and includes all versions
         with:
           path: |
             ~/jdk_paths.txt
@@ -523,7 +523,7 @@ jobs:
         id: cache-check
         uses: actions/cache@v2
         env:
-          cache-name: cache-jdk-dir # See if this works and includes all versions
+          cache-name: cache-jdk-dir-${{ github.workflow }} # See if this works and includes all versions
         with:
           path: |
             ~/jdk_paths.txt
