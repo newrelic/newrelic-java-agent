@@ -336,7 +336,9 @@ jobs:
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel
+          # ./gradlew clean jar --parallel
+          # Per Todd Crone, attempting without --parallel option
+          ./gradlew clean jar
           ls -la newrelic-agent/build/
 
       - name: Check disk space
@@ -596,7 +598,9 @@ jobs:
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel
+          # ./gradlew clean jar --parallel
+          # Per Todd Crone, attempting without --parallel option
+          ./gradlew clean jar
           ls -la newrelic-agent/build/
 
       - name: CD to agent-integration-tests dir.
