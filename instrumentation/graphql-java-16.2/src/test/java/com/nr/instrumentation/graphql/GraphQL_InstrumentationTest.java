@@ -111,8 +111,8 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query, graphWithResolverException()));
         //then
-        String expectedErrorMessage = "Exception while fetching data (/hello) : null";
-        assertErrorOperation("QUERY/<anonymous>", "GraphQL/resolve/hello", "graphql.GraphqlErrorException", expectedErrorMessage, false);
+        assertExceptionOnSpan("QUERY/<anonymous>", "GraphQL/resolve/hello", "java.lang.RuntimeException", false);
+        assertExceptionOnSpan("QUERY/<anonymous>", "GraphQL/resolve/bye", "graphql.execution.NonNullableFieldWasNullException", false);
     }
 
     @Trace(dispatcher = true)
@@ -131,7 +131,7 @@ public class GraphQL_InstrumentationTest {
     private GraphQL graphWithResolverException() {
         String schema = "type Query{hello("+ TEST_ARG +": String): String" +
                 "\n" +
-                "bye: String}";
+                "bye: String!}";
 
         SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
@@ -139,9 +139,9 @@ public class GraphQL_InstrumentationTest {
         RuntimeWiring runtimeWiring = newRuntimeWiring()
                 .type(newTypeWiring("Query")
                         .dataFetcher("hello", environment -> {
-                            throw new RuntimeException();
+                            throw new RuntimeException("waggle");
                         })
-                        .dataFetcher("bye", environment -> "bye bye")
+                        .dataFetcher("bye", environment -> null)
                 )
                 .build();
 
@@ -203,7 +203,6 @@ public class GraphQL_InstrumentationTest {
         attributeValueOnSpan(introspector, spanName, "error.message", errorMessage);
         agentAttributeNotOnOtherSpans(introspector, spanName, "error.class");
         agentAttributeNotOnOtherSpans(introspector, spanName, "error.message");
-
     }
 
     private void operationAttributesOnCorrectSpan(Introspector introspector, String spanName ) {
@@ -234,5 +233,11 @@ public class GraphQL_InstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         txFinishedWithExpectedName(introspector, expectedTransactionSuffix, isParseError);
         errorAttributesOnCorrectSpan(introspector, spanName, errorClass, errorMessage);
+    }
+
+    private void assertExceptionOnSpan(String expectedTransactionSuffix, String spanName, String errorClass, boolean isParseError) {
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        txFinishedWithExpectedName(introspector, expectedTransactionSuffix, isParseError);
+        attributeValueOnSpan(introspector, spanName, "error.class", errorClass);
     }
 }
