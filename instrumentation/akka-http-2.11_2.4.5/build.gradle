@@ -1,7 +1,10 @@
 apply plugin: 'scala'
 
-sourceSets.test.scala.srcDir "src/test/java"
+sourceSets.test.scala.srcDirs = ['src/test/scala', 'src/test/java']
 sourceSets.test.java.srcDirs = []
+
+sourceSets.main.scala.srcDirs = ['src/main/scala', 'src/main/java']
+sourceSets.main.java.srcDirs = []
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-2.11_2.4.5' }

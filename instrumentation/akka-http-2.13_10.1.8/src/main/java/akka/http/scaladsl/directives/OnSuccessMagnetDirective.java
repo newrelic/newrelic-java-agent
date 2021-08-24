@@ -5,8 +5,9 @@
  *
  */
 
-package akka.http.scaladsl.server.directives;
+package akka.http.scaladsl.directives;
 
+import akka.http.scaladsl.server.directives.OnSuccessMagnet;
 import akka.http.scaladsl.server.util.Tupler;
 import com.agent.instrumentation.akka.http.Function0Wrapper;
 import com.newrelic.api.agent.weaver.MatchType;

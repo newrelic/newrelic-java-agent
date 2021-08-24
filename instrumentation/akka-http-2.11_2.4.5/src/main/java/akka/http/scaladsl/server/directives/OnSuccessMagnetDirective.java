@@ -22,5 +22,4 @@ public class OnSuccessMagnetDirective {
         f = new Function0Wrapper(f);
         return Weaver.callOriginal();
     }
-
 }

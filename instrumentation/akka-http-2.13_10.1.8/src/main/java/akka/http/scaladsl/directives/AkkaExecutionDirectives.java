@@ -5,7 +5,7 @@
  *
  */
 
-package akka.http.scaladsl.server.directives;
+package akka.http.scaladsl.directives;
 
 import akka.http.scaladsl.server.AkkaHttpContextFunction;
 import akka.http.scaladsl.server.ExceptionHandler;

@@ -1,60 +1,33 @@
-import com.nr.builder.publish.PublishConfig
+plugins { scala }
+scala.zincVersion.set("1.2.5")
 
-plugins {
-    `maven-publish`
-    `signing`
-    id("com.github.prokod.gradle-crossbuild-scala")
-}
-evaluationDependsOn(":newrelic-api")
+evaluationDependsOn(":newrelic-agent")
 
-crossBuild {
-    scalaVersionsCatalog = mapOf("2.12" to "2.12.13", "2.13" to "2.13.5")
-    builds {
-        register("scala") {
-            scalaVersions = setOf("2.12", "2.13")
-        }
+tasks.jar {
+    manifest {
+        attributes("Implementation-Title" to "com.newrelic.weaved-scala-reflection-test",
+        "Implementation-Title-Alias" to "weaved-scala-reflection-test")
     }
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
 dependencies {
-    zinc("org.scala-sbt:zinc_2.12:1.2.5")
     implementation("org.scala-lang:scala-library:2.13.5")
-    implementation("org.typelevel:cats-effect_2.13:2.5.1")
-    implementation(project(":newrelic-api"))
+    implementation("com.typesafe.akka:akka-http_2.13:10.1.8")
+    implementation("com.typesafe.akka:akka-stream_2.13:2.5.23")
+
+    testImplementation("org.scala-lang:scala-reflect:2.13.5")
     testImplementation(project(":instrumentation-test"))
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
 }
 
-val crossBuildScala_212Jar by tasks.getting
-val crossBuildScala_213Jar by tasks.getting
-
-val javadocJar by tasks.getting
-val sourcesJar by tasks.getting
-
-mapOf(
-    "2.12" to crossBuildScala_212Jar,
-    "2.13" to crossBuildScala_213Jar
-).forEach { (scalaVersion, versionedClassJar) ->
-    PublishConfig.config(
-        "crossBuildScala_${scalaVersion.replace(".", "")}",
-        project,
-        "New Relic Java agent Scala $scalaVersion Cats effect API",
-        "The public Scala $scalaVersion API of the Java agent for Cats effect."
-    ) {
-        artifact(sourcesJar)
-        artifact(javadocJar)
-        artifact(versionedClassJar)
-    }
-}
 
 tasks {
     //functional test setup here until scala 2.13 able to be used in functional test project
     test {
+        onlyIf {
+            !project.hasProperty("test7")
+        }
+
         dependsOn("jar")
         setForkEvery(1)
         maxParallelForks = Runtime.getRuntime().availableProcessors()
@@ -102,19 +75,6 @@ tasks {
             "-Dnewrelic.config.startup_log_level=warn"
         )
         jvmArgs(functionalTestArgs + "-Dnewrelic.config.extensions.dir=${projectDir}/src/test/resources/xml_files")
-    }
-    //no scaladoc jar task, instead this work around makes scaladoc destination folder javadoc to ensure included in jar
-    javadoc {
-        dependsOn("scaladoc")
-    }
-    scaladoc {
-        val javadocDir = (
-                destinationDir.absolutePath
-                    .split("/")
-                    .dropLast(1)
-                    .plus("javadoc")
-                ).joinToString("/")
-        destinationDir = File(javadocDir)
     }
 }
 
