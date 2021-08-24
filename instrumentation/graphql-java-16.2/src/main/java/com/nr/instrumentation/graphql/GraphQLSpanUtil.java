@@ -2,7 +2,6 @@ package com.nr.instrumentation.graphql;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
-import com.sun.corba.se.impl.orbutil.graph.Graph;
 import graphql.*;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.language.Document;
@@ -11,7 +10,7 @@ import graphql.schema.GraphQLObjectType;
 
 import java.util.List;
 
-import static com.nr.instrumentation.graphql.GraphQLObfuscateUtil.obfuscateQuery;
+import static com.nr.instrumentation.graphql.GraphQLObfuscator.obfuscate;
 
 
 public class GraphQLSpanUtil {
@@ -23,7 +22,7 @@ public class GraphQLSpanUtil {
         String operationType = definition != null ? GraphQLOperationDefinition.getOperationTypeFrom(definition) : "Unavailable";
         AgentBridge.privateApi.addTracerParameter("graphql.operation.type", operationType);
         AgentBridge.privateApi.addTracerParameter("graphql.operation.name", operationName != null ? operationName  : "<anonymous>");
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscateQuery(query));
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscate(query));
     }
 
     public static void setResolverAttributes(ExecutionStrategyParameters parameters){
@@ -33,6 +32,7 @@ public class GraphQLSpanUtil {
         AgentBridge.privateApi.addTracerParameter("graphql.field.name", parameters.getField().getName());
     }
 
+    // TODO: Not used, can we remove this method?
     public static void maybeErrorOnResolver(List<GraphQLError> errors, String segmentName){
         errors.stream().filter(graphQLError -> matchSegmentFromPath(graphQLError, segmentName))
                 .findFirst().ifPresent(GraphQLSpanUtil::reportGraphQLError);

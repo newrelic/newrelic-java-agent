@@ -1,4 +1,4 @@
-package com.nr.instrumentation.graphql;
+package com.nr.instrumentation.graphql.helper;
 
 import graphql.language.Document;
 import graphql.parser.Parser;
@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class GraphQLDocument {
-    public static Document from(String testDir, String filename) {
+public class GraphQLTestHelper {
+    public static Document parseDocument(String testDir, String filename) {
         return Parser.parse(readText(testDir, filename));
     }
 
-    private static String readText(String testDir, String filename) {
+    public static String readText(String testDir, String filename) {
         try {
             String projectPath = String.format("src/test/resources/%s/%s.gql", testDir, filename);
             return new String(Files.readAllBytes(Paths.get(projectPath)));
@@ -20,6 +20,4 @@ public class GraphQLDocument {
             throw new RuntimeException(e);
         }
     }
-
-
 }

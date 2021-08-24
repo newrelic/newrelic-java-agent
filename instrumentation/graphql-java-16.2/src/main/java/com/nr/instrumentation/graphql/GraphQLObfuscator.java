@@ -3,7 +3,7 @@ package com.nr.instrumentation.graphql;
 import graphql.com.google.common.base.Joiner;
 import java.util.regex.Pattern;
 
-public class GraphQLObfuscateUtil {
+public class GraphQLObfuscator {
     private static final String SINGLE_QUOTE = "'(?:[^']|'')*?(?:\\\\'.*|'(?!'))";
     private static final String DOUBLE_QUOTE = "\"(?:[^\"]|\"\")*?(?:\\\\\".*|\"(?!\"))";private static final String COMMENT = "(?:#|--).*?(?=\\r|\\n|$)";
     private static final String MULTILINE_COMMENT = "/\\*(?:[^/]|/[^*])*?(?:\\*/|/\\*.*)";
@@ -23,16 +23,16 @@ public class GraphQLObfuscateUtil {
         ALL_UNMATCHED_PATTERN = Pattern.compile("'|\"|/\\*|\\*/|\\$", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     }
 
-    public static String obfuscateQuery(String query){
+    public static String obfuscate(final String query){
         if (query == null || query.length() == 0) {
             return query;
         }
         String obfuscatedQuery = ALL_DIALECTS_PATTERN.matcher(query).replaceAll("***");
-        return checkForUnmatchedPairs(ALL_UNMATCHED_PATTERN, obfuscatedQuery);
+        return checkForUnmatchedPairs(obfuscatedQuery);
     }
 
-    private static String checkForUnmatchedPairs(Pattern pattern, String obfuscatedQuery) {
-        return pattern.matcher(obfuscatedQuery).find() ? "***" : obfuscatedQuery;
+    private static String checkForUnmatchedPairs(final String obfuscatedQuery) {
+        return GraphQLObfuscator.ALL_UNMATCHED_PATTERN.matcher(obfuscatedQuery).find() ? "***" : obfuscatedQuery;
     }
 }
 
