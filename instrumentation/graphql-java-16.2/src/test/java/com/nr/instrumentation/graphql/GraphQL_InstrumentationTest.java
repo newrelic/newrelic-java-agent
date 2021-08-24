@@ -112,7 +112,7 @@ public class GraphQL_InstrumentationTest {
         trace(createRunnable(query, graphWithResolverException()));
         //then
         String expectedErrorMessage = "Exception while fetching data (/hello) : null";
-        assertErrorOperation("QUERY/<anonymous>/hello", "GraphQL/resolve/hello", "graphql.GraphqlErrorException", expectedErrorMessage, false);
+        assertErrorOperation("QUERY/<anonymous>", "GraphQL/resolve/hello", "graphql.GraphqlErrorException", expectedErrorMessage, false);
     }
 
     @Trace(dispatcher = true)
@@ -141,9 +141,7 @@ public class GraphQL_InstrumentationTest {
                         .dataFetcher("hello", environment -> {
                             throw new RuntimeException();
                         })
-                        .dataFetcher("bye", environment -> {
-                            return "bye bye";
-                        })
+                        .dataFetcher("bye", environment -> "bye bye")
                 )
                 .build();
 
@@ -203,7 +201,6 @@ public class GraphQL_InstrumentationTest {
     private void errorAttributesOnCorrectSpan(Introspector introspector, String spanName, String errorClass, String errorMessage) {
         attributeValueOnSpan(introspector, spanName, "error.class", errorClass);
         attributeValueOnSpan(introspector, spanName, "error.message", errorMessage);
-        //fixme the two attributes should not be on other spans. Issue is in error capture logic of ExecutionStrategy_Instrumentation
         agentAttributeNotOnOtherSpans(introspector, spanName, "error.class");
         agentAttributeNotOnOtherSpans(introspector, spanName, "error.message");
 
@@ -235,8 +232,7 @@ public class GraphQL_InstrumentationTest {
 
     private void assertErrorOperation(String expectedTransactionSuffix, String spanName, String errorClass, String errorMessage, boolean isParseError) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        //fixme: uncomment and fix this assertion once txn names can account for two top level names
-        //txFinishedWithExpectedName(introspector, expectedTransactionSuffix, isParseError);
+        txFinishedWithExpectedName(introspector, expectedTransactionSuffix, isParseError);
         errorAttributesOnCorrectSpan(introspector, spanName, errorClass, errorMessage);
     }
 }

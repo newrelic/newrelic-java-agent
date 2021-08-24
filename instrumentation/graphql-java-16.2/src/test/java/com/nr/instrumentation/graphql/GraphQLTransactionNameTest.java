@@ -30,8 +30,6 @@ public class GraphQLTransactionNameTest {
     @ParameterizedTest
     @CsvFileSource(resources = "/transactionNameTestData/transaction-name-test-data.csv", delimiter = '|', numLinesToSkip = 2)
     public void testQuery(String testFileName, String expectedTransactionName) {
-        //fixme this test fails because of the twoTopLevelNames test case
-
         //setup
         testFileName = TEST_DATA_DIR + "/" + testFileName.trim();
         expectedTransactionName = expectedTransactionName.trim();
