@@ -124,6 +124,10 @@ public class Transaction {
     static final ClassMethodSignature REQUEST_INITIALIZED_CLASS_SIGNATURE = new ClassMethodSignature(
             "javax.servlet.ServletRequestListener", "requestInitialized", "(Ljavax/servlet/ServletRequestEvent;)V");
     static final int REQUEST_INITIALIZED_CLASS_SIGNATURE_ID = ClassMethodSignatures.get().add(REQUEST_INITIALIZED_CLASS_SIGNATURE);
+  static final ClassMethodSignature SCALA_API_TXN_CLASS_SIGNATURE = new ClassMethodSignature(
+    "newrelic.scala.api.TraceOps$", "txn", null);
+  public static final int SCALA_API_TXN_CLASS_SIGNATURE_ID =
+    ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
     private static final String THREAD_ASSERTION_FAILURE = "Thread assertion failed!";
 
     private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<>();
@@ -1975,6 +1979,11 @@ public class Transaction {
 
     private static final int REQUEST_TRACER_FLAGS = TracerFlags.GENERATE_SCOPED_METRIC
             | TracerFlags.TRANSACTION_TRACER_SEGMENT | TracerFlags.DISPATCHER;
+
+  public static final int SCALA_API_TRACER_FLAGS = TracerFlags.GENERATE_SCOPED_METRIC
+                                                    | TracerFlags.TRANSACTION_TRACER_SEGMENT
+                                                    | TracerFlags.DISPATCHER
+                                                    | TracerFlags.CUSTOM;
 
     // There exist broken servlet frameworks that spew multiple
     // requestInitialized and Destroyed

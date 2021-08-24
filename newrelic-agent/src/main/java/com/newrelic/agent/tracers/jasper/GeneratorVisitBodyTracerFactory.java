@@ -40,10 +40,10 @@ public class GeneratorVisitBodyTracerFactory extends AbstractTracerFactory {
             final Visitor visitor = factory.getVisitor(visitorObj);
             String nodeName = node.getQName();
 
-            if ("head".equals(nodeName.toLowerCase()) && checkParentNode(node, "html")) {
+            if ("head".equalsIgnoreCase(nodeName) && checkParentNode(node, "html")) {
                 Agent.LOG.fine("Compiling the browser timing header into a jsp");
                 visitor.writeScriptlet(AbstractRUMState.BROWSER_TIMING_HEADER_CODE_SNIPPET);
-            } else if ("body".equals(nodeName.toLowerCase()) && checkParentNode(node, "html")) {
+            } else if ("body".equalsIgnoreCase(nodeName) && checkParentNode(node, "html")) {
                 return new MethodExitTracerNoSkip(sig, transaction) {
 
                     @Override
