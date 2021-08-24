@@ -12,7 +12,7 @@ public class GraphQLOperationDefinition {
     private final static String DEFAULT_OPERATION_NAME = "";
 
     // At this point, not sure when we would have something different or more than one but to be safe
-    public static OperationDefinition firstFrom(Document document) {
+    public static OperationDefinition firstFrom(final Document document) {
         List<Definition> definitions = document.getDefinitions();
         if(definitions == null || definitions.isEmpty()) {
             return null;
