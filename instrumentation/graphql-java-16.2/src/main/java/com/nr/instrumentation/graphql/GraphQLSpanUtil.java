@@ -2,11 +2,14 @@ package com.nr.instrumentation.graphql;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
+import com.sun.corba.se.impl.orbutil.graph.Graph;
 import graphql.*;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
 import graphql.schema.GraphQLObjectType;
+
+import java.util.List;
 
 import static com.nr.instrumentation.graphql.GraphQLObfuscateUtil.obfuscateQuery;
 import static com.nr.instrumentation.graphql.GraphQLTransactionName.getFirstOperationDefinitionFrom;
@@ -30,6 +33,11 @@ public class GraphQLSpanUtil {
         AgentBridge.privateApi.addTracerParameter("graphql.field.name", parameters.getField().getName());
     }
 
+    public static void maybeErrorOnResolver(List<GraphQLError> errors, String segmentName){
+        errors.stream().filter(graphQLError -> matchSegmentFromPath(graphQLError, segmentName))
+                .findFirst().ifPresent(GraphQLSpanUtil::reportGraphQLError);
+    }
+
     public static void reportGraphQLException(GraphQLException exception){
         NewRelic.noticeError(exception);
     }
@@ -42,5 +50,13 @@ public class GraphQLSpanUtil {
         return GraphqlErrorException.newErrorException()
                 .message(error.getMessage())
                 .build();
+    }
+
+    private static boolean matchSegmentFromPath(GraphQLError error, String segmentName) {
+        List<Object> list = error.getPath();
+        if(list != null) {
+            String segment = (String) list.get(list.size()-1);
+            return segment.equals(segmentName);
+        } else return false;
     }
 }

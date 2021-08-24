@@ -5,6 +5,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.graphql.GraphQLSpanUtil;
 import com.nr.instrumentation.graphql.GraphQLTransactionName;
 import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionStrategyParameters;
@@ -34,10 +35,9 @@ public class ExecutionStrategy_Instrumentation {
         NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/resolve/" + parameters.getPath().getSegmentName());
         setResolverAttributes(parameters);
         CompletableFuture<FieldValueInfo> resolveResult = Weaver.callOriginal();
-        //fixme: A query will accumulate all the errors from multiple resolvers. So one error on a deep resolver will get picked up by this logic in all resolvers.
-        // a more targeted solution is needed.
+        //fixme: brute force, works, make better
         if(!executionContext.getErrors().isEmpty()){
-            reportGraphQLError(executionContext.getErrors().get(0));
+            maybeErrorOnResolver(executionContext.getErrors(), parameters.getPath().getSegmentName());
         }
         return resolveResult;
     }
