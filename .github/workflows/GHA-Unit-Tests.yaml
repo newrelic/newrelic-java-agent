@@ -1,5 +1,5 @@
 ## Matrix strategy test for unit testing
-name: GHA Unit Tests 2
+name: GHA-Unit-Tests
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
     branches: [ gha-testing, gha ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-    inputs:
+    # inputs:
 
 jobs:
   install-all-java:
@@ -28,12 +28,12 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
-          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          # Explore extensions to cache if no lock file
+          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ github.workflow }}-build-${{ env.cache-name }}-
+            ${{ github.workflow }}-build-
+            ${{ github.workflow }}-
 
       # Install 8
       - name: Set up Java 8
@@ -183,12 +183,12 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
-          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          # Explore extensions to cache if no lock file
+          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ github.workflow }}-build-${{ env.cache-name }}-
+            ${{ github.workflow }}-build-
+            ${{ github.workflow }}-
 
       # Check contents of cache path
       - name: check cache dir
@@ -247,28 +247,6 @@ jobs:
           echo "Current $JAVA_HOME = " ${JAVA_HOME}
           whereis java #determine dir to cache
 
-      ## Custom Cache Test
-      # - name: Touch a file and save to a cache directory
-      #   run: |
-      #     mkdir test-cache-dir
-      #     touch test-cache-dir/ORG_GRADLE_PROJECT_jdk${{ matrix.java-version }}.txt
-      #     ls -la
-      #     cd test-cache-dir
-      #     ls -la
-      #     cd ../
-
-      # - name: Cache test directory
-      #   uses: actions/cache@v2
-      #   env:
-      #     cache-name: cache-test-dir
-      #   with:
-      #     path: test-cache-dir
-      #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.txt') }} ## Explore extensions to cache if no lock file
-      #     restore-keys: |
-      #       ${{ runner.os }}-build-${{ env.cache-name }}-
-      #       ${{ runner.os }}-build-
-      #       ${{ runner.os }}-
-
       # Restore the gradle cache
       - name: Restore the gradle caches
         uses: actions/cache@v2
@@ -323,7 +301,7 @@ jobs:
       # Run the build.
       - name: Run the tests with alternate Java version syntax - testing with -Dorg.gradle.java.home
         run: |
-          ##./gradlew -Dorg.gradle.java.home=${ORG_GRADLE_PROJECT_jdk9} --console=plain --parallel functional_test:test -PnoInstrumentation --continue --info
+          # ./gradlew -Dorg.gradle.java.home=${ORG_GRADLE_PROJECT_jdk9} --console=plain --parallel functional_test:test -PnoInstrumentation --continue --info
 
 
       # Capture HTML build result in artifacts
