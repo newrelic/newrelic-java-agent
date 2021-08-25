@@ -72,4 +72,9 @@ public class NoOpInstrumentation implements Instrumentation {
     public ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
         return null;
     }
+
+  @Override
+  public ExitTracer createScalaTxnTracer() {
+    return null;
+  }
 }

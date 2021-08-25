@@ -1,0 +1,30 @@
+apply plugin: 'scala'
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation("org.scala-lang:scala-library:2.12.14")
+    implementation("com.softwaremill.sttp.client:core_2.12:2.2.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.sttp-2.12_2.2.3', 'Implementation-Title-Alias': 'sttp_instrumentation' }
+}
+
+verifyInstrumentation {
+    passes 'com.softwaremill.sttp.client:core_2.12:[2.2.3,)'
+    excludeRegex ".*(RC|M)[0-9]*"
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Scala'
+    type 'Other'
+}
