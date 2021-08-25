@@ -12,9 +12,18 @@ plugins {
     id("signing")
 }
 
+// repositories {
+//     mavenCentral()
+//     jcenter()
+// }
+
+//GHA
 repositories {
     mavenCentral()
     jcenter()
+    maven {
+        url 'https://repo.maven.apache.org/maven2/'
+    }
 }
 
 configurations {
