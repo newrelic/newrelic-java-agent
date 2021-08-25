@@ -29,8 +29,7 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
-          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
           restore-keys: |
             ${{ github.workflow }}-build-${{ env.cache-name }}-
             ${{ github.workflow }}-build-
@@ -266,8 +265,7 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
-          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          key: ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
           restore-keys: |
             ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-
             ${{ github.workflow }}-build-${{ env.cache-name }}-
