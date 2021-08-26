@@ -8,10 +8,10 @@ on:
     branches: [ gha ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ gha-testing, gha ]
+    branches: [ gha-testing, gha, main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-    inputs:
+    # inputs:
 
 jobs:
   install-all-java:
@@ -30,8 +30,7 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
-          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
           restore-keys: |
             ${{ github.workflow }}-build-${{ env.cache-name }}-
             ${{ github.workflow }}-build-
@@ -188,7 +187,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-agent-integration-tests
-          ref: gha-post-pr
+          ref: ghe-main
           token: ${{ secrets.AITPAT }}
           path: agent-integration-tests
 
@@ -261,8 +260,7 @@ jobs:
             ~/jdk_paths.txt
             jdk_paths.txt
             /opt/hostedtoolcache/Java_Adopt_jdk/
-          key: ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }} ## Explore extensions to cache if no lock file
-          # key: ${{ runner.os }}-build-${{ env.cache-name }}
+          key: ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
           restore-keys: |
             ${{ github.workflow }}-build-${{ matrix.func_tests }}-${{ env.cache-name }}-
             ${{ github.workflow }}-build-${{ env.cache-name }}-
@@ -410,7 +408,7 @@ jobs:
         if: ${{ failure() || success() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ait-testing-artifacts
+          name: ${{ github.workflow }}-${{ github.job }}-${{ matrix.func_tests}}
           path: |
             agent-integration-tests/testing-artifacts/*
 
