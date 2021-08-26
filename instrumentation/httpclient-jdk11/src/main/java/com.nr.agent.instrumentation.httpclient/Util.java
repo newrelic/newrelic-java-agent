@@ -1,10 +1,7 @@
 package com.nr.agent.instrumentation.httpclient;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.GenericParameters;
-import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Segment;
+import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.weaver.Weaver;
 
 import java.net.ConnectException;
@@ -25,6 +22,17 @@ public class Util {
         NewRelic.getAgent().getTracedMethod().addOutboundRequestHeaders(new OutboundWrapper(thisBuilder));
     }
 
+    public static Segment startSegment(URI uri) {
+        if (uri != null) {
+            String scheme = uri.getScheme().toLowerCase();
+            Transaction txn = NewRelic.getAgent().getTransaction();
+            if (("http".equals(scheme) || "https".equals(scheme)) && txn != null) {
+                return txn.startSegment("JavaHttpClient");
+            }
+        }
+        return null;
+    }
+
     public static <T> BiConsumer<? super HttpResponse<T>, ? super Throwable> reportAsExternal(URI uri, Segment segment) {
         return (BiConsumer<HttpResponse<T>, Throwable>) (httpResponse, throwable) -> {
             try {
@@ -36,14 +44,14 @@ public class Util {
                                 .procedure(PROCEDURE)
                                 .inboundHeaders(new InboundWrapper(httpResponse))
                                 .build());
-                    } else {
-                        if (throwableIsConnectException(throwable)) {
+                    } else if (throwableIsConnectException(throwable)) {
                             segment.reportAsExternal(GenericParameters
                                     .library(LIBRARY)
                                     .uri(UNKNOWN_HOST)
                                     .procedure("failed")
                                     .build());
-                        }
+                    } else if (throwable != null) {
+                        NewRelic.noticeError(throwable);
                     }
                 }
                 if (segment != null) {
@@ -55,6 +63,33 @@ public class Util {
                 AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());
             }
         };
+    }
+
+    public static <T> void processResponse(HttpResponse<T> response, Segment segment){
+        if (response.uri() != null) {
+            segment.reportAsExternal(HttpParameters
+                    .library(LIBRARY)
+                    .uri(response.uri())
+                    .procedure(PROCEDURE)
+                    .inboundHeaders(new InboundWrapper(response))
+                    .build());
+            segment.end();
+        }
+    }
+
+    public static void handleConnectException(Exception e, HttpRequest request, Segment segment){
+        if (request.uri() != null) {
+            if (throwableIsConnectException(e)) {
+                segment.reportAsExternal(GenericParameters
+                        .library(LIBRARY)
+                        .uri(UNKNOWN_HOST)
+                        .procedure("failed")
+                        .build());
+                segment.end();
+            } else {
+                NewRelic.noticeError(e);
+            }
+        }
     }
 
     private static boolean throwableIsConnectException(Throwable throwable) {
