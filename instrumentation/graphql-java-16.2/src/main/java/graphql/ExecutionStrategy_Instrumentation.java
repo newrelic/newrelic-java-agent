@@ -25,7 +25,7 @@ public class ExecutionStrategy_Instrumentation {
         Document document = executionContext.getDocument();
         String query = executionContext.getExecutionInput().getQuery();
         String transactionName = GraphQLTransactionName.from(document);
-        NewRelic.setTransactionName("GraphQL", transactionName);
+        //tx name is already set in ParseAndValidate.parse()
         NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation" + transactionName);
         setOperationAttributes(document, query);
         return Weaver.callOriginal();

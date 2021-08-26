@@ -20,9 +20,14 @@ public class ParseAndValidate_Instrumentation {
     @Trace
     public static ParseAndValidateResult parse(ExecutionInput executionInput) {
         ParseAndValidateResult result = Weaver.callOriginal();
-        if(result != null && result.isFailure()) {
-            reportGraphQLException(result.getSyntaxException());
-            NewRelic.setTransactionName("post", "*");
+        if(result != null) {
+            if (result.isFailure()) {
+                reportGraphQLException(result.getSyntaxException());
+                NewRelic.setTransactionName("post", "*");
+            } else {
+                String transactionName = GraphQLTransactionName.from(result.getDocument());
+                NewRelic.setTransactionName("GraphQL", transactionName);
+            }
         }
         return result;
     }
@@ -32,8 +37,6 @@ public class ParseAndValidate_Instrumentation {
         List<ValidationError> errors = Weaver.callOriginal();
         if (errors != null && !errors.isEmpty()) {
             reportGraphQLError(errors.get(0));
-            String transactionName = GraphQLTransactionName.from(parsedDocument);
-            NewRelic.setTransactionName("GraphQL", transactionName);
         }
         return errors;
     }
