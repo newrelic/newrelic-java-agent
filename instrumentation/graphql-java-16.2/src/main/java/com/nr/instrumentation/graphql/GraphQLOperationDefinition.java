@@ -11,16 +11,10 @@ public class GraphQLOperationDefinition {
     private final static String DEFAULT_OPERATION_DEFINITION_NAME = "<anonymous>";
     private final static String DEFAULT_OPERATION_NAME = "";
 
-    // At this point, not sure when we would have something different or more than one but to be safe
+    // TODO: What to do with multiple operations
     public static OperationDefinition firstFrom(final Document document) {
-        List<Definition> definitions = document.getDefinitions();
-        if(definitions == null || definitions.isEmpty()) {
-            return null;
-        }
-        Optional<Definition> definitionOptional = definitions.stream()
-                .filter(d -> d instanceof OperationDefinition)
-                .findFirst();
-        return (OperationDefinition) definitionOptional.orElse(null);
+        List<OperationDefinition> operationDefinitions = document.getDefinitionsOfType(OperationDefinition.class);
+        return operationDefinitions.isEmpty() ? null : operationDefinitions.get(0);
     }
 
     public static String getOperationNameFrom(final OperationDefinition operationDefinition) {
