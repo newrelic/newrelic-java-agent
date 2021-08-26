@@ -31,7 +31,7 @@ public class GraphQLTransactionName {
      * @param document  parsed GraphQL Document
      * @return  a transaction name based on given document
      */
-    public static String from(final Document document) {
+    public static String forFirstOperationDefinitionOnly(final Document document) {
         // can this be an assertion that throws an exception?
         if(document == null) return DEFAULT_TRANSACTION_NAME;
         OperationDefinition operationDefinition = GraphQLOperationDefinition.firstFrom(document);

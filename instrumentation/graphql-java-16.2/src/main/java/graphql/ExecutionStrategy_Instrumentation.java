@@ -24,7 +24,7 @@ public class ExecutionStrategy_Instrumentation {
     public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
         Document document = executionContext.getDocument();
         String query = executionContext.getExecutionInput().getQuery();
-        String transactionName = GraphQLTransactionName.from(document);
+        String transactionName = GraphQLTransactionName.forFirstOperationDefinitionOnly(document);
         NewRelic.setTransactionName("GraphQL", transactionName);
         NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation" + transactionName);
         setOperationAttributes(document, query);
