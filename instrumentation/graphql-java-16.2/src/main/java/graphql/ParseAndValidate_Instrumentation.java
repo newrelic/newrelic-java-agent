@@ -32,7 +32,7 @@ public class ParseAndValidate_Instrumentation {
         List<ValidationError> errors = Weaver.callOriginal();
         if (errors != null && !errors.isEmpty()) {
             reportGraphQLError(errors.get(0));
-            String transactionName = GraphQLTransactionName.forFirstOperationDefinitionOnly(parsedDocument);
+            String transactionName = GraphQLTransactionName.from(parsedDocument);
             NewRelic.setTransactionName("GraphQL", transactionName);
         }
         return errors;

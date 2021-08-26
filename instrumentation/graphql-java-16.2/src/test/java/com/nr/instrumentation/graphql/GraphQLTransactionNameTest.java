@@ -20,7 +20,7 @@ public class GraphQLTransactionNameTest {
         //given
         Document document = parseDocument(TEST_DATA_DIR, testFileName);
         //when
-        String transactionName = GraphQLTransactionName.forFirstOperationDefinitionOnly(document);
+        String transactionName = GraphQLTransactionName.from(document);
         //then
         assertEquals(expectedTransactionName, transactionName);
     }

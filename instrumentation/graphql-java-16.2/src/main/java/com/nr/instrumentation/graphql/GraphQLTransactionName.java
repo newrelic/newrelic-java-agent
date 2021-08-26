@@ -3,6 +3,7 @@ package com.nr.instrumentation.graphql;
 import graphql.language.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,14 +32,24 @@ public class GraphQLTransactionName {
      * @param document  parsed GraphQL Document
      * @return  a transaction name based on given document
      */
-    public static String forFirstOperationDefinitionOnly(final Document document) {
-        // can this be an assertion that throws an exception?
+    public static String from(final Document document) {
         if(document == null) return DEFAULT_TRANSACTION_NAME;
-        OperationDefinition operationDefinition = GraphQLOperationDefinition.firstFrom(document);
+        List<OperationDefinition> operationDefinitions = document.getDefinitionsOfType(OperationDefinition.class);
+        if(isNullOrEmpty(operationDefinitions)) return DEFAULT_TRANSACTION_NAME;
+        if(operationDefinitions.size() == 1) {
+            return getTransactionNameFor(operationDefinitions.get(0));
+        }
+        return "/batch" + operationDefinitions.stream()
+                .map(GraphQLTransactionName::getTransactionNameFor)
+                .collect(Collectors.joining());
+    }
+
+    public static String getTransactionNameFor(OperationDefinition operationDefinition) {
         if(operationDefinition == null) return DEFAULT_TRANSACTION_NAME;
         return createBeginningOfTransactionNameFrom(operationDefinition) +
                 createEndOfTransactionNameFrom(operationDefinition.getSelectionSet());
     }
+
 
     private static String createBeginningOfTransactionNameFrom(final OperationDefinition operationDefinition) {
         String operationType = GraphQLOperationDefinition.getOperationTypeFrom(operationDefinition);
@@ -128,5 +139,9 @@ public class GraphQLTransactionName {
 
     private static boolean notFederatedFieldName(final String fieldName) {
         return !(TYPENAME.equals(fieldName) || ID.equals(fieldName));
+    }
+
+    private static boolean isNullOrEmpty( final Collection< ? > c ) {
+        return c == null || c.isEmpty();
     }
 }
