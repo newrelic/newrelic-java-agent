@@ -21,17 +21,6 @@ import static com.nr.instrumentation.graphql.GraphQLSpanUtil.*;
 public class ExecutionStrategy_Instrumentation {
 
     @Trace
-    public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
-        Document document = executionContext.getDocument();
-        String query = executionContext.getExecutionInput().getQuery();
-        String transactionName = GraphQLTransactionName.from(document);
-        //tx name is already set in ParseAndValidate.parse()
-        NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation" + transactionName);
-        setOperationAttributes(document, query);
-        return Weaver.callOriginal();
-    }
-
-    @Trace
     protected CompletableFuture<FieldValueInfo> resolveFieldWithInfo(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
 
         NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/resolve/" + parameters.getPath().getSegmentName());
@@ -39,12 +28,13 @@ public class ExecutionStrategy_Instrumentation {
         return Weaver.callOriginal();
     }
 
+    //todo: explain why this method is instrumented but not traced.
     protected void handleFetchingException(ExecutionContext executionContext, DataFetchingEnvironment environment, Throwable e) {
         NewRelic.noticeError(e);
         Weaver.callOriginal();
     }
 
-    // TODO: Still pretty fuzzy on this method
+    // TODO: explain why this method is instrumented but not traced.
     protected FieldValueInfo completeValue(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
         FieldValueInfo result = Weaver.callOriginal();
         if (result != null) {

@@ -12,27 +12,34 @@ import graphql.validation.ValidationError;
 
 import java.util.List;
 
-import static com.nr.instrumentation.graphql.GraphQLSpanUtil.reportGraphQLException;
-import static com.nr.instrumentation.graphql.GraphQLSpanUtil.reportGraphQLError;
+import static com.nr.instrumentation.graphql.GraphQLSpanUtil.*;
 
 @Weave(originalName = "graphql.ParseAndValidate", type = MatchType.ExactClass)
 public class ParseAndValidate_Instrumentation {
+
     @Trace
+    public static ParseAndValidateResult parseAndValidate(GraphQLSchema graphQLSchema, ExecutionInput executionInput) {
+        ParseAndValidateResult result = Weaver.callOriginal();
+        return result;
+    }
+
     public static ParseAndValidateResult parse(ExecutionInput executionInput) {
         ParseAndValidateResult result = Weaver.callOriginal();
         if(result != null) {
+            String transactionName = GraphQLTransactionName.from(result.getDocument());
+            NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation" + transactionName);
+            setOperationAttributes(result.getDocument(), executionInput.getQuery());
+
             if (result.isFailure()) {
                 reportGraphQLException(result.getSyntaxException());
                 NewRelic.setTransactionName("post", "*");
             } else {
-                String transactionName = GraphQLTransactionName.from(result.getDocument());
                 NewRelic.setTransactionName("GraphQL", transactionName);
             }
         }
         return result;
     }
 
-    @Trace
     public static List<ValidationError> validate(GraphQLSchema graphQLSchema, Document parsedDocument) {
         List<ValidationError> errors = Weaver.callOriginal();
         if (errors != null && !errors.isEmpty()) {
