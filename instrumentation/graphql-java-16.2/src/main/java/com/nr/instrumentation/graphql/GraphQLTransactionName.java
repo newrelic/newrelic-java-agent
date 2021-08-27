@@ -44,12 +44,11 @@ public class GraphQLTransactionName {
                 .collect(Collectors.joining());
     }
 
-    public static String getTransactionNameFor(OperationDefinition operationDefinition) {
+    private static String getTransactionNameFor(OperationDefinition operationDefinition) {
         if(operationDefinition == null) return DEFAULT_TRANSACTION_NAME;
         return createBeginningOfTransactionNameFrom(operationDefinition) +
                 createEndOfTransactionNameFrom(operationDefinition.getSelectionSet());
     }
-
 
     private static String createBeginningOfTransactionNameFrom(final OperationDefinition operationDefinition) {
         String operationType = GraphQLOperationDefinition.getOperationTypeFrom(operationDefinition);
@@ -102,7 +101,7 @@ public class GraphQLTransactionName {
         List<Selection> selection = selections.stream()
                 .filter(namedNode -> notFederatedFieldName(getNameFrom(namedNode)))
                 .collect(Collectors.toList());
-        // there can be only one
+        // there can be only one, or we stop digging into query
         return selection.size() == 1 ? selection.get(0) : null;
     }
 
