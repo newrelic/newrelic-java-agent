@@ -4,11 +4,14 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import graphql.*;
 import graphql.execution.ExecutionStrategyParameters;
+import graphql.execution.FieldValueInfo;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
 import graphql.schema.GraphQLObjectType;
 
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 
 import static com.nr.instrumentation.graphql.GraphQLObfuscator.obfuscate;
 import static com.nr.instrumentation.graphql.GraphQLOperationDefinition.getOperationTypeFrom;
@@ -53,10 +56,29 @@ public class GraphQLSpanUtil {
         AgentBridge.privateApi.addTracerParameter("graphql.field.name", parameters.getField().getName());
     }
 
-    // TODO: Not used, can we remove this method?
-    public static void maybeErrorOnResolver(List<GraphQLError> errors, String segmentName){
-        errors.stream().filter(graphQLError -> matchSegmentFromPath(graphQLError, segmentName))
-                .findFirst().ifPresent(GraphQLSpanUtil::reportGraphQLError);
+    public static void reportResolverThrowableToNR(Throwable e){
+        NewRelic.noticeError(e);
+    }
+
+    public static void reportNonNullableExceptionToNR(FieldValueInfo result) {
+        CompletableFuture<ExecutionResult> exceptionResult = result.getFieldValue();
+        if (ifResultHasException(exceptionResult)) {
+          reportExceptionFromCompletedExceptionally(exceptionResult);
+        }
+    }
+
+    private static boolean ifResultHasException(CompletableFuture<ExecutionResult> exceptionResult){
+        return exceptionResult != null && exceptionResult.isCompletedExceptionally();
+    }
+
+    private static void reportExceptionFromCompletedExceptionally(CompletableFuture<ExecutionResult> exceptionResult){
+        try {
+            exceptionResult.get();
+        } catch (InterruptedException e) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Could not report GraphQL exception.");
+        } catch (ExecutionException e) {
+            NewRelic.noticeError(e.getCause());
+        }
     }
 
     public static void reportGraphQLException(GraphQLException exception){
@@ -71,14 +93,6 @@ public class GraphQLSpanUtil {
         return GraphqlErrorException.newErrorException()
                 .message(error.getMessage())
                 .build();
-    }
-
-    private static boolean matchSegmentFromPath(GraphQLError error, String segmentName) {
-        List<Object> list = error.getPath();
-        if(list != null) {
-            String segment = (String) list.get(list.size()-1);
-            return segment.equals(segmentName);
-        } else return false;
     }
 
     public static <T> T getValueOrDefault(T value, T defaultValue) {
