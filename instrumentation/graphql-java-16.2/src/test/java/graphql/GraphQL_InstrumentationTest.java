@@ -86,7 +86,8 @@ public class GraphQL_InstrumentationTest {
         trace(createRunnable(query));
         //then
         String expectedErrorMessage = "Invalid Syntax : offending token 'cause' at line 1 column 1";
-        assertErrorOperation("post/*", "ParseAndValidate/parse", "graphql.parser.InvalidSyntaxException", expectedErrorMessage, true);
+        assertErrorOperation("post/*", "GraphQL/operation",
+                "graphql.parser.InvalidSyntaxException", expectedErrorMessage, true);
     }
 
     @Test
@@ -98,7 +99,7 @@ public class GraphQL_InstrumentationTest {
         //then
         String expectedErrorMessage = "Validation error of type FieldUndefined: Field 'noSuchField' in type 'Query' is undefined @ 'noSuchField'";
         assertErrorOperation("QUERY/<anonymous>/noSuchField",
-                "ParseAndValidate/validate", "graphql.GraphqlErrorException",  expectedErrorMessage, false);
+                "GraphQL/operation/QUERY/<anonymous>/noSuchField", "graphql.GraphqlErrorException",  expectedErrorMessage, false);
     }
 
     @Test
