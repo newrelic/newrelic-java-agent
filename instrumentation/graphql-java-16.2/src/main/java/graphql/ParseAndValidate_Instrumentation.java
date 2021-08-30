@@ -17,12 +17,6 @@ import static com.nr.instrumentation.graphql.GraphQLSpanUtil.*;
 @Weave(originalName = "graphql.ParseAndValidate", type = MatchType.ExactClass)
 public class ParseAndValidate_Instrumentation {
 
-    @Trace
-    public static ParseAndValidateResult parseAndValidate(GraphQLSchema graphQLSchema, ExecutionInput executionInput) {
-        ParseAndValidateResult result = Weaver.callOriginal();
-        return result;
-    }
-
     public static ParseAndValidateResult parse(ExecutionInput executionInput) {
         ParseAndValidateResult result = Weaver.callOriginal();
         if(result != null) {
