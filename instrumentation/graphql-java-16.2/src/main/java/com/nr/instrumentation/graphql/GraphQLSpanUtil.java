@@ -43,10 +43,10 @@ public class GraphQLSpanUtil {
         AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscate(query));
     }
 
-    private static void setDefaultOperationAttributes(String query) {;
+    private static void setDefaultOperationAttributes(String query) {
         AgentBridge.privateApi.addTracerParameter("graphql.operation.type", DEFAULT_OPERATION_TYPE);
         AgentBridge.privateApi.addTracerParameter("graphql.operation.name", DEFAULT_OPERATION_NAME);
-        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", query);
+        AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscate(query));
     }
 
     public static void setResolverAttributes(ExecutionStrategyParameters parameters){
