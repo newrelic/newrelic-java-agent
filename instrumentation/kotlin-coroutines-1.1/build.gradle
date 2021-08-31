@@ -1,0 +1,29 @@
+dependencies {
+     implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-agent"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.0'
+}
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'com.newrelic.instrumentation.Kotlin-Coroutines_1.1'
+  }
+}
+
+verifyInstrumentation {
+	passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.1.0,1.2.0)'
+	excludeRegex '.*SNAPSHOT'
+	excludeRegex '.*alpha.*'
+	excludeRegex '.*eap.*'
+	excludeRegex '.*-mpp-dev-.*'
+	excludeRegex '.*-js-ir-.*'
+	excludeRegex '.*-rc-.*'
+}
+
+site {
+    title 'Kotlin-Coroutines'
+    type 'Appserver'
+}
