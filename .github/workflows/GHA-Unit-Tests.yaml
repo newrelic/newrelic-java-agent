@@ -25,7 +25,7 @@ jobs:
       # JDK cache
       - name: Cache jdk dir
         id: cache-jdk-dir
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.6.1.6
         env:
           cache-name: cache-jdk-dir ## See if this works and includes all versions
         with:
@@ -184,7 +184,7 @@ jobs:
       # JDK cache
       - name: Cache jdk dir
         id: cache-jdk-dir
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.6
         env:
           cache-name: cache-jdk-dir ## See if this works and includes all versions
         with:
@@ -258,7 +258,7 @@ jobs:
 
       # Restore the gradle cache
       - name: Restore the gradle caches
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.6
         with:
           path: |
             ~/.gradle/caches
@@ -334,7 +334,7 @@ jobs:
           printenv
 
       - name: Cache test directory
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.6
         env:
           cache-name: cache-test-dir
         with:
@@ -354,7 +354,7 @@ jobs:
 
       # Restore the gradle cache
       - name: Restore the gradle caches
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.6
         with:
           path: |
             ~/.gradle/caches
