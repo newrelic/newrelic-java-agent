@@ -26,7 +26,7 @@ public class ParseAndValidate_Instrumentation {
 
             if (result.isFailure()) {
                 reportGraphQLException(result.getSyntaxException());
-                NewRelic.setTransactionName("post", "*");
+                NewRelic.setTransactionName("GraphQL", "*");
             } else {
                 NewRelic.setTransactionName("GraphQL", transactionName);
             }

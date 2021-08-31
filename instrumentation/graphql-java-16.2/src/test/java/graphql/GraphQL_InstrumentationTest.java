@@ -86,7 +86,7 @@ public class GraphQL_InstrumentationTest {
         trace(createRunnable(query));
         //then
         String expectedErrorMessage = "Invalid Syntax : offending token 'cause' at line 1 column 1";
-        assertErrorOperation("post/*", "GraphQL/operation",
+        assertErrorOperation("*", "GraphQL/operation",
                 "graphql.parser.InvalidSyntaxException", expectedErrorMessage, true);
     }
 
@@ -155,13 +155,8 @@ public class GraphQL_InstrumentationTest {
     private void txFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isParseError){
         assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
         String txName = introspector.getTransactionNames().iterator().next();
-        if(!isParseError) {
             assertEquals("Transaction name is incorrect",
                 "OtherTransaction/GraphQL/" + expectedTransactionSuffix, txName);
-        } else {
-            assertEquals("Transaction name is incorrect",
-                    "OtherTransaction/" + expectedTransactionSuffix, txName);
-        }
     }
 
     private void attributeValueOnSpan(Introspector introspector, String spanName, String attribute, String value) {
