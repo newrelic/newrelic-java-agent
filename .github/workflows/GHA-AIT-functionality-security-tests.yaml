@@ -97,7 +97,7 @@ jobs:
 
       # Install 15
       - name: Set up Java 15
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'a
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
@@ -113,7 +113,7 @@ jobs:
 
       # Check contents of cache path
       - name: check cache dir
-        # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
+        # if: steps.cache-jdk-dir.outputs.cache-hit == 'true' 
         run: |
           pwd
           echo "contents of cache dir: "
