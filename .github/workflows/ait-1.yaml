@@ -1,0 +1,257 @@
+## Matrix strategy test for instrumentaion testing
+## Still need to configure AIT dependencies
+name: GHA Migration - AIT 1
+
+on:
+  # pull_request:
+  #   branches: [ main ]
+  push:
+    branches: [ gha-testing ]
+
+jobs:
+  AIT:
+    runs-on: ubuntu-latest
+    # strategy:
+    #   ##max-parallel: 1 ## used to force sequential
+    #   fail-fast: false
+    #   matrix:
+    #     java-version: [8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout AIT repo test
+        uses: actions/checkout@v2
+        with:
+          repository: kentonshade/java-agent-integration-tests
+          ref: testing
+          token: ${{ secrets.AITPAT }}
+          path: ait 
+
+      # Check for GH CLI
+      - name: GitHub CLI installed?
+        run: |
+          gh --version 
+
+      # Validate repo
+      - name: Validate AIT repo
+        run: |
+          ls -la 
+          cd ait
+          git status -sb 
+          ls -la 
+          cd ../
+
+      - name: Checkout Cache 1
+        uses: actions/checkout@v2
+        with:
+          repository: kentonshade/java-ait-cache-1
+          ref: main
+          token: ${{ secrets.AITPAT }}
+          path: appcache1 
+
+      # Validate repo
+      - name: Validate cache 1
+        run: |
+          ls -la 
+          cd appcache1 
+          git status -sb
+          git remote -v
+          ls -la 
+          cd ../ 
+
+      - name: Checkout Cache 2
+        uses: actions/checkout@v2
+        with:
+          repository: kentonshade/java-ait-cache-2
+          ref: main
+          token: ${{ secrets.AITPAT }}
+          path: appcache2
+
+      # Validate repo
+      - name: Validate cache 2
+        run: |
+          ls -la 
+          cd appcache2 
+          git status -sb
+          git remote -v
+          ls -la 
+          cd ../ 
+
+      - name: Checkout Cache 3
+        uses: actions/checkout@v2
+        with:
+          repository: kentonshade/java-ait-cache-3
+          ref: main
+          token: ${{ secrets.AITPAT }}
+          path: appcache3 
+
+      # Validate repo
+      - name: Validate cache 3
+        run: |
+          ls -la 
+          cd appcache3 
+          git status -sb
+          git remote -v
+          ls -la 
+          cd ../ 
+
+      - name: Checkout Cache 4
+        uses: actions/checkout@v2
+        with:
+          repository: kentonshade/java-ait-cache-4
+          ref: main
+          token: ${{ secrets.AITPAT }}
+          path: appcache4 
+
+      # Validate repo
+      - name: Validate cache 4
+        run: |
+          ls -la 
+          cd appcache4 
+          git status -sb
+          git remote -v
+          ls -la 
+          cd ../ 
+
+      # Consolidate caches into one directory
+      - name: Consolidate caches
+        run: |
+          ls -la 
+          mkdir apps
+          mv appcache1/* apps/
+          mv appcache2/* apps/
+          mv appcache3/* apps/
+          mv appcache4/* apps/
+          cd apps
+          ls -la 
+          cd ../ 
+
+    #   # add jdk8 to environmental variables
+    #   - name: save JAVA_HOME as JDK8 for later usage
+    #     run: echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
+
+    #   # Concurrent install of all Java versions
+    #   - name: Set up Java ${{ matrix.java-version }}
+    #     uses: actions/setup-java@v1.4.3
+    #     with:
+    #       java-version: ${{ matrix.java-version }}
+
+    #   - name: save JAVA_HOME as JDK${{ matrix.java-version }} for later usage
+    #     run: echo "ORG_GRADLE_PROJECT_jdk${{ matrix.java-version }}=$JAVA_HOME" >> $GITHUB_ENV
+
+    #   # Check $JAVA_HOME
+    #   - name: Check "$JAVA_HOME"
+    #     run: |
+    #       echo "Current $JAVA_HOME = " ${JAVA_HOME}
+
+    #   ## Custom Cache Test
+    #   - name: Touch a file and save to a cache directory
+    #     run: |
+    #       mkdir test-cache-dir
+    #       touch test-cache-dir/ORG_GRADLE_PROJECT_jdk${{ matrix.java-version }}.txt
+    #       ls -la
+    #       cd test-cache-dir
+    #       ls -la
+    #       cd ../
+
+    #   - name: Cache test directory
+    #     uses: actions/cache@v2
+    #     env:
+    #       cache-name: cache-test-dir
+    #     with:
+    #       path: test-cache-dir
+    #       key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.txt') }} ## Explore extensions to cache if no lock file
+    #       restore-keys: |
+    #         ${{ runner.os }}-build-${{ env.cache-name }}-
+    #         ${{ runner.os }}-build-
+    #         ${{ runner.os }}-
+
+    #   # Restore the gradle cache
+    #   - name: Restore the gradle caches
+    #     uses: actions/cache@v2
+    #     with:
+    #       path: |
+    #         ~/.gradle/caches
+    #         ~/.gradle/wrapper
+    #       # The docs say to use hashfiles, but gradle itself is smart enough to
+    #       # re-download dependencies if it couldn't resolve them.
+    #       # Because our gradle cache is _so big_, I think a 90% cache is far
+    #       # better than a 0% cache.
+    #       key: ${{ runner.os }}-gradle
+    #       restore-keys: |
+    #         ${{ runner.os }}-gradle
+
+
+    #   ## AWS jars - plan to cache
+    #   - name: Configure AWS Credentials
+    #     uses: aws-actions/configure-aws-credentials@v1
+    #     with:
+    #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #       aws-region: us-east-2
+
+    #   - name: Download S3 instrumentation jar zip
+    #     run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip  ## 2020?
+
+    #   - name: Unzip the instrumentation jars
+    #     run: unzip proprietary-jars.zip
+
+    #   - name: Log jars are in target libs
+    #     run: find instrumentation -name "*.jar"
+    #   ## End AWS jars - plan to cache (check for cache, restore if required)
+
+    #   # GHA run instrumentation tests
+    #   # Run the build.
+    #   - name: Run instrumentation tests for each Java version as defined in the matrix
+    #     run: |
+    #       ./gradlew --console=plain instrumentation:test -Ptest${{ matrix.java-version }} --continue --info
+
+    #   # Run the build. Disabled for now.  Testing only.
+    #   - name: Run the tests with alternate Java version syntax - testing with -Dorg.gradle.java.home
+    #     run: |
+    #       ##./gradlew -Dorg.gradle.java.home=${ORG_GRADLE_PROJECT_jdk9} --console=plain instrumentation:test --continue --info
+
+
+  # testing_job_dependence: ## Testing Only
+  #   needs: matrix_instrumentation_test
+  #   runs-on: ubuntu-latest
+  #   steps:        
+  #       - name: Cache test directory
+  #         uses: actions/cache@v2
+  #         env:
+  #           cache-name: cache-test-dir
+  #         with:
+  #           path: test-cache-dir
+  #           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.txt') }}
+  #           restore-keys: |
+  #             ${{ runner.os }}-build-${{ env.cache-name }}-
+  #             ${{ runner.os }}-build-
+  #             ${{ runner.os }}-
+
+  #       ## List cached items
+  #       - name: List items in testing cached directory
+  #         run: |
+  #           cd test-cache-dir
+  #           ls -la
+  #           cd ../
+
+  #       # Restore the gradle cache
+  #       - name: Restore the gradle caches
+  #         uses: actions/cache@v2
+  #         with:
+  #           path: |
+  #             ~/.gradle/caches
+  #             ~/.gradle/wrapper
+  #           # The docs say to use hashfiles, but gradle itself is smart enough to
+  #           # re-download dependencies if it couldn't resolve them.
+  #           # Because our gradle cache is _so big_, I think a 90% cache is far
+  #           # better than a 0% cache.
+  #           key: ${{ runner.os }}-gradle
+  #           restore-keys: |
+  #             ${{ runner.os }}-gradle
+
+  #       - name: Check that all the Java versions are installed
+  #         run: |
+  #           pwd
+  #           ls -la 
+  #           whereis java
