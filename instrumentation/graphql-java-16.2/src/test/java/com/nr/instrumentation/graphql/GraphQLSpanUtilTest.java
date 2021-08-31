@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GraphQLSpanUtilTest {
 
-    private static List<Definition> NO_DEFINITIONS = Collections.emptyList();
+    private static final List<Definition> NO_DEFINITIONS = Collections.emptyList();
 
     private PrivateApiStub privateApiStub;
     private PrivateApi privateApi;

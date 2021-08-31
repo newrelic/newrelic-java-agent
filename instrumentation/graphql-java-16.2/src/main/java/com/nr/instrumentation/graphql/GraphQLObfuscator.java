@@ -1,11 +1,13 @@
 package com.nr.instrumentation.graphql;
 
 import graphql.com.google.common.base.Joiner;
+
 import java.util.regex.Pattern;
 
 public class GraphQLObfuscator {
     private static final String SINGLE_QUOTE = "'(?:[^']|'')*?(?:\\\\'.*|'(?!'))";
-    private static final String DOUBLE_QUOTE = "\"(?:[^\"]|\"\")*?(?:\\\\\".*|\"(?!\"))";private static final String COMMENT = "(?:#|--).*?(?=\\r|\\n|$)";
+    private static final String DOUBLE_QUOTE = "\"(?:[^\"]|\"\")*?(?:\\\\\".*|\"(?!\"))";
+    private static final String COMMENT = "(?:#|--).*?(?=\\r|\\n|$)";
     private static final String MULTILINE_COMMENT = "/\\*(?:[^/]|/[^*])*?(?:\\*/|/\\*.*)";
     private static final String UUID = "\\{?(?:[0-9a-f]\\-*){32}\\}?";
     private static final String HEX = "0x[0-9a-f]+";
@@ -23,7 +25,7 @@ public class GraphQLObfuscator {
         ALL_UNMATCHED_PATTERN = Pattern.compile("'|\"|/\\*|\\*/|\\$", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     }
 
-    public static String obfuscate(final String query){
+    public static String obfuscate(final String query) {
         if (query == null || query.length() == 0) {
             return query;
         }

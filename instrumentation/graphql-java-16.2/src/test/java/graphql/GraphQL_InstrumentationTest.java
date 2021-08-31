@@ -5,7 +5,6 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.api.agent.Trace;
-import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.StaticDataFetcher;
 import graphql.schema.idl.RuntimeWiring;
@@ -37,7 +36,7 @@ public class GraphQL_InstrumentationTest {
 
     @BeforeClass
     public static void initialize() {
-        String schema = "type Query{hello("+ TEST_ARG +": String): String}";
+        String schema = "type Query{hello(" + TEST_ARG + ": String): String}";
 
         SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
@@ -71,11 +70,11 @@ public class GraphQL_InstrumentationTest {
     @Test
     public void queryWithArg() {
         //given
-        String query = "{hello ("+ TEST_ARG +": \"fo)o\")}";
+        String query = "{hello (" + TEST_ARG + ": \"fo)o\")}";
         //when
         trace(createRunnable(query));
         //then
-        assertRequestWithArg("QUERY/<anonymous>/hello", "{hello ("+ TEST_ARG +": ***)}");
+        assertRequestWithArg("QUERY/<anonymous>/hello", "{hello (" + TEST_ARG + ": ***)}");
     }
 
     @Test
@@ -99,7 +98,7 @@ public class GraphQL_InstrumentationTest {
         //then
         String expectedErrorMessage = "Validation error of type FieldUndefined: Field 'noSuchField' in type 'Query' is undefined @ 'noSuchField'";
         assertErrorOperation("QUERY/<anonymous>/noSuchField",
-                "GraphQL/operation/QUERY/<anonymous>/noSuchField", "graphql.GraphqlErrorException",  expectedErrorMessage, false);
+                "GraphQL/operation/QUERY/<anonymous>/noSuchField", "graphql.GraphqlErrorException", expectedErrorMessage, false);
     }
 
     @Test
@@ -121,16 +120,16 @@ public class GraphQL_InstrumentationTest {
         runnable.run();
     }
 
-    private Runnable createRunnable(final String query){
+    private Runnable createRunnable(final String query) {
         return () -> graphQL.execute(query);
     }
 
-    private Runnable createRunnable(final String query, GraphQL graphql){
+    private Runnable createRunnable(final String query, GraphQL graphql) {
         return () -> graphql.execute(query);
     }
 
     private GraphQL graphWithResolverException() {
-        String schema = "type Query{hello("+ TEST_ARG +": String): String" +
+        String schema = "type Query{hello(" + TEST_ARG + ": String): String" +
                 "\n" +
                 "bye: String!}";
 
@@ -152,10 +151,10 @@ public class GraphQL_InstrumentationTest {
         return GraphQL.newGraphQL(graphQLSchema).build();
     }
 
-    private void txFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isParseError){
+    private void txFinishedWithExpectedName(Introspector introspector, String expectedTransactionSuffix, boolean isParseError) {
         assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
         String txName = introspector.getTransactionNames().iterator().next();
-            assertEquals("Transaction name is incorrect",
+        assertEquals("Transaction name is incorrect",
                 "OtherTransaction/GraphQL/" + expectedTransactionSuffix, txName);
     }
 
@@ -176,8 +175,8 @@ public class GraphQL_InstrumentationTest {
     }
 
     private void expectedMetrics(Introspector introspector) {
-        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/operation/"));
-        assertTrue(scopedAndUnscopedMetrics(introspector,  "GraphQL/resolve/"));
+        assertTrue(scopedAndUnscopedMetrics(introspector, "GraphQL/operation/"));
+        assertTrue(scopedAndUnscopedMetrics(introspector, "GraphQL/resolve/"));
     }
 
     private void agentAttributeNotOnOtherSpans(Introspector introspector, String spanName, String attributeCategory) {
@@ -201,7 +200,7 @@ public class GraphQL_InstrumentationTest {
         agentAttributeNotOnOtherSpans(introspector, spanName, "error.message");
     }
 
-    private void operationAttributesOnCorrectSpan(Introspector introspector, String spanName ) {
+    private void operationAttributesOnCorrectSpan(Introspector introspector, String spanName) {
         attributeValueOnSpan(introspector, spanName, "graphql.operation.name", "<anonymous>");
         attributeValueOnSpan(introspector, spanName, "graphql.operation.type", "QUERY");
         agentAttributeNotOnOtherSpans(introspector, "GraphQL/operation", "graphql.operation");

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class PrivateApiStub implements PrivateApi {
-    private Map<String, String> tracerParameters = new HashMap<>();
+    private final Map<String, String> tracerParameters = new HashMap<>();
 
     public String getTracerParameterFor(String key) {
         return tracerParameters.get(key);

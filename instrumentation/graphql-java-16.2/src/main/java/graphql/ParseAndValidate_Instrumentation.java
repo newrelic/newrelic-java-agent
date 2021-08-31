@@ -1,7 +1,6 @@
 package graphql;
 
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -13,13 +12,14 @@ import graphql.validation.ValidationError;
 import java.util.List;
 
 import static com.nr.instrumentation.graphql.GraphQLSpanUtil.*;
+import static com.nr.instrumentation.graphql.GraphQLErrorHandler.*;
 
 @Weave(originalName = "graphql.ParseAndValidate", type = MatchType.ExactClass)
 public class ParseAndValidate_Instrumentation {
 
     public static ParseAndValidateResult parse(ExecutionInput executionInput) {
         ParseAndValidateResult result = Weaver.callOriginal();
-        if(result != null) {
+        if (result != null) {
             String transactionName = GraphQLTransactionName.from(result.getDocument());
             NewRelic.getAgent().getTracedMethod().setMetricName("GraphQL/operation" + transactionName);
             setOperationAttributes(result.getDocument(), executionInput.getQuery());

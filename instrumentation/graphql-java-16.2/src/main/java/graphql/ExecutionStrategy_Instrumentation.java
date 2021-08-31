@@ -13,6 +13,7 @@ import graphql.schema.DataFetchingEnvironment;
 import java.util.concurrent.CompletableFuture;
 
 import static com.nr.instrumentation.graphql.GraphQLSpanUtil.*;
+import static com.nr.instrumentation.graphql.GraphQLErrorHandler.*;
 
 @Weave(originalName = "graphql.execution.ExecutionStrategy", type = MatchType.BaseClass)
 public class ExecutionStrategy_Instrumentation {

@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 public class GraphQL_Instrumentation {
 
     @Trace
-    public CompletableFuture<ExecutionResult> executeAsync(ExecutionInput executionInput){
+    public CompletableFuture<ExecutionResult> executeAsync(ExecutionInput executionInput) {
         return Weaver.callOriginal();
     }
 }
