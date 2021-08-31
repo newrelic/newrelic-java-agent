@@ -97,7 +97,7 @@ jobs:
 
       # Install 15
       - name: Set up Java 15
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'a
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
