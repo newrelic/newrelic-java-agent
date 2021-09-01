@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package graphql;
 
 import com.newrelic.api.agent.NewRelic;
@@ -27,7 +34,7 @@ public class ExecutionStrategy_Instrumentation {
     }
 
     protected void handleFetchingException(ExecutionContext executionContext, DataFetchingEnvironment environment, Throwable e) {
-        reportResolverThrowableToNR(e);
+        NewRelic.noticeError(e);
         Weaver.callOriginal();
     }
 

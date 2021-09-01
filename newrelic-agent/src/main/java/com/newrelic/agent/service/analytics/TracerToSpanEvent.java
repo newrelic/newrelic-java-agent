@@ -126,7 +126,7 @@ public class TracerToSpanEvent {
     private SpanEventFactory maybeSetGraphQLAttributes(Tracer tracer, SpanEventFactory builder) {
         Map<String, Object> agentAttributes = tracer.getAgentAttributes();
         boolean containsGraphQLAttributes = agentAttributes.keySet().stream().anyMatch(key -> key.contains("graphql"));
-        if(containsGraphQLAttributes){
+        if (containsGraphQLAttributes){
             agentAttributes.entrySet().stream()
                     .filter(e -> e.getKey().contains("graphql"))
                     .forEach(e -> builder.putAgentAttribute(e.getKey(), e.getValue()));

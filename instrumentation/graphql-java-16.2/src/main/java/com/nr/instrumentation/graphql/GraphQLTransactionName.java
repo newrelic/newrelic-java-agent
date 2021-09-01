@@ -1,11 +1,19 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.instrumentation.graphql;
 
 import graphql.language.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.nr.instrumentation.graphql.Utils.isNullOrEmpty;
 
 /**
  * Generates GraphQL transaction names based on details referenced in Node instrumentation.
@@ -95,7 +103,7 @@ public class GraphQLTransactionName {
             return null;
         }
         List<Selection> selections = selectionSet.getSelections();
-        if (selections == null || selections.isEmpty()) {
+        if (isNullOrEmpty(selections)) {
             return null;
         }
         List<Selection> selection = selections.stream()
@@ -138,9 +146,5 @@ public class GraphQLTransactionName {
 
     private static boolean notFederatedFieldName(final String fieldName) {
         return !(TYPENAME.equals(fieldName) || ID.equals(fieldName));
-    }
-
-    private static boolean isNullOrEmpty(final Collection<?> c) {
-        return c == null || c.isEmpty();
     }
 }

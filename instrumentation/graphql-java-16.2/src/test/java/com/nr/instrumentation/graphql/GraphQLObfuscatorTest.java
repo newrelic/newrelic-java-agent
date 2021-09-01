@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.instrumentation.graphql;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,17 +19,19 @@ public class GraphQLObfuscatorTest {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/obfuscateQueryTestData/obfuscate-query-test-data.csv", delimiter = '|', numLinesToSkip = 2)
-    public void testObfuscateQuery(String queryToObfuscateFile, String expectedObfuscatedQueryFile) {
+    public void testObfuscateQuery(String queryToObfuscateFilename, String expectedObfuscatedQueryFilename) {
         //setup
-        queryToObfuscateFile = queryToObfuscateFile.trim();
-        expectedObfuscatedQueryFile = expectedObfuscatedQueryFile.trim();
-        String expectedObfuscatedResult = readText(OBFUSCATE_DATA_DIR, expectedObfuscatedQueryFile);//readText(expectedObfuscatedQueryFile);
+        queryToObfuscateFilename = queryToObfuscateFilename.trim();
+        expectedObfuscatedQueryFilename = expectedObfuscatedQueryFilename.trim();
+        String expectedObfuscatedResult = readText(OBFUSCATE_DATA_DIR, expectedObfuscatedQueryFilename);
 
         //given
-        String query = readText(OBFUSCATE_DATA_DIR, queryToObfuscateFile);
+        String query = readText(OBFUSCATE_DATA_DIR, queryToObfuscateFilename);
 
         //when
         String obfuscatedQuery = GraphQLObfuscator.obfuscate(query);
+
+        //then
         assertEquals(expectedObfuscatedResult, obfuscatedQuery);
     }
 }

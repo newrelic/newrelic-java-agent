@@ -1,24 +1,21 @@
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.instrumentation.graphql;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.NewRelic;
-import graphql.ExecutionResult;
-import graphql.GraphQLError;
-import graphql.GraphQLException;
-import graphql.GraphqlErrorException;
 import graphql.execution.ExecutionStrategyParameters;
-import graphql.execution.FieldValueInfo;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
 import graphql.schema.GraphQLObjectType;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-
 import static com.nr.instrumentation.graphql.GraphQLObfuscator.obfuscate;
 import static com.nr.instrumentation.graphql.GraphQLOperationDefinition.getOperationTypeFrom;
-
+import static com.nr.instrumentation.graphql.Utils.getValueOrDefault;
 
 public class GraphQLSpanUtil {
 
@@ -56,9 +53,5 @@ public class GraphQLSpanUtil {
         AgentBridge.privateApi.addTracerParameter("graphql.operation.type", DEFAULT_OPERATION_TYPE);
         AgentBridge.privateApi.addTracerParameter("graphql.operation.name", DEFAULT_OPERATION_NAME);
         AgentBridge.privateApi.addTracerParameter("graphql.operation.query", obfuscate(query));
-    }
-
-    private static <T> T getValueOrDefault(T value, T defaultValue) {
-        return value == null ? defaultValue : value;
     }
 }
