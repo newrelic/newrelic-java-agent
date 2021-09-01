@@ -26,11 +26,6 @@ public class ExecutionStrategy_Instrumentation {
         return Weaver.callOriginal();
     }
 
-    protected void handleFetchingException(ExecutionContext executionContext, DataFetchingEnvironment environment, Throwable e) {
-        reportResolverThrowableToNR(e);
-        Weaver.callOriginal();
-    }
-
     protected FieldValueInfo completeValue(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
         FieldValueInfo result = Weaver.callOriginal();
         if (result != null) {

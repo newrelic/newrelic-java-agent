@@ -73,7 +73,11 @@ There can be errors during resolve. GraphQL seems to handle two groups of except
 
 1. Parsing and validation errors captured above in `ParseAndValidate_Instrumentation`
 2. `completeValue()` is to capture the `graphql.execution.NonNullableFieldWasNullException`
-3. `handleException()` is for everything else
+3. `DataFetcherExceptionHandlerParameter` is for everything else
+
+* For 3, on the first draft the instrumentation targeted `handleFetchingException()` to capture errors. However, the 
+method signature changed between graphql-core 16.2 and 17.2. One option was to copy and add another instrumentation module, to change just one method signature. 
+Another option, and the route taken, was to instrument `DataFetcherExceptionHandlerParameter` instead. 
 
 ## Obfuscator
 
