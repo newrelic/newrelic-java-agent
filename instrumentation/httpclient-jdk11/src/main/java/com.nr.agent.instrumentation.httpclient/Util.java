@@ -27,7 +27,7 @@ public class Util {
             String scheme = uri.getScheme().toLowerCase();
             Transaction txn = NewRelic.getAgent().getTransaction();
             if (("http".equals(scheme) || "https".equals(scheme)) && txn != null) {
-                return txn.startSegment("JavaHttpClient");
+                return txn.startSegment("JavaHttpClient.send");
             }
         }
         return null;
@@ -38,18 +38,9 @@ public class Util {
             try {
                 if (segment != null && uri != null) {
                     if (httpResponse != null) {
-                        segment.reportAsExternal(HttpParameters
-                                .library(LIBRARY)
-                                .uri(uri)
-                                .procedure(PROCEDURE)
-                                .inboundHeaders(new InboundWrapper(httpResponse))
-                                .build());
+                        reportExternal(uri, segment, httpResponse);
                     } else if (throwableIsConnectException(throwable)) {
-                            segment.reportAsExternal(GenericParameters
-                                    .library(LIBRARY)
-                                    .uri(UNKNOWN_HOST)
-                                    .procedure("failed")
-                                    .build());
+                        reportUnknownHostExternal(segment);
                     } else if (throwable != null) {
                         NewRelic.noticeError(throwable);
                     }
@@ -67,29 +58,37 @@ public class Util {
 
     public static <T> void processResponse(HttpResponse<T> response, Segment segment){
         if (response.uri() != null) {
-            segment.reportAsExternal(HttpParameters
-                    .library(LIBRARY)
-                    .uri(response.uri())
-                    .procedure(PROCEDURE)
-                    .inboundHeaders(new InboundWrapper(response))
-                    .build());
-            segment.end();
+            reportExternal(response.uri(), segment, response);
         }
     }
 
     public static void handleConnectException(Exception e, HttpRequest request, Segment segment){
         if (request.uri() != null) {
             if (throwableIsConnectException(e)) {
-                segment.reportAsExternal(GenericParameters
-                        .library(LIBRARY)
-                        .uri(UNKNOWN_HOST)
-                        .procedure("failed")
-                        .build());
-                segment.end();
+                reportUnknownHostExternal(segment);
             } else {
                 NewRelic.noticeError(e);
             }
         }
+    }
+
+    private static <T> void reportExternal(URI uri, Segment segment, HttpResponse<T> httpResponse) {
+        segment.reportAsExternal(HttpParameters
+                .library(LIBRARY)
+                .uri(uri)
+                .procedure(PROCEDURE)
+                .inboundHeaders(new InboundWrapper(httpResponse))
+                .build());
+        segment.end();
+    }
+
+    private static void reportUnknownHostExternal(Segment segment) {
+        segment.reportAsExternal(GenericParameters
+                .library(LIBRARY)
+                .uri(UNKNOWN_HOST)
+                .procedure("failed")
+                .build());
+        segment.end();
     }
 
     private static boolean throwableIsConnectException(Throwable throwable) {
