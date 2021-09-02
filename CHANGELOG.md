@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Reporting GraphQL errors
   * For more information, see [GraphQL for Java](https://github.com/newrelic/newrelic-java-agent/issues/356)
 
+* JFR feature causing excessive overhead when enabled [JFR #203](https://github.com/newrelic/newrelic-jfr-core/issues/203)
+  * Refactored code to use less memory.
+
 ### Fixes
 The existing mongo instrumentation was partially applying when mongo reactive is being used.
 
