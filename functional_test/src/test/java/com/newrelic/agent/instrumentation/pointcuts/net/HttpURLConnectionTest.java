@@ -482,12 +482,6 @@ public class HttpURLConnectionTest {
     }
 
     private HttpURLConnection getHttpsExampleComConnection() throws Exception {
-//        if (System.getProperty("java.specification.version").equals("1.7") && connection instanceof HttpsURLConnection) {
-//            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-//            sslContext.init(null, null, new SecureRandom());
-//            ((HttpsURLConnection)connection).setSSLSocketFactory(sslContext.getSocketFactory());
-//        }
-
         return (HttpURLConnection) new URL("https://example.com").openConnection();
     }
 
