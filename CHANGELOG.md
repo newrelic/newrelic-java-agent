@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   
 * AWS v2 DynamoDB Instrumentation [#343](https://github.com/newrelic/newrelic-java-agent/pull/343)
-  * Synchronous and asynchronous AWS v2 APIs are not auto-instrumented similarly to v1 APIs
+  * Synchronous and asynchronous AWS v2 APIs are auto-instrumented similarly to v1 APIs
   * For more information, see [Add support for AWS SDK 2 DynamoDB sync/async clients](https://github.com/newrelic/newrelic-java-agent/issues/246)
 
 
