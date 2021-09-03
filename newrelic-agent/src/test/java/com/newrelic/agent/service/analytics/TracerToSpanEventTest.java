@@ -62,12 +62,7 @@ public class TracerToSpanEventTest {
     private final boolean sampled = true;
     private final long duration = 1500L;
     private final long timestamp = 12345L;
-    private final Supplier<Long> timestampProvider = new Supplier<Long>() {
-        @Override
-        public Long get() {
-            return timestamp;
-        }
-    };
+    private final Supplier<Long> timestampProvider = () -> timestamp;
     private final float priority = 1.23F;
     private final int responseStatus = 500;
     private final int port = 8085;
@@ -392,7 +387,7 @@ public class TracerToSpanEventTest {
 
     @Test
     public void testDistributedTraceIntrinicsAreAdded() {
-        Map<String, Object> distributedTraceIntrinsics = Collections.<String, Object>singletonMap("dt-intrinsic", "yuppers");
+        Map<String, Object> distributedTraceIntrinsics = Collections.singletonMap("dt-intrinsic", "yuppers");
 
         when(transactionDataToDistributedTraceIntrinsics.buildDistributedTracingIntrinsics(any(TransactionData.class), anyBoolean()))
                 .thenReturn(distributedTraceIntrinsics);
@@ -646,6 +641,27 @@ public class TracerToSpanEventTest {
 
         // assertions
         assertEquals("size was actually " + spanEvent.getUserAttributesCopy().size(), 64, spanEvent.getUserAttributesCopy().size());
+    }
+
+    @Test
+    public void testGraphQLAttribute() {
+        // setup
+        expectedAgentAttributes.put("graphql.operation.type", "Query");
+        expectedAgentAttributes.put("graphql.field.name", "book");
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
+
+        tracerAgentAttributes.put("graphql.operation.type", "Query");
+        tracerAgentAttributes.put("graphql.field.name", "book");
+
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        // execution
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
+
+        when(txnData.getAgentAttributes()).thenReturn(transactionAgentAttributes);
+        // assertions
+        assertEquals(expectedSpanEvent, spanEvent);
     }
 
     private SpanEvent buildExpectedSpanEvent() {
