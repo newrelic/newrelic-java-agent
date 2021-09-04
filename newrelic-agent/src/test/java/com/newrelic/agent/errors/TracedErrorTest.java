@@ -383,8 +383,7 @@ public class TracedErrorTest {
     }
 
     private String findNextCausedBy(Iterator<String> it) {
-        final String contains = "caused by";
-        return findNextContaining(it, contains);
+        return findNextContaining(it, "caused by");
     }
 
     private String findNextContaining(Iterator<String> it, String contains) {
