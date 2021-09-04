@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ThrowableError extends TracedError {
 
@@ -112,6 +113,14 @@ public class ThrowableError extends TracedError {
                     stackTrace.add(" caused by " + t.getClass().getName() + ": " + errorMessageReplacer.getMessage(t));
                 }
                 stackTrace.addAll(StackTraces.stackTracesToStrings(t.getStackTrace()));
+                for (Throwable suppressed : t.getSuppressed()) {
+                    stackTrace.add("\tSuppressed: " + suppressed.getClass().getName() + ": " + errorMessageReplacer.getMessage(suppressed));
+                    stackTrace.addAll(
+                            StackTraces.stackTracesToStrings(suppressed.getStackTrace())
+                                .stream().map(line -> "\t\t" + line)
+                                .collect(Collectors.toCollection(ArrayList::new))
+                    );
+                }
                 t = t.equals(t.getCause()) ? null : t.getCause();
                 inner = true;
             }

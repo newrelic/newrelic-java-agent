@@ -19,6 +19,7 @@ import org.json.simple.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.internal.util.collections.Sets;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -333,6 +334,13 @@ public class TracedErrorTest {
         StackTraceElement[] stack_789 = new StackTraceElement[] { stack7, stack8, stack9 };
         top.setStackTrace(stack_789);
 
+        Exception suppressed1 = new IllegalStateException("ISE");
+        StackTraceElement stack10 = new StackTraceElement("Class10", "Method10", "Class10.java", 10);
+        StackTraceElement stack11 = new StackTraceElement("Class11", "Method11", "Class11.java", 11);
+        StackTraceElement stack12 = new StackTraceElement("Class12", "Method12", "Class12.java", 12);
+        suppressed1.setStackTrace(new StackTraceElement[] {stack10, stack11, stack12 });
+        top.addSuppressed(suppressed1);
+
         ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getErrorCollectorConfig();
 
@@ -342,13 +350,19 @@ public class TracedErrorTest {
 
         Collection<String> stackTrace = error.stackTrace();
         assertNotNull(stackTrace);
-        assertEquals(13, stackTrace.size());
+        assertEquals(17, stackTrace.size());
         Iterator<String> it = stackTrace.iterator();
         assertTrue(it.next().contains("7"));
         assertTrue(it.next().contains("8"));
         assertTrue(it.next().contains("9"));
-        assertEquals("", it.next().trim());
         String next = it.next();
+        assertTrue(next.contains("Suppressed:"));
+        assertTrue(next.contains(suppressed1.toString()));
+        assertTrue(it.next().contains("10"));
+        assertTrue(it.next().contains("11"));
+        assertTrue(it.next().contains("12"));
+        assertEquals("", it.next().trim());
+        next = it.next();
         assertTrue(next.contains("caused by"));
         assertTrue(next.contains(nested1.toString()));
         assertTrue(it.next().contains("4"));
@@ -369,13 +383,18 @@ public class TracedErrorTest {
     }
 
     private String findNextCausedBy(Iterator<String> it) {
+        final String contains = "caused by";
+        return findNextContaining(it, contains);
+    }
+
+    private String findNextContaining(Iterator<String> it, String contains) {
         for (String value = ""; it.hasNext(); value = it.next()) {
-            if (value != null && value.contains("caused by")) {
+            if (value != null && value.contains(contains)) {
                 return value;
             }
         }
 
-        throw new AssertionError("Ran out of elements looking for 'caused by'!");
+        throw new AssertionError("Ran out of elements looking for '"+ contains +"'!");
     }
 
     @Test
@@ -383,6 +402,8 @@ public class TracedErrorTest {
         Exception nested2 = new NullPointerException("Null Pointer Exception should be stripped");
         Exception nested1 = new IOException("IO Exception should be stripped", nested2);
         Exception top = new RuntimeException("RuntimeException should be stripped", nested1);
+        Exception suppressed = new IllegalStateException("IllegalStateException should be stripped");
+        top.addSuppressed(suppressed);
 
         ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getErrorCollectorConfig();
@@ -396,7 +417,10 @@ public class TracedErrorTest {
         Collection<String> stackTrace = error.stackTrace();
         assertNotNull(stackTrace);
         Iterator<String> it = stackTrace.iterator();
-        String next = findNextCausedBy(it);
+        String next = findNextContaining(it, "Suppressed:");
+        assertTrue(next, next.contains("Suppressed: java.lang.IllegalStateException: Message removed by New Relic 'strip_exception_messages' setting"));
+        assertFalse(next.contains(suppressed.toString()));
+        next = findNextCausedBy(it);
         assertTrue(next, next.contains("caused by java.io.IOException: Message removed by New Relic 'strip_exception_messages' setting"));
         assertFalse(next.contains(nested1.toString()));
         next = findNextCausedBy(it);
@@ -409,20 +433,31 @@ public class TracedErrorTest {
         Exception nested2 = new NullPointerException("Null Pointer Exception should be stripped");
         Exception nested1 = new IOException("IO Exception should not be stripped", nested2);
         Exception top = new RuntimeException("RuntimeException should be stripped", nested1);
+        Exception suppressed1 = new IllegalStateException("IllegalStateException should be stripped");
+        Exception suppressed2 = new IllegalArgumentException("IllegalArgumentException should not be stripped");
+        top.addSuppressed(suppressed1);
+        nested1.addSuppressed(suppressed2);
 
         ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getErrorCollectorConfig();
 
         TracedError error = ThrowableError
                 .builder(errorCollectorConfig, null, null, top, System.currentTimeMillis())
-                .errorMessageReplacer(new ErrorMessageReplacer(new StripExceptionConfigImpl(true, Collections.singleton("java.io.IOException"))))
+                .errorMessageReplacer(new ErrorMessageReplacer(new StripExceptionConfigImpl(true,
+                        Sets.newSet("java.io.IOException", IllegalArgumentException.class.getName())))
+                )
                 .build();
 
         assertEquals(error.getMessage(), "Message removed by New Relic 'strip_exception_messages' setting");
         Collection<String> stackTrace = error.stackTrace();
         Iterator<String> it = stackTrace.iterator();
-        String next = findNextCausedBy(it);
+        String next = findNextContaining(it, "Suppressed:");
+        assertTrue(next, next.contains("Suppressed: java.lang.IllegalStateException: Message removed by New Relic 'strip_exception_messages' setting"));
+        assertFalse(next.contains(suppressed1.toString()));
+        next = findNextCausedBy(it);
         assertTrue(next, next.contains("caused by java.io.IOException: IO Exception should not be stripped"));
+        next = findNextContaining(it, "Suppressed:");
+        assertTrue(next, next.contains("Suppressed: java.lang.IllegalArgumentException: IllegalArgumentException should not be stripped"));
         next = findNextCausedBy(it);
         assertTrue(next, next.contains("caused by java.lang.NullPointerException: Message removed by New Relic 'strip_exception_messages' setting"));
         assertFalse(next.contains(nested2.toString()));
