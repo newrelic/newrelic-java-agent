@@ -1,0 +1,31 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation 'com.graphql-java:graphql-java:16.2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.7.2'}
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.graphql-java-16.2' }
+}
+
+verifyInstrumentation {
+    passes 'com.graphql-java:graphql-java:[16.0,16.2]'
+}
+
+site {
+    title 'GraphQL Java'
+    type 'Framework'
+}
+
+test {
+    useJUnitPlatform()
+}

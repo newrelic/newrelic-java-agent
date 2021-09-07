@@ -97,6 +97,7 @@ public class TracerToSpanEvent {
                 .setDecider(inboundPayload == null || inboundPayload.priority == null);
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
+        builder = maybeSetGraphQLAttributes(tracer, builder);
 
         W3CTraceState traceState = spanProxy.getInitiatingW3CTraceState();
         if (traceState != null) {
@@ -120,6 +121,17 @@ public class TracerToSpanEvent {
 
         builder.putAllUserAttributes(spanUserAttributes);
         return builder.build();
+    }
+
+    private SpanEventFactory maybeSetGraphQLAttributes(Tracer tracer, SpanEventFactory builder) {
+        Map<String, Object> agentAttributes = tracer.getAgentAttributes();
+        boolean containsGraphQLAttributes = agentAttributes.keySet().stream().anyMatch(key -> key.contains("graphql"));
+        if (containsGraphQLAttributes){
+            agentAttributes.entrySet().stream()
+                    .filter(e -> e.getKey().contains("graphql"))
+                    .forEach(e -> builder.putAgentAttribute(e.getKey(), e.getValue()));
+        }
+        return builder;
     }
 
     private SpanEventFactory maybeSetError(Tracer tracer, TransactionData transactionData, boolean isRoot, SpanEventFactory builder) {

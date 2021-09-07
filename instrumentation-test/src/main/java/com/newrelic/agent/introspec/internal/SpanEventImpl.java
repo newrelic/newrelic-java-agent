@@ -9,6 +9,8 @@ package com.newrelic.agent.introspec.internal;
 
 import com.newrelic.agent.introspec.SpanEvent;
 
+import java.util.Map;
+
 public class SpanEventImpl implements SpanEvent {
 
     private final com.newrelic.agent.model.SpanEvent spanEvent;
@@ -60,5 +62,10 @@ public class SpanEventImpl implements SpanEvent {
     @Override
     public String getTransactionId() {
         return (String) spanEvent.getIntrinsics().get("transactionId");
+    }
+
+    @Override
+    public Map<String, Object> getAgentAttributes() {
+        return spanEvent.getAgentAttributes();
     }
 }

@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -20,6 +21,7 @@ import com.newrelic.agent.tracers.TransactionActivityInitiator;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class MockDispatcherTracer extends AbstractTracer implements Dispatcher, TransactionActivityInitiator {
@@ -87,7 +89,7 @@ public class MockDispatcherTracer extends AbstractTracer implements Dispatcher, 
 
     @Override
     public Map<String, Object> getAgentAttributes() {
-        return null;
+        return ImmutableMap.of();
     }
 
     @Override

@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.2.0 (2021-9-9)
+
+### New features and improvements
+
+* Scala Library Instrumentation [#362](https://github.com/newrelic/newrelic-java-agent/pull/362) [#363](https://github.com/newrelic/newrelic-java-agent/pull/363)
+  * STTP versions 2 & 3  Akka-HTTP, HTTP4s and STTP core backends
+  * Cats-effect v2
+  * ZIO v1
+  * HTTP4s client & server v0.21
+  * Play 2.3-2.8
+  * Akka-HTTP v10.1 & v10.2
+  * For more information, see [Scala instrumentation](https://docs.newrelic.com/docs/agents/java-agent/frameworks/scala-installation-java/).
+
+
+* Scala API support (see PRs above)
+  * Scala APIs provided for explicit instrumentation of several of above libraries in case auto-instrumentation is not desired
+  * Cats-effect v2
+  * ZIO v1
+
+  
+* AWS v2 DynamoDB Instrumentation [#343](https://github.com/newrelic/newrelic-java-agent/pull/343)
+  * Synchronous and asynchronous AWS v2 APIs are auto-instrumented similarly to v1 APIs
+  * For more information, see [Add support for AWS SDK 2 DynamoDB sync/async clients](https://github.com/newrelic/newrelic-java-agent/issues/246)
+
+
+* GraphQL 16 Instrumentation [#396](https://github.com/newrelic/newrelic-java-agent/pull/396)
+  * Create meaningful transaction names
+  * Create meaningful spans
+  * Reporting GraphQL errors
+  * For more information, see [GraphQL for Java](https://github.com/newrelic/newrelic-java-agent/issues/356)
+
+* JFR feature causing excessive overhead when enabled [JFR #203](https://github.com/newrelic/newrelic-jfr-core/issues/203)
+  * Refactored code to use less memory.
+
+### Fixes
+The existing mongo instrumentation was partially applying when mongo reactive is being used.
+
+* Disable weaving package when MongoDB 4.x+ reactive driver detected [#341](https://github.com/newrelic/newrelic-java-agent/pull/341)
+  * For more information, see [Spring Reactive DB Drivers - MongoDB Support](https://github.com/newrelic/newrelic-java-agent/issues/198)
+
+
+
 ## Version 7.1.1 (2021-7-15)
 
  Due to overhead caused in some applications [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/)

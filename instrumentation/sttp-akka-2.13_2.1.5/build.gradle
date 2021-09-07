@@ -1,0 +1,33 @@
+apply plugin: 'scala'
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation("org.scala-lang:scala-library:2.13.6")
+    implementation("com.softwaremill.sttp.client:core_2.13:2.1.5")
+    implementation("com.softwaremill.sttp.client:akka-http-backend_2.13:2.1.5")
+    implementation("com.typesafe.akka:akka-stream_2.13:2.6.14")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.sttp-akka-2.13_2.1.5', 'Implementation-Title-Alias': 'sttp_instrumentation' }
+}
+
+verifyInstrumentation {
+    passes 'com.softwaremill.sttp.client:akka-http-backend_2.13:[2.1.5,)'
+    passes 'com.softwaremill.sttp.client:akka-http-backend_3:[2.1.5,)'
+    excludeRegex ".*(RC|M)[0-9]*"
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Scala'
+    type 'Other'
+}
