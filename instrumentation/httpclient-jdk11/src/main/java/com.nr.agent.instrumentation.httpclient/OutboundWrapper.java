@@ -9,7 +9,7 @@ import java.util.logging.Level;
 
 public class OutboundWrapper implements OutboundHeaders {
 
-    HttpRequest.Builder delegate;
+    private final HttpRequest.Builder delegate;
 
     public OutboundWrapper(HttpRequest.Builder requestBuilder) {
         this.delegate = requestBuilder;
