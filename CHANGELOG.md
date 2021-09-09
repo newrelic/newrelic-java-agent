@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### New features and improvements
 
-* Scala Library Instrumentation [#362](https://github.com/newrelic/newrelic-java-agent/pull/362) [#363](https://github.com/newrelic/newrelic-java-agent/pull/363)
+* Scala Library Instrumentation [#362](https://github.com/newrelic/newrelic-java-agent/pull/362) and [#363](https://github.com/newrelic/newrelic-java-agent/pull/363)
   * STTP versions 2 & 3  Akka-HTTP, HTTP4s and STTP core backends
   * Cats-effect v2
   * ZIO v1
@@ -20,18 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Akka-HTTP v10.1 & v10.2
   * For more information, see [Scala instrumentation](https://docs.newrelic.com/docs/agents/java-agent/frameworks/scala-installation-java/).
 
-
 * Scala API support (see PRs above)
   * Scala APIs provided for explicit instrumentation of several of above libraries in case auto-instrumentation is not desired
   * Cats-effect v2
   * ZIO v1
-
   
 * AWS v2 DynamoDB Instrumentation [#343](https://github.com/newrelic/newrelic-java-agent/pull/343)
   * Synchronous and asynchronous AWS v2 APIs are auto-instrumented similarly to v1 APIs
   * For more information, see [Add support for AWS SDK 2 DynamoDB sync/async clients](https://github.com/newrelic/newrelic-java-agent/issues/246)
-
-
+  
 * GraphQL 16 Instrumentation [#396](https://github.com/newrelic/newrelic-java-agent/pull/396)
   * Create meaningful transaction names
   * Create meaningful spans
@@ -42,12 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Refactored code to use less memory.
 
 ### Fixes
-The existing mongo instrumentation was partially applying when mongo reactive is being used.
+The existing MongoDB instrumentation was partially applying when MongoDB Reactive Streams is being used.
 
 * Disable weaving package when MongoDB 4.x+ reactive driver detected [#341](https://github.com/newrelic/newrelic-java-agent/pull/341)
   * For more information, see [Spring Reactive DB Drivers - MongoDB Support](https://github.com/newrelic/newrelic-java-agent/issues/198)
-
-
+  
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
 
 ## Version 7.1.1 (2021-7-15)
 
