@@ -26,7 +26,8 @@ public class ReservoirAddingSpanEventConsumer implements Consumer<SpanEvent> {
     @Override
     public void accept(SpanEvent spanEvent) {
         if (isSpanEventsEnabled()) {
-            SamplingPriorityQueue<SpanEvent> reservoir = reservoirManager.getOrCreateReservoir();
+            String appName = spanEvent.getAppName();
+            SamplingPriorityQueue<SpanEvent> reservoir = reservoirManager.getOrCreateReservoir(appName);
             reservoir.add(spanEvent);
         }
     }
