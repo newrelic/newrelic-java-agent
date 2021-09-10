@@ -12,7 +12,7 @@ import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-public class Util {
+public class Java11HttpClientUtil {
 
     private static final String LIBRARY = "JavaHttpClient";
     private static final URI UNKNOWN_HOST = URI.create("UnknownHost");

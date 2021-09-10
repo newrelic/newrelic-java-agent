@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 public class InboundWrapper implements InboundHeaders {
 
-    HttpResponse delegate;
+    private final HttpResponse delegate;
 
     public InboundWrapper(HttpResponse response) {
         this.delegate = response;
