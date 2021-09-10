@@ -97,7 +97,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             return;
         }
 
-        SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir();
+        String appName = transactionData.getApplicationName();
+        SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir(appName);
         if (reservoir.isFull() && reservoir.getMinPriority() >= transactionData.getPriority()) {
             // The reservoir is full and this event wouldn't make it in, so lets prevent some object allocations
             reservoir.incrementNumberOfTries();
@@ -240,8 +241,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
     }
 
     @Override
-    public SamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir() {
-        return reservoirManager.getOrCreateReservoir();
+    public SamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir(String appName) {
+        return reservoirManager.getOrCreateReservoir(appName);
     }
 
     public static Builder builder() {
