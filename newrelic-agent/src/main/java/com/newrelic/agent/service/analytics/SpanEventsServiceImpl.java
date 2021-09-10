@@ -222,12 +222,9 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
      */
     @Override
     public void addHarvestableToService(String appName) {
-        final String primaryApplication = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
-        if (primaryApplication.equals(appName)) {
             Harvestable harvestable = new SpanEventHarvestableImpl(this, appName);
             ServiceFactory.getHarvestService().addHarvestable(harvestable);
             harvestables.add(harvestable);
-        }
     }
 
     @Override
