@@ -85,6 +85,24 @@ The Java agent utilizes the following four distinct test suites, each of which i
 
 The unit tests are conventional JUnit tests. The supporting framework is the industry-standard JUnit dependency. Unit tests rely on a variety of different mock object frameworks combined with complex test initialization patterns that simulate agent initialization.
 
+Run all unit tests:
+
+```
+./gradlew -PnoInstrumentation clean test --continue --parallel
+```
+
+Run an individual unit test:
+
+```
+./gradlew -PnoInstrumentation clean newrelic-weaver:test --tests "com.newrelic.weave.LineNumberWeaveTest.testRemoveWeaveLineNumbers" --parallel
+```
+
+Run an individual unit test on a specific version of Java:
+
+```
+./gradlew -Ptest16 -PnoInstrumentation clean newrelic-weaver:test --tests "com.newrelic.weave.LineNumberWeaveTest.testRemoveWeaveLineNumbers" --parallel
+```
+
 #### Functional tests
 
 The functional tests are JUnit tests for which Gradle ensures that each test class runs in a separate subprocess that initializes the agent. The test framework is a combination of industry-standard JUnit, Gradle, a small Gradle test executor task, and some special classes that address limitations of the base framework.
@@ -95,12 +113,12 @@ Functional tests are located in `newrelic-java-agent/functional_test/src/test/` 
 
 Run all functional tests: 
 ```
-./gradlew functional_test:test --parallel
+./gradlew functional_test:test --continue --parallel
 ```
 
 Run an individual functional test: 
 ```
-./gradlew functional_test:test --parallel --tests test.newrelic.test.agent.AgentTest
+./gradlew functional_test:test --tests test.newrelic.test.agent.AgentTest --parallel
 ```
 
 #### Instrumentation module tests
@@ -111,17 +129,17 @@ Instrumentation tests are located in each instrumentation module at  `newrelic-j
 
 Run all instrumentation module tests: 
 ```
-./gradlew instrumentation:test --parallel
+./gradlew instrumentation:test --continue --parallel
 ```
 
 Run all tests for a specific instrumentation module: 
 ```
-./gradlew instrumentation:akka-http-core-10.0.11:test
+./gradlew instrumentation:akka-http-core-10.0.11:test --parallel
 ```
 
 Run a single test for a specific instrumentation module:
 ```
-./gradlew instrumentation:vertx-web-3.2.0:test --tests com.nr.vertx.instrumentation.RoutingTest
+./gradlew instrumentation:vertx-web-3.2.0:test --tests com.nr.vertx.instrumentation.RoutingTest --parallel
 ```
 
 ## Support

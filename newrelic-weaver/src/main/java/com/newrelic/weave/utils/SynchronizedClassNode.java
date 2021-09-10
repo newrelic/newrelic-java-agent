@@ -32,7 +32,7 @@ import java.util.ArrayList;
  * ASM version due to the fact that we had to copy/paste/modify a few of the methods in this class in order to generate
  * thread-safe versions of other *Node classes such as MethodNode and FieldNode.
  *
- * NOTE: If you are upgrading from org.ow2.asm:asm:8.0 / org.ow2.asm:asm-tree:8.0 make sure to double
+ * NOTE: If you are upgrading from org.ow2.asm:asm / org.ow2.asm:asm-tree make sure to double
  * check that this class hasn't changed between versions.
  */
 public class SynchronizedClassNode extends ClassNode {

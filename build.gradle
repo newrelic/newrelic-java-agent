@@ -57,3 +57,11 @@ subprojects {
         }
     }
 }
+
+ext {
+    // when upgrading ASM, check the following classes:
+    // SynchronizedAnnotationNode, SynchronizedClassNode, SynchronizedFieldNode, SynchronizedInnerClassNode, SynchronizedInnerClassNode, SynchronizedMethodNode,
+    // SynchronizedModuleExportNode, SynchronizedModuleNode, SynchronizedModuleOpenNode, SynchronizedModuleProvideNode, SynchronizedModuleRequireNode,
+    // SynchronizedTypeAnnotationNode
+    asmVersion=9.2
+}

@@ -120,7 +120,7 @@ public class TraceClassVisitor extends ClassVisitor {
                                             Agent.LOG.log(Level.FINE, "Unable to record an attribute value for {0}.{1} because it is an array",
                                                     className, method);
                                         } else {
-                                            mv = new AdviceAdapter(Opcodes.ASM7, mv, access, name, desc) {
+                                            mv = new AdviceAdapter(WeaveUtils.ASM_API_LEVEL, mv, access, name, desc) {
 
                                                 @Override
                                                 protected void onMethodEnter() {

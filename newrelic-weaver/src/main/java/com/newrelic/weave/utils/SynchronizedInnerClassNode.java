@@ -20,7 +20,7 @@ import org.objectweb.asm.tree.InnerClassNode;
  * ASM version due to the fact that we had to override constructors in the original asm class. If these constructors
  * change or other accept() methods are added we will need to update accordingly.
  *
- * NOTE: If you are upgrading from org.ow2.asm:asm:8.0 / org.ow2.asm:asm-tree:8.0 make sure to double
+ * NOTE: If you are upgrading from org.ow2.asm:asm / org.ow2.asm:asm-tree make sure to double
  * check that this class hasn't changed between versions.
  */
 public class SynchronizedInnerClassNode extends InnerClassNode {

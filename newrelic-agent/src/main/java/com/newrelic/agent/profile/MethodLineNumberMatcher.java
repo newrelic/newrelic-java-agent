@@ -9,6 +9,7 @@ package com.newrelic.agent.profile;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.weave.utils.WeaveUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -66,14 +67,14 @@ public class MethodLineNumberMatcher {
         private String actualMethodDesc;
 
         public LineNumberClassVisitor(ClassVisitor cv, String mName, int lNumber) {
-            super(Opcodes.ASM7, cv);
+            super(WeaveUtils.ASM_API_LEVEL, cv);
             methodName = mName;
             lineNumber = lNumber;
             actualMethodDesc = null;
         }
 
         public LineNumberClassVisitor(String mName, int lNumber) {
-            super(Opcodes.ASM7);
+            super(WeaveUtils.ASM_API_LEVEL);
             methodName = mName;
             lineNumber = lNumber;
             actualMethodDesc = null;
@@ -84,7 +85,7 @@ public class MethodLineNumberMatcher {
                 String signature, String[] exceptions) {
             MethodVisitor mv = super.visitMethod(access, pMethodName, methodDesc, signature, exceptions);
             if (methodName.equals(pMethodName)) {
-                mv = new MethodVisitor(Opcodes.ASM7, mv) {
+                mv = new MethodVisitor(WeaveUtils.ASM_API_LEVEL, mv) {
 
                     @Override
                     public void visitLineNumber(int line, Label start) {

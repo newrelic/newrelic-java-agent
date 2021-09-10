@@ -10,17 +10,20 @@ package com.nr.vertx.instrumentation;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.TracedMetricData;
+import com.newrelic.test.marker.Java16IncompatibleTest;
 import com.nr.vertx.test.handlers.ProductHandlers;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 
+@Category({ Java16IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class HandlerTracingTest extends VertxTestBase {
