@@ -22,4 +22,6 @@ public interface InfiniteTracingConfig {
 
     boolean isEnabled();
 
+    String getOtlpEndpoint();
+
 }

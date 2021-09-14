@@ -17,6 +17,17 @@ dependencies {
     implementation(project(":agent-model"))
     implementation(project(":agent-interfaces"))
     implementation(project(":newrelic-api"))
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.6.0")
+    implementation("io.grpc:grpc-stub") {
+        version {
+            strictly("1.32.1")
+        }
+    }
+    implementation("io.grpc:grpc-api") {
+        version {
+            strictly("1.32.1")
+        }
+    }
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
     testImplementation("org.mockito:mockito-junit-jupiter:3.3.3")

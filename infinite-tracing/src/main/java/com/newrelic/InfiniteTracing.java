@@ -27,8 +27,8 @@ public class InfiniteTracing implements Consumer<SpanEvent> {
 
     private final Object lock = new Object();
     @GuardedBy("lock") private Future<?> spanEventSenderFuture;
+    @GuardedBy("lock") private Exporter exporter;
     @GuardedBy("lock") private SpanEventSender spanEventSender;
-    @GuardedBy("lock") private ChannelManager channelManager;
 
     @VisibleForTesting
     InfiniteTracing(InfiniteTracingConfig config, MetricAggregator aggregator, ExecutorService executorService, BlockingQueue<SpanEvent> queue) {
@@ -49,25 +49,27 @@ public class InfiniteTracing implements Consumer<SpanEvent> {
     public void start(String agentRunToken, Map<String, String> requestMetadata) {
         synchronized (lock) {
             if (spanEventSenderFuture != null) {
-                channelManager.updateMetadata(agentRunToken, requestMetadata);
-                channelManager.shutdownChannelAndBackoff(0);
+                exporter.updateMetadata(agentRunToken, requestMetadata);
                 return;
             }
             logger.log(Level.INFO, "Starting Infinite Tracing.");
-            channelManager = buildChannelManager(agentRunToken, requestMetadata);
+            exporter = buildExporter(agentRunToken, requestMetadata);
             spanEventSender = buildSpanEventSender();
             spanEventSenderFuture = executorService.submit(spanEventSender);
         }
     }
 
     @VisibleForTesting
-    ChannelManager buildChannelManager(String agentRunToken, Map<String, String> requestMetadata) {
-        return new ChannelManager(config, aggregator, agentRunToken, requestMetadata);
+    Exporter buildExporter(String agentRunToken, Map<String, String> requestMetadata) {
+        if (config.getOtlpEndpoint() != null) {
+            return new OtlpExporter(config, agentRunToken, requestMetadata);
+        }
+        return new NewRelicExporter(config, aggregator, agentRunToken, requestMetadata);
     }
 
     @VisibleForTesting
     SpanEventSender buildSpanEventSender() {
-        return new SpanEventSender(config, queue, aggregator, channelManager);
+        return new SpanEventSender(config.getLogger(), queue, aggregator, exporter);
     }
 
     /**
@@ -81,10 +83,9 @@ public class InfiniteTracing implements Consumer<SpanEvent> {
             }
             logger.log(Level.INFO, "Stopping Infinite Tracing.");
             spanEventSenderFuture.cancel(true);
-            channelManager.shutdownChannelForever();
+            exporter.shutdown();
             spanEventSenderFuture = null;
             spanEventSender = null;
-            channelManager = null;
         }
     }
 

@@ -22,6 +22,7 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
     public static final String FLAKY_CODE = "_flakyCode";
     public static final String USE_PLAINTEXT = "plaintext";
     public static final boolean DEFAULT_USE_PLAINTEXT = false;
+    public static final String OTLP_ENDPOINT = "otlp_endpoint";
 
     static final String SYSTEM_PROPERTY_ROOT = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + ROOT + ".";
 
@@ -90,5 +91,10 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
             return false;
         }
         return !getTraceObserverHost().isEmpty();
+    }
+
+    @Override
+    public String getOtlpEndpoint() {
+        return getProperty(OTLP_ENDPOINT);
     }
 }
