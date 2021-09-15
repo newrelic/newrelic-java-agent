@@ -11,6 +11,7 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.test.marker.Java16IncompatibleTest;
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.nr.vertx.test.handlers.ProductHandlers;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -23,7 +24,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java16IncompatibleTest.class })
+@Category({ Java16IncompatibleTest.class, Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class HandlerTracingTest extends VertxTestBase {
