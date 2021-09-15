@@ -16,6 +16,12 @@ crossBuild {
     }
 }
 
+configurations.zinc {
+    resolutionStrategy {
+        force("org.scala-lang:scala-library:2.12.12")
+    }
+}
+
 java {
     withSourcesJar()
     withJavadocJar()
