@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class DistributedTracingConfig extends BaseConfig {
 
-    private static final boolean DEFAULT_DISTRIBUTED_TRACING = false;
+    private static final boolean DEFAULT_DISTRIBUTED_TRACING = true;
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.distributed_tracing.";
 
     public static final String ENABLED = "enabled";
