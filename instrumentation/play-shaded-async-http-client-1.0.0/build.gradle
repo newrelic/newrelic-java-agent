@@ -18,5 +18,26 @@ verifyInstrumentation {
 }
 
 test {
-    executable = jdk8 + '/bin/java'
+    // These instrumentation tests only run on Java 8 regardless of the -PtestN gradle property that is set.
+    // The jvmArgs properties get set for a specific version of Java in java.gradle when using -PtestN but then this overrides
+    // that to always run on Java 8 instead of version N, potentially causing an error if the options are invalid in Java 8.
+    if (project.hasProperty("test9")) {
+        enabled = false
+    } else if (project.hasProperty("test10")) {
+        enabled = false
+    } else if (project.hasProperty("test11")) {
+        enabled = false
+    } else if (project.hasProperty("test12")) {
+        enabled = false
+    } else if (project.hasProperty("test13")) {
+        enabled = false
+    } else if (project.hasProperty("test14")) {
+        enabled = false
+    } else if (project.hasProperty("test15")) {
+        enabled = false
+    } else if (project.hasProperty("test16")) {
+        enabled = false
+    } else {
+        executable = jdk8 + '/bin/java'
+    }
 }

@@ -10,10 +10,12 @@ package com.nr.vertx.instrumentation;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.test.marker.Java16IncompatibleTest;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Map;
@@ -24,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 
+@Category({ Java16IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class VertxHttpMethodTest extends VertxTestBase {

@@ -27,16 +27,6 @@ jar {
     includeEmptyDirs false
 }
 
-// JDK7 is required for scala 2.9 and 2.10. The scala gradle plugin does not allow changing the java compiler at runtime,
-// so we must set JAVA_HOME to point to 1.7 and set the java plugin to compile with 1.8
-//task requiresJava7 {
-//    doLast {
-//        if (!project.hasProperty('jdk7')) {
-//            throw new GradleException("Please set the jdk7 property to a valid jdk1.7 path in ~/.gradle/gradle.properties")
-//        }
-//    }
-//}
-
 // Some modules need to be compiled with JDK8.
 task requiresJava8 {
     doLast {
@@ -57,7 +47,6 @@ tasks.withType(ScalaCompile) {
     options.fork = true
 }
 
-//compileJava.dependsOn 'requiresJava7'
 compileJava.dependsOn 'requiresJava8'
 
 compileJava.options.encoding = 'UTF-8'
@@ -80,7 +69,7 @@ compileTestJava {
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-// Compile all Java projects with jdk7 bootstrap classpath (to properly support target compatibility)
+// Compile all Java projects with jdk8 bootstrap classpath (to properly support target compatibility)
 compileJava.options.bootstrapClasspath = files("${jdk8}/jre/lib/rt.jar", "${jdk8}/lib/jsse.jar")
 
 // There is no clear way to run the same task under multiple JDKs, so we use the following gradle properties
@@ -88,7 +77,24 @@ compileJava.options.bootstrapClasspath = files("${jdk8}/jre/lib/rt.jar", "${jdk8
 //
 // These properties must be set in gradle.properties to point to the java executable.
 // For example: java8=/Library/Java/JavaVirtualMachines/jdk1.8.0_45.jdk/Contents/Home/bin/java
+//
+// Note: These test settings apply to both unit and instrumentation tests but some instrumentation tests override them in
+// their own build.gradle to force the use of a specific version of Java (e.g. instrumentation/async-http-client-2.0.0).
+// This could lead to an "Unrecognized option" with the failure "Could not create the Java Virtual Machine".
 test {
+    if (project.hasProperty("test16")) {
+        executable = jdk16 + '/bin/java'
+        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                '--add-opens=java.base/java.util=ALL-UNNAMED',
+                '--add-opens=java.base/java.net=ALL-UNNAMED',
+                '--add-opens=java.base/java.io=ALL-UNNAMED',
+                '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
+                '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
+                '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
+        useJUnit {
+            excludeCategories 'com.newrelic.test.marker.Java16IncompatibleTest'
+        }
+    }
     if (project.hasProperty("test15")) {
         executable = jdk15 + '/bin/java'
         useJUnit {

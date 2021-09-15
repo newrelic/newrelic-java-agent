@@ -90,6 +90,7 @@ class IntrospectorImpl implements Introspector, ExtendedTransactionListener, Tra
         statsService.clear();
         IntrospectorTransactionTraceService traceService = (IntrospectorTransactionTraceService) ServiceFactory.getTransactionTraceService();
         traceService.clear();
+        clearSpanEvents();
     }
 
     public void cleanup() {

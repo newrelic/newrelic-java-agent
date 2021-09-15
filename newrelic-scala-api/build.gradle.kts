@@ -62,6 +62,7 @@ tasks {
         setForkEvery(1)
         maxParallelForks = Runtime.getRuntime().availableProcessors()
 
+        val jdk16: String by project
         val jdk15: String by project
         val jdk14: String by project
         val jdk13: String by project
@@ -71,7 +72,10 @@ tasks {
         val jdk9: String by project
         val jdk8: String by project
 
-        if (project.hasProperty("test15")) {
+        if (project.hasProperty("test16")) {
+            executable = "$jdk16/bin/java"
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+        } else if (project.hasProperty("test15")) {
             executable = "$jdk15/bin/java"
         } else if (project.hasProperty("test14")) {
             executable = "$jdk14/bin/java"

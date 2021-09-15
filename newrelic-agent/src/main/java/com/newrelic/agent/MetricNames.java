@@ -82,6 +82,7 @@ public class MetricNames {
     public static final String JAVA = "Java";
     public static final String DISPATCHER = "HttpDispatcher";
     public static final String REQUEST_DISPATCHER = "RequestDispatcher";
+    public static final String GRAPHQL = "GraphQL";
     public static final String APDEX = "Apdex";
     public static final String APDEX_OTHER = "ApdexOther";
     public static final String APDEX_OTHER_TRANSACTION = "ApdexOther/Transaction";

@@ -24,12 +24,20 @@ jobs:
           java-version: 7
       - name: save JAVA_HOME as JDK7 for later usage
         run: echo "ORG_GRADLE_PROJECT_jdk7=$JAVA_HOME" >> $GITHUB_ENV
+      # JDK 11
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1.4.3
+        with:
+          java-version: 11
+      - name: save JAVA_HOME as JDK11 for later usage
+        run: echo "ORG_GRADLE_PROJECT_jdk11=$JAVA_HOME" >> $GITHUB_ENV
       # Java is installed; document settings
       - name: log project settings
         run: |
           echo "--- Java versions ---"
           $ORG_GRADLE_PROJECT_jdk7/bin/java -version
           $ORG_GRADLE_PROJECT_jdk8/bin/java -version
+          $ORG_GRADLE_PROJECT_jdk11/bin/java -version
       - name: correct JAVA_HOME
         run: echo "JAVA_HOME=$ORG_GRADLE_PROJECT_jdk8" >> $GITHUB_ENV
       # Restore the gradle cache

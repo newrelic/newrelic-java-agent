@@ -9,11 +9,13 @@ package com.nr.vertx.instrumentation;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import com.newrelic.test.marker.Java16IncompatibleTest;
 import com.nr.vertx.test.handlers.ErrorHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Map;
@@ -23,6 +25,7 @@ import static com.nr.vertx.test.handlers.SimpleHandlers.createLambdaHandler;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertNotNull;
 
+@Category({ Java16IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx", "com.nr.vert" })
 public class VertxHandlersTest extends VertxTestBase {
