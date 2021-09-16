@@ -72,9 +72,9 @@ public class SpanEventsConfigTest {
         Map<String, Object> localSettings = new HashMap<>();
         //when
         SpanEventsConfig config = new SpanEventsConfig(localSettings, true);
-        config.setMaxSamplesStoredByServerProp(10000L);
-        assertEquals("Max samples stored should be " + 10000L,
-                10000L, config.getMaxSamplesStored());
+        config.setMaxSamplesStoredByServerProp(10000);
+        assertEquals("Max samples stored should be " + 10000,
+                10000, config.getMaxSamplesStored());
     }
 
     private void setMaxSamplesViaSystemProp(int customMaxSamples) {

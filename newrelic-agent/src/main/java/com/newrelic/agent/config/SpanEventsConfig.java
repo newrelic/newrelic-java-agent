@@ -56,8 +56,8 @@ public class SpanEventsConfig extends BaseConfig {
         return maxSamplesStored;
     }
 
-    public void setMaxSamplesStoredByServerProp(Long harvestLimit) {
-        this.maxSamplesStored = harvestLimit.intValue();
+    public void setMaxSamplesStoredByServerProp(int harvestLimit) {
+        this.maxSamplesStored = harvestLimit;
     }
 
     public int getTargetSamplesStored() {

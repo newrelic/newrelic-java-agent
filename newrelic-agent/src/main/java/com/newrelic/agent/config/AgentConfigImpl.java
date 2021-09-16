@@ -352,7 +352,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         propsWithSystemProps.putAll(SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix());
         flatten("", propsWithSystemProps, flattenedProps);
         checkHighSecurityPropsInFlattened(flattenedProps);
-        checkSpanEventHarvestLimit();
+        maybeSetServerSpanHarvestLimit();
         this.flattenedProperties = Collections.unmodifiableMap(flattenedProps);
         this.waitForTransactionsInMillis = getProperty(WAIT_FOR_TRANSACTIONS, DEFAULT_WAIT_FOR_TRANSACTIONS);
         this.customInstrumentationEditorAllowed = getProperty(LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, !highSecurity);
@@ -527,11 +527,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
-    private void checkSpanEventHarvestLimit() {
+    private void maybeSetServerSpanHarvestLimit() {
         Map<String, Object> spanEventHarvestLimits = getProperty(SERVER_SPAN_HARVEST_CONFIG);
         if (spanEventHarvestLimits != null) {
             Long harvestLimit = (Long) spanEventHarvestLimits.get(SERVER_SPAN_HARVEST_LIMIT);
-            spanEventsConfig.setMaxSamplesStoredByServerProp(harvestLimit);
+            spanEventsConfig.setMaxSamplesStoredByServerProp(harvestLimit.intValue());
         }
     }
 
