@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import static com.newrelic.agent.config.SpanEventsConfig.*;
+
 public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     // root configs (alphabetized)
@@ -350,6 +352,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         propsWithSystemProps.putAll(SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix());
         flatten("", propsWithSystemProps, flattenedProps);
         checkHighSecurityPropsInFlattened(flattenedProps);
+        checkSpanEventHarvestLimit();
         this.flattenedProperties = Collections.unmodifiableMap(flattenedProps);
         this.waitForTransactionsInMillis = getProperty(WAIT_FOR_TRANSACTIONS, DEFAULT_WAIT_FOR_TRANSACTIONS);
         this.customInstrumentationEditorAllowed = getProperty(LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, !highSecurity);
@@ -521,6 +524,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private void checkHighSecurityPropsInFlattened(Map<String, Object> flattenedProps) {
         if (highSecurity && !flattenedProps.isEmpty()) {
             flattenedProps.put("transaction_tracer.record_sql", transactionTracerConfig.getRecordSql());
+        }
+    }
+
+    private void checkSpanEventHarvestLimit() {
+        Map<String, Object> spanEventHarvestLimits = getProperty(SERVER_SPAN_HARVEST_CONFIG);
+        if (spanEventHarvestLimits != null) {
+            Long harvestLimit = (Long) spanEventHarvestLimits.get(SERVER_SPAN_HARVEST_LIMIT);
+            spanEventsConfig.setMaxSamplesStoredByServerProp(harvestLimit);
         }
     }
 

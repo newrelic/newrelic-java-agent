@@ -18,6 +18,8 @@ public class SpanEventsConfig extends BaseConfig {
     public static final String COLLECT_SPAN_EVENTS = "collect_span_events";
     public static final String ENABLED = "enabled";
     public static final String MAX_SPAN_EVENTS_PER_HARVEST = "max_samples_stored";
+    public static final String SERVER_SPAN_HARVEST_CONFIG = "span_event_harvest_config";
+    public static final String SERVER_SPAN_HARVEST_LIMIT = "harvest_limit";
     private static final String ROOT = "newrelic.config.";
     private static final String SPAN_EVENTS = "span_events.";
     public static final String SYSTEM_PROPERTY_ROOT = ROOT + SPAN_EVENTS;
@@ -26,7 +28,7 @@ public class SpanEventsConfig extends BaseConfig {
     private static final boolean DEFAULT_COLLECT_SPANS = false;
 
     private final boolean dtEnabled;
-    private final int maxSamplesStored;
+    private int maxSamplesStored;
     private final boolean enabled;
     private final int targetSamplesStored;
     private final boolean crossProcessOnly;
@@ -52,6 +54,10 @@ public class SpanEventsConfig extends BaseConfig {
 
     public int getMaxSamplesStored() {
         return maxSamplesStored;
+    }
+
+    public void setMaxSamplesStoredByServerProp(Long harvestLimit) {
+        this.maxSamplesStored = harvestLimit.intValue();
     }
 
     public int getTargetSamplesStored() {
