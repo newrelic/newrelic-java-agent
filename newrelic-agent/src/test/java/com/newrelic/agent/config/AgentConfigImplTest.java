@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 import static org.junit.Assert.*;
 
 /* (non-javadoc)
@@ -1206,6 +1207,20 @@ public class AgentConfigImplTest {
                         + "It was set as a system property. "
                         + "This property is obsolete."
         ));
+    }
+
+    @Test
+    public void shouldSetSpanMaxSamplesWithServerProp() {
+        //given
+        Map<String, Object> spanHarvestConfig = new HashMap<>();
+        Long harvestLimit = 1L;
+        spanHarvestConfig.put("harvest_limit", harvestLimit);
+        Map<String, Object> localMap = new HashMap<>();
+        localMap.put(SERVER_SPAN_HARVEST_CONFIG, spanHarvestConfig);
+        //when
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        //then
+        assertEquals("Span max samples should be the harvest limit of: "+harvestLimit.intValue(), harvestLimit.intValue(), config.getSpanEventsConfig().getMaxSamplesStored());
     }
 
     private static EnvironmentFacade createEnvironmentFacade(
