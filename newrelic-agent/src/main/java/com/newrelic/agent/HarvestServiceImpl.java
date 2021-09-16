@@ -29,6 +29,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
+import static com.newrelic.agent.config.SpanEventsConfig.*;
+import static com.newrelic.agent.transport.CollectorMethods.*;
+
 /**
  * This class is responsible for running the harvest tasks. There is one harvest task per RPM service. A harvest task
  * reports metric data to the server.
@@ -81,6 +84,7 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
     @VisibleForTesting
     public void startHarvestables(IRPMService rpmService, AgentConfig config) {
         Map<String, Object> eventHarvestConfig = config.getProperty(AgentConfigFactory.EVENT_HARVEST_CONFIG);
+        Map<String, Object> spanHarvestConfig = config.getProperty(SERVER_SPAN_HARVEST_CONFIG);
         if (eventHarvestConfig == null) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
                     MetricNames.SUPPORTABILITY_CONNECT_MISSING_EVENT_DATA, 1));
@@ -105,6 +109,15 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
                 } else {
                     Agent.LOG.log(Level.FINE, "event_harvest_config from collector was null. Using default value: {0} for: {1}", maxSamplesStored,
                             tracker.harvestable.getEndpointMethodName());
+                }
+
+                if (spanHarvestConfig != null && tracker.harvestable.getEndpointMethodName().equals(SPAN_EVENT_DATA)) {
+                    Long harvestLimit = (Long) spanHarvestConfig.get(SERVER_SPAN_HARVEST_LIMIT);
+                    reportPeriodInMillis = (Long) spanHarvestConfig.get(REPORT_PERIOD_MS);
+                    if (harvestLimit != null) {
+                        maxSamplesStored = harvestLimit.intValue();
+                        reportPeriodInMillis = (long) spanHarvestConfig.get(REPORT_PERIOD_MS);
+                    }
                 }
                 tracker.start(reportPeriodInMillis, maxSamplesStored);
             }
