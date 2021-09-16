@@ -11,15 +11,16 @@ import java.util.Map;
 
 public class SpanEventsConfig extends BaseConfig {
 
-    public static final int DEFAULT_MAX_SPAN_EVENTS_PER_HARVEST = 1000;
+    public static final int DEFAULT_MAX_SPAN_EVENTS_PER_HARVEST = 2000;
     public static final int DEFAULT_TARGET_SAMPLES_STORED = 10;
     public static final boolean DEFAULT_CROSS_PROCESS_ONLY = false;
 
     public static final String COLLECT_SPAN_EVENTS = "collect_span_events";
+    public static final String ENABLED = "enabled";
+    public static final String MAX_SPAN_EVENTS_PER_HARVEST = "max_samples_stored";
     private static final String ROOT = "newrelic.config.";
     private static final String SPAN_EVENTS = "span_events.";
-    private static final String SYSTEM_PROPERTY_ROOT = ROOT + SPAN_EVENTS;
-    public static final String ENABLED = "enabled";
+    public static final String SYSTEM_PROPERTY_ROOT = ROOT + SPAN_EVENTS;
     private static final String TARGET_SAMPLES_STORED = "target_samples_stored";
     private static final String CROSS_PROCESS_ONLY = "cross_process_only";
     private static final boolean DEFAULT_COLLECT_SPANS = false;
@@ -39,7 +40,7 @@ public class SpanEventsConfig extends BaseConfig {
     public SpanEventsConfig(Map<String, Object> props, boolean dtEnabled) {
         super(props, SYSTEM_PROPERTY_ROOT);
         this.dtEnabled = dtEnabled;
-        this.maxSamplesStored = DEFAULT_MAX_SPAN_EVENTS_PER_HARVEST;
+        this.maxSamplesStored = getProperty(MAX_SPAN_EVENTS_PER_HARVEST, DEFAULT_MAX_SPAN_EVENTS_PER_HARVEST);
         this.enabled = initEnabled(maxSamplesStored);
         this.targetSamplesStored = getProperty(TARGET_SAMPLES_STORED, DEFAULT_TARGET_SAMPLES_STORED);
         this.crossProcessOnly = getProperty(CROSS_PROCESS_ONLY, DEFAULT_CROSS_PROCESS_ONLY);
