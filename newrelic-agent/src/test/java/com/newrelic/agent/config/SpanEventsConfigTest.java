@@ -67,20 +67,14 @@ public class SpanEventsConfigTest {
     }
 
     @Test
-    public void maxSamplesStoredEnvironmentPropertyOverrideByServerProp() {
+    public void maxSamplesStoredCanBeReset() {
         //given
-        int serverSideMaxSamples = 10000;
-        Map<String, Object> serverSettings = new HashMap<>();
-        ServerProp serverProp = ServerProp.createPropObject(serverSideMaxSamples);
-        serverSettings.put(COLLECT_SPAN_EVENTS, serverProp);
-        int customMaxSamples = 1000000;
-        setMaxSamplesViaEnvProperty(customMaxSamples);
         Map<String, Object> localSettings = new HashMap<>();
         //when
         SpanEventsConfig config = new SpanEventsConfig(localSettings, true);
-        //then
-        assertEquals("Max samples stored should be " + serverSideMaxSamples,
-                serverSideMaxSamples, config.getMaxSamplesStored());
+        config.setMaxSamplesStoredByServerProp(10000L);
+        assertEquals("Max samples stored should be " + 10000L,
+                10000L, config.getMaxSamplesStored());
     }
 
     private void setMaxSamplesViaSystemProp(int customMaxSamples) {
