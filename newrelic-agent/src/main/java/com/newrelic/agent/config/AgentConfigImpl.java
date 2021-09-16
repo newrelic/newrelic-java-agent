@@ -992,7 +992,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             }
             if (result instanceof Map) {
                 Map<?, ?> resultMap = (Map<?, ?>) result;
-                result = resultMap.containsKey(component) ? resultMap.get(component) : null;
+                result = resultMap.getOrDefault(component, null);
             }
         }
 

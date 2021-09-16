@@ -112,7 +112,7 @@ public class AgentConfigFactory {
         boolean attributesIncludeEnabled = getLaspValue(laspData, AttributesConfigImpl.ATTS_INCLUDE, true);
 
         List<String> attributesInclude = attributesIncludeEnabled
-                ? settingsConfig.getAttributesConfig().attributesRootInclude() : Collections.<String>emptyList();
+                ? settingsConfig.getAttributesConfig().attributesRootInclude() : Collections.emptyList();
         String attributesIncludeSecure = Joiner.on(",").join(attributesInclude);
 
         Boolean captureMessageParameters = getLaspValue(laspData, LaspPolicies.LASP_MESSAGE_PARAMETERS, true);
