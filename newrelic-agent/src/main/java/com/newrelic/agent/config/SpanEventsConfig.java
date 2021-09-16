@@ -25,12 +25,6 @@ public class SpanEventsConfig extends BaseConfig {
     private static final String CROSS_PROCESS_ONLY = "cross_process_only";
     private static final boolean DEFAULT_COLLECT_SPANS = false;
 
-    // Span event system properties with root
-    public static final String SYSTEM_PROPERTY_SPAN_EVENTS_ENABLED = SYSTEM_PROPERTY_ROOT + ENABLED;
-    public static final String SPAN_EVENTS_ENABLED = SPAN_EVENTS + ENABLED;
-    // EnvironmentFacade variables
-    public static final String ENABLED_ENV_KEY = "NEW_RELIC_SPAN_EVENTS_ENABLED";
-
     private final boolean dtEnabled;
     private final int maxSamplesStored;
     private final boolean enabled;
@@ -47,7 +41,7 @@ public class SpanEventsConfig extends BaseConfig {
     }
 
     private boolean initEnabled(int maxSamplesStored) {
-        Boolean configEnabled = getProperty(ENABLED, dtEnabled) && dtEnabled;
+        boolean configEnabled = getProperty(ENABLED, dtEnabled) && dtEnabled;
         boolean collectSpanEventsFromCollector = getProperty(COLLECT_SPAN_EVENTS, DEFAULT_COLLECT_SPANS);
         return maxSamplesStored > 0 && configEnabled && collectSpanEventsFromCollector;
     }
