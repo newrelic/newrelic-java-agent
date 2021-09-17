@@ -28,6 +28,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import test.newrelic.EnvironmentHolderSettingsGenerator;
+import test.newrelic.test.agent.EnvironmentHolder;
 
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -45,7 +47,8 @@ public class ExternalAsyncTest extends AsyncTest {
     private static final String LIBRARY = "library";
     private static final String URI = "http://www.example.com/some/path";
     private static final String OPERATION_NAME = "operation";
-
+    private static final String CONFIG_FILE = "configs/cross_app_tracing_test.yml";
+    private static final ClassLoader CLASS_LOADER = ExternalAsyncTest.class.getClassLoader();
     private ExecutorService executorService;
 
     private static Segment startSegment(
@@ -70,6 +73,13 @@ public class ExternalAsyncTest extends AsyncTest {
             Assert.fail(e.getMessage());
         }
         externalEvent.end();
+    }
+
+    public EnvironmentHolder setupEnvironmentHolder(String environment) throws Exception {
+        EnvironmentHolderSettingsGenerator envHolderSettings = new EnvironmentHolderSettingsGenerator(CONFIG_FILE, environment, CLASS_LOADER);
+        EnvironmentHolder environmentHolder = new EnvironmentHolder(envHolderSettings);
+        environmentHolder.setupEnvironment();
+        return environmentHolder;
     }
 
     @Before
@@ -207,8 +217,7 @@ public class ExternalAsyncTest extends AsyncTest {
         verifyNoExceptions();
     }
 
-    // with the refactoring of the transaction object, we are no longer one to
-    // one meaning this is allowed
+    // with the refactoring of the transaction object, we are no longer one to one meaning this is allowed
     @Test
     public void testStartAfterFinish() throws Exception {
         doInTransaction((Callable<Void>) () -> {
@@ -241,44 +250,50 @@ public class ExternalAsyncTest extends AsyncTest {
 
     @Test
     public void testCat() throws Exception {
-        final Outbound outbound = new Outbound();
-        final Inbound inbound = new Inbound();
-        doInTransaction((Callable<Void>) () -> {
-            Segment externalEvent = startSegment(outbound);
-            Transaction transaction = Transaction.getTransaction(false);
-            String encodingKey = transaction.getCrossProcessConfig().getEncodingKey();
-            String appData = Obfuscator.obfuscateNameUsingKey(
-                    "[\"crossProcessId\",\"externalTransactionName\"]",
-                    encodingKey);
-            inbound.headers.put(HeadersUtil.NEWRELIC_APP_DATA_HEADER, appData);
-            finishExternalEvent(externalEvent, null, inbound, HOST, LIBRARY, URI, OPERATION_NAME);
-            return null;
-        });
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
-        // assert outbound request headers were populated correctly
-        Assert.assertTrue(outbound.headers
-                .containsKey(HeadersUtil.NEWRELIC_ID_HEADER));
-        Assert.assertTrue(outbound.headers
-                .containsKey(HeadersUtil.NEWRELIC_TRANSACTION_HEADER));
+        try {
+            final Outbound outbound = new Outbound();
+            final Inbound inbound = new Inbound();
+            doInTransaction((Callable<Void>) () -> {
+                Segment externalEvent = startSegment(outbound);
+                Transaction transaction = Transaction.getTransaction(false);
+                String encodingKey = transaction.getCrossProcessConfig().getEncodingKey();
+                String appData = Obfuscator.obfuscateNameUsingKey(
+                        "[\"crossProcessId\",\"externalTransactionName\"]",
+                        encodingKey);
+                inbound.headers.put(HeadersUtil.NEWRELIC_APP_DATA_HEADER, appData);
+                finishExternalEvent(externalEvent, null, inbound, HOST, LIBRARY, URI, OPERATION_NAME);
+                return null;
+            });
 
-        // assert inbound response headers were processed correctly by checking
-        // for CAT metric name
-        verifyTimesSet(1);
-        verifyScopedMetricsPresent(
-                "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "ExternalTransaction/www.example.com/crossProcessId/externalTransactionName");
-        verifyUnscopedMetricsPresent("External/www.example.com/all",
-                "External/allOther", "External/all");
-        verifyScopedMetricsNotPresent(
-                "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "External/www.host2.com/library");
-        verifyTransactionSegmentsBreadthFirst(
-                "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                Thread.currentThread().getName(),
-                "ExternalTransaction/www.example.com/crossProcessId/externalTransactionName",
-                NO_ASYNC_CONTEXT);
-        verifyNoExceptions();
+            // assert outbound request headers were populated correctly
+            Assert.assertTrue(outbound.headers
+                    .containsKey(HeadersUtil.NEWRELIC_ID_HEADER));
+            Assert.assertTrue(outbound.headers
+                    .containsKey(HeadersUtil.NEWRELIC_TRANSACTION_HEADER));
+
+            // assert inbound response headers were processed correctly by checking for CAT metric name
+            verifyTimesSet(1);
+            verifyScopedMetricsPresent(
+                    "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    "ExternalTransaction/www.example.com/crossProcessId/externalTransactionName");
+            verifyUnscopedMetricsPresent("External/www.example.com/all",
+                    "External/allOther", "External/all");
+            verifyScopedMetricsNotPresent(
+                    "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    "External/www.host2.com/library");
+            verifyTransactionSegmentsBreadthFirst(
+                    "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    Thread.currentThread().getName(),
+                    "ExternalTransaction/www.example.com/crossProcessId/externalTransactionName",
+                    NO_ASYNC_CONTEXT);
+            verifyNoExceptions();
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
