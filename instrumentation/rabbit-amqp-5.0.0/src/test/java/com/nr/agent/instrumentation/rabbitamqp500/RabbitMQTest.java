@@ -37,6 +37,7 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.*;
 
+@Ignore
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.rabbitmq.client", "com.rabbitmq.client.impl" }, configName = "distributed_tracing.yml")
 public class RabbitMQTest {
