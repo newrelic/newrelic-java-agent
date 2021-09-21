@@ -311,7 +311,7 @@ public class BrowserConfigTest {
     @Test
     public void testFooterCaptureAttsOneAndSsl() throws Exception {
         setupManager(true, true);
-        Transaction tx = Transaction.getTransaction(); // getAgentConfig().getDistributedTracingConfig().isEnabled() is true
+        Transaction tx = Transaction.getTransaction();
         BasicRequestRootTracer tracer = createDispatcherTracer();
         tx.getTransactionActivity().tracerStarted(tracer);
         TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
