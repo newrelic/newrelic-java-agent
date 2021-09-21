@@ -44,6 +44,10 @@ tasks.withType(Javadoc) {
 }
 
 tasks.withType(ScalaCompile) {
+    scala.zincVersion = "1.2.5"
+    configurations.zinc {
+        resolutionStrategy.force "org.scala-lang:scala-library:2.12.12"
+    }
     options.fork = true
 }
 
