@@ -11,28 +11,28 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExtensionHolder;
 import com.newrelic.weave.weavepackage.ExtensionClassTemplate;
 
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * This class provides the custom bytecode template which will form the extension class for weaved classes.
  *
- * @see ExtensionHolderFactoryImpl provides the agent's implementation using guava
+ * @see ExtensionHolderFactoryImpl provides the agent's implementation using Caffeine
  */
-public class GuavaBackedExtensionClass extends ExtensionClassTemplate implements Callable<GuavaBackedExtensionClass> {
-    private static final ExtensionHolder<GuavaBackedExtensionClass> AGENT_EXTENSION_HOLDER = AgentBridge.extensionHolderFactory.build();
-    private static final Callable<GuavaBackedExtensionClass> AGENT_VALUE_LOADER = new GuavaBackedExtensionClass();
+public class CaffeineBackedExtensionClass extends ExtensionClassTemplate implements Supplier<CaffeineBackedExtensionClass> {
+    private static final ExtensionHolder<CaffeineBackedExtensionClass> AGENT_EXTENSION_HOLDER = AgentBridge.extensionHolderFactory.build();
+    private static final Supplier<CaffeineBackedExtensionClass> AGENT_VALUE_LOADER = new CaffeineBackedExtensionClass();
 
-    public static GuavaBackedExtensionClass getAndRemoveExtension(Object instance) {
+    public static CaffeineBackedExtensionClass getAndRemoveExtension(Object instance) {
         return AGENT_EXTENSION_HOLDER.getAndRemoveExtension(instance);
     }
 
-    public static GuavaBackedExtensionClass getExtension(Object instance) {
+    public static CaffeineBackedExtensionClass getExtension(Object instance) {
         try {
             return AGENT_EXTENSION_HOLDER.getExtension(instance, AGENT_VALUE_LOADER);
         } catch (Throwable t) {
             // This should never happen. But if it does the agent has already logged the appropriate messages.
             // We need to return something non-null here since untrapped code could be invoking this method.
-            return new GuavaBackedExtensionClass();
+            return new CaffeineBackedExtensionClass();
         }
     }
 
@@ -41,7 +41,7 @@ public class GuavaBackedExtensionClass extends ExtensionClassTemplate implements
      * So we implement the valueLoader here instead of in a nested class.
      */
     @Override
-    public GuavaBackedExtensionClass call() {
-        return new GuavaBackedExtensionClass();
+    public CaffeineBackedExtensionClass get() {
+        return new CaffeineBackedExtensionClass();
     }
 }
