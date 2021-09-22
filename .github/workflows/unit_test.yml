@@ -55,4 +55,4 @@ jobs:
             ${{ runner.os }}-gradle
       # Start running the build.
       - name: run the unit tests
-        run: ./gradlew --console=plain --parallel clean test -x instrumentation functional_test:test newrelic-scala-api:test newrelic-scala-cats-api:test newrelic-scala-zio-api:test -Ptest8 --continue
+        run: ./gradlew --console=plain --parallel clean test -x instrumentation:test functional_test:test newrelic-scala-api:test newrelic-scala-cats-api:test newrelic-scala-zio-api:test -Ptest8 --continue
