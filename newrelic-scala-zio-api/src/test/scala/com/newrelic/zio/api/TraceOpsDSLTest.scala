@@ -13,6 +13,7 @@ import scala.jdk.CollectionConverters._
 import zio.{UIO, _}
 import zio.duration.durationInt
 
+@Ignore
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("none"))
 class ZIOTraceOpsTests {

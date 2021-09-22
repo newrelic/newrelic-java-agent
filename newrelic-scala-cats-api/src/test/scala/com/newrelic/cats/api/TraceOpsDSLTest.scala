@@ -5,7 +5,7 @@ import cats.syntax.parallel._
 import TraceOps._
 import com.newrelic.agent.introspec._
 import org.junit.runner.RunWith
-import org.junit.{After, Assert, Test}
+import org.junit.{After, Assert, Ignore, Test}
 
 import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
@@ -13,6 +13,7 @@ import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
+@Ignore
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("none"))
 class CatsEffectIOTest2 {

@@ -1,17 +1,16 @@
 package com.newrelic.scala.api
 
 import java.util.concurrent.Executors
-
 import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner, Introspector, TraceSegment, TransactionTrace}
 import com.newrelic.scala.api.TraceOps._
 import org.junit.runner.RunWith
-import org.junit.{After, Assert, Test}
+import org.junit.{After, Assert, Ignore, Test}
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
-
 import scala.jdk.CollectionConverters._
 
+@Ignore
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("scala.concurrent.impl."))
 class TraceOpsDSLTest {
