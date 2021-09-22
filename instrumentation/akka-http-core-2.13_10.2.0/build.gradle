@@ -1,5 +1,9 @@
 apply plugin: 'scala'
 
+project.tasks.all {
+    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.13")
+}
+
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-core-2.13_10.2.0' }
 }

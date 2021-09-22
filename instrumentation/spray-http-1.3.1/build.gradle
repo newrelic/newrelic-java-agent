@@ -1,5 +1,9 @@
 apply plugin: 'scala'
 
+project.tasks.all {
+    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.10")
+}
+
 sourceSets.test.scala.srcDir "src/test/java"
 sourceSets.test.java.srcDirs = []
 

@@ -1,5 +1,8 @@
 apply plugin: 'scala'
-scala.zincVersion = "1.2.5"
+
+project.tasks.all {
+    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.11")
+}
 
 compileJava.options.bootstrapClasspath = null
 

@@ -1,5 +1,9 @@
 apply plugin: 'scala'
 
+project.tasks.all {
+    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.13")
+}
+
 dependencies {
     implementation("dev.zio:zio_2.13:1.0.9")
     implementation(project(":agent-bridge"))

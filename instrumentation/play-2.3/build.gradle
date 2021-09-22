@@ -1,5 +1,9 @@
 apply plugin: 'scala'
 
+project.tasks.all {
+    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.10")
+}
+
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))

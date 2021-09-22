@@ -1,5 +1,9 @@
 apply plugin: 'scala'
 
+project.tasks.all {
+    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.10")
+}
+
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spray-can-1.3.1' }
 }
