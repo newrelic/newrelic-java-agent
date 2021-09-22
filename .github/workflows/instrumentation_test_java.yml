@@ -32,4 +32,4 @@ jobs:
             ${{ runner.os }}-gradle
       # Start running the build.
       - name: run the unit tests
-        run: ./gradlew --console=plain --parallel clean instrumentation:test -PnoScala --continue
+        run: ./gradlew --console=plain --parallel clean instrumentation:test -Ptest8 -PnoScala --continue
