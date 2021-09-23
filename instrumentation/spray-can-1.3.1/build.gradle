@@ -1,7 +1,14 @@
 apply plugin: 'scala'
 
 project.tasks.all {
-    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.10")
+    task -> {
+        if(project.hasProperty("noScala")) {
+            task.enabled = false
+        }
+        if(project.hasProperty("scala-2.10")) {
+            task.enabled = true
+        }
+    }
 }
 
 jar {

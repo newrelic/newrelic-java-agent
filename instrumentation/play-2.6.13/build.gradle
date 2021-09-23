@@ -6,7 +6,14 @@ import scala.collection.JavaConversions
 apply plugin: 'scala'
 
 project.tasks.all {
-    task -> task.enabled = !project.hasProperty('noScala') || project.hasProperty("scala-2.11")
+    task -> {
+        if(project.hasProperty("noScala")) {
+            task.enabled = false
+        }
+        if(project.hasProperty("scala-2.11")) {
+            task.enabled = true
+        }
+    }
 }
 
 buildscript {
