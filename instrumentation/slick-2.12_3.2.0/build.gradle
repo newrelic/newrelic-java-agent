@@ -1,4 +1,5 @@
 apply plugin: 'scala'
+scala.zincVersion = "1.2.5"
 
 project.tasks.all {
     task -> task.enabled = project.hasProperty("scala-2.12") ? true : project.hasProperty("noScala") ? false : task.enabled
