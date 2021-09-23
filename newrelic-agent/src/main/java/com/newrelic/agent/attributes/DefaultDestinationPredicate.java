@@ -7,15 +7,13 @@
 
 package com.newrelic.agent.attributes;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
 /**
@@ -58,12 +56,7 @@ public class DefaultDestinationPredicate implements DestinationPredicate {
         configTrie = generateConfigTrie(dest, exclude, include);
         defaultExcludeTrie = generateDefaultTrie(dest, defaultExcludes);
         destination = dest;
-        cache = CacheBuilder.newBuilder().maximumSize(MAX_CACHE_SIZE_BUFFER).build(new CacheLoader<String, Boolean>() {
-            @Override
-            public Boolean load(String key) {
-                return isIncluded(key);
-            }
-        });
+        cache = Caffeine.newBuilder().maximumSize(MAX_CACHE_SIZE_BUFFER).build(this::isIncluded);
     }
 
     private Boolean isIncluded(String key) {
@@ -93,11 +86,7 @@ public class DefaultDestinationPredicate implements DestinationPredicate {
      */
     @Override
     public boolean apply(String key) {
-        try {
-            return changeToPrimitiveAndLog(key, cache.get(key));
-        } catch (ExecutionException e) {
-            return changeToPrimitiveAndLog(key, isIncluded(key));
-        }
+        return changeToPrimitiveAndLog(key, cache.get(key));
     }
 
     private void logOutput(String key, boolean value) {

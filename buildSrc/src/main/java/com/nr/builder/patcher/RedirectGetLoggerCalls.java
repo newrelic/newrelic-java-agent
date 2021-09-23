@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 /**
- * Guava directly invokes {@link Logger#getLogger}. This causes bad things to happen.
+ * Some dependency may directly invoke {@link Logger#getLogger}. This causes bad things to happen.
  * So we change the calls to {@link Logger#getGlobal()}.
  */
 public class RedirectGetLoggerCalls implements Patcher {
