@@ -57,5 +57,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle
       # Start running the build.
-      - name: run the unit tests
-        run: ./gradlew --console=plain --parallel clean instrumentation:build -Ptest8 -PnoScala --continue
+      - name: Run the Java Instrumentation Tests
+        run: ./gradlew --console=plain --parallel clean :instrumentation:build -Ptest8 -PnoScala --continue
