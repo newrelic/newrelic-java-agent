@@ -402,10 +402,11 @@ public class TransactionEventTest {
                 .build();
         JSONArray jsonArray = (JSONArray) AgentHelper.serializeJSON(event);
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(12, jsonObject.size());
-        assertEquals("0000000c", jsonObject.get("nr.pathHash"));
-        assertEquals("0000000d", jsonObject.get("nr.referringPathHash"));
-        assertEquals("14", jsonObject.get("nr.alternatePathHashes"));
+        assertEquals(9, jsonObject.size());
+        // These should only be set when using CAT, not DT as the agent does by default as of 7.3.0
+        assertNull(jsonObject.get("nr.pathHash"));
+        assertNull(jsonObject.get("nr.referringPathHash"));
+        assertNull(jsonObject.get("nr.alternatePathHashes"));
     }
 
     @Test

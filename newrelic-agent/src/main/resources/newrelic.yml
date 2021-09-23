@@ -205,13 +205,21 @@ common: &default_settings
     max_samples_stored: 2000
 
   # Distributed tracing lets you see the path that a request takes through your distributed system.
-  # Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the transition
-  # guide before you enable this feature: https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/transition-guide-distributed-tracing
+  # This replaces the deprecated legacy Cross Application Tracing.
+  # https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/introduction-cross-application-traces/
   distributed_tracing:
 
-    # Set to true to enable distributed tracing.
+    # Set to false to disable distributed tracing.
+    # Default is true.
+    enabled: true
+
+    # Agent versions 5.10.0+ utilize both the newrelic header and W3C Trace Context headers for distributed tracing.
+    # The newrelic distributed tracing header allows interoperability with older agents that don't support W3C Trace Context headers.
+    # Agent versions that support W3C Trace Context headers will prioritize them over newrelic headers for distributed tracing.
+    # If you do not want to utilize the newrelic header, setting this to true will result in the agent excluding the newrelic header
+    # and only using W3C Trace Context headers for distributed tracing.
     # Default is false.
-    enabled: false
+    exclude_newrelic_header: false
 
   # Cross Application Tracing adds request and response headers to
   # external calls using supported HTTP libraries to provide better
