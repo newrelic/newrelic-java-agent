@@ -434,6 +434,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_SPAN_EVENTS = "Supportability/SpanEvents"; // feature is enabled
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_SENT = "Supportability/SpanEvent/TotalEventsSent";
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_SEEN = "Supportability/SpanEvent/TotalEventsSeen";
+    public static final String SUPPORTABILITY_SPAN_EVENT_LIMIT = "Supportability/SpanEvent/Limit";
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_DISCARDED = "Supportability/SpanEvent/Discarded";
 
     public static final String SUPPORTABILITY_INTERNAL_CUSTOM_EVENTS_TOTAL_EVENTS_SENT = "Supportability/InternalCustomEvents/TotalEventsSent";
