@@ -1,4 +1,4 @@
-name: PR Build - Instrumentation Tests Java
+name: PR Build - Instrumentation Tests Scala 2.12
 
 on:
   pull_request:
@@ -57,5 +57,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle
       # Start running the build.
-      - name: run the java instrumentation tests
-        run: ./gradlew --console=plain --parallel clean :instrumentation:build -Ptest8 -PnoScala --continue
+      - name: run the scala 2.12 instrumentation tests
+        run: ./gradlew --console=plain --parallel clean :instrumentation:build -Ptest8 -PnoInstrumentation -PnoScala -Pscala-2.12 --continue
