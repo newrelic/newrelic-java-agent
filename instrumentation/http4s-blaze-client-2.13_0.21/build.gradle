@@ -1,7 +1,7 @@
 apply plugin: 'scala'
 
 project.tasks.all {
-    task -> task.enabled = project.hasProperty("scala-2.13") ? true : project.hasProperty("noScala") ? false : task.enabled
+    task -> task.enabled = project.hasProperty("scala-2.13") ? true : project.hasProperty("noScala") ? false : project.hasProperty('noInstrumentation') ? false : task.enabled
 }
 
 dependencies {
