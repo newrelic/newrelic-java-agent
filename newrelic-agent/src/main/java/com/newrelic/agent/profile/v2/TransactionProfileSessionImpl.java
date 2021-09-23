@@ -14,9 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.simple.JSONObject;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TransactionData;
@@ -84,32 +83,18 @@ public class TransactionProfileSessionImpl implements TransactionProfileSession 
     protected TransactionProfileSessionImpl(final Profile profile, final ThreadNameNormalizer threadNameNormalizer, ThreadService threadService) {
         this.threadService = threadService;
         this.profile = profile; 
-        this.transactionProfileTrees = 
-            CacheBuilder.newBuilder().build(
-                new CacheLoader<String, TransactionProfile>() {
-
-                    @Override
-                    public TransactionProfile load(String transactionName) throws Exception {
-                        return new TransactionProfile(profile, threadNameNormalizer);
-                    }
-                    
-                });
+        this.transactionProfileTrees =
+                Caffeine.newBuilder().build(
+                        transactionName -> new TransactionProfile(profile, threadNameNormalizer));
         this.discoveryProfile = new DiscoveryProfile(profile, threadNameNormalizer);
-        this.stackTraceLimits = 
-            CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.SECONDS).build(
-                new CacheLoader<String, AtomicInteger>() {
-    
-                    @Override
-                    public AtomicInteger load(String metricName) throws Exception {
-                        return new AtomicInteger(0);
-                    }
-                    
-                });
+        this.stackTraceLimits =
+                Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.SECONDS).build(
+                        metricName -> new AtomicInteger(0));
     }
 
     @Override
     public void transactionFinished(TransactionData transactionData) {
-        TransactionProfile txProfile = transactionProfileTrees.getUnchecked(transactionData.getBlameMetricName());
+        TransactionProfile txProfile = transactionProfileTrees.get(transactionData.getBlameMetricName());
         txProfile.transactionFinished(transactionData);
     }
 
@@ -130,7 +115,7 @@ public class TransactionProfileSessionImpl implements TransactionProfileSession 
                 Thread currentThread = Thread.currentThread();
                 profile.addStackTrace(new BasicThreadInfo(currentThread), currentThread.getStackTrace(), true, ThreadType.BasicThreadType.OTHER);
             } else if (tracer.isLeaf() || tracer instanceof IgnoreChildSocketCalls) {
-                if (stackTraceLimits.getUnchecked(tracer.getMetricName()).getAndIncrement() < 
+                if (stackTraceLimits.get(tracer.getMetricName()).getAndIncrement() <
                         STACK_CAPTURE_LIMIT_PER_METRIC_PER_PERIOD) {
                     tracer.setAgentAttribute(DefaultTracer.BACKTRACE_PARAMETER_NAME, Thread.currentThread().getStackTrace());
                 }
