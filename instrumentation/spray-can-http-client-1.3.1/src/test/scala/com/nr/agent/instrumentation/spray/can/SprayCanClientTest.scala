@@ -13,14 +13,14 @@ import com.newrelic.agent.introspec.CatHelper
 import com.newrelic.agent.introspec.ExternalRequest
 import com.newrelic.agent.introspec.InstrumentationTestConfig
 import com.newrelic.agent.introspec.InstrumentationTestRunner
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.agent.introspec.Introspector
+import com.newrelic.agent.introspec.MetricsHelper
+import com.newrelic.agent.introspec.TransactionEvent
+import com.newrelic.agent.introspec.internal.HttpServerLocator
+import com.newrelic.api.agent.Trace
 
 import java.net.URI
-import java.util.Collection;
+import java.util.Collection
 import org.junit.{After, Assert}
 import org.junit.AfterClass
 import org.junit.Before
@@ -31,7 +31,6 @@ import spray.can.Http.HostConnectorInfo
 
 import scala.concurrent._
 import scala.concurrent.duration._
-
 import akka.io.IO
 import akka.util.Timeout
 import akka.pattern.ask
@@ -39,7 +38,11 @@ import akka.actor._
 import spray.can.Http
 import spray.http._
 import HttpMethods._
+import com.newrelic.test.marker.Java17IncompatibleTest
+import org.junit.experimental.categories.Category
 
+
+@Category(Array(classOf[Java17IncompatibleTest]))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("spray.", "akka.", "scala.", "com.nr.agent.instrumentation."))
 class SprayCanClientTest extends ConnectionLevelApiDemo {

@@ -12,6 +12,7 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java7IncompatibleTest;
 import com.nr.instrumentation.akka22.test.actors.broadcasting.ActorA;
 import com.nr.instrumentation.akka22.test.actors.broadcasting.ActorB;
@@ -30,7 +31,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-@Category({ Java7IncompatibleTest.class })
+@Category({ Java7IncompatibleTest.class, Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "akka.actor", "akka.dispatch", "akka.pattern", "akka.routing" })
 public class AkkaTest {

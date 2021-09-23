@@ -7,9 +7,12 @@
 
 package com.nr.agent.instrumentation.scala;
 
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category({Java17IncompatibleTest.class })
 public class ScalaUtilsTest {
     @Test
     public void testNaming() {

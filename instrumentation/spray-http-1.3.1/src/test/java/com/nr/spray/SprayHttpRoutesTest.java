@@ -15,9 +15,11 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.agent.util.Obfuscator;
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.UnsupportedEncodingException;
@@ -29,6 +31,7 @@ import java.util.regex.Pattern;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
+@Category({Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"spray", "akka", "scala"})
 public class SprayHttpRoutesTest {

@@ -8,16 +8,18 @@
 package com.nr.agent.instrumentation.scala
 
 import java.util.Collection
-
 import com.newrelic.agent.bridge.AgentBridge
 import com.newrelic.agent.introspec._
 import com.newrelic.api.agent.Trace
+import com.newrelic.test.marker.Java17IncompatibleTest
+import org.junit.experimental.categories.Category
 import org.junit.{Assert, Test}
 import org.junit.runner.RunWith
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise};
 
+@Category(Array(classOf[Java17IncompatibleTest]))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("scala.concurrent.impl."))
 class ProducerConsumerWithFutures {
@@ -66,9 +68,7 @@ class ProducerConsumerWithFutures {
     while(it.hasNext()) {
       val txName :String = it.next();
       println("txName: " + txName);
-      if (txName.matches(".*ProducerConsumerWithFutures.*")) {
-        asyncTransaction = txName;
-      }
+      if (txName.matches(".*ProducerConsumerWithFutures.*")) asyncTransaction = txName
     }
     Assert.assertNotNull("Unable to find test transaction", asyncTransaction);
     val names : Collection[String] = introspector.getTransactionNames();

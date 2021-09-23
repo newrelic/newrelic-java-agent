@@ -7,33 +7,34 @@
 
 package com.nr.agent.instrumentation.sprayclient
 
-import com.newrelic.agent.introspec.HttpTestServer;
-import com.newrelic.agent.introspec.CatHelper;
-import com.newrelic.agent.introspec.ExternalRequest;
+import com.newrelic.agent.introspec.HttpTestServer
+import com.newrelic.agent.introspec.CatHelper
+import com.newrelic.agent.introspec.ExternalRequest
 import com.newrelic.agent.introspec.InstrumentationTestConfig
 import com.newrelic.agent.introspec.InstrumentationTestRunner
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.agent.introspec.Introspector
+import com.newrelic.agent.introspec.MetricsHelper
+import com.newrelic.agent.introspec.TransactionEvent
+import com.newrelic.agent.introspec.internal.HttpServerLocator
+import com.newrelic.api.agent.Trace
+import com.newrelic.test.marker.Java17IncompatibleTest
 
 import java.net.URI
-import java.util.Collection;
-
+import java.util.Collection
 import org.junit.Assert
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
-import org.junit.runner.RunWith;
-
+import org.junit.experimental.categories.Category
+import org.junit.runner.RunWith
 import spray.http._
 import spray.client.pipelining._
 
 import scala.concurrent._
 import scala.concurrent.duration._
 
+@Category(Array(classOf[Java17IncompatibleTest]))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("spray."))
 class SprayClientCatTest {
