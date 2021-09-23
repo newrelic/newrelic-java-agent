@@ -7,8 +7,8 @@
 
 package com.newrelic.weave.weavepackage;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.Sets;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.ClassCache;
@@ -63,7 +63,7 @@ public class WeavePackageManager {
     /**
      * ClassLoader -> (WeavePackageName -> WeavePackage)
      */
-    private final Cache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = CacheBuilder.newBuilder().weakKeys().build();
+    private final Cache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = Caffeine.newBuilder().weakKeys().build();
 
     private final WeavePackageLifetimeListener packageListener;
     private final Instrumentation instrumentation;
@@ -87,12 +87,12 @@ public class WeavePackageManager {
     /**
      * classloader -> (weave package -> result of successful weaving)
      */
-    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = CacheBuilder.newBuilder().weakKeys().concurrencyLevel(
+    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
             8).maximumSize(MAX_VALID_PACKAGE_CACHE).build();
     /**
      * classloader -> (weave package -> result of successful weaving)
      */
-    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = CacheBuilder.newBuilder().weakKeys().concurrencyLevel(
+    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
             8).maximumSize(MAX_INVALID_PACKAGE_CACHE).build();
 
     WeavePackageManager() {
@@ -267,7 +267,7 @@ public class WeavePackageManager {
         Set<PackageValidationResult> matchedPackageResults = Sets.newConcurrentHashSet();
 
         Map<String, WeavePackage> classloaderWeavePackages;
-        if (preValidateWeavePackages && optimizedWeavePackages.size() < maxPreValidatedClassLoaders) {
+        if (preValidateWeavePackages && optimizedWeavePackages.asMap().size() < maxPreValidatedClassLoaders) {
             classloaderWeavePackages = getOptimizedWeavePackages(classloader, cache);
         } else {
             classloaderWeavePackages = weavePackages;

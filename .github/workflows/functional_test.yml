@@ -3,6 +3,7 @@ name: PR Build - Functional Tests
 on:
   pull_request:
     branches: [ main ]
+    types: [synchronize, opened, reopened, ready_for_review]
 
 jobs:
   functional_test:

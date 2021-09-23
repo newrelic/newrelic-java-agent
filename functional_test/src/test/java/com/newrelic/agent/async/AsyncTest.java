@@ -103,7 +103,7 @@ public abstract class AsyncTest implements TransactionStatsListener {
         Assert.assertTrue("The cpu should be greater than 0", val > 0);
         Assert.assertTrue("The cpu should be greater than the expeted min value " + minCpu, val > minCpu);
 
-        long cpuTime = 0l;
+        long cpuTime = 0L;
         Collection<Tracer> tracers = new HashSet<>();
         tracers.add(data.getRootTracer());
         tracers.addAll(data.getTracers());
@@ -241,8 +241,7 @@ public abstract class AsyncTest implements TransactionStatsListener {
         Assert.assertEquals("ROOT", segment.getMetricName());
         Assert.assertNotNull(segment.getTraceParameters().get("async_context"));
 
-        Queue<TransactionSegment> segments = new LinkedList<>();
-        segments.addAll(segment.getChildren());
+        Queue<TransactionSegment> segments = new LinkedList<>(segment.getChildren());
         int index = 0;
         while (!segments.isEmpty()) {
             TransactionSegment seg = segments.poll();
@@ -266,8 +265,7 @@ public abstract class AsyncTest implements TransactionStatsListener {
         TransactionTrace trace = TransactionTrace.getTransactionTrace(data);
         TransactionSegment root = trace.getRootSegment();
 
-        Queue<TransactionSegment> segments = new LinkedList<>();
-        segments.addAll(root.getChildren());
+        Queue<TransactionSegment> segments = new LinkedList<>(root.getChildren());
         int index = 0;
         while (!segments.isEmpty()) {
             TransactionSegment seg = segments.poll();
@@ -289,8 +287,7 @@ public abstract class AsyncTest implements TransactionStatsListener {
         TransactionTrace trace = TransactionTrace.getTransactionTrace(data);
         TransactionSegment root = trace.getRootSegment();
 
-        Queue<TransactionSegment> segments = new LinkedList<>();
-        segments.addAll(root.getChildren());
+        Queue<TransactionSegment> segments = new LinkedList<>(root.getChildren());
         int index = 0;
         while (!segments.isEmpty()) {
             TransactionSegment seg = segments.poll();
@@ -374,7 +371,7 @@ public abstract class AsyncTest implements TransactionStatsListener {
         while ((System.currentTimeMillis() - start) < 5000 && (data == null || stats == null)) {
             try {
                 Thread.sleep(50);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
             }
         }
     }
@@ -385,7 +382,7 @@ public abstract class AsyncTest implements TransactionStatsListener {
         while ((System.currentTimeMillis() - start) < 5000 && (data == null || stats == null || this.timesSet != timesSet)) {
             try {
                 Thread.sleep(50);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
             }
         }
     }

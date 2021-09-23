@@ -52,7 +52,7 @@ import static org.objectweb.asm.Opcodes.RETURN;
  * Backing storage of new fields is provided by a {@link ClassNode} with the appropriate static methods from
  * {@link ExtensionClassTemplate}. The default template can be found in
  * {@link ExtensionClassTemplate#DEFAULT_EXTENSION_TEMPLATE}. The agent provides its own, allowing a higher
- * performing guava cache to be used instead.
+ * performing caffeine cache to be used instead.
  */
 public class PreparedExtension {
     public static final String RESET_CHECK_NAME = "gen_shouldResetExtensionClass";
