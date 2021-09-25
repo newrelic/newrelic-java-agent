@@ -9,15 +9,15 @@ package com.newrelic.agent.util;
 
 import java.util.Map;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.newrelic.agent.bridge.CollectionFactory;
 
 public class AgentCollectionFactory implements CollectionFactory {
 
     @Override
     public <K, V> Map<K, V> createConcurrentWeakKeyedMap() {
-        Cache<K, V> cache = CacheBuilder.newBuilder().concurrencyLevel(32).weakKeys().build();
+        Cache<K, V> cache = Caffeine.newBuilder().initialCapacity(32).weakKeys().build();
         return cache.asMap();
     }
 }

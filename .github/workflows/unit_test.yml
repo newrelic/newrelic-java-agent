@@ -3,6 +3,7 @@ name: PR Build - Unit Tests
 on:
   pull_request:
     branches: [ main ]
+    types: [synchronize, opened, reopened, ready_for_review]
 
 jobs:
   unit_test:

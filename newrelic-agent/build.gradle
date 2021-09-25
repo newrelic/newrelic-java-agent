@@ -93,6 +93,8 @@ dependencies {
 
     shadowIntoJar('com.google.guava:guava:30.1.1-jre')
 
+    shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.0')
+
     shadowIntoJar("org.yaml:snakeyaml:1.27")
 
     implementation("javax.management.j2ee:management-api:1.1-rev-1") {
@@ -163,7 +165,7 @@ task relocatedShadowJar(type: ShadowJar) {
             // stuff we use
             "com.google", "org.yaml", "org.slf4j", "org.objectweb", "org.json",
             "org.apache.commons", "org.apache.http", "org.apache.logging", "jregex",
-            "io.grpc", "com.squareup", "okio", "io.perfmark", "android",
+            "io.grpc", "com.squareup", "okio", "io.perfmark", "android", "com.github.benmanes",
 
             // The following rules are to prevent these transitive dependencies from breaking anything
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",

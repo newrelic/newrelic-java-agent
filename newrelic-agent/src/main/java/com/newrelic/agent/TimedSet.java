@@ -13,7 +13,7 @@ package com.newrelic.agent;
  *
  * Note that:
  * 1. The time out policy should be expire after last access, although it is not enforced.
- * 2. It is not required that getting the size of the collection is an exact value, as is the case with a guava cache.
+ * 2. It is not required that getting the size of the collection is an exact value, e.g. Caffeine uses Cache.estimatedSize().
  * 3. Any changes to how this cache does expiration also needs to be made consistent with AsyncTransactionService.
  *
  * @param <K> type of the object being stored
@@ -41,7 +41,7 @@ interface TimedSet<K> {
 
     /**
      * A utility method that some implementations may require, in order to force the collection to time out and remove
-     * entries. For example, guava caches do not use a thread to monitor entries to time them out, but does incremental
+     * entries. For example, caffeine caches do not use a thread to monitor entries to time them out, but does incremental
      * clean up work during normal operation. This may synchronize on entire the collection.
      */
     void cleanUp();

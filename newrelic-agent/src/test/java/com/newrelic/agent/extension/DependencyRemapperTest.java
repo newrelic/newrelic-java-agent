@@ -7,8 +7,9 @@
 
 package com.newrelic.agent.extension;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.google.common.collect.ImmutableSet;
 import com.newrelic.agent.util.asm.BenignClassReadException;
 import com.newrelic.agent.util.asm.Utils;
 import org.junit.Assert;
@@ -42,8 +43,11 @@ public class DependencyRemapperTest {
                 "com/newrelic/agent/deps/org/objectweb/asm/ClassVisitor", remapper.getRemappings().get(
                         "org/objectweb/asm/ClassVisitor"));
         Assert.assertEquals(remapper.getRemappings().toString(),
-                "com/newrelic/agent/deps/com/google/common/cache/CacheBuilder", remapper.getRemappings().get(
-                        "com/google/common/cache/CacheBuilder"));
+                "com/newrelic/agent/deps/com/github/benmanes/caffeine/cache/Caffeine", remapper.getRemappings().get(
+                        "com/github/benmanes/caffeine/cache/Caffeine"));
+        Assert.assertEquals(remapper.getRemappings().toString(),
+                "com/newrelic/agent/deps/com/google/common/collect/ImmutableSet", remapper.getRemappings().get(
+                        "com/google/common/collect/ImmutableSet"));
     }
 
     @Test
@@ -51,7 +55,15 @@ public class DependencyRemapperTest {
 
         DependencyRemapper remapper = ExtensionRewriter.REMAPPER;
         Assert.assertEquals(remapper.getRemappings().toString(),
-                "com/newrelic/agent/deps/com/google/common/cache/CacheLoader",
+                "com/newrelic/agent/deps/com/google/common/collect/ImmutableSet",
+                remapper.mapType(Type.getInternalName(ImmutableSet.class)));
+    }
+
+    @Test
+    public void caffeine() {
+        DependencyRemapper remapper = ExtensionRewriter.REMAPPER;
+        Assert.assertEquals(remapper.getRemappings().toString(),
+                "com/newrelic/agent/deps/com/github/benmanes/caffeine/cache/CacheLoader",
                 remapper.mapType(Type.getInternalName(CacheLoader.class)));
     }
 
@@ -72,8 +84,10 @@ public class DependencyRemapperTest {
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-            // make sure we pick up this google reference
-            CacheBuilder<Object, Object> newBuilder = CacheBuilder.newBuilder();
+            // Make sure we pick up this Caffeine reference.
+            Caffeine<Object, Object> newBuilder = Caffeine.newBuilder();
+            // Make sure we pick up this Caffeine reference.
+            ImmutableSet<Object> set = ImmutableSet.of();
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 

@@ -21,7 +21,7 @@ import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
 import com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl;
-import com.newrelic.agent.instrumentation.weaver.extension.GuavaBackedExtensionClass;
+import com.newrelic.agent.instrumentation.weaver.extension.CaffeineBackedExtensionClass;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPostprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.TracedWeaveInstrumentationTracker;
@@ -93,7 +93,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         AgentBridge.extensionHolderFactory = new ExtensionHolderFactoryImpl();
         try {
             EXTENSION_TEMPLATE = WeaveUtils.convertToClassNode(WeaveUtils.getClassBytesFromClassLoaderResource(
-                    GuavaBackedExtensionClass.class.getName(), GuavaBackedExtensionClass.class.getClassLoader()));
+                    CaffeineBackedExtensionClass.class.getName(), CaffeineBackedExtensionClass.class.getClassLoader()));
         } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.WARNING, e,
                     "Unable to initialize custom extension class template. Falling back to default java NewField implementation");
