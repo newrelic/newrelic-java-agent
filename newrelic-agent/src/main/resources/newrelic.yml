@@ -221,6 +221,33 @@ common: &default_settings
     # Default is false.
     exclude_newrelic_header: false
 
+  # New Relic's distributed tracing UI uses Span events to display traces across different services.
+  # Span events capture attributes that describe execution context and provide linking metadata.
+  # Span events require distributed tracing to be enabled.
+  span_events:
+
+    # Set to false to disable Span events.
+    # Default is true.
+    enabled: true
+
+    # Determines the number of Span events that can be captured during an agent harvest cycle.
+    # Increasing the number of Span events can lead to additional agent overhead. A maximum value may be imposed server side by New Relic.
+    # Default is 2000
+    max_samples_stored: 2000
+
+    # Provides the ability to filter the attributes attached to Span events.
+    # Custom attributes can be added to Span events using the NewRelic.getAgent().getTracedMethod().addCustomAttribute(...) API.
+    attributes:
+
+      # When true, attributes will be sent to New Relic. The default is true.
+      enabled: true
+
+      # A comma separated list of attribute keys whose values should be sent to New Relic.
+      #include:
+
+      # A comma separated list of attribute keys whose values should not be sent to New Relic.
+      #exclude:
+
   # Cross Application Tracing adds request and response headers to
   # external calls using supported HTTP libraries to provide better
   # performance data when calling applications monitored by other New Relic Agents.
