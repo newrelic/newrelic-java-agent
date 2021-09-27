@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Auto-instrumentation support for [java.net.http.HttpClient](https://github.com/newrelic/newrelic-java-agent/pull/251) 
 
 * Migrate the Agent’s caching library from Guava to [Caffeine](https://github.com/newrelic/newrelic-java-agent/pull/295)
-  * [Caffeine provides an in-memory cache](https://github.com/ben-manes/caffeine#cache) using a Google Guava inspired API. The improvements draw on the author’s experience designing Guava's cache and ConcurrentLinkedHashMap.
+  * [Caffeine provides an in-memory cache](https://github.com/ben-manes/caffeine#cache) using a Google Guava inspired API. The improvements draw on the author’s experience designing Guava's cache and `ConcurrentLinkedHashMap`.
   * This change will provide improvements in cases where we saw thread contention and deadlocks attributable to the Guava library
  
 ### Fixes
