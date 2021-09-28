@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.3.0 (2021-9-30)
+
+### New features and improvements
+
+* Support for [Java 16](https://github.com/newrelic/newrelic-java-agent/pull/366)
+
+* Auto-instrumentation support for [java.net.http.HttpClient](https://github.com/newrelic/newrelic-java-agent/pull/251) 
+
+* Migrate the Agent’s caching library from Guava to [Caffeine](https://github.com/newrelic/newrelic-java-agent/pull/295)
+  * [Caffeine provides an in-memory cache](https://github.com/ben-manes/caffeine#cache) using a Google Guava inspired API. The improvements draw on the author’s experience designing Guava's cache and `ConcurrentLinkedHashMap`.
+  * We expect this change to provide improvement in cases where we saw thread contention and deadlocks attributable to the Guava library.
+ 
+### Fixes
+* Removed support for the [anorm-2.0 instrumentation module](https://github.com/newrelic/newrelic-java-agent/pull/426)
+  * The artifacts that this module instrumented are no longer available.
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
+
 ## Version 7.2.0 (2021-9-9)
 
 ### New features and improvements
