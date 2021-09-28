@@ -251,11 +251,16 @@ common: &default_settings
   # Cross Application Tracing adds request and response headers to
   # external calls using supported HTTP libraries to provide better
   # performance data when calling applications monitored by other New Relic Agents.
+  #
+  # Distributed tracing is replacing cross application tracing as the default
+  # means of tracing between services. To continue using cross application
+  # tracing, enable it with `cross_application_tracer.enabled = true` and
+  # `distributed_tracing.enabled = false`
   cross_application_tracer:
 
     # Set to false to disable cross application tracing.
-    # Default is true.
-    enabled: true
+    # Default is false.
+    enabled: false
 
   # Thread profiler measures wall clock time, CPU time, and method call counts
   # in your application's threads as they run.
