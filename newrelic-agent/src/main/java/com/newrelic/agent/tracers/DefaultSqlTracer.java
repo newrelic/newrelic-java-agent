@@ -372,8 +372,8 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             return;
         }
 
-        //We already parsed the statement
-        if(getRecordSql().equals(RecordSql.off)) {
+        //if true, statement has already been parsed
+        if (getRecordSql().equals(RecordSql.off)) {
             return;
         }
 
