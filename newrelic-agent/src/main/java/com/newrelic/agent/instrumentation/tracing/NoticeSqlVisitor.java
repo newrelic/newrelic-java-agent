@@ -30,7 +30,7 @@ public class NoticeSqlVisitor extends ClassVisitor {
     // The key in this map is the name of the setter used by the SqlTracer interface.
     private static final Map<String, Type> setterNamesToTypes = ImmutableMap.of(
             "provideConnection", Type.getType(Connection.class),
-            "setRawSql", Type.getType(String.class),
+            "maybeSetRawSql", Type.getType(String.class),
             "setParams", Type.getType(Object[].class)
             );
 
