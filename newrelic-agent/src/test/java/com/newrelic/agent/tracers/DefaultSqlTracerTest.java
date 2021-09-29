@@ -16,6 +16,7 @@ import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.DefaultDatabaseStatementParser;
+import com.newrelic.agent.database.ParsedDatabaseStatement;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
@@ -32,6 +33,7 @@ import org.json.simple.JSONObject;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.objectweb.asm.Opcodes;
 import sql.DummyConnection;
 import sql.DummyResultSet;
@@ -47,8 +49,7 @@ import java.util.*;
 import static com.newrelic.agent.AgentHelper.getFullPath;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class DefaultSqlTracerTest {
 
@@ -417,6 +418,56 @@ public class DefaultSqlTracerTest {
     public void testRaw() {
         String jsonString = getJSON(RecordSql.raw);
         assertEquals("select * from user where ssn = 666666666", jsonString);
+    }
+
+    @Test
+    public void sqlShouldBeNullAndParsedStatementNotNull() throws SQLException {
+        //given
+        String sql = "select * from user where ssn = ?";
+        Transaction transaction = getMockedTransaction(RecordSql.off.toString());
+
+        ParsedDatabaseStatement parsedDatabaseStatement = new ParsedDatabaseStatement("model", "select", true);
+        when(transaction.getDatabaseStatementParser().getParsedDatabaseStatement(Mockito.any(DatabaseVendor.class), anyString(), any()))
+                .thenReturn(parsedDatabaseStatement);
+
+        DefaultSqlTracer result = makeSqlTracerTestObject(transaction);
+        //when
+        result.maybeSetRawSql(sql);
+        //then
+        assertNull("sql should be null", result.getRawSql());
+        assertEquals("parsedStatement should not be null", parsedDatabaseStatement, result.getParsedDatabaseStatement());
+    }
+
+    @Test
+    public void sqlShouldBeSetAndNotNull() throws SQLException {
+        //given
+        String sql = "select * from user where ssn = ?";
+        Transaction transaction = getMockedTransaction(RecordSql.raw.toString());
+        DefaultSqlTracer result = makeSqlTracerTestObject(transaction);
+        //when
+        result.maybeSetRawSql(sql);
+        //then
+        assertEquals("sql should be null", sql, result.getRawSql());
+    }
+
+    private DefaultSqlTracer makeSqlTracerTestObject(Transaction transaction) throws SQLException {
+        ClassMethodSignature sig = new ClassMethodSignature("", "", "");
+        DummyConnection conn = new DummyConnection();
+        Statement statement = conn.createStatement();
+        return new DefaultSqlTracer(transaction, sig, statement, new SimpleMetricNameFormat(null),
+                DefaultTracer.DEFAULT_TRACER_FLAGS);
+    }
+
+    private Transaction getMockedTransaction(String recordSql) {
+        Transaction transaction = mock(Transaction.class, RETURNS_DEEP_STUBS);
+        TransactionActivity txa = mock(TransactionActivity.class);
+        when(transaction.getTransactionActivity()).thenReturn(txa);
+        when(txa.getTransaction()).thenReturn(transaction);
+
+        TransactionTracerConfig ttConfig = mock(TransactionTracerConfig.class);
+        when(ttConfig.getRecordSql()).thenReturn(recordSql);
+        when(transaction.getTransactionTracerConfig()).thenReturn(ttConfig);
+        return transaction;
     }
 
     private String getJSON(RecordSql recordSql) {
