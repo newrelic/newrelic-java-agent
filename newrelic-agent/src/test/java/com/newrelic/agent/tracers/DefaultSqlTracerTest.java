@@ -351,7 +351,7 @@ public class DefaultSqlTracerTest {
                 "(Ljava/lang/String;)Ljava/sql/ResultSet;");
         DefaultSqlTracer result = new DefaultSqlTracer(transaction, sig, statement, new SimpleMetricNameFormat(null),
                 DefaultTracer.DEFAULT_TRACER_FLAGS);
-        result.setRawSql(sql);
+        result.maybeSetRawSql(sql);
         AgentHelper.setLastTracer(result); // prevent "Inconsistent state! ..." errors
         return result;
     }
@@ -386,7 +386,7 @@ public class DefaultSqlTracerTest {
         };
 
         result.setConnectionFactory(connectionFactory);
-        result.setRawSql(sql);
+        result.maybeSetRawSql(sql);
         result.provideConnection(connection);
         result.setConnectionFactory(connectionFactory);
         AgentHelper.setLastTracer(result); // prevent "Inconsistent state! ..." errors
@@ -441,7 +441,7 @@ public class DefaultSqlTracerTest {
 
             DefaultSqlTracer tracer = new DefaultSqlTracer(transaction, sig, new Object(),
                     new SimpleMetricNameFormat("BoundedConcurrentCacheTest"), TracerFlags.GENERATE_SCOPED_METRIC);
-            tracer.setRawSql("select * from user where ssn = ?");
+            tracer.maybeSetRawSql("select * from user where ssn = ?");
             tracer.setParams(new Object[] { 666666666 });
 
             Object sqlObject = tracer.getSql();

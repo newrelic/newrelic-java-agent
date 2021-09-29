@@ -273,7 +273,7 @@ public class DatabaseServiceTest {
         ConnectionFactory connectionFactory = createConnectionFactory(connection);
 
         tracer.setConnectionFactory(connectionFactory);
-        tracer.setRawSql("select * from metrics");
+        tracer.maybeSetRawSql("select * from metrics");
         tracer.provideConnection(connection);
         AgentHelper.setLastTracer(tracer);
 
@@ -302,7 +302,7 @@ public class DatabaseServiceTest {
         TestDefaultSqlTracer tracer = new TestDefaultSqlTracer(transaction, sig, null, new SimpleMetricNameFormat(null),
                 DefaultTracer.DEFAULT_TRACER_FLAGS);
 
-        tracer.setRawSql("select * from metrics");
+        tracer.maybeSetRawSql("select * from metrics");
         AgentHelper.setLastTracer(tracer);
 
         tracer.provideConnection(connection);
@@ -356,7 +356,7 @@ public class DatabaseServiceTest {
         TestDefaultSqlTracer tracer = new TestDefaultSqlTracer(transaction, sig, null, new SimpleMetricNameFormat(null),
                 DefaultTracer.DEFAULT_TRACER_FLAGS);
 
-        tracer.setRawSql("select * from metrics");
+        tracer.maybeSetRawSql("select * from metrics");
         tracer.provideConnection(connection);
         ConnectionFactory connectionFactory = createConnectionFactory(connection);
         tracer.setConnectionFactory(connectionFactory);
