@@ -57,12 +57,15 @@ public interface SqlTracer extends SqlTracerExplainInfo, Tracer {
     void provideConnection(Connection conn);
 
     /**
-     * Store the raw sql string on this tracer.
+     * Maybe store the raw sql string on this tracer if the config for record_sql != off
+     * By making this decision early, it can relieve memory pressure from storing large sql strings that are discarded anyway.
+     *
      * Note: A call to this method is automatically wired up in {@link com.newrelic.agent.instrumentation.tracing.NoticeSqlVisitor}
+     * Any changes to the signature must also be matched in {@link com.newrelic.agent.instrumentation.tracing.NoticeSqlVisitor}
      * 
      * @param rawSql the raw sql string to store
      */
-    void setRawSql(String rawSql);
+    void maybeSetRawSql(String rawSql);
 
     /**
      * Returns an Object array containing the parameters (in order) that were set on a PreparedStatement. If the query
