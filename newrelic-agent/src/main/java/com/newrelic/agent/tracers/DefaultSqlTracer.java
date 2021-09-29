@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.bridge.datastore.ConnectionFactory;
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
@@ -63,7 +64,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     private String databaseName = null;
 
     public DefaultSqlTracer(Transaction transaction, ClassMethodSignature sig, Object object,
-            MetricNameFormat metricNameFormatter, int tracerFlags) {
+                            MetricNameFormat metricNameFormatter, int tracerFlags) {
         super(transaction, sig, object, metricNameFormatter, tracerFlags);
     }
 
@@ -192,6 +193,11 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
         }
 
         return connectionFactory.getDatabaseVendor();
+    }
+
+    @VisibleForTesting
+    ParsedDatabaseStatement getParsedDatabaseStatement() {
+        return parsedDatabaseStatement;
     }
 
     @Override
