@@ -157,8 +157,18 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     }
 
     @Override
-    public void setRawSql(String sql) {
+    public void maybeSetRawSql(String sql) {
+        if (getRecordSql().equals(RecordSql.off)) {
+            getStatementWhileSqlPresent(sql);
+            return;
+        }
         this.sql = sql;
+    }
+
+    private void getStatementWhileSqlPresent(String sql) {
+        Transaction tx = getTransaction();
+        this.parsedDatabaseStatement = tx.getDatabaseStatementParser().getParsedDatabaseStatement(getDatabaseVendor(),
+                sql,  null);
     }
 
     @Override
@@ -362,6 +372,11 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             return;
         }
 
+        //We already parsed the statement
+        if(getRecordSql().equals(RecordSql.off)) {
+            return;
+        }
+
         if (parsedDatabaseStatement == null) {
             ResultSetMetaData metaData = null;
             try {
@@ -499,7 +514,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
      * @param parameters the parameter map
      * @return the parameterized SQL
      */
-    public static String parameterizeSql(String sql, Object[] parameters) throws Exception {
+    public static String parameterizeSql(String sql, Object[] parameters) {
         if (sql == null || parameters == null || parameters.length == 0) {
             return sql;
         }
@@ -512,11 +527,11 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             } else {
                 Object val = i < parameters.length ? parameters[i] : null;
                 if (val instanceof Number) {
-                    sb.append(piece).append(val.toString());
+                    sb.append(piece).append(val);
                 } else if (val == null) {
                     sb.append(piece).append("?");
                 } else {
-                    sb.append(piece).append("'").append(val.toString()).append("'");
+                    sb.append(piece).append("'").append(val).append("'");
                 }
             }
         }
