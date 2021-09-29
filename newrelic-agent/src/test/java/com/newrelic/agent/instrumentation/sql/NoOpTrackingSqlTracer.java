@@ -66,7 +66,7 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     }
 
     @Override
-    public void setRawSql(String rawSql) {
+    public void maybeSetRawSql(String rawSql) {
         this.rawSql = rawSql;
     }
 

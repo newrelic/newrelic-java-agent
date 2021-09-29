@@ -214,7 +214,7 @@ public class BoundedConcurrentCacheTest {
     public SqlTracer createSqlTracer(RandomSql sql) {
         SqlTracer defaultSqlTracer = new DefaultSqlTracer(tx, cms, new Object(),
                 new SimpleMetricNameFormat("BoundedConcurrentCacheTest"), TracerFlags.GENERATE_SCOPED_METRIC);
-        defaultSqlTracer.setRawSql(sql.getSql());
+        defaultSqlTracer.maybeSetRawSql(sql.getSql());
         return defaultSqlTracer;
     }
 
@@ -226,7 +226,7 @@ public class BoundedConcurrentCacheTest {
                 return duration;
             }
         };
-        defaultSqlTracer.setRawSql(sql.getSql());
+        defaultSqlTracer.maybeSetRawSql(sql.getSql());
         return defaultSqlTracer;
     }
 

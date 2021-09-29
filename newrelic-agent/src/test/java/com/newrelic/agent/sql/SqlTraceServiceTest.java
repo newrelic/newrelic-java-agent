@@ -786,7 +786,7 @@ public class SqlTraceServiceTest {
                 return UnknownDatabaseVendor.INSTANCE;
             }
         });
-        sqlTracer.setRawSql(sql);
+        sqlTracer.maybeSetRawSql(sql);
         tx.getTransactionActivity().tracerStarted(sqlTracer);
         return sqlTracer;
     }

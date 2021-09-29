@@ -122,7 +122,7 @@ public class SqlTraceAggregatorTest {
         DefaultSqlTracer tracer = new OtherRootSqlTracer(Transaction.getTransaction(), new ClassMethodSignature(
                 "myclazz", "mymethod", "()V"), sql, new SimpleMetricNameFormat(null),
                 DefaultTracer.DEFAULT_TRACER_FLAGS, time);
-        tracer.setRawSql("select * from " + tableName);
+        tracer.maybeSetRawSql("select * from " + tableName);
         tracer.setHost(host);
         tracer.setPort(port);
         tracer.setDatabaseName(dbName);
