@@ -1,9 +1,7 @@
 apply plugin: 'scala'
 scala.zincVersion = "1.2.5"
 
-project.tasks.all {
-    task -> task.enabled = project.hasProperty("scala-2.11") ? true : project.hasProperty("noScala") ? false : project.hasProperty('noInstrumentation') ? false : task.enabled
-}
+isScalaProjectEnabled(project, "scala-2.11")
 
 dependencies {
     implementation(project(":newrelic-api"))
