@@ -54,6 +54,21 @@ public class App {
     }
 
     @Trace(dispatcher = true)
+    public static String concreteController() {
+        return new ConcreteControllerTest().concreteController();
+    }
+
+    @Trace(dispatcher = true)
+    public static String abstractControllerPath() {
+        return new ConcreteControllerTest().abstractControllerPath();
+    }
+
+    @Trace(dispatcher = true)
+    public static String abstractControllerNoPath() {
+        return new ConcreteControllerTest().abstractControllerNoPath();
+    }
+
+    @Trace(dispatcher = true)
     public static String kotlinDefaultParameter() {
         return new KotlinSpringClass().read(Collections.<String>emptyList(), 10);
     }

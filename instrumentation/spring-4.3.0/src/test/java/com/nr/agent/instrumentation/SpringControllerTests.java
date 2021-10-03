@@ -94,6 +94,37 @@ public class SpringControllerTests {
     }
 
     @Test
+    public void testConcreteController() {
+        assertEquals("concreteController", App.concreteController());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        String expectedTransactionName = "OtherTransaction/SpringController/concrete/controller/concrete (GET)";
+        Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(expectedTransactionName);
+        assertEquals(1, metrics.get("Java/com.nr.agent.instrumentation.App/concreteController").getCallCount());
+        assertEquals(1, metrics.get("Java/com.nr.agent.instrumentation.ConcreteControllerTest/concreteController").getCallCount());
+    }
+
+    @Test
+    public void testAbstractControllerPath() {
+        assertEquals("abstractControllerPath", App.abstractControllerPath());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        String expectedTransactionName = "OtherTransaction/SpringController/abstract (GET)";
+        Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(expectedTransactionName);
+        assertEquals(1, metrics.get("Java/com.nr.agent.instrumentation.App/abstractControllerPath").getCallCount());
+    }
+
+    @Test
+    public void testAbstractControllerNoPath() {
+        assertEquals("abstractControllerNoPath", App.abstractControllerNoPath());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        String expectedTransactionName = "OtherTransaction/SpringController/AbstractControllerTest (GET)";
+        Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(expectedTransactionName);
+        assertEquals(1, metrics.get("Java/com.nr.agent.instrumentation.App/abstractControllerNoPath").getCallCount());
+    }
+
+    @Test
     public void testKotlinDefaultParameter() {
         assertEquals("kotlinDefaultParameter", App.kotlinDefaultParameter());
 

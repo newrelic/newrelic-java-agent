@@ -17,8 +17,14 @@ import java.util.logging.Level;
 
 public class SpringControllerUtility {
 
-    public static String getPath(String rootPath, String methodPath, RequestMethod httpMethod) {
+    public static String getPath(String rootPath, String methodPath, RequestMethod httpMethod, String className) {
         StringBuilder fullPath = new StringBuilder();
+
+        // Use the Controller name if neither the root nor method paths are available
+        if (rootPath == null && methodPath == null) {
+            fullPath.append(className);
+        }
+
         if (rootPath != null && !rootPath.isEmpty()) {
             if (rootPath.endsWith("/")) {
                 fullPath.append(rootPath.substring(0, rootPath.length() - 1));
@@ -70,7 +76,7 @@ public class SpringControllerUtility {
     }
 
     public static void processAnnotations(Transaction transaction, RequestMethod[] methods, String rootPath,
-            String methodPath, Class<?> matchedAnnotationClass) {
+                                          String methodPath, Class<?> matchedAnnotationClass) {
         RequestMethod httpMethod = RequestMethod.GET;
         if (methods.length > 0) {
             httpMethod = methods[0];
@@ -78,11 +84,10 @@ public class SpringControllerUtility {
 
         if (rootPath == null && methodPath == null) {
             AgentBridge.getAgent().getLogger().log(Level.FINE, "No path was specified for SpringController {0}", matchedAnnotationClass.getName());
-        } else {
-            String fullPath = SpringControllerUtility.getPath(rootPath, methodPath, httpMethod);
-            transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
-                    fullPath);
         }
+        String fullPath = SpringControllerUtility.getPath(rootPath, methodPath, httpMethod, matchedAnnotationClass.getSimpleName());
+        transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
+                fullPath);
     }
 
 }
