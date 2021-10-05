@@ -160,7 +160,7 @@ jobs:
 
   ###
 
-  matrix_functional_all_versions:
+  matrix-functional-all-versions:
     timeout-minutes: 120
     needs: install-all-java
     runs-on: ubuntu-latest
@@ -198,7 +198,7 @@ jobs:
             ${{ github.workflow }}-
 
       # Check contents of cache path
-      - name: check cache dir
+      - name: Check cache dir
         # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
         run: |
           pwd
@@ -271,7 +271,7 @@ jobs:
       # GHA run functional tests
 
       # Rewrite gradle.properties
-      - name: set gradle.properties
+      - name: Set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
           s|jdk9=9|jdk9=${ORG_GRADLE_PROJECT_jdk9}|
@@ -323,7 +323,7 @@ jobs:
 
 
   testing_job_dependence: ## Test Only
-    needs:  matrix_functional_all_versions
+    needs: matrix-functional-all-versions
     runs-on: ubuntu-latest
     steps:
       # Print Environmental variables

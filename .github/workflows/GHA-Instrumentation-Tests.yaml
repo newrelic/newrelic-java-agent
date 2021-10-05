@@ -112,7 +112,7 @@ jobs:
           java-version: 16
 
       # Check contents of cache path
-      - name: check cache dir
+      - name: Check cache dir
         # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
         run: |
           pwd
@@ -159,7 +159,7 @@ jobs:
 
   ###
 
-  matrix_instrumentation_test:
+  matrix-instrumentation-tests:
     timeout-minutes: 120
     needs: install-all-java
     runs-on: ubuntu-latest
@@ -197,7 +197,7 @@ jobs:
             ${{ github.workflow }}-
 
       # Check contents of cache path
-      - name: check cache dir
+      - name: Check cache dir
         # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
         run: |
           pwd
@@ -345,7 +345,7 @@ jobs:
 
 
   testing_job_dependence: ## Testing Only
-    needs: matrix_instrumentation_test  ## Only runs after matrix_instrumentation_test runs
+    needs: matrix-instrumentation-tests  ## Only runs after matrix_instrumentation_test runs
     runs-on: ubuntu-latest
     steps:
       # Print Environmental variables
