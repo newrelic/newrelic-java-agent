@@ -1,7 +1,12 @@
 ## Using matrix strategy test for unit testing
+
+# The name of your workflow. GitHub displays the names of your workflows on your
+# repository's actions page. If you omit name, GitHub sets it to the workflow
+# file path relative to the root of the repository.
 name: GHA-Unit-Tests
 
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#on
+# on: The name of the GitHub event that triggers the workflow.
 on:
   pull_request:
     branches: [ gha ] ## branches TBD
@@ -17,11 +22,12 @@ on:
         description: "Specify branch (main is default)"
         required: false
         default: 'main'
-
+# A workflow run is made up of one or more jobs. Jobs run in parallel by default.
 jobs:
   install-all-java:
     runs-on: ubuntu-latest
     steps:
+      # https://github.com/actions/checkout
       - uses: actions/checkout@v2
 
       # JDK cache
@@ -189,14 +195,14 @@ jobs:
       - uses: gradle/wrapper-validation-action@v1
 
 
-      ## restore jdk cache dir here
+      ## restore JDK cache dir here
 
       # JDK cache
       - name: Cache jdk dir
         id: cache-jdk-dir
         uses: actions/cache@v2.1.6
         env:
-          cache-name: cache-jdk-dir ## See if this works and includes all versions
+          cache-name: cache-jdk-dir
         with:
           path: |
             ~/jdk_paths.txt
@@ -241,7 +247,6 @@ jobs:
           while read line
           do
               echo $line
-              echo The counter is $COUNTER
               echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64" >> $GITHUB_ENV
               # Below only use for subsequent jobs, as the jdk build doesn't set these paths
               # echo "/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64/bin" >> $GITHUB_PATH
@@ -253,6 +258,7 @@ jobs:
         run: printenv | sort -f
 
       # install of matrix Java versions
+      # Same use of setup-java, but using the matrix values here
       - name: Set up Java ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
@@ -260,7 +266,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
 
       # Set current default jdk version
-      - name: save JAVA_HOME as JDK${{ matrix.java-version }} for later usage
+      - name: Save JAVA_HOME as JDK${{ matrix.java-version }} for later usage
         run: echo "ORG_GRADLE_PROJECT_jdk${{ matrix.java-version }}=$JAVA_HOME" >> $GITHUB_ENV
 
       # Check $JAVA_HOME - This should be equal to the version of the matrix run
@@ -288,9 +294,9 @@ jobs:
       # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
         env:
-          # below is availabel to contect ONLY BECAUSE IT WAS EXPLICITLY ADDED
+          # Below is available to context ONLY BECAUSE IT WAS EXPLICITLY ADDED
           # IN A PREVIOUS STEP.
-          # Not all ENV variables are available for contexts by default
+          # Not all ENV variables are available for contexts by default.
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           echo "JAVA_HOME=${JAVA_HOME}"
@@ -299,14 +305,17 @@ jobs:
           ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
+      # Checking disk space and top largest directories
+      # as this might sometime be a cause of failures
       - name: Check disk space
         run: |
           df -h
-          du -a ${GITHUB_WORKSPACE} | sort -n -r | head -n 10
+          du -a "${GITHUB_WORKSPACE}" | sort -n -r | head -n 10
 
       # GHA run unit tests
 
       # Rewrite gradle.properties
+      # Assume required as indicated
       - name: Set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
@@ -333,13 +342,16 @@ jobs:
           ./gradlew --console=plain clean test -x functional_test:test -PnoInstrumentation -Ptest${{ matrix.java-version }} --continue --warn
 
       # Run the build.
+      # An alternative to the standard gradlew command but neve used.
       - name: Run the tests with alternate Java version syntax - testing with -Dorg.gradle.java.home
         run: |
           # ./gradlew -Dorg.gradle.java.home=${ORG_GRADLE_PROJECT_jdk9} --console=plain --parallel functional_test:test -PnoInstrumentation --continue --info
 
 
       # Capture HTML build result in artifacts
+      # https://github.com/actions/upload-artifact
       - name: Capture build reports
+        # If previus step fals, run this step regardless
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
@@ -349,7 +361,7 @@ jobs:
             # path/output/test-results
             # !path/**/*.tmp
 
-  testing-job-dependence: ## Testing Only
+  testing-job-dependence: # Testing Only
     needs: matrix-unit-test
     runs-on: ubuntu-latest
     steps:
