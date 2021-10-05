@@ -1,5 +1,7 @@
 apply plugin: 'scala'
 
+isScalaProjectEnabled(project, "scala-2.11")
+
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-core-1.0' }
 }

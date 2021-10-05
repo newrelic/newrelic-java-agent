@@ -56,6 +56,6 @@ jobs:
             ${{ runner.os }}-gradle
       # Start running the build.
       - name: run the functional tests
-        run: ./gradlew --console=plain --parallel functional_test:test --continue
+        run: ./gradlew --console=plain --parallel :functional_test:test :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test --continue
 
 
