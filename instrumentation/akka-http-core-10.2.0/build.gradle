@@ -1,5 +1,7 @@
 apply plugin: 'scala'
 
+isScalaProjectEnabled(project, "scala-2.12")
+
 // The scala plugin uses zinc for incremental compiling. Zinc itself relies on scala, and while gradle is
 // normally able to resolve the correct version of scala for zinc (even if that version is different than
 // the version of scala required for the module), it certain circumstances the zinc scala version

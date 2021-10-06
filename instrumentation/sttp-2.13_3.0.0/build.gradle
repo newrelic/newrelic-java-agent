@@ -1,5 +1,8 @@
 apply plugin: 'scala'
 
+isScalaProjectEnabled(project, "scala-2.13")
+
+
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))

@@ -1,6 +1,8 @@
 apply plugin: 'scala'
 scala.zincVersion = "1.2.5"
 
+isScalaProjectEnabled(project, "scala-2.11")
+
 compileJava.options.bootstrapClasspath = null
 
 sourceCompatibility = JavaVersion.VERSION_1_8

@@ -6,6 +6,8 @@ import scala.collection.JavaConversions
 apply plugin: 'scala'
 scala.zincVersion = "1.2.5"
 
+isScalaProjectEnabled(project, "scala-2.11")
+
 buildscript {
     dependencies {
         classpath 'com.typesafe.play:routes-compiler_2.11:2.7.0-M2'

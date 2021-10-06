@@ -1,5 +1,7 @@
 apply plugin: 'scala'
 
+isScalaProjectEnabled(project, "scala-2.10")
+
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spray-can-1.3.1' }
 }

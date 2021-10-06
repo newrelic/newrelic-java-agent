@@ -1,5 +1,7 @@
 apply plugin: 'scala'
 
+isScalaProjectEnabled(project, "scala-2.13")
+
 dependencies {
     implementation("dev.zio:zio_2.13:1.0.9")
     implementation(project(":agent-bridge"))
