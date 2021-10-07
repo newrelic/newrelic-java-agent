@@ -31,7 +31,7 @@ public final class Utils {
   public static void incrementTokenRefCount(AgentBridge.TokenAndRefCount tokenAndRefCount) {
     if (tokenAndRefCount != null) {
       if (tokenAndRefCount.refCount != null) {
-        int inc = tokenAndRefCount.refCount.incrementAndGet();
+        tokenAndRefCount.refCount.incrementAndGet();
       } else {
         tokenAndRefCount.refCount = new AtomicInteger(1);
       }
