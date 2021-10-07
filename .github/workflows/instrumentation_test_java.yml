@@ -56,4 +56,4 @@ jobs:
             ${{ runner.os }}-gradle
       # Start running the build.
       - name: run the java instrumentation tests
-        run: ./gradlew --console=plain :instrumentation:build -Ptest8 -PnoScala --continue
+        run: ./gradlew --console=plain :instrumentation:test -Ptest8 -PnoScala --continue
