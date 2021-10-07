@@ -1,4 +1,4 @@
-name: Run Tests
+name: Reusable Workflow for running Gradle build commands
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  run_tests:
+  run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
