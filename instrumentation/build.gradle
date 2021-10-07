@@ -6,7 +6,7 @@ subprojects {
     // pull in shared instrumentation build logic
     apply from: "$rootProject.projectDir/gradle/script/instrumentation.gradle"
 
-    tasks.all { task ->
+    tasks.withType(Test) { task ->
         task.enabled = !project.hasProperty('noInstrumentation')
     }
 
