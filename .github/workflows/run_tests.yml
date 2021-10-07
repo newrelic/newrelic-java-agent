@@ -1,0 +1,27 @@
+name: Run Tests
+
+on:
+  push:
+    branches-ignore:
+      - '**WIP**'
+
+jobs:
+  unit-tests:
+    uses: newrelic/newrelic-java-agent/.github/workflows/setup-lts-java.yml@tcrone/gha-build-adjustments
+    with:
+      command: ./gradlew --console=plain --parallel clean test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-scala-zio-api:test -Ptest8 -PnoInstrumentation --continue
+
+  java-functional-tests:
+    uses: newrelic/newrelic-java-agent/.github/workflows/setup-lts-java.yml@tcrone/gha-build-adjustments
+    with:
+      command: ./gradlew --console=plain --parallel :functional_test:test --continue
+
+  scala-functional-tests:
+    uses: newrelic/newrelic-java-agent/.github/workflows/setup-lts-java.yml@tcrone/gha-build-adjustments
+    with:
+      command: ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test --continue
+
+  java-instrumentation-tests:
+    uses: newrelic/newrelic-java-agent/.github/workflows/setup-lts-java.yml@tcrone/gha-build-adjustments
+    with:
+      command: ./gradlew --console=plain :instrumentation:test -Ptest8 -PnoScala --continue
