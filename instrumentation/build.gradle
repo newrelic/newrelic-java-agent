@@ -25,6 +25,12 @@ subprojects {
         testImplementation(project(":instrumentation-test"))
     }
 
+    test {
+        exclude '**/BasicRequestsTest.class'
+        exclude '**/QuartzSystemTest.class'
+        exclude '**/RabbitMQTest.class'
+        exclude '**/CassandraTest.class'
+    }
 }
 
 task test {

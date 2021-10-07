@@ -1,11 +1,16 @@
-name: PR Build - Instrumentation Tests Java
+name: Java Instrumentation Tests
 
 on:
+  push:
+    branches-ignore:
+      - '**WIP**'
+
   pull_request:
     branches: [ main ]
 
 jobs:
   instrumentation_test_java:
+    name: Java Instrumentation Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,13 +22,6 @@ jobs:
           java-version: 8
       - name: save JAVA_HOME as JDK8 for later usage
         run: echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
-      # The second JDK is not first in the path but does reset JAVA_HOME
-      - name: Set up JDK 1.7
-        uses: actions/setup-java@v1.4.3
-        with:
-          java-version: 7
-      - name: save JAVA_HOME as JDK7 for later usage
-        run: echo "ORG_GRADLE_PROJECT_jdk7=$JAVA_HOME" >> $GITHUB_ENV
       - name: Set up JDK 1.9
         uses: actions/setup-java@v1.4.3
         with:
@@ -58,4 +56,4 @@ jobs:
             ${{ runner.os }}-gradle
       # Start running the build.
       - name: run the java instrumentation tests
-        run: ./gradlew --console=plain --parallel clean :instrumentation:build -Ptest8 -PnoScala --continue
+        run: ./gradlew --console=plain :instrumentation:build -Ptest8 -PnoScala --continue
