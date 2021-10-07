@@ -1,11 +1,11 @@
-name: PR Build - Instrumentation Tests Scala 2.10
+name: PR Build - Instrumentation Tests Spray
 
 on:
   pull_request:
     branches: [ main ]
 
 jobs:
-  instrumentation_test_scala_2_10:
+  instrumentation_test_spray:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -58,4 +58,4 @@ jobs:
             ${{ runner.os }}-gradle
       # Start running the build.
       - name: run the scala 2.10 instrumentation tests
-        run: ./gradlew --console=plain --parallel clean :instrumentation:spray-http-1.3.1:test -Ptest8 -PnoInstrumentation -PnoScala -Pscala-2.10 --continue
+        run: ./gradlew --console=plain --parallel clean :instrumentation:spray-http-1.3.1:test -Ptest8 -PnoInstrumentation -PnoScala -Pscala-2.10 --continue --debug
