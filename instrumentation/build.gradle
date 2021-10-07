@@ -33,8 +33,8 @@ task test {
     }
 }
 
-def isScalaProjectEnabled(Project project, String scalaVersion) {
-    return project.hasProperty(scalaVersion) ? project.tasks.all { task -> task.enabled = true }  // Enable tasks if project property matching scala version is passed
+def isScalaProjectEnabled(Project project, String... scalaVersions) {
+    return scalaVersions.any {scalaVersion -> project.hasProperty(scalaVersion) }  ? project.tasks.all { task -> task.enabled = true }  // Enable tasks if project property matching scala version is passed
             : project.hasProperty("noScala") ? project.tasks.all { task -> task.enabled = false } // Disable tasks if  project property noScala is passed
             : project.hasProperty('noInstrumentation') ? project.tasks.all { task -> task.enabled = false } // Disable tasks if project property noInstrumentation is passed
             : project.tasks.all { task -> task.enabled = task.enabled }  // Default to task enabled flag
