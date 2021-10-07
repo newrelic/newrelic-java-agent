@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     id("com.github.johnrengelman.shadow")
+    id("org.gradle.test-retry") version "1.3.1"
 }
 
 java {
@@ -12,6 +13,11 @@ java {
 
 tasks.test {
     useJUnitPlatform()
+    retry {
+        maxRetries.set(2)
+        maxFailures.set(20)
+        failOnPassedAfterRetry.set(true)
+    }
 }
 
 dependencies {
