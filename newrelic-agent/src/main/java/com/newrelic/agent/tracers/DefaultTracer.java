@@ -239,12 +239,12 @@ public class DefaultTracer extends AbstractTracer {
         duration = Math.max(0, finishTime - getStartTime());
         exclusiveDuration += duration;
         if (exclusiveDuration < 0 || exclusiveDuration > duration) {
-            if(ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG)){
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG)) {
                 Agent.LOG.log(Level.INFO, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
                         this.getClass().getName());
                 MetricNames.recordApiSupportabilityMetric("Supportability/" + this.getClass().getName() + "/NegativeValue");
 
-            }else{
+            } else {
                 Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
                         this.getClass().getName());
             }
