@@ -7,12 +7,12 @@
 
 package com.newrelic.agent.stats;
 
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-
 import com.newrelic.agent.Agent;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
+
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * This base implementation of a metric aggregator verifies input and catches and logs all exceptions thrown by the

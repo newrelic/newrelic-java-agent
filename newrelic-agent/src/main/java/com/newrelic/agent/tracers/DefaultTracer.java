@@ -13,10 +13,11 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
+import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.DatastoreConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
-import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.database.DatastoreMetrics;
+import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.TransactionStats;
@@ -26,7 +27,16 @@ import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.Strings;
-import com.newrelic.api.agent.*;
+import com.newrelic.api.agent.DatastoreParameters;
+import com.newrelic.api.agent.DestinationType;
+import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.GenericParameters;
+import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.InboundHeaders;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
+import com.newrelic.api.agent.OutboundHeaders;
+import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 import org.objectweb.asm.Opcodes;
 
 import java.net.URI;
@@ -229,8 +239,15 @@ public class DefaultTracer extends AbstractTracer {
         duration = Math.max(0, finishTime - getStartTime());
         exclusiveDuration += duration;
         if (exclusiveDuration < 0 || exclusiveDuration > duration) {
-            Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
-                    this.getClass().getName());
+            if(ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG)){
+                Agent.LOG.log(Level.INFO, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
+                        this.getClass().getName());
+                MetricNames.recordApiSupportabilityMetric("Supportability/" + this.getClass().getName() + "/NegativeValue");
+
+            }else{
+                Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
+                        this.getClass().getName());
+            }
             exclusiveDuration = duration;
         }
 

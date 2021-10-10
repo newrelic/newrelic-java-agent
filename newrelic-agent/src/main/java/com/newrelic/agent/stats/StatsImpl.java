@@ -7,6 +7,10 @@
 
 package com.newrelic.agent.stats;
 
+import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.config.AgentConfigImpl;
+import com.newrelic.agent.service.ServiceFactory;
+
 /**
  * This class is not thread-safe.
  */
@@ -27,6 +31,7 @@ public class StatsImpl extends AbstractStats implements Stats {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.sumOfSquares = sumOfSquares;
+
     }
 
     @Override
@@ -42,8 +47,8 @@ public class StatsImpl extends AbstractStats implements Stats {
 
     @Override
     public String toString() {
-        // Don't bother with sOS because it's rarely used
-        return super.toString() + " [tot=" + total + ", min=" + minValue + ", maxV=" + maxValue + "]";
+        return super.toString() + " [total=" + total + ", count=" + count + ", minValue="
+                + minValue + ", maxValue=" + maxValue + ", sumOfSquares=" + sumOfSquares + "]";
     }
 
     @Override
@@ -64,6 +69,15 @@ public class StatsImpl extends AbstractStats implements Stats {
         total += value;
         maxValue = Math.max(value, maxValue);
         sumOfSquares = sos;
+
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG))  {
+           if (count < 0 || total < 0 || sumOfSquares < 0) {
+                MetricNames.recordApiSupportabilityMetric("Supportability/StatsImpl/NegativeValue");
+                throw new IllegalArgumentException( this.toString() );
+            }
+        }
+
+
     }
 
     @Override

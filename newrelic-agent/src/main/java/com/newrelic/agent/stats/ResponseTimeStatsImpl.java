@@ -7,9 +7,12 @@
 
 package com.newrelic.agent.stats;
 
-import java.util.concurrent.TimeUnit;
-
+import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.config.AgentConfigImpl;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.TimeConversion;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is not thread-safe.
@@ -28,6 +31,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     protected ResponseTimeStatsImpl() {
         super();
     }
+
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -73,6 +77,13 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         total += responseTime;
         maxValue = Math.max(responseTime, maxValue);
         totalExclusive += exclusiveTime;
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG)) {
+            if (!hasData() || sumOfSquares < 0 ) {
+                MetricNames.recordApiSupportabilityMetric("Supportability/ResponseTimeStatsImpl/NegativeValue");
+                throw new IllegalArgumentException(" [count=" + count + ", total=" + total + ", totalExclusive=" + totalExclusive + ", sum of squares=" + sumOfSquares + "]");
+            }
+        }
+
     }
 
     @Override
@@ -149,5 +160,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     public String toString() {
         return "ResponseTimeStatsImpl [total=" + total + ", totalExclusive=" + totalExclusive + ", minValue="
                 + minValue + ", maxValue=" + maxValue + ", sumOfSquares=" + sumOfSquares + "]";
+
     }
+
 }
