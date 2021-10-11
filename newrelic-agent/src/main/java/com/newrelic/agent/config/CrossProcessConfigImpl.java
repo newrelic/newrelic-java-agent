@@ -22,7 +22,7 @@ public final class CrossProcessConfigImpl extends BaseConfig implements CrossPro
     public static final String ENCODING_KEY = "encoding_key";
     public static final String TRUSTED_ACCOUNT_IDS = "trusted_account_ids";
     public static final String APPLICATION_ID = "application_id";
-    public static final boolean DEFAULT_ENABLED = true;
+    public static final boolean DEFAULT_ENABLED = false;
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.cross_application_tracer.";
 
     private final boolean isCrossApplicationTracing;
