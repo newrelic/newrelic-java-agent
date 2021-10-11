@@ -36,7 +36,7 @@ object TransactionMiddleware {
     tracer.finish(176, null)
   }.handleErrorWith(_ => Sync[F].unit)
 
-  private def construct[F[_] : Sync, T](t: T): F[T] = Sync[F].delay(t)
+  private def construct[F[_] : Sync, T](t: => T): F[T] = Sync[F].delay(t)
 
   private def attachErrorEvent[S, F[_] : Sync](body: F[S], tracer: ExitTracer, token: Token) =
     body.handleErrorWith(throwable => {
