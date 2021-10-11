@@ -3,10 +3,10 @@ name: GHA-Functional-Tests
 
 on:
   pull_request:
-    branches: [ gha ] ## branches TBD
+    branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ gha-testing, gha, main ]
+    branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:

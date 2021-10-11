@@ -9,10 +9,10 @@ name: GHA-Unit-Tests
 # on: The name of the GitHub event that triggers the workflow.
 on:
   pull_request:
-    branches: [ gha ] ## branches TBD
+    branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ gha-testing, gha, main ]
+    branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   # Use context values as : ${{ github.event.inputs.BRANCH }}
   # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
