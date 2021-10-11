@@ -123,6 +123,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
     public static final boolean DEFAULT_ENABLE_CUSTOM_TRACING = true;
     public static final boolean DEFAULT_HIGH_SECURITY = false;
+    public static final boolean DEFAULT_METRIC_DEBUG = false;
+
     /*
      * If a customer wants to add a . to the end of their collector hostname to avoid one DNS lookup they can configure
      * host in newrelic.yml. This value makes the default behavior always work.

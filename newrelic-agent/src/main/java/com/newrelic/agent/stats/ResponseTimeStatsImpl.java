@@ -77,8 +77,8 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         total += responseTime;
         maxValue = Math.max(responseTime, maxValue);
         totalExclusive += exclusiveTime;
-        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG)) {
-            if (!hasData() || sumOfSquares < 0 ) {
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
+            if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0 ) {
                 MetricNames.recordApiSupportabilityMetric("Supportability/ResponseTimeStatsImpl/NegativeValue");
                 throw new IllegalArgumentException(" [count=" + count + ", total=" + total + ", totalExclusive=" + totalExclusive + ", sum of squares=" + sumOfSquares + "]");
             }
