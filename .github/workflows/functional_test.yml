@@ -2,11 +2,11 @@ name: PR Build - Functional Tests
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ disabled ]
     types: [synchronize, opened, reopened, ready_for_review]
   push:
     branches:
-      - 'main'
+      - 'disabled'
 
 jobs:
   java-functional-tests:

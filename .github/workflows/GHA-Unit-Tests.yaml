@@ -1,0 +1,341 @@
+## Using matrix strategy test for unit testing
+
+# The name of your workflow. GitHub displays the names of your workflows on your
+# repository's actions page. If you omit name, GitHub sets it to the workflow
+# file path relative to the root of the repository.
+name: GHA-Unit-Tests
+
+# https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#on
+# on: The name of the GitHub event that triggers the workflow.
+on:
+  pull_request:
+    branches: [ main ] ## branches TBD
+    types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
+  push:
+    branches: [ main ]
+  # Allows you to run this workflow manually from the Actions tab
+  # Use context values as : ${{ github.event.inputs.BRANCH }}
+  # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
+  workflow_dispatch:
+    inputs:
+      BRANCH:
+        description: "Specify branch (main is default)"
+        required: false
+        default: 'main'
+# A workflow run is made up of one or more jobs. Jobs run in parallel by default.
+jobs:
+  install-all-java:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v2
+
+      # JDK cache
+      - name: Cache jdk dir
+        id: cache-jdk-dir
+        # https://github.com/actions/cache
+        uses: actions/cache@v2.1.6
+        # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#jobsjob_idenv
+        env:
+          cache-name: cache-jdk-dir
+        with:
+          path: |
+            jdk_paths.txt
+            /opt/hostedtoolcache/Java_Adopt_jdk/
+          # Explore extensions to cache if no lock file
+          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
+          restore-keys: |
+            ${{ github.workflow }}-build-${{ env.cache-name }}-
+            ${{ github.workflow }}-build-
+            ${{ github.workflow }}-
+
+      # Install 8
+      - name: Set up Java 8
+        # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#jobsjob_idstepsif
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        # https://github.com/actions/setup-java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 8
+
+      # Install 9
+      - name: Set up Java 9
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 9
+
+      # Install 10
+      - name: Set up Java 10
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 10
+
+      # Install 11
+      - name: Set up Java 11
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+
+      # Install 12
+      - name: Set up Java 12
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 12
+
+      # Install 13
+      - name: Set up Java 13
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 13
+
+      # Install 14
+      - name: Set up Java 14
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 14
+
+      # Install 15
+      - name: Set up Java 15
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 15
+
+      # Install 16
+      - name: Set up Java 16
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 16
+
+      # Check contents of cache path
+      - name: check cache dir
+        if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
+        run: |
+          pwd
+          echo "contents of cache dir: "
+          ls -la /opt/hostedtoolcache/Java_Adopt_jdk/
+          echo "checking for jdk_paths.txt: "
+          ls -la
+          echo "checking for file in home: "
+          ls -la ~/
+
+      # Create jdk_paths.txt
+      - name: Create jdk_paths
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        run: |
+          touch jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > jdk_paths.txt
+
+      # Create ENV variables for the JDKs
+      # This is necessary for use in contexts, etc.
+      - name: Create env variables for the jdks
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        run: |
+          JAVA_VERSION=8 # This is the starting version, 8
+          while read line
+          do
+              echo $line
+              echo The counter is $COUNTER
+              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64" >> $GITHUB_ENV
+              # Below only use for subsequent jobs, as the jdk build doesn't set these paths
+              # echo "/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64/bin" >> $GITHUB_PATH
+              let JAVA_VERSION=JAVA_VERSION+1
+          done < jdk_paths.txt
+
+      # Check ENV variables
+      - name: Check environmental variables
+        run: printenv | sort -f
+
+      # Check $JAVA_HOME
+      - name: Check "$JAVA_HOME"
+        # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
+        run: |
+          echo "Current $JAVA_HOME = " ${JAVA_HOME}
+          whereis java #determine dir to cache
+
+  ###
+
+  matrix-unit-test:
+    timeout-minutes: 120
+    needs: install-all-java
+    runs-on: ubuntu-latest
+    env:
+      default-branch: "main"
+    strategy:
+      # max-parallel: 1 ## used to force sequential vs. concurrent
+      fail-fast: false
+      # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
+      # A matrix allows you to create multiple jobs by performing
+      # variable substitution in a single job definition
+      matrix:
+        java-version: [8, 9, 10, 11, 12, 13, 14, 15, 16]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
+      - uses: gradle/wrapper-validation-action@v1
+
+
+      ## restore JDK cache dir here
+
+      # JDK cache
+      - name: Cache jdk dir
+        id: cache-jdk-dir
+        uses: actions/cache@v2.1.6
+        env:
+          cache-name: cache-jdk-dir
+        with:
+          path: |
+            jdk_paths.txt
+            /opt/hostedtoolcache/Java_Adopt_jdk/
+          # Explore extensions to cache if no lock file
+          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
+          restore-keys: |
+            ${{ github.workflow }}-build-${{ env.cache-name }}-
+            ${{ github.workflow }}-build-
+            ${{ github.workflow }}-
+
+      # Check contents of cache path
+      - name: check cache dir
+        # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
+        run: |
+          pwd
+          echo "contents of cache dir: "
+          ls -la /opt/hostedtoolcache/Java_Adopt_jdk/
+          echo "checking for jdk_paths.txt: "
+          ls -la
+          echo "checking for file in home: "
+          ls -la ~/
+
+      # Create jdk_paths.txt
+      # While seemingly illogical to create these if the cache hit is false,
+      # remember that the cache is rebuilt above, so these paths
+      # will exist, and we can create our list of JDKs
+      - name: Create jdk_paths
+        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        run: |
+          touch jdk_paths.txt
+          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > jdk_paths.txt
+
+      # Create env variables for the jdks
+      - name: Create env variables for the JDKs
+        # if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+        run: |
+          JAVA_VERSION=8
+          while read line
+          do
+              echo $line
+              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64" >> $GITHUB_ENV
+              # Below only use for subsequent jobs, as the jdk build doesn't set these paths
+              # echo "/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64/bin" >> $GITHUB_PATH
+              let JAVA_VERSION=JAVA_VERSION+1
+          done < jdk_paths.txt
+
+      # Check ENV variables
+      - name: Check environmental variables
+        run: printenv | sort -f
+
+      # install of matrix Java versions
+      # Same use of setup-java, but using the matrix values here
+      - name: Set up Java ${{ matrix.java-version }}
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: ${{ matrix.java-version }}
+
+      # Set current default jdk version
+      - name: Save JAVA_HOME as JDK${{ matrix.java-version }} for later usage
+        run: echo "ORG_GRADLE_PROJECT_jdk${{ matrix.java-version }}=$JAVA_HOME" >> $GITHUB_ENV
+
+      # Restore the gradle cache
+      - name: Restore the gradle caches
+        uses: actions/cache@v2.1.6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # The docs say to use hashfiles, but gradle itself is smart enough to
+          # re-download dependencies if it couldn't resolve them.
+          # Because our gradle cache is _so big_, I think a 90% cache is far
+          # better than a 0% cache.
+          key: ${{ runner.os }}-gradle
+          restore-keys: |
+            ${{ runner.os }}-gradle
+
+      # Is newrelicJar present in newrelic-agent/build
+      # TO DO: Below version number has to be dynamic
+      - name: Build newrelicJar
+        env:
+          # Below is available to context ONLY BECAUSE IT WAS EXPLICITLY ADDED
+          # IN A PREVIOUS STEP.
+          # Not all ENV variables are available for contexts by default.
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          echo "JAVA_HOME=${JAVA_HOME}"
+          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
+          ls -la
+          ./gradlew clean jar --parallel
+          ls -la newrelic-agent/build/
+
+      # Checking disk space and top largest directories
+      # as this might sometime be a cause of failures
+      - name: Check disk space
+        run: |
+          df -h
+          du -a "${GITHUB_WORKSPACE}" | sort -n -r | head -n 10
+
+      # GHA run unit tests
+
+      # Rewrite gradle.properties
+      # Assume required as indicated
+      - name: Set gradle.properties
+        run: |
+          sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
+          s|jdk9=9|jdk9=${ORG_GRADLE_PROJECT_jdk9}|
+          s|jdk10=10|jdk10=${ORG_GRADLE_PROJECT_jdk10}|
+          s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
+          s|jdk12=12|jdk12=${ORG_GRADLE_PROJECT_jdk12}|
+          s|jdk13=13|jdk13=${ORG_GRADLE_PROJECT_jdk13}|
+          s|jdk14=14|jdk14=${ORG_GRADLE_PROJECT_jdk14}|
+          s|jdk15=15|jdk15=${ORG_GRADLE_PROJECT_jdk15}|
+          s|jdk16=16|jdk16=${ORG_GRADLE_PROJECT_jdk16}|" gradle.properties.gha
+          cat gradle.properties.gha
+          rm gradle.properties
+          mv gradle.properties.gha gradle.properties
+
+      # Run the build.
+      - name: Run unit tests for each Java version as defined in the matrix
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          # Updated Gradle command per https://github.com/newrelic/newrelic-java-agent/pull/451
+          ./gradlew --console=plain --parallel clean test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+
+      # Capture HTML build result in artifacts
+      # https://github.com/actions/upload-artifact
+      - name: Capture build reports
+        # If previus step fals, run this step regardless
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: unit-tests-results-java-${{ matrix.java-version }}
+          path: |
+            agent*/build/reports/tests/*
+            # path/output/test-results
+            # !path/**/*.tmp
