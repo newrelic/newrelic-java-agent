@@ -12,7 +12,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -169,8 +171,19 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     @Override
     public void setParams(Object[] params) {
         if (params != null && params.length > 0) {
-            this.params = params;
+            this.params = maybeObfuscate(params);;
         }
+    }
+
+    private Object[] maybeObfuscate(Object[] params) {
+        if (getRecordSql().equals(RecordSql.obfuscated)) {
+            List<Object> obfuscatedParams = new ArrayList<Object>();
+            for (int i = 0; i < params.length; i++) {
+                obfuscatedParams.add("?");
+            }
+            return obfuscatedParams.toArray();
+        }
+        return params;
     }
 
     protected DatabaseVendor getDatabaseVendor() {
