@@ -13,7 +13,11 @@ dependencies {
 
 verifyInstrumentation {
     passesOnly 'org.mongodb:mongo-java-driver:[3.7.0-rc0,)'
-    fails('org.mongodb:mongodb-driver-async:[3.7.0-rc0,)') {
+    // This instrumentation module shouldn't apply to the mongo async/reactive drivers
+    fails('org.mongodb:mongodb-driver-async:[3.0.0-rc0,)') {
+        compile("org.mongodb:mongo-java-driver:3.7.0")
+    }
+    fails('org.mongodb:mongodb-driver-reactivestreams:[1.0.0-rc0,)') {
         compile("org.mongodb:mongo-java-driver:3.7.0")
     }
 }
