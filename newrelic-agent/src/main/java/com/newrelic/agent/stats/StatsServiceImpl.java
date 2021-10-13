@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * A class to record and harvest metric data.
  *
- * This class is thread-safe.Hostname
+ * This class is thread-safe.
  */
 public class StatsServiceImpl extends AbstractService implements StatsService {
     private final MetricAggregator metricAggregator = new StatsServiceMetricAggregator(this);
