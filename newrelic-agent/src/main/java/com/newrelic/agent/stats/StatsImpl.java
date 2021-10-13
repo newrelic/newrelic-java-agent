@@ -9,7 +9,7 @@ package com.newrelic.agent.stats;
 
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfigImpl;
-import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.api.agent.NewRelic;
 
 /**
  * This class is not thread-safe.
@@ -70,7 +70,7 @@ public class StatsImpl extends AbstractStats implements Stats {
         maxValue = Math.max(value, maxValue);
         sumOfSquares = sos;
 
-        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG))  {
+        if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG))  {
            if (count < 0 || total < 0 || sumOfSquares < 0) {
                 MetricNames.recordApiSupportabilityMetric("Supportability/StatsImpl/NegativeValue");
                 throw new IllegalArgumentException( this.toString() );

@@ -9,8 +9,8 @@ package com.newrelic.agent.stats;
 
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfigImpl;
-import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.TimeConversion;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.concurrent.TimeUnit;
 
@@ -77,7 +77,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         total += responseTime;
         maxValue = Math.max(responseTime, maxValue);
         totalExclusive += exclusiveTime;
-        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
+        if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
             if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0 ) {
                 MetricNames.recordApiSupportabilityMetric("Supportability/ResponseTimeStatsImpl/NegativeValue");
                 throw new IllegalArgumentException(" [count=" + count + ", total=" + total + ", totalExclusive=" + totalExclusive + ", sum of squares=" + sumOfSquares + "]");
