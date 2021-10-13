@@ -4,9 +4,10 @@ name: GHA-Functional-Tests
 on:
   pull_request:
     branches: [ main ] ## branches TBD
-    types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
+    types: [assigned, opened, synchronize, reopened, ready_for_reviewfor_review"] ## Types TBD
   push:
-    branches: [ main ]
+    # branches: ['**']
+    branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -16,150 +17,9 @@ on:
         default: 'main'
 
 jobs:
-  install-all-java:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      # JDK cache
-      - name: Cache jdk dir
-        id: cache-jdk-dir
-        uses: actions/cache@v2.1.6
-        env:
-          cache-name: cache-jdk-dir ## See if this works and includes all versions
-        with:
-          path: |
-            jdk_paths.txt
-            /opt/hostedtoolcache/Java_Adopt_jdk/
-          # Explore extensions to cache if no lock file
-          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
-          restore-keys: |
-            ${{ github.workflow }}-build-${{ env.cache-name }}-
-            ${{ github.workflow }}-build-
-            ${{ github.workflow }}-
-
-      # Install 8
-      - name: Set up Java 8
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 8
-
-      # Install 9
-      - name: Set up Java 9
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 9
-
-      # Install 10
-      - name: Set up Java 10
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 10
-
-      # Install 11
-      - name: Set up Java 11
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 11
-
-      # Install 12
-      - name: Set up Java 12
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 12
-
-      # Install 13
-      - name: Set up Java 13
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 13
-
-      # Install 14
-      - name: Set up Java 14
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 14
-
-      # Install 15
-      - name: Set up Java 15
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 15
-
-      # Install 16
-      - name: Set up Java 16
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 16
-
-      # Check contents of cache path
-      - name: check cache dir
-        # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
-        run: |
-          pwd
-          echo "contents of cache dir: "
-          ls -la /opt/hostedtoolcache/Java_Adopt_jdk/
-          echo "checking for jdk_paths.txt: "
-          ls -la
-          echo "checking for file in home: "
-          ls -la ~/
-
-      # Create jdk_paths.txt
-      - name: Create jdk_paths
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        run: |
-          touch jdk_paths.txt
-          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > jdk_paths.txt
-
-      # Create env variables for the jdks - this step not necessary here
-      - name: Create env variables for the jdks
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        run: |
-          JAVA_VERSION=8
-          while read line
-          do
-              echo $line
-              echo The counter is $COUNTER
-              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64" >> $GITHUB_ENV
-              # Below only use for subsequent jobs, as the jdk build doesn't set these paths
-              # echo "/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64/bin" >> $GITHUB_PATH
-              let JAVA_VERSION=JAVA_VERSION+1
-          done < jdk_paths.txt
-
-      # Check ENV variables
-      - name: Check environmental variables
-        run: printenv | sort -f
-
-      # Check $JAVA_HOME
-      - name: Check "$JAVA_HOME"
-        # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
-        run: |
-          echo "Current $JAVA_HOME = " ${JAVA_HOME}
-          whereis java #determine dir to cache
-
-  ###
-
   matrix-functional-all-versions:
     timeout-minutes: 120
-    needs: install-all-java
+    # needs: install-all-java
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
@@ -167,84 +27,57 @@ jobs:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
-        java-version: [8, 9, 10, 11, 12, 13, 14, 15, 16]
+        java-version: [8, 11, 16]
     steps:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
       - uses: gradle/wrapper-validation-action@v1
 
-      ## restore jdk cache dir here
-
-      # JDK cache
-      - name: Cache jdk dir
-        id: cache-jdk-dir
-        uses: actions/cache@v2.1.6
-        env:
-          cache-name: cache-jdk-dir ## See if this works and includes all versions
+      #NEW INstall required JDKs
+      # Install 8
+      - name: Set up Java 8
+        # https://github.com/actions/setup-java
+        uses: actions/setup-java@v2
         with:
-          path: |
-            jdk_paths.txt
-            /opt/hostedtoolcache/Java_Adopt_jdk/
-          # Explore extensions to cache if no lock file
-          key: ${{ github.workflow }}-build-${{ env.cache-name }}-${{ hashFiles('**/*', '**/*.txt', '**/jdk_paths.txt') }}
-          restore-keys: |
-            ${{ github.workflow }}-build-${{ env.cache-name }}-
-            ${{ github.workflow }}-build-
-            ${{ github.workflow }}-
+          distribution: 'adopt'
+          java-version: 8
 
-      # Check contents of cache path
-      - name: Check cache dir
-        # if: steps.cache-jdk-dir.outputs.cache-hit == 'true'
+      # Save new JDK variable
+      - name: Save JAVA_HOME as JDK8 for later usage
         run: |
-          pwd
-          echo "contents of cache dir: "
-          ls -la /opt/hostedtoolcache/Java_Adopt_jdk/
-          echo "checking for jdk_paths.txt: "
-          ls -la
-          echo "checking for file in home: "
-          ls -la ~/
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Create jdk_paths.txt
-      - name: Create jdk_paths
-        if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
-        run: |
-          touch jdk_paths.txt
-          ls -1v /opt/hostedtoolcache/Java_Adopt_jdk/ > jdk_paths.txt
+      # Install 11
+      - name: Set up Java 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
 
-      # Create env variables for the jdks
-      - name: Create env variables for the jdks
-        # if: steps.cache-jdk-dir.outputs.cache-hit != 'true'
+      # Save new JDK variable
+      - name: Save JAVA_HOME as JDK11 for later usage
         run: |
-          JAVA_VERSION=8
-          while read line
-          do
-              echo $line
-              echo The counter is $COUNTER
-              echo "ORG_GRADLE_PROJECT_jdk$JAVA_VERSION=/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64" >> $GITHUB_ENV
-              # Below only use for subsequent jobs, as the jdk build doesn't set these paths
-              # echo "/opt/hostedtoolcache/Java_Adopt_jdk/$line/x64/bin" >> $GITHUB_PATH
-              let JAVA_VERSION=JAVA_VERSION+1
-          done < jdk_paths.txt
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk11=$JAVA_HOME" >> $GITHUB_ENV
+
+      # Install 16
+      - name: Set up Java 16
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 16
+
+      # Save new JDK variable
+      - name: Save JAVA_HOME as JDK16 for later usage
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk16=$JAVA_HOME" >> $GITHUB_ENV
 
       # Check ENV variables
       - name: Check environmental variables
         run: printenv | sort -f
-
-      # Install Java version for this matrix run
-      - name: Set up Java ${{ matrix.java-version }}
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: ${{ matrix.java-version }}
-
-      - name: save JAVA_HOME as JDK${{ matrix.java-version }} for later usage
-        run: echo "ORG_GRADLE_PROJECT_jdk${{ matrix.java-version }}=$JAVA_HOME" >> $GITHUB_ENV
-
-      # Check $JAVA_HOME
-      - name: Check "$JAVA_HOME"
-        run: |
-          echo "Current $JAVA_HOME = " ${JAVA_HOME}
 
       # Restore the gradle cache
       - name: Restore the gradle caches
@@ -268,13 +101,7 @@ jobs:
       - name: Set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
-          s|jdk9=9|jdk9=${ORG_GRADLE_PROJECT_jdk9}|
-          s|jdk10=10|jdk10=${ORG_GRADLE_PROJECT_jdk10}|
           s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
-          s|jdk12=12|jdk12=${ORG_GRADLE_PROJECT_jdk12}|
-          s|jdk13=13|jdk13=${ORG_GRADLE_PROJECT_jdk13}|
-          s|jdk14=14|jdk14=${ORG_GRADLE_PROJECT_jdk14}|
-          s|jdk15=15|jdk15=${ORG_GRADLE_PROJECT_jdk15}|
           s|jdk16=16|jdk16=${ORG_GRADLE_PROJECT_jdk16}|" gradle.properties.gha
           cat gradle.properties.gha
           rm gradle.properties
@@ -290,11 +117,6 @@ jobs:
           ls -la
           ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
-
-      - name: Check disk space
-        run: |
-          df -h
-          du -a ${GITHUB_WORKSPACE} | sort -n -r | head -n 10
 
       # Run the build.
       - name: Run functional tests against version defined in matrix
