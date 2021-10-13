@@ -73,7 +73,7 @@ public class StatsImpl extends AbstractStats implements Stats {
         if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG))  {
            if (count < 0 || total < 0 || sumOfSquares < 0) {
                 MetricNames.recordApiSupportabilityMetric("Supportability/StatsImpl/NegativeValue");
-                throw new IllegalArgumentException( this.toString());
+                throw new IllegalArgumentException( this.toString() );
             }
         }
 

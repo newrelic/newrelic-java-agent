@@ -35,6 +35,7 @@ import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 import org.objectweb.asm.Opcodes;
@@ -241,12 +242,12 @@ public class DefaultTracer extends AbstractTracer {
         if (exclusiveDuration < 0 || exclusiveDuration > duration) {
             if (ServiceFactory.getConfigService().getDefaultAgentConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
                 Agent.LOG.log(Level.INFO, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
-                        this.getClass().getName());
-                MetricNames.recordApiSupportabilityMetric("Supportability/" + this.getClass().getName() + "/NegativeValue");
+                        NewRelic.getAgent().getTransaction().getTracedMethod() );
+                MetricNames.recordApiSupportabilityMetric("Supportability/" + NewRelic.getAgent().getTransaction().getTracedMethod() + "/NegativeValue");
 
             } else {
                 Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
-                        this.getClass().getName());
+                        NewRelic.getAgent().getTransaction().getTracedMethod());
             }
             exclusiveDuration = duration;
         }
