@@ -276,7 +276,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
         debug = Boolean.getBoolean(DEBUG);
-        metricDebug = Boolean.getBoolean(METRIC_DEBUG);
+        metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         licenseKey = getProperty(LICENSE_KEY);
         String region = parseRegion(licenseKey);
@@ -527,6 +527,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         if (highSecurity && !flattenedProps.isEmpty()) {
             flattenedProps.put("transaction_tracer.record_sql", transactionTracerConfig.getRecordSql());
         }
+    }
+
+    private boolean initMetricDebugConfig(){
+        Object val = getProperty(METRIC_DEBUG);
+        if ( val instanceof Boolean  && (Boolean) val) {
+            Agent.LOG.log(Level.INFO, "metric_debug is enabled");
+        }
+        return getProperty(METRIC_DEBUG, DEFAULT_METRIC_DEBUG);
     }
 
     @SuppressWarnings("unchecked")
