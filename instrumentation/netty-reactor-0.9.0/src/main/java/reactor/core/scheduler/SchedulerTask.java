@@ -41,4 +41,13 @@ final class SchedulerTask {
         }
         return Weaver.callOriginal();
     }
+
+    public void dispose() {
+        if(token != null) {
+            token.expire();
+            token = null;
+        }
+        Weaver.callOriginal();
+    }
+
 }
