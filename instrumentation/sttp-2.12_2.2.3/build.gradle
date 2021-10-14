@@ -20,12 +20,6 @@ verifyInstrumentation {
     excludeRegex ".*(RC|M)[0-9]*"
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 site {
     title 'Scala'
     type 'Other'

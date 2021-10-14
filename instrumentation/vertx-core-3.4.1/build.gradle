@@ -18,11 +18,6 @@ verifyInstrumentation {
 }
 
 test {
-    // instrumentation is incompatible with version of java less than 1.8
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-
     // this version of Vert.x uses some DirectBuffer things that are now hidden in its module
     if (project.hasProperty("test16") || project.hasProperty("test17") || project.hasProperty("test18")) {
         jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'

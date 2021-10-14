@@ -10,12 +10,6 @@ jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.rabbit-amqp-3.5.0' }
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 verifyInstrumentation {
     passesOnly 'com.rabbitmq:amqp-client:[2.5.0,5.0.0.RC1)'
 }

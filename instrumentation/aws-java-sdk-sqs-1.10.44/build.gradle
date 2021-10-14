@@ -11,12 +11,6 @@ jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-sqs-1.10.44' }
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 verifyInstrumentation {
     // this instrumentation matches the original sdk starting at 1.3.22 and all the way up to the current version
     // we only check up to 1.10.44 because it's the same as the sqs dependency onwards

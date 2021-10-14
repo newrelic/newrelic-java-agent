@@ -11,12 +11,6 @@ jar {
     }
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 verifyInstrumentation {
     passes 'software.amazon.awssdk:sns:[2.1.0,)'
     excludeRegex '.*preview.*'

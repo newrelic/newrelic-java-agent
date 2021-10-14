@@ -228,13 +228,6 @@ test {
             }
         }
     }
-    if (project.hasProperty("test7")) {
-        configureTest("jdk7") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java7IncompatibleTest'
-            }
-        }
-    }
 
     if (project.hasProperty("development")) {
         environment "ENVIRONMENT", "development"

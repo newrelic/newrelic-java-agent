@@ -19,12 +19,6 @@ verifyInstrumentation {
     fails 'org.scala-lang:scala-library:(,2.13.0-M4]'
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 site {
     title 'Scala'
     type 'Other'

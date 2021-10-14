@@ -9,12 +9,6 @@ jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.rabbit-amqp-2.7' }
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 verifyInstrumentation {
     passesOnly 'com.rabbitmq:amqp-client:[1.7.2,2.5.0)'
 }

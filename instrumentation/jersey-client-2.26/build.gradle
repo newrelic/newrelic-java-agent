@@ -16,12 +16,6 @@ verifyInstrumentation {
     passesOnly('org.glassfish.jersey.core:jersey-client:[2.26-b04,3.0.0-M1)')
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 site {
     title 'Jersey Client'
     type 'Framework'
