@@ -45,7 +45,7 @@ jobs:
           ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
       - uses: gradle/wrapper-validation-action@v1
 
-      #NEW INstall required JDKs
+      #NEW Install required JDKs
       # Install 8
       - name: Set up Java 8
         # https://github.com/actions/setup-java
@@ -144,10 +144,10 @@ jobs:
       # Capture HTML build result in artifacts
       # https://github.com/actions/upload-artifact
       - name: Capture build reports
-        # If previus step fals, run this step regardless
+        # If previous step fails, run this step regardless
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: unit-tests-results-java-${{ matrix.java-version }}
           path: |
-            agent*/build/reports/tests/*
+            **/build/reports/tests/*
