@@ -458,6 +458,10 @@ public class MetricNames {
     public static final String ERRORS_BY_PARENT_UNKNOWN = "ErrorsByCaller/Unknown/Unknown/Unknown/{0}/all";
     public static final String TRANSPORT_DURATION_BY_PARENT = "TransportDuration/" + PARENT_DATA;
 
+    // JFR Service
+    public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS = "Supportability/JfrService/Started/Success";
+    public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
+
     /**
      * Utility method for adding supportability metrics to APIs
      *
