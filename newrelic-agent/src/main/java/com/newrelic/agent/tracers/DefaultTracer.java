@@ -216,6 +216,7 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public void finish(int opcode, Object returnValue) {
+
         TransactionActivity txa = getTransactionActivity();
         if (txa == null) {
             // Internal error - null txa is permitted for
@@ -236,18 +237,19 @@ public class DefaultTracer extends AbstractTracer {
     // this is public for testing - do not call directly unless testing
     public void performFinishWork(long finishTime, int opcode, Object returnValue) {
         // Believe it or not, it's possible to get a negative value!
-        // (At least on some old, broken Linux kernels is is.)
+        // (At least on some old, broken Linux kernels)
         duration = Math.max(0, finishTime - getStartTime());
         exclusiveDuration += duration;
         if (exclusiveDuration < 0 || exclusiveDuration > duration) {
             if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
-                Agent.LOG.log(Level.INFO, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
-                        NewRelic.getAgent().getTransaction().getTracedMethod() );
-                MetricNames.recordApiSupportabilityMetric("Supportability/" + NewRelic.getAgent().getTransaction().getTracedMethod() + "/NegativeValue");
+                Agent.LOG.log(Level.INFO, "Invalid exclusive time {0} for metric {1}", exclusiveDuration,
+                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName() );
+                MetricNames.recordApiSupportabilityMetric("Supportability/" +
+                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName() + "/NegativeValue");
 
             } else {
-                Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
-                        NewRelic.getAgent().getTransaction().getTracedMethod());
+                Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for metric {1}", exclusiveDuration,
+                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName() );
             }
             exclusiveDuration = duration;
         }
