@@ -243,13 +243,13 @@ public class DefaultTracer extends AbstractTracer {
         if (exclusiveDuration < 0 || exclusiveDuration > duration) {
             if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
                 Agent.LOG.log(Level.INFO, "Invalid exclusive time {0} for metric {1}", exclusiveDuration,
-                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName() );
+                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName());
                 MetricNames.recordApiSupportabilityMetric("Supportability/" +
                         NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName() + "/NegativeValue");
 
             } else {
                 Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for metric {1}", exclusiveDuration,
-                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName() );
+                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName());
             }
             exclusiveDuration = duration;
         }
