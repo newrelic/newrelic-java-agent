@@ -9,12 +9,9 @@ package com.nr.instrumentation.javax.ws.rs.api;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collection;
 import java.util.Map;
 
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
@@ -22,7 +19,6 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
 
-@Category({ Java7IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.instrumentation.javax.ws.rs.api" })
 public class JaxRsTests {

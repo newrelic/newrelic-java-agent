@@ -16,19 +16,14 @@ import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -42,7 +37,6 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.okhttp314" })
-@Category({ Java7IncompatibleTest.class })
 public class OkHttp314Test {
     @ClassRule
     public static HttpServerRule server = new HttpServerRule();

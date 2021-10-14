@@ -7,17 +7,14 @@
 
 package com.newrelic.agent.instrumentation.weaver;
 
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertEquals;
 
-@Category({ Java7IncompatibleTest.class })
 public class WeaveIntoAllMethodsTest {
     private static Class<?> test;
 

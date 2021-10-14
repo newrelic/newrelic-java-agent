@@ -10,13 +10,10 @@ package test.newrelic.test.agent;
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionDataList;
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -36,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java7IncompatibleTest.class })
 public class CompletableFutureTest {
 
     private static final String CATEGORY = "CompletableFuture";

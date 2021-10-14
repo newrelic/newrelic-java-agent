@@ -11,7 +11,6 @@ import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
 import com.newrelic.test.marker.Java10IncompatibleTest;
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +23,7 @@ import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_METRIC_INGEST_UR
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@Category({ Java7IncompatibleTest.class, Java9IncompatibleTest.class, Java10IncompatibleTest.class })
+@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class })
 public class JfrServiceTest {
 
     @Mock
