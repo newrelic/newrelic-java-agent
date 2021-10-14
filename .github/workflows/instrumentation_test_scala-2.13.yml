@@ -58,4 +58,4 @@ jobs:
             ${{ runner.os }}-gradle
       # Start running the build.
       - name: run the scala 2.13 instrumentation tests
-        run: ./gradlew --console=plain --parallel clean :instrumentation:build -Ptest8 -PnoInstrumentation -PnoScala -Pscala-2.13 --continue
+        run: ./gradlew --console=plain --parallel clean :instrumentation:test -Ptest8 -PnoInstrumentation -PnoScala -Pscala-2.13 --continue
