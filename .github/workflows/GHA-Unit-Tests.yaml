@@ -153,5 +153,7 @@ jobs:
           # related modules: (agent-bridge, newrelic-java, newrelic-api, etc).
           # However, it's critical that the previous build step does a ./gradlew clean or the regex will capture test reports
           # that were leftover in unrelated modules for functional and instrumentation tests.
-          path:
-            - '**/build/reports/tests/*'
+          path: |
+            agent-bridge/build/reports/tests/*
+            newrelic-java/build/reports/tests/*
+            newrelic-api/build/reports/tests/*
