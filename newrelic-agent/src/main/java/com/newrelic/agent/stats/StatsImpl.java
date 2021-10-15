@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.stats;
 
-import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.api.agent.NewRelic;
 
@@ -72,7 +71,7 @@ public class StatsImpl extends AbstractStats implements Stats {
 
         if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG))  {
            if (count < 0 || total < 0 || sumOfSquares < 0) {
-                MetricNames.recordApiSupportabilityMetric("Supportability/StatsImpl/NegativeValue");
+                NewRelic.incrementCounter("Supportability/StatsImpl/NegativeValue");
                 throw new IllegalArgumentException( this.toString() );
             }
         }

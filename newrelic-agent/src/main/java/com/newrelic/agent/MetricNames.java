@@ -319,6 +319,8 @@ public class MetricNames {
     public static final String SUPPORTABILITY_API_IGNORE_APDEX = "IgnoreApdex";
     public static final String SUPPORTABILITY_API_IGNORE_ERRORS = "IgnoreErrors";
     public static final String SUPPORTABILITY_API_SET_TRANSACTION_NAME = "SetTransactionName";
+    public static final String SUPPORTABILITY_API_NEGATIVE_VALUE_TRACER = "SetTransactionName";
+
 
     // cat
     public static final String SUPPORTABILITY_API_PROCESS_REQUEST_METADATA = "ProcessRequestMetadata";
