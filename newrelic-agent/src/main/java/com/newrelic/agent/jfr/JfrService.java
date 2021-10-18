@@ -9,11 +9,13 @@ package com.newrelic.agent.jfr;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.*;
 import com.newrelic.telemetry.Attributes;
@@ -41,9 +43,10 @@ public class JfrService extends AbstractService {
 
     @Override
     protected void doStart() {
-
         if (coreApisExist() && isEnabled()) {
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
+
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
 
             try {
                 final DaemonConfig daemonConfig = buildDaemonConfig();
@@ -70,6 +73,8 @@ public class JfrService extends AbstractService {
             } catch (Throwable t) {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
             }
+        } else {
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL);
         }
     }
 
