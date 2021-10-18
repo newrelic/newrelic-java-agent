@@ -84,6 +84,10 @@ public class CrossProcessConfigImplTest {
     @Test
     public void encodingKey() throws Exception {
         Map<String, Object> serverSettings = new HashMap<>();
+
+        // CAT must be enabled, or the encoding key will be null
+        serverSettings.put(CrossProcessConfigImpl.ENABLED, true);
+
         String encodingKey = "test";
         ServerProp serverProp = ServerProp.createPropObject(encodingKey);
         serverSettings.put(CrossProcessConfigImpl.ENCODING_KEY, serverProp);

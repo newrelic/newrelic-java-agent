@@ -205,22 +205,61 @@ common: &default_settings
     max_samples_stored: 2000
 
   # Distributed tracing lets you see the path that a request takes through your distributed system.
-  # Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the transition
-  # guide before you enable this feature: https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/transition-guide-distributed-tracing
+  # This replaces the legacy Cross Application Tracing feature.
   distributed_tracing:
 
-    # Set to true to enable distributed tracing.
+    # Set to false to disable distributed tracing.
+    # Default is true.
+    enabled: true
+
+    # Agent versions 5.10.0+ utilize both the newrelic header and W3C Trace Context headers for distributed tracing.
+    # The newrelic distributed tracing header allows interoperability with older agents that don't support W3C Trace Context headers.
+    # Agent versions that support W3C Trace Context headers will prioritize them over newrelic headers for distributed tracing.
+    # If you do not want to utilize the newrelic header, setting this to true will result in the agent excluding the newrelic header
+    # and only using W3C Trace Context headers for distributed tracing.
     # Default is false.
-    enabled: false
+    exclude_newrelic_header: false
+
+  # New Relic's distributed tracing UI uses Span events to display traces across different services.
+  # Span events capture attributes that describe execution context and provide linking metadata.
+  # Span events require distributed tracing to be enabled.
+  span_events:
+
+    # Set to false to disable Span events.
+    # Default is true.
+    enabled: true
+
+    # Determines the number of Span events that can be captured during an agent harvest cycle.
+    # Increasing the number of Span events can lead to additional agent overhead. A maximum value may be imposed server side by New Relic.
+    # Default is 2000
+    max_samples_stored: 2000
+
+    # Provides the ability to filter the attributes attached to Span events.
+    # Custom attributes can be added to Span events using the NewRelic.getAgent().getTracedMethod().addCustomAttribute(...) API.
+    attributes:
+
+      # When true, attributes will be sent to New Relic. The default is true.
+      enabled: true
+
+      # A comma separated list of attribute keys whose values should be sent to New Relic.
+      #include:
+
+      # A comma separated list of attribute keys whose values should not be sent to New Relic.
+      #exclude:
 
   # Cross Application Tracing adds request and response headers to
   # external calls using supported HTTP libraries to provide better
   # performance data when calling applications monitored by other New Relic Agents.
+  #
+  # Distributed tracing is replacing cross application tracing as the default
+  # means of tracing between services. To continue using cross application
+  # tracing, enable it with `cross_application_tracer.enabled = true` and
+  # `distributed_tracing.enabled = false`
   cross_application_tracer:
 
-    # Set to false to disable cross application tracing.
-    # Default is true.
-    enabled: true
+    # Set to true to enable cross application tracing.
+    # Default is false.
+    enabled: false
 
   # Thread profiler measures wall clock time, CPU time, and method call counts
   # in your application's threads as they run.
