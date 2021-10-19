@@ -7,20 +7,9 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.newrelic.agent.AgentHelper;
-import com.newrelic.agent.MockDispatcherTracer;
-import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.MockSpanEventReservoirManager;
-import com.newrelic.agent.ThreadService;
-import com.newrelic.agent.Transaction;
-import com.newrelic.agent.TransactionData;
-import com.newrelic.agent.TransactionDataTestBuilder;
-import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.*;
 import com.newrelic.agent.attributes.AttributesService;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentConfigImpl;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.*;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.errors.ErrorAnalyzerImpl;
 import com.newrelic.agent.errors.ErrorMessageReplacer;
@@ -41,12 +30,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class SpanEventsServiceTest {
 
@@ -193,5 +181,31 @@ public class SpanEventsServiceTest {
 
         SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir();
         assertEquals(0, reservoir.getSampled());
+    }
+
+    @Test
+    public void spanEventsServiceMaxSamplesStoredRespectsServerSide() {
+        //given
+        MockRPMService mockRPMService = new MockRPMService();
+        mockRPMService.setApplicationName(appName);
+        RPMServiceManager mockRPMServiceManager = mock(RPMServiceManager.class);
+        when(mockRPMServiceManager.getRPMService()).thenReturn(mockRPMService);
+        serviceManager.setRPMServiceManager(mockRPMServiceManager);
+        serviceManager.setHarvestService(new HarvestServiceImpl());
+        SpanEventsService spanEventsService = serviceManager.getSpanEventsService();
+        spanEventsService.addHarvestableToService(appName);
+        HarvestServiceImpl harvestService = (HarvestServiceImpl) serviceManager.getHarvestService();
+
+        Map<String, Object> connectionInfo = new HashMap<>();
+        Map<String, Object> eventHarvest = new HashMap<>();
+        Map<String, Object> harvestLimits = new HashMap<>();
+        eventHarvest.put("report_period_ms", 60000L);
+        long maxSamples = 3L;
+        eventHarvest.put(SpanEventsConfig.SERVER_SPAN_HARVEST_LIMIT, maxSamples);
+        connectionInfo.put(SERVER_SPAN_HARVEST_CONFIG, eventHarvest);
+        //when
+        harvestService.startHarvestables(ServiceFactory.getRPMService(), AgentConfigImpl.createAgentConfig(connectionInfo));
+        //then
+        assertEquals("max samples stored should be: " + maxSamples, maxSamples, spanEventsService.getMaxSamplesStored());
     }
 }
