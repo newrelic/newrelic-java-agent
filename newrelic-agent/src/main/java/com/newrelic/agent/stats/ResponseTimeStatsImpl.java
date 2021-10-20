@@ -31,7 +31,6 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         super();
     }
 
-
     @Override
     public Object clone() throws CloneNotSupportedException {
         ResponseTimeStatsImpl newStats = new ResponseTimeStatsImpl();
@@ -77,9 +76,10 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         maxValue = Math.max(responseTime, maxValue);
         totalExclusive += exclusiveTime;
         if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
-            if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0 ) {
+            if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0) {
                 NewRelic.incrementCounter("Supportability/ResponseTimeStatsImpl/NegativeValue");
-                throw new IllegalArgumentException(" [count=" + count + ", total=" + total + ", totalExclusive=" + totalExclusive + ", sum of squares=" + sumOfSquares + "]");
+                throw new IllegalArgumentException(
+                        " [count=" + count + ", total=" + total + ", totalExclusive=" + totalExclusive + ", sum of squares=" + sumOfSquares + "]");
             }
         }
 

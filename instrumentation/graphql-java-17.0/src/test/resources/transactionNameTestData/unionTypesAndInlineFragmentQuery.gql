@@ -1,0 +1,8 @@
+query example {
+    search(contains: "author") {
+        __typename
+        ... on Author {
+            name
+        }
+    }
+}

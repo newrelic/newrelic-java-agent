@@ -1,0 +1,21 @@
+cat_enabled_dt_enabled_test:
+
+  cross_application_tracer:
+    enabled: true
+    cross_process_id: '12345#xyz'
+    encoding_key: asdf
+    trusted_account_ids: '12345'
+
+  distributed_tracing:
+    enabled: true
+
+cat_enabled_dt_disabled_test:
+
+  cross_application_tracer:
+    enabled: true
+    cross_process_id: '12345#xyz'
+    encoding_key: asdf
+    trusted_account_ids: '12345'
+
+  distributed_tracing:
+    enabled: false

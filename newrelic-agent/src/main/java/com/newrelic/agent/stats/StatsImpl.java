@@ -69,13 +69,12 @@ public class StatsImpl extends AbstractStats implements Stats {
         maxValue = Math.max(value, maxValue);
         sumOfSquares = sos;
 
-        if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG))  {
-           if (count < 0 || total < 0 || sumOfSquares < 0) {
+        if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
+            if (count < 0 || total < 0 || sumOfSquares < 0) {
                 NewRelic.incrementCounter("Supportability/StatsImpl/NegativeValue");
-                throw new IllegalArgumentException( this.toString() );
+                throw new IllegalArgumentException(this.toString());
             }
         }
-
 
     }
 

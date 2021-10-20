@@ -434,6 +434,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_SPAN_EVENTS = "Supportability/SpanEvents"; // feature is enabled
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_SENT = "Supportability/SpanEvent/TotalEventsSent";
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_SEEN = "Supportability/SpanEvent/TotalEventsSeen";
+    public static final String SUPPORTABILITY_SPAN_EVENT_LIMIT = "Supportability/SpanEvent/Limit";
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_DISCARDED = "Supportability/SpanEvent/Discarded";
 
     public static final String SUPPORTABILITY_INTERNAL_CUSTOM_EVENTS_TOTAL_EVENTS_SENT = "Supportability/InternalCustomEvents/TotalEventsSent";
@@ -457,6 +458,10 @@ public class MetricNames {
     public static final String ERRORS_BY_PARENT = "ErrorsByCaller/" + PARENT_DATA;
     public static final String ERRORS_BY_PARENT_UNKNOWN = "ErrorsByCaller/Unknown/Unknown/Unknown/{0}/all";
     public static final String TRANSPORT_DURATION_BY_PARENT = "TransportDuration/" + PARENT_DATA;
+
+    // JFR Service
+    public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS = "Supportability/JfrService/Started/Success";
+    public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
 
     /**
      * Utility method for adding supportability metrics to APIs

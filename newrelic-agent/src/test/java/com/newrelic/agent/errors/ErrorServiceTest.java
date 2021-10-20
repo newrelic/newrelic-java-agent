@@ -536,7 +536,7 @@ public class ErrorServiceTest {
         Assert.assertNotNull(params.get("stack_trace"));
         Assert.assertNotNull(params.get("intrinsics"));
         Map<String, Object> actual = (Map<String, Object>) params.get("intrinsics");
-        Assert.assertEquals(2, actual.size());
+        Assert.assertEquals(6, actual.size());
         Assert.assertEquals("value5", actual.get("key5"));
         Assert.assertEquals(false, actual.get("error.expected"));
     }
@@ -585,7 +585,7 @@ public class ErrorServiceTest {
         Assert.assertNotNull(params.get("userAttributes"));
 
         Map<String, Object> actual = (Map<String, Object>) params.get("intrinsics");
-        Assert.assertEquals(4, actual.size());
+        Assert.assertEquals(8, actual.size());
         Assert.assertEquals("value5", actual.get("key5"));
         Assert.assertEquals(7.77, (Double) actual.get("key6"), .001);
         Assert.assertEquals(18L, actual.get("key7"));
@@ -647,7 +647,7 @@ public class ErrorServiceTest {
         Assert.assertNotNull(params.get("userAttributes"));
 
         Map<String, Object> actual = (Map<String, Object>) params.get("intrinsics");
-        Assert.assertEquals(4, actual.size());
+        Assert.assertEquals(8, actual.size());
         Assert.assertEquals("value5", actual.get("key5"));
         Assert.assertEquals(7.77, (Double) actual.get("key6"), .001);
         Assert.assertEquals(18L, actual.get("key7"));
@@ -709,70 +709,6 @@ public class ErrorServiceTest {
         List<TracedError> tracedErrors = errorService.getAndClearTracedErrors();
         errorService.getAndClearTracedErrors();
         Assert.assertTrue(tracedErrors.isEmpty());
-    }
-
-    // An object that knows how to add "stuff" to a test configuration.
-    private abstract class ConfigEnhancer {
-        abstract void enhance(Map<String, Object> config, Throwable expected);
-
-        boolean shouldMatch() {
-            return false;
-        }
-    }
-
-    // An enhancer that doesn't enhance - for support of legacy test case
-    private class NoOpConfigEnhancer extends ConfigEnhancer {
-        @Override
-        void enhance(Map<String, Object> config, Throwable expected) {
-        }
-    }
-
-    // Add an error collector config that doesn't match anything the test does.
-    private class NonMatchingConfigEnhancer extends ConfigEnhancer {
-        @Override
-        void enhance(Map<String, Object> config, Throwable expected) {
-            List<Map<String, String>> ignoreErrorsList = new ArrayList<>();
-            Map<String, String> ignoreErrorMap = new HashMap<>();
-            Map<String, String> otherIgnoreErrorMap = new HashMap<>();
-            ignoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, "com.enron.power.MarketNotCorneredException");
-            otherIgnoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, "com.informix.cfo.GetOutOfJailFreeCard");
-            ignoreErrorsList.add(ignoreErrorMap);
-            ignoreErrorsList.add(otherIgnoreErrorMap);
-
-            Map<String, Object> errorCollectorMap = new HashMap<>();
-            errorCollectorMap.put("enabled", true);
-            errorCollectorMap.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, true);
-            errorCollectorMap.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreErrorsList);
-
-            config.put("error_collector", errorCollectorMap);
-        }
-    }
-
-    // Add an error collector config that matches the exception thrown by the test, filtering it.
-    private class MatchingConfigEnhancer extends ConfigEnhancer {
-        @Override
-        void enhance(Map<String, Object> config, Throwable expected) {
-            List<Map<String, String>> ignoreErrorsList = new ArrayList<>();
-            Map<String, String> ignoreErrorMap = new HashMap<>();
-            Map<String, String> otherIgnoreErrorMap = new HashMap<>();
-            ignoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, expected.getClass().getName());
-            ignoreErrorMap.put(ErrorCollectorConfigImpl.MESSAGE, expected.getMessage());
-            otherIgnoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, "com.informix.cfo.GetOutOfJailFreeCard");
-            ignoreErrorsList.add(ignoreErrorMap);
-            ignoreErrorsList.add(otherIgnoreErrorMap);
-
-            Map<String, Object> errorCollectorMap = new HashMap<>();
-            errorCollectorMap.put("enabled", true);
-            errorCollectorMap.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, true);
-            errorCollectorMap.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreErrorsList);
-
-            config.put("error_collector", errorCollectorMap);
-        }
-
-        @Override
-        boolean shouldMatch() {
-            return true;
-        }
     }
 
     /**
@@ -1164,5 +1100,69 @@ public class ErrorServiceTest {
                 .setErrorParams(errorParams)
                 .setIntrinsics(intrinsics)
                 .build();
+    }
+
+    // An object that knows how to add "stuff" to a test configuration.
+    private abstract class ConfigEnhancer {
+        abstract void enhance(Map<String, Object> config, Throwable expected);
+
+        boolean shouldMatch() {
+            return false;
+        }
+    }
+
+    // An enhancer that doesn't enhance - for support of legacy test case
+    private class NoOpConfigEnhancer extends ConfigEnhancer {
+        @Override
+        void enhance(Map<String, Object> config, Throwable expected) {
+        }
+    }
+
+    // Add an error collector config that doesn't match anything the test does.
+    private class NonMatchingConfigEnhancer extends ConfigEnhancer {
+        @Override
+        void enhance(Map<String, Object> config, Throwable expected) {
+            List<Map<String, String>> ignoreErrorsList = new ArrayList<>();
+            Map<String, String> ignoreErrorMap = new HashMap<>();
+            Map<String, String> otherIgnoreErrorMap = new HashMap<>();
+            ignoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, "com.enron.power.MarketNotCorneredException");
+            otherIgnoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, "com.informix.cfo.GetOutOfJailFreeCard");
+            ignoreErrorsList.add(ignoreErrorMap);
+            ignoreErrorsList.add(otherIgnoreErrorMap);
+
+            Map<String, Object> errorCollectorMap = new HashMap<>();
+            errorCollectorMap.put("enabled", true);
+            errorCollectorMap.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, true);
+            errorCollectorMap.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreErrorsList);
+
+            config.put("error_collector", errorCollectorMap);
+        }
+    }
+
+    // Add an error collector config that matches the exception thrown by the test, filtering it.
+    private class MatchingConfigEnhancer extends ConfigEnhancer {
+        @Override
+        void enhance(Map<String, Object> config, Throwable expected) {
+            List<Map<String, String>> ignoreErrorsList = new ArrayList<>();
+            Map<String, String> ignoreErrorMap = new HashMap<>();
+            Map<String, String> otherIgnoreErrorMap = new HashMap<>();
+            ignoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, expected.getClass().getName());
+            ignoreErrorMap.put(ErrorCollectorConfigImpl.MESSAGE, expected.getMessage());
+            otherIgnoreErrorMap.put(ErrorCollectorConfigImpl.CLASS_NAME, "com.informix.cfo.GetOutOfJailFreeCard");
+            ignoreErrorsList.add(ignoreErrorMap);
+            ignoreErrorsList.add(otherIgnoreErrorMap);
+
+            Map<String, Object> errorCollectorMap = new HashMap<>();
+            errorCollectorMap.put("enabled", true);
+            errorCollectorMap.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, true);
+            errorCollectorMap.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreErrorsList);
+
+            config.put("error_collector", errorCollectorMap);
+        }
+
+        @Override
+        boolean shouldMatch() {
+            return true;
+        }
     }
 }

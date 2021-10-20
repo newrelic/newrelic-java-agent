@@ -15,6 +15,7 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.config.CrossProcessConfig;
 import com.newrelic.agent.config.CrossProcessConfigImpl;
+import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.dispatchers.Dispatcher;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceUtils;
@@ -125,7 +126,8 @@ public class CrossProcessStateCatApiTest {
         String responseMetaData = cps.getResponseMetadata();
 
         JSONParser parser = new JSONParser();
-        Map<String, String> deobfuscatedResponseMetadata = (Map<String, String>) parser.parse(Obfuscator.deobfuscateNameUsingKey(responseMetaData, ENCODING_KEY));
+        Map<String, String> deobfuscatedResponseMetadata = (Map<String, String>) parser.parse(
+                Obfuscator.deobfuscateNameUsingKey(responseMetaData, ENCODING_KEY));
         String newRelicAppData = deobfuscatedResponseMetadata.get("NewRelicAppData");
         ArrayList<Object> appDataValues = (ArrayList<Object>) parser.parse(newRelicAppData);
 
@@ -210,7 +212,7 @@ public class CrossProcessStateCatApiTest {
         setUpTransaction(transactionOne, txaOne, new Object(), new MockDispatcher(), cpsOneConfig, "guid");
         MetricNameFormat nameFormat = new ClassMethodMetricNameFormat(new ClassMethodSignature("className", "methodName", "()V"), null, "");
         CatTestCustomTracer requestTracer = new CatTestCustomTracer(transactionOne, new ClassMethodSignature("className", "methodName",
-                "()V"), new Object(), nameFormat , TracerFlags.DISPATCHER);
+                "()V"), new Object(), nameFormat, TracerFlags.DISPATCHER);
         when(txaOne.getLastTracer()).thenReturn(requestTracer);
         CrossProcessTransactionStateImpl cpsOne = CrossProcessTransactionStateImpl.create(transactionOne);
 
@@ -226,8 +228,6 @@ public class CrossProcessStateCatApiTest {
         when(transactionTwo.getInboundHeaderState()).thenReturn(ihs);
 
         CrossProcessTransactionStateImpl cpsTwo = CrossProcessTransactionStateImpl.create(transactionTwo);
-
-
 
         String requestMetadata = cpsOne.getRequestMetadata();
         // Transaction one generates requestMetadata. This metadata is embedded in payload and sent to transaction two.
@@ -247,7 +247,7 @@ public class CrossProcessStateCatApiTest {
     }
 
     private void setUpTransaction(Transaction tx, TransactionActivity txa, Object lock, Dispatcher dispatcher, CrossProcessConfig config,
-                                  String guid) {
+            String guid) {
         when(txa.getTransaction()).thenReturn(tx);
 
         when(tx.getLock()).thenReturn(lock);
@@ -272,15 +272,19 @@ public class CrossProcessStateCatApiTest {
                 "category", TransactionNamePriority.FRAMEWORK);
         when(tx.getPriorityTransactionName()).thenReturn(priorityTransactionName);
 
-
         TransactionCounts txnCounts = Mockito.mock(TransactionCounts.class);
         when(txnCounts.isOverTracerSegmentLimit()).thenReturn(false);
         when(tx.getTransactionCounts()).thenReturn(txnCounts);
     }
 
     private void setUpServiceManager() throws Exception {
+        ImmutableMap<String, Object> distributedTracingSettings = ImmutableMap.<String, Object>builder()
+                .put(DistributedTracingConfig.ENABLED, Boolean.FALSE)
+                .build();
+
         Map<String, Object> configMap = ImmutableMap.<String, Object>builder()
                 .put(AgentConfigImpl.APP_NAME, "TransactionAppNamingTest")
+                .put(AgentConfigImpl.DISTRIBUTED_TRACING, distributedTracingSettings)
                 .build();
 
         ConfigService configService = ConfigServiceFactory.createConfigServiceUsingSettings(configMap);
@@ -297,9 +301,15 @@ public class CrossProcessStateCatApiTest {
                 .put(CrossProcessConfigImpl.CROSS_PROCESS_ID, accountID + "#878")
                 .build();
 
+        // Disable DT for CAT specific tests
+        ImmutableMap<String, Object> distributedTracingSettings = ImmutableMap.<String, Object>builder()
+                .put(DistributedTracingConfig.ENABLED, Boolean.FALSE)
+                .build();
+
         Map<String, Object> settings = new HashMap<>();
         settings.put(AgentConfigImpl.CROSS_APPLICATION_TRACER, crossProcessSettings);
         settings.put(AgentConfigImpl.APP_NAME, "TransactionAppNamingTest");
+        settings.put(AgentConfigImpl.DISTRIBUTED_TRACING, distributedTracingSettings);
 
         ConfigService configService = ConfigServiceFactory.createConfigServiceUsingSettings(settings);
         serviceManager.setConfigService(configService);
@@ -310,7 +320,8 @@ public class CrossProcessStateCatApiTest {
         ClassMethodSignature classMethodSignature = new ClassMethodSignature("className", "methodName", "methodDesc");
         MetricNameFormat metricNameFormat = new DefaultMetricNameFormat(classMethodSignature, "", "something");
 
-        CatTestCustomTracer tracer = new CatTestCustomTracer(transaction, classMethodSignature, null, metricNameFormat, TracerFlags.DISPATCHER | TracerFlags.GENERATE_SCOPED_METRIC);
+        CatTestCustomTracer tracer = new CatTestCustomTracer(transaction, classMethodSignature, null, metricNameFormat,
+                TracerFlags.DISPATCHER | TracerFlags.GENERATE_SCOPED_METRIC);
         transaction.getTransactionActivity().tracerStarted(tracer);
 
         cps = transaction.getCrossProcessState();
@@ -324,7 +335,6 @@ public class CrossProcessStateCatApiTest {
                 + "\\\",\\\"aabbccdd\\\"]\",\"NewRelicID\":\"" + crossProcessID + "\"}";
         return Obfuscator.obfuscateNameUsingKey(metadata, ENCODING_KEY);
     }
-
 
     // Exposes rollup metrics and attributes for testing
     private class CatTestCustomTracer extends OtherRootTracer {

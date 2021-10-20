@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 import static org.junit.Assert.*;
 
 /* (non-javadoc)
@@ -34,7 +35,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void collectorDefaultHost() throws Exception {
+    public void collectorDefaultHost() {
         Map<String, Object> localMap = new HashMap<>();
 
         // regular pre-protocol 15 key
@@ -54,7 +55,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void collectorRegionAwareHost() throws Exception {
+    public void collectorRegionAwareHost() {
         Map<String, Object> localMap = new HashMap<>();
 
         // proper 4 character protocol 15 key
@@ -91,7 +92,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void defaultMetricIngestUri() throws Exception {
+    public void defaultMetricIngestUri()  {
         Map<String, Object> localMap = new HashMap<>();
 
         // regular pre-protocol 15 key
@@ -111,7 +112,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void regionAwareMetricIngestUri() throws Exception {
+    public void regionAwareMetricIngestUri() {
         Map<String, Object> localMap = new HashMap<>();
 
         // proper 4 character protocol 15 key
@@ -149,7 +150,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void defaultEventIngestUri() throws Exception {
+    public void defaultEventIngestUri() {
         Map<String, Object> localMap = new HashMap<>();
 
         // regular pre-protocol 15 key
@@ -169,7 +170,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void regionAwareEventIngestUri() throws Exception {
+    public void regionAwareEventIngestUri() {
         Map<String, Object> localMap = new HashMap<>();
 
         // proper 4 character protocol 15 key
@@ -208,16 +209,16 @@ public class AgentConfigImplTest {
 
     @Test
     public void extensionReloadAsDottedInYaml() {
-        AgentConfig hasDefaultReloadModified = AgentConfigImpl.createAgentConfig(Collections.<String, Object>emptyMap());
+        AgentConfig hasDefaultReloadModified = AgentConfigImpl.createAgentConfig(Collections.emptyMap());
         boolean defaultReloadModified = hasDefaultReloadModified.getExtensionsConfig().shouldReloadModified();
 
-        Map<String, Object> nestedMap = Collections.<String, Object>singletonMap("extensions", Collections.singletonMap("reload_modified", !defaultReloadModified));
+        Map<String, Object> nestedMap = Collections.singletonMap("extensions", Collections.singletonMap("reload_modified", !defaultReloadModified));
         AgentConfig nestedConfig = AgentConfigImpl.createAgentConfig(nestedMap);
         assertEquals(!defaultReloadModified, nestedConfig.getExtensionsConfig().shouldReloadModified());
     }
 
     @Test
-    public void apiHost() throws Exception {
+    public void apiHost() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.API_HOST, "bogus");
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -226,7 +227,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void apiHostDefault() throws Exception {
+    public void apiHostDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -234,7 +235,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void apiPort() throws Exception {
+    public void apiPort() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.API_PORT, AgentConfigImpl.DEFAULT_PORT + 1);
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -243,7 +244,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void apiPortDefault() throws Exception {
+    public void apiPortDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -251,7 +252,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void apiPortDefaultSSL() throws Exception {
+    public void apiPortDefaultSSL() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -259,7 +260,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void sendEnvironmentInfo() throws Exception {
+    public void sendEnvironmentInfo() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.SEND_ENVIRONMENT_INFO, !AgentConfigImpl.DEFAULT_SEND_ENVIRONMENT_INFO);
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -268,7 +269,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void sendEnvironmentInfoDefault() throws Exception {
+    public void sendEnvironmentInfoDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -276,7 +277,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void apdexTInMillis() throws Exception {
+    public void apdexTInMillis() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -284,7 +285,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void apdexTInMillisForTransaction() throws Exception {
+    public void apdexTInMillisForTransaction() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -311,7 +312,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void appNames() throws Exception {
+    public void appNames() {
         Map<String, Object> localMap = new HashMap<>();
         List<String> appNames = new ArrayList<>(1);
         appNames.add(" app1");
@@ -319,12 +320,12 @@ public class AgentConfigImplTest {
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertEquals(1, config.getApplicationNames().size());
-        assertTrue(config.getApplicationNames().containsAll(Arrays.asList("app1")));
+        assertTrue(config.getApplicationNames().contains("app1"));
         assertEquals("app1", config.getApplicationName());
     }
 
     @Test
-    public void appNamesMultiple() throws Exception {
+    public void appNamesMultiple() {
         Map<String, Object> localMap = new HashMap<>();
         List<String> appNames = new ArrayList<>(1);
         appNames.add(" app1");
@@ -338,7 +339,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void appNamesDuplicates() throws Exception {
+    public void appNamesDuplicates() {
         Map<String, Object> localMap = new HashMap<>();
         List<String> appNames = Arrays.asList(" app1", "app2", "app1");
         localMap.put(AgentConfigImpl.APP_NAME, appNames);
@@ -350,7 +351,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void appNamesEmpty() throws Exception {
+    public void appNamesEmpty() {
         Map<String, Object> localMap = new HashMap<>();
         List<String> appNames = new ArrayList<>(1);
         localMap.put(AgentConfigImpl.APP_NAME, appNames);
@@ -361,26 +362,26 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void appNamesMissing() throws Exception {
-        AgentConfig config = AgentConfigImpl.createAgentConfig(Collections.<String, Object>emptyMap());
+    public void appNamesMissing() {
+        AgentConfig config = AgentConfigImpl.createAgentConfig(Collections.emptyMap());
 
         assertEquals(0, config.getApplicationNames().size());
         assertNull(config.getApplicationName());
     }
 
     @Test
-    public void appNamesString() throws Exception {
+    public void appNamesString() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.APP_NAME, " app1 ");
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertEquals(1, config.getApplicationNames().size());
-        assertTrue(config.getApplicationNames().containsAll(Arrays.asList("app1")));
+        assertTrue(config.getApplicationNames().contains("app1"));
         assertEquals("app1", config.getApplicationName());
     }
 
     @Test
-    public void appNamesStringMultiple() throws Exception {
+    public void appNamesStringMultiple() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.APP_NAME, " app1; app2;;app3");
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -391,7 +392,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void appNamesStringDuplicates() throws Exception {
+    public void appNamesStringDuplicates() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.APP_NAME, "app1;app2;app2");
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -456,7 +457,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void waitForRPMConnect() throws Exception {
+    public void waitForRPMConnect() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.WAIT_FOR_RPM_CONNECT, !AgentConfigImpl.DEFAULT_WAIT_FOR_RPM_CONNECT);
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -465,7 +466,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void waitForRPMConnectSystemProperty() throws Exception {
+    public void waitForRPMConnectSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.WAIT_FOR_RPM_CONNECT;
         String val = String.valueOf(!AgentConfigImpl.DEFAULT_WAIT_FOR_RPM_CONNECT);
@@ -479,7 +480,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void waitForRPMConnectServerSystemProperty() throws Exception {
+    public void waitForRPMConnectServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.WAIT_FOR_RPM_CONNECT;
         String val = String.valueOf(AgentConfigImpl.DEFAULT_WAIT_FOR_RPM_CONNECT);
@@ -494,7 +495,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void waitForRPMConnectDefault() throws Exception {
+    public void waitForRPMConnectDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -502,7 +503,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionSizeLimit() throws Exception {
+    public void getTransactionSizeLimit() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.TRANSACTION_SIZE_LIMIT, AgentConfigImpl.DEFAULT_TRANSACTION_SIZE_LIMIT + 1);
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -512,7 +513,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionSizeLimitSystemProperty() throws Exception {
+    public void getTransactionSizeLimitSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.TRANSACTION_SIZE_LIMIT;
         String val = String.valueOf(AgentConfigImpl.DEFAULT_TRANSACTION_SIZE_LIMIT + 1);
@@ -527,7 +528,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionSizeLimitServerSystemProperty() throws Exception {
+    public void getTransactionSizeLimitServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.TRANSACTION_SIZE_LIMIT;
         String val = String.valueOf(AgentConfigImpl.DEFAULT_TRANSACTION_SIZE_LIMIT);
@@ -543,7 +544,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionSizeLimitDefault() throws Exception {
+    public void getTransactionSizeLimitDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -552,7 +553,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoAppNaming() throws Exception {
+    public void isEnableAutoAppNaming() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, !AgentConfigImpl.DEFAULT_ENABLE_AUTO_APP_NAMING);
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -561,7 +562,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoAppNamingSystemProperty() throws Exception {
+    public void isEnableAutoAppNamingSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.ENABLE_AUTO_APP_NAMING;
         String val = String.valueOf(!AgentConfigImpl.DEFAULT_ENABLE_AUTO_APP_NAMING);
@@ -575,7 +576,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoAppNamingServerSystemProperty() throws Exception {
+    public void isEnableAutoAppNamingServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.ENABLE_AUTO_APP_NAMING;
         String val = String.valueOf(AgentConfigImpl.DEFAULT_ENABLE_AUTO_APP_NAMING);
@@ -590,7 +591,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoAppNamingDefault() throws Exception {
+    public void isEnableAutoAppNamingDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -598,7 +599,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoTransactionNaming() throws Exception {
+    public void isEnableAutoTransactionNaming() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.ENABLE_AUTO_TRANSACTION_NAMING,
                 !AgentConfigImpl.DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING);
@@ -609,7 +610,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoTransactionNamingSystemProperty() throws Exception {
+    public void isEnableAutoTransactionNamingSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.ENABLE_AUTO_TRANSACTION_NAMING;
         String val = String.valueOf(!AgentConfigImpl.DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING);
@@ -625,7 +626,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoTransactionNamingServerSystemProperty() throws Exception {
+    public void isEnableAutoTransactionNamingServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.ENABLE_AUTO_TRANSACTION_NAMING;
         String val = String.valueOf(AgentConfigImpl.DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING);
@@ -641,7 +642,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void isEnableAutoTransactionNamingDefault() throws Exception {
+    public void isEnableAutoTransactionNamingDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -650,7 +651,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getThreadProfilerConfig() throws Exception {
+    public void getThreadProfilerConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> profilerMap = new HashMap<>();
         profilerMap.put(ThreadProfilerConfigImpl.ENABLED, !ThreadProfilerConfigImpl.DEFAULT_ENABLED);
@@ -661,7 +662,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getThreadProfilerConfigSystemProperty() throws Exception {
+    public void getThreadProfilerConfigSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = ThreadProfilerConfigImpl.SYSTEM_PROPERTY_ROOT + ThreadProfilerConfigImpl.ENABLED;
         String val = String.valueOf(!ThreadProfilerConfigImpl.DEFAULT_ENABLED);
@@ -677,7 +678,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getThreadProfilerConfigServerSystemProperty() throws Exception {
+    public void getThreadProfilerConfigServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = ThreadProfilerConfigImpl.SYSTEM_PROPERTY_ROOT + ThreadProfilerConfigImpl.ENABLED;
         String val = String.valueOf(ThreadProfilerConfigImpl.DEFAULT_ENABLED);
@@ -694,7 +695,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getThreadProfilerConfigDefault() throws Exception {
+    public void getThreadProfilerConfigDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -702,7 +703,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getSqlTraceConfig() throws Exception {
+    public void getSqlTraceConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> sqlMap = new HashMap<>();
         sqlMap.put(SqlTraceConfigImpl.ENABLED, !SqlTraceConfigImpl.DEFAULT_ENABLED);
@@ -713,7 +714,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getSqlTraceConfigSystemProperty() throws Exception {
+    public void getSqlTraceConfigSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = SqlTraceConfigImpl.SYSTEM_PROPERTY_ROOT + SqlTraceConfigImpl.ENABLED;
         String val = String.valueOf(!SqlTraceConfigImpl.DEFAULT_ENABLED);
@@ -729,7 +730,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getSqlTraceConfigServerSystemProperty() throws Exception {
+    public void getSqlTraceConfigServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = SqlTraceConfigImpl.SYSTEM_PROPERTY_ROOT + SqlTraceConfigImpl.ENABLED;
         String val = String.valueOf(!SqlTraceConfigImpl.DEFAULT_ENABLED);
@@ -746,7 +747,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getSqlTraceConfigDefault() throws Exception {
+    public void getSqlTraceConfigDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -754,7 +755,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getSqlTraceConfigDefaultSqlIdSize() throws Exception {
+    public void getSqlTraceConfigDefaultSqlIdSize() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -762,7 +763,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionTracerConfig() throws Exception {
+    public void getTransactionTracerConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> ttMap = new HashMap<>();
         ttMap.put(TransactionTracerConfigImpl.ENABLED, !TransactionTracerConfigImpl.DEFAULT_ENABLED);
@@ -774,7 +775,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getCrossProcessConfig() throws Exception {
+    public void getCrossProcessConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> catMap = new HashMap<>();
         catMap.put(CrossProcessConfigImpl.ENABLED, !CrossProcessConfigImpl.DEFAULT_ENABLED);
@@ -786,7 +787,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getCrossProcessConfigDeprecated() throws Exception {
+    public void getCrossProcessConfigDeprecated() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING, !CrossProcessConfigImpl.DEFAULT_ENABLED);
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
@@ -796,7 +797,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getCrossProcessConfigBothDeprecatedAndNot() throws Exception {
+    public void getCrossProcessConfigBothDeprecatedAndNot() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING, CrossProcessConfigImpl.DEFAULT_ENABLED);
         Map<String, Object> catMap = new HashMap<>();
@@ -809,7 +810,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionTracerConfigSystemProperty() throws Exception {
+    public void getTransactionTracerConfigSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = TransactionTracerConfigImpl.SYSTEM_PROPERTY_ROOT + TransactionTracerConfigImpl.ENABLED;
         String val = String.valueOf(!ThreadProfilerConfigImpl.DEFAULT_ENABLED);
@@ -826,7 +827,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionTracerConfigServerSystemProperty() throws Exception {
+    public void getTransactionTracerConfigServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = TransactionTracerConfigImpl.SYSTEM_PROPERTY_ROOT + TransactionTracerConfigImpl.ENABLED;
         String val = String.valueOf(ThreadProfilerConfigImpl.DEFAULT_ENABLED);
@@ -844,15 +845,15 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getTransactionTracerConfigDefault() throws Exception {
+    public void getTransactionTracerConfigDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
-        assertEquals(false, config.getTransactionTracerConfig().isEnabled());
+        assertFalse(config.getTransactionTracerConfig().isEnabled());
     }
 
     @Test
-    public void getRequestTransactionTracerConfig() throws Exception {
+    public void getRequestTransactionTracerConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> ttMap = new HashMap<>();
         Set<Map<String, Object>> categorySet = new HashSet<>();
@@ -870,7 +871,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getRequestTransactionTracerConfigSystemProperty() throws Exception {
+    public void getRequestTransactionTracerConfigSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = TransactionTracerConfigImpl.CATEGORY_REQUEST_SYSTEM_PROPERTY_ROOT
                 + TransactionTracerConfigImpl.ENABLED;
@@ -895,7 +896,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getRequestTransactionTracerConfigServerSystemProperty() throws Exception {
+    public void getRequestTransactionTracerConfigServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = TransactionTracerConfigImpl.CATEGORY_REQUEST_SYSTEM_PROPERTY_ROOT
                 + TransactionTracerConfigImpl.ENABLED;
@@ -921,15 +922,15 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getRequestTransactionTracerConfigDefault() throws Exception {
+    public void getRequestTransactionTracerConfigDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
-        assertEquals(false, config.getRequestTransactionTracerConfig().isEnabled());
+        assertFalse(config.getRequestTransactionTracerConfig().isEnabled());
     }
 
     @Test
-    public void getBackgroundTransactionTracerConfig() throws Exception {
+    public void getBackgroundTransactionTracerConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> ttMap = new HashMap<>();
         Set<Map<String, Object>> categorySet = new HashSet<>();
@@ -947,7 +948,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getBackgroundTransactionTracerConfigSystemProperty() throws Exception {
+    public void getBackgroundTransactionTracerConfigSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = TransactionTracerConfigImpl.CATEGORY_BACKGROUND_SYSTEM_PROPERTY_ROOT
                 + TransactionTracerConfigImpl.ENABLED;
@@ -971,7 +972,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getBackgroundTransactionTracerConfigServerSystemProperty() throws Exception {
+    public void getBackgroundTransactionTracerConfigServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = TransactionTracerConfigImpl.CATEGORY_BACKGROUND_SYSTEM_PROPERTY_ROOT
                 + TransactionTracerConfigImpl.ENABLED;
@@ -996,15 +997,15 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getBackgroundTransactionTracerConfigDefault() throws Exception {
+    public void getBackgroundTransactionTracerConfigDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
-        assertEquals(false, config.getBackgroundTransactionTracerConfig().isEnabled());
+        assertFalse(config.getBackgroundTransactionTracerConfig().isEnabled());
     }
 
     @Test
-    public void getErrorCollectorConfig() throws Exception {
+    public void getErrorCollectorConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> errorMap = new HashMap<>();
         errorMap.put(ErrorCollectorConfigImpl.ENABLED, !ErrorCollectorConfigImpl.DEFAULT_ENABLED);
@@ -1016,7 +1017,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getErrorCollectorConfigSystemProperty() throws Exception {
+    public void getErrorCollectorConfigSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = ErrorCollectorConfigImpl.SYSTEM_PROPERTY_ROOT + ErrorCollectorConfigImpl.ENABLED;
         String val = String.valueOf(!ErrorCollectorConfigImpl.DEFAULT_ENABLED);
@@ -1025,11 +1026,11 @@ public class AgentConfigImplTest {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
-        assertEquals(false, config.getErrorCollectorConfig().isEnabled());
+        assertFalse(config.getErrorCollectorConfig().isEnabled());
     }
 
     @Test
-    public void getErrorCollectorConfigServerSystemProperty() throws Exception {
+    public void getErrorCollectorConfigServerSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         String key = ErrorCollectorConfigImpl.SYSTEM_PROPERTY_ROOT + ErrorCollectorConfigImpl.ENABLED;
         String val = String.valueOf(ErrorCollectorConfigImpl.DEFAULT_ENABLED);
@@ -1047,7 +1048,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getErrorCollectorConfigDefault() throws Exception {
+    public void getErrorCollectorConfigDefault() {
         Map<String, Object> localMap = new HashMap<>();
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
@@ -1055,7 +1056,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void getBrowserMonitoringConfig() throws Exception {
+    public void getBrowserMonitoringConfig() {
         Map<String, Object> localMap = new HashMap<>();
         Map<String, Object> beaconMap = new HashMap<>();
         beaconMap.put(BrowserMonitoringConfigImpl.AUTO_INSTRUMENT, !BrowserMonitoringConfigImpl.DEFAULT_AUTO_INSTRUMENT);
@@ -1067,7 +1068,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void checkSystemPropertyValueOverrideWithTrue() throws Exception {
+    public void checkSystemPropertyValueOverrideWithTrue() {
         Map<String, Object> props = new HashMap<>();
         String key = "com.newrelic.instrumentation.jcache-datastore-1.0.0";
         props.put(key, true);
@@ -1082,7 +1083,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void checkSystemPropertyValueOverrideWithFalse() throws Exception {
+    public void checkSystemPropertyValueOverrideWithFalse() {
         Map<String, Object> props = new HashMap<>();
         String key = "com.newrelic.instrumentation.jcache-datastore-1.0.0";
         props.put(key, false);
@@ -1169,7 +1170,7 @@ public class AgentConfigImplTest {
         Map<String, String> env = new HashMap<>();
         String key = "newrelic.config.my-prop";
         env.put(key, "some value");
-        SystemPropertyProvider provider = Mocks.createSystemPropertyProvider(Collections.<String, String>emptyMap(), env);
+        SystemPropertyProvider provider = Mocks.createSystemPropertyProvider(Collections.emptyMap(), env);
         SystemPropertyFactory.setSystemPropertyProvider(provider);
 
         TestConfig target = new TestConfig();
@@ -1191,7 +1192,7 @@ public class AgentConfigImplTest {
         Map<String, String> env = new HashMap<>();
         String key = "newrelic.config.my-prop";
         env.put(key, "some value");
-        SystemPropertyProvider provider = Mocks.createSystemPropertyProvider(env, Collections.<String, String>emptyMap());
+        SystemPropertyProvider provider = Mocks.createSystemPropertyProvider(env, Collections.emptyMap());
         SystemPropertyFactory.setSystemPropertyProvider(provider);
 
         TestConfig target = new TestConfig();
@@ -1208,6 +1209,20 @@ public class AgentConfigImplTest {
         ));
     }
 
+    @Test
+    public void shouldSetSpanMaxSamplesWithServerProp() {
+        //given
+        Map<String, Object> spanHarvestConfig = new HashMap<>();
+        Long harvestLimit = 1L;
+        spanHarvestConfig.put("harvest_limit", harvestLimit);
+        Map<String, Object> localMap = new HashMap<>();
+        localMap.put(SERVER_SPAN_HARVEST_CONFIG, spanHarvestConfig);
+        //when
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        //then
+        assertEquals("Span max samples should be the harvest limit of: "+harvestLimit.intValue(), harvestLimit.intValue(), config.getSpanEventsConfig().getMaxSamplesStored());
+    }
+
     private static EnvironmentFacade createEnvironmentFacade(
             Map<String, String> environment, Map<String, String> systemProps) {
         EnvironmentFacade environmentFacade = new MapEnvironmentFacade(environment);
@@ -1220,7 +1235,7 @@ public class AgentConfigImplTest {
 
     private static class TestConfig extends BaseConfig {
         TestConfig() {
-            super(Collections.<String, Object>emptyMap());
+            super(Collections.emptyMap());
         }
 
         void addDeprecatedProp(String property, String newProperty) {

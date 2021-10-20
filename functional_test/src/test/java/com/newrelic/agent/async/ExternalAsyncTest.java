@@ -10,9 +10,7 @@ package com.newrelic.agent.async;
 import com.newrelic.agent.HeadersUtil;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpSegment;
-import com.newrelic.agent.bridge.TracedActivity;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TransactionActivityInitiator;
@@ -23,13 +21,16 @@ import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
+import com.newrelic.api.agent.Segment;
+import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import test.newrelic.EnvironmentHolderSettingsGenerator;
+import test.newrelic.test.agent.EnvironmentHolder;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,12 +43,44 @@ import java.util.concurrent.TimeUnit;
 public class ExternalAsyncTest extends AsyncTest {
     private static final String ASYNC_TXA_NAME = "activity";
 
-    private static final String HOST = "www.domain.com";
+    private static final String HOST = "www.example.com";
     private static final String LIBRARY = "library";
-    private static final String URI = "http://www.domain.com/some/path";
+    private static final String URI = "http://www.example.com/some/path";
     private static final String OPERATION_NAME = "operation";
-
+    private static final String CONFIG_FILE = "configs/cross_app_tracing_test.yml";
+    private static final ClassLoader CLASS_LOADER = ExternalAsyncTest.class.getClassLoader();
     private ExecutorService executorService;
+
+    private static Segment startSegment(
+            OutboundHeaders outbound) {
+        Segment externalEvent = NewRelic.getAgent().getTransaction().startSegment(ASYNC_TXA_NAME);
+        Assert.assertNotNull(externalEvent);
+        externalEvent.addOutboundRequestHeaders(outbound);
+        return externalEvent;
+    }
+
+    private static void finishExternalEvent(Segment externalEvent,
+            Throwable t, InboundHeaders inbound, String host, String library,
+            String uri, String operationName) {
+        try {
+            externalEvent.reportAsExternal(HttpParameters
+                    .library(library)
+                    .uri(new java.net.URI(uri))
+                    .procedure(operationName)
+                    .inboundHeaders(inbound)
+                    .build());
+        } catch (URISyntaxException e) {
+            Assert.fail(e.getMessage());
+        }
+        externalEvent.end();
+    }
+
+    public EnvironmentHolder setupEnvironmentHolder(String environment) throws Exception {
+        EnvironmentHolderSettingsGenerator envHolderSettings = new EnvironmentHolderSettingsGenerator(CONFIG_FILE, environment, CLASS_LOADER);
+        EnvironmentHolder environmentHolder = new EnvironmentHolder(envHolderSettings);
+        environmentHolder.setupEnvironment();
+        return environmentHolder;
+    }
 
     @Before
     public void before() {
@@ -62,128 +95,116 @@ public class ExternalAsyncTest extends AsyncTest {
 
     @Test
     public void testSuccess() throws Exception {
-        long time = doInTransaction(new Callable<Void>() {
-            public Void call() {
-                TracedActivity externalEvent = startSegment(new Outbound());
-                finishExternalEvent(externalEvent, null, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                return null;
-            }
+        long time = doInTransaction((Callable<Void>) () -> {
+            Segment externalEvent = startSegment(new Outbound());
+            finishExternalEvent(externalEvent, null, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            return null;
         });
 
         verifyTimesSet(1);
         verifyScopedMetricsPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "External/www.domain.com/library/operation");
-        verifyUnscopedMetricsPresent("External/www.domain.com/all",
+                "External/www.example.com/library/operation");
+        verifyUnscopedMetricsPresent("External/www.example.com/all",
                 "External/allOther", "External/all");
         verifyTransactionSegmentsBreadthFirst(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 Thread.currentThread().getName(),
-                "External/www.domain.com/library/operation", NO_ASYNC_CONTEXT);
+                "External/www.example.com/library/operation", NO_ASYNC_CONTEXT);
         verifyNoExceptions();
     }
 
     @Test
     public void testFailure() throws Exception {
-        long time = doInTransaction(new Callable<Void>() {
-            public Void call() {
-                TracedActivity externalEvent = startSegment(new Outbound());
-                Throwable error = new Exception();
-                finishExternalEvent(externalEvent, error, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                return null;
-            }
+        long time = doInTransaction((Callable<Void>) () -> {
+            Segment externalEvent = startSegment(new Outbound());
+            Throwable error = new Exception();
+            finishExternalEvent(externalEvent, error, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            return null;
         });
 
         verifyTimesSet(1);
         verifyScopedMetricsPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "External/www.domain.com/library/operation");
-        verifyUnscopedMetricsPresent("External/www.domain.com/all",
+                "External/www.example.com/library/operation");
+        verifyUnscopedMetricsPresent("External/www.example.com/all",
                 "External/allOther", "External/all");
         verifyTransactionSegmentsBreadthFirst(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 Thread.currentThread().getName(),
-                "External/www.domain.com/library/operation", NO_ASYNC_CONTEXT);
+                "External/www.example.com/library/operation", NO_ASYNC_CONTEXT);
         verifyNoExceptions(); // ??
     }
 
     @Test
     public void testIgnoredTransaction() throws Exception {
-        doInTransaction(new Callable<Void>() {
-            public Void call() {
-                NewRelic.getAgent().getTransaction().ignore();
-                TracedActivity externalEvent = AgentBridge.getAgent()
-                        .getTransaction().createAndStartTracedActivity();
-                Assert.assertTrue(externalEvent.equals(NoOpSegment.INSTANCE));
-                return null;
-            }
+        doInTransaction((Callable<Void>) () -> {
+            NewRelic.getAgent().getTransaction().ignore();
+            Segment externalEvent = NewRelic.getAgent().getTransaction().startSegment("foo");
+            Assert.assertEquals(externalEvent, NoOpSegment.INSTANCE);
+            return null;
         });
         verifyTimesSet(0);
     }
 
     @Test
     public void testNoTransaction() {
-        TracedActivity externalEvent = AgentBridge.getAgent().getTransaction()
-                .createAndStartTracedActivity();
+        Segment externalEvent = NewRelic.getAgent().getTransaction().startSegment("foo");
         Assert.assertEquals(externalEvent, NoOpSegment.INSTANCE);
         verifyTimesSet(0);
     }
 
     @Test
     public void testTwoIntermixed() throws Exception {
-        long time = doInTransaction(new Callable<Void>() {
-            public Void call() {
-                TracedActivity externalEvent1 = startSegment(new Outbound());
-                TracedActivity externalEvent2 = startSegment(new Outbound());
-                finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                }
-                finishExternalEvent(externalEvent2, null, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                return null;
+        long time = doInTransaction((Callable<Void>) () -> {
+            Segment externalEvent1 = startSegment(new Outbound());
+            Segment externalEvent2 = startSegment(new Outbound());
+            finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException ignored) {
             }
+            finishExternalEvent(externalEvent2, null, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            return null;
         });
 
         verifyTimesSet(1);
         verifyScopedMetricsPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                2, "External/www.domain.com/library/operation");
-        verifyUnscopedMetricsPresent(stats, 2, "External/www.domain.com/all",
+                2, "External/www.example.com/library/operation");
+        verifyUnscopedMetricsPresent(stats, 2, "External/www.example.com/all",
                 "External/allOther", "External/all");
         verifyTransactionSegmentsBreadthFirst(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 Thread.currentThread().getName(),
-                "External/www.domain.com/library/operation", NO_ASYNC_CONTEXT,
-                "External/www.domain.com/library/operation", NO_ASYNC_CONTEXT);
+                "External/www.example.com/library/operation", NO_ASYNC_CONTEXT,
+                "External/www.example.com/library/operation", NO_ASYNC_CONTEXT);
         verifyNoExceptions();
     }
 
     @Test
     public void testFinishTwice() throws Exception {
-        doInTransaction(new Callable<Void>() {
-            public Void call() {
-                TracedActivity externalEvent1 = startSegment(new Outbound());
-                finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                return null;
-            }
+        doInTransaction((Callable<Void>) () -> {
+            Segment externalEvent1 = startSegment(new Outbound());
+            finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            return null;
         });
 
         verifyTimesSet(1);
         verifyScopedMetricsPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "External/www.domain.com/library/operation");
-        verifyUnscopedMetricsPresent("External/www.domain.com/all",
+                "External/www.example.com/library/operation");
+        verifyUnscopedMetricsPresent("External/www.example.com/all",
                 "External/allOther", "External/all");
         verifyScopedMetricsNotPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
@@ -192,31 +213,28 @@ public class ExternalAsyncTest extends AsyncTest {
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 Thread.currentThread().getName(),
-                "External/www.domain.com/library/operation", NO_ASYNC_CONTEXT);
+                "External/www.example.com/library/operation", NO_ASYNC_CONTEXT);
         verifyNoExceptions();
     }
 
-    // with the refactoring of the transaction object, we are no longer one to
-    // one meaning this is allowed
+    // with the refactoring of the transaction object, we are no longer one to one meaning this is allowed
     @Test
     public void testStartAfterFinish() throws Exception {
-        doInTransaction(new Callable<Void>() {
-            public Void call() {
-                TracedActivity externalEvent1 = startSegment(new Outbound());
-                finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                TracedActivity externalEvent2 = startSegment(new Outbound());
-                finishExternalEvent(externalEvent2, null, new Inbound(), HOST,
-                        LIBRARY, URI, OPERATION_NAME);
-                return null;
-            }
+        doInTransaction((Callable<Void>) () -> {
+            Segment externalEvent1 = startSegment(new Outbound());
+            finishExternalEvent(externalEvent1, null, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            Segment externalEvent2 = startSegment(new Outbound());
+            finishExternalEvent(externalEvent2, null, new Inbound(), HOST,
+                    LIBRARY, URI, OPERATION_NAME);
+            return null;
         });
 
         verifyTimesSet(1);
         verifyScopedMetricsPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                2, "External/www.domain.com/library/operation");
-        verifyUnscopedMetricsPresent(2, "External/www.domain.com/all",
+                2, "External/www.example.com/library/operation");
+        verifyUnscopedMetricsPresent(2, "External/www.example.com/all",
                 "External/allOther", "External/all");
         verifyScopedMetricsNotPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
@@ -225,18 +243,21 @@ public class ExternalAsyncTest extends AsyncTest {
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 Thread.currentThread().getName(),
-                "External/www.domain.com/library/operation", NO_ASYNC_CONTEXT,
-                "External/www.domain.com/library/operation", NO_ASYNC_CONTEXT);
+                "External/www.example.com/library/operation", NO_ASYNC_CONTEXT,
+                "External/www.example.com/library/operation", NO_ASYNC_CONTEXT);
         verifyNoExceptions();
     }
 
     @Test
     public void testCat() throws Exception {
-        final Outbound outbound = new Outbound();
-        final Inbound inbound = new Inbound();
-        doInTransaction(new Callable<Void>() {
-            public Void call() {
-                TracedActivity externalEvent = startSegment(outbound);
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
+
+        try {
+            final Outbound outbound = new Outbound();
+            final Inbound inbound = new Inbound();
+            doInTransaction((Callable<Void>) () -> {
+                Segment externalEvent = startSegment(outbound);
                 Transaction transaction = Transaction.getTransaction(false);
                 String encodingKey = transaction.getCrossProcessConfig().getEncodingKey();
                 String appData = Obfuscator.obfuscateNameUsingKey(
@@ -245,33 +266,34 @@ public class ExternalAsyncTest extends AsyncTest {
                 inbound.headers.put(HeadersUtil.NEWRELIC_APP_DATA_HEADER, appData);
                 finishExternalEvent(externalEvent, null, inbound, HOST, LIBRARY, URI, OPERATION_NAME);
                 return null;
-            }
-        });
+            });
 
-        // assert outbound request headers were populated correctly
-        Assert.assertTrue(outbound.headers
-                .containsKey(HeadersUtil.NEWRELIC_ID_HEADER));
-        Assert.assertTrue(outbound.headers
-                .containsKey(HeadersUtil.NEWRELIC_TRANSACTION_HEADER));
+            // assert outbound request headers were populated correctly
+            Assert.assertTrue(outbound.headers
+                    .containsKey(HeadersUtil.NEWRELIC_ID_HEADER));
+            Assert.assertTrue(outbound.headers
+                    .containsKey(HeadersUtil.NEWRELIC_TRANSACTION_HEADER));
 
-        // assert inbound response headers were processed correctly by checking
-        // for CAT metric name
-        verifyTimesSet(1);
-        verifyScopedMetricsPresent(
-                "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "ExternalTransaction/www.domain.com/crossProcessId/externalTransactionName");
-        verifyUnscopedMetricsPresent("External/www.domain.com/all",
-                "External/allOther", "External/all");
-        verifyScopedMetricsNotPresent(
-                "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "External/www.host2.com/library");
-        verifyTransactionSegmentsBreadthFirst(
-                "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
-                Thread.currentThread().getName(),
-                "ExternalTransaction/www.domain.com/crossProcessId/externalTransactionName",
-                NO_ASYNC_CONTEXT);
-        verifyNoExceptions();
+            // assert inbound response headers were processed correctly by checking for CAT metric name
+            verifyTimesSet(1);
+            verifyScopedMetricsPresent(
+                    "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    "ExternalTransaction/www.example.com/crossProcessId/externalTransactionName");
+            verifyUnscopedMetricsPresent("External/www.example.com/all",
+                    "External/allOther", "External/all");
+            verifyScopedMetricsNotPresent(
+                    "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    "External/www.host2.com/library");
+            verifyTransactionSegmentsBreadthFirst(
+                    "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    "Java/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
+                    Thread.currentThread().getName(),
+                    "ExternalTransaction/www.example.com/crossProcessId/externalTransactionName",
+                    NO_ASYNC_CONTEXT);
+            verifyNoExceptions();
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
@@ -281,9 +303,8 @@ public class ExternalAsyncTest extends AsyncTest {
             @Override
             public Void call() throws Exception {
                 // register a new async activity
-                final Object asyncKey = new Object();
-                Assert.assertTrue(AgentBridge.getAgent().getTransaction()
-                        .registerAsyncActivity(asyncKey));
+                Token token = NewRelic.getAgent().getTransaction().getToken();
+                Assert.assertTrue(token.isActive());
 
                 // submit async activity
                 executorService.submit(new Callable<Void>() {
@@ -294,22 +315,18 @@ public class ExternalAsyncTest extends AsyncTest {
                                 .getName();
 
                         // start async activity
-                        Assert.assertTrue(AgentBridge.getAgent()
-                                .startAsyncActivity(asyncKey));
+                        Assert.assertTrue(token.linkAndExpire());
 
                         // start external work
-                        final TracedActivity externalEvent = startSegment(new Outbound());
+                        final Segment externalEvent = startSegment(new Outbound());
 
                         // submit external work
-                        executorService.submit(new Callable<Void>() {
-                            @Override
-                            public Void call() throws Exception {
-                                // finish external work
-                                finishExternalEvent(externalEvent, null,
-                                        new Inbound(), HOST, LIBRARY, URI,
-                                        OPERATION_NAME);
-                                return null;
-                            }
+                        executorService.submit((Callable<Void>) () -> {
+                            // finish external work
+                            finishExternalEvent(externalEvent, null,
+                                    new Inbound(), HOST, LIBRARY, URI,
+                                    OPERATION_NAME);
+                            return null;
                         }).get();
                         return null;
                     }
@@ -322,8 +339,8 @@ public class ExternalAsyncTest extends AsyncTest {
         verifyScopedMetricsPresent(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
                 "Java/" + asyncClassAndThreadName[0] + "/call",
-                "External/www.domain.com/library/operation");
-        verifyUnscopedMetricsPresent("External/www.domain.com/all",
+                "External/www.example.com/library/operation");
+        verifyUnscopedMetricsPresent("External/www.example.com/all",
                 "External/allOther", "External/all");
         verifyTransactionSegmentsBreadthFirst(
                 "OtherTransaction/Custom/com.newrelic.agent.async.ExternalAsyncTest/doInTransaction",
@@ -331,44 +348,35 @@ public class ExternalAsyncTest extends AsyncTest {
                 Thread.currentThread().getName(), "Java/"
                         + asyncClassAndThreadName[0] + "/call",
                 asyncClassAndThreadName[1],
-                "External/www.domain.com/library/operation", "segment-api");
+                "External/www.example.com/library/operation", "segment-api");
         verifyNoExceptions();
     }
 
     @Test
     public void testConcurrentSuccess() throws Exception {
-        doInTransaction(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                // pretend some external calls are started in a tx
-                final TracedActivity externalEvent1 = startSegment(new Outbound());
-                final TracedActivity externalEvent2 = startSegment(new Outbound());
+        doInTransaction((Callable<Void>) () -> {
+            // pretend some external calls are started in a tx
+            final Segment externalEvent1 = startSegment(new Outbound());
+            final Segment externalEvent2 = startSegment(new Outbound());
 
-                // pretend they're finished asynchronously
-                executorService.submit(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        Thread.sleep(500);
-                        finishExternalEvent(externalEvent1, null,
-                                new Inbound(), "http://www.one.com", LIBRARY,
-                                "http://www.one.com/path", "one");
-                        return null;
-                    }
-                });
-
-                executorService.submit(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        // finish external work
-                        finishExternalEvent(externalEvent2, null,
-                                new Inbound(), "http://www.two.com", LIBRARY,
-                                "http://www.two.com/path", "two");
-                        return null;
-                    }
-                });
-
+            // pretend they're finished asynchronously
+            executorService.submit((Callable<Void>) () -> {
+                Thread.sleep(500);
+                finishExternalEvent(externalEvent1, null,
+                        new Inbound(), "http://www.one.com", LIBRARY,
+                        "http://www.one.com/path", "one");
                 return null;
-            }
+            });
+
+            executorService.submit((Callable<Void>) () -> {
+                // finish external work
+                finishExternalEvent(externalEvent2, null,
+                        new Inbound(), "http://www.two.com", LIBRARY,
+                        "http://www.two.com/path", "two");
+                return null;
+            });
+
+            return null;
         });
         executorService.shutdown();
         executorService.awaitTermination(1500, TimeUnit.MILLISECONDS);
@@ -398,39 +406,30 @@ public class ExternalAsyncTest extends AsyncTest {
 
     @Test
     public void testConcurrentFailure() throws Exception {
-        doInTransaction(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                // pretend some external calls are started in a tx
-                final TracedActivity externalEvent1 = startSegment(new Outbound());
-                final TracedActivity externalEvent2 = startSegment(new Outbound());
-                // pretend they're finished asynchronously
-                executorService.submit(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        Thread.sleep(500);
-                        finishExternalEvent(externalEvent1, null,
-                                new Inbound(), "http://www.one.com", LIBRARY,
-                                "http://www.one.com/path", "one");
-                        return null;
-                    }
-                });
-
-                executorService.submit(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        // finish external work
-                        Throwable throwable = new RuntimeException(
-                                "SomeException");
-                        finishExternalEvent(externalEvent2, throwable,
-                                new Inbound(), "http://www.two.com", LIBRARY,
-                                "http://www.two.com/path", "two");
-                        return null;
-                    }
-                });
-
+        doInTransaction((Callable<Void>) () -> {
+            // pretend some external calls are started in a tx
+            final Segment externalEvent1 = startSegment(new Outbound());
+            final Segment externalEvent2 = startSegment(new Outbound());
+            // pretend they're finished asynchronously
+            executorService.submit((Callable<Void>) () -> {
+                Thread.sleep(500);
+                finishExternalEvent(externalEvent1, null,
+                        new Inbound(), "http://www.one.com", LIBRARY,
+                        "http://www.one.com/path", "one");
                 return null;
-            }
+            });
+
+            executorService.submit((Callable<Void>) () -> {
+                // finish external work
+                Throwable throwable = new RuntimeException(
+                        "SomeException");
+                finishExternalEvent(externalEvent2, throwable,
+                        new Inbound(), "http://www.two.com", LIBRARY,
+                        "http://www.two.com/path", "two");
+                return null;
+            });
+
+            return null;
         });
         executorService.shutdown();
         executorService.awaitTermination(1500, TimeUnit.MILLISECONDS);
@@ -456,32 +455,6 @@ public class ExternalAsyncTest extends AsyncTest {
                 "External/www.one.com/library/one", "segment-api",
                 "External/www.two.com/library/two", "segment-api");
         verifyNoExceptions();
-    }
-
-    private static TracedActivity startSegment(
-            OutboundHeaders outbound) {
-        TracedActivity externalEvent = AgentBridge.getAgent().getTransaction()
-                .createAndStartTracedActivity();
-        Assert.assertNotNull(externalEvent);
-        externalEvent.setAsyncThreadName(ASYNC_TXA_NAME);
-        externalEvent.getTracedMethod().addOutboundRequestHeaders(outbound);
-        return externalEvent;
-    }
-
-    private static void finishExternalEvent(TracedActivity externalEvent,
-            Throwable t, InboundHeaders inbound, String host, String library,
-            String uri, String operationName) {
-        try {
-            externalEvent.getTracedMethod().reportAsExternal(HttpParameters
-                    .library(library)
-                    .uri(new java.net.URI(uri))
-                    .procedure(operationName)
-                    .inboundHeaders(inbound)
-                    .build());
-        } catch (URISyntaxException e) {
-            Assert.fail(e.getMessage());
-        }
-        externalEvent.finish(t);
     }
 
     @Trace(dispatcher = true)

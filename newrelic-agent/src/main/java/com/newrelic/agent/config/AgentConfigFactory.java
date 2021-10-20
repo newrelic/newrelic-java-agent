@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.newrelic.agent.config.SpanEventsConfig.*;
+
 public class AgentConfigFactory {
 
     public static final String AGENT_CONFIG = "agent_config";
@@ -110,7 +112,7 @@ public class AgentConfigFactory {
         boolean attributesIncludeEnabled = getLaspValue(laspData, AttributesConfigImpl.ATTS_INCLUDE, true);
 
         List<String> attributesInclude = attributesIncludeEnabled
-                ? settingsConfig.getAttributesConfig().attributesRootInclude() : Collections.<String>emptyList();
+                ? settingsConfig.getAttributesConfig().attributesRootInclude() : Collections.emptyList();
         String attributesIncludeSecure = Joiner.on(",").join(attributesInclude);
 
         Boolean captureMessageParameters = getLaspValue(laspData, LaspPolicies.LASP_MESSAGE_PARAMETERS, true);
@@ -182,6 +184,7 @@ public class AgentConfigFactory {
         addServerProp(COLLECT_TRANSACTION_EVENTS, serverData.get("collect_analytics_events"), settings);
         addServerProp(COLLECT_CUSTOM_INSIGHTS_EVENTS, serverData.get(InsightsConfigImpl.COLLECT_CUSTOM_EVENTS), settings);
         addServerProp(COLLECT_SPAN_EVENTS, serverData.get(SpanEventsConfig.COLLECT_SPAN_EVENTS), settings);
+        addServerProp(SERVER_SPAN_HARVEST_CONFIG, serverData.get(SERVER_SPAN_HARVEST_CONFIG), settings);
         // key transaction server properties
         addServerProp(AgentConfigImpl.KEY_TRANSACTIONS, serverData.get(AgentConfigImpl.KEY_TRANSACTIONS), settings);
         // cross application tracing server properties

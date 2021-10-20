@@ -13,10 +13,22 @@ import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_LIMIT;
 
 public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
@@ -355,13 +367,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         propsWithSystemProps.putAll(SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix());
         flatten("", propsWithSystemProps, flattenedProps);
         checkHighSecurityPropsInFlattened(flattenedProps);
+        setServerSpanHarvestLimit();
         this.flattenedProperties = Collections.unmodifiableMap(flattenedProps);
         this.waitForTransactionsInMillis = getProperty(WAIT_FOR_TRANSACTIONS, DEFAULT_WAIT_FOR_TRANSACTIONS);
         this.customInstrumentationEditorAllowed = getProperty(LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, !highSecurity);
         this.customParameters = getProperty(LaspPolicies.LASP_CUSTOM_PARAMETERS, !highSecurity);
 
         if (getProperty(REPORT_SQL_PARSER_ERRORS) != null) {
-            addDeprecatedProperty(new String[]{REPORT_SQL_PARSER_ERRORS}, null);
+            addDeprecatedProperty(new String[] { REPORT_SQL_PARSER_ERRORS }, null);
         }
     }
 
@@ -371,7 +384,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             if (caBundlePath != null) {
                 Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
             } else {
-                Agent.LOG.log(Level.SEVERE, "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.");
+                Agent.LOG.log(Level.SEVERE,
+                        "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.");
             }
         }
         return caBundlePath;
@@ -440,7 +454,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return EU_METRIC_INGEST_URI;
         }
 
-        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}", METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
+        Agent.LOG.log(Level.INFO,
+                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}",
+                METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
         return DEFAULT_METRIC_INGEST_URI;
     }
 
@@ -469,7 +485,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return EU_EVENT_INGEST_URI;
         }
 
-        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}", EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
+        Agent.LOG.log(Level.INFO,
+                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}",
+                EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
         return DEFAULT_EVENT_INGEST_URI;
     }
 
@@ -529,12 +547,20 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
-    private boolean initMetricDebugConfig(){
+    private boolean initMetricDebugConfig() {
         Object val = getProperty(METRIC_DEBUG);
-        if ( val instanceof Boolean  && (Boolean) val) {
+        if (val instanceof Boolean && (Boolean) val) {
             Agent.LOG.log(Level.INFO, "metric_debug is enabled");
         }
         return getProperty(METRIC_DEBUG, DEFAULT_METRIC_DEBUG);
+    }
+
+    private void setServerSpanHarvestLimit() {
+        Map<String, Object> spanEventHarvestLimits = getProperty(SERVER_SPAN_HARVEST_CONFIG);
+        if (spanEventHarvestLimits != null) {
+            Long harvestLimit = (Long) spanEventHarvestLimits.get(SERVER_SPAN_HARVEST_LIMIT);
+            spanEventsConfig.setMaxSamplesStoredByServerProp(harvestLimit.intValue());
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -895,7 +921,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return getProperty(key + "_debug", false);
     }
 
-
     @Override
     public String getLanguage() {
         return getProperty(LANGUAGE, DEFAULT_LANGUAGE);
@@ -995,7 +1020,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             }
             if (result instanceof Map) {
                 Map<?, ?> resultMap = (Map<?, ?>) result;
-                result = resultMap.containsKey(component) ? resultMap.get(component) : null;
+                result = resultMap.getOrDefault(component, null);
             }
         }
 

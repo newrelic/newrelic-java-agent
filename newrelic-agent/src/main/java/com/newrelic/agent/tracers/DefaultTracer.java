@@ -104,33 +104,33 @@ public class DefaultTracer extends AbstractTracer {
      * of the thread local; the mapping from transactions to activities is one-to-many, so there's no other way to do
      * it.)
      *
-     * @param transaction         transaction, must not be null.
+     * @param transaction transaction, must not be null.
      * @param sig
      * @param object
      * @param metricNameFormatter
      * @param tracerFlags
      */
     public DefaultTracer(Transaction transaction, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, int tracerFlags) {
+            MetricNameFormat metricNameFormatter, int tracerFlags) {
         this(transaction.getTransactionActivity(), sig, object, metricNameFormatter, tracerFlags);
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, int tracerFlags) {
+            MetricNameFormat metricNameFormatter, int tracerFlags) {
         this(txa, sig, object, metricNameFormatter, tracerFlags, System.nanoTime());
     }
 
     /**
      * Primary constructor for tracers created from weaved code or XML instrumentation.
      *
-     * @param txa                 activity, must not be null.
+     * @param txa activity, must not be null.
      * @param sig
      * @param object
      * @param metricNameFormatter
      * @param tracerFlags
      */
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, int tracerFlags, long pStartTime) {
+            MetricNameFormat metricNameFormatter, int tracerFlags, long pStartTime) {
         super(txa, new AttributeValidator(ATTRIBUTE_TYPE));
         metricNameFormat = metricNameFormatter;
         classMethodSignature = sig;
@@ -148,12 +148,12 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, long pStartTime) {
+            MetricNameFormat metricNameFormatter, long pStartTime) {
         this(txa, sig, object, metricNameFormatter, DEFAULT_TRACER_FLAGS, pStartTime);
     }
 
     public DefaultTracer(Transaction transaction, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter) {
+            MetricNameFormat metricNameFormatter) {
         this(transaction, sig, object, metricNameFormatter, DEFAULT_TRACER_FLAGS);
     }
 
@@ -557,7 +557,7 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public TransactionSegment getTransactionSegment(TransactionTracerConfig ttConfig, SqlObfuscator sqlObfuscator,
-                                                    long startTime, TransactionSegment lastSibling) {
+            long startTime, TransactionSegment lastSibling) {
         return new TransactionSegment(ttConfig, sqlObfuscator, startTime, this);
     }
 
