@@ -7,8 +7,11 @@
 
 package com.newrelic.agent.stats;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.api.agent.NewRelic;
+
+import java.util.logging.Level;
 
 /**
  * This class is not thread-safe.
@@ -70,9 +73,10 @@ public class StatsImpl extends AbstractStats implements Stats {
         sumOfSquares = sos;
 
         if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
-            if (count < 0 || total < 0 || sumOfSquares < 0) {
+            if (count < 0 || total < 0) {
                 NewRelic.incrementCounter("Supportability/StatsImpl/NegativeValue");
-                throw new IllegalArgumentException(this.toString());
+                Agent.LOG.log(Level.INFO, "Invalid count {0} or total {1}", count, total);
+
             }
         }
 
