@@ -120,7 +120,7 @@ public class CrossProcessAndSyntheticsConfigTest {
 
     @Test
     public void testConfig1() throws Exception {
-        testConfig(makeYmlFilePath("newrelic.yml"), true, true);
+        testConfig(makeYmlFilePath("newrelic.yml"), false, true);
     }
 
     @Test
@@ -140,7 +140,7 @@ public class CrossProcessAndSyntheticsConfigTest {
 
     @Test
     public void testConfig5() throws Exception {
-        testConfig(makeYmlFilePath("newrelicWithCrossAppTracingNotSpecified.yml"), true, true);
+        testConfig(makeYmlFilePath("newrelicWithCrossAppTracingNotSpecified.yml"), false, true);
     }
 
     // The "expected value" arguments are all about the newrelic.yml. We're not varying the collector JSON here.

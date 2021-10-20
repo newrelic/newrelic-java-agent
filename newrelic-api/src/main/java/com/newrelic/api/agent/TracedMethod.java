@@ -69,7 +69,10 @@ public interface TracedMethod extends AttributeHolder {
      * @param outboundHeaders The headers that will be written to the output stream for the external request. This also
      *        determines if the external call is HTTP or JMS.
      * @since 3.36.0
+     * @deprecated Instead, use the Distributed Tracing API {@link Transaction#insertDistributedTraceHeaders(Headers)} to create a
+     * distributed tracing payload
      */
+    @Deprecated
     void addOutboundRequestHeaders(OutboundHeaders outboundHeaders);
 
 }
