@@ -21,6 +21,7 @@ import com.newrelic.test.marker.Java13IncompatibleTest;
 import com.newrelic.test.marker.Java14IncompatibleTest;
 import com.newrelic.test.marker.Java15IncompatibleTest;
 import com.newrelic.test.marker.Java16IncompatibleTest;
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +39,7 @@ import static org.hamcrest.Matchers.containsString;
 
 // Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
 @Category({ Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
-        Java15IncompatibleTest.class, Java16IncompatibleTest.class })
+        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"spray", "akka", "scala"})
 public class SprayHttpRoutesTest {

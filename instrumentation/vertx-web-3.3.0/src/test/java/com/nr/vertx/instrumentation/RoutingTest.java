@@ -11,6 +11,7 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.test.marker.Java16IncompatibleTest;
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -27,10 +28,10 @@ import java.util.Map;
 
 import static com.nr.vertx.test.handlers.SimpleHandlers.createHandler;
 import static com.nr.vertx.test.handlers.SimpleHandlers.createLambdaHandler;
-import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertNotNull;
 
-@Category({ Java16IncompatibleTest.class })
+@Category({ Java16IncompatibleTest.class, Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class RoutingTest extends VertxTestBase{
