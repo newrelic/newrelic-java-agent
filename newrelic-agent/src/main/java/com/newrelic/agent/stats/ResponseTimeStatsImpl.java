@@ -7,11 +7,13 @@
 
 package com.newrelic.agent.stats;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.util.TimeConversion;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * This class is not thread-safe.
@@ -78,8 +80,8 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
             if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0) {
                 NewRelic.incrementCounter("Supportability/ResponseTimeStatsImpl/NegativeValue");
-                throw new IllegalArgumentException(
-                        " [count=" + count + ", total=" + total + ", totalExclusive=" + totalExclusive + ", sum of squares=" + sumOfSquares + "]");
+                Agent.LOG.log(Level.INFO, "Invalid count {0}, total {1}, totalExclusive {2}, or sum of squares {3}",
+                        count, total, totalExclusive, sumOfSquares);
             }
         }
 
