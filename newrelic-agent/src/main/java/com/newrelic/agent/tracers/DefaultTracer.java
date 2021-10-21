@@ -13,10 +13,11 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
+import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.DatastoreConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
-import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.database.DatastoreMetrics;
+import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.TransactionStats;
@@ -26,7 +27,17 @@ import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.Strings;
-import com.newrelic.api.agent.*;
+import com.newrelic.api.agent.DatastoreParameters;
+import com.newrelic.api.agent.DestinationType;
+import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.GenericParameters;
+import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.InboundHeaders;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.OutboundHeaders;
+import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 import org.objectweb.asm.Opcodes;
 
 import java.net.URI;
@@ -93,33 +104,33 @@ public class DefaultTracer extends AbstractTracer {
      * of the thread local; the mapping from transactions to activities is one-to-many, so there's no other way to do
      * it.)
      *
-     * @param transaction         transaction, must not be null.
+     * @param transaction transaction, must not be null.
      * @param sig
      * @param object
      * @param metricNameFormatter
      * @param tracerFlags
      */
     public DefaultTracer(Transaction transaction, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, int tracerFlags) {
+            MetricNameFormat metricNameFormatter, int tracerFlags) {
         this(transaction.getTransactionActivity(), sig, object, metricNameFormatter, tracerFlags);
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, int tracerFlags) {
+            MetricNameFormat metricNameFormatter, int tracerFlags) {
         this(txa, sig, object, metricNameFormatter, tracerFlags, System.nanoTime());
     }
 
     /**
      * Primary constructor for tracers created from weaved code or XML instrumentation.
      *
-     * @param txa                 activity, must not be null.
+     * @param txa activity, must not be null.
      * @param sig
      * @param object
      * @param metricNameFormatter
      * @param tracerFlags
      */
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, int tracerFlags, long pStartTime) {
+            MetricNameFormat metricNameFormatter, int tracerFlags, long pStartTime) {
         super(txa, new AttributeValidator(ATTRIBUTE_TYPE));
         metricNameFormat = metricNameFormatter;
         classMethodSignature = sig;
@@ -137,12 +148,12 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter, long pStartTime) {
+            MetricNameFormat metricNameFormatter, long pStartTime) {
         this(txa, sig, object, metricNameFormatter, DEFAULT_TRACER_FLAGS, pStartTime);
     }
 
     public DefaultTracer(Transaction transaction, ClassMethodSignature sig, Object object,
-                         MetricNameFormat metricNameFormatter) {
+            MetricNameFormat metricNameFormatter) {
         this(transaction, sig, object, metricNameFormatter, DEFAULT_TRACER_FLAGS);
     }
 
@@ -205,6 +216,7 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public void finish(int opcode, Object returnValue) {
+
         TransactionActivity txa = getTransactionActivity();
         if (txa == null) {
             // Internal error - null txa is permitted for
@@ -225,12 +237,17 @@ public class DefaultTracer extends AbstractTracer {
     // this is public for testing - do not call directly unless testing
     public void performFinishWork(long finishTime, int opcode, Object returnValue) {
         // Believe it or not, it's possible to get a negative value!
-        // (At least on some old, broken Linux kernels is is.)
+        // (At least on some old, broken Linux kernels)
         duration = Math.max(0, finishTime - getStartTime());
         exclusiveDuration += duration;
         if (exclusiveDuration < 0 || exclusiveDuration > duration) {
-            Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for tracer {1}", exclusiveDuration,
-                    this.getClass().getName());
+            if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
+                Agent.LOG.log(Level.INFO, "Invalid exclusive time {0} for metric {1}", exclusiveDuration,
+                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName());
+            } else {
+                Agent.LOG.log(Level.FINE, "Invalid exclusive time {0} for metric {1}", exclusiveDuration,
+                        NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName());
+            }
             exclusiveDuration = duration;
         }
 
@@ -540,7 +557,7 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public TransactionSegment getTransactionSegment(TransactionTracerConfig ttConfig, SqlObfuscator sqlObfuscator,
-                                                    long startTime, TransactionSegment lastSibling) {
+            long startTime, TransactionSegment lastSibling) {
         return new TransactionSegment(ttConfig, sqlObfuscator, startTime, this);
     }
 
