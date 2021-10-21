@@ -8,7 +8,7 @@ import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction}
 import java.util.concurrent.atomic.AtomicInteger
 
 object Util {
-
+  val RETURN_OPCODE = 176
   def wrapTrace[S, F[_]: Sync](body: F[S]): F[S] =
     Sync[F].delay{
       val tracer = AgentBridge.instrumentation.createScalaTxnTracer()
@@ -20,7 +20,7 @@ object Util {
           _ <- setupTokenAndRefCount(txn)
           res <- attachErrorEvent(body, tracer)
           _ <- cleanupTxnAndTokenRefCount(txn)
-          _ <- Sync[F].delay(tracer.finish(172, null))
+          _ <- Sync[F].delay(tracer.finish(RETURN_OPCODE, null))
         } yield res
       )
 
