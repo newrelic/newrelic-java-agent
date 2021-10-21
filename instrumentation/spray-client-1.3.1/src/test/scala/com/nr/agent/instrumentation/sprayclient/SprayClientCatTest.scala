@@ -28,8 +28,9 @@ classOf[Java15IncompatibleTest], classOf[Java16IncompatibleTest], classOf[Java17
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("spray."))
 class SprayClientCatTest {
-  implicit val system = akka.actor.ActorSystem() // execution context
- 
+  implicit val system = akka.actor.ActorSystem()
+  import system.dispatcher // execution context
+
   @Test
   def testCat() {
     val server :HttpTestServer = HttpServerLocator.createAndStart();
