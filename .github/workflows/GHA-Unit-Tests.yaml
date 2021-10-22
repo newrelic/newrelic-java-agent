@@ -91,19 +91,19 @@ jobs:
         run: printenv | sort -f
 
       # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
+#      - name: Restore the gradle caches
+#        uses: actions/cache@v2.1.6
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
           # The docs say to use hashfiles, but gradle itself is smart enough to
           # re-download dependencies if it couldn't resolve them.
           # Because our gradle cache is _so big_, I think a 90% cache is far
           # better than a 0% cache.
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
+#          key: ${{ runner.os }}-gradle
+#          restore-keys: |
+#            ${{ runner.os }}-gradle
 
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
