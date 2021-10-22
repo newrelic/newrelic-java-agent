@@ -9,7 +9,11 @@ package com.nr.instrumentation.akkahttpcore
 
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.RawHeader
-import com.newrelic.api.agent.{HeaderType, Response}
+import com.newrelic.agent.bridge.{AgentBridge, Token}
+import com.newrelic.api.agent.weaver.Weaver
+import com.newrelic.api.agent.{HeaderType, Response, Transaction}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class ResponseWrapper(var response: HttpResponse) extends Response {
 
@@ -29,5 +33,43 @@ class ResponseWrapper(var response: HttpResponse) extends Response {
 
   override def setHeader(name: String, value: String): Unit = {
     response = response.addHeader(new RawHeader(name, value))
+  }
+}
+
+object ResponseWrapper {
+  def wrapAsyncResponse(token: Token)(implicit ec: ExecutionContext): HttpResponse => Future[HttpResponse] = {
+    response: HttpResponse => Future(wrapResponse(token, response))
+  }
+
+
+  def wrapResponse(token: Token, response: HttpResponse): HttpResponse = {
+    val localToken = token
+
+    try {
+      val txn: Transaction = localToken.getTransaction
+      if (txn != null) {
+        val wrappedResponse = new ResponseWrapper(response)
+        txn.setWebResponse(wrappedResponse)
+        txn.addOutboundResponseHeaders()
+        txn.markResponseSent()
+        val updatedResponse = wrappedResponse.response
+        localToken.expire()
+        updatedResponse
+      } else {
+        response
+      }
+
+    } catch {
+      case t: Throwable => AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle)
+        try {
+          localToken.expire()
+          response
+        }
+        catch {
+          case t: Throwable =>
+            AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle)
+            response
+        }
+    }
   }
 }
