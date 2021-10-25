@@ -101,33 +101,6 @@ class CatsEffectIOTest3 {
   }
 
   @Test
-  def sequentialAsyncTraceSegmentTimeCaptured(): Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-    val delayMillis = 1500
-    //When
-    val txnBlock: IO[Int] = txn(
-      for {
-        one <- asyncTrace("one")(IO(1))
-        _ <- asyncTrace("sleep")(IO.sleep(delayMillis.millis))
-        two <- asyncTrace("two")(IO(one + 1))
-      } yield two
-    )
-    val result = txnBlock.unsafeRunTimed(2.seconds)
-    val txnCount = introspector.getFinishedTransactionCount()
-    val traces = getTraces(introspector)
-    val segments = getSegments(traces)
-    //Then
-    Assert.assertEquals("Result correct", Option(2), result)
-    Assert.assertTrue("Transaction finished", txnCount >= 1)
-    Assert.assertTrue("Trace present", traces.nonEmpty)
-    Assert.assertTrue("one segment exists", segments.exists(_.getName == s"Custom/one"))
-    Assert.assertTrue("two segment exists", segments.exists(_.getName == s"Custom/two"))
-    assertSegmentExistsAndTimeInRange("sleep", segments, delayMillis)
-  }
-
-
-  @Test
   def segmentCompletedIfIOErrors(): Unit = {
     //Given
     val introspector: Introspector = InstrumentationTestRunner.getIntrospector
