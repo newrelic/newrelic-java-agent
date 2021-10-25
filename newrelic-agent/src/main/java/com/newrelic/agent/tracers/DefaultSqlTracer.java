@@ -266,11 +266,15 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
         if (isMetricProducer() && getTransaction() != null) {
             String rawSql = null;
             Object sqlObject = getSql();
+            String appName = getTransaction().getApplicationName();
+
             if (sqlObject != null) {
                 rawSql = new PreparedStatementSql(sql, params).toString();
+                if (slowQuery(appName)) {
+                    rawSql = obfuscateRawSql(rawSql, appName);
+                }
             }
 
-            String appName = getTransaction().getApplicationName();
             String hostToReport = DatastoreMetrics.replaceLocalhost(getHost());
 
             if (getIdentifier() != null) {
@@ -299,6 +303,16 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             }
         }
         super.recordMetrics(transactionStats);
+    }
+
+    private String obfuscateRawSql(String rawSql, String appName) {
+        SqlQueryConverter converter = new SqlQueryConverter(appName, getDatabaseVendor());
+        return converter.toObfuscatedQueryString(rawSql);
+    }
+
+    private boolean slowQuery(String appName) {
+        double threshold = ServiceFactory.getConfigService().getAgentConfig(appName).getTransactionTracerConfig().getExplainThresholdInMillis();
+        return getDurationInMilliseconds() > threshold;
     }
 
     /**
