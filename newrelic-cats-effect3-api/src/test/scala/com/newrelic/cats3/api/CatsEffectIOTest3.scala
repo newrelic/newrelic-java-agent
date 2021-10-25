@@ -76,31 +76,6 @@ class CatsEffectIOTest3 {
   }
 
   @Test
-  def forComprehensionSegmentsSeparateExecutors(): Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-    //When
-    val txnBlock: IO[Int] = txn(
-      for {
-        one <- asyncTrace("one")(IO(1).evalOn(threadPoolOne))
-        two <- asyncTrace("two")(IO(one + 1).evalOn(threadPoolTwo))
-        three <- asyncTrace("three")(IO(two + 1).evalOn(threadPoolThree))
-      } yield three
-    )
-    val result = txnBlock.unsafeRunTimed(2.seconds)
-    val txnCount = introspector.getFinishedTransactionCount()
-    val traces = getTraces(introspector)
-    val segments = getSegments(traces)
-    //Then
-    Assert.assertEquals("Result correct", Some(3), result)
-    Assert.assertTrue("Transaction finished", txnCount >= 1)
-    Assert.assertTrue("Trace present", traces.nonEmpty)
-    Assert.assertTrue("one segment exists", segments.exists(_.getName == s"Custom/one"))
-    Assert.assertTrue("two segment exists", segments.exists(_.getName == s"Custom/two"))
-    Assert.assertTrue("three segment exists", segments.exists(_.getName == s"Custom/three"))
-  }
-
-  @Test
   def forComprehensionSegments(): Unit = {
     //Given
     val introspector: Introspector = InstrumentationTestRunner.getIntrospector
@@ -134,7 +109,7 @@ class CatsEffectIOTest3 {
     val txnBlock: IO[Int] = txn(
       for {
         one <- asyncTrace("one")(IO(1))
-        _ <- asyncTrace("sleep")(IO.sleep(delayMillis.millis).evalOn(threadPoolThree))
+        _ <- asyncTrace("sleep")(IO.sleep(delayMillis.millis))
         two <- asyncTrace("two")(IO(one + 1))
       } yield two
     )
@@ -189,17 +164,17 @@ class CatsEffectIOTest3 {
 
     val result = txnBlock.unsafeRunTimed(2.seconds)
 
-    val txnCount = introspector.getFinishedTransactionCount()
-    val traces = getTraces(introspector)
-    val segments = getSegments(traces)
+      val txnCount = introspector.getFinishedTransactionCount()
+      val traces = getTraces(introspector)
+      val segments = getSegments(traces)
 
-    Assert.assertEquals("Result correct", Some(15), result)
-    Assert.assertTrue("Transaction finished", txnCount >= 1)
-    Assert.assertTrue("Trace present", traces.nonEmpty)
-    List(1, 2, 3, 4, 5).foreach(i =>
-      Assert.assertTrue(s"$i segment exists", segments.exists(_.getName == s"Custom/segment $i"))
-    )
-    Assert.assertTrue(s"sum segments exists", segments.exists(_.getName == s"Custom/sum segments"))
+      Assert.assertEquals("Result correct", Some(15), result)
+      Assert.assertTrue("Transaction finished", txnCount >= 1)
+      Assert.assertTrue("Trace present", traces.nonEmpty)
+      List(1, 2, 3, 4, 5).foreach(i =>
+        Assert.assertTrue(s"$i segment exists: ${segments.map(_.getName)}", segments.exists(_.getName == s"Custom/segment $i"))
+      )
+      Assert.assertTrue(s"sum segments exists", segments.exists(_.getName == s"Custom/sum segments"))
   }
 
   private def getTraces(introspector: Introspector): Iterable[TransactionTrace] =
