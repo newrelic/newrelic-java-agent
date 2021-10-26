@@ -1,13 +1,13 @@
 ## Matrix strategy test for Functional Tests
-name: GHA-Scala-Functional-Tests
+name: GHA-Scala-Functional-Tests-CE3-WIP
 
 on:
   pull_request:
-    branches: [ main ] ## branches TBD
+    branches: [ ce3 ] ## branches TBD
     types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
   push:
     # branches: ['**']
-    branches: [main]
+    branches: [ce3]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -99,6 +99,7 @@ jobs:
           # -Ptest${{ matrix.java-version }} added below from the command integrated from https://github.com/newrelic/newrelic-java-agent/pull/451
           ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} --continue
 
+      #Run ce3 build
       - name: Run cats effect 3 functional tests against version defined in matrix
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
