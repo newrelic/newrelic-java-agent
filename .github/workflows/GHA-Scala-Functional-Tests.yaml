@@ -97,8 +97,16 @@ jobs:
           # Changed log level to --warn from --info
           # ./gradlew --console=plain --parallel functional_test:test -Ptest${{ matrix.java-version }} --continue --warn
           # -Ptest${{ matrix.java-version }} added below from the command integrated from https://github.com/newrelic/newrelic-java-agent/pull/451
-          # Removed ":newrelic-cats-effect3-api:test" temporarily
           ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} --continue
+
+      - name: Run cats effect 3 functional tests against version defined in matrix
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          # Changed log level to --warn from --info
+          # ./gradlew --console=plain --parallel functional_test:test -Ptest${{ matrix.java-version }} --continue --warn
+          # -Ptest${{ matrix.java-version }} added below from the command integrated from https://github.com/newrelic/newrelic-java-agent/pull/451
+          ./gradlew --console=plain --parallel :newrelic-cats-effect3-api:test -Ptest${{ matrix.java-version }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
