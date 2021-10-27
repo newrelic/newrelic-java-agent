@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
-      - uses: gradle/wrapper-validation-action@v1
+      - uses: gradle/wrapper-validation-action@v1.0.4
 
       #NEW Install required JDKs
       # Install 8
@@ -53,6 +53,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
+          cache: 'gradle'
 
       # Save new JDK variable
       - name: Save JAVA_HOME as JDK8 for later usage
@@ -90,21 +91,6 @@ jobs:
       - name: Check environmental variables
         run: printenv | sort -f
 
-      # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          # The docs say to use hashfiles, but gradle itself is smart enough to
-          # re-download dependencies if it couldn't resolve them.
-          # Because our gradle cache is _so big_, I think a 90% cache is far
-          # better than a 0% cache.
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
@@ -139,7 +125,7 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           # Updated Gradle command per https://github.com/newrelic/newrelic-java-agent/pull/451
-          ./gradlew --console=plain --parallel clean test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       # Capture HTML build result in artifacts
       # https://github.com/actions/upload-artifact
