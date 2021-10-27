@@ -17,11 +17,8 @@ dependencies {
 
 
 verifyInstrumentation {
-	passes 'org.mongodb:mongodb-driver-core:(4.0.0,]'
-//	excludeRegex '.*alpha.*'
-// 	excludeRegex '.*beta.*'
-// 	excludeRegex '.*rc[0-1]'
-// 	excludeRegex '.*SNAPSHOT'
+	passesOnly 'org.mongodb:mongodb-driver-core:[4.0.0,4.2.0)'
+	excludeRegex 'org.mongodb:mongodb-driver-core:.*(alpha|beta|rc|SNAPSHOT).*'
 }
 
 site {

@@ -1,12 +1,12 @@
 package com.nr.agent.mongo;
 
-import java.util.logging.Level;
-
 import com.mongodb.internal.async.SingleResultCallback;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
+
+import java.util.logging.Level;
 
 public class MongoUtil {
 
@@ -18,6 +18,7 @@ public class MongoUtil {
     public static final String OP_PARALLEL_SCAN = "parallelCollectionScan";
     public static final String OP_CREATE_INDEX = "createIndex";
     public static final String OP_CREATE_INDEXES = "createIndexes";
+    public static final String OP_CREATE_LIST_INDEXES = "createListIndexes";
     public static final String OP_CREATE_VIEW = "createView";
     public static final String OP_CREATE_COLLECTION = "createCollection";
 
@@ -47,6 +48,9 @@ public class MongoUtil {
     public static final String OP_DELETE = "delete";
     public static final String OP_DELETE_MANY = "deleteMany";
 
+    public static final String ASYNC_MONGO_COLLECTION = "AsyncMongoCollection";
+    public static final String CUSTOM = "Custom";
+
     /**
      * What to use when you can't get the operation.
      */
@@ -58,37 +62,36 @@ public class MongoUtil {
     public static final String DEFAULT_COLLECTION = "other";
 
     public static final String OP_DEFAULT = "other";
-    
+
     public static <T> NRCallbackWrapper<T> getWrapper(SingleResultCallback<T> callback, Token t, Segment s, DatastoreParameters p) {
-    	NRCallbackWrapper<T> wrapper = new NRCallbackWrapper<T>(callback);
-    	wrapper.token = t;
-    	wrapper.params = p;
-    	wrapper.segment = s;
-    	
-    	return wrapper;
+        NRCallbackWrapper<T> wrapper = new NRCallbackWrapper<T>(callback);
+        wrapper.token = t;
+        wrapper.params = p;
+        wrapper.segment = s;
+        return wrapper;
     }
-    
+
     public static String getOperation(String classname) {
-    	if(classname.equalsIgnoreCase("MixedBulkWriteOperation")) {
-    		return OP_INSERT;
-    	}
-    	if(classname.equalsIgnoreCase("FindOperation")) {
-    		return OP_FIND;
-    	}
-    	if(classname.equalsIgnoreCase("DeleteOperation")) {
-    		return OP_DELETE;
-    	}
-    	if(classname.equalsIgnoreCase("UpdateOperation")) {
-    		return OP_UPDATE;
-    	}
-    	if(classname.equalsIgnoreCase("AggregateOperation")) {
-    		return OP_AGGREGATE;
-    	}
-    	if(classname.equalsIgnoreCase("CountOperation")) {
-    		return OP_COUNT;
-    	}
-    	NewRelic.getAgent().getLogger().log(Level.FINE, "Did not find operation name for {0}", classname);
-    	return DEFAULT_OPERATION;
+        if (classname.equalsIgnoreCase("MixedBulkWriteOperation")) {
+            return OP_INSERT;
+        }
+        if (classname.equalsIgnoreCase("FindOperation")) {
+            return OP_FIND;
+        }
+        if (classname.equalsIgnoreCase("DeleteOperation")) {
+            return OP_DELETE;
+        }
+        if (classname.equalsIgnoreCase("UpdateOperation")) {
+            return OP_UPDATE;
+        }
+        if (classname.equalsIgnoreCase("AggregateOperation")) {
+            return OP_AGGREGATE;
+        }
+        if (classname.equalsIgnoreCase("CountOperation")) {
+            return OP_COUNT;
+        }
+        NewRelic.getAgent().getLogger().log(Level.FINE, "Did not find operation name for {0}", classname);
+        return DEFAULT_OPERATION;
     }
-    
+
 }

@@ -1,7 +1,5 @@
 package com.mongodb.internal.connection;
 
-import org.bson.codecs.Decoder;
-
 import com.mongodb.MongoNamespace;
 import com.mongodb.connection.ConnectionDescription;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
@@ -12,9 +10,10 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
+import org.bson.codecs.Decoder;
 
-@Weave(type = MatchType.Interface)
-public abstract class Connection {
+@Weave(type = MatchType.Interface, originalName = "com/mongodb/internal/connection/Connection")
+public abstract class Connection_Instrumentation {
 
     @Trace(leaf = true)
     public <T> QueryResult<T> getMore(MongoNamespace namespace, long cursorId, int numberToReturn,
