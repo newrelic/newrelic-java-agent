@@ -12,6 +12,8 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives.{complete, get, onSuccess, path}
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Source, _}
 import akka.util.Timeout
@@ -57,6 +59,17 @@ class PlayServer() {
     Await.ready({
       bindingFuture
     }, timeout.duration)
+  }
+
+  def startFromFlow(port: Int) = {
+    val route: Route =
+      path("ping") {
+        get(onSuccess(Future("Hoops"))(complete(_)))
+      }
+
+    bindingFuture = Http()
+      .bindAndHandle(route, "localhost", port)
+    Await.ready(bindingFuture, timeout.duration)
   }
 
   def stop() = {
