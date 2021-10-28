@@ -60,11 +60,18 @@ public class NewRelicChainedResultSetFuture extends ChainedResultSetFuture {
         }
         String host = queriedHost != null ? queriedHost.getHostName() : null;
         Integer port = queriedHost != null ? queriedHost.getPort() : null;
-        if (RegularStatement.class.isAssignableFrom(statement.getClass())) {
-            query = RegularStatement.class.cast(statement).getQueryString();
-        } else if (BoundStatement.class.isAssignableFrom(statement.getClass())) {
-            query = BoundStatement.class.cast(statement).preparedStatement().getQueryString();
-        } else if (BatchStatement.class.isAssignableFrom(statement.getClass())) {
+
+        //Might be a custom wrapped statement
+        Statement unwrappedStatement = statement;
+        if (StatementWrapper.class.isAssignableFrom(statement.getClass())) {
+            unwrappedStatement = ((StatementWrapper) statement).getWrappedStatement();
+        }
+
+        if (RegularStatement.class.isAssignableFrom(unwrappedStatement.getClass())) {
+            query = RegularStatement.class.cast(unwrappedStatement).getQueryString();
+        } else if (BoundStatement.class.isAssignableFrom(unwrappedStatement.getClass())) {
+            query = BoundStatement.class.cast(unwrappedStatement).preparedStatement().getQueryString();
+        } else if (BatchStatement.class.isAssignableFrom(unwrappedStatement.getClass())) {
             // Don't bother parsing datastax batch statements
             CassandraUtils.metrics(null, null, "BATCH", host, port, keyspace, AgentBridge.getAgent().getTransaction(),
                     segment);
