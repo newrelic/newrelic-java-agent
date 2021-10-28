@@ -1,6 +1,6 @@
 package com.nr.agent.mongo;
 
-import com.mongodb.internal.async.SingleResultCallback;
+import com.mongodb.async.SingleResultCallback;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
@@ -29,12 +29,10 @@ public class NRCallbackWrapper<T> implements SingleResultCallback<T> {
     @Override
     @Trace(async = true)
     public void onResult(T result, Throwable t) {
-        // could be NoOpToken if a txn wasn't started
         if (token != null) {
             token.linkAndExpire();
             token = null;
         }
-        // could be NoOpSegment if a txn wasn't started
         if (segment != null) {
             if (params != null) {
                 segment.reportAsExternal(params);

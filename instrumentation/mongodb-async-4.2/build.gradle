@@ -1,0 +1,27 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.mongo-async-4.2'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation 'org.mongodb:mongodb-driver-core:4.2.0'
+
+//    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.0.0")
+
+}
+
+
+verifyInstrumentation {
+	passesOnly 'org.mongodb:mongodb-driver-core:[4.2.0,)'
+	excludeRegex 'org.mongodb:mongodb-driver-core:.*(alpha|beta|rc|SNAPSHOT).*'
+}
+
+site {
+    title 'MongoDB'
+    type 'Datastore'
+}
