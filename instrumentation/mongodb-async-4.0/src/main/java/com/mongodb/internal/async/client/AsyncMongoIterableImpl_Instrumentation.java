@@ -35,11 +35,6 @@ abstract class AsyncMongoIterableImpl_Instrumentation<TResult> {
             final ReadConcern readConcern, final ReadPreference readPreference, final boolean retryReads) {
     }
 
-//	@WeaveAllConstructors
-//	MongoIterableImpl() {
-//
-//	}
-
     @Trace
     public void first(SingleResultCallback<TResult> callback) {
         if (!(callback instanceof NRCallbackWrapper)) {
