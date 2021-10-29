@@ -1,0 +1,23 @@
+name: Java 17 Instrumentation Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [assigned, opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      BRANCH:
+        description: "Specify branch (main is default)"
+        required: false
+        default: 'main'
+
+jobs:
+  tests:
+    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@reusable-workflow
+    with:
+      jre: 17
+    secrets:
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
