@@ -12,6 +12,8 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives.{complete, get, onSuccess, path}
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Source, _}
 import akka.util.Timeout
@@ -28,36 +30,30 @@ class PlayServer() {
   implicit val materializer = ActorMaterializer()
   implicit val timeout: Timeout = 3 seconds
 
-  val config = ConfigFactory.load()
-  val logger = Logging(system, getClass)
-
   var bindingFuture: Future[Http.ServerBinding] = _
 
   def start(port: Int, async: Boolean) = {
+    val requestHandler: HttpRequest => HttpResponse = {
+      case HttpRequest(GET, Uri.Path("/ping"), _, _, _) => HttpResponse(entity = "Boops!")
+    }
+    val asyncRequestHandler: HttpRequest => Future[HttpResponse] = {
+      case HttpRequest(GET, Uri.Path("/asyncPing"), _, _, _) => Future(HttpResponse(entity = "Hoops!"))
+    }
+    bindingFuture = if (async)
+      Http().bindAndHandleAsync(asyncRequestHandler, interface = "localhost", port)
+    else
+      Http().bindAndHandleSync(requestHandler, interface = "localhost", port)
+    Await.ready(bindingFuture, timeout.duration)
+  }
 
-    if (async) {
-
-      val asyncRequestHandler: HttpRequest => Future[HttpResponse] = {
-        case HttpRequest(GET, Uri.Path("/asyncPing"), _, _, _) =>
-          Future[HttpResponse](HttpResponse(entity = "Hoops!"))
+  def startFromFlow(port: Int) = {
+    val routeFlow =
+      path("ping") {
+        get(onSuccess(Future("Hoops"))(complete(_)))
       }
 
-      bindingFuture = Http().bindAndHandleAsync(asyncRequestHandler, interface = "localhost", port)
-
-    }
-    else {
-
-      val requestHandler: HttpRequest => HttpResponse = {
-        case HttpRequest(GET, Uri.Path("/ping"), _, _, _) =>
-          HttpResponse(entity = "Boops!")
-      }
-
-      bindingFuture = Http().bindAndHandleSync(requestHandler, interface = "localhost", port)
-    }
-
-    Await.ready({
-      bindingFuture
-    }, timeout.duration)
+    bindingFuture = Http().newServerAt("localhost", port).bindFlow(routeFlow)
+    Await.ready(bindingFuture, timeout.duration)
   }
 
   def stop() = {

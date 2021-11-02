@@ -38,7 +38,6 @@ public class HttpInstrumentation {
             AgentBridge.publicApi.setAppServerPort(localAddress().getPort());
             AgentBridge.publicApi.setServerInfo("Akka HTTP", ManifestUtils.getVersionFromManifest(getClass(), "akka-http-core", "10.1.8"));
 
-            AgentBridge.instrumentation.retransformUninstrumentedClass(SyncRequestHandler.class);
             AgentBridge.instrumentation.retransformUninstrumentedClass(AsyncRequestHandler.class);
         }
     }
