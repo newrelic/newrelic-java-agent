@@ -16,11 +16,15 @@ object Util {
       tracer
     }.redeemWith(
         _ => body,
-        tracer => for {
-          _ <- Sync[F].delay(NewRelic.getAgent.getTransaction)
-          res <- attachErrorEvent(body, tracer)
-          _ <- Sync[F].delay(tracer.finish(172, null))
-        } yield res
+        tracer => if (tracer == null) {
+          body
+        } else {
+          for {
+            _ <- Sync[F].delay(NewRelic.getAgent.getTransaction)
+            res <- attachErrorEvent(body, tracer)
+            _ <- Sync[F].delay(tracer.finish(172, null))
+          } yield res
+        }
       )
 
   private def attachErrorEvent[S, F[_]: Sync](body: F[S], tracer: ExitTracer): F[S] =

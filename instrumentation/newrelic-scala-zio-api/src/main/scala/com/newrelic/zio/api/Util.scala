@@ -7,14 +7,18 @@ object Util {
   def wrapTrace[R, E, A](body: ZIO[R, E, A]): ZIO[R, E, A] =
     ZIO.effect(AgentBridge.instrumentation.createScalaTxnTracer)
        .foldM(_ => body,
-         tracer => body.bimap(
-           error => {
-             tracer.finish(new Throwable("ZIO txn body fail"))
-             error
-           },
-           success => {
-             tracer.finish(172, null)
-             success
-           }))
+         tracer => if (tracer == null) {
+           body
+         } else {
+           body.bimap(
+             error => {
+               tracer.finish(new Throwable("ZIO txn body fail"))
+               error
+             },
+             success => {
+               tracer.finish(172, null)
+               success
+             })
+         })
 
 }
