@@ -82,6 +82,19 @@ compileJava.options.bootstrapClasspath = files("${jdk8}/jre/lib/rt.jar", "${jdk8
 // their own build.gradle to force the use of a specific version of Java (e.g. instrumentation/async-http-client-2.0.0).
 // This could lead to an "Unrecognized option" with the failure "Could not create the Java Virtual Machine".
 test {
+    if (project.hasProperty("test17")) {
+        executable = jdk17 + '/bin/java'
+        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                '--add-opens=java.base/java.util=ALL-UNNAMED',
+                '--add-opens=java.base/java.net=ALL-UNNAMED',
+                '--add-opens=java.base/java.io=ALL-UNNAMED',
+                '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
+                '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
+                '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
+        useJUnit {
+            excludeCategories 'com.newrelic.test.marker.Java17IncompatibleTest'
+        }
+    }
     if (project.hasProperty("test16")) {
         executable = jdk16 + '/bin/java'
         jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',

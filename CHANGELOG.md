@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.4.0 (2021-10-28)
+
+### New features and improvements
+
+* Support for Java 17 [#433](https://github.com/newrelic/newrelic-java-agent/pull/433)
+
+* Distributed Tracing is on by Default and deprecates Cross Application Tracing [#486](https://github.com/newrelic/newrelic-java-agent/pull/486)
+  - Increases the default maximum number of samples stored for Span Events from 1000 to 2000.
+  - The maximum number of samples stored for Span Events can be configured via the max_samples_stored configuration in the newrelic.yml.
+  ```
+  span_events:
+    max_samples_stored: 2000
+  ```
+  **Notice:** This feature will cause an increase in the consumption of data. The amount depends on the application. This feature can be disabled by adding the following to the agent yaml config nested under the common stanza:
+  ```
+  distributed_tracing:
+    enabled: false
+  ```
+
+* Auto-instrumentation Support for GraphQL-Java 17.0+ [#487](https://github.com/newrelic/newrelic-java-agent/pull/487)
+* This version tested agent support for the ARM64/Graviton2 platform
+
+
+### Fixes
+The existing MongoDB sync client instrumentation was incorrectly applying when MongoDB reactive or async client was being used, which could lead to segment timeouts and long transaction response times. [#476](https://github.com/newrelic/newrelic-java-agent/pull/476)
+
+### Deprecations/Removed Features
+Cross Application Tracing is now deprecated, and disabled by default. To continue using it, enable it with `cross_application_tracer.enabled = true` and `distributed_tracing.enabled = false`.
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
+
 ## Version 7.3.0 (2021-9-30)
 
 ### New features and improvements

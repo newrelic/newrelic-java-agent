@@ -108,7 +108,10 @@ test {
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
     //testLogging.showStandardStreams = true
-    if (project.hasProperty("test16")) {
+    if (project.hasProperty("test17")) {
+        executable = jdk17 + '/bin/java'
+        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--add-opens=java.base/java.net=ALL-UNNAMED'
+    } else if (project.hasProperty("test16")) {
         executable = jdk16 + '/bin/java'
         jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--add-opens=java.base/java.net=ALL-UNNAMED'
     } else if (project.hasProperty("test15")) {

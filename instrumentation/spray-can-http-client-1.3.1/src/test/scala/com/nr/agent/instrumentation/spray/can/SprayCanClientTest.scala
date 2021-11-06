@@ -16,9 +16,9 @@ import com.newrelic.agent.introspec._
 import com.newrelic.agent.introspec.internal.HttpServerLocator
 import com.newrelic.api.agent.Trace
 import com.newrelic.test.marker._
-import org.junit._
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
+import org.junit._
 import spray.can.Http
 import spray.http.HttpMethods._
 import spray.http._
@@ -30,7 +30,7 @@ import scala.concurrent.duration._
 
 //// Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
 @Category(Array(classOf[Java11IncompatibleTest], classOf[Java12IncompatibleTest], classOf[Java13IncompatibleTest], classOf[Java14IncompatibleTest],
-  classOf[Java15IncompatibleTest], classOf[Java16IncompatibleTest]))
+  classOf[Java15IncompatibleTest], classOf[Java16IncompatibleTest], classOf[Java17IncompatibleTest] ))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("spray.", "akka.", "scala.", "com.nr.agent.instrumentation."))
 class SprayCanClientTest extends ConnectionLevelApiDemo {

@@ -12,12 +12,12 @@ import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationT
 import com.nr.weave.weavepackage.language.scala.testclasses._
 import org.junit.{Assert, Test}
 import org.junit.runner.RunWith
-import com.newrelic.test.marker.{Java11IncompatibleTest, Java12IncompatibleTest, Java13IncompatibleTest, Java14IncompatibleTest, Java15IncompatibleTest, Java16IncompatibleTest}
+import com.newrelic.test.marker.{Java11IncompatibleTest, Java12IncompatibleTest, Java13IncompatibleTest, Java14IncompatibleTest, Java15IncompatibleTest, Java16IncompatibleTest, Java17IncompatibleTest}
 
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("com.nr.weave.weavepackage.language.scala.weaveclasses."))
 @Category(Array(classOf[Java11IncompatibleTest],classOf[Java12IncompatibleTest],classOf[Java13IncompatibleTest]
-  ,classOf[Java14IncompatibleTest],classOf[Java15IncompatibleTest],classOf[Java16IncompatibleTest]))
+  ,classOf[Java14IncompatibleTest],classOf[Java15IncompatibleTest],classOf[Java16IncompatibleTest], classOf[Java17IncompatibleTest]))
 class ScalaAdapterTest {
 
   @Test
