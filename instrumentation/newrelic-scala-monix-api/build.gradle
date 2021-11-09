@@ -1,0 +1,21 @@
+apply plugin: 'scala'
+
+isScalaProjectEnabled(project, "scala-2.13")
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation(project(":newrelic-scala-monix-api"))
+    implementation("org.scala-lang:scala-library:2.13.3")
+    implementation("io.monix:monix-eval_2.13:3.3.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.newrelic-scala-monix-api',
+            'Implementation-Title-Alias': 'newrelic-scala-monix-api_instrumentation' }
+}
+
+verifyInstrumentation {
+    verifyClasspath = false
+}
