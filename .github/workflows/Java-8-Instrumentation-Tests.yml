@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     types: [assigned, opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [main]
+    branches: [gradle-enterprise]
   workflow_dispatch:
     inputs:
       BRANCH:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   tests:
-    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@main
+    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@gradle-enterprise
     with:
       jre: 8
     secrets:
