@@ -2,6 +2,7 @@ package monix;
 
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
@@ -37,10 +38,12 @@ public class Utils {
   }
 
   public static void logTokenInfo(AgentBridge.TokenAndRefCount tokenAndRefCount, String msg) {
+    if (AgentBridge.getAgent().getLogger().isLoggable(Level.FINEST)) {
       String tokenMsg = (tokenAndRefCount != null && tokenAndRefCount.token != null)
-        ? String.format("[%s:%s:%d]", tokenAndRefCount.token, tokenAndRefCount.token.getTransaction(),
-                        tokenAndRefCount.refCount.get())
-        : "[Empty token]";
-      System.out.println(MessageFormat.format("{0}: token info {1}", tokenMsg, msg));
+              ? String.format("[%s:%s:%d]", tokenAndRefCount.token, tokenAndRefCount.token.getTransaction(),
+              tokenAndRefCount.refCount.get())
+              : "[Empty token]";
+      AgentBridge.getAgent().getLogger().log(Level.FINEST, MessageFormat.format("{0}: token info {1}", tokenMsg, msg));
+    }
   }
 }
