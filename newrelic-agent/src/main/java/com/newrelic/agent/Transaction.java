@@ -22,6 +22,8 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.NoOpToken;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TransactionNamePriority;
+import com.newrelic.agent.bridge.jfr.events.supportability.transaction.TransactionCreateEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.transaction.TransactionFinishEvent;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.browser.BrowserTransactionState;
@@ -970,6 +972,9 @@ public class Transaction {
     private void finishTransaction() {
         try {
             synchronized (lock) {
+                TransactionFinishEvent transactionFinishEvent = new TransactionFinishEvent();
+                transactionFinishEvent.begin();
+
                 // this may have the side-effect of ignoring the transaction
                 freezeTransactionName();
 
@@ -995,6 +1000,10 @@ public class Transaction {
                 handleTokenTimeout(transactionStats);
 
                 String txName = priorityTransactionName.getName();
+                transactionFinishEvent.transactionName = txName;
+                transactionFinishEvent.transactionObject = this.toString(); // FIXME this right?
+                transactionFinishEvent.transactionGuid = this.getGuid();
+
                 // parse headers in dispatcher request before we get rid of request/response objects
                 getInboundHeaderState();
                 // this may trigger this dispatcher to record extra metrics like apdex & HttpDispatcher
@@ -1100,6 +1109,7 @@ public class Transaction {
                 getIntrinsicAttributes().put(AttributeNames.PRIORITY, getPriority());
 
                 TransactionData transactionData = new TransactionData(this, rootCounts.getTransactionSize());
+                transactionFinishEvent.commit();
                 ServiceFactory.getTransactionService().transactionFinished(transactionData, transactionStats);
             }
         } catch (Throwable th) {
@@ -1496,9 +1506,17 @@ public class Transaction {
                 return getOrCreateDummyTransaction();
             }
             try {
+                TransactionCreateEvent transactionCreateEvent = new TransactionCreateEvent();
+                transactionCreateEvent.begin();
+
                 tx = new Transaction();
                 tx.postConstruct();
                 transactionHolder.set(tx);
+
+                transactionCreateEvent.transactionObject = tx.toString();
+                transactionCreateEvent.transactionName = tx.getTransactionName();
+                transactionCreateEvent.transactionGuid = tx.getGuid();
+                transactionCreateEvent.commit();
             } catch (RuntimeException rex) {
                 // The exception might have been thrown after the Activity was
                 // created (in postConstruct()). Let's be careful to avoid the

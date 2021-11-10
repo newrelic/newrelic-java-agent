@@ -8,6 +8,9 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.bridge.Token;
+import com.newrelic.agent.bridge.jfr.events.supportability.token.TokenCreateEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.token.TokenExpireEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.token.TokenLinkEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracers.Tracer;
@@ -22,12 +25,20 @@ public class TokenImpl implements Token {
     private final AtomicBoolean active;
 
     public TokenImpl(Tracer tracer) {
+        TokenCreateEvent tokenCreateEvent = new TokenCreateEvent();
+        tokenCreateEvent.begin();
+        tokenCreateEvent.token = this.toString();
+
         initiatingTracer = tracer;
         active = new AtomicBoolean(Boolean.TRUE);
 
         WeakRefTransaction weakRefTransaction = getTransaction();
         Transaction tx = weakRefTransaction == null ? null : weakRefTransaction.getTransactionIfExists();
         if (tx != null) {
+            tokenCreateEvent.transactionName = tx.getPriorityTransactionName().getName();
+            tokenCreateEvent.transactionObject = tx.toString();
+            tokenCreateEvent.transactionGuid = tx.getGuid();
+
             tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_CREATE);
         }
 
@@ -37,9 +48,11 @@ public class TokenImpl implements Token {
             if (location.getMethodName().equals("registerAsyncActivity")) {
                 location = stackTrace[5];
             }
+            tokenCreateEvent.location = location.toString();
 
             Agent.LOG.log(Level.INFO, "Token: {0} created for Transaction: {1}, at: {2}", this, tx, location.toString());
         }
+        tokenCreateEvent.commit();
     }
 
     public WeakRefTransaction getTransaction() {
@@ -59,8 +72,16 @@ public class TokenImpl implements Token {
     @Override
     public boolean expire() {
         if (active.compareAndSet(Boolean.TRUE, Boolean.FALSE)) {
+            TokenExpireEvent tokenExpireEvent = new TokenExpireEvent();
+            tokenExpireEvent.begin();
+            tokenExpireEvent.token = this.toString();
+
             Transaction tx = getTransaction().getTransactionIfExists();
             if (tx != null) {
+                tokenExpireEvent.transactionName = tx.getPriorityTransactionName().getName();
+                tokenExpireEvent.transactionObject = tx.toString();
+                tokenExpireEvent.transactionGuid = tx.getGuid();
+
                 tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_EXPIRE);
                 MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_TOKEN_EXPIRE);
             }
@@ -75,9 +96,11 @@ public class TokenImpl implements Token {
                 } else if (location.getMethodName().equals("linkAndExpire")) {
                     location = stackTrace[3];
                 }
+                tokenExpireEvent.location = location.toString();
 
                 Agent.LOG.log(Level.INFO, "Token: {0} expired for Transaction: {1}, at: {2}", this, tx, location.toString());
             }
+            tokenExpireEvent.commit();
 
             return expired;
         } else {
@@ -88,6 +111,8 @@ public class TokenImpl implements Token {
 
     @Override
     public boolean link() {
+        TokenLinkEvent tokenLinkEvent = new TokenLinkEvent();
+        tokenLinkEvent.token = this.toString();
         boolean linked = Transaction.linkTxOnThread(this);
         WeakRefTransaction weakRefTransaction = getTransaction();
         Transaction tx = weakRefTransaction == null ? null : weakRefTransaction.getTransactionIfExists();
@@ -102,9 +127,14 @@ public class TokenImpl implements Token {
                 location = stackTrace[3];
             }
             locationString = location.toString();
+            tokenLinkEvent.location = locationString;
         }
 
         if (tx != null) {
+            tokenLinkEvent.transactionName = tx.getPriorityTransactionName().getName();
+            tokenLinkEvent.transactionObject = tx.toString();
+            tokenLinkEvent.transactionGuid = tx.getGuid();
+
             if (DebugFlag.tokenEnabled.get()) {
                 if (!linked && TransactionActivity.get() == null) {
                     Agent.LOG.log(Level.WARNING, "Token: {0} was NOT linked because there was no Transaction in "
@@ -117,11 +147,16 @@ public class TokenImpl implements Token {
 
             if (linked) {
                 tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_LINK_SUCCESS);
+                tokenLinkEvent.linkStatus = "Success";
             } else {
                 tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_LINK_IGNORE);
+                tokenLinkEvent.linkStatus = "Ignored";
             }
+        } else {
+            tokenLinkEvent.linkStatus = "Null Transaction";
         }
 
+        tokenLinkEvent.commit();
         MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_TOKEN_LINK);
 
         return linked;

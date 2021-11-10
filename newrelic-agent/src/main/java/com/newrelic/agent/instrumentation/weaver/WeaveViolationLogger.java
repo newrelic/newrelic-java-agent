@@ -8,6 +8,7 @@
 package com.newrelic.agent.instrumentation.weaver;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.bridge.jfr.events.supportability.instrumentation.WeaveViolationEvent;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.weave.violation.WeaveViolation;
 import com.newrelic.weave.weavepackage.PackageValidationResult;
@@ -35,16 +36,33 @@ public class WeaveViolationLogger {
         List<WeaveViolation> violations = packageResult.getViolations();
         logger.log(actualLevel, "{0} - {1} violations against classloader {2}",
                 packageResult.getWeavePackage().getName(), violations.size(), classloader);
+
+        WeaveViolationEvent weaveViolationEvent;
+
         for (WeaveViolation violation : violations) {
             logger.log(actualLevel, "WeaveViolation: {0}", violation.getType().name());
             logger.log(actualLevel, "\t\tClass: {0}", violation.getClazz());
+
+            weaveViolationEvent = new WeaveViolationEvent();
+            weaveViolationEvent.begin();
+            weaveViolationEvent.custom = isCustom;
+            weaveViolationEvent.weavePackage = packageResult.getWeavePackage().getName();
+            weaveViolationEvent.weaveViolationSize = violations.size();
+            weaveViolationEvent.classloader = classloader.toString();
+            weaveViolationEvent.weaveViolationName = violation.getType().name();
+            weaveViolationEvent.weaveViolationClass = violation.getClazz();
+
             if (violation.getMethod() != null) {
                 logger.log(actualLevel, "\t\tMethod: {0}", violation.getMethod());
+                weaveViolationEvent.weaveViolationMethod = violation.getMethod().getName();
             }
             if (violation.getField() != null) {
                 logger.log(actualLevel, "\t\tField: {0}", violation.getField());
+                weaveViolationEvent.weaveViolationField = violation.getField();
             }
             logger.log(actualLevel, "\t\tReason: {0}", violation.getType().getMessage());
+            weaveViolationEvent.weaveViolationReason = violation.getType().getMessage();
+            weaveViolationEvent.commit();
         }
 
     }

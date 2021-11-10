@@ -9,6 +9,8 @@ package com.newrelic.agent.instrumentation.weaver;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.bridge.jfr.events.supportability.instrumentation.InstrumentationLoadedEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.instrumentation.InstrumentationSkippedEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.api.agent.weaver.MatchType;
@@ -64,11 +66,24 @@ public class AgentWeaverListener implements WeavePackageLifetimeListener {
         final float weavePackageVersion = packageResult.getWeavePackage().getVersion();
         if (packageResult.succeeded()) {
             String supportabilityLoadedMetric;
+
+            InstrumentationLoadedEvent instrumentationLoadedEvent = new InstrumentationLoadedEvent();
+            instrumentationLoadedEvent.begin();
+
             if (packageResult.getWeavePackage().getConfig().isCustom()) {
                 supportabilityLoadedMetric = MetricNames.SUPPORTABILITY_WEAVE_CUSTOM_LOADED;
+                instrumentationLoadedEvent.custom = true;
             } else {
                 supportabilityLoadedMetric = MetricNames.SUPPORTABILITY_WEAVE_LOADED;
+                instrumentationLoadedEvent.custom = false;
             }
+
+            instrumentationLoadedEvent.classloader = classloader.toString();
+            instrumentationLoadedEvent.weavePackageName = weavePackageName;
+            instrumentationLoadedEvent.weavePackageVersion = weavePackageVersion;
+//            instrumentationLoaded.end();
+            instrumentationLoadedEvent.commit();
+
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(
                     supportabilityLoadedMetric, weavePackageName, weavePackageVersion), 1));
             Agent.LOG.log(Level.FINE, "{0} - validated classloader {1}", weavePackageName, classloader);
@@ -86,6 +101,15 @@ public class AgentWeaverListener implements WeavePackageLifetimeListener {
             
             boolean isCustom = weavePackage.getConfig().isCustom();
             String supportabilitySkippedMetric = isCustom ? MetricNames.SUPPORTABILITY_WEAVE_CUSTOM_SKIPPED : MetricNames.SUPPORTABILITY_WEAVE_SKIPPED;
+
+            InstrumentationSkippedEvent instrumentationSkippedEvent = new InstrumentationSkippedEvent();
+            instrumentationSkippedEvent.begin();
+            instrumentationSkippedEvent.custom = isCustom;
+            instrumentationSkippedEvent.classloader = classloader.toString();
+            instrumentationSkippedEvent.weavePackageName = weavePackageName;
+            instrumentationSkippedEvent.weavePackageVersion = weavePackageVersion;
+//            instrumentationSkipped.end();
+            instrumentationSkippedEvent.commit();
 
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(
                     supportabilitySkippedMetric, weavePackageName, weavePackageVersion), 1));
