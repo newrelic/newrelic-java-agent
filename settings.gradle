@@ -40,6 +40,15 @@ gradleEnterprise {
         capture {
             taskInputFiles = true
         }
+        if (System.getenv("CI")) {
+            tag "CI"
+        } else {
+            tag "Local"
+        }
+        tag System.getenv("LANGUAGE")
+        tag System.getenv("JRE")
+        tag System.getenv("SCALA_VERSION")
+        tag System.getenv("TEST_TYPE")
     }
 }
 
