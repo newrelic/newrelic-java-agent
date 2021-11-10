@@ -13,6 +13,8 @@ on:
         required: true
       aws-secret-access-key:
         required: true
+      gradle-enterprise-access-key:
+        required: true
 
 jobs:
   tests:
@@ -70,9 +72,11 @@ jobs:
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Check ENV variables
       - name: Check environmental variables
         run: printenv | sort -f
+
+      - name: Export Gradle Enterprise Access Key
+        run: export GRADLE_ENTERPRISE_ACCESS_KEY=${{ secrets.gradle-enterprise-access-key }}
 
       ## AWS jars - plan to cache
       - name: Configure AWS Credentials
