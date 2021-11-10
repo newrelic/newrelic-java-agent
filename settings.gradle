@@ -14,6 +14,7 @@ boolean isCiServer = System.getenv().containsKey("CI")
 String cacheUser = System.getenv().get("GRADLE_CACHE_USER")
 String cachePassword = System.getenv().get("GRADLE_CACHE_PASSWORD")
 
+println "*** Gradle Enterprise Debug ***"
 println "GRADLE_CACHE_USER=$cacheUser"
 println "isCiServer=$isCiServer"
 
