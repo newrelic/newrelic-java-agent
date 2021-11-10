@@ -124,7 +124,6 @@ jobs:
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          # Below per https://github.com/newrelic/newrelic-java-agent/pull/451, adding the matrix value to Ptest
           export GRADLE_ENTERPRISE_ACCESS_KEY=3.88.106.22=${{ secrets.gradle-enterprise-access-key }}
           ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue --scan -Dscan.uploadInBackground=false
 
