@@ -6,6 +6,21 @@ pluginManagement {
     }
 }
 
+plugins {
+    id "com.gradle.enterprise" version "3.7.1"
+}
+
+gradleEnterprise {
+    server = "https://3.88.106.22/"
+    allowUntrustedServer = true
+    buildScan {
+        uploadInBackground = false
+        capture {
+            taskInputFiles = true
+        }
+    }
+}
+
 // Core Projects
 include 'newrelic-api'
 include 'newrelic-scala-api'
