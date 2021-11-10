@@ -109,7 +109,7 @@ jobs:
           export CI=GHA
           export GRADLE_CACHE_USER=gha
           export GRADLE_CACHE_PASSWORD=${{ secrets.gradle-cache-password }}
-          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-scan
+          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
       # GHA run instrumentation tests
