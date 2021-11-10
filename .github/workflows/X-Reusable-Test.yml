@@ -75,9 +75,6 @@ jobs:
       - name: Check environmental variables
         run: printenv | sort -f
 
-      - name: Export Gradle Enterprise Access Key
-        run: export GRADLE_ENTERPRISE_ACCESS_KEY=${{ secrets.gradle-enterprise-access-key }}
-
       ## AWS jars - plan to cache
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -106,6 +103,7 @@ jobs:
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
           cat settings.gradle
+          export GRADLE_ENTERPRISE_ACCESS_KEY=${{ secrets.gradle-enterprise-access-key }}
           ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false
           ls -la newrelic-agent/build/
 
@@ -127,6 +125,7 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           # Below per https://github.com/newrelic/newrelic-java-agent/pull/451, adding the matrix value to Ptest
+          export GRADLE_ENTERPRISE_ACCESS_KEY=${{ secrets.gradle-enterprise-access-key }}
           ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue --scan -Dscan.uploadInBackground=false
 
       # Capture HTML build result in artifacts
