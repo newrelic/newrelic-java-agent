@@ -10,6 +10,28 @@ plugins {
     id "com.gradle.enterprise" version "3.7.1"
 }
 
+boolean isCiServer = System.getenv().containsKey("CI")
+String cacheUser = System.getenv().get("GRADLE_CACHE_USER")
+String cachePassword = System.getenv().get("GRADLE_CACHE_PASSWORD")
+
+println "GRADLE_CACHE_USER=$cacheUser"
+println "isCiServer=$isCiServer"
+
+buildCache {
+    local {
+        enabled = false
+    }
+    remote(HttpBuildCache) {
+        url = "https://3.88.106.22/cache/"
+        push = isCiServer
+        allowUntrustedServer = true
+        credentials {
+            username = cacheUser
+            password = cachePassword
+        }
+    }
+}
+
 gradleEnterprise {
     server = "https://3.88.106.22/"
     allowUntrustedServer = true
