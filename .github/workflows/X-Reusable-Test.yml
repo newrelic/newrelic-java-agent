@@ -15,6 +15,8 @@ on:
         required: true
       gradle-enterprise-access-key:
         required: true
+      gradle-cache-password:
+        required: true
 
 jobs:
   tests:
@@ -104,7 +106,10 @@ jobs:
           ls -la
           cat settings.gradle
           export GRADLE_ENTERPRISE_ACCESS_KEY=3.88.106.22=${{ secrets.gradle-enterprise-access-key }}
-          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false
+          export CI=GHA
+          export GRADLE_CACHE_USER=gha
+          export GRADLE_CACHE_PASSWORD=${{ secrets.gradle-cache-password }}
+          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-scan
           ls -la newrelic-agent/build/
 
       # GHA run instrumentation tests
