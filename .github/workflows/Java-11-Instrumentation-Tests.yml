@@ -15,9 +15,11 @@ on:
 
 jobs:
   tests:
-    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@main
+    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@send-build-scans-for-java-instrumentation-tests
     with:
       jre: 11
     secrets:
       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      gradle-enterprise-access-key: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+      gradle-cache-password: ${{ secrets.GRADLE_CACHE_PASSWORD }}
