@@ -127,8 +127,11 @@ jobs:
       - name: Run instrumentation tests for Java ${{ inputs.jre }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.gradle-enterprise-access-key }}
+          JRE: ${{ inputs.jre }}
+          LANGUAGE: java
+          TEST_TYPE: instrumentation
         run: |
-          export GRADLE_ENTERPRISE_ACCESS_KEY=3.88.106.22=${{ secrets.gradle-enterprise-access-key }}
           ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue --scan -Dscan.uploadInBackground=false
 
       # Capture HTML build result in artifacts
