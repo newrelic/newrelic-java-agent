@@ -46,10 +46,10 @@ gradleEnterprise {
         } else {
             tag "Local"
         }
-        tag System.getenv("LANGUAGE")
-        tag System.getenv("JRE")
-        tag System.getenv("SCALA_VERSION")
-        tag System.getenv("TEST_TYPE")
+        tag System.getenv("LANGUAGE") ?: "NA"
+        tag System.getenv("JRE") ?: "NA"
+        tag System.getenv("SCALA_VERSION") ?: "NA"
+        tag System.getenv("TEST_TYPE") ?: "NA"
     }
 }
 
