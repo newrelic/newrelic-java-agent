@@ -1,4 +1,4 @@
-package com.newrelic.agent.bridge.jfr.events.supportability.token;
+package com.newrelic.agent.bridge.jfr.events.supportability.transaction.token;
 
 
 import jdk.jfr.Category;
@@ -8,13 +8,13 @@ import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 
-@Name(TokenExpireEvent.NAME)
-@Category({ "New Relic JFR Event", "Supportability", "Tokens" })
-@Label("Token Expired")
+@Name(TokenLinkEvent.NAME)
+@Category({ "New Relic JFR Event", "Supportability", "Transaction", "Token" })
+@Label("Token Linked")
 @Description("Token info")
 @StackTrace(true)
-public class TokenExpireEvent extends Event {
-    static final String NAME = "com.newrelic.TokenExpire";
+public class TokenLinkEvent extends Event {
+    static final String NAME = "com.newrelic.TokenLink";
 
     @Label("Token")
     public String token;
@@ -30,4 +30,7 @@ public class TokenExpireEvent extends Event {
 
     @Label("Location")
     public String location;
+
+    @Label("Link Status")
+    public String linkStatus;
 }

@@ -1,4 +1,4 @@
-package com.newrelic.agent.bridge.jfr.events.supportability.token;
+package com.newrelic.agent.bridge.jfr.events.supportability.transaction.token;
 
 
 import jdk.jfr.Category;
@@ -8,15 +8,15 @@ import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 
-@Name(TokenLinkEvent.NAME)
-@Category({ "New Relic JFR Event", "Supportability", "Tokens" })
-@Label("Token Linked")
+@Name(TokenCreateEvent.NAME)
+@Category({ "New Relic JFR Event", "Supportability", "Transaction", "Token" })
+@Label("Token Created")
 @Description("Token info")
 @StackTrace(true)
-public class TokenLinkEvent extends Event {
-    static final String NAME = "com.newrelic.TokenLink";
+public class TokenCreateEvent extends Event {
+    static final String NAME = "com.newrelic.TokenCreate";
 
-    @Label("Token")
+    @Label("Token Object")
     public String token;
 
     @Label("Transaction Name")
@@ -30,7 +30,4 @@ public class TokenLinkEvent extends Event {
 
     @Label("Location")
     public String location;
-
-    @Label("Link Status")
-    public String linkStatus;
 }

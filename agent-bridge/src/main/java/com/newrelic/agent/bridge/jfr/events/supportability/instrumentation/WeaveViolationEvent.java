@@ -10,7 +10,7 @@ import jdk.jfr.StackTrace;
 
 @Name(WeaveViolationEvent.NAME)
 @Category({ "New Relic JFR Event", "Supportability", "Instrumentation" })
-@Label("Weave Violations")
+@Label("Weave Violation")
 @Description("Supportability info")
 @StackTrace(false)
 public class WeaveViolationEvent extends Event {

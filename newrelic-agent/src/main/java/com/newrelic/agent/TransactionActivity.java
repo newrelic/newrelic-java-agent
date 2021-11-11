@@ -8,6 +8,8 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.bridge.TracedMethod;
+import com.newrelic.agent.bridge.jfr.events.supportability.transaction.TransactionActivityCreateEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.transaction.TransactionActivityFinishEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.SimpleStatsEngine;
 import com.newrelic.agent.stats.TransactionStats;
@@ -17,6 +19,7 @@ import com.newrelic.agent.tracers.NoOpTracer;
 import com.newrelic.agent.tracers.SkipTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TransactionActivityInitiator;
+import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionCache;
 
 import java.lang.management.ManagementFactory;
@@ -162,6 +165,7 @@ public class TransactionActivity {
      * @return activity
      */
     public static TransactionActivity createWithoutHolder(Transaction transaction, int id, String asyncContext) {
+
         TransactionActivity txa = new TransactionActivity(transaction, NOT_REPORTED, asyncContext, true);
         txa.activityId = id;
         Agent.LOG.log(Level.FINE, "created {0} for {1}", txa, transaction);
@@ -184,7 +188,22 @@ public class TransactionActivity {
     }
 
     private TransactionActivity(Transaction tx, long threadId, String asyncContext, boolean notInThreadLocal) {
+        TransactionActivityCreateEvent transactionActivityCreateEvent = new TransactionActivityCreateEvent();
+        transactionActivityCreateEvent.begin();
+        transactionActivityCreateEvent.transactionActivityObject = this.toString();
+
         this.transaction = tx;
+
+        // Be sure to null check before referencing any transaction fields. It's very easy to NPE and break instrumentation!!!
+        if (this.transaction != null) {
+            transactionActivityCreateEvent.transactionObject = this.transaction.toString();
+            transactionActivityCreateEvent.transactionGuid = this.transaction.getGuid();
+
+            if (this.transaction.getPriorityTransactionName() != null) {
+                transactionActivityCreateEvent.transactionName = this.transaction.getPriorityTransactionName().getName();
+            }
+        }
+
         TransactionTraceService ttService = ServiceFactory.getTransactionTraceService();
         tracers = null;
         transactionStats = new TransactionStats();
@@ -206,6 +225,7 @@ public class TransactionActivity {
             cpuStartTimeInNanos = NOT_REPORTED;
             totalCpuTimeInNanos = NOT_REPORTED;
         }
+        transactionActivityCreateEvent.commit();
     }
 
     /**
@@ -391,11 +411,22 @@ public class TransactionActivity {
      * @param opcode
      */
     private void finished(Tracer tracer, int opcode) {
+        TransactionActivityFinishEvent transactionActivityFinishEvent = new TransactionActivityFinishEvent();
+        transactionActivityFinishEvent.begin();
+        transactionActivityFinishEvent.transactionActivityObject = this.toString();
+
         if (Agent.LOG.isFinestEnabled()) {
             Agent.LOG.log(Level.FINEST, "tracerFinished: {0} opcode: {1} in transactionActivity {2}", tracer, opcode, this);
         }
         try {
             if (transaction != null) {
+                transactionActivityFinishEvent.transactionGuid = transaction.getGuid();
+                transactionActivityFinishEvent.transactionObject = transaction.toString();
+                PriorityTransactionName priorityTransactionName = transaction.getPriorityTransactionName();
+                if (priorityTransactionName != null) {
+                    transactionActivityFinishEvent.transactionName = priorityTransactionName.getName();
+                }
+
                 if (!activityIsIgnored) {
                     recordCpu();
                     if (sendsResponse) {
@@ -413,6 +444,7 @@ public class TransactionActivity {
                     transaction.activityFailedOrIgnored(this, opcode);
                 }
             }
+            transactionActivityFinishEvent.commit();
             isDone = true;
         } finally {
             if (!isNotInThreadLocal()) {

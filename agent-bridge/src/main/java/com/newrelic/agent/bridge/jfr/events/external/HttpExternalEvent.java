@@ -9,8 +9,8 @@ import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 
 @Name(HttpExternalEvent.NAME)
-@Category({ "New Relic JFR Event", "Externals" })
-@Label("Http Externals")
+@Category({ "New Relic JFR Event", "External" })
+@Label("Http External")
 @Description("Http external call info")
 @StackTrace(true)
 public class HttpExternalEvent extends Event {

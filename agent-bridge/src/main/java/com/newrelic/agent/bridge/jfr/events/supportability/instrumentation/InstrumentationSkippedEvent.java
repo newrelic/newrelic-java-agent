@@ -10,7 +10,7 @@ import jdk.jfr.StackTrace;
 
 @Name(InstrumentationSkippedEvent.NAME)
 @Category({ "New Relic JFR Event", "Supportability", "Instrumentation" })
-@Label("Skipped Modules")
+@Label("Skipped Module")
 @Description("Supportability info")
 @StackTrace(false)
 public class InstrumentationSkippedEvent extends Event {

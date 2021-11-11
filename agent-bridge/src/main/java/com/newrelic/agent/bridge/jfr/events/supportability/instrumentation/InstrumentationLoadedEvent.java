@@ -10,7 +10,7 @@ import jdk.jfr.StackTrace;
 
 @Name(InstrumentationLoadedEvent.NAME)
 @Category({ "New Relic JFR Event", "Supportability", "Instrumentation" })
-@Label("Loaded Modules")
+@Label("Loaded Module")
 @Description("Supportability info")
 @StackTrace(false)
 public class InstrumentationLoadedEvent extends Event {

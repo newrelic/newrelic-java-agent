@@ -1001,7 +1001,7 @@ public class Transaction {
 
                 String txName = priorityTransactionName.getName();
                 transactionFinishEvent.transactionName = txName;
-                transactionFinishEvent.transactionObject = this.toString(); // FIXME this right?
+                transactionFinishEvent.transactionObject = this.toString();
                 transactionFinishEvent.transactionGuid = this.getGuid();
 
                 // parse headers in dispatcher request before we get rid of request/response objects

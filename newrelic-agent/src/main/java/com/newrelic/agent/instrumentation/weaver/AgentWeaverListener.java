@@ -78,10 +78,11 @@ public class AgentWeaverListener implements WeavePackageLifetimeListener {
                 instrumentationLoadedEvent.custom = false;
             }
 
-            instrumentationLoadedEvent.classloader = classloader.toString();
+            if (classloader != null) {
+                instrumentationLoadedEvent.classloader = classloader.toString();
+            }
             instrumentationLoadedEvent.weavePackageName = weavePackageName;
             instrumentationLoadedEvent.weavePackageVersion = weavePackageVersion;
-//            instrumentationLoaded.end();
             instrumentationLoadedEvent.commit();
 
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(
@@ -105,10 +106,11 @@ public class AgentWeaverListener implements WeavePackageLifetimeListener {
             InstrumentationSkippedEvent instrumentationSkippedEvent = new InstrumentationSkippedEvent();
             instrumentationSkippedEvent.begin();
             instrumentationSkippedEvent.custom = isCustom;
-            instrumentationSkippedEvent.classloader = classloader.toString();
+            if (classloader != null) {
+                instrumentationSkippedEvent.classloader = classloader.toString();
+            }
             instrumentationSkippedEvent.weavePackageName = weavePackageName;
             instrumentationSkippedEvent.weavePackageVersion = weavePackageVersion;
-//            instrumentationSkipped.end();
             instrumentationSkippedEvent.commit();
 
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(

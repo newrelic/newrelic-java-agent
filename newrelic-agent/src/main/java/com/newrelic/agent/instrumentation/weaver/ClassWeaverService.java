@@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.jfr.events.supportability.instrumentation.WeaveClassEvent;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.ClassTransformerConfig;
@@ -516,6 +517,12 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
                     } catch (Exception e) {
                         Agent.LOG.log(Level.FINE, e, "Unable to add annotation proxy classes");
                     }
+
+                    WeaveClassEvent weaveClassEvent = new WeaveClassEvent();
+                    weaveClassEvent.begin();
+                    weaveClassEvent.weavePackage = packageName;
+                    weaveClassEvent.weaveClass = weaveResult.getClassName();
+                    weaveClassEvent.commit();
 
                     ServiceFactory.getStatsService().doStatsWork(
                             StatsWorks.getRecordMetricWork(MessageFormat.format(MetricNames.SUPPORTABILITY_WEAVE_CLASS,

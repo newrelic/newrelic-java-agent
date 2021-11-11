@@ -8,12 +8,13 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.bridge.Token;
-import com.newrelic.agent.bridge.jfr.events.supportability.token.TokenCreateEvent;
-import com.newrelic.agent.bridge.jfr.events.supportability.token.TokenExpireEvent;
-import com.newrelic.agent.bridge.jfr.events.supportability.token.TokenLinkEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.transaction.token.TokenCreateEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.transaction.token.TokenExpireEvent;
+import com.newrelic.agent.bridge.jfr.events.supportability.transaction.token.TokenLinkEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.agent.transaction.PriorityTransactionName;
 
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,9 +36,12 @@ public class TokenImpl implements Token {
         WeakRefTransaction weakRefTransaction = getTransaction();
         Transaction tx = weakRefTransaction == null ? null : weakRefTransaction.getTransactionIfExists();
         if (tx != null) {
-            tokenCreateEvent.transactionName = tx.getPriorityTransactionName().getName();
             tokenCreateEvent.transactionObject = tx.toString();
             tokenCreateEvent.transactionGuid = tx.getGuid();
+            PriorityTransactionName priorityTransactionName = tx.getPriorityTransactionName();
+            if (priorityTransactionName != null) {
+                tokenCreateEvent.transactionName = priorityTransactionName.getName();
+            }
 
             tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_CREATE);
         }
@@ -48,7 +52,10 @@ public class TokenImpl implements Token {
             if (location.getMethodName().equals("registerAsyncActivity")) {
                 location = stackTrace[5];
             }
-            tokenCreateEvent.location = location.toString();
+
+            if (location != null) {
+                tokenCreateEvent.location = location.toString();
+            }
 
             Agent.LOG.log(Level.INFO, "Token: {0} created for Transaction: {1}, at: {2}", this, tx, location.toString());
         }
@@ -78,9 +85,12 @@ public class TokenImpl implements Token {
 
             Transaction tx = getTransaction().getTransactionIfExists();
             if (tx != null) {
-                tokenExpireEvent.transactionName = tx.getPriorityTransactionName().getName();
                 tokenExpireEvent.transactionObject = tx.toString();
                 tokenExpireEvent.transactionGuid = tx.getGuid();
+                PriorityTransactionName priorityTransactionName = tx.getPriorityTransactionName();
+                if (priorityTransactionName != null) {
+                    tokenExpireEvent.transactionName = priorityTransactionName.getName();
+                }
 
                 tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_EXPIRE);
                 MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_TOKEN_EXPIRE);
@@ -96,7 +106,9 @@ public class TokenImpl implements Token {
                 } else if (location.getMethodName().equals("linkAndExpire")) {
                     location = stackTrace[3];
                 }
-                tokenExpireEvent.location = location.toString();
+                if (location != null) {
+                    tokenExpireEvent.location = location.toString();
+                }
 
                 Agent.LOG.log(Level.INFO, "Token: {0} expired for Transaction: {1}, at: {2}", this, tx, location.toString());
             }
@@ -131,9 +143,12 @@ public class TokenImpl implements Token {
         }
 
         if (tx != null) {
-            tokenLinkEvent.transactionName = tx.getPriorityTransactionName().getName();
             tokenLinkEvent.transactionObject = tx.toString();
             tokenLinkEvent.transactionGuid = tx.getGuid();
+            PriorityTransactionName priorityTransactionName = tx.getPriorityTransactionName();
+            if (priorityTransactionName != null) {
+                tokenLinkEvent.transactionName = priorityTransactionName.getName();
+            }
 
             if (DebugFlag.tokenEnabled.get()) {
                 if (!linked && TransactionActivity.get() == null) {

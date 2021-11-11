@@ -12,6 +12,7 @@ import com.newrelic.agent.bridge.jfr.events.supportability.instrumentation.Weave
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.weave.violation.WeaveViolation;
 import com.newrelic.weave.weavepackage.PackageValidationResult;
+import org.objectweb.asm.commons.Method;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -37,31 +38,39 @@ public class WeaveViolationLogger {
         logger.log(actualLevel, "{0} - {1} violations against classloader {2}",
                 packageResult.getWeavePackage().getName(), violations.size(), classloader);
 
-        WeaveViolationEvent weaveViolationEvent;
+//        WeaveViolationEvent weaveViolationEvent;
 
         for (WeaveViolation violation : violations) {
             logger.log(actualLevel, "WeaveViolation: {0}", violation.getType().name());
             logger.log(actualLevel, "\t\tClass: {0}", violation.getClazz());
 
-            weaveViolationEvent = new WeaveViolationEvent();
+            WeaveViolationEvent weaveViolationEvent = new WeaveViolationEvent();
             weaveViolationEvent.begin();
             weaveViolationEvent.custom = isCustom;
-            weaveViolationEvent.weavePackage = packageResult.getWeavePackage().getName();
+            if (packageResult.getWeavePackage() != null) {
+                weaveViolationEvent.weavePackage = packageResult.getWeavePackage().getName();
+            }
             weaveViolationEvent.weaveViolationSize = violations.size();
-            weaveViolationEvent.classloader = classloader.toString();
-            weaveViolationEvent.weaveViolationName = violation.getType().name();
+            if (classloader != null) {
+                weaveViolationEvent.classloader = classloader.toString();
+            }
+            if (violation.getType() != null) {
+                weaveViolationEvent.weaveViolationName = violation.getType().name();
+                weaveViolationEvent.weaveViolationReason = violation.getType().getMessage();
+            }
             weaveViolationEvent.weaveViolationClass = violation.getClazz();
 
-            if (violation.getMethod() != null) {
-                logger.log(actualLevel, "\t\tMethod: {0}", violation.getMethod());
-                weaveViolationEvent.weaveViolationMethod = violation.getMethod().getName();
+            Method violationMethod = violation.getMethod();
+            if (violationMethod != null) {
+                logger.log(actualLevel, "\t\tMethod: {0}", violationMethod);
+                weaveViolationEvent.weaveViolationMethod = violationMethod.getName();
             }
-            if (violation.getField() != null) {
-                logger.log(actualLevel, "\t\tField: {0}", violation.getField());
-                weaveViolationEvent.weaveViolationField = violation.getField();
+            String violationField = violation.getField();
+            if (violationField != null) {
+                logger.log(actualLevel, "\t\tField: {0}", violationField);
+                weaveViolationEvent.weaveViolationField = violationField;
             }
             logger.log(actualLevel, "\t\tReason: {0}", violation.getType().getMessage());
-            weaveViolationEvent.weaveViolationReason = violation.getType().getMessage();
             weaveViolationEvent.commit();
         }
 
