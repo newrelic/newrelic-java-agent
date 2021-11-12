@@ -8,13 +8,17 @@ import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 
+import static com.newrelic.agent.bridge.jfr.events.JfrCustomEventConstants.EXTERNAL;
+import static com.newrelic.agent.bridge.jfr.events.JfrCustomEventConstants.NEW_RELIC_JFR_EVENT;
+import static com.newrelic.agent.bridge.jfr.events.JfrCustomEventConstants.NR_NAMESPACE_PREFIX;
+
 @Name(HttpExternalEvent.NAME)
-@Category({ "New Relic JFR Event", "External" })
+@Category({ NEW_RELIC_JFR_EVENT, EXTERNAL })
 @Label("Http External")
 @Description("Http external call info")
 @StackTrace(true)
 public class HttpExternalEvent extends Event {
-    static final String NAME = "com.newrelic.HttpExternal";
+    static final String NAME = NR_NAMESPACE_PREFIX + "HttpExternal";
 
     @Label("HTTP Client")
     public String httpClient;

@@ -28,7 +28,7 @@ public class TokenImpl implements Token {
     public TokenImpl(Tracer tracer) {
         TokenCreateEvent tokenCreateEvent = new TokenCreateEvent();
         tokenCreateEvent.begin();
-        tokenCreateEvent.token = this.toString();
+        tokenCreateEvent.tokenObject = this.toString();
 
         initiatingTracer = tracer;
         active = new AtomicBoolean(Boolean.TRUE);
@@ -81,7 +81,7 @@ public class TokenImpl implements Token {
         if (active.compareAndSet(Boolean.TRUE, Boolean.FALSE)) {
             TokenExpireEvent tokenExpireEvent = new TokenExpireEvent();
             tokenExpireEvent.begin();
-            tokenExpireEvent.token = this.toString();
+            tokenExpireEvent.tokenObject = this.toString();
 
             Transaction tx = getTransaction().getTransactionIfExists();
             if (tx != null) {
@@ -124,7 +124,7 @@ public class TokenImpl implements Token {
     @Override
     public boolean link() {
         TokenLinkEvent tokenLinkEvent = new TokenLinkEvent();
-        tokenLinkEvent.token = this.toString();
+        tokenLinkEvent.tokenObject = this.toString();
         boolean linked = Transaction.linkTxOnThread(this);
         WeakRefTransaction weakRefTransaction = getTransaction();
         Transaction tx = weakRefTransaction == null ? null : weakRefTransaction.getTransactionIfExists();
