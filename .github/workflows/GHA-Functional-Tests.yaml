@@ -16,7 +16,8 @@ on:
         default: 'main'
 
 jobs:
-  matrix-functional-all-versions:
+  java-functional-tests:
+    name: Java ${{ matrix.java-version }} Functional Tests
     timeout-minutes: 120
     # needs: install-all-java
     runs-on: ubuntu-latest
@@ -108,8 +109,8 @@ jobs:
           ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
-      # Run the build.
-      - name: Run functional tests against version defined in matrix
+      # Run the tests
+      - name: Run functional tests on ${{ matrix.java-version }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
