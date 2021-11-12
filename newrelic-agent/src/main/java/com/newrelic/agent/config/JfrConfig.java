@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.config;
 
+import java.util.List;
+
 public interface JfrConfig {
 
     /**
@@ -29,4 +31,11 @@ public interface JfrConfig {
      * @return <code>true</code> is use_license_key is enabled for the JFR service is enabled, else <code>false</code>.
      */
     boolean useLicenseKey();
+
+    /**
+     * Get list of enabled Jfr events.
+     *
+     * @return <code>List</code> of events.
+     */
+    List<String> enabledJfrEvents();
 }

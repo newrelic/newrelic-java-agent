@@ -14,6 +14,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     jcenter()
 }
 
@@ -68,7 +69,8 @@ dependencies {
         transitive = false
     }
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
-    shadowIntoJar("com.newrelic:jfr-daemon:1.6.0")
+    shadowIntoJar("com.newrelic:jfr-daemon:1.7.0-SNAPSHOT")
+//    implementation fileTree(dir: 'libs', include: ['*.jar'])
     shadowIntoJar "org.ow2.asm:asm:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-tree:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-commons:$asmVersion"

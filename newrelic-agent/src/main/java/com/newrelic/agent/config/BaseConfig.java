@@ -12,7 +12,13 @@ import com.newrelic.api.agent.Logger;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -238,7 +244,6 @@ public class BaseConfig implements Config {
         }
         return result;
     }
-
 
     protected int getIntProperty(String key, int defaultVal) {
         Number val = getProperty(key);

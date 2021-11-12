@@ -17,7 +17,13 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.jfr.ThreadNameNormalizer;
-import com.newrelic.jfr.daemon.*;
+import com.newrelic.jfr.daemon.DaemonConfig;
+import com.newrelic.jfr.daemon.EventConverter;
+import com.newrelic.jfr.daemon.JFRUploader;
+import com.newrelic.jfr.daemon.JfrController;
+import com.newrelic.jfr.daemon.JfrRecorderException;
+import com.newrelic.jfr.daemon.SetupUtils;
+import com.newrelic.jfr.daemon.VersionFinder;
 import com.newrelic.telemetry.Attributes;
 
 import java.net.URI;
@@ -125,6 +131,7 @@ public class JfrService extends AbstractService {
                 .proxyScheme(defaultAgentConfig.getProxyScheme())
                 .proxyPort(defaultAgentConfig.getProxyPort())
                 .proxyUser(defaultAgentConfig.getProxyUser())
+                .enabledJfrEvents(jfrConfig.enabledJfrEvents())
                 .proxyPassword(defaultAgentConfig.getProxyPassword());
         return builder.build();
     }
