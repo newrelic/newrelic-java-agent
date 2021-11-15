@@ -106,7 +106,7 @@ jobs:
           LANGUAGE: java
           TEST_TYPE: functional
         run: |
-          ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue  --scan -Dscan.uploadInBackground=false --build-cache
+          ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue --scan -Dscan.uploadInBackground=false --build-cache
 
       - name: Capture build reports
         if: ${{ failure() }}
