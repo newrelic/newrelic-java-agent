@@ -3,13 +3,14 @@ package com.newrelic.monix.api
 import monix.execution.Scheduler.Implicits.global
 import TraceOps._
 import com.newrelic.agent.introspec._
+import com.newrelic.monix.api.MonixTestUtils.{getSegments, getTraces}
 import org.junit.runner.RunWith
 import org.junit.{After, Assert, Test}
 
 import scala.concurrent.Await
-import scala.jdk.CollectionConverters._
 import monix.eval.Task
 import monix.execution.Scheduler
+import monix.reactive.{Consumer, Observable}
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
@@ -118,14 +119,22 @@ class MonixTaskTest {
     Assert.assertTrue("two segment exists", segments.exists(_.getName == s"Custom/boom"))
   }
 
-  private def getTraces(introspector: Introspector): Iterable[TransactionTrace] =
-    introspector.getTransactionNames.asScala.flatMap(transactionName => introspector.getTransactionTracesForTransaction(transactionName).asScala)
-
-  private def getSegments(traces: Iterable[TransactionTrace]): Iterable[TraceSegment] =
-    traces.flatMap(trace => this.getSegments(trace.getInitialTraceSegment))
-
-  private def getSegments(segment: TraceSegment): List[TraceSegment] = {
-    val childSegments = segment.getChildren.asScala.flatMap(childSegment => getSegments(childSegment)).toList
-    segment :: childSegments
+  @Test
+  def observableProducesOneSegment(): Unit = {
+    //Given
+    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
+    //When
+    val txnBlock: Task[Int] = txn {
+      asyncTrace("getNumber")(Observable(1, 2).consumeWith(Consumer.head))
+    }
+    val result = txnBlock.runToFuture
+    val txnCount = introspector.getFinishedTransactionCount()
+    val traces = getTraces(introspector)
+    val segments = getSegments(traces)
+    //Then
+    Assert.assertEquals("result correct", 1, Await.result(result, 1.seconds))
+    Assert.assertTrue("transaction finished", txnCount >= 1)
+    Assert.assertTrue("Trace present", traces.nonEmpty)
+    Assert.assertTrue("getFirstNumber segment exists", segments.exists(_.getName == s"Custom/getNumber"))
   }
 }

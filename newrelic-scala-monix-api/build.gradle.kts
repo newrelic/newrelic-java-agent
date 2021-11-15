@@ -23,6 +23,7 @@ java {
 
 dependencies {
     implementation("io.monix:monix-eval_2.13:3.3.0")
+    implementation("io.monix:monix-reactive_2.13:3.3.0")
     implementation(project(":newrelic-api"))
     testImplementation(project(":instrumentation-test"))
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
