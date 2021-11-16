@@ -201,7 +201,6 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                     String appName = getTransaction().getApplicationName();
                     SqlQueryConverter converter = new SqlQueryConverter(appName, getDatabaseVendor());
                     String obfuscatedQueryString = converter.toObfuscatedQueryString(sql.toString());
-
                     // Store the obfuscated query string
                     getTransaction().getIntrinsicAttributes().put(SQL_PARAMETER_NAME, obfuscatedQueryString);
                 }

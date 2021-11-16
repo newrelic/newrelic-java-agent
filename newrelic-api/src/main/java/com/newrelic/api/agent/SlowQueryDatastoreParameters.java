@@ -16,7 +16,7 @@ package com.newrelic.api.agent;
 public class SlowQueryDatastoreParameters<T> extends DatastoreParameters {
 
     /**
-     * The raw query object used for transforming into a raw query String and obfuscated query String
+     * The query object used for transforming into a raw query String and obfuscated query String
      */
     private final T rawQuery;
 
@@ -39,12 +39,12 @@ public class SlowQueryDatastoreParameters<T> extends DatastoreParameters {
     }
 
     /**
-     * Returns the raw query object used for processing.
+     * Returns the query object used for processing. This query might be raw with parameters or obfuscated.
      *
-     * @return raw query object
+     * @return query object
      * @since 3.36.0
      */
-    public T getRawQuery() {
+    public T getQuery() {
         return rawQuery;
     }
 

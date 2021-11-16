@@ -43,20 +43,20 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
     @Override
     public <T> void noticeTracer(Tracer tracer, SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
         if (tracer.getDurationInMilliseconds() > thresholdInMillis) {
-            T rawQuery = slowQueryDatastoreParameters.getRawQuery();
+            T query = slowQueryDatastoreParameters.getQuery();
             QueryConverter<T> queryConverter = slowQueryDatastoreParameters.getQueryConverter();
-            if (rawQuery == null || queryConverter == null) {
+            if (query == null || queryConverter == null) {
                 // Ignore tracer
                 return;
             }
 
-            String rawQueryString = queryConverter.toRawQueryString(rawQuery);
-            if (rawQueryString == null || rawQueryString.trim().isEmpty()) {
+            String queryString = queryConverter.toRawQueryString(query);
+            if (queryString == null || queryString.trim().isEmpty()) {
                 // Ignore tracer
                 return;
             }
 
-            String obfuscatedQueryString = queryConverter.toObfuscatedQueryString(rawQuery);
+            String obfuscatedQueryString = queryConverter.toObfuscatedQueryString(query);
             if (obfuscatedQueryString == null) {
                 // Ignore tracer if no obfuscated query is provided
                 return;
@@ -68,7 +68,7 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
             }
 
             // This allows transaction traces to show slow queries directly in the trace details
-            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, rawQueryString);
+            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, queryString);
             tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, obfuscatedQueryString);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
@@ -95,7 +95,7 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
                 existingInfo.aggregate(tracer);
                 slowQueryInfoCache.putReplace(obfuscatedQueryString, existingInfo);
             } else {
-                SlowQueryInfo sqlInfo = new SlowQueryInfo(null, tracer, rawQueryString, obfuscatedQueryString,
+                SlowQueryInfo sqlInfo = new SlowQueryInfo(null, tracer, queryString, obfuscatedQueryString,
                         tracer.getTransactionActivity().getTransaction().getAgentConfig().getSqlTraceConfig());
                 sqlInfo.aggregate(tracer);
                 slowQueryInfoCache.putIfAbsent(obfuscatedQueryString, sqlInfo);
