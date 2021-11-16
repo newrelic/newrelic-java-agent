@@ -68,7 +68,6 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
             }
 
             // This allows transaction traces to show slow queries directly in the trace details
-            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, queryString);
             tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, obfuscatedQueryString);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
