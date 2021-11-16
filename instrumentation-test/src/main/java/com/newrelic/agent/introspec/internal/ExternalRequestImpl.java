@@ -23,12 +23,12 @@ class ExternalRequestImpl extends RequestImpl implements ExternalRequest {
     private static Pattern EXTERNAL_TX_METRIC = Pattern.compile("ExternalTransaction/([^/]+)/(.+)");
     private static Pattern EXTERNAL_TX_SEGMENT = Pattern.compile("ExternalTransaction/([^/]+)/(.+)");
 
-    private String library;
-    private String operation;
-    private Integer statusCode;
-    private String statusText;
-    private String segmentName;
-    private String catTransactionGuid;
+    private final String library;
+    private final String operation;
+    private final Integer statusCode;
+    private final String statusText;
+    private final String segmentName;
+    private final String catTransactionGuid;
 
     private ExternalRequestImpl(String originalMetric, String segmentName, String host, String lib, String operation, Integer statusCode, String statusText,
             String catTransactionGuid) {

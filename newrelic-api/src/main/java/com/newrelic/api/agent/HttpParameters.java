@@ -113,7 +113,7 @@ public class HttpParameters implements ExternalParameters {
      * Returns the HTTP status code for the call.
      *
      * @return the status code for the call, null if not available
-     * @since 6.5.0
+     * @since 7.5.0
      */
     public Integer getStatusCode() {
         return statusCode;
@@ -123,7 +123,7 @@ public class HttpParameters implements ExternalParameters {
      * Returns the HTTP reason message for the call.
      *
      * @return the text of the reason message, null if not available
-     * @since 6.5.0
+     * @since 7.5.0
      */
     public String getStatusText() {
         return statusText;

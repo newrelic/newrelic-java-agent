@@ -125,8 +125,7 @@ public class NRAsyncHandler<T> {
     }
 
     private Integer getStatusCode() {
-        if (responseStatus != null)
-        {
+        if (responseStatus != null) {
             return responseStatus.getStatusCode();
         }
         return null;

@@ -90,8 +90,7 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
     }
 
     private Integer getStatusCode() {
-        if (httpResponse != null && httpResponse.getStatusLine() != null)
-        {
+        if (httpResponse != null && httpResponse.getStatusLine() != null) {
             return httpResponse.getStatusLine().getStatusCode();
         }
         return null;
