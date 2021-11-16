@@ -264,14 +264,14 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     @Override
     protected void recordMetrics(TransactionStats transactionStats) {
         if (isMetricProducer() && getTransaction() != null) {
-            String rawSql = null;
+            String slowQuerySql = null;
             Object sqlObject = getSql();
             String appName = getTransaction().getApplicationName();
 
             if (sqlObject != null) {
-                rawSql = new PreparedStatementSql(sql, params).toString();
-                if (slowQuery(appName)) {
-                    rawSql = obfuscateRawSql(rawSql, appName);
+                slowQuerySql = new PreparedStatementSql(sql, params).toString();
+                if (queryExceedsSlowQueryThreshold(appName)) {
+                    slowQuerySql = obfuscateRawSql(slowQuerySql, appName);
                 }
             }
 
@@ -284,7 +284,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, getIdentifier())
                         .databaseName(getDatabaseName())
-                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
+                        .slowQuery(slowQuerySql, new SqlQueryConverter(appName, getDatabaseVendor()))
                         .build());
             } else {
                 String portToReport = DatastoreMetrics.replacePort(getPort());
@@ -294,7 +294,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, portToReport)
                         .databaseName(getDatabaseName())
-                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
+                        .slowQuery(slowQuerySql, new SqlQueryConverter(appName, getDatabaseVendor()))
                         .build());
             }
 
@@ -310,7 +310,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
         return converter.toObfuscatedQueryString(rawSql);
     }
 
-    private boolean slowQuery(String appName) {
+    private boolean queryExceedsSlowQueryThreshold(String appName) {
         double threshold = ServiceFactory.getConfigService().getAgentConfig(appName).getTransactionTracerConfig().getExplainThresholdInMillis();
         return getDurationInMilliseconds() > threshold;
     }
