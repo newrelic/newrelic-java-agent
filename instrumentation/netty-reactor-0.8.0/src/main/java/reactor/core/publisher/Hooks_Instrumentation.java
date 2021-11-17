@@ -14,6 +14,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Weave(originalName = "reactor.core.publisher.Hooks")
 public abstract class Hooks_Instrumentation {
+
+    /*
+     * Note that sub-hooks are cumulative. We want to avoid setting the same sub-hooks
+     * more than once, so we set this boolean to true the first time we set a sub-hook.
+     * if (!Hooks_Instrumentation.instrumented.getAndSet(true)) { Hooks.onEachOperator(...) }
+     */
     @NewField
     public static AtomicBoolean instrumented = new AtomicBoolean(false);
 }
