@@ -106,6 +106,8 @@ public class OkHttp36Test {
         Assert.assertEquals(host1, externalRequest.getHostname());
         Assert.assertEquals("OkHttp", externalRequest.getLibrary());
         Assert.assertEquals("execute", externalRequest.getOperation());
+        Assert.assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        Assert.assertEquals("OK ", externalRequest.getStatusText()); // the test server does return the trailing space, this client does not trim it
     }
 
     @Test
@@ -151,6 +153,8 @@ public class OkHttp36Test {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         assertEquals(1, externalRequest.getCount());
         assertEquals(host, externalRequest.getHostname());
+        Assert.assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        Assert.assertEquals("OK ", externalRequest.getStatusText()); // the test server does return the trailing space, this client does not trim it
     }
 
     private void httpClientExternal(String host) throws IOException {

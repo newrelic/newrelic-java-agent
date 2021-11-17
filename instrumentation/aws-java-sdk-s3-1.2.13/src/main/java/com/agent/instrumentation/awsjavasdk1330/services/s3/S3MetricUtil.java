@@ -7,26 +7,35 @@
 
 package com.agent.instrumentation.awsjavasdk1330.services.s3;
 
-import com.newrelic.agent.bridge.TracedMethod;
-import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.agent.bridge.external.ExternalMetrics;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.TracedMethod;
+import com.newrelic.api.agent.weaver.Weaver;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
- * This uses {@link ExternalMetrics} to create external metrics for all S3 calls in
+ * This uses {@link TracedMethod#reportAsExternal(ExternalParameters)} to create external metrics for all S3 calls in
  * {@link com.amazonaws.services.s3.AmazonS3_Instrumentation}.
- *
- * <p>
- * It should be updated to use {@link TracedMethod#reportAsExternal(ExternalParameters)} at some point.
  */
 public abstract class S3MetricUtil {
 
-    private static final String HOST = "amazon";
     private static final String SERVICE = "S3";
-    private static final String URI = "";
 
-    public static void metrics(Transaction transaction, TracedMethod tracedMethod, String operationName) {
-        ExternalMetrics.makeExternalComponentTrace(transaction, tracedMethod, HOST, SERVICE, false, URI, operationName);
+    public static void reportExternalMetrics(TracedMethod tracedMethod, String uri, Integer statusCode, String operationName) {
+        try {
+            HttpParameters httpParameters = HttpParameters.library(SERVICE)
+                    .uri(new URI(uri))
+                    .procedure(operationName)
+                    .noInboundHeaders()
+                    .status(statusCode, null)
+                    .build();
+            tracedMethod.reportAsExternal(httpParameters);
+        } catch (URISyntaxException e) {
+            AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());
+        }
     }
 
 }

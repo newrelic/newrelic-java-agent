@@ -12,6 +12,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.api.agent.Trace;
 import io.findify.s3mock.S3Mock;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -19,8 +20,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -31,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
@@ -86,26 +86,26 @@ public class AmazonS3SyncApiTest {
     @Test
     public void testCreateBucket() {
         createBucket();
-        assertMetrics("createBucket");
+        assertMetrics("createBucket", 200);
     }
 
     @Test
     public void testDeleteBucket() {
         createBucketNoTxn();
         deleteBucket();
-        assertMetrics("deleteBucket");
+        assertMetrics("deleteBucket", 204);
     }
 
     @Test
     public void testListBuckets() {
         listBuckets();
-        assertMetrics("listBuckets");
+        assertMetrics("listBuckets", 200);
     }
 
     @Test
     public void testGetBucketLocation() {
         getBucketLocation();
-        assertMetrics("getBucketLocation");
+        assertMetrics("getBucketLocation", 200);
     }
 
     @Test
@@ -113,21 +113,33 @@ public class AmazonS3SyncApiTest {
         createBucketNoTxn();
         putObjectNoTxn();
         getObject();
-        assertMetrics("getObject");
+        assertMetrics("getObject", 200);
+    }
+
+    @Test
+    public void testGetObjectNonexistent() {
+        createBucketNoTxn();
+        try {
+            getObject();
+            Assert.fail("Exception was expected.");
+        } catch (NoSuchKeyException exception) {
+            // this exception was expected, let the assertions begin
+        }
+        assertMetrics("getObject", 404);
     }
 
     @Test
     public void testListObjects() {
         createBucketNoTxn();
         listObjects();
-        assertMetrics("listObjects");
+        assertMetrics("listObjects", 200);
     }
 
     @Test
     public void testPutObject() {
         createBucketNoTxn();
         putObject();
-        assertMetrics("putObject");
+        assertMetrics("putObject", 200);
     }
 
     @Test
@@ -135,7 +147,7 @@ public class AmazonS3SyncApiTest {
         createBucketNoTxn();
         putObjectNoTxn();
         deleteObject();
-        assertMetrics("deleteObject");
+        assertMetrics("deleteObject", 204);
     }
 
     @Test
@@ -143,7 +155,7 @@ public class AmazonS3SyncApiTest {
         createBucketNoTxn();
         putObjectNoTxn();
         deleteObjects();
-        assertMetrics("deleteObjects");
+        assertMetrics("deleteObjects", 200);
     }
 
     @Trace(dispatcher = true)

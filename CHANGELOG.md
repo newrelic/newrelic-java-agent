@@ -27,12 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 
 * Auto-instrumentation Support for GraphQL-Java 17.0+ [#487](https://github.com/newrelic/newrelic-java-agent/pull/487)
-* Auto-instrumentation Support for Cats Effect 3 [#505](https://github.com/newrelic/newrelic-java-agent/pull/505)
 * This version tested agent support for the ARM64/Graviton2 platform
 
 
 ### Fixes
-Restores transactions for Akka and Akka-Http [#497](https://github.com/newrelic/newrelic-java-agent/pull/497)
 The existing MongoDB sync client instrumentation was incorrectly applying when MongoDB reactive or async client was being used, which could lead to segment timeouts and long transaction response times. [#476](https://github.com/newrelic/newrelic-java-agent/pull/476)
 
 ### Deprecations/Removed Features
