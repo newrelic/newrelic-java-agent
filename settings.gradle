@@ -46,9 +46,12 @@ gradleEnterprise {
         } else {
             tag "Local"
         }
-        tag System.getenv("LANGUAGE") ?: "polyglot"
         tag System.getenv("JRE") ?: "jre-not-specified"
-        tag System.getenv("SCALA_VERSION") ?: "no-scala"
+        tag System.getenv("LANGUAGE") ?: "polyglot"
+        String scalaVersion = System.getenv("SCALA_VERSION")
+        if (scalaVersion) {
+            tag scalaVersion
+        }
         tag System.getenv("TEST_TYPE") ?: "no-test"
     }
 }
