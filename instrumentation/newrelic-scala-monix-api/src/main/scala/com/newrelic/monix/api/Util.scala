@@ -10,13 +10,17 @@ object Util {
       AgentBridge.instrumentation.createScalaTxnTracer
     }).redeemWith(
       _ => body,
-      tracer => for {
-        _ <- Task.delay(NewRelic.getAgent.getTransaction)
-        res <- body.onErrorHandleWith(throwable => {
-          tracer.finish(throwable)
-          Task.raiseError(throwable)
-        })
-        _ <- Task.delay(tracer.finish(172, null))
-      } yield res
+      tracer => if(tracer == null) {
+        body
+      } else {
+        for {
+          _ <- Task.delay(NewRelic.getAgent.getTransaction)
+          res <- body.onErrorHandleWith(throwable => {
+            tracer.finish(throwable)
+            Task.raiseError(throwable)
+          })
+          _ <- Task.delay(tracer.finish(172, null))
+        } yield res
+      }
     )
 }
