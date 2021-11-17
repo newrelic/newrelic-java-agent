@@ -9,6 +9,7 @@ package com.agent.instrumentation.akka.http.core
 
 import java.util
 import java.util.concurrent.TimeUnit
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.headers.RawHeader
@@ -20,7 +21,7 @@ import com.newrelic.agent.util.Obfuscator
 import com.newrelic.api.agent.Trace
 import org.junit.Assert.{assertNotNull, assertTrue}
 import org.junit.runner.RunWith
-import org.junit.{After, Assert, Test}
+import org.junit.{Assert, Test}
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future}
@@ -36,10 +37,6 @@ class AkkaHttpCoreTest {
   val playServer = new PlayServer()
   var port: Int = InstrumentationTestRunner.getIntrospector.getRandomPort
   val baseUrl: String = "http://localhost:" + port
-
-  @After
-  def resetTxn() =
-    com.newrelic.agent.Transaction.clearTransaction
 
   @Test
   def syncHandlerAkkaServerTest(): Unit = {
@@ -84,20 +81,6 @@ class AkkaHttpCoreTest {
   @Test
   def asyncHandlerPlayServerTest(): Unit = {
     playServer.start(port, async = true)
-
-    Http().singleRequest(HttpRequest(uri = baseUrl + "/asyncPing"))
-
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-    awaitFinishedTx(introspector, 1)
-    playServer.stop()
-    Assert.assertEquals(1, introspector.getFinishedTransactionCount())
-    val txName = introspector.getTransactionNames.iterator.next
-    Assert.assertEquals("WebTransaction/AkkaHttpCore/akkaHandler", txName)
-  }
-
-  @Test
-  def asyncHandlerPlayFlowServerTest(): Unit = {
-    playServer.startFromFlow(port)
 
     Http().singleRequest(HttpRequest(uri = baseUrl + "/asyncPing"))
 

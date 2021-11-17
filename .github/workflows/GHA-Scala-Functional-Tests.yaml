@@ -1,12 +1,10 @@
-## Matrix strategy test for Functional Tests
-name: GHA-Scala-Functional-Tests
+name: Scala Functional Tests
 
 on:
   pull_request:
     branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
   push:
-    # branches: ['**']
     branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -18,8 +16,8 @@ on:
 
 jobs:
   scala-functional-tests:
+    name: Scala ${{ matrix.java-version }} Functional Tests
     timeout-minutes: 120
-    # needs: install-all-java
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
@@ -32,44 +30,34 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
-      - uses: gradle/wrapper-validation-action@v1
+      - uses: gradle/wrapper-validation-action@v1.0.4
 
-      #NEW Install required JDKs
-      # Install 8
       - name: Set up Java 8
         # https://github.com/actions/setup-java
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: 8
-          cache: 'gradle'
 
-      # Save new JDK variable
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Install 11
       - name: Set up Java 11
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: 11
 
-      # Save new JDK variable
       - name: Save JAVA_HOME as JDK11 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk11=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Check ENV variables
       - name: Check environmental variables
         run: printenv | sort -f
 
-      # GHA run functional tests
-
-      # Rewrite gradle.properties
       - name: Set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
@@ -78,27 +66,36 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      # IS THIS IMPACTING TESTS?
       - name: Build newrelicJar
         env:
+          CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_CACHE_USER: gha
+          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
+          JRE: jre${{ matrix.java-version }}
+          LANGUAGE: scala
+          TEST_TYPE: functional
         run: |
           # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel
+          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
-      # Run the build.
       - name: Run functional tests against version defined in matrix
         env:
+          CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_CACHE_USER: gha
+          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
+          JRE: jre${{ matrix.java-version }}
+          LANGUAGE: scala
+          TEST_TYPE: functional
         run: |
-          # Changed log level to --warn from --info
-          # ./gradlew --console=plain --parallel functional_test:test -Ptest${{ matrix.java-version }} --continue --warn
-          # -Ptest${{ matrix.java-version }} added below from the command integrated from https://github.com/newrelic/newrelic-java-agent/pull/451
           # Removed ":newrelic-cats-effect3-api:test" temporarily
-          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} --continue
+          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} --continue --scan -Dscan.uploadInBackground=false --build-cache
 
       # Capture HTML build result in artifacts
       - name: Capture build reports

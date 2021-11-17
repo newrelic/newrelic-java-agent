@@ -1,12 +1,10 @@
-## Matrix strategy
-name: GHA-Scala-Instrumentation-Tests
+name: Scala Instrumentation Tests
 
 on:
   pull_request:
-    branches: [ main ] ## branches TBD
-    types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
+    branches: [ main ]
+    types: [assigned, opened, synchronize, reopened, ready_for_review]
   push:
-    # branches: ['**']
     branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -20,7 +18,6 @@ jobs:
   scala-instrumentation-tests:
     name: Scala ${{ matrix.scala }} on Java ${{ matrix.java-version }} Instrumentation Tests
     timeout-minutes: 120
-    # needs: install-all-java
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
@@ -39,38 +36,31 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
-      - uses: gradle/wrapper-validation-action@v1
+      - uses: gradle/wrapper-validation-action@v1.0.4
 
-      #NEW Install required JDKs
-      # Install 8
       - name: Set up Java 8
         # https://github.com/actions/setup-java
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: 8
-          cache: 'gradle'
 
-      # Save new JDK variable
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Install 11
       - name: Set up Java 11
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: 11
 
-      # Save new JDK variable
       - name: Save JAVA_HOME as JDK11 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk11=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Check ENV variables
       - name: Check environmental variables
         run: printenv | sort -f
 
@@ -93,21 +83,24 @@ jobs:
         run: find instrumentation -name "*.jar"
       ## End AWS jars - plan to cache (check for cache, restore if required)
 
-      # Is newrelicJar present in newrelic-agent/build
-      # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
         env:
+          CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_CACHE_USER: gha
+          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
+          JRE: jre${{ matrix.java-version }}
+          LANGUAGE: scala
+          SCALA_VERSION: scala${{ matrix.scala }}
+          TEST_TYPE: instrumentation
         run: |
           # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel
+          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
-      # GHA run instrumentation tests
-
-      # Rewrite gradle.properties
       - name: set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
@@ -116,13 +109,19 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      # Run the build.
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }}
         env:
+          CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -PnoScala -Pscala-${{ matrix.scala }} --continue
+          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_CACHE_USER: gha
+          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
+          JRE: jre${{ matrix.java-version }}
+          LANGUAGE: scala
+          SCALA_VERSION: scala${{ matrix.scala }}
+          TEST_TYPE: instrumentation
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -PnoScala -Pscala-${{ matrix.scala }} --continue --continue --scan -Dscan.uploadInBackground=false --build-cache
 
-      # Capture HTML build result in artifacts
       - name: Capture build reports
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2

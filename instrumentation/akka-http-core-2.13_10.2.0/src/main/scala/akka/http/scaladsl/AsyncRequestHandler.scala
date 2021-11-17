@@ -11,7 +11,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import com.newrelic.agent.bridge.{AgentBridge, Token, TransactionNamePriority}
 import com.newrelic.api.agent.weaver.Weaver
 import com.newrelic.api.agent.{NewRelic, Trace}
-import com.nr.instrumentation.akkahttpcore.{RequestWrapper, ResponseWrapper}
+import com.nr.instrumentation.akkahttpcore.{RequestWrapper, ResponseFuture}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.runtime.AbstractFunction1
@@ -44,7 +44,7 @@ class AsyncRequestHandler(handler: HttpRequest => Future[HttpResponse])(implicit
     try {
       // Modify the original response by passing it through our map function (since a copy
       // is required due to the response headers being immutable). Return the (future) result of this map function.
-      futureResponse.flatMap(ResponseWrapper.wrapAsyncResponse(token))
+      futureResponse.flatMap(ResponseFuture.wrapResponse(token))
     } catch {
       case t: Throwable => {
         AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle())

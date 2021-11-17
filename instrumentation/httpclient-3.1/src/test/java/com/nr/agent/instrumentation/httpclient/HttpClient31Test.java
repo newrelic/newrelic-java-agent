@@ -14,6 +14,7 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.MetricsHelper;
+import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
@@ -36,6 +37,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -112,6 +114,8 @@ public class HttpClient31Test {
         Assert.assertEquals("localhost", externalRequest.getHostname());
         Assert.assertEquals("CommonsHttp", externalRequest.getLibrary());
         Assert.assertEquals("execute", externalRequest.getOperation());
+        Assert.assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        Assert.assertEquals("OK", externalRequest.getStatusText());
     }
 
     @Test
@@ -203,6 +207,8 @@ public class HttpClient31Test {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         assertEquals(1, externalRequest.getCount());
         assertEquals(host, externalRequest.getHostname());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
     }
 
 }
