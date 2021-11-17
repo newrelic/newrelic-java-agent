@@ -1,6 +1,8 @@
 apply plugin: 'scala'
 scala.zincVersion = "1.2.5"
 
+isScalaProjectEnabled(project, "scala-2.11")
+
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))

@@ -7,9 +7,8 @@
 
 package com.newrelic.agent.profile.v2;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.TransactionData;
@@ -56,15 +55,9 @@ class TransactionProfile implements JSONStreamAware {
     public TransactionProfile(final Profile profile, final ThreadNameNormalizer threadNameNormalizer) {
         this.threadMXBean = ManagementFactory.getThreadMXBean();
         this.threadNameNormalizer = threadNameNormalizer;
-        threadProfiles = CacheBuilder.newBuilder().build(profile.createCacheLoader(false));
-        threadActivityProfiles = CacheBuilder.newBuilder().build(
-                new CacheLoader<String, TransactionActivityTree>() {
-
-                    @Override
-                    public TransactionActivityTree load(String threadName) throws Exception {
-                        return new TransactionActivityTree(profile);
-                    }
-                });
+        threadProfiles = Caffeine.newBuilder().build(profile.createCacheLoader(false));
+        threadActivityProfiles = Caffeine.newBuilder().build(
+                threadName -> new TransactionActivityTree(profile));
     }
 
     public void addStackTrace(List<StackTraceElement> stackTraceList) {
@@ -82,10 +75,10 @@ class TransactionProfile implements JSONStreamAware {
                 Map<Tracer, Collection<Tracer>> tracerTree = buildChildren(activity.getTracers(), backtraces);
                 
                 String threadName = threadNameNormalizer.getNormalizedThreadName(new BasicThreadInfo(threadInfo));
-                threadActivityProfiles.getUnchecked(threadName).add(activity, tracerTree);
+                threadActivityProfiles.get(threadName).add(activity, tracerTree);
                 
                 if (!backtraces.isEmpty()) {
-                    ProfileTree tree = threadProfiles.getUnchecked(threadName);
+                    ProfileTree tree = threadProfiles.get(threadName);
                     
                     for (List<StackTraceElement> stack : backtraces) {
                         stack = DiscoveryProfile.getScrubbedStackTrace(stack);

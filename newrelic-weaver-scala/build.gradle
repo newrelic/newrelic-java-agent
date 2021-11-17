@@ -9,10 +9,10 @@ configurations {
 dependencies {
     compileFirst project(path: ":newrelic-agent", configuration: "finalArtifact")
     implementation("org.scala-lang:scala-library:2.11.1")
-    testImplementation("org.ow2.asm:asm:8.0.1")
-    testImplementation("org.ow2.asm:asm-util:8.0.1")
-    testImplementation("org.ow2.asm:asm-tree:8.0.1")
-    testImplementation("org.ow2.asm:asm-commons:8.0.1")
+    testImplementation("org.ow2.asm:asm:$asmVersion")
+    testImplementation("org.ow2.asm:asm-util:$asmVersion")
+    testImplementation("org.ow2.asm:asm-tree:$asmVersion")
+    testImplementation("org.ow2.asm:asm-commons:$asmVersion")
     testImplementation("com.google.guava:guava:28.2-android") {
         transitive = false
     }

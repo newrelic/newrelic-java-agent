@@ -10,10 +10,11 @@ package com.nr.agent.instrumentation.scala
 import java.util.Collection
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-
 import com.newrelic.agent.bridge.AgentBridge
 import com.newrelic.agent.introspec._
 import com.newrelic.api.agent.Trace
+import com.newrelic.test.marker.Java17IncompatibleTest
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.junit.{Assert, Test}
 
@@ -22,6 +23,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Future, _}
 import scala.util.{Failure, Random, Success};
 
+@Category(Array(classOf[Java17IncompatibleTest]))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("scala.concurrent.impl."))
 class ScalaFutureTest {

@@ -9,7 +9,6 @@ package com.nr.agent.instrumentation.asynchttpclient;
 
 import com.newrelic.agent.introspec.CatHelper;
 import com.newrelic.agent.introspec.ExternalRequest;
-import com.newrelic.agent.introspec.HttpTestServer;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
@@ -17,22 +16,28 @@ import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.agent.introspec.TransactionTrace;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java10IncompatibleTest;
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java12IncompatibleTest;
+import com.newrelic.test.marker.Java13IncompatibleTest;
+import com.newrelic.test.marker.Java14IncompatibleTest;
+import com.newrelic.test.marker.Java15IncompatibleTest;
+import com.newrelic.test.marker.Java16IncompatibleTest;
+import com.newrelic.test.marker.Java17IncompatibleTest;
+import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.asynchttpclient.Dsl;
 import org.asynchttpclient.Response;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -41,6 +46,9 @@ import java.util.concurrent.Future;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class,
+        Java13IncompatibleTest.class, Java14IncompatibleTest.class, Java15IncompatibleTest.class, Java16IncompatibleTest.class,
+        Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.asynchttpclient", "org.asynchttpclient" })
 public class AsyncHttpClient2_1_0Tests {
@@ -107,6 +115,8 @@ public class AsyncHttpClient2_1_0Tests {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         assertEquals(1, externalRequest.getCount());
         assertEquals(host, externalRequest.getHostname());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
     }
 
     @Test
@@ -162,6 +172,8 @@ public class AsyncHttpClient2_1_0Tests {
         assertEquals(host, externalRequest.getHostname());
         assertEquals("AsyncHttpClient", externalRequest.getLibrary());
         assertEquals("onCompleted", externalRequest.getOperation());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
     }
 
     @Test

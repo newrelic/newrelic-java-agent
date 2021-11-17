@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.instrumentation.api;
 
+import com.newrelic.weave.utils.WeaveUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -29,7 +30,7 @@ public class RemoveMethodsClassVisitor extends ClassVisitor {
      * @param methodsToRemove the methods to remove
      */
     public RemoveMethodsClassVisitor(ClassVisitor cv, Set<Method> methodsToRemove) {
-        super(Opcodes.ASM7, cv);
+        super(WeaveUtils.ASM_API_LEVEL, cv);
         this.methodsToRemove = new HashSet<>(methodsToRemove);
     }
 

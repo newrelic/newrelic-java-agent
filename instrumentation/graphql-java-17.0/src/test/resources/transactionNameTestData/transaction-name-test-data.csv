@@ -1,0 +1,17 @@
+GraphQL query filename              |   Expected transaction name
+---------------------------------------------------------------------------------------------------
+simpleQuery                         |   /QUERY/simple/libraries.books
+simpleAnonymousQuery                |   /QUERY/<anonymous>/libraries.books
+deepestUniquePathQuery              |   /QUERY/<anonymous>/libraries
+deepestUniqueSinglePathQuery        |   /QUERY/<anonymous>/libraries.booksInStock.title
+federatedSubGraphQuery              |   /QUERY/<anonymous>/libraries.branch
+unionTypesAndInlineFragmentsQuery   |   /QUERY/example/search
+validationErrors                    |   /QUERY/GetBooksByLibrary/libraries.books.doesnotexist.name
+unionTypesAndInlineFragmentQuery    |   /QUERY/example/search<Author>.name
+simpleMutation                      |   /MUTATION/<anonymous>/writePost
+twoTopLevelNames                    |   /QUERY/<anonymous>
+fragments                           |   /QUERY/<anonymous>
+variablesInsideFragments            |   /QUERY/HeroComparison
+inputTypes                          |   /MUTATION/CreateReviewForEpisode/createReview
+schemaQuery                         |   /QUERY/<anonymous>/__schema.types.name
+multipleOperations                  |   /batch/QUERY/getTaskAndUser/QUERY/completedTasks/queryTask

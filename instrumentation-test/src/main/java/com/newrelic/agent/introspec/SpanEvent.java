@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.introspec;
 
+import java.util.Map;
+
 public interface SpanEvent {
     String getName();
 
@@ -25,4 +27,10 @@ public interface SpanEvent {
     String getHttpComponent();
 
     String getTransactionId();
+
+    Integer getStatusCode();
+
+    String getStatusText();
+
+    Map<String, Object> getAgentAttributes();
 }

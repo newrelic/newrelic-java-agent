@@ -128,7 +128,7 @@ public class KeyTransactionProfile implements IProfile, ExtendedTransactionListe
     }
 
     /**
-     * For testability. Despite what the guava documentation states, this is a read-only view of the collection.
+     * For testability. This is a read-only view of the collection.
      * Calling add will cause an UnsupportedOperationException.
      */
     Set<Long> getActiveThreadIds() {

@@ -7,33 +7,25 @@
 
 package com.nr.agent.instrumentation.sprayclient
 
-import com.newrelic.agent.introspec.HttpTestServer;
-import com.newrelic.agent.introspec.CatHelper;
-import com.newrelic.agent.introspec.ExternalRequest;
-import com.newrelic.agent.introspec.InstrumentationTestConfig
-import com.newrelic.agent.introspec.InstrumentationTestRunner
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.agent.introspec._
+import com.newrelic.agent.introspec.internal.HttpServerLocator
+import com.newrelic.api.agent.Trace
+import com.newrelic.test.marker._
+import org.junit.{Assert, Test}
+import org.junit.experimental.categories.Category
+import org.junit.runner.RunWith
+import spray.client.pipelining._
+import spray.http._
 
 import java.net.URI
-import java.util.Collection;
-
-import org.junit.Assert
-import org.junit.AfterClass
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
-import org.junit.runner.RunWith;
-
-import spray.http._
-import spray.client.pipelining._
-
+import java.util.Collection
 import scala.concurrent._
 import scala.concurrent.duration._
 
+
+//// Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
+@Category(Array(classOf[Java11IncompatibleTest], classOf[Java12IncompatibleTest], classOf[Java13IncompatibleTest], classOf[Java14IncompatibleTest],
+classOf[Java15IncompatibleTest], classOf[Java16IncompatibleTest], classOf[Java17IncompatibleTest]))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("spray."))
 class SprayClientTest {

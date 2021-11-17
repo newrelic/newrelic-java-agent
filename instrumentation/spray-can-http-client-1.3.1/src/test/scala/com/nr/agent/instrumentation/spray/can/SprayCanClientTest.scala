@@ -7,39 +7,30 @@
 
 package com.nr.agent.instrumentation.spray.can
 
+import akka.actor._
+import akka.io.IO
+import akka.pattern.ask
+import akka.util.Timeout
 import com.newrelic.agent.bridge.AgentBridge
-import com.newrelic.agent.introspec.HttpTestServer
-import com.newrelic.agent.introspec.CatHelper
-import com.newrelic.agent.introspec.ExternalRequest
-import com.newrelic.agent.introspec.InstrumentationTestConfig
-import com.newrelic.agent.introspec.InstrumentationTestRunner
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.agent.introspec._
+import com.newrelic.agent.introspec.internal.HttpServerLocator
+import com.newrelic.api.agent.Trace
+import com.newrelic.test.marker._
+import org.junit.experimental.categories.Category
+import org.junit.runner.RunWith
+import org.junit._
+import spray.can.Http
+import spray.http.HttpMethods._
+import spray.http._
 
 import java.net.URI
-import java.util.Collection;
-import org.junit.{After, Assert}
-import org.junit.AfterClass
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
-import org.junit.runner.RunWith
-import spray.can.Http.HostConnectorInfo
-
+import java.util.Collection
 import scala.concurrent._
 import scala.concurrent.duration._
 
-import akka.io.IO
-import akka.util.Timeout
-import akka.pattern.ask
-import akka.actor._
-import spray.can.Http
-import spray.http._
-import HttpMethods._
-
+//// Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
+@Category(Array(classOf[Java11IncompatibleTest], classOf[Java12IncompatibleTest], classOf[Java13IncompatibleTest], classOf[Java14IncompatibleTest],
+  classOf[Java15IncompatibleTest], classOf[Java16IncompatibleTest], classOf[Java17IncompatibleTest] ))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("spray.", "akka.", "scala.", "com.nr.agent.instrumentation."))
 class SprayCanClientTest extends ConnectionLevelApiDemo {
@@ -76,8 +67,8 @@ class SprayCanClientTest extends ConnectionLevelApiDemo {
   }
 
   /**
-    * Return the first transaction name that matches the regex .*ClientTest.*
-    */
+   * Return the first transaction name that matches the regex .*ClientTest.*
+   */
   private def getCanClientTx(introspector: Introspector): String = {
     var clientTx: String = null;
     val it: java.util.Iterator[String] = introspector.getTransactionNames().iterator()

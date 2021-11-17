@@ -202,7 +202,7 @@ public class SimpleStatsEngine {
     // this is less than awesome and should be cleaned up
     private boolean trimmableMetric(String key) {
         return !(key.startsWith(DatastoreMetrics.METRIC_NAMESPACE) || key.startsWith(MetricNames.EXTERNAL_PATH) ||
-                key.startsWith(MetricNames.REQUEST_DISPATCHER));
+                key.startsWith(MetricNames.REQUEST_DISPATCHER) || key.startsWith(MetricNames.GRAPHQL)) ;
     }
 
     @Override

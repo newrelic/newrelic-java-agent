@@ -67,14 +67,13 @@ dependencies {
     shadowIntoJar(project(":discovery")) {
         transitive = false
     }
-
-    shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.0")
-    shadowIntoJar("com.newrelic:jfr-daemon:1.5.0")
-    shadowIntoJar 'org.ow2.asm:asm:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-tree:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-commons:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-util:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-analysis:8.0.1'
+    shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
+    shadowIntoJar("com.newrelic:jfr-daemon:1.6.0")
+    shadowIntoJar "org.ow2.asm:asm:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-tree:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-commons:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-util:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-analysis:$asmVersion"
 
     shadowIntoJar 'net.sourceforge.jregex:jregex:1.2_01'
 
@@ -93,6 +92,8 @@ dependencies {
     shadowIntoJar 'com.googlecode.json-simple:json-simple:1.1'
 
     shadowIntoJar('com.google.guava:guava:30.1.1-jre')
+
+    shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.0')
 
     shadowIntoJar("org.yaml:snakeyaml:1.27")
 
@@ -164,7 +165,7 @@ task relocatedShadowJar(type: ShadowJar) {
             // stuff we use
             "com.google", "org.yaml", "org.slf4j", "org.objectweb", "org.json",
             "org.apache.commons", "org.apache.http", "org.apache.logging", "jregex",
-            "io.grpc", "com.squareup", "okio", "io.perfmark", "android",
+            "io.grpc", "com.squareup", "okio", "io.perfmark", "android", "com.github.benmanes",
 
             // The following rules are to prevent these transitive dependencies from breaking anything
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",

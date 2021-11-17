@@ -97,6 +97,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
             getLogger().warning(msg);
         }
 
+        boolean isCrossApplicationTracing = localAgentConfig.getCrossProcessConfig().isCrossApplicationTracing();
+        if (isCrossApplicationTracing) {
+            String msg = "Distributed tracing is replacing cross application tracing as the default means of tracing between services. " +
+                    "To continue using cross application tracing, enable it with cross_application_tracer.enabled=true and distributed_tracing.enabled=false. ";
+            getLogger().info(msg);
+        }
+
         localAgentConfig.logDeprecatedProperties(fileSettings);
 
         ServiceFactory.getHarvestService().addHarvestListener(this);

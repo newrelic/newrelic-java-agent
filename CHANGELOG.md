@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.4.0 (2021-10-28)
+
+### New features and improvements
+
+* Support for Java 17 [#433](https://github.com/newrelic/newrelic-java-agent/pull/433)
+
+* Distributed Tracing is on by Default and deprecates Cross Application Tracing [#486](https://github.com/newrelic/newrelic-java-agent/pull/486)
+  - Increases the default maximum number of samples stored for Span Events from 1000 to 2000.
+  - The maximum number of samples stored for Span Events can be configured via the max_samples_stored configuration in the newrelic.yml.
+  ```
+  span_events:
+    max_samples_stored: 2000
+  ```
+  **Notice:** This feature will cause an increase in the consumption of data. The amount depends on the application. This feature can be disabled by adding the following to the agent yaml config nested under the common stanza:
+  ```
+  distributed_tracing:
+    enabled: false
+  ```
+
+* Auto-instrumentation Support for GraphQL-Java 17.0+ [#487](https://github.com/newrelic/newrelic-java-agent/pull/487)
+* This version tested agent support for the ARM64/Graviton2 platform
+
+
+### Fixes
+The existing MongoDB sync client instrumentation was incorrectly applying when MongoDB reactive or async client was being used, which could lead to segment timeouts and long transaction response times. [#476](https://github.com/newrelic/newrelic-java-agent/pull/476)
+
+### Deprecations/Removed Features
+Cross Application Tracing is now deprecated, and disabled by default. To continue using it, enable it with `cross_application_tracer.enabled = true` and `distributed_tracing.enabled = false`.
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
+
+## Version 7.3.0 (2021-9-30)
+
+### New features and improvements
+
+* Support for [Java 16](https://github.com/newrelic/newrelic-java-agent/pull/366)
+
+* Auto-instrumentation support for [java.net.http.HttpClient](https://github.com/newrelic/newrelic-java-agent/pull/251) 
+
+* Migrate the Agent’s caching library from Guava to [Caffeine](https://github.com/newrelic/newrelic-java-agent/pull/295)
+  * [Caffeine provides an in-memory cache](https://github.com/ben-manes/caffeine#cache) using a Google Guava inspired API. The improvements draw on the author’s experience designing Guava's cache and `ConcurrentLinkedHashMap`.
+  * We expect this change to provide improvement in cases where we saw thread contention and deadlocks attributable to the Guava library.
+ 
+### Fixes
+* Removed support for the [anorm-2.0 instrumentation module](https://github.com/newrelic/newrelic-java-agent/pull/426)
+  * The artifacts that this module instrumented are no longer available.
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
+
+## Version 7.2.0 (2021-9-9)
+
+### New features and improvements
+
+* Scala Library Instrumentation [#362](https://github.com/newrelic/newrelic-java-agent/pull/362) and [#363](https://github.com/newrelic/newrelic-java-agent/pull/363)
+  * STTP versions 2 & 3  Akka-HTTP, HTTP4s and STTP core backends
+  * Cats-effect v2
+  * ZIO v1
+  * HTTP4s client & server v0.21
+  * Play 2.3-2.8
+  * Akka-HTTP v10.1 & v10.2
+  * For more information, see [Scala instrumentation](https://docs.newrelic.com/docs/agents/java-agent/frameworks/scala-installation-java/).
+
+* Scala API support (see PRs above)
+  * Scala APIs provided for explicit instrumentation of several of above libraries in case auto-instrumentation is not desired
+  * Cats-effect v2
+  * ZIO v1
+  
+* AWS v2 DynamoDB Instrumentation [#343](https://github.com/newrelic/newrelic-java-agent/pull/343)
+  * Synchronous and asynchronous AWS v2 APIs are auto-instrumented similarly to v1 APIs
+  * For more information, see [Add support for AWS SDK 2 DynamoDB sync/async clients](https://github.com/newrelic/newrelic-java-agent/issues/246)
+  
+* GraphQL 16 Instrumentation [#396](https://github.com/newrelic/newrelic-java-agent/pull/396)
+  * Create meaningful transaction names
+  * Create meaningful spans
+  * Reporting GraphQL errors
+  * For more information, see [GraphQL for Java](https://github.com/newrelic/newrelic-java-agent/issues/356)
+
+* JFR feature causing excessive overhead when enabled [JFR #203](https://github.com/newrelic/newrelic-jfr-core/issues/203)
+  * Refactored code to use less memory.
+
+### Fixes
+The existing MongoDB instrumentation was partially applying when MongoDB Reactive Streams is being used.
+
+* Disable weaving package when MongoDB 4.x+ reactive driver detected [#341](https://github.com/newrelic/newrelic-java-agent/pull/341)
+  * For more information, see [Spring Reactive DB Drivers - MongoDB Support](https://github.com/newrelic/newrelic-java-agent/issues/198)
+  
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
 ## Version 7.1.1 (2021-7-15)
 
  Due to overhead caused in some applications [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/)
