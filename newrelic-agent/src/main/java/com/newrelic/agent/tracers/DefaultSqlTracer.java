@@ -270,7 +270,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             if (sqlObject != null) {
                 slowQuerySql = new PreparedStatementSql(sql, params).toString();
                 if (queryExceedsSlowQueryThreshold(appName)) {
-                    slowQuerySql = obfuscateRawSql(slowQuerySql, appName);
+                    slowQuerySql = getNoRawOrObfuscatedSql(slowQuerySql, appName);
                 }
             }
 
@@ -304,7 +304,16 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
         super.recordMetrics(transactionStats);
     }
 
-    private String obfuscateRawSql(String rawSql, String appName) {
+    /**
+     * This method is named this way because the docs on toObfuscatedQueryString imply obfuscation certainty.
+     * The reality is the SqlQueryConverter implementation of this method has introduced conditional
+     * logic that respects the agent configuration setting `record_sql`.
+     *
+     * If OBFUSCATED, sql is obfuscated.
+     * If RAW, sql is returned, unchanged.
+     * If OFF, null is returned.
+     */
+    private String getNoRawOrObfuscatedSql(String rawSql, String appName) {
         SqlQueryConverter converter = new SqlQueryConverter(appName, getDatabaseVendor());
         return converter.toObfuscatedQueryString(rawSql);
     }
