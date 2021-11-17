@@ -28,5 +28,9 @@ public interface SpanEvent {
 
     String getTransactionId();
 
+    Integer getStatusCode();
+
+    String getStatusText();
+
     Map<String, Object> getAgentAttributes();
 }

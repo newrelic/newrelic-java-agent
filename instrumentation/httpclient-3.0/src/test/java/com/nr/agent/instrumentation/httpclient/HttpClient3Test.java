@@ -96,8 +96,8 @@ public class HttpClient3Test {
         Assert.assertEquals(2, introspector.getFinishedTransactionCount());
 
         String txOne = "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient3Test/httpClientExternal";
-        Assert.assertEquals(1, MetricsHelper.getScopedMetricCount(txOne, "External/localhost/CommonsHttp"));
-        Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/localhost/CommonsHttp"));
+        Assert.assertEquals(1, MetricsHelper.getScopedMetricCount(txOne, "External/localhost/CommonsHttp/execute"));
+        Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/localhost/CommonsHttp/execute"));
 
         // external rollups
         Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/localhost/all"));
@@ -117,6 +117,8 @@ public class HttpClient3Test {
         Assert.assertEquals("localhost", externalRequest.getHostname());
         Assert.assertEquals("CommonsHttp", externalRequest.getLibrary());
         Assert.assertEquals("execute", externalRequest.getOperation());
+        Assert.assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        Assert.assertEquals("OK", externalRequest.getStatusText());
     }
 
     @Test
@@ -133,10 +135,10 @@ public class HttpClient3Test {
         Assert.assertEquals(6, introspector.getFinishedTransactionCount());
 
         // host rollups
-        Assert.assertEquals(2, MetricsHelper.getUnscopedMetricCount("External/localhost/CommonsHttp"));
+        Assert.assertEquals(2, MetricsHelper.getUnscopedMetricCount("External/localhost/CommonsHttp/execute"));
         Assert.assertEquals(2, MetricsHelper.getUnscopedMetricCount("External/localhost/all"));
 
-        Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/127.0.0.1/CommonsHttp"));
+        Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/127.0.0.1/CommonsHttp/execute"));
         Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/127.0.0.1/all"));
 
         // external rollups
@@ -188,6 +190,8 @@ public class HttpClient3Test {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         assertEquals(1, externalRequest.getCount());
         assertEquals(host, externalRequest.getHostname());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
     }
 
     /**
@@ -223,8 +227,10 @@ public class HttpClient3Test {
                 "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient3Test/execute1");
         Assert.assertTrue(metrics.containsKey("External/" + endpoint.getHost() + "/CommonsHttp"));
         metrics.get("External/" + endpoint.getHost() + "/CommonsHttp");
-        // This is 2 because execute3() calls execute() and releaseConnection(), both are instrumented
-        Assert.assertEquals(2, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
+
+        // execute1() calls execute() and releaseConnection(), both are instrumented
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp/execute").getCallCount());
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
     }
 
     @Trace(dispatcher = true)
@@ -249,8 +255,9 @@ public class HttpClient3Test {
                 "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient3Test/execute2");
         Assert.assertTrue(metrics.containsKey("External/" + endpoint.getHost() + "/CommonsHttp"));
         metrics.get("External/" + endpoint.getHost() + "/CommonsHttp");
-        // This is 2 because execute2() calls execute() and releaseConnection(), both are instrumented
-        Assert.assertEquals(2, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
+        // execute2() calls execute() and releaseConnection(), both are instrumented
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp/execute").getCallCount());
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
     }
 
     @Trace(dispatcher = true)
@@ -276,8 +283,9 @@ public class HttpClient3Test {
                 "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient3Test/execute3");
         Assert.assertTrue(metrics.containsKey("External/" + endpoint.getHost() + "/CommonsHttp"));
         metrics.get("External/" + endpoint.getHost() + "/CommonsHttp");
-        // This is 2 because execute3() calls execute() and releaseConnection(), both are instrumented
-        Assert.assertEquals(2, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
+        // execute3() calls execute() and releaseConnection(), both are instrumented
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp/execute").getCallCount());
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
     }
 
     @Trace(dispatcher = true)
@@ -304,9 +312,10 @@ public class HttpClient3Test {
 
         Assert.assertTrue(metrics.containsKey("External/" + endpoint.getHost() + "/CommonsHttp"));
         metrics.get("External/" + endpoint.getHost() + "/CommonsHttp");
-        // This is 3 because execute4() calls execute(), getResponseBody()
-        // and releaseConnection(). All 3 methods are instrumented
-        Assert.assertEquals(3, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
+        // execute4() calls execute(), getResponseBody() and releaseConnection(). All 3 methods are instrumented
+        // execute() has a metric of its own, the others are aggregated in the general metric
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp/execute").getCallCount());
+        Assert.assertEquals(2, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
     }
 
     @Trace(dispatcher = true)
@@ -331,8 +340,9 @@ public class HttpClient3Test {
                 "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient3Test/execute5");
         Assert.assertTrue(metrics.containsKey("External/" + endpoint.getHost() + "/CommonsHttp"));
         metrics.get("External/" + endpoint.getHost() + "/CommonsHttp");
-        // This is 2 because execute5() calls execute() and releaseConnection(), both are instrumented
-        Assert.assertEquals(2, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
+        // execute5() calls execute() and releaseConnection(), both are instrumented
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp/execute").getCallCount());
+        Assert.assertEquals(1, metrics.get("External/" + endpoint.getHost() + "/CommonsHttp").getCallCount());
     }
 
     @Trace(dispatcher = true)
