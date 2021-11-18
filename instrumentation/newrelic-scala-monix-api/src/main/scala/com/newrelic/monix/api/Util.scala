@@ -5,6 +5,7 @@ import com.newrelic.api.agent.NewRelic
 import monix.eval.Task
 
 object Util {
+  val RETURN_OPCODE = 176
   def wrapTrace[A](body: Task[A]): Task[A] =
     Task.delay({
       AgentBridge.instrumentation.createScalaTxnTracer
@@ -19,7 +20,7 @@ object Util {
             tracer.finish(throwable)
             Task.raiseError(throwable)
           })
-          _ <- Task.delay(tracer.finish(172, null))
+          _ <- Task.delay(tracer.finish(RETURN_OPCODE, null))
         } yield res
       }
     )
