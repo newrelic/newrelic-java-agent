@@ -14,13 +14,34 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
 public class SqlObfuscatorTest {
+
+    @Test
+    public void obfuscateHTML() {
+        String parameter="";
+        String path = "src/test/resources/com/newrelic/agent/document-content.json";
+        try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(path), StandardCharsets.UTF_8)) {
+            parameter = lines.collect(Collectors.joining(System.lineSeparator()));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        parameter = "'" + parameter + "'";
+        String sql = "insert employees values (4, "+parameter+"  )";
+        assertEquals("insert employees values (?, ?)", SqlObfuscator.getDefaultSqlObfuscator().obfuscateSql(sql));
+    }
 
     @Test
     public void nullSql() {
