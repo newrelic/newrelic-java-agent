@@ -51,7 +51,7 @@ public final class Utils {
   }
 
   public static void setThreadTokenAndRefCount(AgentBridge.TokenAndRefCount tokenAndRefCount) {
-    if (tokenAndRefCount != null) {
+    if (tokenAndRefCount != null && tokenAndRefCount.token != null) {
       logTokenInfo(tokenAndRefCount, "setting token to thread");
       AgentBridge.activeToken.set(tokenAndRefCount);
       tokenAndRefCount.token.link();
