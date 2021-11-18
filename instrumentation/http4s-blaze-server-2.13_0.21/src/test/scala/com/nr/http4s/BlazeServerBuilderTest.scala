@@ -14,6 +14,11 @@ import org.junit.{After, Assert, Before, Test}
 import java.net.URL
 import scala.io.Source
 import scala.util.{Try, Using}
+import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext
+import java.util.concurrent.Executors
 
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("org.http4s", "cats.effect"))
@@ -54,6 +59,21 @@ class BlazeServerBuilderTest {
     Assert.assertEquals("Trace present", 1, traces.size)
     Assert.assertEquals("Transaction name correct", Some("WebTransaction/HTTP4s/BlazeServerHandler"), webTxnName)
 
+  }
+
+  @Test
+  def blazeServerTestMany: Unit = {
+    implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(10))
+    
+    val requestCount = 1000
+    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
+    val requestsSent = Future.sequence((0 until requestCount).toList.map(_ => Future(get(blazeServer.hostname, blazeServer.port, "/hello/bob"))))
+
+    val requests = Await.result(requestsSent, Duration("1 minute"))
+    val txnCount = introspector.getFinishedTransactionCount()
+    val traces = getTraces(introspector)
+    Assert.assertEquals("Transaction count correct", requestCount, txnCount)
+    Assert.assertEquals("Trace present", requestCount, traces.size)
   }
 
 
