@@ -93,6 +93,20 @@ class AkkaHttpCoreTest {
   }
 
   @Test
+  def asyncHandlerPlayFlowServerTest(): Unit = {
+    playServer.startFromFlow(port)
+
+    Http().singleRequest(HttpRequest(uri = baseUrl + "/asyncPing"))
+
+    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
+    awaitFinishedTx(introspector, 1)
+    playServer.stop()
+    Assert.assertEquals(1, introspector.getFinishedTransactionCount())
+    val txName = introspector.getTransactionNames.iterator.next
+    Assert.assertEquals("WebTransaction/AkkaHttpCore/akkaHandler", txName)
+  }
+
+  @Test
   def syncHandlerPlayServerCatTest(): Unit = {
     playServer.start(port, async = false)
 

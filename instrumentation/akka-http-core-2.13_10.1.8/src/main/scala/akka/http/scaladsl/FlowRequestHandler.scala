@@ -14,7 +14,8 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import scala.concurrent.Future
 
 
-object FlowRequestHandler {
+class FlowRequestHandler {
+
 
   def instrumentFlow(handlerFlow: Flow[HttpRequest, HttpResponse, Any], mat: Materializer)
   : Flow[HttpRequest, HttpResponse, Any] =
@@ -22,4 +23,5 @@ object FlowRequestHandler {
 
   def toAsyncFunc[I, O](flow: Flow[I, O, _])(implicit mat: Materializer) : I => Future[O] =
     i => Source.single(i).via(flow).runWith(Sink.head)
+
 }

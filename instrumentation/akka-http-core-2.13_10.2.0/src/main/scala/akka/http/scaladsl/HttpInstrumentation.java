@@ -34,6 +34,7 @@ public class HttpInstrumentation {
             AgentBridge.publicApi.setServerInfo("Akka HTTP", ManifestUtils.getVersionFromManifest(getClass(), "akka-http-core", "10.2.0"));
 
             AgentBridge.instrumentation.retransformUninstrumentedClass(AsyncRequestHandler.class);
+            AgentBridge.instrumentation.retransformUninstrumentedClass(SyncRequestHandler.class);
         }
     }
 
