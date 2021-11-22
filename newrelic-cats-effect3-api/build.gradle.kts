@@ -22,6 +22,7 @@ java {
 }
 
 dependencies {
+    zinc("org.scala-sbt:zinc_2.12:1.2.5")
     implementation("org.scala-lang:scala-library:2.13.3")
     implementation("org.typelevel:cats-effect_2.13:3.2.8")
     implementation(project(":newrelic-api"))
