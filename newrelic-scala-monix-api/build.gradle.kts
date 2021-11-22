@@ -23,6 +23,7 @@ java {
 
 dependencies {
     zinc("org.scala-sbt:zinc_2.12:1.2.5")
+    implementation("org.scala-lang:scala-library:2.13.3")
     implementation("io.monix:monix-eval_2.13:3.3.0")
     implementation("io.monix:monix-reactive_2.13:3.3.0")
     implementation(project(":newrelic-api"))
