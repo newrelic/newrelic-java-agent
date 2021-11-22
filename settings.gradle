@@ -46,9 +46,12 @@ gradleEnterprise {
         } else {
             tag "Local"
         }
-        tag System.getenv("LANGUAGE") ?: "polyglot"
         tag System.getenv("JRE") ?: "jre-not-specified"
-        tag System.getenv("SCALA_VERSION") ?: "no-scala"
+        tag System.getenv("LANGUAGE") ?: "polyglot"
+        String scalaVersion = System.getenv("SCALA_VERSION")
+        if (scalaVersion) {
+            tag scalaVersion
+        }
         tag System.getenv("TEST_TYPE") ?: "no-test"
     }
 }
@@ -134,6 +137,7 @@ include 'instrumentation:graphql-java-17.0'
 include 'instrumentation:grpc-1.4.0'
 include 'instrumentation:grpc-1.22.0'
 include 'instrumentation:grpc-1.30.0'
+include 'instrumentation:grpc-1.40.0'
 include 'instrumentation:hibernate-3.3'
 include 'instrumentation:hibernate-3.5'
 include 'instrumentation:hibernate-4.0'

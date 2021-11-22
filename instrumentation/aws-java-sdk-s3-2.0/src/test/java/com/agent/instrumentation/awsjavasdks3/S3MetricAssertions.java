@@ -7,19 +7,29 @@
 
 package com.agent.instrumentation.awsjavasdks3;
 
+import com.newrelic.agent.introspec.ExternalRequest;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.agent.introspec.TransactionEvent;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 class S3MetricAssertions {
 
-    static void assertMetrics(String operation) {
+    private static Map<Integer, String> statusCodeText;
+    static {
+        statusCodeText = new HashMap<>();
+        statusCodeText.put(200, "OK");
+        statusCodeText.put(204, "No Content");
+    }
+
+    static void assertMetrics(String operation, Integer expectedStatusCode) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(2000));
 
@@ -67,6 +77,18 @@ class S3MetricAssertions {
             TransactionEvent transactionEvent = transactionEvents.iterator().next();
             assertEquals(1, transactionEvent.getExternalCallCount());
             assertTrue(transactionEvent.getExternalDurationInSec() > 0);
+        }
+
+        Collection<ExternalRequest> externalRequests = introspector.getExternalRequests(txName);
+        assertEquals(1, externalRequests.size());
+
+        ExternalRequest externalRequest = externalRequests.iterator().next();
+        assertEquals(expectedStatusCode, externalRequest.getStatusCode());
+
+        String expectedStatusText = statusCodeText.get(expectedStatusCode);
+
+        if (!"getObject".equals(operation)) {
+            assertEquals(expectedStatusText, externalRequest.getStatusText());
         }
     }
 
