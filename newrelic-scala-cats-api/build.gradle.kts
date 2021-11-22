@@ -22,7 +22,7 @@ java {
 }
 
 dependencies {
-    implementation("org.scala-lang:scala-library:2.13.5")
+    implementation("org.scala-lang:scala-library:2.13.3")
     implementation("org.typelevel:cats-effect_2.13:2.5.1")
     implementation(project(":newrelic-api"))
     testImplementation(project(":instrumentation-test"))
