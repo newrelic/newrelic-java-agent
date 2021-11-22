@@ -55,8 +55,8 @@ class TransactionProfile implements JSONStreamAware {
     public TransactionProfile(final Profile profile, final ThreadNameNormalizer threadNameNormalizer) {
         this.threadMXBean = ManagementFactory.getThreadMXBean();
         this.threadNameNormalizer = threadNameNormalizer;
-        threadProfiles = Caffeine.newBuilder().build(profile.createCacheLoader(false));
-        threadActivityProfiles = Caffeine.newBuilder().build(
+        threadProfiles = Caffeine.newBuilder().executor(Runnable::run).build(profile.createCacheLoader(false));
+        threadActivityProfiles = Caffeine.newBuilder().executor(Runnable::run).build(
                 threadName -> new TransactionActivityTree(profile));
     }
 

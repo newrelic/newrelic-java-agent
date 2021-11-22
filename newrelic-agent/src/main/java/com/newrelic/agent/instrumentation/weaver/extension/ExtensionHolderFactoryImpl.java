@@ -35,6 +35,7 @@ public class ExtensionHolderFactoryImpl implements ExtensionHolderFactory {
         private final Cache<Object, T> instanceCache = Caffeine.newBuilder()
                 .initialCapacity(32)
                 .weakKeys()
+                .executor(Runnable::run)
                 .build();
         // @formatter:on
 

@@ -125,6 +125,7 @@ public class TransactionEventsService extends AbstractService implements EventSe
         return Caffeine.newBuilder()
                 .maximumSize(maxSamplesStored)
                 .expireAfterAccess(5, TimeUnit.MINUTES)
+                .executor(Runnable::run)
                 .build(key -> key);
     }
 

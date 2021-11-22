@@ -35,7 +35,7 @@ public class CachingDatabaseStatementParser implements DatabaseStatementParser {
         if (null == statements) {
             synchronized (this) {
                 if (null == statements) {
-                    statements = Caffeine.newBuilder().maximumSize(1000).weakKeys().build();
+                    statements = Caffeine.newBuilder().maximumSize(1000).weakKeys().executor(Runnable::run).build();
                 }
             }
         }
