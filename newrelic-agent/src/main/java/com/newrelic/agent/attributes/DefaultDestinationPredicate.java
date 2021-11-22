@@ -56,7 +56,7 @@ public class DefaultDestinationPredicate implements DestinationPredicate {
         configTrie = generateConfigTrie(dest, exclude, include);
         defaultExcludeTrie = generateDefaultTrie(dest, defaultExcludes);
         destination = dest;
-        cache = Caffeine.newBuilder().maximumSize(MAX_CACHE_SIZE_BUFFER).build(this::isIncluded);
+        cache = Caffeine.newBuilder().maximumSize(MAX_CACHE_SIZE_BUFFER).executor(Runnable::run).build(this::isIncluded);
     }
 
     private Boolean isIncluded(String key) {

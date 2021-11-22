@@ -17,7 +17,7 @@ public class AgentCollectionFactory implements CollectionFactory {
 
     @Override
     public <K, V> Map<K, V> createConcurrentWeakKeyedMap() {
-        Cache<K, V> cache = Caffeine.newBuilder().initialCapacity(32).weakKeys().build();
+        Cache<K, V> cache = Caffeine.newBuilder().initialCapacity(32).weakKeys().executor(Runnable::run).build();
         return cache.asMap();
     }
 }

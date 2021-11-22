@@ -63,7 +63,7 @@ public class WeavePackageManager {
     /**
      * ClassLoader -> (WeavePackageName -> WeavePackage)
      */
-    private final Cache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = Caffeine.newBuilder().weakKeys().build();
+    private final Cache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = Caffeine.newBuilder().weakKeys().executor(Runnable::run).build();
 
     private final WeavePackageLifetimeListener packageListener;
     private final Instrumentation instrumentation;
@@ -88,12 +88,12 @@ public class WeavePackageManager {
      * classloader -> (weave package -> result of successful weaving)
      */
     Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
-            8).maximumSize(MAX_VALID_PACKAGE_CACHE).build();
+            8).maximumSize(MAX_VALID_PACKAGE_CACHE).executor(Runnable::run).build();
     /**
      * classloader -> (weave package -> result of successful weaving)
      */
     Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
-            8).maximumSize(MAX_INVALID_PACKAGE_CACHE).build();
+            8).maximumSize(MAX_INVALID_PACKAGE_CACHE).executor(Runnable::run).build();
 
     WeavePackageManager() {
         this(null);
