@@ -1,4 +1,4 @@
-name: Scala Instrumentation Tests
+name: No changes Scala Instrumentation Tests
 
 on:
   pull_request:
@@ -15,7 +15,7 @@ on:
         default: 'main'
 
 jobs:
-  scala-instrumentation-tests:
+  no-changes-scala-instrumentation-tests:
     name: Scala ${{ matrix.scala }} on Java ${{ matrix.java-version }} Instrumentation Tests
     timeout-minutes: 120
     runs-on: ubuntu-latest
@@ -98,7 +98,7 @@ jobs:
           # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
+          ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: set gradle.properties
