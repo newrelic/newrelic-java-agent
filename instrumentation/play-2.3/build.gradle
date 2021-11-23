@@ -3,6 +3,10 @@ scala.zincVersion = "1.2.5"
 
 isScalaProjectEnabled(project, "scala-2.10")
 
+configurations.all {
+    resolutionStrategy.force "org.scala-lang:scala-library:2.10.7"
+}
+
 dependencies {
     zinc("org.scala-sbt:zinc_2.12:1.2.5")
     implementation(project(":newrelic-api"))
