@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     types: [assigned, opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [main]
+    branches: [add-conditional-on-secrets]
   workflow_dispatch:
     inputs:
       BRANCH:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   tests:
-    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@monix-build-fix
+    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@add-conditional-on-secrets
     with:
       jre: 17
     secrets:
