@@ -113,7 +113,7 @@ jobs:
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
           cat settings.gradle
-          ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
+          ./gradlew clean jar -x :newrelic-scala-api:jar -x :newrelic-scala-cats-api:jar -x :newrelic-cats-effect3-api:jar -x :newrelic-scala-monix-api:jar -x :newrelic-scala-zio-api:jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
       # GHA run instrumentation tests
