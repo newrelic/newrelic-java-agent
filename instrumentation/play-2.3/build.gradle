@@ -7,6 +7,12 @@ configurations.all {
     resolutionStrategy.force "org.scala-lang:scala-library:2.10.7"
 }
 
+configurations.all {
+    if (name.startsWith("incrementalScalaAnalysis")) {
+        extendsFrom = []
+    }
+}
+
 dependencies {
     zinc("org.scala-sbt:zinc_2.12:1.2.5")
     implementation(project(":newrelic-api"))
