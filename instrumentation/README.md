@@ -10,7 +10,7 @@ Instrumentation modules may contain three types of classes.
 1. *Utility classes*. Utility classes are common, but optional. These classes are usually not annotated at all. When an instrumentation module is applied, utility classes are made available to the woven code.
 1. *SkipIfPresent classes*. SkipIfPresent classes are optional. These classes are annotated with [`@SkipIfPresent`](../newrelic-weaver-api/src/main/java/com/newrelic/api/agent/weaver/SkipIfPresent.java) and are empty. They are used to narrow the focus of a given instrumentation module. For example, imagine a module successfully applies to versions 1, 2, and 3 of a given application server, but it won't actually function correctly on version 3. Module authors will look for a class that may have been introduced in version 3 and annotate it with `@SkipIfPresent`. If the weaver finds a `@SkipIfPresent` class on the classpath, the instrumentation module will not be applied.
 
-### Expectations
+### Expectations 
 
 Instrumentation modules can use any dependencies they need for compilation or testing. However, there are some expectations that the agent puts on instrumentation modules.
 
