@@ -28,8 +28,6 @@ jobs:
       default-branch: "main"
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
       - uses: gradle/wrapper-validation-action@v1.0.4
 
       #NEW Install required JDKs

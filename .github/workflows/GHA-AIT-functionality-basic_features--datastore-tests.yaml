@@ -52,8 +52,6 @@ jobs:
           - uri_names.py
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
 
       ## Ongoing tests with artifactory dependecies
       - name: Checkout AIT repo test
@@ -326,8 +324,6 @@ jobs:
           - redis.py
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
 
       ## Ongoing tests with artifactory dependecies
       - name: Checkout AIT repo test
