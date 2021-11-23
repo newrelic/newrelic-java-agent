@@ -31,8 +31,6 @@ jobs:
         java-version: [8, 11, 17]
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
       - uses: gradle/wrapper-validation-action@v1.0.4
 
       - name: Set up Java 8
@@ -92,7 +90,7 @@ jobs:
           LANGUAGE: polyglot
           TEST_TYPE: unit
         run: |
-          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue --scan -Dscan.uploadInBackground=false --build-cache
+          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue --scan -Dscan.uploadInBackground=false --build-cache
 
       - name: Capture build reports
         # If previous step fails, run this step regardless
