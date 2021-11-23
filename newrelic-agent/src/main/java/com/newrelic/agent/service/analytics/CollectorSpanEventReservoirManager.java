@@ -69,10 +69,6 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
         final SamplingPriorityQueue<SpanEvent> toSend = spanReservoirsForApp.get(appName);
         spanReservoirsForApp.put(appName, createDistributedSamplingReservoir(appName, decidedLast));
 
-        //todo: this was here for a retry exception. The reservoir is used again to retryAll. Not sure what to do in case of discardHarvestData
-        // this doens't make sense...why create a new empty reservoir and retryAll with it in th catch of a tryign to save data???
-        //reservoir = createDistributedSamplingReservoir(appName, decidedLast));
-
         if (toSend == null || toSend.size() <= 0) {
             return null;
         }
@@ -88,8 +84,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
             if (!e.discardHarvestData()) {
                 logger.log(Level.FINE, "Unable to send span events. Unsent events will be included in the next harvest.", e);
                 // Save unsent data by merging it with toSend data using reservoir algorithm
-                //fixme something has to go here
-//                reservoir.retryAll(toSend);
+                spanReservoirsForApp.get(appName).retryAll(toSend);
             } else {
                 // discard harvest data
                 toSend.clear();
