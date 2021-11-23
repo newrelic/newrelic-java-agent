@@ -97,6 +97,7 @@ jobs:
         run: |
           # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
+          cat settings.gradle
           ls -la
           ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
