@@ -6,13 +6,6 @@ on:
     types: [assigned, opened, synchronize, reopened, ready_for_review]
   push:
     branches: [no-changes]
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      BRANCH:
-        description: "Specify branch (no-changes is default)"
-        required: false
-        default: 'no-changes'
 
 jobs:
   no-changes-scala-instrumentation-tests:
@@ -34,8 +27,6 @@ jobs:
             scala: 2.11
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
       - uses: gradle/wrapper-validation-action@v1.0.4
 
       - name: Set up Java 8
