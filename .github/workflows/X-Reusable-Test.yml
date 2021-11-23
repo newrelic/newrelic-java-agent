@@ -28,7 +28,7 @@ jobs:
       default-branch: "main"
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
-      GRADLE_KEY: ${{ gradle-enterprise-access-key }}
+      GRADLE_KEY: ${{ secrets.gradle-enterprise-access-key }}
     steps:
       - uses: actions/checkout@v2
       - uses: gradle/wrapper-validation-action@v1.0.4
