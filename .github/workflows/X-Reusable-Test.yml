@@ -10,13 +10,13 @@ on:
         type: string
     secrets:
       aws-access-key-id:
-        required: true
+        required: false
       aws-secret-access-key:
-        required: true
+        required: false
       gradle-enterprise-access-key:
-        required: true
+        required: false
       gradle-cache-password:
-        required: true
+        required: false
 
 jobs:
   tests:
@@ -26,7 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
-      #AWS_KEY: ${{ secrets.aws-secret-access-key }}
+      # we use these in env vars for conditionals (secrets can't be used in conditionals)
+      AWS_KEY: ${{ secrets.aws-secret-access-key }}
+      GRADLE_KEY: ${{ gradle-enterprise-access-key }}
     steps:
       - uses: actions/checkout@v2
       - uses: gradle/wrapper-validation-action@v1.0.4
@@ -102,7 +104,7 @@ jobs:
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
-        if: ${{ env.AWS_KEY != '' }}
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -121,7 +123,7 @@ jobs:
           ls -la newrelic-agent/build/
 
       - name: Build newrelicJar w/o GE
-        if: ${{ env.AWS_KEY == '' }}
+        if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
@@ -145,7 +147,7 @@ jobs:
 
       # Run the build with Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ inputs.jre }}
-        if: ${{ env.AWS_KEY != '' }}
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -160,11 +162,11 @@ jobs:
 
       # Run the build without Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
-        if: ${{ env.AWS_KEY == '' }}
+        if: ${{ env.GRADLE_KEY == '' }}
         env:
           JRE: jre${{ inputs.jre }}
         run: |
-          echo "*** NOT PUBLISHING BUILD SCANS ***"
+          echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
           ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue
 
       # Capture HTML build result in artifacts
