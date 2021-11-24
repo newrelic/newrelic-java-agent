@@ -1,8 +1,10 @@
 apply plugin: 'scala'
+scala.zincVersion = "1.2.5"
 
 isScalaProjectEnabled(project, "scala-2.13")
 
 dependencies {
+    zinc("org.scala-sbt:zinc_2.12:1.2.5")
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":newrelic-weaver-scala-api"))
@@ -13,10 +15,13 @@ dependencies {
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.newrelic-scala-monix-api',
-            'Implementation-Title-Alias': 'newrelic-scala-monix-api_instrumentation' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.scala-monix-api',
+            'Implementation-Title-Alias': 'scala-monix-api_instrumentation' }
 }
 
 verifyInstrumentation {
     verifyClasspath = false
 }
+
+sourceSets.main.scala.srcDirs = ['src/main/scala', 'src/main/java']
+sourceSets.main.java.srcDirs = []
