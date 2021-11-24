@@ -17,8 +17,6 @@ import com.newrelic.api.agent.Logger;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -28,6 +26,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CollectorSpanEventReservoirManagerTest {
+    private  final String APP_NAME = "blerg";
+
     @Test
     public void maxSamplesStoredConfiguredAfterConstruction() {
         ConfigService mockConfigService = mock21Samples();
@@ -39,8 +39,8 @@ public class CollectorSpanEventReservoirManagerTest {
     public void getOrCreateReturnsSameReservoir() {
         ConfigService mockConfigService = mock21Samples();
         CollectorSpanEventReservoirManager target = initWith25Tries(mockConfigService);
-        assertEquals(21, target.getOrCreateReservoir().size());
-        assertTrue(target.getOrCreateReservoir().isFull());
+        assertEquals(21, target.getOrCreateReservoir(APP_NAME).size());
+        assertTrue(target.getOrCreateReservoir(APP_NAME).isFull());
     }
 
     @Test
@@ -52,16 +52,13 @@ public class CollectorSpanEventReservoirManagerTest {
         // boolean arrays can be final so that nested classes can use them
         final boolean[] resultFlags = new boolean[] { false };
         ReservoirManager.HarvestResult harvestResult = target.attemptToSendReservoir(
-                "blerg",
-                new ReservoirManager.EventSender<SpanEvent>() {
-                    @Override
-                    public void sendEvents(String appName, int reservoirSize, int eventsSeen, List<SpanEvent> events) {
-                        assertEquals("blerg", appName);
-                        assertEquals(21, reservoirSize);
-                        assertEquals(25, eventsSeen);
-                        assertEquals(21, events.size());
-                        resultFlags[0] = true;
-                    }
+                APP_NAME,
+                (appName, reservoirSize, eventsSeen, events) -> {
+                    assertEquals(APP_NAME, appName);
+                    assertEquals(21, reservoirSize);
+                    assertEquals(25, eventsSeen);
+                    assertEquals(21, events.size());
+                    resultFlags[0] = true;
                 },
                 mock(Logger.class)
         );
@@ -78,19 +75,16 @@ public class CollectorSpanEventReservoirManagerTest {
         CollectorSpanEventReservoirManager target = initWith25Tries(mockConfigService);
 
         ReservoirManager.HarvestResult harvestResult = target.attemptToSendReservoir(
-                "blerg",
-                new ReservoirManager.EventSender<SpanEvent>() {
-                    @Override
-                    public void sendEvents(String appName, int reservoirSize, int eventsSeen, List<SpanEvent> events) throws Exception {
-                        throw new HttpError("don't discard", 429, 1234);
-                    }
+                APP_NAME,
+                (appName, reservoirSize, eventsSeen, events) -> {
+                    throw new HttpError("don't discard", 429, 1234);
                 },
                 mock(Logger.class)
         );
 
         assertNull(harvestResult);
-        assertEquals(21, target.getOrCreateReservoir().size());
-        assertEquals(21, target.getOrCreateReservoir().getNumberOfTries());
+        assertEquals(21, target.getOrCreateReservoir(APP_NAME).size());
+        assertEquals(21, target.getOrCreateReservoir(APP_NAME).getNumberOfTries());
     }
 
     @Test
@@ -100,24 +94,21 @@ public class CollectorSpanEventReservoirManagerTest {
         CollectorSpanEventReservoirManager target = initWith25Tries(mockConfigService);
 
         ReservoirManager.HarvestResult harvestResult = target.attemptToSendReservoir(
-                "blerg",
-                new ReservoirManager.EventSender<SpanEvent>() {
-                    @Override
-                    public void sendEvents(String appName, int reservoirSize, int eventsSeen, List<SpanEvent> events) throws Exception {
-                        throw new HttpError("message", 0, 0) {
-                            @Override
-                            public boolean discardHarvestData() {
-                                return true;
-                            }
-                        };
-                    }
+                APP_NAME,
+                (appName, reservoirSize, eventsSeen, events) -> {
+                    throw new HttpError("message", 0, 0) {
+                        @Override
+                        public boolean discardHarvestData() {
+                            return true;
+                        }
+                    };
                 },
                 mock(Logger.class)
         );
 
         assertNull(harvestResult);
-        assertEquals(0, target.getOrCreateReservoir().size());
-        assertEquals(0, target.getOrCreateReservoir().getNumberOfTries());
+        assertEquals(0, target.getOrCreateReservoir(APP_NAME).size());
+        assertEquals(0, target.getOrCreateReservoir(APP_NAME).getNumberOfTries());
     }
 
     @Test
@@ -127,19 +118,16 @@ public class CollectorSpanEventReservoirManagerTest {
         CollectorSpanEventReservoirManager target = initWith25Tries(mockConfigService);
 
         ReservoirManager.HarvestResult harvestResult = target.attemptToSendReservoir(
-                "blerg",
-                new ReservoirManager.EventSender<SpanEvent>() {
-                    @Override
-                    public void sendEvents(String appName, int reservoirSize, int eventsSeen, List<SpanEvent> events) {
-                        throw new RuntimeException("~~ oops ~~");
-                    }
+                APP_NAME,
+                (appName, reservoirSize, eventsSeen, events) -> {
+                    throw new RuntimeException("~~ oops ~~");
                 },
                 mock(Logger.class)
         );
 
         assertNull(harvestResult);
-        assertEquals(0, target.getOrCreateReservoir().size());
-        assertEquals(0, target.getOrCreateReservoir().getNumberOfTries());
+        assertEquals(0, target.getOrCreateReservoir(APP_NAME).size());
+        assertEquals(0, target.getOrCreateReservoir(APP_NAME).getNumberOfTries());
     }
 
     @Test
@@ -150,13 +138,8 @@ public class CollectorSpanEventReservoirManagerTest {
 
         final boolean[] wasSent = new boolean[] { false };
         ReservoirManager.HarvestResult harvestResult = target.attemptToSendReservoir(
-                "blerg",
-                new ReservoirManager.EventSender<SpanEvent>() {
-                    @Override
-                    public void sendEvents(String appName, int reservoirSize, int eventsSeen, List<SpanEvent> events) {
-                        wasSent[0] = true;
-                    }
-                },
+                APP_NAME,
+                (appName, reservoirSize, eventsSeen, events) -> wasSent[0] = true,
                 mock(Logger.class)
         );
 
@@ -179,7 +162,7 @@ public class CollectorSpanEventReservoirManagerTest {
     public CollectorSpanEventReservoirManager initWith25Tries(ConfigService mockConfigService) {
         CollectorSpanEventReservoirManager target = new CollectorSpanEventReservoirManager(mockConfigService);
         for (int i = 0; i < 25; i++) {
-            target.getOrCreateReservoir().add(SpanEvent.builder().priority(i).build());
+            target.getOrCreateReservoir(APP_NAME).add(SpanEvent.builder().priority(i).build());
         }
         return target;
     }

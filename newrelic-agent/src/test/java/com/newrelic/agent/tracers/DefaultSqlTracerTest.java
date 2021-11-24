@@ -52,6 +52,7 @@ import static org.mockito.Mockito.when;
 
 public class DefaultSqlTracerTest {
 
+    private String APP_NAME;
     private DefaultDatabaseStatementParser statementParser;
 
     @AfterClass
@@ -66,8 +67,8 @@ public class DefaultSqlTracerTest {
     public void before() throws Exception {
         String configPath = getFullPath("/com/newrelic/agent/config/span_events.yml");
         System.setProperty("newrelic.config.file", configPath);
-
         MockCoreService.getMockAgentAndBootstrapTheServiceManager();
+        APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
 
         AgentHelper.clearMetrics();
         statementParser = new DefaultDatabaseStatementParser();
@@ -618,7 +619,7 @@ public class DefaultSqlTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(1, spanEvents.size());
@@ -652,7 +653,7 @@ public class DefaultSqlTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(1, spanEvents.size());
@@ -687,7 +688,7 @@ public class DefaultSqlTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(1, spanEvents.size());

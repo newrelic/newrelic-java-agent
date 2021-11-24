@@ -59,7 +59,8 @@ public class TransactionAttributesOnSpanTest {
     public void before() throws Exception {
         holder = new EnvironmentHolder(new EnvironmentHolderSettingsGenerator(CONFIG_FILE, ymlEnvironmentName, CLASS_LOADER));
         holder.setupEnvironment();
-        spanEventPool = ServiceFactory.getSpanEventService().getOrCreateDistributedSamplingReservoir();
+        String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+        spanEventPool = ServiceFactory.getSpanEventService().getOrCreateDistributedSamplingReservoir(appName);
     }
 
     @After

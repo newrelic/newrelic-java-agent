@@ -25,6 +25,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class SpanErrorsTest {
+    private String APP_NAME;
     private static final String CONFIG_FILE = "configs/span_events_test.yml";
     private static final ClassLoader CLASS_LOADER = SpanErrorsTest.class.getClassLoader();
 
@@ -34,9 +35,10 @@ public class SpanErrorsTest {
     public void before() throws Exception {
         holder = new EnvironmentHolder(new EnvironmentHolderSettingsGenerator(CONFIG_FILE, "all_enabled_test", CLASS_LOADER));
         holder.setupEnvironment();
+        APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
 
         ServiceFactory.getSpanEventService()
-                .getOrCreateDistributedSamplingReservoir()
+                .getOrCreateDistributedSamplingReservoir(APP_NAME)
                 .clear();
     }
 
@@ -45,7 +47,7 @@ public class SpanErrorsTest {
         holder.close();
 
         ServiceFactory.getSpanEventService()
-                .getOrCreateDistributedSamplingReservoir()
+                .getOrCreateDistributedSamplingReservoir(APP_NAME)
                 .clear();
     }
 
@@ -130,7 +132,7 @@ public class SpanErrorsTest {
 
     private void checkSpans(Map<String, List<String>> spanChecks, List<String> defaultChecks) {
         SamplingPriorityQueue<SpanEvent> reservoir = ServiceFactory.getSpanEventService()
-                .getOrCreateDistributedSamplingReservoir();
+                .getOrCreateDistributedSamplingReservoir(APP_NAME);
 
         assertTrue(reservoir.asList().size() > 0);
         for (SpanEvent event : reservoir.asList()) {
