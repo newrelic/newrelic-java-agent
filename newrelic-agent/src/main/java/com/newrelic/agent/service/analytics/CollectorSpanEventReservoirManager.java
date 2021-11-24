@@ -52,7 +52,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
 
     @Override
     public void clearReservoir() {
-        spanReservoirsForApp.forEach((appName, reservoir) -> reservoir.clear() );
+        spanReservoirsForApp.clear();
     }
 
     @Override
