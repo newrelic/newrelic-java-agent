@@ -24,7 +24,7 @@ jobs:
     env:
       default-branch: "main"
       # we use this in env var for conditionals (secrets can't be used in conditionals)
-      GRADLE_KEY: ${{ secrets.gradle-enterprise-access-key }}
+      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       # max-parallel: 1 ## used to force sequential vs. concurrent
       fail-fast: false
