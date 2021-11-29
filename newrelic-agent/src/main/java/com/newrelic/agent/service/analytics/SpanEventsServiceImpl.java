@@ -218,9 +218,6 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         reservoirManager.clearReservoir();
     }
 
-    /**
-     * There is only one event reservoir for Distributed Tracing so there only needs to be one harvestable for it.
-     */
     @Override
     public void addHarvestableToService(String appName) {
             Harvestable harvestable = new SpanEventHarvestableImpl(this, appName);
