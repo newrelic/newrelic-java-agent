@@ -221,6 +221,44 @@ public class BrowserConfigTest {
     }
 
     @Test
+    public void testFooterWithNonce() throws Exception {
+        setupManager(true, false);
+        Transaction tx = Transaction.getTransaction();
+        BasicRequestRootTracer tracer = createDispatcherTracer();
+        tx.getTransactionActivity().tracerStarted(tracer);
+        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
+        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
+        tx.setPriorityTransactionName(ptn);
+        tx.getUserAttributes().put("theInt", 11);
+        tx.getUserAttributes().put("theDouble", 11.22);
+        tx.getUserAttributes().put("theLong", 22L);
+        tx.getUserAttributes().put("theString", "abc123");
+        tx.getUserAttributes().put("theShort", Short.parseShort("1"));
+
+        Map<String, Object> beaconSettings = createBeaconSettings(true);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
+        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
+
+        String value = beaconConfig.getBrowserTimingFooter(bts, "ABC123");
+        List<String> matched = new ArrayList<>(2);
+
+        String expectedStartScript = "\n<script type=\"text/javascript\" nonce=\"ABC123\">" + BrowserFooter.FOOTER_JS_START;
+
+        Assert.assertTrue(value.startsWith(expectedStartScript));
+        matched.add(expectedStartScript);
+        Assert.assertTrue(value.endsWith(BrowserFooter.FOOTER_END));
+        matched.add(BrowserFooter.FOOTER_END);
+
+        final List<String> expectedFooterProperties = Arrays.asList(EXPECTED_FOOTER_PROPERTIES);
+        // The whole point to the tricky code in checkStrings(), above, is that these key:value
+        // pairs do not have to come back in the same order that they were added in, above.
+        final String[] USER_ATTRIBUTES = { "\"theInt\":11", "\"theDouble\":11.22", "\"theLong\":22",
+                "\"theString\":\"abc123\"", "\"theShort\":1" };
+        final List<String> expectedUserAttributes = Arrays.asList(USER_ATTRIBUTES);
+        checkStringsAndUserParams(value, expectedFooterProperties, expectedUserAttributes, null, matched);
+    }
+
+    @Test
     public void testRumDisabled() throws Exception {
         setupManager(false, false);
         Transaction tx = Transaction.getTransaction();

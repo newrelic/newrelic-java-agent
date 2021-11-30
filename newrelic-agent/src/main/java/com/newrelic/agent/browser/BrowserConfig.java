@@ -16,13 +16,13 @@ import java.util.Map;
 import java.util.logging.Level;
 
 /* (non-javadoc)
- * Note: the "beacon" was a predecessor technology for correlated transaction traces with the browser. 
+ * Note: the "beacon" was a predecessor technology for correlated transaction traces with the browser.
  * Some appearances of the term could be changed to "browser" now.
  */
 
 /**
  * A class that formats the JavaScript header and footer for Real User Monitoring.
- * 
+ * <p>
  * This class is thread-safe
  */
 public class BrowserConfig extends BaseConfig {
@@ -93,6 +93,10 @@ public class BrowserConfig extends BaseConfig {
 
     public String getBrowserTimingFooter(BrowserTransactionState state) {
         return footer.getFooter(state);
+    }
+
+    public String getBrowserTimingFooter(BrowserTransactionState state, String nonce) {
+        return footer.getFooter(state, nonce);
     }
 
     public static BrowserConfig createBrowserConfig(String appName, Map<String, Object> settings) throws Exception {
