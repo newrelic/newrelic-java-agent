@@ -5,7 +5,6 @@ on:
     branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
   push:
-    # branches: ['**']
     branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   # Use context values as : ${{ github.event.inputs.BRANCH }}
@@ -24,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       # max-parallel: 1 ## used to force sequential vs. concurrent
       fail-fast: false
@@ -80,6 +81,7 @@ jobs:
           mv gradle.properties.gha gradle.properties
 
       - name: Run unit tests for each Java version as defined in the matrix
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -91,6 +93,14 @@ jobs:
           TEST_TYPE: unit
         run: |
           ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue --scan -Dscan.uploadInBackground=false --build-cache
+
+      - name: Run unit tests for each Java version as defined in the matrix no build scan or cache
+        if: ${{ env.GRADLE_KEY == '' }}
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          echo "*** NOT PUBLISHING BUILD SCANS ***"
+          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Capture build reports
         # If previous step fails, run this step regardless
