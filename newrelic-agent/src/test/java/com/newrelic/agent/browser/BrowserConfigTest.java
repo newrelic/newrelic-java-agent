@@ -212,6 +212,15 @@ public class BrowserConfigTest {
     }
 
     @Test
+    public void testHeaderWithNonce() throws Exception {
+        setupManager(false, false);
+        Map<String, Object> beaconSettings = createBeaconSettings(true);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
+        String expectedValue = "\n<script type=\"text/javascript\" nonce=\"123ABC\">" + LOADER + "</script>";
+        Assert.assertEquals(expectedValue, beaconConfig.getBrowserTimingHeader("123ABC"));
+    }
+
+    @Test
     public void testRumDisabled() throws Exception {
         setupManager(false, false);
         Transaction tx = Transaction.getTransaction();

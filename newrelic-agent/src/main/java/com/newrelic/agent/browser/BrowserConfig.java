@@ -39,6 +39,7 @@ public class BrowserConfig extends BaseConfig {
     private static final String HEADER_END = "</script>";
 
     private final BrowserFooter footer;
+    private final String jsAgentLoader;
     private final String header;
 
     private BrowserConfig(String appName, Map<String, Object> props) throws Exception {
@@ -46,7 +47,8 @@ public class BrowserConfig extends BaseConfig {
         // when rum is turned off on the server, none of the required properties come down
         // meaning this will throw an exception
         footer = initBrowserFooter(appName);
-        header = initBrowserHeader();
+        jsAgentLoader = getRequiredProperty(JS_AGENT_LOADER);
+        header = HEADER_BEGIN + jsAgentLoader + HEADER_END;
         logVersion(appName);
     }
 
@@ -56,11 +58,6 @@ public class BrowserConfig extends BaseConfig {
             Agent.LOG.log(Level.INFO, MessageFormat.format("Using RUM version {0} for application \"{1}\"", version,
                     appName));
         }
-    }
-
-    private String initBrowserHeader() throws Exception {
-        return HEADER_BEGIN + getRequiredProperty(JS_AGENT_LOADER) + HEADER_END;
-
     }
 
     private BrowserFooter initBrowserFooter(String appName) throws Exception {
@@ -83,6 +80,15 @@ public class BrowserConfig extends BaseConfig {
 
     public String getBrowserTimingHeader() {
         return header;
+    }
+
+    public String getBrowserTimingHeader(String nonce) {
+        // nonce should change per request so we cannot pre-build this string
+        return "\n<script type=\"text/javascript\" nonce=\""
+                + nonce
+                + "\">"
+                + jsAgentLoader
+                + "</script>";
     }
 
     public String getBrowserTimingFooter(BrowserTransactionState state) {
