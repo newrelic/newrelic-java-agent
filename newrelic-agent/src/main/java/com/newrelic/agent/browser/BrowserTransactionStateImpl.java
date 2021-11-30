@@ -59,15 +59,40 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
         }
     }
 
+    @Override
+    public String getBrowserTimingHeader(String nonce) {
+        synchronized (lock) {
+            if (!canRenderHeader()) {
+                return "";
+            }
+            return getBrowserTimingHeader2(nonce);
+        }
+    }
+
     private String getBrowserTimingHeader2() {
         BrowserConfig config = getBeaconConfig();
         if (config == null) {
-            Agent.LOG.finer("Real user monitoring is disabled");
-            return "";
+            return onNoBrowserConfig();
         }
-        String header = config.getBrowserTimingHeader();
+        return onBrowserHeaderObtained(config.getBrowserTimingHeader());
+    }
+
+    private String getBrowserTimingHeader2(String nonce) {
+        BrowserConfig config = getBeaconConfig();
+        if (config == null) {
+            return onNoBrowserConfig();
+        }
+        return onBrowserHeaderObtained(config.getBrowserTimingHeader(nonce));
+    }
+
+    private String onBrowserHeaderObtained(String value) {
         browserHeaderRendered = true;
-        return header;
+        return value;
+    }
+
+    private String onNoBrowserConfig() {
+        Agent.LOG.finer("Real user monitoring is disabled");
+        return "";
     }
 
     @Override
@@ -80,23 +105,54 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
         }
     }
 
-    private String getBrowserTimingFooter2() {
-        BrowserConfig config = getBeaconConfig();
-        if (config == null) {
-            Agent.LOG.finer("Real user monitoring is disabled");
-            return "";
+    @Override
+    public String getBrowserTimingFooter(String nonce) {
+        synchronized (lock) {
+            if (!canRenderFooter()) {
+                return "";
+            }
+            return getBrowserTimingFooter2(nonce);
         }
+    }
+
+    private String onBrowserFooterObtained(String value) {
+        if (!value.isEmpty()) {
+            browserFooterRendered = true;
+        }
+        return value;
+    }
+
+    private boolean prepareToObtainFooter() {
         // this has the side-effect of possibly ignoring the transaction
         tx.freezeTransactionName();
         if (tx.isIgnore()) {
             Agent.LOG.finer("Unable to get browser timing footer: transaction is ignore");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private String getBrowserTimingFooter2(String nonce) {
+        BrowserConfig config = getBeaconConfig();
+        if (config == null) {
+            return onNoBrowserConfig();
+        }
+        if(!prepareToObtainFooter()) {
             return "";
         }
-        String footer = config.getBrowserTimingFooter(this);
-        if (!footer.isEmpty()) {
-            browserFooterRendered = true;
+        return onBrowserFooterObtained(config.getBrowserTimingFooter(this, nonce));
+    }
+
+    private String getBrowserTimingFooter2() {
+        BrowserConfig config = getBeaconConfig();
+        if (config == null) {
+            return onNoBrowserConfig();
         }
-        return footer;
+        if(!prepareToObtainFooter()) {
+            return "";
+        }
+        return onBrowserFooterObtained(config.getBrowserTimingFooter(this));
     }
 
     private boolean canRenderHeader() {

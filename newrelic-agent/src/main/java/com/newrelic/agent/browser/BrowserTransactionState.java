@@ -20,9 +20,13 @@ public interface BrowserTransactionState {
 
     String getBrowserTimingHeader();
 
+    String getBrowserTimingHeader(String nonce);
+
     String getBrowserTimingHeaderForJsp();
 
     String getBrowserTimingFooter();
+
+    String getBrowserTimingFooter(String nonce);
 
     String getTransactionName();
 
