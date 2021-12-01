@@ -55,8 +55,8 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
             }
 
             // This allows transaction traces to show slow queries directly in the trace details
-            //todo: obfuscatedQueryString isn't correct, it could be Raw or Obfuscated. The queryConverter
-            // has conditional obfuscation, respecting recrod_sql setting.
+            // Unfortunately, SQL_OBFUSCATED_PARAMETER_NAME is misleading. Before reaching here, the query has already
+            // been processed by SqlQueryConverter in DefaultSqlTracer.  The result could be Raw, Obfuscated, or null.
             tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, query);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();

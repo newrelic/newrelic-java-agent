@@ -305,13 +305,8 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     }
 
     /**
-     * This method is named this way because the docs on toObfuscatedQueryString imply obfuscation certainty.
-     * The reality is the SqlQueryConverter implementation of this method has introduced conditional
-     * logic that respects the agent configuration setting `record_sql`.
-     *
-     * If OBFUSCATED, sql is obfuscated.
-     * If RAW, sql is returned, unchanged.
-     * If OFF, null is returned.
+     * This method is named this way because {@link SqlQueryConverter#toObfuscatedQueryString(String)} has
+     * unexpected conditional logic.
      */
     private String getNoRawOrObfuscatedSql(String rawSql, String appName) {
         SqlQueryConverter converter = new SqlQueryConverter(appName, getDatabaseVendor());
@@ -559,6 +554,12 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             return rawQuery;
         }
 
+        /**
+         * For this implementation, the getSqlfuscator has conditional
+         * logic to return an obfuscator that respects the agent configuration setting `record_sql`
+         *
+         * See {@link com.newrelic.agent.database.DatabaseService#createSqlObfuscator(TransactionTracerConfig) }
+         */
         @Override
         public String toObfuscatedQueryString(String rawQuery) {
             SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getSqlObfuscator(appName);
