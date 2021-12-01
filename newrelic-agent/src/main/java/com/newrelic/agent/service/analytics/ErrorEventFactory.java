@@ -87,8 +87,8 @@ public class ErrorEventFactory {
     }
 
     private static String truncateIfNecessary(String value) {
-        if (value.getBytes(StandardCharsets.UTF_8).length > ConfigConstant.MAX_USER_ATTRIBUTE_SIZE) {
-            return AttributeValidator.truncateString(value, ConfigConstant.MAX_USER_ATTRIBUTE_SIZE);
+        if (value.getBytes(StandardCharsets.UTF_8).length > ConfigConstant.MAX_ERROR_MESSAGE_SIZE) {
+            return AttributeValidator.truncateString(value, ConfigConstant.MAX_ERROR_MESSAGE_SIZE);
         }
         return value;
     }
