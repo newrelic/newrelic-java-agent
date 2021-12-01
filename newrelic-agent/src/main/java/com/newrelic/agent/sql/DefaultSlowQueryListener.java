@@ -57,7 +57,7 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
             // This allows transaction traces to show slow queries directly in the trace details
             //todo: obfuscatedQueryString isn't correct, it could be Raw or Obfuscated. The queryConverter
             // has conditional obfuscation, respecting recrod_sql setting.
-            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, obfuscatedQueryString);
+            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, query);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
             boolean allUnknown = slowQueryDatastoreParameters.getHost() == null
@@ -77,16 +77,16 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
                 slowQueryInfoCache = new BoundedConcurrentCache<>(MAX_SQL_TRACERS);
             }
 
-            SlowQueryInfo existingInfo = slowQueryInfoCache.get(obfuscatedQueryString);
+            SlowQueryInfo existingInfo = slowQueryInfoCache.get(query);
             if (existingInfo != null) {
                 // Aggregate tracers by SQL.
                 existingInfo.aggregate(tracer);
-                slowQueryInfoCache.putReplace(obfuscatedQueryString, existingInfo);
+                slowQueryInfoCache.putReplace(query, existingInfo);
             } else {
-                SlowQueryInfo sqlInfo = new SlowQueryInfo(null, tracer, queryString, obfuscatedQueryString,
+                SlowQueryInfo sqlInfo = new SlowQueryInfo(null, tracer, query, query,
                         tracer.getTransactionActivity().getTransaction().getAgentConfig().getSqlTraceConfig());
                 sqlInfo.aggregate(tracer);
-                slowQueryInfoCache.putIfAbsent(obfuscatedQueryString, sqlInfo);
+                slowQueryInfoCache.putIfAbsent(query, sqlInfo);
             }
         }
     }
