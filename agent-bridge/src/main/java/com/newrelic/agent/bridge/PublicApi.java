@@ -195,11 +195,25 @@ public interface PublicApi {
     String getBrowserTimingHeader();
 
     /**
+     * Get the RUM JavaScript header for the current web transaction.
+     * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
+     * @return RUM JavaScript header for the current web transaction.
+     */
+    String getBrowserTimingHeader(String nonce);
+
+    /**
      * Get the RUM JavaScript footer for the current web transaction.
      *
      * @return RUM JavaScript footer for the current web transaction.
      */
     String getBrowserTimingFooter();
+
+    /**
+     * Get the RUM JavaScript footer for the current web transaction.
+     * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
+     * @return RUM JavaScript footer for the current web transaction.
+     */
+    String getBrowserTimingFooter(String nonce);
 
     /**
      * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
