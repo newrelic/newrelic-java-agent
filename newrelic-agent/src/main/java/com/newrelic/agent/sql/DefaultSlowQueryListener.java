@@ -43,22 +43,9 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
     @Override
     public <T> void noticeTracer(Tracer tracer, SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
         if (tracer.getDurationInMilliseconds() > thresholdInMillis) {
-            T query = slowQueryDatastoreParameters.getQuery();
-            QueryConverter<T> queryConverter = slowQueryDatastoreParameters.getQueryConverter();
-            if (query == null || queryConverter == null) {
+            String query = (String) slowQueryDatastoreParameters.getQuery();
+            if (query == null ) {
                 // Ignore tracer
-                return;
-            }
-
-            String queryString = queryConverter.toRawQueryString(query);
-            if (queryString == null || queryString.trim().isEmpty()) {
-                // Ignore tracer
-                return;
-            }
-
-            String obfuscatedQueryString = queryConverter.toObfuscatedQueryString(query);
-            if (obfuscatedQueryString == null) {
-                // Ignore tracer if no obfuscated query is provided
                 return;
             }
 
