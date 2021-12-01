@@ -8,11 +8,13 @@ pluginManagement {
 
 plugins {
     id "com.gradle.enterprise" version "3.7.1"
+    id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.6.1'
 }
 
 boolean isCiServer = System.getenv().containsKey("CI")
 String cacheUser = System.getenv().get("GRADLE_CACHE_USER")
 String cachePassword = System.getenv().get("GRADLE_CACHE_PASSWORD")
+String gradleEnterpriseServer = "https://3.88.106.22/"
 
 println "*** Gradle Enterprise Debug ***"
 println "GRADLE_CACHE_USER=$cacheUser"
@@ -23,7 +25,7 @@ buildCache {
         enabled = false
     }
     remote(HttpBuildCache) {
-        url = "https://3.88.106.22/cache/"
+        url = "$gradleEnterpriseServer/cache/"
         push = isCiServer
         allowUntrustedServer = true
         credentials {
@@ -34,9 +36,10 @@ buildCache {
 }
 
 gradleEnterprise {
-    server = "https://3.88.106.22/"
     allowUntrustedServer = true
     buildScan {
+        publishIfAuthenticated()
+        server = gradleEnterpriseServer
         uploadInBackground = true
         capture {
             taskInputFiles = true
