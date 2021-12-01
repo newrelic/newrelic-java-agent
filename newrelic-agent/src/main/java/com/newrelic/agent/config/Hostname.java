@@ -134,7 +134,7 @@ public class Hostname {
         for (NetworkInterface networkInterface : networkInterfaces) {
             List<InterfaceAddress> addresses = networkInterface.getInterfaceAddresses();
             for (InterfaceAddress address : addresses) {
-                if (ip.equals(address.getAddress().getHostAddress())) {
+                if (ip.equals(InetHostAddress.from(address))) {
                     return addresses;
                 }
             }
