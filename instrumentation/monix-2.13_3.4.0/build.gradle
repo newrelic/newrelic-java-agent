@@ -1,0 +1,35 @@
+apply plugin: 'scala'
+
+isScalaProjectEnabled(project, "scala-2.13")
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation("org.scala-lang:scala-library:2.13.7")
+    implementation("io.monix:monix-execution_2.13:3.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.monix-2.13_3.4.0', 'Implementation-Title-Alias': 'monix_instrumentation' }
+}
+
+verifyInstrumentation {
+    passes 'io.monix:monix-execution_2.11:[3.0.0, 3.3.0)'
+    passes 'io.monix:monix-execution_2.12:[3.0.0,)'
+    passes 'io.monix:monix-execution_2.13:[3.0.0,)'
+    passes 'io.monix:monix-execution_3:[3.0.0,)'
+    excludeRegex ".*(RC|M)[0-9]*"
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Scala'
+    type 'Other'
+}

@@ -21,6 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
@@ -34,9 +37,7 @@ jobs:
             scala: 2.11
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
-      - uses: gradle/wrapper-validation-action@v1.0.4
+      #- uses: gradle/wrapper-validation-action@v1.0.4
 
       - name: Set up Java 8
         # https://github.com/actions/setup-java
@@ -44,6 +45,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
+          cache: gradle
 
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
@@ -67,6 +69,7 @@ jobs:
       ## AWS jars - plan to cache
       # secrets are available in the interface, but may NOT be edited.
       - name: Configure AWS Credentials
+        if: ${{ env.AWS_KEY != '' }}        
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -75,15 +78,20 @@ jobs:
 
       - name: Download S3 instrumentation jar zip
         run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip  ## 2020?
-
+        if: ${{ env.AWS_KEY != '' }}        
+      
       - name: Unzip the instrumentation jars
+        if: ${{ env.AWS_KEY != '' }}        
         run: unzip proprietary-jars.zip
 
+
       - name: Log jars are in target libs
+        if: ${{ env.AWS_KEY != '' }}        
         run: find instrumentation -name "*.jar"
       ## End AWS jars - plan to cache (check for cache, restore if required)
 
       - name: Build newrelicJar
+        if: ${{ env.GRADLE_KEY != '' }}        
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -101,6 +109,17 @@ jobs:
           ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
+      - name: Build newrelicJar w/o GE
+        if: ${{ env.GRADLE_KEY == '' }}
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
+          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
+          ls -la
+          ./gradlew clean jar --parallel
+          ls -la newrelic-agent/build/
+
       - name: set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
@@ -110,6 +129,7 @@ jobs:
           mv gradle.properties.gha gradle.properties
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }}
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -120,7 +140,13 @@ jobs:
           LANGUAGE: scala
           SCALA_VERSION: scala${{ matrix.scala }}
           TEST_TYPE: instrumentation
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -PnoScala -Pscala-${{ matrix.scala }} --continue --continue --scan -Dscan.uploadInBackground=false --build-cache
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -PnoScala -Pscala-${{ matrix.scala }} --continue --scan -Dscan.uploadInBackground=false --build-cache
+
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} w/o GE
+        if: ${{ env.GRADLE_KEY == '' }}
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -PnoScala -Pscala-${{ matrix.scala }} --continue
 
       - name: Capture build reports
         if: ${{ failure() }}
