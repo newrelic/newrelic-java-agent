@@ -8,6 +8,15 @@ plugins {
 allprojects {
     apply plugin: 'idea'
 
+    // ignores MANIFEST.MF
+    normalization {
+        runtimeClasspath {
+            metaInf {
+                ignoreManifest()
+            }
+        }
+    }
+
     group = 'com.newrelic.agent.java'
     version = agentVersion + (project.findProperty("release") == "true" ? "" : "-SNAPSHOT")
 
