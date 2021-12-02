@@ -10,13 +10,13 @@ on:
         type: string
     secrets:
       aws-access-key-id:
-        required: true
+        required: false
       aws-secret-access-key:
-        required: true
+        required: false
       gradle-enterprise-access-key:
-        required: true
+        required: false
       gradle-cache-password:
-        required: true
+        required: false
 
 jobs:
   tests:
@@ -26,9 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
+      # we use these in env vars for conditionals (secrets can't be used in conditionals)
+      AWS_KEY: ${{ secrets.aws-secret-access-key }}
+      GRADLE_KEY: ${{ secrets.gradle-enterprise-access-key }}
     steps:
       - uses: actions/checkout@v2
-      - uses: gradle/wrapper-validation-action@v1.0.4
+      #- uses: gradle/wrapper-validation-action@v1.0.4
 
       #NEW Install required JDKs
       # Install 8
@@ -78,6 +81,7 @@ jobs:
 
       ## AWS jars - plan to cache
       - name: Configure AWS Credentials
+        if: ${{ env.AWS_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
@@ -85,18 +89,22 @@ jobs:
           aws-region: us-east-2
 
       - name: Download S3 instrumentation jar zip
+        if: ${{ env.AWS_KEY != '' }}
         run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip  ## 2020?
 
       - name: Unzip the instrumentation jars
+        if: ${{ env.AWS_KEY != '' }}
         run: unzip proprietary-jars.zip
 
       - name: Log jars are in target libs
+        if: ${{ env.AWS_KEY != '' }}
         run: find instrumentation -name "*.jar"
       ## End AWS jars - plan to cache (check for cache, restore if required)
 
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -114,6 +122,17 @@ jobs:
           ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
+      - name: Build newrelicJar w/o GE
+        if: ${{ env.GRADLE_KEY == '' }}
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          echo "*** NOT PUBLISHING BUILD SCANS ***"
+          ls -la
+          cat settings.gradle
+          ./gradlew clean jar --parallel
+          ls -la newrelic-agent/build/
+
       # GHA run instrumentation tests
 
       # Rewrite gradle.properties
@@ -126,8 +145,9 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      # Run the build.
+      # Run the build with Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ inputs.jre }}
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -139,6 +159,15 @@ jobs:
           TEST_TYPE: instrumentation
         run: |
           ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue --scan -Dscan.uploadInBackground=false --build-cache
+
+      # Run the build without Gradle Enterprise
+      - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
+        if: ${{ env.GRADLE_KEY == '' }}
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
+          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
