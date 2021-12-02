@@ -38,6 +38,7 @@ buildCache {
 gradleEnterprise {
     allowUntrustedServer = true
     buildScan {
+        publishAlways()
         publishIfAuthenticated()
         server = gradleEnterpriseServer
         uploadInBackground = true
