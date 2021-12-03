@@ -96,7 +96,6 @@ abstract class MongoCollectionImpl_Instrumentation<TDocument> implements MongoCo
 
     @Trace
     public void insertMany(List<? extends TDocument> documents, InsertManyOptions options, SingleResultCallback<Void> callback) {
-
         callback = instrument(callback, MongoUtil.OP_INSERT_MANY);
         Weaver.callOriginal();
     }
@@ -109,7 +108,7 @@ abstract class MongoCollectionImpl_Instrumentation<TDocument> implements MongoCo
 
     @Trace
     public void deleteMany(Bson filter, DeleteOptions options, SingleResultCallback<DeleteResult> callback) {
-        callback = instrument(callback, MongoUtil.OP_DELETE);
+        callback = instrument(callback, MongoUtil.OP_DELETE_MANY);
         Weaver.callOriginal();
     }
 
@@ -157,12 +156,12 @@ abstract class MongoCollectionImpl_Instrumentation<TDocument> implements MongoCo
 
     @Trace
     public void createIndexes(List<IndexModel> indexes, SingleResultCallback<List<String>> callback) {
-        callback = instrument(callback, MongoUtil.OP_REPLACE);
+        callback = instrument(callback, MongoUtil.OP_CREATE_INDEXES);
         Weaver.callOriginal();
     }
 
     public void createIndex(Bson key, IndexOptions indexOptions, SingleResultCallback<String> callback) {
-        callback = instrument(callback, MongoUtil.OP_REPLACE);
+        callback = instrument(callback, MongoUtil.OP_CREATE_INDEX);
         Weaver.callOriginal();
     }
 

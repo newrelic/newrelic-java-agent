@@ -34,7 +34,7 @@ public class MongoUtil {
     public static final String OP_COUNT = "count";
     public static final String OP_MAP_REDUCE = "mapReduce";
     public static final String OP_REPLACE = "replace";
-    public static final String OP_LIST_INDEX = "listIndexes";
+    public static final String OP_LIST_INDEXES = "listIndexes";
     public static final String OP_LIST_DATABASES = "listDatabases";
     public static final String OP_LIST_COLLECTIONS = "listCollections";
     public static final String OP_BULK_WRITE = "bulkWrite";

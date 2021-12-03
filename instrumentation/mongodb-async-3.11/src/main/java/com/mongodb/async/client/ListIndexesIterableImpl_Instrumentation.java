@@ -16,7 +16,7 @@ abstract class ListIndexesIterableImpl_Instrumentation<TResult> extends MongoIte
             final CodecRegistry codecRegistry, final ReadPreference readPreference, final OperationExecutor executor,
             final boolean retryReads) {
         super(clientSession, executor, ReadConcern.DEFAULT, readPreference, retryReads);
-        super.operationName = MongoUtil.OP_LIST_INDEX;
+        super.operationName = MongoUtil.OP_LIST_INDEXES;
         super.collectionName = namespace.getCollectionName();
         super.databaseName = namespace.getDatabaseName();
     }

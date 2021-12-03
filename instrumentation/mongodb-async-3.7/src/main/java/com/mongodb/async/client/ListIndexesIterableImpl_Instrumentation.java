@@ -18,6 +18,6 @@ abstract class ListIndexesIterableImpl_Instrumentation<TResult> extends MongoIte
         super(clientSession, executor, ReadConcern.DEFAULT, readPreference);
         super.collectionName = namespace.getCollectionName();
         super.databaseName = namespace.getDatabaseName();
-        super.operationName = MongoUtil.OP_LIST_INDEX;
+        super.operationName = MongoUtil.OP_LIST_INDEXES;
     }
 }

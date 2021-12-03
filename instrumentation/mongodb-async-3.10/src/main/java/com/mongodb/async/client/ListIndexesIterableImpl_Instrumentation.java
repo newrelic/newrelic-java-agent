@@ -15,7 +15,7 @@ abstract class ListIndexesIterableImpl_Instrumentation<TResult> extends MongoIte
     ListIndexesIterableImpl_Instrumentation(@Nullable final ClientSession clientSession, final MongoNamespace namespace, final Class<TResult> resultClass,
             final CodecRegistry codecRegistry, final ReadPreference readPreference, final OperationExecutor executor) {
         super(clientSession, executor, ReadConcern.DEFAULT, readPreference);
-        super.operationName = MongoUtil.OP_LIST_INDEX;
+        super.operationName = MongoUtil.OP_LIST_INDEXES;
         super.collectionName = namespace.getCollectionName();
         super.databaseName = namespace.getDatabaseName();
     }
