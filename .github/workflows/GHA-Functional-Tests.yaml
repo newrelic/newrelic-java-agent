@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
@@ -28,7 +30,7 @@ jobs:
         java-version: [8, 11, 17]
     steps:
       - uses: actions/checkout@v2
-      - uses: gradle/wrapper-validation-action@v1.0.4
+      #- uses: gradle/wrapper-validation-action@v1.0.4
 
       - name: Set up Java 8
         # https://github.com/actions/setup-java
@@ -36,6 +38,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
+          cache: gradle
 
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
@@ -77,6 +80,7 @@ jobs:
           mv gradle.properties.gha gradle.properties
 
       - name: Build newrelicJar
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -93,7 +97,19 @@ jobs:
           ./gradlew clean jar --parallel --scan -Dscan.uploadInBackground=false --build-cache
           ls -la newrelic-agent/build/
 
+      - name: Build newrelicJar w/o GE
+        if: ${{ env.GRADLE_KEY == '' }}
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          echo "*** NOT PUBLISHING BUILD SCANS ***"
+          ls -la
+          cat settings.gradle
+          ./gradlew clean jar --parallel
+          ls -la newrelic-agent/build/
+
       - name: Run functional tests on ${{ matrix.java-version }}
+        if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
@@ -105,6 +121,13 @@ jobs:
           TEST_TYPE: functional
         run: |
           ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue --scan -Dscan.uploadInBackground=false --build-cache
+
+      - name: Run functional tests on ${{ matrix.java-version }} w/o GE
+        if: ${{ env.GRADLE_KEY == '' }}
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue
 
       - name: Capture build reports
         if: ${{ failure() }}

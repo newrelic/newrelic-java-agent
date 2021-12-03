@@ -20,6 +20,8 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation("com.typesafe.akka:akka-http-core_2.12:10.2.1")
     implementation("com.typesafe.akka:akka-stream_2.12:2.6.10")
+    testImplementation("com.typesafe.akka:akka-http-spray-json_2.12:10.2.1")
+    testImplementation("com.typesafe.akka:akka-http_2.12:10.2.1")
 }
 
 verifyInstrumentation {
