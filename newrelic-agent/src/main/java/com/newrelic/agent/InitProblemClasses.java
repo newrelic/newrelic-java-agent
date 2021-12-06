@@ -82,6 +82,14 @@ public class InitProblemClasses {
             } catch (ClassNotFoundException e) {
                 Agent.LOG.log(Level.WARNING, "Error working around class loading issue:", e);
             }
+            // This works around a ClassCircularityError with ThreadLocalRandom.
+            try {
+                String holdCounterClassName = "java/util/concurrent/ThreadLocalRandom";
+                Class.forName(holdCounterClassName);
+                Agent.LOG.log(Level.FINE, "Worked around loading class " + holdCounterClassName);
+            } catch (ClassNotFoundException e) {
+                Agent.LOG.log(Level.WARNING, "Error working around class loading issue:", e);
+            }
         } catch (Throwable e) {
             Agent.LOG.log(Level.FINE, e, "Exception while performing initial loading");
         }
