@@ -84,7 +84,7 @@ public class InitProblemClasses {
             }
             // This works around a ClassCircularityError with ThreadLocalRandom.
             try {
-                String holdCounterClassName = "java/util/concurrent/ThreadLocalRandom";
+                String holdCounterClassName = "java.util.concurrent.ThreadLocalRandom";
                 Class.forName(holdCounterClassName);
                 Agent.LOG.log(Level.FINE, "Worked around loading class " + holdCounterClassName);
             } catch (ClassNotFoundException e) {
