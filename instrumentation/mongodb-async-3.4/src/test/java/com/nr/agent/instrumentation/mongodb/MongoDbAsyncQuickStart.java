@@ -1,6 +1,14 @@
+/*
+ *
+ *  * Copyright 2021 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.agent.instrumentation.mongodb;
 
 import com.mongodb.Block;
+import com.mongodb.async.AsyncBatchCursor;
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoCollection;
@@ -73,6 +81,13 @@ public class MongoDbAsyncQuickStart {
             System.out.println("Count of documents deleted: " + result.getDeletedCount());
         }
     };
+    SingleResultCallback<AsyncBatchCursor<Document>> callbackAsyncBatchCursorResult = (result, t) -> {
+        if (result == null) {
+            System.out.println("The result was null");
+        } else {
+            System.out.println("AsyncBatchCursor batch size: " + result.getBatchSize());
+        }
+    };
     SingleResultCallback<BulkWriteResult> callbackBulkWriteResult = (result, t) -> {
         if (result == null) {
             System.out.println("The result was null");
@@ -141,6 +156,10 @@ public class MongoDbAsyncQuickStart {
         // Contributes 1 to value of Datastore/operation/MongoDB/find
         findBatchOfDocuments(mongoCollection, 10);
 
+        // Get a batch of documents in the collection and print out the batch size
+        // Contributes 1 to value of Datastore/operation/MongoDB/find
+        findBatchOfDocumentsAsyncCursor(mongoCollection, 5);
+
         // Get one document using an eq filter (value == 71) and print it out
         // Contributes 1 to value of Datastore/operation/MongoDB/find
         findSingleDocumentSingleFilter(mongoCollection, FIELD_NAME, 71);
@@ -152,11 +171,6 @@ public class MongoDbAsyncQuickStart {
         // Get a range of documents using a gt and lte filter (value > 50 && <= 100) and print them out
         // Contributes 1 to value of Datastore/operation/MongoDB/find
         findRangeOfDocumentsMultipleFilters(mongoCollection, FIELD_NAME, 50, 100);
-
-        // TODO add examples of these
-        //  mongoCollection.find().into(); and mongoCollection.find().batchCursor();
-        //  each would contribute 1 to value of Datastore/operation/MongoDB/find
-        //  how to generate getMore metric?
 
         // Sort documents and print them out
         // Contributes 1 to value of Datastore/operation/MongoDB/find
@@ -291,6 +305,14 @@ public class MongoDbAsyncQuickStart {
      */
     public void findBatchOfDocuments(MongoCollection<Document> mongoCollection, int batchSize) {
         mongoCollection.find().batchSize(batchSize).forEach(printDocumentBlock, callbackWhenFindAllFinished);
+    }
+
+    /**
+     * Find all Documents in a Collection for a specific batch size using AsyncBatchCursor
+     * Callback prints the count of Documents in the batch when the operation has finished.
+     */
+    public void findBatchOfDocumentsAsyncCursor(MongoCollection<Document> mongoCollection, int batchSize) {
+        mongoCollection.find().batchSize(batchSize).batchCursor(callbackAsyncBatchCursorResult);
     }
 
     /**

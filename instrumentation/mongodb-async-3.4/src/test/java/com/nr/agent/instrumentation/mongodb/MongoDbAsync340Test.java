@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2021 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -71,45 +71,6 @@ public class MongoDbAsync340Test {
         }
     }
 
-//    @Test
-//    public void testCRUD() throws Exception {
-//        demoCRUD(new PokemonMaster(mongoClient));
-//
-//        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-//        assertEquals(1, introspector.getFinishedTransactionCount(1000));
-//
-//        DatastoreHelper helper = new DatastoreHelper(MONGODB_PRODUCT);
-//        helper.assertAggregateMetrics();
-//
-//        Collection<String> transactionNames = InstrumentationTestRunner.getIntrospector().getTransactionNames();
-//        assertEquals(1, transactionNames.size());
-//        String txName = transactionNames.iterator().next();
-//        helper.assertUnifiedMetricCounts(txName, "insert", "pokemon", 1);
-//        helper.assertUnifiedMetricCounts(txName, "find", "pokemon", 2);
-//        helper.assertUnifiedMetricCounts(txName, "update", "pokemon", 1);
-//        helper.assertUnifiedMetricCounts(txName, "delete", "pokemon", 1);
-//
-//        assertEquals(5, MetricsHelper.getUnscopedMetricCount("Datastore/all"));
-//        assertEquals(5, (int)introspector.getTransactionEvents(txName).iterator().next().getDatabaseCallCount());
-//    }
-
-//    @Trace(dispatcher = true)
-//    public static void demoCRUD(PokemonMaster master) throws InterruptedException {
-//        System.out.println("===Basic CRUD===");
-//        Document newPokemon = new Document("name", "Togepi").append("number", 175).append("type", "fire");
-//        master.demoInsert(newPokemon);
-//
-//        System.out.print("(R) Find one fire type: " + master.demoFindOne("fire"));
-//        System.out.print(". Find: Original 150: ");
-//        master.demoFind();
-//        for (Document pokemon : master.demoFind()) {
-//            System.out.print(pokemon.get("name") + " ");
-//        }
-//        System.out.println();
-//        System.out.println("(U) Update results: " + master.demoUpdate(newPokemon, (new Document("$set", new Document("type", "fairy")))));
-//        System.out.println("(D) Delete results: " + master.demoRemove(newPokemon));
-//    }
-
     @Test
     public void testCollectionApi() throws Exception {
         runMongoDbAsyncQuickStart();
@@ -119,27 +80,41 @@ public class MongoDbAsync340Test {
 
         DatastoreHelper helper = new DatastoreHelper(MONGODB_PRODUCT);
         helper.assertAggregateMetrics();
-//        helper.assertUnscopedOperationMetricCount("dropDatabase", 1); // FIXME instrumentation doesn't actually generate this metric?
 
         Collection<String> transactionNames = InstrumentationTestRunner.getIntrospector().getTransactionNames();
         assertEquals(1, transactionNames.size());
         String txName = transactionNames.iterator().next();
-        helper.assertUnifiedMetricCounts(txName, "insert", "test", 1);
-        helper.assertUnifiedMetricCounts(txName, "insertMany", "test", 1);
-        helper.assertUnifiedMetricCounts(txName, "update", "test", 1);
-        helper.assertUnifiedMetricCounts(txName, "updateMany", "test", 1);
-        helper.assertUnifiedMetricCounts(txName, "delete", "test", 1);
-        helper.assertUnifiedMetricCounts(txName, "deleteMany", "test", 1);
-        helper.assertUnifiedMetricCounts(txName, "find", "test", 9);
-        helper.assertUnifiedMetricCounts(txName, "drop", "test", 3);
-        helper.assertUnifiedMetricCounts(txName, "count", "test", 1);
-        helper.assertUnifiedMetricCounts(txName, "bulkWrite", "test", 2);
-//        helper.assertUnifiedMetricCounts(txName, "getMore", "test", 12);
-        // TODO other metrics to add?
+
+        // Counts based on operations executed in MongoDbAsyncQuickStart
+        int insertOpExpectedCount = 1;
+        int insertManyOpExpectedCount = 1;
+        int updateOpExpectedCount = 1;
+        int updateManyOpExpectedCount = 1;
+        int deleteOpExpectedCount = 1;
+        int deleteManyOpExpectedCount = 1;
+        int findOpExpectedCount = 10;
+        int dropOpExpectedCount = 3;
+        int countOpExpectedCount = 1;
+        int bulkWriteOpExpectedCount = 2;
+
+        helper.assertUnifiedMetricCounts(txName, "insert", "test", insertOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "insertMany", "test", insertManyOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "update", "test", updateOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "updateMany", "test", updateManyOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "delete", "test", deleteOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "deleteMany", "test", deleteManyOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "find", "test", findOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "drop", "test", dropOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "count", "test", countOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "bulkWrite", "test", bulkWriteOpExpectedCount);
+
+        int totalOpCount = insertOpExpectedCount + insertManyOpExpectedCount + updateOpExpectedCount + updateManyOpExpectedCount +
+                deleteOpExpectedCount + deleteManyOpExpectedCount + findOpExpectedCount + dropOpExpectedCount + countOpExpectedCount + bulkWriteOpExpectedCount;
 
         // Should be equal to the sum of all above metric counts
-        assertEquals(21, MetricsHelper.getUnscopedMetricCount("Datastore/all"));
-        assertEquals(21, introspector.getTransactionEvents(txName).iterator().next().getDatabaseCallCount());
+        assertEquals(totalOpCount, MetricsHelper.getUnscopedMetricCount("Datastore/all"));
+        assertEquals(totalOpCount, MetricsHelper.getUnscopedMetricCount("Datastore/MongoDB/allOther"));
+        assertEquals(totalOpCount, introspector.getTransactionEvents(txName).iterator().next().getDatabaseCallCount());
     }
 
     @Trace(dispatcher = true)
