@@ -125,13 +125,16 @@ public class Hostname {
         return InetAddress.getLoopbackAddress();
     }
 
-    // We want the value from InetAddress but it's more convenient to use InterfaceAddress
+    // We want the value from InetAddress but, it's more convenient to use InterfaceAddress
     private static List<InterfaceAddress> getAllInterfaceAddresses(String ip) {
+        if(ip == null) {
+            return Collections.emptyList();
+        }
         List<NetworkInterface> networkInterfaces = getNetworkInterfaces();
         for (NetworkInterface networkInterface : networkInterfaces) {
             List<InterfaceAddress> addresses = networkInterface.getInterfaceAddresses();
             for (InterfaceAddress address : addresses) {
-                if (ip.equals(address.getAddress().getHostAddress())) {
+                if (ip.equals(InetHostAddress.from(address))) {
                     return addresses;
                 }
             }
