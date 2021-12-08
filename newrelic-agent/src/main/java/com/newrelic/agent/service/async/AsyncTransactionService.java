@@ -76,6 +76,7 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
                 .expireAfterWrite(timeOutMilli, TimeUnit.MILLISECONDS)
                 .removalListener(removalListener)
                 .initialCapacity(8)
+                .executor(Runnable::run)
                 .build();
     }
 

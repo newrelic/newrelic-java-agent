@@ -43,6 +43,7 @@ public class BoundedConcurrentCache<K, V extends Comparable<V> & CacheValue<K>> 
         this.priorityQueue = new PriorityBlockingQueue<>(size, comparator);
         this.cache = Caffeine.newBuilder()
                 .initialCapacity(16)
+                .executor(Runnable::run)
                 .build();
     }
 
