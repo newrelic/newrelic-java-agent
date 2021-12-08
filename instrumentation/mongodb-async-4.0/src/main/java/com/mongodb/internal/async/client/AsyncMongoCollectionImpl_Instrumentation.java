@@ -152,7 +152,7 @@ abstract class AsyncMongoCollectionImpl_Instrumentation<TDocument> implements As
             NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, ASYNC_MONGO_COLLECTION, OP_DELETE_MANY);
             callback = instrument(callback, OP_DELETE_MANY);
         } else {
-            NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, ASYNC_MONGO_COLLECTION, OP_DELETE); // deleteOne or delete?
+            NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, ASYNC_MONGO_COLLECTION, OP_DELETE);
             callback = instrument(callback, OP_DELETE);
         }
         Weaver.callOriginal();

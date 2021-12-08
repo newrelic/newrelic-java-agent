@@ -45,7 +45,7 @@ abstract class AsyncMongoIterableImpl_Instrumentation<TResult> {
     @Trace
     public void first(SingleResultCallback<TResult> callback) {
         if (!(callback instanceof NRCallbackWrapper)) {
-            NRCallbackWrapper<TResult> wrapper = new NRCallbackWrapper<TResult>(callback);
+            NRCallbackWrapper<TResult> wrapper = new NRCallbackWrapper<>(callback);
             wrapper.token = NewRelic.getAgent().getTransaction().getToken();
 
             DatastoreParameters datastoreParameters;
@@ -57,7 +57,6 @@ abstract class AsyncMongoIterableImpl_Instrumentation<TResult> {
                         .noInstance()
                         .databaseName(databaseName)
                         .build();
-
             } else {
                 datastoreParameters = DatastoreParameters.product(DatastoreVendor.MongoDB.name())
                         .collection(collectionName)
@@ -75,7 +74,7 @@ abstract class AsyncMongoIterableImpl_Instrumentation<TResult> {
     @Trace
     public void forEach(Block<? super TResult> block, SingleResultCallback<Void> callback) {
         if (!(callback instanceof NRCallbackWrapper)) {
-            NRCallbackWrapper<Void> wrapper = new NRCallbackWrapper<Void>(callback);
+            NRCallbackWrapper<Void> wrapper = new NRCallbackWrapper<>(callback);
             wrapper.token = NewRelic.getAgent().getTransaction().getToken();
             wrapper.params = DatastoreParameters.product(DatastoreVendor.MongoDB.name())
                     .collection(collectionName)
@@ -92,7 +91,7 @@ abstract class AsyncMongoIterableImpl_Instrumentation<TResult> {
     @Trace
     public <A extends Collection<? super TResult>> void into(A target, SingleResultCallback<A> callback) {
         if (!(callback instanceof NRCallbackWrapper)) {
-            NRCallbackWrapper<A> wrapper = new NRCallbackWrapper<A>(callback);
+            NRCallbackWrapper<A> wrapper = new NRCallbackWrapper<>(callback);
             wrapper.token = NewRelic.getAgent().getTransaction().getToken();
             wrapper.params = DatastoreParameters.product(DatastoreVendor.MongoDB.name())
                     .collection(collectionName)
@@ -109,7 +108,7 @@ abstract class AsyncMongoIterableImpl_Instrumentation<TResult> {
     @Trace
     public void batchCursor(SingleResultCallback<AsyncBatchCursor<TResult>> callback) {
         if (!(callback instanceof NRCallbackWrapper)) {
-            NRCallbackWrapper<AsyncBatchCursor<TResult>> wrapper = new NRCallbackWrapper<AsyncBatchCursor<TResult>>(callback);
+            NRCallbackWrapper<AsyncBatchCursor<TResult>> wrapper = new NRCallbackWrapper<>(callback);
             wrapper.token = NewRelic.getAgent().getTransaction().getToken();
             wrapper.params = DatastoreParameters.product(DatastoreVendor.MongoDB.name())
                     .collection(collectionName)

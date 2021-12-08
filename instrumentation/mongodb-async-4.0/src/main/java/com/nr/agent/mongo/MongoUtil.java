@@ -71,7 +71,7 @@ public class MongoUtil {
     public static final String OP_DEFAULT = "other";
 
     public static <T> NRCallbackWrapper<T> getWrapper(SingleResultCallback<T> callback, Token t, Segment s, DatastoreParameters p) {
-        NRCallbackWrapper<T> wrapper = new NRCallbackWrapper<T>(callback);
+        NRCallbackWrapper<T> wrapper = new NRCallbackWrapper<>(callback);
         wrapper.token = t;
         wrapper.params = p;
         wrapper.segment = s;

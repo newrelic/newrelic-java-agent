@@ -1,6 +1,6 @@
 jar {
     manifest {
-        attributes 'Implementation-Title': 'com.newrelic.instrumentation.mongo-async-4.0'
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.mongodb-async-4.0'
     }
 }
 
@@ -11,8 +11,8 @@ dependencies {
     implementation(project(":newrelic-weaver-api"))
     implementation 'org.mongodb:mongodb-driver-core:4.0.0'
 
-//    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.0.0")
-
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.2.2")
+    testImplementation('org.mongodb:mongodb-driver-reactivestreams:4.0.6')
 }
 
 
