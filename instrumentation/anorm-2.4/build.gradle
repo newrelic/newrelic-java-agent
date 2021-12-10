@@ -2,10 +2,10 @@ apply plugin: 'scala'
 
 repositories {
     maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
+        mavenCentral()
+        url 'https://repo.typesafe.com/typesafe/maven-releases/'
     }
 }
-
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))

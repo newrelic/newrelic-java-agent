@@ -2,7 +2,8 @@ apply plugin: 'scala'
 
 repositories {
     maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
+        mavenCentral()
+        url 'https://repo.typesafe.com/typesafe/maven-releases/'
     }
 }
 
@@ -35,7 +36,7 @@ verifyInstrumentation {
     passes 'com.typesafe.play:anorm_2.11:[2.0,2.3-M1)'
 
     exclude 'com.typesafe.play:anorm_2.11:2.3.2-RC1'
-    exclude 'com.typesafe.play:anorm_2.11:2.3.8-4c54458f5e54ff63ff58554de5f6099ecede7cd1'
+//    exclude 'com.typesafe.play:anorm_2.11:2.3.8-4c54458f5e54ff63ff58554de5f6099ecede7cd1'
 
 }
 

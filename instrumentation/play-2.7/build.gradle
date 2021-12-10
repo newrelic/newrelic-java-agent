@@ -4,19 +4,13 @@ import play.routes.compiler.RoutesCompiler$
 import scala.collection.JavaConversions
 
 apply plugin: 'scala'
-
-repositories {
-    maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
-    }
-}
+scala.zincVersion = "1.2.5"
 
 buildscript {
     dependencies {
         classpath 'com.typesafe.play:routes-compiler_2.11:2.7.0-M2'
     }
     repositories {
-        jcenter()
         mavenCentral()
     }
 }
@@ -58,7 +52,7 @@ verifyInstrumentation {
     // build snapshots
     excludeRegex '.*-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]{7}$'
     // Release Candidates
-    excludeRegex'.*-RC[0-9]*'
+    excludeRegex '.*-RC[0-9]*'
 }
 
 test {

@@ -4,19 +4,13 @@ import play.routes.compiler.RoutesCompiler$
 import scala.collection.JavaConversions
 
 apply plugin: 'scala'
-
-repositories {
-    maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
-    }
-}
+scala.zincVersion = "1.2.5"
 
 buildscript {
     dependencies {
         classpath 'com.typesafe.play:routes-compiler_2.11:2.6.0'
     }
     repositories {
-        jcenter()
         mavenCentral()
     }
 }
