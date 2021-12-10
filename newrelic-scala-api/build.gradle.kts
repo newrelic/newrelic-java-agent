@@ -23,7 +23,7 @@ java {
 
 dependencies {
     zinc("org.scala-sbt:zinc_2.12:1.2.5")
-    implementation("org.scala-lang:scala-library:2.13.5")
+    implementation("org.scala-lang:scala-library:2.13.7")
     implementation(project(":newrelic-api"))
     testImplementation(project(":instrumentation-test"))
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
