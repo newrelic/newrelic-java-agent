@@ -51,7 +51,7 @@ public class MongoDbAsync360Test {
     public void startMongo() throws Exception {
         int port = Network.freeServerPort(getLocalHost());
         MongodConfig mongodConfig = ImmutableMongodConfig.builder()
-                .version(Version.V3_6_5)
+                .version(Version.V3_6_5) // MongoDB version, not Mongo client version
                 .net(new Net(port, Network.localhostIsIPv6()))
                 .build();
         mongodExecutable = mongodStarter.prepare(mongodConfig);

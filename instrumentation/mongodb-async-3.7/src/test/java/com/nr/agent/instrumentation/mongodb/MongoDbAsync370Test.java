@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.mongodb")
-public class MongoDbAsync340Test {
+public class MongoDbAsync370Test {
 
     private static final String MONGODB_PRODUCT = DatastoreVendor.MongoDB.toString();
     private static final MongodStarter mongodStarter = MongodStarter.getDefaultInstance();
@@ -49,10 +49,9 @@ public class MongoDbAsync340Test {
     public void startMongo() throws Exception {
         int port = Network.freeServerPort(getLocalHost());
         MongodConfig mongodConfig = ImmutableMongodConfig.builder()
-                .version(Version.V3_4_5)
+                .version(Version.V3_6_5) // MongoDB version, not Mongo client version
                 .net(new Net(port, Network.localhostIsIPv6()))
                 .build();
-
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
         mongoClient = MongoClients.create(new ConnectionString("mongodb://localhost:" + port));
@@ -92,7 +91,7 @@ public class MongoDbAsync340Test {
         int updateManyOpExpectedCount = 1;
         int deleteOpExpectedCount = 1;
         int deleteManyOpExpectedCount = 1;
-        int findOpExpectedCount = 10;
+        int findOpExpectedCount = 14;
         int dropOpExpectedCount = 3;
         int countOpExpectedCount = 1;
         int bulkWriteOpExpectedCount = 2;
