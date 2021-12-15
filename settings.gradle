@@ -22,16 +22,10 @@ println "isCiServer=$isCiServer"
 
 buildCache {
     local {
-        enabled = false
+        enabled = true
     }
     remote(HttpBuildCache) {
-        url = "$gradleEnterpriseServer/cache/"
-        push = isCiServer
-        allowUntrustedServer = true
-        credentials {
-            username = cacheUser
-            password = cachePassword
-        }
+        enabled = false
     }
 }
 
