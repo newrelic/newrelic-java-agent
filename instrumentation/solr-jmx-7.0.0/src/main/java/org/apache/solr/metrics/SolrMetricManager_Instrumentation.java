@@ -37,12 +37,12 @@ public abstract class SolrMetricManager_Instrumentation {
 
             if (isCacheMetric) {
                 MetricsMap mMap = (MetricsMap) metric;
-                CacheMetric nrMetric = new CacheMetric(desired, MetricUtil.getRegistry(registry), mMap, info);
+                CacheMetric nrMetric = new CacheMetric(desired, MetricUtil.getRegistry(registry), mMap, info.getName());
                 NewRelic.getAgent().getLogger().log(Level.FINEST, "Created CacheMetric of name {0}", metricName);
                 MetricUtil.addMetric(nrMetric);
             } else if (isGaugeMetric) {
                 Gauge gauge = (Gauge) metric;
-                GaugeMetric gMetric = new GaugeMetric(metricName, desired, MetricUtil.getRegistry(registry), gauge, info);
+                GaugeMetric gMetric = new GaugeMetric(metricName, desired, MetricUtil.getRegistry(registry), gauge, info.getName());
                 NewRelic.getAgent().getLogger().log(Level.FINEST, "Created GaugeMetric of name {0}", metricName);
                 MetricUtil.addMetric(gMetric);
             }
@@ -56,7 +56,7 @@ public abstract class SolrMetricManager_Instrumentation {
         if (MetricUtil.isDesired(metricName, metricPath)) {
             String mName = MetricUtil.getRemap(metricName);
             String desired = MetricUtil.getDesired(metricName, metricPath);
-            MeteredMetric meteredMetric = new MeteredMetric(mName, desired, MetricUtil.getRegistry(registry), info, meter);
+            MeteredMetric meteredMetric = new MeteredMetric(mName, desired, MetricUtil.getRegistry(registry), info.getName(), meter);
             MetricUtil.addMetric(meteredMetric);
             NewRelic.getAgent().getLogger().log(Level.FINEST, "Added NRMetric from ({0}, {1}, {2})", info, registry, metricName);
         }

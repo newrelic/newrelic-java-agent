@@ -13,14 +13,14 @@ public abstract class NRMetric {
 
     protected static final String prefix = "JMX/solr/";
 
-    public NRMetric(String r, SolrInfoBean b) {
+    public NRMetric(String r, String b) {
         registry = r;
-        info = b;
+        name = b;
     }
 
     protected String registry;
 
-    protected SolrInfoBean info;
+    protected String name;
 
     public String getRegistry() {
         return registry;
