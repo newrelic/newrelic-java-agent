@@ -67,11 +67,13 @@ public abstract class SolrMetricManager_Instrumentation {
     public void removeRegistry(String registry) {
         Weaver.callOriginal();
         MetricUtil.clearRegistry(registry);
+        NewRelic.getAgent().getLogger().log(Level.FINEST, "Removed {0} metric registry", registry);
     }
 
     public void clearRegistry(String registry) {
         Weaver.callOriginal();
         MetricUtil.clearRegistry(registry);
+        NewRelic.getAgent().getLogger().log(Level.FINEST, "Cleared {0} metric registry", registry);
     }
 
     public Set<String> clearMetrics(String registry, String... metricPath) {
@@ -80,6 +82,7 @@ public abstract class SolrMetricManager_Instrumentation {
             for (String removedMetric: removedMetrics) {
                 MetricUtil.removeMetric(registry, removedMetric);
             }
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Cleared {0} metrics from {1} metric registry", removedMetrics.size(), registry);
         }
         return removedMetrics;
     }
@@ -87,5 +90,6 @@ public abstract class SolrMetricManager_Instrumentation {
     public void swapRegistries(String registry1, String registry2) {
         Weaver.callOriginal();
         MetricUtil.swapRegistries(registry1, registry2);
+        NewRelic.getAgent().getLogger().log(Level.FINEST, "Swapped {0} metric registry to {1} metric registry", registry1, registry2);
     }
 }
