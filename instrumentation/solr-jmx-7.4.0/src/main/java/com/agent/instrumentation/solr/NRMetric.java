@@ -24,6 +24,10 @@ public abstract class NRMetric {
         return registry;
     }
 
+    public void setRegistry(String registry) {
+        this.registry = registry;
+    }
+
     public abstract String getMetricName(String name);
 
     public abstract int reportMetrics();

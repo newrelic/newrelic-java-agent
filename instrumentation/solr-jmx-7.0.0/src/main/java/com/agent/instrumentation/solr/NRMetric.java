@@ -7,8 +7,6 @@
 
 package com.agent.instrumentation.solr;
 
-import org.apache.solr.core.SolrInfoBean;
-
 public abstract class NRMetric {
 
     protected static final String prefix = "JMX/solr/";
@@ -24,6 +22,10 @@ public abstract class NRMetric {
 
     public String getRegistry() {
         return registry;
+    }
+
+    public void setRegistry(String registry) {
+        this.registry = registry;
     }
 
     public abstract String getMetricName(String name);

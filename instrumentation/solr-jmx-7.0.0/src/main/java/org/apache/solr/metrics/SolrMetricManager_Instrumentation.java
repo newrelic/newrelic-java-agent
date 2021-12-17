@@ -21,6 +21,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import org.apache.solr.core.SolrInfoBean;
 
+import java.util.Set;
 import java.util.logging.Level;
 
 @Weave(originalName = "org.apache.solr.metrics.SolrMetricManager", type = MatchType.ExactClass)
@@ -63,4 +64,28 @@ public abstract class SolrMetricManager_Instrumentation {
         return meter;
     }
 
+    public void removeRegistry(String registry) {
+        Weaver.callOriginal();
+        MetricUtil.clearRegistry(registry);
+    }
+
+    public void clearRegistry(String registry) {
+        Weaver.callOriginal();
+        MetricUtil.clearRegistry(registry);
+    }
+
+    public Set<String> clearMetrics(String registry, String... metricPath) {
+        Set<String> removedMetrics = Weaver.callOriginal();
+        if(removedMetrics != null) {
+            for (String removedMetric: removedMetrics) {
+                MetricUtil.removeMetric(registry, removedMetric);
+            }
+        }
+        return removedMetrics;
+    }
+
+    public void swapRegistries(String registry1, String registry2) {
+        Weaver.callOriginal();
+        MetricUtil.swapRegistries(registry1, registry2);
+    }
 }
