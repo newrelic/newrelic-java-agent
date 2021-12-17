@@ -117,5 +117,8 @@ public class SolrMetricManagerInstrumentationTests {
 
         String registryName = MetricUtil.getMetrics().values().stream().map(x -> x.registry).collect(Collectors.joining());
         assertEquals("targetRegistry", registryName);
+
+        String metricBase = MetricUtil.getMetrics().values().stream().map(NRMetric::getMetricBase).collect(Collectors.joining());
+        assertEquals("JMX/solr/targetRegistry/filterCache/hdfsBlockCache", metricBase);
     }
 }

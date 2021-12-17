@@ -59,12 +59,13 @@ public class MetricUtil {
     public static void swapRegistries(String sourceRegistry, String targetRegistry) {
         metrics.entrySet()
                 .stream()
-                .filter(entry -> entry.getValue().registry.equals(sourceRegistry))
+                .filter(entry -> entry.getValue().registry.equals(getRegistry(sourceRegistry)))
                 .forEach(x -> {
+                    String currentKey = x.getKey();
                     NRMetric metric = x.getValue();
-                    metric.setRegistry(targetRegistry);
+                    metric.setRegistry(getRegistry(targetRegistry));
                     addMetric(metric);
-                    metrics.remove(x.getKey());
+                    metrics.remove(currentKey);
                 });
     }
 
