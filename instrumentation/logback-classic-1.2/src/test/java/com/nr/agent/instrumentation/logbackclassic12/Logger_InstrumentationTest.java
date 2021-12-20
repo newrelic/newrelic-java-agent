@@ -1,13 +1,13 @@
 package com.nr.agent.instrumentation.logbackclassic12;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.MetricsHelper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import ch.qos.logback.classic.Logger;
 import org.slf4j.LoggerFactory;
 
 @RunWith(InstrumentationTestRunner.class)
