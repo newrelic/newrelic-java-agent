@@ -8,7 +8,8 @@ dependencies {
 }
 
 verifyInstrumentation {
-    passesOnly("ch.qos.logback:logback-core:[1.2.0,)")
+    passes("ch.qos.logback:logback-classic:[1.0,)")
+    excludeRegex 'ch.qos.logback:logback-classic:1.3.*'
 }
 
 site {
