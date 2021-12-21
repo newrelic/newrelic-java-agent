@@ -28,7 +28,7 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
     /**
      * A map of jar names to the temp files containing those jars.
      */
-    private final LoadingCache<String, File> embeddedAgentJarFiles = Caffeine.newBuilder().build(
+    private final LoadingCache<String, File> embeddedAgentJarFiles = Caffeine.newBuilder().executor(Runnable::run).build(
             new CacheLoader<String, File>() {
 
                 @Override

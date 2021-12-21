@@ -29,7 +29,7 @@ public class TransactionCache {
 
     private Cache<Object, MetricNameFormatWithHost> getInputStreamCache() {
         if (inputStreamCache == null) {
-            inputStreamCache = Caffeine.newBuilder().weakKeys().build();
+            inputStreamCache = Caffeine.newBuilder().weakKeys().executor(Runnable::run).build();
         }
         return inputStreamCache;
     }
@@ -44,7 +44,7 @@ public class TransactionCache {
 
     private Cache<Object, URL> getUrlCache() {
         if (urlCache == null) {
-            urlCache = Caffeine.newBuilder().weakKeys().build();
+            urlCache = Caffeine.newBuilder().weakKeys().executor(Runnable::run).build();
         }
         return urlCache;
     }

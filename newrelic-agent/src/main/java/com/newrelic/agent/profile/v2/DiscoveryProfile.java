@@ -40,7 +40,7 @@ public class DiscoveryProfile implements JSONStreamAware {
         this.threadNameNormalizer = threadNameNormalizer;
         this.profile = profile;
         discoveryProfileTrees = 
-            Caffeine.newBuilder().build(
+            Caffeine.newBuilder().executor(Runnable::run).build(
                     threadNameKey -> new ProfileTree(DiscoveryProfile.this.profile, false));
     }
 

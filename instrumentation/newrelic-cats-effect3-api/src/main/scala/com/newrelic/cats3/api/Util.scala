@@ -2,32 +2,46 @@ package com.newrelic.cats3.api
 
 import cats.effect.Sync
 import cats.implicits._
-import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction, TracedMethod}
+import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Token, Transaction}
+import com.newrelic.api.agent.NewRelic
 
 import java.util.concurrent.atomic.AtomicInteger
 
 object Util {
   val RETURN_OPCODE = 176
 
-  def wrapTrace[S, F[_] : Sync](body: F[S]): F[S] =
-    Sync[F].delay(AgentBridge.instrumentation.createScalaTxnTracer())
-           .redeemWith(_ => body,
-             tracer =>
-               if (tracer == null) {
-                 body
-               } else {
-                 for {
-                   txnWithTracedMethod <- Sync[F].delay {
-                     val agent = AgentBridge.getAgent
-                     (agent.getTransaction(false), agent.getTracedMethod)
-                   }
-                   _ <- setupTokenAndRefCount(txnWithTracedMethod)
-                   res <- attachErrorEvent(body, tracer)
-                   _ <- cleanupTxnAndTokenRefCount(txnWithTracedMethod._1)
-                   _ <- Sync[F].delay(tracer.finish(RETURN_OPCODE, null))
-                 } yield res
-               }
-           )
+  def wrapTrace[S, F[_] : Sync](body: TxnInfo => F[S]): F[S] =
+    Sync[F].delay {
+      val tracer = AgentBridge.instrumentation.createScalaTxnTracer()
+      (tracer, optTxnInfo())
+    }.redeemWith(
+      _ => body(txnInfo),
+      tracerAndTxnInfo => {
+        val (tracer, optTxnInfo) = tracerAndTxnInfo
+        for {
+          _ <- Sync[F].delay(AgentBridge.getAgent.getTransaction(false))
+          updatedTxnInfo <- setupTokenAndRefCount(optTxnInfo, txnInfo)
+          res <- attachErrorEvent(body(updatedTxnInfo), tracer)
+          _ <- cleanupTxnAndTokenRefCount(updatedTxnInfo)
+          _ <- Sync[F].delay(tracer.finish(RETURN_OPCODE, null))
+        } yield res
+      }
+    )
+
+  private def txnInfo = {
+    val txn = NewRelic.getAgent.getTransaction
+    TxnInfo(txn, txn.getToken)
+  }
+
+  def optTxnInfo(): (Transaction, Token) = {
+    val txn = AgentBridge.getAgent.getTransaction(false)
+    if (txn != null) {
+      (txn, txn.getToken)
+    } else {
+      null
+    }
+  }
+
 
   private def attachErrorEvent[S, F[_] : Sync](body: F[S], tracer: ExitTracer): F[S] =
     body
@@ -36,23 +50,29 @@ object Util {
         Sync[F].raiseError(throwable)
       })
 
-  private def setupTokenAndRefCount[F[_] : Sync](txnWithTracerMethod: (Transaction, TracedMethod)): F[Unit] = Sync[F].delay {
-
-    val (txn, tracedMethod) = txnWithTracerMethod
-    if (txn != null && tracedMethod != null) {
-      AgentBridge.activeToken.set(
-        new AgentBridge.TokenAndRefCount(
-          txn.getToken,
-          tracedMethod,
-          new AtomicInteger(0)
-        ))
+  private def setupTokenAndRefCount[F[_] : Sync](optTxn: (Transaction, Token), fallback: => TxnInfo)
+  : F[TxnInfo] =
+    Sync[F].delay {
+      if (optTxn != null) {
+        val (txn, token) = optTxn
+        AgentBridge.activeToken.set(
+          new AgentBridge.TokenAndRefCount(
+            token,
+            AgentBridge.getAgent.getTracedMethod,
+            new AtomicInteger(0)
+          )
+        )
+        TxnInfo(txn, token)
+      } else {
+        fallback
+      }
     }
-  }
 
-  private def cleanupTxnAndTokenRefCount[F[_] : Sync](txn: Transaction): F[Unit] = Sync[F].delay {
-    AgentBridge.activeToken.remove()
-    if (txn != null) {
-      txn.expireAllTokens()
+  private def cleanupTxnAndTokenRefCount[F[_] : Sync](txnInfo: TxnInfo): F[Unit] = Sync[F].delay {
+    val tokenAndRefCount = AgentBridge.activeToken.get()
+    if (tokenAndRefCount != null) {
+      AgentBridge.activeToken.remove()
     }
+    txnInfo.transaction.asInstanceOf[Transaction].expireAllTokens()
   }
 }

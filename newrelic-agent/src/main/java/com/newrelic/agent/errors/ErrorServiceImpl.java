@@ -8,8 +8,21 @@
 package com.newrelic.agent.errors;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.newrelic.agent.*;
-import com.newrelic.agent.config.*;
+import com.newrelic.agent.Agent;
+import com.newrelic.agent.HarvestListener;
+import com.newrelic.agent.Harvestable;
+import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.Transaction;
+import com.newrelic.agent.TransactionActivity;
+import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.TransactionErrorPriority;
+import com.newrelic.agent.TransactionListener;
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AgentConfigImpl;
+import com.newrelic.agent.config.AgentConfigListener;
+import com.newrelic.agent.config.DistributedTracingConfig;
+import com.newrelic.agent.config.ErrorCollectorConfig;
+import com.newrelic.agent.config.StripExceptionConfig;
 import com.newrelic.agent.instrumentation.PointCut;
 import com.newrelic.agent.instrumentation.methodmatchers.InvalidMethodDescriptor;
 import com.newrelic.agent.instrumentation.yaml.PointCutFactory;
@@ -28,7 +41,12 @@ import com.newrelic.agent.transport.HttpError;
 
 import java.net.HttpURLConnection;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -438,7 +456,9 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
     private TracedError createTracedError(final String theAppName, TransactionData td, Throwable throwable, int responseStatus, String statusMessage) {
         TracedError error;
         // noticeError(expected = true)?
-        boolean markedExpected = td.getThrowable() == null ? false : td.getThrowable().expected;
+        boolean responseStatusExpected = errorCollectorConfig.getExpectedStatusCodes().contains(responseStatus);
+        boolean throwableExpected = td.getThrowable() == null ? false : td.getThrowable().expected;
+        boolean markedExpected = responseStatusExpected || throwableExpected;
 
         Map<String, Object> joinedIntrinsics = new HashMap<>(td.getIntrinsicAttributes());
         DistributedTraceService distributedTraceService = ServiceFactory.getDistributedTraceService();

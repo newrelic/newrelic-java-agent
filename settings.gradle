@@ -8,11 +8,13 @@ pluginManagement {
 
 plugins {
     id "com.gradle.enterprise" version "3.7.1"
+    id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.6.1'
 }
 
 boolean isCiServer = System.getenv().containsKey("CI")
 String cacheUser = System.getenv().get("GRADLE_CACHE_USER")
 String cachePassword = System.getenv().get("GRADLE_CACHE_PASSWORD")
+String gradleEnterpriseServer = "https://3.88.106.22/"
 
 println "*** Gradle Enterprise Debug ***"
 println "GRADLE_CACHE_USER=$cacheUser"
@@ -20,39 +22,35 @@ println "isCiServer=$isCiServer"
 
 buildCache {
     local {
-        enabled = false
+        enabled = true
     }
     remote(HttpBuildCache) {
-        url = "https://3.88.106.22/cache/"
-        push = isCiServer
-        allowUntrustedServer = true
-        credentials {
-            username = cacheUser
-            password = cachePassword
-        }
+        enabled = false
     }
 }
 
 gradleEnterprise {
-    server = "https://3.88.106.22/"
     allowUntrustedServer = true
     buildScan {
+        publishAlways()
+        publishIfAuthenticated()
+        server = gradleEnterpriseServer
         uploadInBackground = true
         capture {
             taskInputFiles = true
         }
         if (System.getenv("CI")) {
             tag "CI"
+            tag System.getenv("JRE") ?: "jre-not-specified"
+            tag System.getenv("LANGUAGE") ?: "polyglot"
+            String scalaVersion = System.getenv("SCALA_VERSION")
+            if (scalaVersion) {
+                tag scalaVersion
+            }
+            tag System.getenv("TEST_TYPE") ?: "no-test"
         } else {
             tag "Local"
         }
-        tag System.getenv("JRE") ?: "jre-not-specified"
-        tag System.getenv("LANGUAGE") ?: "polyglot"
-        String scalaVersion = System.getenv("SCALA_VERSION")
-        if (scalaVersion) {
-            tag scalaVersion
-        }
-        tag System.getenv("TEST_TYPE") ?: "no-test"
     }
 }
 
@@ -259,6 +257,7 @@ include 'instrumentation:play-2.6.13'
 include 'instrumentation:play-2.7'
 include 'instrumentation:play-shaded-async-http-client-1.0.0'
 include 'instrumentation:play-ws-2.6.0'
+include 'instrumentation:play-ws-2.13_2.6.0'
 include 'instrumentation:quartz-1.8.3'
 include 'instrumentation:quartz-2.0.0'
 include 'instrumentation:ning-async-http-client-1.0'

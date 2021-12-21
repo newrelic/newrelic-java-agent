@@ -33,7 +33,7 @@ public class ThreadStateSampler implements Runnable {
      * A cache of thread ids to some tracked thread state.  The cpu times reported by the Java apis we use are monotonically
      * increasing, so we have to track previous values and compute deltas.
      */
-    private final LoadingCache<Long, ThreadTracker> threads = Caffeine.newBuilder().expireAfterAccess(3, TimeUnit.MINUTES).build(
+    private final LoadingCache<Long, ThreadTracker> threads = Caffeine.newBuilder().expireAfterAccess(3, TimeUnit.MINUTES).executor(Runnable::run).build(
             threadId -> new ThreadTracker());
     private final ThreadMXBean threadMXBean;
     private final ThreadNameNormalizer threadNameNormalizer;
