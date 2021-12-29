@@ -22,14 +22,6 @@ sourceSets.test.java.srcDirs = []
 
 compileJava.options.bootstrapClasspath = null
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))

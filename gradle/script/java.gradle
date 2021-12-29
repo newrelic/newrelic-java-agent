@@ -27,11 +27,15 @@ jar {
     includeEmptyDirs false
 }
 
+def compiler = javaToolchains.compilerFor {
+    languageVersion = JavaLanguageVersion.of(8)
+}
+
 // Some modules need to be compiled with JDK8.
 task requiresJava8 {
     doLast {
-        if (!project.hasProperty('jdk8')) {
-            throw new GradleException("Please set the jdk8 property to a valid jdk1.8 path in ~/.gradle/gradle.properties")
+        if (!compiler.isPresent()) {
+            throw new GradleException("Please set the 'org.gradle.java.installations.paths' property to a valid jdk1.8 path in ~/.gradle/gradle.properties")
         }
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new GradleException("Please set JAVA_HOME to a 1.8 JDK (detected ${JavaVersion.current()})")
@@ -47,33 +51,32 @@ tasks.withType(ScalaCompile) {
     options.fork = true
 }
 
-compileJava.dependsOn 'requiresJava8'
-
-compileJava.options.encoding = 'UTF-8'
-// Compile all Java projects with 1.8
-compileJava.options.fork = true
-compileJava.options.forkOptions.executable = jdk8 + '/bin/javac'
-compileJava.options.compilerArgs += '-proc:none'
-
-compileTestJava.options.encoding = 'UTF-8'
-// Compile all Java test projects with 1.8
-compileTestJava.options.fork = true
-compileTestJava.options.forkOptions.executable = jdk8 + '/bin/javac'
-compileTestJava.options.compilerArgs += '-proc:none'
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+java {
+    toolchain {
+        // Compile all Java projects with 1.8
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+tasks.withType(JavaCompile).configureEach {
+    dependsOn 'requiresJava8'
+    options.encoding = 'UTF-8'
+    options.fork = true
+    compileJava.options.compilerArgs += '-proc:none'
+}
 
 // Compile all Java projects with jdk8 bootstrap classpath (to properly support target compatibility)
-compileJava.options.bootstrapClasspath = files("${jdk8}/jre/lib/rt.jar", "${jdk8}/jre/lib/jsse.jar")
+def jdkPath = compiler.get().metadata.installationPath.asFile.absolutePath
+compileJava.options.bootstrapClasspath = files("${jdkPath}/jre/lib/rt.jar", "${jdkPath}/jre/lib/jsse.jar")
 
 // There is no clear way to run the same task under multiple JDKs, so we use the following gradle properties
-// and jenkins matrix plugin to run the instrumentation module tests
+// and jenkins matrix plugin to run the instrumentation module tests.
+//
+// This should really use java toolchains instead of setting the executable, but in its current form, toolchains
+// can only select a JDK based on the version, vendor and implementation (i.e. J9).  Unfortunately, Zulu and Zing
+// have the same vendor, which means toolchain selection cannot differentiate between say, Zulu11 and Zing11.  This
+// will be better once https://github.com/gradle/gradle/issues/18896 is implemented, at which point the below could
+// be changed to simply select a toolchain based on appropriately specific criteria.
 //
 // These properties must be set in gradle.properties to point to the java executable.
 // For example: java8=/Library/Java/JavaVirtualMachines/jdk1.8.0_45.jdk/Contents/Home/bin/java
@@ -83,6 +86,8 @@ compileJava.options.bootstrapClasspath = files("${jdk8}/jre/lib/rt.jar", "${jdk8
 // This could lead to an "Unrecognized option" with the failure "Could not create the Java Virtual Machine".
 test {
     if (project.hasProperty("test17")) {
+        // Add an input property so that we differentiate between JDKs with the same version
+        inputs.property("test.jdk", "jdk17")
         executable = jdk17 + '/bin/java'
         jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
                 '--add-opens=java.base/java.util=ALL-UNNAMED',
@@ -96,6 +101,7 @@ test {
         }
     }
     if (project.hasProperty("test16")) {
+        inputs.property("test.jdk", "jdk16")
         executable = jdk16 + '/bin/java'
         jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
                 '--add-opens=java.base/java.util=ALL-UNNAMED',
@@ -109,84 +115,98 @@ test {
         }
     }
     if (project.hasProperty("test15")) {
+        inputs.property("test.jdk", "jdk15")
         executable = jdk15 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java15IncompatibleTest'
         }
     }
     if (project.hasProperty("test14")) {
+        inputs.property("test.jdk", "jdk14")
         executable = jdk14 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java14IncompatibleTest'
         }
     }
     if (project.hasProperty("test13")) {
+        inputs.property("test.jdk", "jdk13")
         executable = jdk13 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java13IncompatibleTest'
         }
     }
     if (project.hasProperty("test12")) {
+        inputs.property("test.jdk", "jdk12")
         executable = jdk12 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java12IncompatibleTest'
         }
     }
     if (project.hasProperty("testCoretto8")) {
+        inputs.property("test.jdk", "coretto8")
         executable = coretto8 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
         }
     }
     if (project.hasProperty("testDragonWell8")) {
+        inputs.property("test.jdk", "dragonWell8")
         executable = dragonWell8 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
         }
     }
     if (project.hasProperty("testZulu11")) {
+        inputs.property("test.jdk", "zulu11")
         executable = zulu11 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
         }
     }
     if (project.hasProperty("testZing8")) {
+        inputs.property("test.jdk", "zing8")
         executable = zing8 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
         }
     }
     if (project.hasProperty("testZing11")) {
+        inputs.property("test.jdk", "zing11")
         executable = zing11 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
         }
     }
     if (project.hasProperty("test11")) {
+        inputs.property("test.jdk", "jdk11")
         executable = jdk11 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
         }
     }
     if (project.hasProperty("test10")) {
+        inputs.property("test.jdk", "jdk10")
         executable = jdk10 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java10IncompatibleTest'
         }
     }
     if (project.hasProperty("test9")) {
+        inputs.property("test.jdk", "jdk9")
         executable = jdk9 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java9IncompatibleTest'
         }
     }
     if (project.hasProperty("test8")) {
+        inputs.property("test.jdk", "jdk8")
         executable = jdk8 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
         }
     }
     if (project.hasProperty("test7")) {
+        inputs.property("test.jdk", "jdk7")
         executable = jdk7 + '/bin/java'
         useJUnit {
             excludeCategories 'com.newrelic.test.marker.Java7IncompatibleTest'
@@ -208,4 +228,16 @@ dependencies {
     testImplementation("org.mockito:mockito-core:3.9.0")
     testImplementation("org.hamcrest:hamcrest-library:1.3")
     testImplementation(project(":test-annotations"))
+}
+
+// Make ScalaCompile tasks cacheable.  This is a workaround for a defect fixed in Gradle 7.1.0.
+tasks.withType(ScalaCompile).configureEach {
+    options.getForkOptions().setExecutable(null)
+    def launcher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+    inputs.property("javaLauncherVersion", launcher.map { it.metadata.languageVersion })
+    doFirst {
+        options.getForkOptions().setExecutable(launcher.get().getExecutablePath().asFile.absolutePath)
+    }
 }
