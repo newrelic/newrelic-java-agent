@@ -85,131 +85,139 @@ compileJava.options.bootstrapClasspath = files("${jdkPath}/jre/lib/rt.jar", "${j
 // their own build.gradle to force the use of a specific version of Java (e.g. instrumentation/async-http-client-2.0.0).
 // This could lead to an "Unrecognized option" with the failure "Could not create the Java Virtual Machine".
 test {
-    if (project.hasProperty("test17")) {
+    ext.configureTest = { String jdkName, Closure configuration ->
         // Add an input property so that we differentiate between JDKs with the same version
-        inputs.property("test.jdk", "jdk17")
-        executable = jdk17 + '/bin/java'
-        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        inputs.property("test.jdk", jdkName)
+        // Null out the launcher so we can set an executable instead
+        javaLauncher.convention(null).value(null)
+        executable = project.property(jdkName) + '/bin/java'
+        configuration.call()
+    }
+
+    if (project.hasProperty("test17")) {
+        configureTest("jdk17") {
+            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
                 '--add-opens=java.base/java.util=ALL-UNNAMED',
                 '--add-opens=java.base/java.net=ALL-UNNAMED',
                 '--add-opens=java.base/java.io=ALL-UNNAMED',
                 '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
                 '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
                 '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java17IncompatibleTest'
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java17IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test16")) {
-        inputs.property("test.jdk", "jdk16")
-        executable = jdk16 + '/bin/java'
-        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        configureTest("jdk16") {
+            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
                 '--add-opens=java.base/java.util=ALL-UNNAMED',
                 '--add-opens=java.base/java.net=ALL-UNNAMED',
                 '--add-opens=java.base/java.io=ALL-UNNAMED',
                 '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
                 '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
                 '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java16IncompatibleTest'
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java16IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test15")) {
-        inputs.property("test.jdk", "jdk15")
-        executable = jdk15 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java15IncompatibleTest'
+        configureTest("jdk15") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java15IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test14")) {
-        inputs.property("test.jdk", "jdk14")
-        executable = jdk14 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java14IncompatibleTest'
+        configureTest("jdk14") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java14IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test13")) {
-        inputs.property("test.jdk", "jdk13")
-        executable = jdk13 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java13IncompatibleTest'
+        configureTest("jdk13") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java13IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test12")) {
-        inputs.property("test.jdk", "jdk12")
-        executable = jdk12 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java12IncompatibleTest'
+        configureTest("jdk12") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java12IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("testCoretto8")) {
-        inputs.property("test.jdk", "coretto8")
-        executable = coretto8 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+        configureTest("coretto8") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("testDragonWell8")) {
-        inputs.property("test.jdk", "dragonWell8")
-        executable = dragonWell8 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+        configureTest("dragonWell8") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("testZulu11")) {
-        inputs.property("test.jdk", "zulu11")
-        executable = zulu11 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
+        configureTest("zulu11") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("testZing8")) {
-        inputs.property("test.jdk", "zing8")
-        executable = zing8 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+        configureTest("zing8") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("testZing11")) {
-        inputs.property("test.jdk", "zing11")
-        executable = zing11 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
+        configureTest("zing11") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test11")) {
-        inputs.property("test.jdk", "jdk11")
-        executable = jdk11 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
+        configureTest("jdk11") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test10")) {
-        inputs.property("test.jdk", "jdk10")
-        executable = jdk10 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java10IncompatibleTest'
+        configureTest("jdk10") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java10IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test9")) {
-        inputs.property("test.jdk", "jdk9")
-        executable = jdk9 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java9IncompatibleTest'
+        configureTest("jdk9") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java9IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test8")) {
-        inputs.property("test.jdk", "jdk8")
-        executable = jdk8 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+        configureTest("jdk8") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+            }
         }
     }
     if (project.hasProperty("test7")) {
-        inputs.property("test.jdk", "jdk7")
-        executable = jdk7 + '/bin/java'
-        useJUnit {
-            excludeCategories 'com.newrelic.test.marker.Java7IncompatibleTest'
+        configureTest("jdk7") {
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java7IncompatibleTest'
+            }
         }
     }
 

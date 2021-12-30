@@ -61,6 +61,13 @@ test {
     minHeapSize = "256m"
     maxHeapSize = "256m"
 
+    // We have to set this because java.gradle sets the executable.  This project should only have a subset of
+    // java.gradle applied to it rather than having to reset this after the fact.
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(9)
+    }
+    executable = null
+
     beforeSuite {
         descriptor ->
             // We get two notifications per Test class. One of them is simply the Gradle executor used to run the test
