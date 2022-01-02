@@ -48,6 +48,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ENABLE_BOOTSTRAP_CLASS_INSTRUMENTATION = "enable_bootstrap_class_instrumentation";
     public static final String ENABLE_CLASS_RETRANSFORMATION = "enable_class_retransformation";
     public static final String ENABLE_CUSTOM_TRACING = "enable_custom_tracing";
+    public static final String EXPERIMENTAL_RUNTIME = "experimental_runtime";
     public static final String EXT_CONFIG_DIR = "extensions.dir";
     public static final String HIGH_SECURITY = "high_security";
     public static final String HOST = "host";
@@ -134,6 +135,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
     public static final boolean DEFAULT_ENABLE_CUSTOM_TRACING = true;
+    public static final boolean DEFAULT_EXPERIMENTAL_RUNTIME = false;
     public static final boolean DEFAULT_HIGH_SECURITY = false;
     public static final boolean DEFAULT_METRIC_DEBUG = false;
 
@@ -199,6 +201,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean debug;
     private final boolean metricDebug;
     private final boolean enabled;
+    private final boolean experimentalRuntime;
     private final boolean genericJdbcSupportEnabled;
     private final boolean highSecurity;
     private final String host;
@@ -291,6 +294,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         debug = Boolean.getBoolean(DEBUG);
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
+        experimentalRuntime = allowExperimentalRuntimeVersions();
         licenseKey = getProperty(LICENSE_KEY);
         String region = parseRegion(licenseKey);
         host = parseHost(region);
@@ -434,7 +438,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * If metric ingest URI was set explicitly, then always use it and don't construct the metric ingest URI from the region parsed from the
      * license key. If the license key doesn't conform to protocol 15+, then return the default metric ingest URI, otherwise construct the
      * new metric ingest URI using the region section of the license key.
-     *
+     * <p>
      * US Prod metric ingest URI: https://metric-api.newrelic.com/metric/v1
      * EU Prod metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
      */
@@ -465,7 +469,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * If event ingest URI was set explicitly, then always use it and don't construct the event ingest URI from the region parsed from the
      * license key. If the license key doesn't conform to protocol 15+, then return the default event ingest URI, otherwise construct the
      * new event ingest URI using the region section of the license key.
-     *
+     * <p>
      * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
      * EU Prod event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
      */
@@ -554,6 +558,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             Agent.LOG.log(Level.INFO, "metric_debug is enabled");
         }
         return getProperty(METRIC_DEBUG, DEFAULT_METRIC_DEBUG);
+    }
+
+    private boolean allowExperimentalRuntimeVersions() {
+        Object val = getProperty(EXPERIMENTAL_RUNTIME);
+        if (val instanceof Boolean && (Boolean) val) {
+            Agent.LOG.log(Level.INFO, "experimental_runtime is enabled");
+        }
+        return getProperty(EXPERIMENTAL_RUNTIME, DEFAULT_EXPERIMENTAL_RUNTIME);
     }
 
     private void setServerSpanHarvestLimit() {
