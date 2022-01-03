@@ -319,16 +319,6 @@ test {
     minHeapSize = "256m"
     maxHeapSize = "768m"
 
-    // This was previously using the same JVM as the build process, but com.newrelic.agent.jfr.JfrServiceTest
-    // requires a JDK9+ JDK.  This means we can't use the same JDK as the toolchain (JDK8) and we have to
-    // specify a launcher.  For now, use the same JDK as the build process.
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
-    }
-    // We have to set this because java.gradle sets the executable.  This project should only have a subset of
-    // java.gradle applied to it rather than having to reset this after the fact.
-    executable = null
-
     if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-Xdebug',
                 '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9999',

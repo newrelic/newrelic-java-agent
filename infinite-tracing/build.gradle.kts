@@ -22,7 +22,6 @@ dependencies {
 
 java {
     toolchain {
-        // Compile all Java projects with 1.8
         languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
