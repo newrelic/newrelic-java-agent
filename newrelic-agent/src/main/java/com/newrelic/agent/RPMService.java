@@ -44,6 +44,7 @@ import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.utilization.UtilizationData;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.json.simple.JSONStreamAware;
 
 import java.lang.management.ManagementFactory;
@@ -859,7 +860,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                 retry = true;
                 Agent.LOG.log(Level.INFO, "A connection error occurred contacting {0}. Please check your network / proxy settings.", e.getHostName());
                 Agent.LOG.log(Level.FINEST, e, e.toString());
-            } catch (Exception e) {
+            } catch (ConnectionPoolTimeoutException e) {
+                retry = true;
+                Agent.LOG.log(Level.INFO, "A connection pool timeout error occurred.");
+                Agent.LOG.log(Level.FINEST, e, e.toString());
+            }
+            catch (Exception e) {
                 // LicenseException handled here
                 logMetricDataError(e);
                 retry = true;
