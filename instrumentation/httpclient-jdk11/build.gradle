@@ -12,13 +12,14 @@ verifyInstrumentation {
     verifyClasspath = false // We don't want to verify classpath since these are JDK classes
 }
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
 
 compileJava {
     options.fork = true
-    options.forkOptions.executable = jdk11 + '/bin/javac'
-    options.forkOptions.javaHome = new File(jdk11)
     options.bootstrapClasspath = null
 }
 
