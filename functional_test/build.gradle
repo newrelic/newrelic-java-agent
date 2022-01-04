@@ -2,8 +2,6 @@ import com.nr.builder.JarUtil
 
 evaluationDependsOn(":newrelic-agent") // This is important because we need newrelic-agent to be configured before functional_test so the correct ("unversioned") jar name gets used
 
-apply plugin: 'scala'
-
 jar {
     manifest { attributes 'Premain-Class': 'com.newrelic.agent.test.agent.FunctionalAgent' }
 }
@@ -16,8 +14,6 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":agent-bridge-datastore"))
     implementation(project(":newrelic-weaver"))
-
-    implementation("org.scala-lang:scala-library:2.10.7")
 
     testImplementation(project(":functional_test:weave_test_impl"))
 
