@@ -5,10 +5,9 @@ plugins {
 }
 
 java {
-    // These classes are only used during the build. Since the build requires Java 8+,
-    // these class files can also be Java 8.
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 tasks.test {

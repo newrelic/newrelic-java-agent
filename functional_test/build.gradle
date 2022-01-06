@@ -80,14 +80,6 @@ dependencies {
     testImplementation("javax.ws.rs:javax.ws.rs-api:2.1")
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 def functional_test_args = [
         "-javaagent:${project.jar.archivePath.absolutePath}",
         "-javaagent:${JarUtil.getNewRelicJar(project(':newrelic-agent')).absolutePath}",
@@ -104,32 +96,10 @@ test {
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
     //testLogging.showStandardStreams = true
-    if (project.hasProperty("test17")) {
-        executable = jdk17 + '/bin/java'
-        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--add-opens=java.base/java.net=ALL-UNNAMED'
-    } else if (project.hasProperty("test16")) {
-        executable = jdk16 + '/bin/java'
-        jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--add-opens=java.base/java.net=ALL-UNNAMED'
-    } else if (project.hasProperty("test15")) {
-        executable = jdk15 + '/bin/java'
-    } else if (project.hasProperty("test14")) {
-        executable = jdk14 + '/bin/java'
-    } else if (project.hasProperty("test13")) {
-        executable = jdk13 + '/bin/java'
-    } else if (project.hasProperty("test12")) {
-        executable = jdk12 + '/bin/java'
-    } else if (project.hasProperty("test11")) {
-        executable = jdk11 + '/bin/java'
-    } else if (project.hasProperty("test10")) {
-        executable = jdk10 + '/bin/java'
+    if (project.hasProperty("test10")) {
         jvmArgs += ["--add-modules", "java.xml.bind"]
     } else if (project.hasProperty("test9")) {
-        executable = jdk9 + '/bin/java'
         jvmArgs += ["--add-modules", "java.xml.bind"]
-    } else if (project.hasProperty("test8")) {
-        executable = jdk8 + '/bin/java'
-    } else if (project.hasProperty("test7")) {
-        executable = jdk7 + '/bin/java'
     }
 
     minHeapSize = "256m"

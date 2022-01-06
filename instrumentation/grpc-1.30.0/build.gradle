@@ -10,13 +10,6 @@ buildscript {
 apply plugin: 'com.google.protobuf'
 compileJava.options.bootstrapClasspath = null
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 dependencies {
     implementation(project(":agent-bridge"))
     implementation("io.grpc:grpc-all:1.30.1")
