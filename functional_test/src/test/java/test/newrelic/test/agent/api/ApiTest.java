@@ -2039,7 +2039,6 @@ public class ApiTest implements TransactionListener {
         Map<String, Object> attributes = rootTracer.getAgentAttributes();
 
         Assert.assertNotNull(attributes.get("sql"));
-        Assert.assertNotNull(attributes.get("sql_obfuscated"));
     }
 
     /* Messaging - FIT to Public API */

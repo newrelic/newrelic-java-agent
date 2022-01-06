@@ -38,7 +38,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
-          cache: gradle
 
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
@@ -66,6 +65,9 @@ jobs:
           cat gradle.properties.gha
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       - name: Build newrelicJar
         if: ${{ env.GRADLE_KEY != '' }}

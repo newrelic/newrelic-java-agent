@@ -43,22 +43,9 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
     @Override
     public <T> void noticeTracer(Tracer tracer, SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
         if (tracer.getDurationInMilliseconds() > thresholdInMillis) {
-            T rawQuery = slowQueryDatastoreParameters.getRawQuery();
-            QueryConverter<T> queryConverter = slowQueryDatastoreParameters.getQueryConverter();
-            if (rawQuery == null || queryConverter == null) {
+            String query = slowQueryDatastoreParameters.getQuery().toString();
+            if (query == null ) {
                 // Ignore tracer
-                return;
-            }
-
-            String rawQueryString = queryConverter.toRawQueryString(rawQuery);
-            if (rawQueryString == null || rawQueryString.trim().isEmpty()) {
-                // Ignore tracer
-                return;
-            }
-
-            String obfuscatedQueryString = queryConverter.toObfuscatedQueryString(rawQuery);
-            if (obfuscatedQueryString == null) {
-                // Ignore tracer if no obfuscated query is provided
                 return;
             }
 
@@ -67,9 +54,11 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
                 handleInputQuery(tracer, (SlowQueryWithInputDatastoreParameters) slowQueryDatastoreParameters);
             }
 
+            String recordSql = ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getRecordSql();
+            String sqlAttr = SqlObfuscator.RAW_SETTING.equals(recordSql) ?
+                    SqlTracer.SQL_PARAMETER_NAME : SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME;
             // This allows transaction traces to show slow queries directly in the trace details
-            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, rawQueryString);
-            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, obfuscatedQueryString);
+            tracer.setAgentAttribute(sqlAttr, query);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
             boolean allUnknown = slowQueryDatastoreParameters.getHost() == null
@@ -89,16 +78,16 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
                 slowQueryInfoCache = new BoundedConcurrentCache<>(MAX_SQL_TRACERS);
             }
 
-            SlowQueryInfo existingInfo = slowQueryInfoCache.get(obfuscatedQueryString);
+            SlowQueryInfo existingInfo = slowQueryInfoCache.get(query);
             if (existingInfo != null) {
                 // Aggregate tracers by SQL.
                 existingInfo.aggregate(tracer);
-                slowQueryInfoCache.putReplace(obfuscatedQueryString, existingInfo);
+                slowQueryInfoCache.putReplace(query, existingInfo);
             } else {
-                SlowQueryInfo sqlInfo = new SlowQueryInfo(null, tracer, rawQueryString, obfuscatedQueryString,
+                SlowQueryInfo sqlInfo = new SlowQueryInfo(null, tracer, query, query,
                         tracer.getTransactionActivity().getTransaction().getAgentConfig().getSqlTraceConfig());
                 sqlInfo.aggregate(tracer);
-                slowQueryInfoCache.putIfAbsent(obfuscatedQueryString, sqlInfo);
+                slowQueryInfoCache.putIfAbsent(query, sqlInfo);
             }
         }
     }

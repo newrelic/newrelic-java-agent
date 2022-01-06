@@ -819,7 +819,7 @@ public class DefaultTracer extends AbstractTracer {
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
         Transaction transaction = getTransactionActivity().getTransaction();
-        if (transaction != null && slowQueryDatastoreParameters.getRawQuery() != null
+        if (transaction != null && slowQueryDatastoreParameters.getQuery() != null
                 && slowQueryDatastoreParameters.getQueryConverter() != null) {
             // Attempt to record the slow query if it's above the threshold
             transaction.getSlowQueryListener(true).noticeTracer(this, slowQueryDatastoreParameters);

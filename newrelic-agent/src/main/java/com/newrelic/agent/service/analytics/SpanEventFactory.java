@@ -353,9 +353,9 @@ public class SpanEventFactory {
         if (config.isHighSecurity() || config.getTransactionTracerConfig().getRecordSql().equals(SqlObfuscator.OFF_SETTING)) {
             return null;
         } else if (config.getTransactionTracerConfig().getRecordSql().equals(SqlObfuscator.RAW_SETTING)) {
-            return slowQueryDatastoreParameters.getQueryConverter().toRawQueryString(slowQueryDatastoreParameters.getRawQuery());
+            return slowQueryDatastoreParameters.getQueryConverter().toRawQueryString(slowQueryDatastoreParameters.getQuery());
         } else {
-            return slowQueryDatastoreParameters.getQueryConverter().toObfuscatedQueryString(slowQueryDatastoreParameters.getRawQuery());
+            return slowQueryDatastoreParameters.getQueryConverter().toObfuscatedQueryString(slowQueryDatastoreParameters.getQuery());
         }
     }
 

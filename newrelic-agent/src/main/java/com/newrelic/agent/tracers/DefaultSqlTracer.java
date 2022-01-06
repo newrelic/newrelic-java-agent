@@ -201,7 +201,6 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                     String appName = getTransaction().getApplicationName();
                     SqlQueryConverter converter = new SqlQueryConverter(appName, getDatabaseVendor());
                     String obfuscatedQueryString = converter.toObfuscatedQueryString(sql.toString());
-
                     // Store the obfuscated query string
                     getTransaction().getIntrinsicAttributes().put(SQL_PARAMETER_NAME, obfuscatedQueryString);
                 }
@@ -264,13 +263,17 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     @Override
     protected void recordMetrics(TransactionStats transactionStats) {
         if (isMetricProducer() && getTransaction() != null) {
-            String rawSql = null;
+            String slowQuerySql = null;
             Object sqlObject = getSql();
+            String appName = getTransaction().getApplicationName();
+
             if (sqlObject != null) {
-                rawSql = new PreparedStatementSql(sql, params).toString();
+                slowQuerySql = new PreparedStatementSql(sql, params).toString();
+                if (queryExceedsSlowQueryThreshold(appName)) {
+                    slowQuerySql = getNoRawOrObfuscatedSql(slowQuerySql, appName);
+                }
             }
 
-            String appName = getTransaction().getApplicationName();
             String hostToReport = DatastoreMetrics.replaceLocalhost(getHost());
 
             if (getIdentifier() != null) {
@@ -280,7 +283,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, getIdentifier())
                         .databaseName(getDatabaseName())
-                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
+                        .slowQuery(slowQuerySql, new SqlQueryConverter(appName, getDatabaseVendor()))
                         .build());
             } else {
                 String portToReport = DatastoreMetrics.replacePort(getPort());
@@ -290,7 +293,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, portToReport)
                         .databaseName(getDatabaseName())
-                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
+                        .slowQuery(slowQuerySql, new SqlQueryConverter(appName, getDatabaseVendor()))
                         .build());
             }
 
@@ -299,6 +302,20 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             }
         }
         super.recordMetrics(transactionStats);
+    }
+
+    /**
+     * This method is named this way because {@link SqlQueryConverter#toObfuscatedQueryString(String)} has
+     * unexpected conditional logic.
+     */
+    private String getNoRawOrObfuscatedSql(String rawSql, String appName) {
+        SqlQueryConverter converter = new SqlQueryConverter(appName, getDatabaseVendor());
+        return converter.toObfuscatedQueryString(rawSql);
+    }
+
+    private boolean queryExceedsSlowQueryThreshold(String appName) {
+        double threshold = ServiceFactory.getConfigService().getAgentConfig(appName).getTransactionTracerConfig().getExplainThresholdInMillis();
+        return getDurationInMilliseconds() > threshold;
     }
 
     /**
@@ -499,7 +516,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
      * @param parameters the parameter map
      * @return the parameterized SQL
      */
-    public static String parameterizeSql(String sql, Object[] parameters) throws Exception {
+    public static String parameterizeSql(String sql, Object[] parameters) {
         if (sql == null || parameters == null || parameters.length == 0) {
             return sql;
         }
@@ -512,11 +529,11 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             } else {
                 Object val = i < parameters.length ? parameters[i] : null;
                 if (val instanceof Number) {
-                    sb.append(piece).append(val.toString());
+                    sb.append(piece).append(val);
                 } else if (val == null) {
                     sb.append(piece).append("?");
                 } else {
-                    sb.append(piece).append("'").append(val.toString()).append("'");
+                    sb.append(piece).append("'").append(val).append("'");
                 }
             }
         }
@@ -537,6 +554,12 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             return rawQuery;
         }
 
+        /**
+         * For this implementation, the getSqlfuscator has conditional
+         * logic to return an obfuscator that respects the agent configuration setting `record_sql`
+         *
+         * See {@link com.newrelic.agent.database.DatabaseService#createSqlObfuscator(TransactionTracerConfig) }
+         */
         @Override
         public String toObfuscatedQueryString(String rawQuery) {
             SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getSqlObfuscator(appName);
