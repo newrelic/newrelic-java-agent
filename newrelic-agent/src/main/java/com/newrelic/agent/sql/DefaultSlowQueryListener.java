@@ -43,7 +43,7 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
     @Override
     public <T> void noticeTracer(Tracer tracer, SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
         if (tracer.getDurationInMilliseconds() > thresholdInMillis) {
-            String query = (String) slowQueryDatastoreParameters.getQuery();
+            String query = slowQueryDatastoreParameters.getQuery().toString();
             if (query == null ) {
                 // Ignore tracer
                 return;
@@ -54,10 +54,11 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
                 handleInputQuery(tracer, (SlowQueryWithInputDatastoreParameters) slowQueryDatastoreParameters);
             }
 
+            String recordSql = ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getRecordSql();
+            String sqlAttr = SqlObfuscator.RAW_SETTING.equals(recordSql) ?
+                    SqlTracer.SQL_PARAMETER_NAME : SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME;
             // This allows transaction traces to show slow queries directly in the trace details
-            // Unfortunately, SQL_OBFUSCATED_PARAMETER_NAME is misleading. Before reaching here, the query has already
-            // been processed by SqlQueryConverter in DefaultSqlTracer.  The result could be Raw, Obfuscated, or null.
-            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, query);
+            tracer.setAgentAttribute(sqlAttr, query);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
             boolean allUnknown = slowQueryDatastoreParameters.getHost() == null
