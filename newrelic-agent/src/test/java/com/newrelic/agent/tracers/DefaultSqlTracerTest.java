@@ -543,12 +543,65 @@ public class DefaultSqlTracerTest {
     public void missingParameters() throws Exception {
         String sql = "SELECT * FROM ROGER WHERE COL1 = ? AND COL2 = ? AND COL3 = ? AND COL4 = ?";
         String expectedSql = "SELECT * FROM ROGER WHERE COL1 = 'String1' AND COL2 = 1.0 AND COL3 = 1 AND COL4 = ?";
-        Map<Integer, Object> parameters = new HashMap<>();
-        parameters.put(1, "String1");
-        parameters.put(2, 1.0f);
-        parameters.put(3, 1);
+
         assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {
                 "String1", 1.0f, 1 }));
+    }
+
+    @Test
+    public void escapingQuotesParams() throws Exception {
+        String sql = "UPDATE Table SET content = ? WHERE title = ?";
+        String expectedSql = "UPDATE Table SET content = 'A long content ''with quotes''' WHERE title = 'Some ''Title'''";
+
+        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"A long content 'with quotes'", "Some 'Title'"}));
+    }
+
+    @Test
+    public void notEscapingQuotesInQuery() throws Exception {
+        String sql = "UPDATE Table SET content = 'A long content ''with quotes''' WHERE title = 'Some ''Title'''";
+
+        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, null));
+    }
+
+    @Test
+    public void notEscapingEscapedQuoteInParam() throws Exception {
+        String sql = "UPDATE Table SET content = ?";
+        String expectedSql = "UPDATE Table SET content = 'Chris O\\'Dowd'";
+
+        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"Chris O\\'Dowd"}));
+    }
+
+    @Test
+    public void mixedQuotes() throws Exception {
+        String sql = "UPDATE Table SET content = ?";
+        String expectedSql = "UPDATE Table SET content = 'Chris ''Roy'' O\\'Dowd'";
+
+        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"Chris 'Roy' O\\'Dowd"}));
+    }
+
+    @Test
+    public void oracleQuotesInQuery() throws Exception {
+        String sql = "UPDATE Table SET content = q'[content'with'quotes]'";
+
+        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, null));
+    }
+
+    @Test
+    public void oracleQuotesInParam() throws Exception {
+        String sql = "UPDATE Table SET content = ?";
+        // since the oracle quote is inside the param, JDBC would treat it as part of a regular string.
+        String expectedSql = "UPDATE Table SET content = 'q''[around''quote]'''";
+
+        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"q'[around'quote]'"}));
+    }
+
+    @Test
+    public void oracleQuotesInQueryAndParam() throws Exception {
+        String sql         = "UPDATE Table SET content = q'[?]'";
+        // this case looks awkward, but the resulting query should be what the app gets when a PreparedStatement is used.
+        String expectedSql = "UPDATE Table SET content = q'['a''b']'";
+
+        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"a'b"}));
     }
 
     @Test
