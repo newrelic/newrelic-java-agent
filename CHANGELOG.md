@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.5.0 (2021-01-07)
+* Update to `jfr-daemon` `1.7.0`
+* TBD
+
 ## Version 7.4.0 (2021-10-28)
 
 ### New features and improvements
