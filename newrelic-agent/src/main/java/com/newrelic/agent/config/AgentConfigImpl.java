@@ -13,12 +13,22 @@ import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import static com.newrelic.agent.config.SpanEventsConfig.*;
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_LIMIT;
 
 public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
@@ -59,6 +69,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String METRIC_INGEST_URI = "metric_ingest_uri";
     public static final String EVENT_INGEST_URI = "event_ingest_uri";
     public static final String DEBUG = "newrelic.debug";
+    public static final String METRIC_DEBUG = "metric_debug";
     public static final String PLATFORM_INFORMATION_ENABLED = "platform_information_enabled";
     public static final String PORT = "port";
     public static final String PROXY_HOST = "proxy_host";
@@ -124,6 +135,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
     public static final boolean DEFAULT_ENABLE_CUSTOM_TRACING = true;
     public static final boolean DEFAULT_HIGH_SECURITY = false;
+    public static final boolean DEFAULT_METRIC_DEBUG = false;
+
     /*
      * If a customer wants to add a . to the end of their collector hostname to avoid one DNS lookup they can configure
      * host in newrelic.yml. This value makes the default behavior always work.
@@ -170,6 +183,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     // per protocol 15+, region aware license keys must match this regex before constructing collector host
     public static final Pattern REGION_AWARE = Pattern.compile("^.+?x");
+    private static final Pattern DOT_HYPHEN_PATTERN = Pattern.compile("[.-]");
 
     // root configs (alphabetized)
     private final long apdexTInMillis;
@@ -183,6 +197,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean customInstrumentationEditorAllowed;
     private final boolean customParameters;
     private final boolean debug;
+    private final boolean metricDebug;
     private final boolean enabled;
     private final boolean genericJdbcSupportEnabled;
     private final boolean highSecurity;
@@ -274,6 +289,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
         debug = Boolean.getBoolean(DEBUG);
+        metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         licenseKey = getProperty(LICENSE_KEY);
         String region = parseRegion(licenseKey);
@@ -359,7 +375,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         this.customParameters = getProperty(LaspPolicies.LASP_CUSTOM_PARAMETERS, !highSecurity);
 
         if (getProperty(REPORT_SQL_PARSER_ERRORS) != null) {
-            addDeprecatedProperty(new String[]{REPORT_SQL_PARSER_ERRORS}, null);
+            addDeprecatedProperty(new String[] { REPORT_SQL_PARSER_ERRORS }, null);
         }
     }
 
@@ -369,7 +385,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             if (caBundlePath != null) {
                 Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
             } else {
-                Agent.LOG.log(Level.SEVERE, "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.");
+                Agent.LOG.log(Level.SEVERE,
+                        "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.");
             }
         }
         return caBundlePath;
@@ -438,7 +455,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return EU_METRIC_INGEST_URI;
         }
 
-        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}", METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
+        Agent.LOG.log(Level.INFO,
+                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}",
+                METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
         return DEFAULT_METRIC_INGEST_URI;
     }
 
@@ -467,7 +486,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return EU_EVENT_INGEST_URI;
         }
 
-        Agent.LOG.log(Level.INFO, "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}", EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
+        Agent.LOG.log(Level.INFO,
+                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}",
+                EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
         return DEFAULT_EVENT_INGEST_URI;
     }
 
@@ -527,6 +548,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
+    private boolean initMetricDebugConfig() {
+        Object val = getProperty(METRIC_DEBUG);
+        if (val instanceof Boolean && (Boolean) val) {
+            Agent.LOG.log(Level.INFO, "metric_debug is enabled");
+        }
+        return getProperty(METRIC_DEBUG, DEFAULT_METRIC_DEBUG);
+    }
+
     private void setServerSpanHarvestLimit() {
         Map<String, Object> spanEventHarvestLimits = getProperty(SERVER_SPAN_HARVEST_CONFIG);
         if (spanEventHarvestLimits != null) {
@@ -557,7 +586,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getValue(String path, T defaultValue) {
-        Object value = flattenedProperties.get(path.replaceAll("[.-]", "_"));
+        Object value = flattenedProperties.get(DOT_HYPHEN_PATTERN.matcher(path).replaceAll("_"));
         if (value == null) {
             value = flattenedProperties.get(path);
         }

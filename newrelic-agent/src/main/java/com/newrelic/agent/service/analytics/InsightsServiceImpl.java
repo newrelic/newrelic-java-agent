@@ -60,7 +60,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<CustomInsightsEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
     private static final LoadingCache<String, String> stringCache = Caffeine.newBuilder().maximumSize(1000)
-            .expireAfterAccess(70, TimeUnit.SECONDS).build(key -> key);
+            .expireAfterAccess(70, TimeUnit.SECONDS).executor(Runnable::run).build(key -> key);
 
     protected final ExtendedTransactionListener transactionListener = new ExtendedTransactionListener() {
 

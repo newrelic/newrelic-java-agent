@@ -82,7 +82,7 @@ public class Profile implements IProfile {
     private int runnableThreadCount = 0;
     private final ThreadMXBean threadMXBean;
     private final LoadingCache<Long, Long> startThreadCpuTimes = 
-        Caffeine.newBuilder().build(
+        Caffeine.newBuilder().executor(Runnable::run).build(
             new CacheLoader<Long, Long>() {
 
                 @Override
@@ -95,7 +95,7 @@ public class Profile implements IProfile {
     
     private final Map<Long, ProfileTree> threadIdToProfileTrees = new HashMap<>();
     private final LoadingCache<String, ProfileTree> profileTrees =
-            Caffeine.newBuilder().build(createCacheLoader(true));
+            Caffeine.newBuilder().executor(Runnable::run).build(createCacheLoader(true));
     
     private final StringMap stringMap = new Murmur3StringMap();
     private final ProfiledMethodFactory profiledMethodFactory;

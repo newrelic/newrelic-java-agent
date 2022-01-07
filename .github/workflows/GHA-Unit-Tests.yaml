@@ -1,18 +1,10 @@
-## Using matrix strategy test for unit testing
+name: Unit Tests
 
-# The name of your workflow. GitHub displays the names of your workflows on your
-# repository's actions page. If you omit name, GitHub sets it to the workflow
-# file path relative to the root of the repository.
-name: GHA-Unit-Tests
-
-# https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#on
-# on: The name of the GitHub event that triggers the workflow.
 on:
   pull_request:
     branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
   push:
-    # branches: ['**']
     branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   # Use context values as : ${{ github.event.inputs.BRANCH }}
@@ -25,124 +17,91 @@ on:
         default: 'main'
 # A workflow run is made up of one or more jobs. Jobs run in parallel by default.
 jobs:
-  matrix-unit-test:
+  unit-test:
+    name: Unit Tests on JRE ${{ matrix.java-version }}
     timeout-minutes: 120
-    # needs: install-all-java
     runs-on: ubuntu-latest
     env:
       default-branch: "main"
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       # max-parallel: 1 ## used to force sequential vs. concurrent
       fail-fast: false
-      # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
-      # A matrix allows you to create multiple jobs by performing
-      # variable substitution in a single job definition
       matrix:
-        java-version: [8, 11, 16]
+        java-version: [8, 11, 17]
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.BRANCH || env.default-branch }}
-      - uses: gradle/wrapper-validation-action@v1
+      #- uses: gradle/wrapper-validation-action@v1.0.4
 
-      #NEW Install required JDKs
-      # Install 8
       - name: Set up Java 8
-        # https://github.com/actions/setup-java
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: 8
+          cache: 'gradle'
 
-      # Save new JDK variable
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Install 11
       - name: Set up Java 11
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: 11
 
-      # Save new JDK variable
       - name: Save JAVA_HOME as JDK11 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk11=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Install 16
-      - name: Set up Java 16
+      - name: Set up Java 17
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: 16
+          java-version: 17
 
-      # Save new JDK variable
-      - name: Save JAVA_HOME as JDK16 for later usage
+      - name: Save JAVA_HOME as JDK17 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk16=$JAVA_HOME" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
 
-      # Check ENV variables
       - name: Check environmental variables
         run: printenv | sort -f
 
-      # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          # The docs say to use hashfiles, but gradle itself is smart enough to
-          # re-download dependencies if it couldn't resolve them.
-          # Because our gradle cache is _so big_, I think a 90% cache is far
-          # better than a 0% cache.
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-
-      # Is newrelicJar present in newrelic-agent/build
-      # TO DO: Below version number has to be dynamic
-      - name: Build newrelicJar
-        env:
-          # Below is available to context ONLY BECAUSE IT WAS EXPLICITLY ADDED
-          # IN A PREVIOUS STEP.
-          # Not all ENV variables are available for contexts by default.
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          echo "JAVA_HOME=${JAVA_HOME}"
-          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
-          ls -la
-          ./gradlew clean jar --parallel
-          ls -la newrelic-agent/build/
-
-      # GHA run unit tests
-
-      # Rewrite gradle.properties
-      # Assume required as indicated
       - name: Set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
           s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
-          s|jdk16=16|jdk16=${ORG_GRADLE_PROJECT_jdk16}|" gradle.properties.gha
+          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|" gradle.properties.gha
           cat gradle.properties.gha
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      # Run the build.
       - name: Run unit tests for each Java version as defined in the matrix
+        if: ${{ env.GRADLE_KEY != '' }}
+        env:
+          CI: GHA
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_CACHE_USER: gha
+          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
+          JRE: jre${{ matrix.java-version }}
+          LANGUAGE: polyglot
+          TEST_TYPE: unit
+        run: |
+          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue --scan -Dscan.uploadInBackground=false --build-cache
+
+      - name: Run unit tests for each Java version as defined in the matrix no build scan or cache
+        if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          # Updated Gradle command per https://github.com/newrelic/newrelic-java-agent/pull/451
-          ./gradlew --console=plain --parallel clean test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+          echo "*** NOT PUBLISHING BUILD SCANS ***"
+          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
-      # Capture HTML build result in artifacts
-      # https://github.com/actions/upload-artifact
       - name: Capture build reports
         # If previous step fails, run this step regardless
         if: ${{ failure() }}

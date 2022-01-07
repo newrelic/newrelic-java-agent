@@ -84,11 +84,11 @@ public class TransactionProfileSessionImpl implements TransactionProfileSession 
         this.threadService = threadService;
         this.profile = profile; 
         this.transactionProfileTrees =
-                Caffeine.newBuilder().build(
+                Caffeine.newBuilder().executor(Runnable::run).build(
                         transactionName -> new TransactionProfile(profile, threadNameNormalizer));
         this.discoveryProfile = new DiscoveryProfile(profile, threadNameNormalizer);
         this.stackTraceLimits =
-                Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.SECONDS).build(
+                Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.SECONDS).executor(Runnable::run).build(
                         metricName -> new AtomicInteger(0));
     }
 

@@ -5,13 +5,6 @@ dependencies {
 // This instrumentation module should not use the bootstrap classpath
 compileJava.options.bootstrapClasspath = null
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java.completable-future-jdk8u40' }
 }

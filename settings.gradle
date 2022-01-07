@@ -6,10 +6,60 @@ pluginManagement {
     }
 }
 
+plugins {
+    id "com.gradle.enterprise" version "3.7.1"
+    id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.6.1'
+}
+
+boolean isCiServer = System.getenv().containsKey("CI")
+String cacheUser = System.getenv().get("GRADLE_CACHE_USER")
+String cachePassword = System.getenv().get("GRADLE_CACHE_PASSWORD")
+String gradleEnterpriseServer = "https://34.229.76.228/"
+
+println "*** Gradle Enterprise Debug ***"
+println "GRADLE_CACHE_USER=$cacheUser"
+println "isCiServer=$isCiServer"
+
+buildCache {
+    local {
+        enabled = true
+    }
+    remote(HttpBuildCache) {
+        enabled = false
+    }
+}
+
+gradleEnterprise {
+    allowUntrustedServer = true
+    buildScan {
+        publishAlways()
+        publishIfAuthenticated()
+        server = gradleEnterpriseServer
+        uploadInBackground = true
+        capture {
+            taskInputFiles = true
+        }
+        if (System.getenv("CI")) {
+            tag "CI"
+            tag System.getenv("JRE") ?: "jre-not-specified"
+            tag System.getenv("LANGUAGE") ?: "polyglot"
+            String scalaVersion = System.getenv("SCALA_VERSION")
+            if (scalaVersion) {
+                tag scalaVersion
+            }
+            tag System.getenv("TEST_TYPE") ?: "no-test"
+        } else {
+            tag "Local"
+        }
+    }
+}
+
 // Core Projects
 include 'newrelic-api'
 include 'newrelic-scala-api'
 include 'newrelic-scala-cats-api'
+include 'newrelic-cats-effect3-api'
+include 'newrelic-scala-monix-api'
 include 'newrelic-scala-zio-api'
 include 'agent-model'
 include 'agent-interfaces'
@@ -85,6 +135,7 @@ include 'instrumentation:graphql-java-17.0'
 include 'instrumentation:grpc-1.4.0'
 include 'instrumentation:grpc-1.22.0'
 include 'instrumentation:grpc-1.30.0'
+include 'instrumentation:grpc-1.40.0'
 include 'instrumentation:hibernate-3.3'
 include 'instrumentation:hibernate-3.5'
 include 'instrumentation:hibernate-4.0'
@@ -213,6 +264,7 @@ include 'instrumentation:play-2.6.13'
 include 'instrumentation:play-2.7'
 include 'instrumentation:play-shaded-async-http-client-1.0.0'
 include 'instrumentation:play-ws-2.6.0'
+include 'instrumentation:play-ws-2.13_2.6.0'
 include 'instrumentation:quartz-1.8.3'
 include 'instrumentation:quartz-2.0.0'
 include 'instrumentation:ning-async-http-client-1.0'
@@ -230,7 +282,11 @@ include 'instrumentation:scala-2.9.3'
 include 'instrumentation:scala-2.12.0'
 include 'instrumentation:scala-2.13.0'
 include 'instrumentation:cats-effect-2'
+include 'instrumentation:cats-effect-3'
+include 'instrumentation:monix-2.13_3.4.0'
+include 'instrumentation:newrelic-scala-monix-api'
 include 'instrumentation:newrelic-scala-cats-api'
+include 'instrumentation:newrelic-cats-effect3-api'
 include 'instrumentation:newrelic-scala-zio-api'
 include 'instrumentation:servlet-2.4'
 include 'instrumentation:servlet-user'

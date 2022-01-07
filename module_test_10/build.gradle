@@ -24,27 +24,21 @@ compileJava {
         ]
         classpath = files()
     }
+    // Boot classpath no longer works in JDK 9+ so we should ignore it here
+    options.bootstrapClasspath = null
 }
 
-compileJava.options.encoding = 'UTF-8'
-compileJava.options.fork = true
+java {
+    toolchain {
+        // Compile with Java 10 to test module support
+        languageVersion.set(JavaLanguageVersion.of(10))
+    }
+}
 
-// Compile with Java 10 to test module support
-compileJava.options.forkOptions.executable = jdk10 + '/bin/javac'
-compileJava.options.forkOptions.javaHome = new File(jdk10)
-
-compileTestJava.options.encoding = 'UTF-8'
-compileTestJava.options.fork = true
-
-// Compile with Java 10 to test module support
-compileTestJava.options.forkOptions.executable = jdk10 + '/bin/javac'
-compileTestJava.options.forkOptions.javaHome = new File(jdk10)
-
-// Boot classpath no longer works in JDK 9+ so we should ignore it here
-compileJava.options.bootstrapClasspath = null
-
-sourceCompatibility = JavaVersion.VERSION_1_10
-targetCompatibility = JavaVersion.VERSION_1_10
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.fork = true
+}
 
 def module_test_args = [
         "-javaagent:${project.jar.archivePath.absolutePath}",
@@ -58,15 +52,25 @@ def module_test_args = [
         "--module junit/org.junit.runner.JUnitCore"
 ]
 
+def compiler = javaToolchains.compilerFor {
+    languageVersion = JavaLanguageVersion.of(10)
+}
+
 test {
+    inputs.property("test.jdk", "jdk10")
     dependsOn(project(":newrelic-agent").getTasksByName("newrelicJar", false))
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
 
-    executable = jdk10 + '/bin/java'
-
     minHeapSize = "256m"
     maxHeapSize = "256m"
+
+    // We have to set this because java.gradle sets the executable.  This project should only have a subset of
+    // java.gradle applied to it rather than having to reset this after the fact.
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(10)
+    }
+    executable = null
 
     beforeSuite {
         descriptor ->

@@ -86,7 +86,7 @@ public class DependencyRemapperTest {
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
             // Make sure we pick up this Caffeine reference.
             Caffeine<Object, Object> newBuilder = Caffeine.newBuilder();
-            // Make sure we pick up this Caffeine reference.
+            // Make sure we pick up this Guava reference.
             ImmutableSet<Object> set = ImmutableSet.of();
             return super.visitMethod(access, name, desc, signature, exceptions);
         }

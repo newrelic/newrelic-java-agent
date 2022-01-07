@@ -19,7 +19,7 @@ public class GaugeMetric extends NRMetric {
     String metricName;
 
     @SuppressWarnings("rawtypes")
-    public GaugeMetric(String mn, String mt, String r, Gauge m, SolrInfoBean b) {
+    public GaugeMetric(String mn, String mt, String r, Gauge m, String b) {
         super(r, b);
         metric = m;
         metricType = mt;
@@ -33,7 +33,7 @@ public class GaugeMetric extends NRMetric {
 
     @Override
     public String getMetricBase() {
-        return prefix + registry + "/" + metricType + "/" + info.getName();
+        return prefix + registry + "/" + metricType + "/" + name;
     }
 
     @Override
