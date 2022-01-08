@@ -12,40 +12,46 @@ import com.newrelic.api.agent.weaver.Weave;
 import util.TokenAwareRunnable;
 import util.TokenDelegateExecutor;
 
-
 @Weave(type = MatchType.ExactClass, originalName = "java.util.concurrent.CompletableFuture")
 public class CompletableFuture_Instrumentation<T> {
 
-  @Weave(type = MatchType.BaseClass, originalName = "java.util.concurrent.CompletableFuture$Async")
-  abstract static class Async extends ForkJoinTask<Void>
-    implements Runnable, CompletableFuture.AsynchronousCompletionTask {
-    public final Void getRawResult() { return null; }
-    public final void setRawResult(Void v) { }
-    public final void run() { exec(); }
-  }
+    @Weave(type = MatchType.BaseClass, originalName = "java.util.concurrent.CompletableFuture$Async")
+    abstract static class Async extends ForkJoinTask<Void>
+            implements Runnable, CompletableFuture.AsynchronousCompletionTask {
+        public final Void getRawResult() {
+            return null;
+        }
 
-  private static boolean noParallelism(Executor e) {
-    return (e == ForkJoinPool.commonPool() &&
-            ForkJoinPool.getCommonPoolParallelism() <= 1);
-  }
+        public final void setRawResult(Void v) {
+        }
 
-  private static Executor useTokenDelegateExecutor(Executor e) {
-    if (null == e || e instanceof TokenDelegateExecutor) {
-      return e;
-    } else {
-      return new TokenDelegateExecutor(e);
+        public final void run() {
+            exec();
+        }
     }
-  }
 
-  static void execAsync(Executor e, CompletableFuture_Instrumentation.Async r) {
-    if (noParallelism(e))
-      new Thread(new TokenAwareRunnable(r)).start();
-    else {
-      Executor tde = useTokenDelegateExecutor(e);
-      if(null != tde) {
-        tde.execute(r);
+    private static boolean noParallelism(Executor e) {
+        return (e == ForkJoinPool.commonPool() &&
+                ForkJoinPool.getCommonPoolParallelism() <= 1);
+    }
+
+    private static Executor useTokenDelegateExecutor(Executor e) {
+        if (null == e || e instanceof TokenDelegateExecutor) {
+            return e;
+        } else {
+            return new TokenDelegateExecutor(e);
+        }
+    }
+
+    static void execAsync(Executor e, CompletableFuture_Instrumentation.Async r) {
+      if (noParallelism(e)) {
+        new Thread(new TokenAwareRunnable(r)).start();
+      } else {
+        Executor tde = useTokenDelegateExecutor(e);
+        if (null != tde) {
+          tde.execute(r);
+        }
       }
     }
-  }
 
 }
