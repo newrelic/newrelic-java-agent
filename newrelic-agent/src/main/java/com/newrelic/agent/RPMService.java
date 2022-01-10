@@ -44,7 +44,6 @@ import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.utilization.UtilizationData;
-import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.json.simple.JSONStreamAware;
 
 import java.lang.management.ManagementFactory;
