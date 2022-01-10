@@ -860,21 +860,17 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                 retry = true;
                 Agent.LOG.log(Level.INFO, "A connection error occurred contacting {0}. Please check your network / proxy settings.", e.getHostName());
                 Agent.LOG.log(Level.FINEST, e, e.toString());
-            } catch (ConnectionPoolTimeoutException e) {
-                Agent.LOG.log(Level.INFO, "A connection pool timeout error occurred.");
-                Agent.LOG.log(Level.FINEST, e, e.toString());
-                reconnectAsync();
-                retry = true;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // LicenseException handled here
                 logMetricDataError(e);
                 retry = true;
-                String message = e.getMessage().toLowerCase();
-                // if our data can't be parsed, we probably have a bad metric
-                // (web transaction maybe?). clear out the metrics
-                if (message.contains("json") && message.contains("parse")) {
-                    retry = false;
+                if(e.getMessage() != null) {
+                    String message = e.getMessage().toLowerCase();
+                    // if our data can't be parsed, we probably have a bad metric
+                    // (web transaction maybe?). clear out the metrics
+                    if (message.contains("json") && message.contains("parse")) {
+                        retry = false;
+                    }
                 }
             }
             long duration = System.nanoTime() - startTime;
