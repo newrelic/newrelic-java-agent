@@ -863,7 +863,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                 // LicenseException handled here
                 logMetricDataError(e);
                 retry = true;
-                if(e.getMessage() != null) {
+                if (e.getMessage() != null) {
                     String message = e.getMessage().toLowerCase();
                     // if our data can't be parsed, we probably have a bad metric
                     // (web transaction maybe?). clear out the metrics
