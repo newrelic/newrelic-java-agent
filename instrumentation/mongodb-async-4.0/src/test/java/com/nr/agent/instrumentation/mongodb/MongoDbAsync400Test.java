@@ -49,7 +49,7 @@ public class MongoDbAsync400Test {
     public void startMongo() throws Exception {
         int port = Network.freeServerPort(getLocalHost());
         MongodConfig mongodConfig = ImmutableMongodConfig.builder()
-                .version(Version.V4_4_9) // MongoDB version, not Mongo client version
+                .version(Version.V4_0_2) // MongoDB version, not Mongo client version 4.0.26
                 .net(new Net(port, Network.localhostIsIPv6()))
                 .build();
         mongodExecutable = mongodStarter.prepare(mongodConfig);
