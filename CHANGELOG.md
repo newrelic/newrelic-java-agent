@@ -7,9 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
-## Version 7.5.0 (2021-01-07)
-* Update to `jfr-daemon` `1.7.0`
-* TBD
+## Version 7.6.0 (2021-01-07)
+TBD
+
+## Version 7.5.0 (2021-01-12)
+
+## New features and improvements
+
+* Update to jfr-daemon 1.7.0 - fixes a memory leak condition by cleaning up copies of JFR recordings. Also updated to use version 0.13.1 of the telemetry-sdk [638](https://github.com/newrelic/newrelic-java-agent/pull/638)
+* Update HTTP response code attribute names. This will add `http.statusCode` and `http.statusText` to spans and transactions [513](https://github.com/newrelic/newrelic-java-agent/pull/513)
+* Provide support for Datastax/Cassandra WrappedStatments. [525](https://github.com/newrelic/newrelic-java-agent/pull/525)
+* Add instrumentation for gRPC 1.40.0+ (thanks to [fcaylus](https://github.com/fcaylus) for this contribution) [518](https://github.com/newrelic/newrelic-java-agent/pull/518)
+* Add suppressed exceptions to ThrowableError.stackTrace (thanks to [dkarlinsky](https://github.com/dkarlinsky) for this contribution)  [405](https://github.com/newrelic/newrelic-java-agent/pull/405)
+* Add Scala instrumentation and Scala API for Monix Tasks [543](https://github.com/newrelic/newrelic-java-agent/pull/543)
+* Add instrumentation for Mongo async/reactivestreams drivers versions 3.4.x to 4.1.x [609](https://github.com/newrelic/newrelic-java-agent/pull/609)
+* Scala Cats Effect 3 - modified the API to support passing the transaction by implicit reference, rather than using ThreadLocal variables [578](https://github.com/newrelic/newrelic-java-agent/pull/578)
+* Add Instrumentation for Play WS 2.6.0 under Scala 2.13 [594](https://github.com/newrelic/newrelic-java-agent/pull/594)
+* Agent optimization: change String.replaceAll in favor of Pattern.compile (thanks to [brunolellis](https://github.com/brunolellis) for this contribution) [592](https://github.com/newrelic/newrelic-java-agent/pull/592)
+
+## Fixes
+* Upgrade log4j-core version to 2.17.1 to address security vulnerability [CVE-2021-44832](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832) [625](https://github.com/newrelic/newrelic-java-agent/pull/625)
+* Enhancements for Spring WebFlux and Reactor Netty instrumentation to address gaps in instrumentation. Also includes support for upgraded Spring Security configurations [538](https://github.com/newrelic/newrelic-java-agent/pull/538)
+* Update Async-Http-Client library version to 2.0.35 to address security vulnerability [CVE-2017-14063](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-14063)  [577](https://github.com/newrelic/newrelic-java-agent/pull/577)
+* Handle null pointer exceptions in hostname lookup [587](https://github.com/newrelic/newrelic-java-agent/pull/587)
+* Properly expire tokens used in CompletableFuture instrumentation to reduce memory usage and prevent telemetry reporting delays [634](https://github.com/newrelic/newrelic-java-agent/pull/634)
+* Add additional exception handling to catch ConnectionPoolTimeoutException errors, which may lead to an unrecoverable agent state [637](https://github.com/newrelic/newrelic-java-agent/pull/637)
+* Resolve Solr FilterCache Memory Leak [613](https://github.com/newrelic/newrelic-java-agent/pull/613)
+* Reintroduce MongoDB sync instrumentation (erroneously removed in a prior release while async support was added) [635](https://github.com/newrelic/newrelic-java-agent/pull/635)
+* Fix Sql obfuscation so that it applies correctly to queries with certain formatting [632](https://github.com/newrelic/newrelic-java-agent/pull/632)
+* Agent configuration `expected_status_codes` is not honored when a transaction exception is encountered [565](https://github.com/newrelic/newrelic-java-agent/pull/565)
+* Scala Cats Effect - ensure Http4s transaction tracer is created on request run. This resolves some invalid tracer states that were causing null pointer exceptions [530](https://github.com/newrelic/newrelic-java-agent/pull/530)
+* Fix Akka HTTP bindFlow [555](https://github.com/newrelic/newrelic-java-agent/pull/555)
+* Address Caffeine cache causing memory leak and OOM condition  [593](https://github.com/newrelic/newrelic-java-agent/pull/593)
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
 
 ## Version 7.4.0 (2021-10-28)
 
