@@ -34,22 +34,22 @@ jobs:
         # functional_path: [basic_features, datastore]
         func_tests:
           - auto_app_naming.py
-          - cat.py
-          - classloading.py
-          - commands.py
-          - connect_opt.py
-          - env_vars.py
-          - errors.py
-          - extensions.py
-          - external.py
-          - inf_tracing_test.py
-          - key_tx.py
-          - report_period.py
-          - rules.py
-          - spans.py
-          - thread_sampler.py
-          - trans_traces.py
-          - uri_names.py
+#          - cat.py
+#          - classloading.py
+#          - commands.py
+#          - connect_opt.py
+#          - env_vars.py
+#          - errors.py
+#          - extensions.py
+#          - external.py
+#          - inf_tracing_test.py
+#          - key_tx.py
+#          - report_period.py
+#          - rules.py
+#          - spans.py
+#          - thread_sampler.py
+#          - trans_traces.py
+#          - uri_names.py
     steps:
       - uses: actions/checkout@v2
 
@@ -152,7 +152,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -205,16 +204,8 @@ jobs:
 
       # End Java restore section
 
-      # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       ## TESTING SECTION
 
@@ -234,9 +225,7 @@ jobs:
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          # ./gradlew clean jar --parallel
-          # Per Todd Crone, attempting without --parallel option
-          ./gradlew clean jar
+          ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: Check disk space
