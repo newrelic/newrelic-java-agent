@@ -19,7 +19,7 @@ public class CacheMetric extends NRMetric {
     MetricsMap metric = null;
     String metricType = null;
 
-    public CacheMetric(String mt, String r, Metric m, SolrInfoBean b) {
+    public CacheMetric(String mt, String r, Metric m, String b) {
         super(r, b);
         metricType = mt;
         if (MetricsMap.class.isInstance(m)) {
@@ -49,7 +49,7 @@ public class CacheMetric extends NRMetric {
 
     @Override
     public String getMetricBase() {
-        return prefix + registry + "/" + metricType + "/" + info.getName();
+        return prefix + registry + "/" + metricType + "/" + name;
     }
 
 }

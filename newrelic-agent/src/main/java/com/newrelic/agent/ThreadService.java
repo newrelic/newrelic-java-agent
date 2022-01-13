@@ -32,7 +32,7 @@ public class ThreadService extends AbstractService implements ThreadNames {
 
     public static final String NAME_PATTERN_CFG_KEY = "thread_sampler.name_pattern";
     private final Map<Long, Boolean> agentThreadIds;
-    private final Cache<Long, String> threadIdToName = Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
+    private final Cache<Long, String> threadIdToName = Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).executor(Runnable::run).build();
     private volatile ThreadNameNormalizer threadNameNormalizer;
 
     public ThreadService() {

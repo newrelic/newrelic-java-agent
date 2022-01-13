@@ -16,11 +16,19 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'io.monix:monix-execution_2.11:[3.0.0, 3.3.0)'
-    passes 'io.monix:monix-execution_2.12:[3.0.0,)'
-    passes 'io.monix:monix-execution_2.13:[3.0.0,)'
-    passes 'io.monix:monix-execution_3:[3.0.0,)'
-    excludeRegex ".*(RC|M)[0-9]*"
+    // scala 11
+    passesOnly 'io.monix:monix-execution_2.11:[2.0.0,)'
+
+    // scala 12
+    passesOnly 'io.monix:monix-execution_2.12:[2.0.6,)'
+
+    // scala 2.13
+    passesOnly 'io.monix:monix-execution_2.13:[3.0.0,)'
+
+    // scala 3
+    passesOnly 'io.monix:monix-execution_3:[3.4.0,)'
+
+    excludeRegex ".*(RC|M)[0-9].*"
 }
 
 test {

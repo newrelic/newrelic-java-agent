@@ -17,7 +17,7 @@ public class MeteredMetric extends NRMetric {
     String metricType;
     String metricName;
 
-    public MeteredMetric(String mn, String mt, String r, SolrInfoBean b, Metered m) {
+    public MeteredMetric(String mn, String mt, String r, String b, Metered m) {
         super(r, b);
         metered = m;
         metricType = mt;
@@ -31,7 +31,7 @@ public class MeteredMetric extends NRMetric {
 
     @Override
     public String getMetricBase() {
-        return prefix + registry + "/" + metricType + "/" + info.getName();
+        return prefix + registry + "/" + metricType + "/" + name;
     }
 
     @Override

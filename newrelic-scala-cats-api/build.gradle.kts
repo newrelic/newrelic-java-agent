@@ -58,33 +58,10 @@ tasks {
         setForkEvery(1)
         maxParallelForks = Runtime.getRuntime().availableProcessors()
 
-        val jdk15: String by project
-        val jdk14: String by project
-        val jdk13: String by project
-        val jdk12: String by project
-        val jdk11: String by project
-        val jdk10: String by project
-        val jdk9: String by project
-        val jdk8: String by project
-
-        if (project.hasProperty("test15")) {
-            executable = "$jdk15/bin/java"
-        } else if (project.hasProperty("test14")) {
-            executable = "$jdk14/bin/java"
-        } else if (project.hasProperty("test13")) {
-            executable = "$jdk13/bin/java"
-        } else if (project.hasProperty("test12")) {
-            executable = "$jdk12/bin/java"
-        } else if (project.hasProperty("test11")) {
-            executable = "$jdk11/bin/java"
-        } else if (project.hasProperty("test10")) {
-            executable = "$jdk10/bin/java"
+        if (project.hasProperty("test10")) {
             jvmArgs("--add-modules", "java.xml.bind")
         } else if (project.hasProperty("test9")) {
-            executable = "$jdk9/bin/java"
             jvmArgs("--add-modules", "java.xml.bind")
-        } else if (project.hasProperty("test8")) {
-            executable = "$jdk8/bin/java"
         }
 
         minHeapSize = "256m"

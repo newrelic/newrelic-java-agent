@@ -863,11 +863,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                 // LicenseException handled here
                 logMetricDataError(e);
                 retry = true;
-                String message = e.getMessage().toLowerCase();
-                // if our data can't be parsed, we probably have a bad metric
-                // (web transaction maybe?). clear out the metrics
-                if (message.contains("json") && message.contains("parse")) {
-                    retry = false;
+                if (e.getMessage() != null) {
+                    String message = e.getMessage().toLowerCase();
+                    // if our data can't be parsed, we probably have a bad metric
+                    // (web transaction maybe?). clear out the metrics
+                    if (message.contains("json") && message.contains("parse")) {
+                        retry = false;
+                    }
                 }
             }
             long duration = System.nanoTime() - startTime;

@@ -19,6 +19,7 @@ import com.newrelic.agent.util.Strings;
 public class MetricNameFormats {
 
     private static final Cache<MNFKey, MetricNameFormat> cmsToMnf = Caffeine.newBuilder()
+                                                                                .executor(Runnable::run)
                                                                                 .build();
 
     private MetricNameFormats() {

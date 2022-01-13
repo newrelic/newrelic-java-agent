@@ -45,7 +45,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
-          cache: gradle
 
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
@@ -90,12 +89,15 @@ jobs:
         run: find instrumentation -name "*.jar"
       ## End AWS jars - plan to cache (check for cache, restore if required)
 
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
       - name: Build newrelicJar
         if: ${{ env.GRADLE_KEY != '' }}        
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
           GRADLE_CACHE_USER: gha
           GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
           JRE: jre${{ matrix.java-version }}
@@ -133,7 +135,7 @@ jobs:
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
           GRADLE_CACHE_USER: gha
           GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
           JRE: jre${{ matrix.java-version }}

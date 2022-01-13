@@ -5,9 +5,6 @@ plugins {
 group = "com.newrelic.agent.java"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
     disableAutoTargetJvm()
 }
 
@@ -21,6 +18,12 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
     testImplementation("org.mockito:mockito-junit-jupiter:3.3.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 tasks.test {

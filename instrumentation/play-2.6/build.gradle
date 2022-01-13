@@ -22,14 +22,6 @@ sourceSets.test.java.srcDirs = []
 
 compileJava.options.bootstrapClasspath = null
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))
@@ -62,18 +54,27 @@ test {
 }
 
 compileTestScala {
+    def routeFile = file("src/test/resources/conf/routes")
+    def generatedSourcesDir = layout.buildDirectory.dir("generated/scala")
+
     options.compilerArgs += '-proc:none'
+
+    inputs.file(routeFile)
+    localState.register(generatedSourcesDir)
 
     // this manually compiles the conf/routes file into an Routes.scala file, which is subsequently read on startup by our test application
     doFirst {
-        def routeFile = file("src/test/resources/conf/routes")
-        def outputDirectory = file("src/test/scala")
-
         def RoutesCompiler.RoutesCompilerTask routesCompilerTask = new RoutesCompiler.RoutesCompilerTask(
                 routeFile, JavaConversions.asScalaBuffer(Collections.<String> emptyList()).toSeq(),
                 true, false, false)
-        RoutesCompiler$.MODULE$.compile(routesCompilerTask, InjectedRoutesGenerator$.MODULE$, outputDirectory)
+        RoutesCompiler$.MODULE$.compile(routesCompilerTask, InjectedRoutesGenerator$.MODULE$, generatedSourcesDir.get().asFile)
+        source generatedSourcesDir
     }
+}
+
+clean {
+    // Clean up any residual generated Routes files to avoid duplicate classes
+    delete 'src/test/scala/router'
 }
 
 site {
