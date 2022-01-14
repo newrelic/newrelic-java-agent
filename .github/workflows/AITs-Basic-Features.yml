@@ -1,13 +1,14 @@
-name: GHA-AIT-functionality-framework-tests
-# We  need to set java home to JDK 8
+name: AITs - Basic
+# We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
+# Force build
 
 on:
   pull_request:
-    branches: [ disabled ] ## branches TBD
+    branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ disabled ]
+    branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -17,39 +18,38 @@ on:
         default: 'main'
 
 jobs:
-  AIT_func_framework:
+  tests:
+    name: Basic Feature AITs
     # needs: install-all-java
     timeout-minutes: 120
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "framework"
+      java_func_type: "basic_features"
       default-branch: "main"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
-        # func_path: [akka, ejb, jaxrs, jms, netty, play, quartz, snap, spring, thrift]
         func_tests:
-          - akka/akka.py
-          - akka/akkahttp.py
-          - ejb/ejb.py
-          - jaxrs/jaxrs.py
-          - jms/jms.py
-          - netty/netty.py
-          - play/play2.py
-          - quartz/quartz.py
-          - snap/snap.py
-          - spring/spring_4_3.py
-          - spring/spring_5_0.py
-          - spring/spring_webflux.py
-          - thrift/thrift.py
-
+          - auto_app_naming.py
+          - cat.py
+          - connect_opt.py
+          - env_vars.py
+          - errors.py
+          - extensions.py
+          - external.py
+          - key_tx.py
+          - report_period.py
+          - rules.py
+          - spans.py
+          - trans_traces.py
+          - uri_names.py
     steps:
       - uses: actions/checkout@v2
 
-      ## Ongoing tests with artifactory dependecies
+      ## Ongoing tests with artifactory dependencies
       - name: Checkout AIT repo test
         uses: actions/checkout@v2
         with:
@@ -122,12 +122,23 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk11=${JAVA_HOME}" >> $GITHUB_ENV
+
+      # Install Zulu
+      - name: Set up Zulu
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      # Set the JDK variable
+      - name: Set the required JDK variable
+        run: |
+          echo "ORG_GRADLE_PROJECT_zulu=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install 17
       - name: Set up Java 17
@@ -136,11 +147,10 @@ jobs:
           distribution: 'adopt'
           java-version: 17
 
-      # Save new JDK variable
-      - name: Save JAVA_HOME as JDK17 for later usage
+      # Set the JDk variable
+      - name: Set the required JDK variable
         run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
@@ -148,12 +158,49 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk8=${JAVA_HOME}" >> $GITHUB_ENV
+
+      - name: Set up Toolchain
+        shell: bash
+        run: |
+          mkdir -p $HOME/.m2 \
+          && cat << EOF > $HOME/.m2/toolchains.xml
+          <?xml version="1.0" encoding="UTF8"?>
+          <!-- toolchains.xml is used by the pom in the Java11_test_webapp.  -->
+          <toolchains>
+            <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>8</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${ORG_GRADLE_PROJECT_jdk8}</jdkHome>
+            </configuration>
+            </toolchain>
+            <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>11</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${ORG_GRADLE_PROJECT_jdk11}</jdkHome>
+            </configuration>
+            </toolchain>
+            <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>17</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${ORG_GRADLE_PROJECT_jdk17}</jdkHome>
+            </configuration>
+            </toolchain>
+          </toolchains>
+          EOF
 
       ## End JDK Install
 
@@ -163,23 +210,15 @@ jobs:
 
       # End Java restore section
 
-      # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       ## TESTING SECTION
 
       - name: Check new Java home path
         run: |
           echo "Current JAVA_HOME is ${JAVA_HOME}"
-          # ls -la ${ORG_GRADLE_PROJECT_jdk8}
+          # ls -la {ORG_GRADLE_PROJECT_jdk8}
 
 
       # Replication of steps from ait README
@@ -195,15 +234,15 @@ jobs:
           ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
-      - name: CD to agent-integration-tests dir.
-        run: |
-          cd agent-integration-tests/
-          ls -la
-
       - name: Check disk space
         run: |
           df -h
           du -a ${GITHUB_WORKSPACE} | sort -n -r | head -n 10
+
+      - name: CD to agent-integration-tests dir.
+        run: |
+          cd agent-integration-tests/
+          ls -la
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
@@ -230,6 +269,7 @@ jobs:
           echo "run autoconfigure"
           JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
+          ZULU=${ORG_GRADLE_PROJECT_zulu} \
           JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
           conf/autoconfigure
           echo "running conf/testenv java"
@@ -264,6 +304,7 @@ jobs:
           echo "Running ${{ matrix.func_basic_features }}"
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
           ./bin/runtest.sh ${java_func_path}/${java_func_type}/${{ matrix.func_tests }}
+
 
       # Rename matrix item to remove problem characers
       - name: Rename Matrix item
