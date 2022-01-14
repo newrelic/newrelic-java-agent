@@ -131,12 +131,23 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk11=${JAVA_HOME}" >> $GITHUB_ENV
+
+      # Install Zulu
+      - name: Set up Zulu
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      # Set the JDK variable
+      - name: Set the required JDK variable
+        run: |
+          echo "ORG_GRADLE_PROJECT_zulu=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install 17
       - name: Set up Java 17
@@ -144,7 +155,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 17
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -268,6 +278,7 @@ jobs:
           echo "run autoconfigure"
           JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
+          ZULU=${ORG_GRADLE_PROJECT_zulu}
           JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
           conf/autoconfigure
           echo "running conf/testenv java"
