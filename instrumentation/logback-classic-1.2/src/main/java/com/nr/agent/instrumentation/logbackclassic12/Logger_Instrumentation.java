@@ -12,8 +12,8 @@ public abstract class Logger_Instrumentation {
 
     private void buildLoggingEventAndAppend(final String localFQCN, final Marker marker, final Level level, final String msg, final Object[] params,
             final Throwable t) {
-        Weaver.callOriginal();
         NewRelic.incrementCounter("Logging/lines");
-        NewRelic.incrementCounter(String.format("Logging/lines/%s", level));
+        NewRelic.incrementCounter("Logging/lines" + level);
+        Weaver.callOriginal();
     }
 }

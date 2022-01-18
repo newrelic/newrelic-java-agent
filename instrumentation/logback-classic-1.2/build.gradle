@@ -8,8 +8,9 @@ dependencies {
 }
 
 verifyInstrumentation {
-    passes("ch.qos.logback:logback-classic:[1.0,)")
-    excludeRegex 'ch.qos.logback:logback-classic:1.3.*'
+    passesOnly("ch.qos.logback:logback-classic:[0.9.3,)")
+    excludeRegex '.*(alpha|groovyless).*'
+    excludeRegex 'ch.qos.logback:logback-classic:0.9.6'
 }
 
 site {
