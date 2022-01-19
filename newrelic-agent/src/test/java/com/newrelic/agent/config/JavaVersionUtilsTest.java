@@ -82,7 +82,7 @@ public class JavaVersionUtilsTest {
     public void unsupportedJavaVersionMessageWhenLessThanJava8() {
         String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_7);
         assertThat(msg, containsString(JavaVersionUtils.JAVA_7));
-        assertThat(msg, containsString("6.5.0 New Relic agent"));
+        assertThat(msg, containsString("6.5.3 New Relic agent"));
     }
 
     @Test
