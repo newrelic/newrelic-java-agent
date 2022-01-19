@@ -142,13 +142,13 @@ jobs:
           LANGUAGE: scala
           SCALA_VERSION: scala${{ matrix.scala }}
           TEST_TYPE: instrumentation
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -PnoScala -Pscala-${{ matrix.scala }} --continue --scan -Dscan.uploadInBackground=false --build-cache
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue --scan -Dscan.uploadInBackground=false --build-cache
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} w/o GE
         if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -PnoScala -Pscala-${{ matrix.scala }} --continue
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
 
       - name: Capture build reports
         if: ${{ failure() }}

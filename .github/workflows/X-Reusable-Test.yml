@@ -160,7 +160,7 @@ jobs:
           LANGUAGE: java
           TEST_TYPE: instrumentation
         run: |
-          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue -Dscan.uploadInBackground=false --build-cache
+          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue -Dscan.uploadInBackground=false --build-cache
 
       # Run the build without Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
@@ -169,7 +169,7 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
-          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue
+          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
