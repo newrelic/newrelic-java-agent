@@ -111,7 +111,7 @@ jobs:
           TEST_TYPE: functional
         run: |
           # Removed ":newrelic-cats-effect3-api:test" temporarily
-          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -Ptest${{ matrix.java-version }} --continue --scan -Dscan.uploadInBackground=false --build-cache
+          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue --scan -Dscan.uploadInBackground=false --build-cache
 
       - name: Run functional tests against version defined in matrix w/o GE
         if: ${{ env.GRADLE_KEY == '' }}
@@ -119,7 +119,7 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           # Removed ":newrelic-cats-effect3-api:test" temporarily
-          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -Ptest${{ matrix.java-version }} --continue
+          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
