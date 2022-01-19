@@ -13,7 +13,7 @@ public abstract class Logger_Instrumentation {
     private void buildLoggingEventAndAppend(final String localFQCN, final Marker marker, final Level level, final String msg, final Object[] params,
             final Throwable t) {
         NewRelic.incrementCounter("Logging/lines");
-        NewRelic.incrementCounter("Logging/lines" + level);
+        NewRelic.incrementCounter("Logging/lines/" + level);
         Weaver.callOriginal();
     }
 }
