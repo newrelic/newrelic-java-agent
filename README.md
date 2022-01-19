@@ -83,7 +83,7 @@ The Java agent utilizes the following four distinct test suites, each of which i
 
 #### Conventional unit tests
 
-The unit tests are conventional JUnit tests. The supporting framework is the industry-standard JUnit dependency. Unit tests rely on a variety of different mock object frameworks combined with complex test initialization patterns that simulate agent initialization.
+The unit tests are conventional JUnit tests. The supporting framework is the industry-standard JUnit dependency. Unit tests rely on a variety of different mock object frameworks combined with complex test initialization patterns that simulate agent initialization. Scala test tasks are excluded by default. Including the -PincludeScala project property includes Scala test tasks.
 
 Run all unit tests:
 
@@ -140,6 +140,11 @@ Run all tests for a specific instrumentation module:
 Run a single test for a specific instrumentation module:
 ```
 ./gradlew instrumentation:vertx-web-3.2.0:test --tests com.nr.vertx.instrumentation.RoutingTest --parallel
+```
+
+Run all tests for a specific Scala instrumentation module:
+```
+./gradlew -PincludeScala instrumentation:sttp-2.13_2.2.3:test --parallel
 ```
 
 ## Support
