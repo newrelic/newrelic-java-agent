@@ -1,0 +1,19 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.logback-classic-1.2' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("ch.qos.logback:logback-classic:1.2.6")
+}
+
+verifyInstrumentation {
+    passesOnly("ch.qos.logback:logback-classic:[0.9.3,)")
+    excludeRegex '.*(alpha|groovyless).*'
+    excludeRegex 'ch.qos.logback:logback-classic:0.9.6'
+}
+
+site {
+    title 'Logback'
+    type 'Framework'
+}
