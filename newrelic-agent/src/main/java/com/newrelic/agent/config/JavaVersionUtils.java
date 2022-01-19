@@ -54,7 +54,7 @@ public class JavaVersionUtils {
         if (EXCLUSIVE_MIN_JAVA_VERSION_PATTERN.matcher(javaSpecificationVersion).matches()) {
             message.append("Java version is: ").append(javaSpecificationVersion).append(". ");
             message.append("This version of the New Relic Agent does not support Java 1.7 or below. ")
-                    .append("Please use a 6.5.0 New Relic agent or a later version of Java.");
+                    .append("Please use a 6.5.3 New Relic agent or a later version of Java.");
         } else if (EXCLUSIVE_MAX_JAVA_VERSION_PATTERN.matcher(javaSpecificationVersion).matches()) {
             message.append("Java version is: ").append(javaSpecificationVersion).append(". ");
             message.append("This version of the New Relic Agent does not support versions of Java greater than " + MAX_SUPPORTED_VERSION + ".");
