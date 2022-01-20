@@ -1,4 +1,4 @@
-name: Datastore AITs
+name: AITs - Datastores (1 disabled)
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
@@ -8,7 +8,7 @@ on:
     branches: [ disabled ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ fix-datasource-aits ]
+    branches: [ tcrone/spike-aits-on-gha ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   tests:
-    name: Datastor AITs
+    name: Datastores
     timeout-minutes: 120
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
