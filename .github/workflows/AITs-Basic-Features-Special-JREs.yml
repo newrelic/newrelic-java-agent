@@ -1,4 +1,4 @@
-name: AITs - Basic - Special JREs (only Zulu enabled)
+name: AITs - Basic - JREs (only Zulu enabled)
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
@@ -19,7 +19,7 @@ on:
 
 jobs:
   tests:
-    name: Special JREs
+    name: Basic JRE
     # needs: install-all-java
     timeout-minutes: 120
     runs-on: ubuntu-latest

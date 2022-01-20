@@ -1,14 +1,14 @@
-name: AITs - Frameworks (6 disabled)
+name: AITs - Frameworks (6/13 disabled)
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
 
 on:
   pull_request:
-    branches: [ disabled ] ## branches TBD
+    branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ tcrone/spike-aits-on-gha ]
+    branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
