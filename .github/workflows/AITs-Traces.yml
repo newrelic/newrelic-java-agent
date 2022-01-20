@@ -1,11 +1,15 @@
-name: GHA-AIT-functionality-trace-tests
+name: AITs - Traces
+# We need to set java home to JDK 8
+# Also configure workflow_dispatch fr all workflows - add github ref
+# Force build
 
 on:
   pull_request:
-    branches: [ disabled ] ## branches TBD
-    types: [assigned, opened, synchronize, reopened, ready_for_review] # Types TBD
+    branches: [ main ] ## branches TBD
+    types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ disabled ]
+    branches: [ tcrone/spike-aits-on-gha ]
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       BRANCH:
@@ -14,8 +18,8 @@ on:
         default: 'main'
 
 jobs:
-  AIT_func_trace:
-    # needs: install-all-java
+  tests:
+    name: Traces
     timeout-minutes: 120
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
@@ -27,7 +31,7 @@ jobs:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
-        # func_path: [akka, ejb, jaxrs, jms, netty, play, quartz, snap, spring, thrift]
+        # functional_path: [basic_features, datastore]
         func_tests:
           - tracecontext/__init__.py
           - tracecontext/traceparent.py
@@ -113,25 +117,23 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk11=${JAVA_HOME}" >> $GITHUB_ENV
 
-      # Install 16
-      - name: Set up Java 16
+      # Install 17
+      - name: Set up Java 17
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: 16
-          cache: 'gradle'
+          java-version: 17
 
       # Set the JDk variable
       - name: Set the required JDK variable
         run: |
-          echo "ORG_GRADLE_PROJECT_jdk16=${JAVA_HOME}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
@@ -139,7 +141,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 8
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -154,60 +155,39 @@ jobs:
 
       # End Java restore section
 
-      # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       ## TESTING SECTION
 
-      # Replication of steps from AIT README
+      - name: Check new Java home path
+        run: |
+          echo "Current JAVA_HOME is ${JAVA_HOME}"
+          # ls -la ${ORG_GRADLE_PROJECT_jdk8}
 
-      # Build the agent jar
+
+      # Replication of steps from ait README
+
+      # Is newrelicJar present in newrelic-agent/build
+      # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
         if: ${{ failure() || success() }}
         run: |
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel
+          # ./gradlew clean jar --parallel
+          # Per Todd Crone, attempting without --parallel option
+          ./gradlew clean jar
           ls -la newrelic-agent/build/
 
-      - name: Check agent-integration-tests dir.
+      - name: CD to agent-integration-tests dir.
         run: |
-          ls -la agent-integration-tests/
-
-      ## Testing replacing below step with custom action
-
-      ## CUSTOM ACTIONS - DO NOT REMOVE
-      # Checkout the private actions repo and then call the action
-      # - name: Get private java-actions repo with composite action
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository: newrelic/java-actions
-      #     ref: main
-      #     token: ${{ secrets.ACTIONS_TOKEN }}
-      #     path: .github/actions
-
-      # Verify java-actions directory
-      # - name: Verify ait actions directory
-      #   run: |
-      #     ls -la .github/actions/ait
-
-      # Call the action
-      # - name: Run the AIT action - ${{ matrix.func_tests}}
-      #   uses: ./.github/actions/ait
-
-      ## End custom action
+          cd agent-integration-tests/
+          ls -la
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
-      - name: Create virtualenv and run AITs - ${{ matrix.func_tests}}
+      - name: Create virtualenv and run AITs - ${{ matrix.func_tests }}
         if: ${{ failure() || success() }}
         run: |
           cd agent-integration-tests
@@ -230,7 +210,7 @@ jobs:
           echo "run autoconfigure"
           JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
-          JAVA16JRE=${ORG_GRADLE_PROJECT_jdk16} \
+          JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
           conf/autoconfigure
           echo "running conf/testenv java"
           . conf/testenv java
@@ -258,7 +238,7 @@ jobs:
           echo "are we still in agent-integration-tests?"
           pwd
           ## End testing artifacts section
-          echo "Check the current value of JAVA_HOME"
+          echo "Check the current Java Home for this step"
           echo "The current JAVA_HOME is ${JAVA_HOME}"
           echo "RUN THE TESTS"
           echo "Running ${{ matrix.func_basic_features }}"
@@ -274,18 +254,16 @@ jobs:
           MATRIX_ITEM=$(echo ${MATRIX} | sed 's|/|-|g')
           echo "MATRIX="${MATRIX_ITEM}"" >> $GITHUB_ENV
 
-      # Capture Testing Artifacts
+      # Capture Testing Artifacts temp for development
       - name: Capture testing artifacts
         if: ${{ failure() || success() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
+          name: ${{ github.workflow }}-${{ github.job }}-${{ env.Matrix }}
           path: |
             agent-integration-tests/testing-artifacts/*
-            **/build/test-results/**/*.xml
 
       # Print Environmental variables
       - name: Print Environmental variables (verify activate has been sourced)
-        if: failure() || success()
         run: |
           printenv |  sort -f
