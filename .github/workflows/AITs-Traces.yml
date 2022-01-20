@@ -1,4 +1,4 @@
-name: AITs - Traces
+name: AITs - Traces (1 enabled)
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
@@ -33,13 +33,13 @@ jobs:
       matrix:
         # functional_path: [basic_features, datastore]
         func_tests:
-          - tracecontext/__init__.py
-          - tracecontext/traceparent.py
-          - tracecontext/tracestate.py
-          - client.py
-          - server.py
+#          - tracecontext/__init__.py
+#          - tracecontext/traceparent.py
+#          - tracecontext/tracestate.py
+#          - client.py
+#          - server.py
           - test.py
-          - trace_base.py
+#          - trace_base.py
 
     steps:
       - uses: actions/checkout@v2
