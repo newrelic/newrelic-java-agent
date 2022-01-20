@@ -1,4 +1,4 @@
-name: Datastore AITs
+name: Framework AITs
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
@@ -8,7 +8,7 @@ on:
     branches: [ disabled ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ fix-datasource-aits ]
+    branches: [ tcrone/spike-aits-on-gha ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,24 +19,34 @@ on:
 
 jobs:
   tests:
-    name: Datastor AITs
+    name: Framework AITs
     timeout-minutes: 120
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "datastore"
-      default-branch: "gha"
+      java_func_type: "framework"
+      default-branch: "main"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
         # functional_path: [basic_features, datastore]
         func_tests:
-          - datastore_base.py
-#          - datastores.py
-          - jcache.py
-          - redis.py
+          - akka/akka.py
+          - akka/akkahttp.py
+          - ejb/ejb.py
+          - jaxrs/jaxrs.py
+          - jms/jms.py
+          - netty/netty.py
+          - play/play2.py
+          - quartz/quartz.py
+          - snap/snap.py
+          - spring/spring_4_3.py
+          - spring/spring_5_0.py
+          - spring/spring_webflux.py
+          - thrift/thrift.py
+
     steps:
       - uses: actions/checkout@v2
 
@@ -183,7 +193,6 @@ jobs:
           ls -la
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
-      ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run AITs - ${{ matrix.func_tests }}
         if: ${{ failure() || success() }}
         run: |
