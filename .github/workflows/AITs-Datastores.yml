@@ -1,13 +1,14 @@
-name: GHA-AIT-functionality-framework-tests
-# We  need to set java home to JDK 8
+name: AITs - Datastores (1 disabled)
+# We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
+# Force build
 
 on:
   pull_request:
-    branches: [ disabled ] ## branches TBD
+    branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ disabled ]
+    branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -17,35 +18,25 @@ on:
         default: 'main'
 
 jobs:
-  AIT_func_framework:
-    # needs: install-all-java
+  tests:
+    name: Datastores
     timeout-minutes: 120
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "framework"
-      default-branch: "main"
+      java_func_type: "datastore"
+      default-branch: "gha"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
-        # func_path: [akka, ejb, jaxrs, jms, netty, play, quartz, snap, spring, thrift]
+        # functional_path: [basic_features, datastore]
         func_tests:
-          - akka/akka.py
-          - akka/akkahttp.py
-          - ejb/ejb.py
-          - jaxrs/jaxrs.py
-          - jms/jms.py
-          - netty/netty.py
-          - play/play2.py
-          - quartz/quartz.py
-          - snap/snap.py
-          - spring/spring_4_3.py
-          - spring/spring_5_0.py
-          - spring/spring_webflux.py
-          - thrift/thrift.py
-
+          - datastore_base.py
+#          - datastores.py
+          - jcache.py
+          - redis.py
     steps:
       - uses: actions/checkout@v2
 
@@ -122,7 +113,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 11
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -136,11 +126,10 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      # Save new JDK variable
-      - name: Save JAVA_HOME as JDK17 for later usage
+      # Set the JDk variable
+      - name: Set the required JDK variable
         run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
@@ -148,7 +137,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 8
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -163,16 +151,8 @@ jobs:
 
       # End Java restore section
 
-      # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       ## TESTING SECTION
 
@@ -192,7 +172,9 @@ jobs:
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel
+          # ./gradlew clean jar --parallel
+          # Per Todd Crone, attempting without --parallel option
+          ./gradlew clean jar
           ls -la newrelic-agent/build/
 
       - name: CD to agent-integration-tests dir.
@@ -200,14 +182,9 @@ jobs:
           cd agent-integration-tests/
           ls -la
 
-      - name: Check disk space
-        run: |
-          df -h
-          du -a ${GITHUB_WORKSPACE} | sort -n -r | head -n 10
-
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
-      - name: Create virtualenv and run AITs - ${{ matrix.func_tests}}
+      - name: Create virtualenv and run AITs - ${{ matrix.func_tests }}
         if: ${{ failure() || success() }}
         run: |
           cd agent-integration-tests
@@ -258,7 +235,7 @@ jobs:
           echo "are we still in agent-integration-tests?"
           pwd
           ## End testing artifacts section
-          echo "Check the current value of JAVA_HOME"
+          echo "Check the current Java Home for this step"
           echo "The current JAVA_HOME is ${JAVA_HOME}"
           echo "RUN THE TESTS"
           echo "Running ${{ matrix.func_basic_features }}"
@@ -274,12 +251,12 @@ jobs:
           MATRIX_ITEM=$(echo ${MATRIX} | sed 's|/|-|g')
           echo "MATRIX="${MATRIX_ITEM}"" >> $GITHUB_ENV
 
-      # Capture Testing Artifacts
+      # Capture Testing Artifacts temp for development
       - name: Capture testing artifacts
         if: ${{ failure() || success() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
+          name: ${{ github.workflow }}-${{ github.job }}-${{ env.Matrix }}
           path: |
             agent-integration-tests/testing-artifacts/*
 

@@ -1,14 +1,14 @@
-name: Datastore AITs
+name: AITs - Security (2 disabled)
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
 
 on:
   pull_request:
-    branches: [ disabled ] ## branches TBD
+    branches: [ main ] ## branches TBD
     types: [assigned, opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ disabled ]
+    branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -18,25 +18,34 @@ on:
         default: 'main'
 
 jobs:
-  AIT_func_datastore:
-    needs: AIT_func_basic_features
+  tests:
+    name: Security AITs
     timeout-minutes: 120
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "datastore"
-      default-branch: "gha"
+      java_func_type: "security"
+      default-branch: "main"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
         # functional_path: [basic_features, datastore]
         func_tests:
-          - datastore_base.py
-          - datastores.py
-          - jcache.py
-          - redis.py
+          - hsm_atts.py
+          - hsm_custom_events.py
+          - hsm_custom_params.py
+          - hsm_msg_params.py
+#          - hsm_record_sql.py
+          - hsm_strip_exceptions.py
+          - lasp_attributes.py
+          - lasp_custom_events.py
+          - lasp_custom_params.py
+#          - lasp_datastore.py
+          - lasp_msg_params.py
+          - lasp_strip_exceptions.py
+
     steps:
       - uses: actions/checkout@v2
 
@@ -113,7 +122,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 11
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -126,7 +134,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -139,7 +146,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 8
-          cache: 'gradle'
 
       # Set the JDk variable
       - name: Set the required JDK variable
@@ -154,16 +160,8 @@ jobs:
 
       # End Java restore section
 
-      # Restore the gradle cache
-      - name: Restore the gradle caches
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       ## TESTING SECTION
 
@@ -194,7 +192,6 @@ jobs:
           ls -la
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
-      ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run AITs - ${{ matrix.func_tests }}
         if: ${{ failure() || success() }}
         run: |
