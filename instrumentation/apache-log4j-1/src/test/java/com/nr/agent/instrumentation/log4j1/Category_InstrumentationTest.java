@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.log4j1" })
-public class Logger_InstrumentationTest {
+public class Category_InstrumentationTest {
 
     private static final String CAPTURED = "This log message should be captured";
     private static final String NOT_CAPTURED = "This message should NOT be captured";
@@ -19,7 +19,7 @@ public class Logger_InstrumentationTest {
     @Test
     public void shouldIncrementEmittedLogsCountersIndependentlyIfLogLevelEnabled() {
         // Given
-        final Logger logger = Logger.getLogger(Logger_InstrumentationTest.class);
+        final Logger logger = Logger.getLogger(Category_InstrumentationTest.class);
         logger.setLevel(Level.INFO);
 
         // When
@@ -46,7 +46,7 @@ public class Logger_InstrumentationTest {
     @Test
     public void shouldIncrementAllEmittedLogCountersIfLogLevelIsSetToTrace() {
         // Given
-        final Logger logger = Logger.getLogger(Logger_InstrumentationTest.class);
+        final Logger logger = Logger.getLogger(Category_InstrumentationTest.class);
         logger.setLevel(Level.TRACE);
 
         // When

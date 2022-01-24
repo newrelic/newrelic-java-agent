@@ -6,7 +6,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 import org.apache.log4j.Priority;
 
 @Weave(originalName = "org.apache.log4j.Category")
-public class Logger_Instrumentation {
+public class Category_Instrumentation {
 
     protected void forcedLog(String fqcn, Priority level, Object message, Throwable t) {
         NewRelic.incrementCounter("Logging/lines");
