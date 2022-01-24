@@ -132,6 +132,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     }
 
     @Override
+    public Insights getLogSender() {
+        return ServiceFactory.getServiceManager().getLogSenderService();
+    }
+
+    @Override
     public boolean startAsyncActivity(Object activityContext) {
         return ServiceFactory.getAsyncTxService().startAsyncActivity(activityContext);
     }

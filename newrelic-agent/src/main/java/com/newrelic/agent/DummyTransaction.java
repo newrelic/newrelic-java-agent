@@ -79,6 +79,7 @@ public class DummyTransaction extends Transaction {
 
     private final Object lock = new Object();
     private final Insights insights = new DummyInsights();
+    private final Insights logEvents = new DummyLogEvents();
     private final AgentConfig defaultConfig;
     private final TracerList tracerList = new TracerList(null, new DummySet<TransactionActivity>());
     private final TransactionTimer timer = new TransactionTimer(0);
@@ -168,6 +169,11 @@ public class DummyTransaction extends Transaction {
     @Override
     public Insights getInsightsData() {
         return insights;
+    }
+
+    @Override
+    public Insights getLogEventData() {
+        return logEvents;
     }
 
     @Override
@@ -646,6 +652,12 @@ public class DummyTransaction extends Transaction {
     }
 
     static final class DummyInsights implements Insights {
+        @Override
+        public void recordCustomEvent(String eventType, Map<String, ?> attributes) {
+        }
+    }
+
+    static final class DummyLogEvents implements Insights {
         @Override
         public void recordCustomEvent(String eventType, Map<String, ?> attributes) {
         }

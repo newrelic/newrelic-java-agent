@@ -115,6 +115,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
+    public static final String LOG_SENDING = "log_sending";
     public static final String OPEN_TRACING = "open_tracing";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
@@ -253,6 +254,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final ExternalTracerConfig externalTracerConfig;
     private final InfiniteTracingConfig infiniteTracingConfig;
     private final InsightsConfig insightsConfig;
+    private final LogSenderConfig logSenderConfig;
     private final Config instrumentationConfig;
     private final JarCollectorConfig jarCollectorConfig;
     private final JfrConfig jfrConfig;
@@ -352,6 +354,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         jmxConfig = initJmxConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
+        logSenderConfig = initLogSenderConfig();
         infiniteTracingConfig = initInfiniteTracingConfig(autoAppNamingEnabled);
         attributesConfig = initAttributesConfig();
         reinstrumentConfig = initReinstrumentConfig();
@@ -732,8 +735,13 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     private InsightsConfig initInsightsConfig() {
-        Map<String, Object> props = nestedProps(CUSTOM_INSIGHT_EVENTS);
+        Map<String, Object> props = nestedProps(LOG_SENDING);
         return InsightsConfigImpl.createInsightsConfig(props, highSecurity);
+    }
+
+    private LogSenderConfig initLogSenderConfig() {
+        Map<String, Object> props = nestedProps(CUSTOM_INSIGHT_EVENTS);
+        return LogSenderConfigImpl.createLogSenderConfig(props, highSecurity);
     }
 
     private AttributesConfig initAttributesConfig() {
@@ -1181,6 +1189,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public InsightsConfig getInsightsConfig() {
         return insightsConfig;
+    }
+
+    @Override
+    public LogSenderConfig getLogSenderConfig() {
+        return logSenderConfig;
     }
 
     @Override

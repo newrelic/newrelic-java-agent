@@ -64,6 +64,11 @@ class NoOpAgent implements Agent {
     }
 
     @Override
+    public Insights getLogSender() {
+        return NoOpInsights.INSTANCE;
+    }
+
+    @Override
     public boolean startAsyncActivity(Object activityContext) {
         return false;
     }

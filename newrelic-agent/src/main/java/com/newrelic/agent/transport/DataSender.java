@@ -12,6 +12,7 @@ import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.sql.SqlTrace;
@@ -43,6 +44,11 @@ public interface DataSender {
      * Send non-aggregated custom events for analytics
      */
     void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception;
+
+    /**
+     * Send non-aggregated Log events
+     */
+    void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception;
 
     /**
      * Send non-aggregated span events

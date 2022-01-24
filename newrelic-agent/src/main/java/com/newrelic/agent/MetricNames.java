@@ -330,6 +330,8 @@ public class MetricNames {
     // insights
     public static final String SUPPORTABILITY_API_RECORD_CUSTOM_EVENT = "RecordCustomEvent";
 
+    public static final String SUPPORTABILITY_API_RECORD_LOG_EVENT = "RecordLogEvent";
+
     // attributes
     public static final String SUPPORTABILITY_API_ADD_CUSTOM_PARAMETER = "AddCustomParameter";
 

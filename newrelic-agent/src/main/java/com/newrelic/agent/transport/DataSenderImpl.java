@@ -24,6 +24,7 @@ import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.ServiceFactory;
@@ -332,6 +333,12 @@ public class DataSenderImpl implements DataSender {
     }
 
     @Override
+    public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
+        // TODO use sendAnalyticEventsForReservoir? Or create new method to handle MELT format for log_event_data endpoint???
+        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, reservoirSize, eventsSeen, events);
+    }
+
+    @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, Collection<SpanEvent> events) throws Exception {
         sendAnalyticEventsForReservoir(CollectorMethods.SPAN_EVENT_DATA, compressedEncoding, reservoirSize, eventsSeen, events);
     }
@@ -350,6 +357,26 @@ public class DataSenderImpl implements DataSender {
         metadata.put("events_seen", eventsSeen);
         params.add(metadata);
 
+        params.add(events);
+        invokeRunId(method, encoding, runId, params);
+    }
+
+    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, int reservoirSize, int eventsSeen,
+            Collection<T> events) throws Exception {
+        Object runId = agentRunId;
+        if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
+            return;
+        }
+        InitialSizedJsonArray params = new InitialSizedJsonArray(3);
+        params.add(runId);
+
+        JSONObject metadata = new JSONObject();
+        metadata.put("reservoir_size", reservoirSize);
+        metadata.put("events_seen", eventsSeen);
+        // TODO if this is used for log_event_data a conditional check will be needed for other attributes specific to log sender events
+        params.add(metadata);
+
+        // TODO reshape the format of the events to better fit log data
         params.add(events);
         invokeRunId(method, encoding, runId, params);
     }

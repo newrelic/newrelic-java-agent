@@ -191,6 +191,9 @@ public class Transaction {
     // Insights events added by the user during this transaction
     private final AtomicReference<Insights> insights;
 
+    // Insights events added by the user during this transaction
+    private final AtomicReference<Insights> logEvents;
+
     // contains all work currently running
     private final Map<Integer, TransactionActivity> runningChildren;
 
@@ -448,6 +451,7 @@ public class Transaction {
         userAttributes = new LazyMapImpl<>(factory);
         errorAttributes = new LazyMapImpl<>(factory);
         insights = new AtomicReference<>();
+        logEvents = new AtomicReference<>();
         runningChildren = new LazyMapImpl<>(factory);
         activeTokensCache = new AtomicReference<>();
         activeCount = new AtomicInteger(0);
@@ -611,6 +615,16 @@ public class Transaction {
             insightsData = insights.get();
         }
         return insightsData;
+    }
+
+    public Insights getLogEventData() {
+        Insights logEventData = logEvents.get();
+        if (logEventData == null) {
+            AgentConfig defaultConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+            logEvents.compareAndSet(null, ServiceFactory.getServiceManager().getLogSenderService().getTransactionInsights(defaultConfig));
+            logEventData = logEvents.get();
+        }
+        return logEventData;
     }
 
     public TransactionTracerConfig getTransactionTracerConfig() {

@@ -173,6 +173,11 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     InsightsConfig getInsightsConfig();
 
     /**
+     * Get the Log Sender configuration.
+     */
+    LogSenderConfig getLogSenderConfig();
+
+    /**
      * Get the attributes configuration.
      */
     AttributesConfig getAttributesConfig();

@@ -40,6 +40,7 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.analytics.*;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
@@ -80,6 +81,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile AsyncTransactionService asyncTxService;
     private volatile CircuitBreakerService circuitBreakerService;
     private volatile InsightsService insightsService;
+    private volatile LogSenderService logSenderService;
     private volatile DistributedTraceServiceImpl distributedTraceService;
     private volatile SpanEventsService spanEventsService;
     private volatile SourceLanguageService sourceLanguageService;
@@ -141,6 +143,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         harvestService = new IntrospectorHarvestService();
         sqlTraceService = new SqlTraceServiceImpl();
         insightsService = new IntrospectorInsightsService();
+        logSenderService = new IntrospectorLogSenderService();
         expirationService = new ExpirationService();
         dbService = new DatabaseService();
         jarCollectorService = new IgnoringJarCollectorService();
@@ -387,6 +390,11 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     @Override
     public InsightsService getInsights() {
         return insightsService;
+    }
+
+    @Override
+    public LogSenderService getLogSenderService() {
+        return logSenderService;
     }
 
     @Override

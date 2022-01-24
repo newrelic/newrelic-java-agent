@@ -440,6 +440,11 @@ class NoOpAgent implements Agent {
     }
 
     @Override
+    public Insights getLogSender() {
+        return INSIGHTS;
+    }
+
+    @Override
     public TraceMetadata getTraceMetadata() {
         return TRACE_METADATA;
     }

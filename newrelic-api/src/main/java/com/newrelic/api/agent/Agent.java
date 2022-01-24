@@ -64,6 +64,15 @@ public interface Agent {
     Insights getInsights();
 
     /**
+     * Provides access to the LogSender custom events API.
+     *
+     * @return Object used to add custom events.
+     * @since 3.13.0
+     */
+    // FIXME this should probably be on the agent bridge instead of a public API
+    Insights getLogSender();
+
+    /**
      * Provides access to the Trace Metadata API for details about the currently executing distributed trace.
      *
      * @return trace metadata API class

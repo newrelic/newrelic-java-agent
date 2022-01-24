@@ -48,6 +48,10 @@ public class TransactionData {
         return tx.getInsightsData();
     }
 
+    public Insights getLogEventData() {
+        return tx.getLogEventData();
+    }
+
     public Dispatcher getDispatcher() {
         return tx.getDispatcher();
     }
