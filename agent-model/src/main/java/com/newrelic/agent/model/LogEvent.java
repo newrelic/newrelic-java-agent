@@ -39,7 +39,7 @@ public class LogEvent extends AnalyticsEvent implements JSONStreamAware {
     public void writeJSONString(Writer out) throws IOException {
         JSONObject intrinsics = new JSONObject();
         intrinsics.put("type", getType());
-        intrinsics.put("timestamp", getTimestamp());
+//        intrinsics.put("timestamp", getTimestamp()); // this probably isn't needed as there is a timestamp added for the log event already
         JSONArray.writeJSONString(Arrays.asList(intrinsics, getMutableUserAttributes()), out);
     }
 

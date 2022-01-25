@@ -1,4 +1,4 @@
-package com.nr.agent.instrumentation.log4j1;
+package org.apache.log4j;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;

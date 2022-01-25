@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.log4j1" })
+@InstrumentationTestConfig(includePrefixes = { "org.apache.log4j" })
 public class Category_InstrumentationTest {
 
     private static final String CAPTURED = "This log message should be captured";

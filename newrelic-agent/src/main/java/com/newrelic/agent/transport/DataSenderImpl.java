@@ -368,11 +368,12 @@ public class DataSenderImpl implements DataSender {
             return;
         }
         InitialSizedJsonArray params = new InitialSizedJsonArray(3);
-        params.add(runId);
+        params.add(runId); // TODO is runID needed for LogEvents?
 
         JSONObject metadata = new JSONObject();
         metadata.put("reservoir_size", reservoirSize);
         metadata.put("events_seen", eventsSeen);
+        metadata.put("plugin.type", "nr-java-agent"); // TODO what should this be exactly?
         // TODO if this is used for log_event_data a conditional check will be needed for other attributes specific to log sender events
         params.add(metadata);
 
