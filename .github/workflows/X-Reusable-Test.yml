@@ -68,11 +68,18 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
+      # Install 18-ea
+      - name: Set up Java 18-ea
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 18-ea
+
       # Save new JDK variable
-      - name: Save JAVA_HOME as JDK17 for later usage
+      - name: Save JAVA_HOME as JDK18ea for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
 
       # Check ENV variables
       - name: Check environmental variables
@@ -142,7 +149,8 @@ jobs:
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
           s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
-          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|" gradle.properties.gha
+          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|
+          s|jdk18=18|jdk18=${ORG_GRADLE_PROJECT_jdk18}|" gradle.properties.gha
           cat gradle.properties.gha
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
@@ -160,7 +168,7 @@ jobs:
           LANGUAGE: java
           TEST_TYPE: instrumentation
         run: |
-          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue -Dscan.uploadInBackground=false --build-cache
+          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
 
       # Run the build without Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
