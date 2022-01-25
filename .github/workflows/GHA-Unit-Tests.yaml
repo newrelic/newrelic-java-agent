@@ -3,7 +3,7 @@ name: Unit Tests
 on:
   pull_request:
     branches: [ main ] ## branches TBD
-    types: [assigned, opened, synchronize, reopened, ready_for_review] ## Types TBD
+    types: [opened, synchronize, reopened, ready_for_review] ## Types TBD
   push:
     branches: [main]
   # Allows you to run this workflow manually from the Actions tab
@@ -37,9 +37,8 @@ jobs:
       - name: Set up Java 8
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: 8
-          cache: 'gradle'
 
       - name: Save JAVA_HOME as JDK8 for later usage
         run: |
@@ -49,7 +48,7 @@ jobs:
       - name: Set up Java 11
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: 11
 
       - name: Save JAVA_HOME as JDK11 for later usage
@@ -60,7 +59,7 @@ jobs:
       - name: Set up Java 17
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: 17
 
       - name: Save JAVA_HOME as JDK17 for later usage
@@ -80,12 +79,15 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
       - name: Run unit tests for each Java version as defined in the matrix
         if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 3.88.106.22=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
           GRADLE_CACHE_USER: gha
           GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
           JRE: jre${{ matrix.java-version }}

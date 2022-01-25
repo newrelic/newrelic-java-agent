@@ -21,9 +21,13 @@ jar {
 }
 
 verifyInstrumentation {
+    // scala 11 should be instrumented by another module
     fails 'com.typesafe.slick:slick_2.11:[3.2.0,)'
-    passesOnly 'com.typesafe.slick:slick_2.12:[3.2.0-M2,)'
-    exclude 'com.typesafe.slick:slick_2.11:3.2.0-M1'
+
+    // scala 12
+    passesOnly 'com.typesafe.slick:slick_2.12:[3.2.0,3.4.0)'
+
+    excludeRegex ".*(RC|M)[0-9].*"
 }
 
 test {

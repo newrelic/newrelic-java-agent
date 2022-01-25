@@ -14,7 +14,7 @@ plugins {
 boolean isCiServer = System.getenv().containsKey("CI")
 String cacheUser = System.getenv().get("GRADLE_CACHE_USER")
 String cachePassword = System.getenv().get("GRADLE_CACHE_PASSWORD")
-String gradleEnterpriseServer = "https://3.88.106.22/"
+String gradleEnterpriseServer = "https://34.229.76.228/"
 
 println "*** Gradle Enterprise Debug ***"
 println "GRADLE_CACHE_USER=$cacheUser"
@@ -223,6 +223,13 @@ include 'instrumentation:kafka-clients-heartbeat-2.1.0'
 include 'instrumentation:kafka-clients-metrics-0.10.0.0'
 include 'instrumentation:kafka-clients-metrics-2.0.0'
 include 'instrumentation:kafka-clients-spans-0.11.0.0'
+include 'instrumentation:mongodb-async-3.4'
+include 'instrumentation:mongodb-async-3.6'
+include 'instrumentation:mongodb-async-3.7'
+include 'instrumentation:mongodb-async-3.8'
+include 'instrumentation:mongodb-async-3.10'
+include 'instrumentation:mongodb-async-3.11'
+include 'instrumentation:mongodb-async-4.0'
 include 'instrumentation:mongodb-2.12'
 include 'instrumentation:mongodb-2.14'
 include 'instrumentation:mongodb-3.0'

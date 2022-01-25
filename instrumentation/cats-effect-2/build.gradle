@@ -16,9 +16,14 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'org.typelevel:cats-effect_2.13:[2.1,)'
-    passes 'org.typelevel:cats-effect_2.12:[2.1,)'
-    excludeRegex 'org.typelevel:cats-effect_2.1(2|3):3.*'
+    // scala 12
+    passes 'org.typelevel:cats-effect_2.12:[2.1,3.0)'
+    fails 'org.typelevel:cats-effect_2.12:[3.0,)'
+
+    // scala 13
+    passes 'org.typelevel:cats-effect_2.13:[2.1,3.0)'
+    fails 'org.typelevel:cats-effect_2.13:[3.0,)'
+
     excludeRegex '.*(RC|M)[0-9]*'
 }
 

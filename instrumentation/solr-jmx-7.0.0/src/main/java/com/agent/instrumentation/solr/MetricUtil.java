@@ -8,6 +8,7 @@
 package com.agent.instrumentation.solr;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -46,6 +47,33 @@ public class MetricUtil {
     public static void addMetric(NRMetric metric) {
         String metricBase = metric.getMetricBase();
         metrics.put(metricBase, metric);
+    }
+
+    public static void removeMetric(String registry, String... metricPath) {
+        metrics.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().registry.equals(registry) && Arrays.stream(metricPath).anyMatch(path -> path.startsWith(entry.getValue().name)))
+                .forEach(x -> metrics.remove(x.getKey()));
+    }
+
+    public static void swapRegistries(String sourceRegistry, String targetRegistry) {
+        metrics.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().registry.equals(getRegistry(sourceRegistry)))
+                .forEach(x -> {
+                    String currentKey = x.getKey();
+                    NRMetric metric = x.getValue();
+                    metric.setRegistry(getRegistry(targetRegistry));
+                    addMetric(metric);
+                    metrics.remove(currentKey);
+                });
+    }
+
+    public static void clearRegistry(String registry) {
+        metrics.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().registry.equals(registry))
+                .forEach(x -> metrics.remove(x.getKey()));
     }
 
     public static String getRegistry(String r) {

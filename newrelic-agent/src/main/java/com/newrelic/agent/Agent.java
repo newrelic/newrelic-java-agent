@@ -9,11 +9,7 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.config.AgentJarHelper;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.ConfigServiceFactory;
-import com.newrelic.agent.config.JarResource;
-import com.newrelic.agent.config.JavaVersionUtils;
+import com.newrelic.agent.config.*;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -35,16 +31,8 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
+import java.util.*;
+import java.util.jar.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -294,13 +282,24 @@ public final class Agent {
 
     public static void main(String[] args) {
         String javaSpecVersion = JavaVersionUtils.getJavaSpecificationVersion();
-        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion)) {
+        String sysExperimentalRuntime = System.getProperty("newrelic.config.experimental_runtime");
+        String envExperimentalRuntime = System.getenv("NEW_RELIC_AGENT_EXPERIMENTAL_RUNTIME");
+        boolean useExperimentalRuntime = (Boolean.parseBoolean(sysExperimentalRuntime)
+                || ((Boolean.parseBoolean(envExperimentalRuntime))));
+
+        if (useExperimentalRuntime) {
+            System.out.println("----------");
+            System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
+            System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
+                    " or upcoming Java releases or at your own risk.");
+            System.out.println("----------");
+        }
+        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion) && !useExperimentalRuntime) {
             System.err.println("----------");
             System.err.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
             System.err.println("----------");
             return;
         }
-
         new AgentCommandLineParser().parseCommand(args);
     }
 
@@ -379,8 +378,8 @@ public final class Agent {
      * re-introduced. It is safer to ensure that code used under these special conditions remains right here.
      *
      * @param agentJarResource the Agent's jar file, or a test jar file for unit testing.
-     * @param agentJarUrl the Agent's jar URL, or a test URL for unit testing.
-     * @param inst the JVM instrumentation interface, or a mock for unit testing.
+     * @param agentJarUrl      the Agent's jar URL, or a test URL for unit testing.
+     * @param inst             the JVM instrumentation interface, or a mock for unit testing.
      */
     public static void addMixinInterfacesToBootstrap(JarResource agentJarResource, URL agentJarUrl, Instrumentation inst) {
         boolean succeeded = false;

@@ -5,14 +5,6 @@ isScalaProjectEnabled(project, "scala-2.11")
 
 compileJava.options.bootstrapClasspath = null
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-scala-api"))
@@ -55,8 +47,6 @@ test {
         enabled = false
     } else if (project.hasProperty("test17")) {
         enabled = false
-    } else {
-        executable = jdk8 + '/bin/java'
     }
 }
 

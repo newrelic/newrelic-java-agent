@@ -18,6 +18,9 @@ verifyInstrumentation {
   }
   // version 3.1.0 fails but then 3.1.1 passes again
   exclude('org.springframework.ws:spring-ws-core:3.1.0')
+
+  // instrumentation does not work in 3.0.11. It was likely a bad release, 3.0.12 was released 2 days later.
+  exclude('org.springframework.ws:spring-ws-core:3.0.11.RELEASE')
 }
 
 test {

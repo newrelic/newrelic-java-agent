@@ -9,7 +9,12 @@ package com.newrelic.bootstrap;
 
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
-import com.newrelic.agent.modules.*;
+import com.newrelic.agent.modules.ClassLoaderUtil;
+import com.newrelic.agent.modules.ClassLoaderUtilImpl;
+import com.newrelic.agent.modules.HttpModuleUtil;
+import com.newrelic.agent.modules.HttpModuleUtilImpl;
+import com.newrelic.agent.modules.ModuleUtil;
+import com.newrelic.agent.modules.ModuleUtilImpl;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.BufferedReader;
@@ -88,7 +93,19 @@ public class BootstrapAgent {
      */
     public static void premain(String agentArgs, Instrumentation inst) {
         String javaSpecVersion = JavaVersionUtils.getJavaSpecificationVersion();
-        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion)) {
+        String sysExperimentalRuntime = System.getProperty("newrelic.config.experimental_runtime");
+        String envExperimentalRuntime = System.getenv("NEW_RELIC_AGENT_EXPERIMENTAL_RUNTIME");
+        boolean useExperimentalRuntime = (Boolean.parseBoolean(sysExperimentalRuntime)
+                || ((Boolean.parseBoolean(envExperimentalRuntime))));
+
+        if (useExperimentalRuntime) {
+            System.out.println("----------");
+            System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
+            System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
+                    " or upcoming Java releases or at your own risk.");
+            System.out.println("----------");
+        }
+        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion) && !useExperimentalRuntime) {
             System.err.println("----------");
             System.err.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
             System.err.println("----------");
@@ -203,7 +220,7 @@ public class BootstrapAgent {
      * <p>{@link ModuleUtil} is compiled in a multi-release jar. In Java &lt; 9, this
      * results in a no-op implementation.</p>
      *
-     * @param inst The premain {@link Instrumentation} interface.
+     * @param inst             The premain {@link Instrumentation} interface.
      * @param agentClassLoader The class loader used for loading agent classes.
      */
     private static void redefineJavaBaseModule(Instrumentation inst, ClassLoader agentClassLoader) {
@@ -223,7 +240,7 @@ public class BootstrapAgent {
      * <p>{@link ModuleUtil} is compiled in a multi-release jar. In Java &lt; 11, this
      * results in a no-op implementation.</p>
      *
-     * @param inst The premain {@link Instrumentation} interface.
+     * @param inst                The premain {@link Instrumentation} interface.
      * @param platformClassLoader
      */
     private static void addReadUnnamedModuleToHttpModule(Instrumentation inst, ClassLoader platformClassLoader) {

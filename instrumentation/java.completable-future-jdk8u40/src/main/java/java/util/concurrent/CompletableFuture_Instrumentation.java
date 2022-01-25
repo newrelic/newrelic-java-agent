@@ -7,153 +7,111 @@
 
 package java.util.concurrent;
 
-import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.TracedMethod;
-import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.api.agent.Token;
-import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import util.TokenDelegateExecutor;
 
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Weave(type = MatchType.ExactClass, originalName = "java.util.concurrent.CompletableFuture")
 public class CompletableFuture_Instrumentation<T> {
 
-    @NewField
-    public Token completableToken;
-
-    @Weave(type = MatchType.BaseClass, originalName = "java.util.concurrent.CompletableFuture$UniCompletion")
-    abstract static class UniCompletion<T,V> {
-
-        CompletableFuture_Instrumentation<V> dep = Weaver.callOriginal();
-
-        UniCompletion(Executor executor, CompletableFuture_Instrumentation<V> dep, CompletableFuture_Instrumentation<T> src) {
-            Transaction tx = AgentBridge.getAgent().getTransaction(false);
-            if (tx != null && tx.isStarted() && AgentBridge.getAgent().getTracedMethod().trackChildThreads()) {
-                if (dep.completableToken == null) {
-                    dep.completableToken = tx.getToken();
-                }
-            }
-        }
-
-        @Trace(async = true, excludeFromTransactionTrace = true)
-        CompletableFuture_Instrumentation<?> tryFire(int mode) {
-            if (null != dep.completableToken) {
-                if (dep.completableToken.link()) {
-                    TracedMethod tm = (TracedMethod) AgentBridge.getAgent().getTransaction().getTracedMethod();
-                    tm.setMetricName("Java", "CompletableFuture", "Completion", "tryFire");
-                }
-            }
-            CompletableFuture_Instrumentation<?> future = Weaver.callOriginal();
-            return future;
+    private static Executor useTokenDelegateExecutor(Executor e) {
+        if (null == e || e instanceof TokenDelegateExecutor) {
+            return e;
+        } else {
+            return new TokenDelegateExecutor(e);
         }
     }
 
-    /*
-     * The following methods are all the possible internal completion methods
-     * that allow us to know when this CompletableFuture is done so we can expire
-     * any tokens that we've created and used.
-     */
-
-    final boolean internalComplete(Object r) {
-        boolean result = Weaver.callOriginal();
-        finishCompletableFuture();
-        return result;
+    private <V> CompletableFuture<V> uniApplyStage(
+            Executor e, Function<? super T, ? extends V> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    final boolean completeNull() {
-        boolean result = Weaver.callOriginal();
-        finishCompletableFuture();
-        return result;
+    private CompletableFuture<Void> uniAcceptStage(Executor e,
+            Consumer<? super T> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    final boolean completeValue(T t) {
-        boolean result = Weaver.callOriginal();
-        finishCompletableFuture();
-        return result;
+    private CompletableFuture<Void> uniRunStage(Executor e, Runnable f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    final boolean completeThrowable(Throwable x) {
-        boolean result = Weaver.callOriginal();
-        finishCompletableFuture();
-        return result;
+    private CompletableFuture<T> uniWhenCompleteStage(
+            Executor e, BiConsumer<? super T, ? super Throwable> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    final boolean completeThrowable(Throwable x, Object r) {
-        boolean result = Weaver.callOriginal();
-        finishCompletableFuture();
-        return result;
+    private <V> CompletableFuture<V> uniHandleStage(
+            Executor e, BiFunction<? super T, Throwable, ? extends V> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    final boolean completeRelay(Object r) {
-        boolean result = Weaver.callOriginal();
-        finishCompletableFuture();
-        return result;
+    private <V> CompletableFuture<V> uniComposeStage(
+            Executor e, Function<? super T, ? extends CompletionStage<V>> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    /**
-     * Expire any tokens that we've created and used on this CompletableFuture since it is now finished executing
-     */
-    private void finishCompletableFuture() {
-        if (this.completableToken != null) {
-            this.completableToken.expire();
-            this.completableToken = null;
-        }
+    private <U, V> CompletableFuture<V> biApplyStage(
+            Executor e, CompletionStage<U> o,
+            BiFunction<? super T, ? super U, ? extends V> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    @Weave(type = MatchType.ExactClass, originalName = "java.util.concurrent.CompletableFuture$AsyncRun")
-    static final class AsyncRun {
-
-        @NewField
-        private Token asyncToken;
-
-        AsyncRun(CompletableFuture_Instrumentation<Void> dep, Runnable fn) {
-            Transaction tx = AgentBridge.getAgent().getTransaction(false);
-            if (tx != null && tx.isStarted() && AgentBridge.getAgent().getTracedMethod().trackChildThreads()) {
-                this.asyncToken = tx.getToken();
-            }
-        }
-
-        @Trace(async = true, excludeFromTransactionTrace = true)
-        public void run() {
-            if (null != this.asyncToken) {
-                if (this.asyncToken.linkAndExpire()) {
-                    TracedMethod tm = (TracedMethod) AgentBridge.getAgent().getTransaction().getTracedMethod();
-                    tm.setMetricName("Java", "CompletableFuture", "AsyncRun", "run");
-                }
-                this.asyncToken = null;
-            }
-            Weaver.callOriginal();
-        }
+    private <U> CompletableFuture<Void> biAcceptStage(
+            Executor e, CompletionStage<U> o,
+            BiConsumer<? super T, ? super U> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
-    @Weave(type = MatchType.ExactClass, originalName = "java.util.concurrent.CompletableFuture$AsyncSupply")
-    static final class AsyncSupply<T> {
+    private CompletableFuture<Void> biRunStage(Executor e, CompletionStage<?> o,
+            Runnable f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
+    }
 
-        @NewField
-        private Token asyncToken;
+    private <U extends T, V> CompletableFuture<V> orApplyStage(
+            Executor e, CompletionStage<U> o,
+            Function<? super T, ? extends V> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
+    }
 
-        AsyncSupply(CompletableFuture_Instrumentation<T> dep, Supplier<T> fn) {
-            Transaction tx = AgentBridge.getAgent().getTransaction(false);
-            if (tx != null && tx.isStarted() && AgentBridge.getAgent().getTracedMethod().trackChildThreads()) {
-                this.asyncToken = tx.getToken();
-            }
-        }
+    private <U extends T> CompletableFuture<Void> orAcceptStage(
+            Executor e, CompletionStage<U> o, Consumer<? super T> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
+    }
 
-        @Trace(async = true, excludeFromTransactionTrace = true)
-        public void run() {
-            if (null != this.asyncToken) {
-                if (this.asyncToken.linkAndExpire()) {
-                    TracedMethod tm = (TracedMethod) AgentBridge.getAgent().getTransaction().getTracedMethod();
-                    tm.setMetricName("Java", "CompletableFuture", "AsyncSupply", "run");
-                }
-                this.asyncToken = null;
-            }
-            Weaver.callOriginal();
-        }
+    private CompletableFuture<Void> orRunStage(Executor e, CompletionStage<?> o,
+            Runnable f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
+    }
+
+    static <U> CompletableFuture<U> asyncSupplyStage(Executor e,
+            Supplier<U> f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
+    }
+
+    static CompletableFuture<Void> asyncRunStage(Executor e, Runnable f) {
+        e = useTokenDelegateExecutor(e);
+        return Weaver.callOriginal();
     }
 
 }
