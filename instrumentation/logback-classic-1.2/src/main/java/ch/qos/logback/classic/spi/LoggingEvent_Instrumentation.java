@@ -72,15 +72,6 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
     }
 
     public LoggingEvent_Instrumentation(String fqcn, Logger logger, Level level, String message, Throwable throwable, Object[] argArray) {
-//                "message": "...",
-//                "timestamp": 1641579045527,
-//                "thread.name": "http-nio-8080-exec-7",
-//                "log.level": "ERROR",
-//                "logger.name": "org.springframework.samples.petclinic.system.CrashController",
-//                "class.name": "org.springframework.samples.petclinic.system.CrashController",
-//                "method.name": "triggerException",
-//                "line.number": 41,
-
         HashMap<String, Object> logEventMap = new HashMap<>(getLinkingMetadataAsMap());
         logEventMap.put("message", message);
         logEventMap.put("timeStamp", timeStamp);

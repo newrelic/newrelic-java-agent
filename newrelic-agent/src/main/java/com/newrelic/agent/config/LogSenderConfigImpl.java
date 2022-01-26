@@ -14,7 +14,7 @@ public class LogSenderConfigImpl extends BaseConfig implements LogSenderConfig {
     public static final String MAX_SAMPLES_STORED_PROP = "max_samples_stored";
     public static final int DEFAULT_MAX_SAMPLES_STORED = 10000;
     public static final String ENABLED_PROP = "enabled";
-    public static final boolean DEFAULT_ENABLED = true;
+    public static final boolean DEFAULT_ENABLED = true; // TODO make off by default, add yaml config
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.log_sending.";
     public static final String ENABLED = SYSTEM_PROPERTY_ROOT + ENABLED_PROP;
 //    public static final String COLLECT_CUSTOM_EVENTS = "collect_custom_events";
@@ -25,7 +25,9 @@ public class LogSenderConfigImpl extends BaseConfig implements LogSenderConfig {
     public LogSenderConfigImpl(Map<String, Object> pProps, boolean highSecurity) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
         maxSamplesStored = getProperty(MAX_SAMPLES_STORED_PROP, DEFAULT_MAX_SAMPLES_STORED);
-        isEnabled = !highSecurity && initEnabled();
+        // TODO ignores highSecurity for the time being. Should we respect it?
+//        isEnabled = !highSecurity && initEnabled();
+        isEnabled = initEnabled();
     }
 
     public boolean initEnabled() {
@@ -40,7 +42,6 @@ public class LogSenderConfigImpl extends BaseConfig implements LogSenderConfig {
         return storedMoreThan0 && configEnabled;
     }
 
-    // TODO ignore highSecurity for the time being
     static LogSenderConfigImpl createLogSenderConfig(Map<String, Object> settings, boolean highSecurity) {
         if (settings == null) {
             settings = Collections.emptyMap();

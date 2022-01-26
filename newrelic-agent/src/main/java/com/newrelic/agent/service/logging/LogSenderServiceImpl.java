@@ -474,11 +474,12 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                     ServiceFactory.getServiceManager().getLogSenderService().storeEvent(applicationName, event);
                 }
             } else {
-                Agent.LOG.log(Level.WARNING, "LogSender event with invalid type of {0} was reported for a transaction but ignored."
-                        + " Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.", eventType);
+                Agent.LOG.log(Level.WARNING, "Event with invalid type of {0} was reported for a transaction but ignored."
+                        + " Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.", eventType); // TODO figure out limit "less than 256 chars"
             }
         }
 
+        @VisibleForTesting
         public List<LogEvent> getEventsForTesting() {
             return new ArrayList<>(events);
         }
