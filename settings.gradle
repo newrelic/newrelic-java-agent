@@ -25,7 +25,14 @@ buildCache {
         enabled = true
     }
     remote(HttpBuildCache) {
-        enabled = false
+        url = "$gradleEnterpriseServer/cache/"
+        push = isCiServer
+        enabled = true
+        allowUntrustedServer = true
+        credentials {
+            username = cacheUser
+            password = cachePassword
+        }
     }
 }
 
