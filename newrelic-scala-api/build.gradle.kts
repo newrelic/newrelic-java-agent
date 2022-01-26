@@ -71,10 +71,10 @@ tasks {
         minHeapSize = "256m"
         maxHeapSize = "768m"
         val functionalTestArgs = listOf(
-            "-javaagent:${com.nr.builder.JarUtil.getNewRelicJar(project(":newrelic-agent")).absolutePath}",
-            "-Dnewrelic.config.file=${project(":newrelic-agent").projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml",
-            "-Dnewrelic.unittest=true",
-            "-Dnewrelic.config.startup_log_level=warn"
+                "-javaagent:${com.nr.builder.JarUtil.getNewRelicJar(project(":newrelic-agent")).absolutePath}",
+                "-Dnewrelic.config.file=${project(":newrelic-agent").projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml",
+                "-Dnewrelic.unittest=true",
+                "-Dnewrelic.config.startup_log_level=warn"
         )
         jvmArgs(functionalTestArgs + "-Dnewrelic.config.extensions.dir=${projectDir}/src/test/resources/xml_files")
     }
