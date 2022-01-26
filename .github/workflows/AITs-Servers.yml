@@ -203,7 +203,7 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
           echo "still complains of file not found"
           ls -la ${GITHUB_WORKSPACE}
-          sudo apt install virtualenv
+          sudo apt-get install virtualenv
           virtualenv -p /usr/bin/python3.8 .
           echo "What version of maven are we using?"
           mvn --version
