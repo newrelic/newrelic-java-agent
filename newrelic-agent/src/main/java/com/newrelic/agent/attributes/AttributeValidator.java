@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.ConfigConstant;
+import com.newrelic.agent.service.logging.LogSenderServiceImpl;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -161,6 +162,12 @@ public class AttributeValidator {
     }
 
     private String truncateValue(String key, String value, String methodCalled) {
+        // TODO if methodCalled is from log sender then don't truncate attribute values
+        //  or instead set a different MAX_USER_ATTRIBUTE_SIZE if we decide to impose a limit
+        //  Maybe create an AttributeValidator interface and a LogEventAttributeValidator with it's own truncateValue implementation instead of doing this
+        if (methodCalled.equals(LogSenderServiceImpl.METHOD)) {
+            return value;
+        }
         String truncatedVal = truncateString(value, ConfigConstant.MAX_USER_ATTRIBUTE_SIZE);
         if (!value.equals(truncatedVal)) {
             Agent.LOG.log(Level.FINER,

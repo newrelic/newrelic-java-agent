@@ -62,6 +62,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     private static final LoadingCache<String, String> stringCache = Caffeine.newBuilder().maximumSize(1000)
             .expireAfterAccess(70, TimeUnit.SECONDS).executor(Runnable::run).build(key -> key);
 
+    public static final String METHOD = "add log sender event attribute";
+
     // TODO it's not clear that log sender events should be tied to transactions in any way
     protected final ExtendedTransactionListener transactionListener = new ExtendedTransactionListener() {
 
@@ -246,7 +248,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     private boolean logSenderEventsDisabled(String eventType) {
         if (!enabled) {
-            // TODO just ignore high security for now
+            // TODO just ignore high security for now?
             if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
                 Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", eventType);
             } else {
@@ -386,9 +388,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // possibly, the values. But there's an interaction: if the key or value is chopped
         // within the attribute sender, the modified value won't be "interned" in our map.
 
-        // FIXME probably don't need this AttributeSender for LogSenderEvents
         AttributeSender sender = new LogSenderEventAttributeSender(userAttributes);
-        final String method = "add log sender event attribute";
 
         for (Map.Entry entry : attributes.entrySet()) {
             String key = (String) entry.getKey();
@@ -404,14 +404,14 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             mapInternString(key);
 
             if (value instanceof String) {
-                sender.addAttribute(key, mapInternString((String) value), method);
+                sender.addAttribute(key, mapInternString((String) value), METHOD);
             } else if (value instanceof Number) {
-                sender.addAttribute(key, (Number) value, method);
+                sender.addAttribute(key, (Number) value, METHOD);
             } else if (value instanceof Boolean) {
-                sender.addAttribute(key, (Boolean) value, method);
+                sender.addAttribute(key, (Boolean) value, METHOD);
             } else {
                 // Java Agent specific - toString the value. This allows for e.g. enums as arguments.
-                sender.addAttribute(key, mapInternString(value.toString()), method);
+                sender.addAttribute(key, mapInternString(value.toString()), METHOD);
             }
         }
 

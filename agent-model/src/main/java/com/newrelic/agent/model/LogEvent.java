@@ -7,13 +7,11 @@
 
 package com.newrelic.agent.model;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Map;
 
 public class LogEvent extends AnalyticsEvent implements JSONStreamAware {
@@ -25,22 +23,19 @@ public class LogEvent extends AnalyticsEvent implements JSONStreamAware {
         this.mutablePriority = priority;
     }
 
-    public void setPriority(float priority) {
-        this.mutablePriority = priority;
-    }
-
     @Override
     public float getPriority() {
         return mutablePriority;
     }
 
+    public void setPriority(float priority) {
+        this.mutablePriority = priority;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public void writeJSONString(Writer out) throws IOException {
-        JSONObject intrinsics = new JSONObject();
-        intrinsics.put("type", getType());
-//        intrinsics.put("timestamp", getTimestamp()); // this probably isn't needed as there is a timestamp added for the log event already
-        JSONArray.writeJSONString(Arrays.asList(intrinsics, getMutableUserAttributes()), out);
+        JSONObject.writeJSONString(getMutableUserAttributes(), out);
     }
 
 }

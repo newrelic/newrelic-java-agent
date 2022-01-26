@@ -361,24 +361,34 @@ public class DataSenderImpl implements DataSender {
         invokeRunId(method, encoding, runId, params);
     }
 
+    // Sends LogEvent data in the MELT format for logs
+    // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
     private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, int reservoirSize, int eventsSeen,
             Collection<T> events) throws Exception {
         Object runId = agentRunId;
         if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
             return;
         }
+
+        JSONObject commonAttributes = new JSONObject();
+        commonAttributes.put("plugin.type", "nr-java-agent");
+
+        // build attributes object
+        JSONObject attributes = new JSONObject();
+        attributes.put("attributes", commonAttributes);
+
+        // build common object
+        JSONObject common = new JSONObject();
+        common.put("common", attributes);
+
+        // build logs object
+        JSONObject logs = new JSONObject();
+        logs.put("logs", events);
+
+        // params is top level
         InitialSizedJsonArray params = new InitialSizedJsonArray(3);
-        params.add(runId); // TODO is runID needed for LogEvents?
-
-        JSONObject metadata = new JSONObject();
-        metadata.put("reservoir_size", reservoirSize);
-        metadata.put("events_seen", eventsSeen);
-        metadata.put("plugin.type", "nr-java-agent"); // TODO what should this be exactly?
-        // TODO if this is used for log_event_data a conditional check will be needed for other attributes specific to log sender events
-        params.add(metadata);
-
-        // TODO reshape the format of the events to better fit log data
-        params.add(events);
+        params.add(common);
+        params.add(logs);
         invokeRunId(method, encoding, runId, params);
     }
 
