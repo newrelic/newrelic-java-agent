@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [tcrone/java-18-ea-gha]
+    branches: [main]
   workflow_dispatch:
     inputs:
       BRANCH:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   tests:
-    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@tcrone/java-18-ea-gha
+    uses: newrelic/newrelic-java-agent/.github/workflows/X-Reusable-Test.yml@tcrone/java-18-ea
     with:
       jre: 18
     secrets:
