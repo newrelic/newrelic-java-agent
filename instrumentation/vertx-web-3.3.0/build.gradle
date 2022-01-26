@@ -29,6 +29,10 @@ test {
     onlyIf {
         !project.hasProperty('test7')
     }
+    if (project.hasProperty("test16") || project.hasProperty("test17") || project.hasProperty("test18")) {
+        jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+        jvmArgs += '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED'
+    }
 }
 
 site {
