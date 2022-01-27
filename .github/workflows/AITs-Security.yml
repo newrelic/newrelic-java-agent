@@ -8,7 +8,7 @@ on:
     branches: [ main ] ## branches TBD
     types: [opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ main ]
+    branches: [ java-18-ea ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -139,6 +139,18 @@ jobs:
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
+
+      # Install 18 EA
+      - name: Set up Java 18-ea
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 18-ea
+
+      - name: Save JAVA_HOME as JDK18 for later usage
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
 
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
