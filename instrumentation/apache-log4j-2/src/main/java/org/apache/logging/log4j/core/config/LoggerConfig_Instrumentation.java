@@ -17,15 +17,4 @@ public class LoggerConfig_Instrumentation {
 
         Weaver.callOriginal();
     }
-
-
-//    private void processLogEvent(final LogEvent event, final LoggerConfig.LoggerConfigPredicate predicate) {
-//        event.setIncludeLocation(isIncludeLocation());
-//        if (predicate.allow(this)) {
-//            callAppenders(event);
-//        }
-//        logParent(event, predicate);
-//    }
-
-
 }
