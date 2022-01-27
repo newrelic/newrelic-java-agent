@@ -334,7 +334,6 @@ public class DataSenderImpl implements DataSender {
 
     @Override
     public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
-        // TODO use sendAnalyticEventsForReservoir? Or create new method to handle MELT format for log_event_data endpoint???
         sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, reservoirSize, eventsSeen, events);
     }
 

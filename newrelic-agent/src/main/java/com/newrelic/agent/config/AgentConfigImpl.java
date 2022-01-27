@@ -735,12 +735,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     private InsightsConfig initInsightsConfig() {
-        Map<String, Object> props = nestedProps(LOG_SENDING);
+        Map<String, Object> props = nestedProps(CUSTOM_INSIGHT_EVENTS);
         return InsightsConfigImpl.createInsightsConfig(props, highSecurity);
     }
 
     private LogSenderConfig initLogSenderConfig() {
-        Map<String, Object> props = nestedProps(CUSTOM_INSIGHT_EVENTS);
+        Map<String, Object> props = nestedProps(LOG_SENDING);
         return LogSenderConfigImpl.createLogSenderConfig(props, highSecurity);
     }
 

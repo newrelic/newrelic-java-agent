@@ -192,7 +192,7 @@ public class Transaction {
     // Insights events added by the user during this transaction
     private final AtomicReference<Insights> insights;
 
-    // Insights events added by the user during this transaction
+    // Log events added by the user during this transaction
     private final AtomicReference<Logs> logEvents;
 
     // contains all work currently running

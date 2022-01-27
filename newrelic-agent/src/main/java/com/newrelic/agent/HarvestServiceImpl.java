@@ -85,7 +85,7 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
     public void startHarvestables(IRPMService rpmService, AgentConfig config) {
         Map<String, Object> eventHarvestConfig = config.getProperty(AgentConfigFactory.EVENT_HARVEST_CONFIG);
         Map<String, Object> spanHarvestConfig = config.getProperty(SERVER_SPAN_HARVEST_CONFIG);
-        // FIXME need to add log event harvest config
+        // FIXME need to add log event harvest config when it becomes available from the backend
         if (eventHarvestConfig == null) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
                     MetricNames.SUPPORTABILITY_CONNECT_MISSING_EVENT_DATA, 1));

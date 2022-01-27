@@ -78,7 +78,7 @@ public class DummyTransaction extends Transaction {
 
     private final Object lock = new Object();
     private final Insights insights = new DummyInsights();
-    private final Logs logEvents = new DummyLogEvents();
+    private final Logs logs = new DummyLogs();
     private final AgentConfig defaultConfig;
     private final TracerList tracerList = new TracerList(null, new DummySet<>());
     private final TransactionTimer timer = new TransactionTimer(0);
@@ -172,7 +172,7 @@ public class DummyTransaction extends Transaction {
 
     @Override
     public Logs getLogEventData() {
-        return logEvents;
+        return logs;
     }
 
     @Override
@@ -656,7 +656,7 @@ public class DummyTransaction extends Transaction {
         }
     }
 
-    static final class DummyLogEvents implements Logs {
+    static final class DummyLogs implements Logs {
         @Override
         public void recordLogEvent(Map<String, ?> attributes) {
         }
