@@ -8,7 +8,7 @@ on:
     branches: [ main ] ## branches TBD
     types: [opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ main ]
+    branches: [ java-18-ea ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -166,6 +166,17 @@ jobs:
         run: |
           echo "ORG_GRADLE_PROJECT_jdk8=${JAVA_HOME}" >> $GITHUB_ENV
 
+      - name: Set up Java 18-ea
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 18-ea
+
+      - name: Save JAVA_HOME as JDK18 for later usage
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
+
       - name: Set up Toolchain
         shell: bash
         run: |
@@ -273,6 +284,7 @@ jobs:
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
           ZULU=${ORG_GRADLE_PROJECT_zulu} \
           JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
+          JAVA18JRE=${ORG_GRADLE_PROJECT_jdk18} \
           conf/autoconfigure
           echo "running conf/testenv java"
           . conf/testenv java
