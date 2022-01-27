@@ -20,12 +20,15 @@ import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.Insights;
+import com.newrelic.api.agent.Logs;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
 
 class IntrospectorLogSenderService implements LogSenderService {
 
@@ -76,16 +79,16 @@ class IntrospectorLogSenderService implements LogSenderService {
     }
 
     @Override
-    public void recordCustomEvent(String eventType, Map<String, ?> attributes) {
-        if (AnalyticsEvent.isValidType(eventType)) {
+    public void recordLogEvent(Map<String, ?> attributes) {
+        if (AnalyticsEvent.isValidType(LOG_EVENT_TYPE)) {
             Map<String, Object> atts = Maps.newHashMap(attributes);
-            LogEvent event = new LogEvent(eventType, System.currentTimeMillis(), atts, DistributedTraceServiceImpl.nextTruncatedFloat());
+            LogEvent event = new LogEvent(System.currentTimeMillis(), atts, DistributedTraceServiceImpl.nextTruncatedFloat());
             storeEvent("TestApp", event);
         }
     }
 
     @Override
-    public Insights getTransactionInsights(AgentConfig config) {
+    public Logs getTransactionLogs(AgentConfig config) {
         return this;
     }
 

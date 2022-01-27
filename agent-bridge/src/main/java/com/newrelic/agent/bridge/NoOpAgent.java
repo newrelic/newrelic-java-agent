@@ -10,6 +10,7 @@ package com.newrelic.agent.bridge;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
@@ -64,8 +65,8 @@ class NoOpAgent implements Agent {
     }
 
     @Override
-    public Insights getLogSender() {
-        return NoOpInsights.INSTANCE;
+    public Logs getLogSender() {
+        return NoOpLogs.INSTANCE;
     }
 
     @Override

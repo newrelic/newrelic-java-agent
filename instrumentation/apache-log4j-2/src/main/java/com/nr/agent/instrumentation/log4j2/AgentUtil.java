@@ -1,5 +1,6 @@
 package com.nr.agent.instrumentation.log4j2;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
@@ -33,7 +34,7 @@ public class AgentUtil {
             Throwable throwable = event.getThrown();
             logEventMap.put("throwable", throwable != null ? throwable.toString() : EMPTY_STRING);
 
-            NewRelic.getAgent().getLogSender().recordCustomEvent("LogEvent", logEventMap);
+            AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
         }
     }
 

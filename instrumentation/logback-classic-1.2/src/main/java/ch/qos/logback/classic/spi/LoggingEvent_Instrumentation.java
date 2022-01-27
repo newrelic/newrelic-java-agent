@@ -3,6 +3,7 @@ package ch.qos.logback.classic.spi;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -106,7 +107,7 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
 
         timeStamp = System.currentTimeMillis();
 
-        NewRelic.getAgent().getLogSender().recordCustomEvent("LogEvent", logEventMap);
+        AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
     }
 
     private Throwable extractThrowableAnRearrangeArguments(Object[] argArray) {

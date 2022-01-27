@@ -20,7 +20,6 @@ import com.newrelic.agent.attributes.AttributeSender;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
-import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -30,7 +29,7 @@ import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
-import com.newrelic.api.agent.Insights;
+import com.newrelic.api.agent.Logs;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -45,28 +44,31 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
+
 public class LogSenderServiceImpl extends AbstractService implements LogSenderService {
-    // Whether the service as a whole is enabled. Disabling shuts down all analytic events for transactions.
+    // Whether the service as a whole is enabled. Disabling shuts down all log events for transactions.
     private volatile boolean enabled;
     // Key is the app name, value is if it is enabled - should be a limited number of names
     private final ConcurrentMap<String, Boolean> isEnabledForApp = new ConcurrentHashMap<>();
     /*
-     * Number of events in the reservoir sampling buffer per-app. All apps get the same value. Synthetics are buffered
-     * separately per app using a deterministic algorithm.
+     * Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
      */
     private volatile int maxSamplesStored;
 
-    // Key is app name, value is collection of per-transaction analytic events for next harvest for that app.
+    // Key is app name, value is collection of per-transaction log events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<LogEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
     private static final LoadingCache<String, String> stringCache = Caffeine.newBuilder().maximumSize(1000)
             .expireAfterAccess(70, TimeUnit.SECONDS).executor(Runnable::run).build(key -> key);
 
-    public static final String METHOD = "add log sender event attribute";
+    public static final String METHOD = "add log event attribute";
+    public static final String LOG_SENDER_SERVICE = "Log Sender Service";
 
-    // TODO it's not clear that log sender events should be tied to transactions in any way
+    /**
+     * Lifecycle listener for log events associated with a transaction
+     */
     protected final ExtendedTransactionListener transactionListener = new ExtendedTransactionListener() {
-
         @Override
         public void dispatcherTransactionStarted(Transaction transaction) {
         }
@@ -74,20 +76,22 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         @Override
         public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
             // FIXME not sure this is a great idea to store log events for the duration of a transaction...
-            TransactionInsights data = (TransactionInsights) transactionData.getLogEventData();
+            TransactionLogs data = (TransactionLogs) transactionData.getLogEventData();
             storeEvents(transactionData.getApplicationName(), transactionData.getPriority(), data.events);
         }
 
         @Override
         public void dispatcherTransactionCancelled(Transaction transaction) {
             // FIXME not sure this is a great idea to store log events for the duration of a transaction...
-            // Even if the transaction is cancelled we still want to send up any events that were held in it
-            TransactionInsights data = (TransactionInsights) transaction.getLogEventData();
+            // Even if the transaction is canceled we still want to send up any events that were held in it
+            TransactionLogs data = (TransactionLogs) transaction.getLogEventData();
             storeEvents(transaction.getApplicationName(), transaction.getPriority(), data.events);
         }
-
     };
 
+    /**
+     * Listener to detect changes to the agent config
+     */
     protected final AgentConfigListener configListener = new AgentConfigListener() {
         @Override
         public void configChanged(String appName, AgentConfig agentConfig) {
@@ -97,7 +101,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         }
     };
 
-    private List<Harvestable> harvestables = new ArrayList<>();
+    private final List<Harvestable> harvestables = new ArrayList<>();
 
     public LogSenderServiceImpl() {
         super(LogSenderServiceImpl.class.getSimpleName());
@@ -107,11 +111,19 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         isEnabledForApp.put(config.getApplicationName(), enabled);
     }
 
+    /**
+     * Whether the LogSenderService is enabled or not
+     * @return true if enabled, else false
+     */
     @Override
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Start the LogSenderService
+     * @throws Exception if service fails to start
+     */
     @Override
     protected void doStart() throws Exception {
         // TODO it's not clear that log sender events should be tied to transactions in any way
@@ -119,6 +131,10 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         ServiceFactory.getConfigService().addIAgentConfigListener(configListener);
     }
 
+    /**
+     * Stop the LogSenderService
+     * @throws Exception if service fails to stop
+     */
     @Override
     protected void doStop() throws Exception {
         removeHarvestables();
@@ -136,49 +152,66 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         }
     }
 
+    /**
+     * Records a LogEvent. If a LogEvent occurs within a Transaction it will be associated with it.
+     * @param attributes A map of log event data (e.g. log message, log timestamp, log level)
+     *                   Each key should be a String and each value should be a String, Number, or Boolean.
+     *                   For map values that are not String, Number, or Boolean object types the toString value will be used.
+     */
     @Override
-    public void recordCustomEvent(String eventType, Map<String, ?> attributes) {
-        if (logSenderEventsDisabled(eventType)) {
+    public void recordLogEvent(Map<String, ?> attributes) {
+        if (logEventsDisabled()) {
             return;
         }
 
-        if (AnalyticsEvent.isValidType(eventType)) {
-            Transaction transaction = ServiceFactory.getTransactionService().getTransaction(false);
-            // FIXME perhaps ignore transaction status and just always send log events...
-            //  what is the benefit of storing them on the transaction? Sampling maybe?
-            if (transaction == null || !transaction.isInProgress() || transaction.isIgnore()) {
-                String applicationName = ServiceFactory.getRPMService().getApplicationName();
-                if (transaction != null && transaction.getApplicationName() != null) {
-                    applicationName = transaction.getApplicationName();
-                }
-                AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig(applicationName);
-                if (!getIsEnabledForApp(agentConfig, applicationName)) {
-                    reservoirForApp.remove(applicationName);
-                    return;
-                }
-                storeEvent(applicationName, eventType, attributes);
-            } else {
-                // FIXME not sure this is a great idea to store log events for the duration of a transaction...
-                transaction.getLogEventData().recordCustomEvent(eventType, attributes);
+        Transaction transaction = ServiceFactory.getTransactionService().getTransaction(false);
+        // FIXME perhaps ignore transaction status and just always send log events...
+        //  what is the benefit of storing them on the transaction? Sampling?
+        // Not in a Transaction or an existing Transaction is not in progress or is ignored
+        if (transaction == null || !transaction.isInProgress() || transaction.isIgnore()) {
+            String applicationName = ServiceFactory.getRPMService().getApplicationName();
+
+            if (transaction != null && transaction.getApplicationName() != null) {
+                applicationName = transaction.getApplicationName();
             }
-            MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
+
+            AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig(applicationName);
+
+            if (!getIsEnabledForApp(agentConfig, applicationName)) {
+                reservoirForApp.remove(applicationName);
+                return;
+            }
+            createAndStoreEvent(applicationName, attributes);
+        // In a Transaction that is in progress and not ignored
         } else {
-            Agent.LOG.log(Level.WARNING, "Custom event with invalid type of {0} was reported but ignored."
-                    + " Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.", eventType);
+            // FIXME not sure this is a great idea to store log events for the duration of a transaction...
+            transaction.getLogEventData().recordLogEvent(attributes);
         }
+        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
     }
 
+    /**
+     * Store a collection of LogEvents in the priority queue when a Transaction is finished or cancelled
+     *
+     * @param appName app name
+     * @param priority sampling priority from Transaction
+     * @param events collection of LogEvents to store
+     */
     private void storeEvents(String appName, float priority, Collection<LogEvent> events) {
         if (events.size() > 0) {
             DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
             for (LogEvent event : events) {
-                // Set "priority" on LogSenderEvent based on priority value from Transaction
+                // Set "priority" on LogEvent based on priority value from Transaction
                 event.setPriority(priority);
                 eventList.add(event);
             }
         }
     }
 
+    /**
+     * Register LogSenderHarvestable
+     * @param appName application name
+     */
     public void addHarvestableToService(String appName) {
         Harvestable harvestable = new LogSenderHarvestableImpl(this, appName);
         ServiceFactory.getHarvestService().addHarvestable(harvestable);
@@ -225,9 +258,14 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         }
     }
 
+    /**
+     * Store a LogEvent instance
+     * @param appName application name
+     * @param event log event
+     */
     @Override
     public void storeEvent(String appName, LogEvent event) {
-        if (logSenderEventsDisabled(event.getType())) {
+        if (logEventsDisabled()) {
             return;
         }
 
@@ -236,24 +274,36 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         Agent.LOG.finest(MessageFormat.format("Added Custom Event of type {0}", event.getType()));
     }
 
-    private void storeEvent(String appName, String eventType, Map<String, ?> attributes) {
-        if (logSenderEventsDisabled(eventType)) {
+    /**
+     * Create and store a LogEvent instance
+     * @param appName application name
+     * @param attributes Map of attributes to create a LogEvent from
+     */
+    private void createAndStoreEvent(String appName, Map<String, ?> attributes) {
+        if (logEventsDisabled()) {
             return;
         }
 
         DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
-        eventList.add(createValidatedEvent(eventType, attributes));
-        Agent.LOG.finest(MessageFormat.format("Added Custom Event of type {0}", eventType));
+        eventList.add(createValidatedEvent(attributes));
+        Agent.LOG.finest(MessageFormat.format("Added event of type {0}", LOG_EVENT_TYPE));
     }
 
-    private boolean logSenderEventsDisabled(String eventType) {
+    /**
+     * Check if LogEvents are disabled
+     *
+     * @return true if they are disabled, false if they are enabled
+     */
+    private boolean logEventsDisabled() {
         if (!enabled) {
-            // TODO just ignore high security for now?
-            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
-                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", eventType);
-            } else {
-                Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", eventType);
-            }
+            // TODO high security is disabled for now. How should we handle it?
+//            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+//                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", eventType);
+//            } else {
+//                Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", eventType);
+//            }
+
+            Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", LOG_EVENT_TYPE);
 
             return true; // Log Sender events are disabled
         }
@@ -261,17 +311,28 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         return false; // Log Sender events are enabled
     }
 
+    /**
+     * Get the LogEvent reservoir
+     *
+     * @param appName app name
+     * @return Queue of LogEvent instances
+     */
     @VisibleForTesting
     public DistributedSamplingPriorityQueue<LogEvent> getReservoir(String appName) {
         DistributedSamplingPriorityQueue<LogEvent> result = reservoirForApp.get(appName);
         while (result == null) {
             // I don't think this loop can actually execute more than once, but it's prudent to assume it can.
-            reservoirForApp.putIfAbsent(appName, new DistributedSamplingPriorityQueue<LogEvent>(appName, "Log Sender Service", maxSamplesStored));
+            reservoirForApp.putIfAbsent(appName, new DistributedSamplingPriorityQueue<>(appName, LOG_SENDER_SERVICE, maxSamplesStored));
             result = reservoirForApp.get(appName);
         }
         return result;
     }
 
+    /**
+     * Harvest and send the LogEvents
+     *
+     * @param appName the application to harvest for
+     */
     public void harvestEvents(final String appName) {
         if (!getIsEnabledForApp(ServiceFactory.getConfigService().getAgentConfig(appName), appName)) {
             reservoirForApp.remove(appName);
@@ -285,15 +346,15 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         long startTimeInNanos = System.nanoTime();
 
         final DistributedSamplingPriorityQueue<LogEvent> reservoir = this.reservoirForApp.put(appName,
-                new DistributedSamplingPriorityQueue<>(appName, "Log Sender Service", maxSamplesStored));
+                new DistributedSamplingPriorityQueue<>(appName, LOG_SENDER_SERVICE, maxSamplesStored));
 
         if (reservoir != null && reservoir.size() > 0) {
             try {
-                // TODO actual sending of events
-
+                // Send LogEvents
                 ServiceFactory.getRPMServiceManager()
                         .getOrCreateRPMService(appName)
                         .sendLogEvents(maxSamplesStored, reservoir.getNumberOfTries(), Collections.unmodifiableList(reservoir.asList()));
+
                 final long durationInNanos = System.nanoTime() - startTimeInNanos;
                 ServiceFactory.getStatsService().doStatsWork(new StatsWork() {
                     @Override
@@ -309,49 +370,49 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
                 if (reservoir.size() < reservoir.getNumberOfTries()) {
                     int dropped = reservoir.getNumberOfTries() - reservoir.size();
-                    Agent.LOG.log(Level.FINE, "Dropped {0} custom events out of {1}.", dropped, reservoir.getNumberOfTries());
+                    Agent.LOG.log(Level.FINE, "Dropped {0} log events out of {1}.", dropped, reservoir.getNumberOfTries());
                 }
             } catch (HttpError e) {
                 if (!e.discardHarvestData()) {
-                    Agent.LOG.log(Level.FINE, "Unable to send custom events. Unsent events will be included in the next harvest.", e);
+                    Agent.LOG.log(Level.FINE, "Unable to send log events. Unsent events will be included in the next harvest.", e);
                     // Save unsent data by merging it with current data using reservoir algorithm
                     DistributedSamplingPriorityQueue<LogEvent> currentReservoir = reservoirForApp.get(appName);
                     currentReservoir.retryAll(reservoir);
                 } else {
                     // discard harvest data
                     reservoir.clear();
-                    Agent.LOG.log(Level.FINE, "Unable to send custom events. Unsent events will be dropped.", e);
+                    Agent.LOG.log(Level.FINE, "Unable to send log events. Unsent events will be dropped.", e);
                 }
             } catch (Exception e) {
                 // discard harvest data
                 reservoir.clear();
-                Agent.LOG.log(Level.FINE, "Unable to send custom events. Unsent events will be dropped.", e);
+                Agent.LOG.log(Level.FINE, "Unable to send log events. Unsent events will be dropped.", e);
             }
         }
     }
 
     @Override
     public String getEventHarvestIntervalMetric() {
-        return MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_INTERVAL;
+        return MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_EVENT_HARVEST_INTERVAL;
     }
 
     @Override
     public String getReportPeriodInSecondsMetric() {
-        return MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_REPORT_PERIOD_IN_SECONDS;
+        return MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_REPORT_PERIOD_IN_SECONDS;
     }
 
     @Override
     public String getEventHarvestLimitMetric() {
-        return MetricNames.SUPPORTABILITY_CUSTOM_EVENT_DATA_HARVEST_LIMIT;
+        return MetricNames.SUPPORTABILITY_LOG_EVENT_DATA_HARVEST_LIMIT;
     }
 
     private void recordSupportabilityMetrics(StatsEngine statsEngine, long durationInNanoseconds,
                                              DistributedSamplingPriorityQueue<LogEvent> reservoir) {
-        statsEngine.getStats(MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SENT)
+        statsEngine.getStats(MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_CUSTOMER_SENT)
                 .incrementCallCount(reservoir.size());
-        statsEngine.getStats(MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SEEN)
+        statsEngine.getStats(MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_CUSTOMER_SEEN)
                 .incrementCallCount(reservoir.getNumberOfTries());
-        statsEngine.getResponseTimeStats(MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_TRANSMIT)
+        statsEngine.getResponseTimeStats(MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_EVENT_HARVEST_TRANSMIT)
                 .recordResponseTime(durationInNanoseconds, TimeUnit.NANOSECONDS);
     }
 
@@ -378,25 +439,31 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         return stringCache.get(value);
     }
 
-    private static LogEvent createValidatedEvent(String eventType, Map<String, ?> attributes) {
+    /**
+     * Create a validated LogEvent
+     * @param attributes Map of attributes to create a LogEvent from
+     * @return LogEvent instance
+     */
+    private static LogEvent createValidatedEvent(Map<String, ?> attributes) {
         Map<String, Object> userAttributes = new HashMap<>(attributes.size());
-        LogEvent event = new LogEvent(mapInternString(eventType), System.currentTimeMillis(), userAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
+        // FIXME LogEvent constructor only needs the timestamp for the AnalyticsEvent super class but it won't
+        //  actually be added to the LogEvent as it isn't needed. We use the timestamp captured from the log library.
+        LogEvent event = new LogEvent(System.currentTimeMillis(), userAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
         // An AttributeSender is the way to reuse all the existing attribute validations. We
         // also locally "intern" Strings because we anticipate a lot of reuse of the keys and,
         // possibly, the values. But there's an interaction: if the key or value is chopped
         // within the attribute sender, the modified value won't be "interned" in our map.
+        AttributeSender sender = new LogEventAttributeSender(userAttributes);
 
-        AttributeSender sender = new LogSenderEventAttributeSender(userAttributes);
-
-        for (Map.Entry entry : attributes.entrySet()) {
-            String key = (String) entry.getKey();
+        for (Map.Entry<String, ?> entry : attributes.entrySet()) {
+            String key = entry.getKey();
             Object value = entry.getValue();
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
             if (key == null || value == null) {
-                Agent.LOG.log(Level.WARNING, "Log Sender event with invalid attributes key or value of null was reported for a transaction but ignored."
+                Agent.LOG.log(Level.WARNING, "Log event with invalid attributes key or value of null was reported for a transaction but ignored."
                         + " Each key should be a String and each value should be a String, Number, or Boolean.");
                 continue;
             }
@@ -418,13 +485,16 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         return event;
     }
 
-    private static class LogSenderEventAttributeSender extends AttributeSender {
+    /**
+     * Validate attributes and add them to LogEvents
+     */
+    private static class LogEventAttributeSender extends AttributeSender {
 
-        private static final String ATTRIBUTE_TYPE = "custom";
+        private static final String ATTRIBUTE_TYPE = "log";
 
         private final Map<String, Object> userAttributes;
 
-        public LogSenderEventAttributeSender(Map<String, Object> userAttributes) {
+        public LogEventAttributeSender(Map<String, Object> userAttributes) {
             super(new AttributeValidator(ATTRIBUTE_TYPE));
             this.userAttributes = userAttributes;
             setTransactional(false);
@@ -437,45 +507,46 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         @Override
         protected Map<String, Object> getAttributeMap() {
-            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
-                return userAttributes;
-            }
-            return null;
+            // FIXME skip this check for now as it isn't clear what to do with Log data if LASP or high security are enabled
+//            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
+//                return userAttributes;
+//            }
+//            return null;
+            return userAttributes;
         }
     }
 
     @Override
-    public Insights getTransactionInsights(AgentConfig config) {
-        return new TransactionInsights(config);
+    public Logs getTransactionLogs(AgentConfig config) {
+        return new TransactionLogs(config);
     }
 
-    public static final class TransactionInsights implements Insights {
+    /**
+     * Used to record LogEvents on Transactions
+     */
+    public static final class TransactionLogs implements Logs {
         final LinkedBlockingQueue<LogEvent> events;
 
-        TransactionInsights(AgentConfig config) {
+        TransactionLogs(AgentConfig config) {
             int maxSamplesStored = config.getLogSenderConfig().getMaxSamplesStored();
             events = new LinkedBlockingQueue<>(maxSamplesStored);
         }
 
         @Override
-        public void recordCustomEvent(String eventType, Map<String, ?> attributes) {
-            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
-                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", eventType);
-                return;
-            }
+        public void recordLogEvent(Map<String, ?> attributes) {
+            // TODO ignore high security for now
+//            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+//                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
+//                return;
+//            }
 
-            if (AnalyticsEvent.isValidType(eventType)) {
-                LogEvent event = createValidatedEvent(eventType, attributes);
-                if (events.offer(event)) {
-                    Agent.LOG.finest(MessageFormat.format("Added event of type {0} in Transaction.", eventType));
-                } else {
-                    // Too many events are cached on the transaction, send directly to the reservoir.
-                    String applicationName = ServiceFactory.getRPMService().getApplicationName();
-                    ServiceFactory.getServiceManager().getLogSenderService().storeEvent(applicationName, event);
-                }
+            LogEvent event = createValidatedEvent(attributes);
+            if (events.offer(event)) {
+                Agent.LOG.finest(MessageFormat.format("Added event of type {0} in Transaction.", LOG_EVENT_TYPE));
             } else {
-                Agent.LOG.log(Level.WARNING, "Event with invalid type of {0} was reported for a transaction but ignored."
-                        + " Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.", eventType); // TODO figure out limit "less than 256 chars"
+                // Too many events are cached on the transaction, send directly to the reservoir.
+                String applicationName = ServiceFactory.getRPMService().getApplicationName();
+                ServiceFactory.getServiceManager().getLogSenderService().storeEvent(applicationName, event);
             }
         }
 

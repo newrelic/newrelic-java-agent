@@ -16,10 +16,13 @@ import java.util.Map;
 
 public class LogEvent extends AnalyticsEvent implements JSONStreamAware {
 
+    public static final String LOG_EVENT_TYPE = "LogEvent";
+
     private volatile float mutablePriority;
 
-    public LogEvent(String type, long timestamp, Map<String, Object> attributes, float priority) {
-        super(type, timestamp, priority, attributes);
+    // FIXME probably don't need to pass timestamp as we use the value from the log event captured in the library instrumentation
+    public LogEvent(long timestamp, Map<String, Object> attributes, float priority) {
+        super(LOG_EVENT_TYPE, timestamp, priority, attributes);
         this.mutablePriority = priority;
     }
 

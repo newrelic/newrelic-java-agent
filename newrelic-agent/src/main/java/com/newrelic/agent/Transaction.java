@@ -22,6 +22,7 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.NoOpToken;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TransactionNamePriority;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.browser.BrowserTransactionState;
@@ -192,7 +193,7 @@ public class Transaction {
     private final AtomicReference<Insights> insights;
 
     // Insights events added by the user during this transaction
-    private final AtomicReference<Insights> logEvents;
+    private final AtomicReference<Logs> logEvents;
 
     // contains all work currently running
     private final Map<Integer, TransactionActivity> runningChildren;
@@ -617,11 +618,11 @@ public class Transaction {
         return insightsData;
     }
 
-    public Insights getLogEventData() {
-        Insights logEventData = logEvents.get();
+    public Logs getLogEventData() {
+        Logs logEventData = logEvents.get();
         if (logEventData == null) {
             AgentConfig defaultConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
-            logEvents.compareAndSet(null, ServiceFactory.getServiceManager().getLogSenderService().getTransactionInsights(defaultConfig));
+            logEvents.compareAndSet(null, ServiceFactory.getServiceManager().getLogSenderService().getTransactionLogs(defaultConfig));
             logEventData = logEvents.get();
         }
         return logEventData;

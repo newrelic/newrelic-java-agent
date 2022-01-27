@@ -8,6 +8,7 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.attributes.AttributesService;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -48,7 +49,7 @@ public class TransactionData {
         return tx.getInsightsData();
     }
 
-    public Insights getLogEventData() {
+    public Logs getLogEventData() {
         return tx.getLogEventData();
     }
 
