@@ -13,9 +13,6 @@ import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java16IncompatibleTest;
-import com.newrelic.test.marker.Java17IncompatibleTest;
-import com.newrelic.test.marker.Java18IncompatibleTest;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import org.junit.Test;
@@ -30,7 +27,6 @@ import java.util.concurrent.Executors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java16IncompatibleTest.class, Java17IncompatibleTest.class, Java18IncompatibleTest.class})
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class VertxFuture {
