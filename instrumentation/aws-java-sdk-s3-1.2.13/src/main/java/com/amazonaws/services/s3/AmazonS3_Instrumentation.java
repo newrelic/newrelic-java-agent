@@ -103,7 +103,6 @@ public class AmazonS3_Instrumentation {
             throw exception;
         } finally {
             String uri = "s3://" + getObjectRequest.getBucketName() + "/" + getObjectRequest.getKey();
-            System.out.println("URI:"  + uri);
             S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "getObject");
         }
     }
