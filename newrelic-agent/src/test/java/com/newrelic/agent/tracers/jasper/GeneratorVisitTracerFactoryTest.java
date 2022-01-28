@@ -598,7 +598,6 @@ public class GeneratorVisitTracerFactoryTest {
         sb.append("<meta http-equiv=\"Pragma\" content=\"no-cache\"/>\n");
         sb.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n");
         sb.append("<meta name=\"Author\" content=\"my author\"/>\n");
-        sb.append("<meta name=\"INFO\" content=\"mailto:support@newrelic.com\"/>\n");
         sb.append("<meta name=\"description\" content=\"We have a lot of fun in what we do.\"/>\n");
         sb.append("<meta name=\"KEYWORDS\" content=\"observability, new, relic\"/>\n");
 
