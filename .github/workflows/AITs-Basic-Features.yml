@@ -46,6 +46,8 @@ jobs:
           - spans.py
           - trans_traces.py
           - uri_names.py
+          # Flaky
+#          - inf_tracing_test.py
     steps:
       - uses: actions/checkout@v2
 
@@ -151,6 +153,17 @@ jobs:
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
+
+      - name: Set up Java 18-ea
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 18-ea
+
+      - name: Save JAVA_HOME as JDK18 for later usage
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
 
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
@@ -271,6 +284,7 @@ jobs:
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
           ZULU=${ORG_GRADLE_PROJECT_zulu} \
           JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
+          JAVA18JRE=${ORG_GRADLE_PROJECT_jdk18} \
           conf/autoconfigure
           echo "running conf/testenv java"
           . conf/testenv java
