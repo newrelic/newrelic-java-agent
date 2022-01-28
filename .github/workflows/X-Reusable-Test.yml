@@ -134,7 +134,7 @@ jobs:
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
           cat settings.gradle
-          ./gradlew clean jar --parallel -Dscan.uploadInBackground=false --build-cache
+          ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: Build newrelicJar w/o GE

@@ -50,12 +50,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      ## Ongoing tests with artifactory dependecies
+      ## Ongoing tests with artifactory dependencies
       - name: Checkout AIT repo test
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-agent-integration-tests
-          ref: main
+          ref: java-18-ea
           token: ${{ secrets.AITPAT }}
           path: agent-integration-tests
 
@@ -150,8 +150,7 @@ jobs:
 
       - name: Save JAVA_HOME as JDK18 for later usage
         run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk18=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
@@ -194,9 +193,7 @@ jobs:
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          # ./gradlew clean jar --parallel
-          # Per Todd Crone, attempting without --parallel option
-          ./gradlew clean jar
+          ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: CD to agent-integration-tests dir.
