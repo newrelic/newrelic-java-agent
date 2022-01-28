@@ -11,9 +11,12 @@ import org.apache.logging.log4j.core.LogEvent;
 public class LoggerConfig_Instrumentation {
 
     protected void callAppenders(LogEvent event) {
+        // Generate log usage metrics
         NewRelic.incrementCounter("Logging/lines");
         NewRelic.incrementCounter("Logging/lines/" + event.getLevel().toString());
-        AgentUtil.reportNewRelicLogEvent(event);
+
+        // Record and send LogEvent to New Relic
+        AgentUtil.recordNewRelicLogEvent(event);
 
         Weaver.callOriginal();
     }
