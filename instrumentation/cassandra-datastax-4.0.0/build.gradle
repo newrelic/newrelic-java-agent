@@ -1,0 +1,28 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.cassandra-datastax-4.0.0' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("com.datastax.oss:java-driver-core:4.3.1") { transitive(true) }
+
+    testImplementation 'org.cassandraunit:cassandra-unit:4.3.1.0'
+    testImplementation 'org.apache.cassandra:cassandra-all:3.11.5'
+    testImplementation 'io.netty:netty-all:4.1.35.Final'
+}
+
+verifyInstrumentation {
+    passesOnly 'com.datastax.oss:java-driver-core:[4.0.0,)'
+}
+
+test {
+    forkEvery(1)
+}
+
+site {
+    title 'Cassandra'
+    type 'Datastore'
+}
