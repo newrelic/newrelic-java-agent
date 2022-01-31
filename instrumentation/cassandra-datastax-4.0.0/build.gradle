@@ -16,6 +16,7 @@ dependencies {
 
 verifyInstrumentation {
     passesOnly 'com.datastax.oss:java-driver-core:[4.0.0,)'
+    excludeRegex ".*(rc|beta|alpha).*"
 }
 
 test {
