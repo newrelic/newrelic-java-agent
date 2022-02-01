@@ -7,58 +7,26 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.logbackclassic12.AgentUtil;
-import org.slf4j.Marker;
-
-import java.util.Map;
 
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "ch.qos.logback.classic.spi.LoggingEvent", type = MatchType.ExactClass)
-public class LoggingEvent_Instrumentation implements ILoggingEvent {
-    /**
-     * Fully qualified name of the calling Logger class. This field does not
-     * survive serialization.
-     * <p/>
-     * <p/>
-     * Note that the getCallerInformation() method relies on this fact.
-     */
-    transient String fqnOfLoggerClass;
+public class LoggingEvent_Instrumentation {
 
-    /**
-     * The name of thread in which this logging event was generated.
-     */
-    private String threadName;
+    transient String fqnOfLoggerClass;
     private String loggerName;
     private LoggerContext loggerContext;
     private LoggerContextVO loggerContextVO;
-    /**
-     * Level of logging event.
-     * <p/>
-     * <p>
-     * This field should not be accessed directly. You should use the
-     * {@link #getLevel} method instead.
-     * </p>
-     */
     private transient Level level;
     private String message;
     private transient Object[] argumentArray;
-
     private ThrowableProxy throwableProxy;
-
-    private StackTraceElement[] callerDataArray;
-
-    private Marker marker;
-
-    private Map<String, String> mdcPropertyMap;
 
     /**
      * The number of milliseconds elapsed from 1/1/1970 until logging event was
      * created.
      */
     private long timeStamp;
-
-    public LoggingEvent_Instrumentation() {
-    }
 
     public LoggingEvent_Instrumentation(String fqcn, Logger logger, Level level, String message, Throwable throwable, Object[] argArray) {
         this.fqnOfLoggerClass = fqcn;
@@ -94,81 +62,4 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
         return Weaver.callOriginal();
     }
 
-    @Override
-    public String getThreadName() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public Level getLevel() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public String getMessage() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public Object[] getArgumentArray() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public String getFormattedMessage() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public String getLoggerName() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public LoggerContextVO getLoggerContextVO() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public IThrowableProxy getThrowableProxy() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public StackTraceElement[] getCallerData() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public boolean hasCallerData() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public Marker getMarker() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public Map<String, String> getMDCPropertyMap() {
-        return Weaver.callOriginal();
-    }
-
-    /**
-     * @deprecated
-     */
-    @Override
-    public Map<String, String> getMdc() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public long getTimeStamp() {
-        return Weaver.callOriginal();
-    }
-
-    @Override
-    public void prepareForDeferredProcessing() {
-        Weaver.callOriginal();
-    }
 }
