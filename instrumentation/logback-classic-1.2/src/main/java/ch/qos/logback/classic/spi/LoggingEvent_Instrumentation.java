@@ -21,11 +21,6 @@ public class LoggingEvent_Instrumentation {
     private String message;
     private transient Object[] argumentArray;
     private ThrowableProxy throwableProxy;
-
-    /**
-     * The number of milliseconds elapsed from 1/1/1970 until logging event was
-     * created.
-     */
     private long timeStamp;
 
     public LoggingEvent_Instrumentation(String fqcn, Logger logger, Level level, String message, Throwable throwable, Object[] argArray) {
