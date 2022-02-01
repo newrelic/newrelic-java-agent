@@ -329,12 +329,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void logForceDisconnectException(ForceDisconnectException e) {
         Agent.LOG.log(Level.SEVERE, "Received a ForceDisconnectException: {0}. The agent is no longer reporting"
-                + " information. If this is not a misconfiguration, please contact support@newrelic.com.", e.toString());
+                + " information. If this is not a misconfiguration, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void logLicenseException(LicenseException e) {
         Agent.LOG.log(Level.SEVERE, "Invalid license key, the agent is no longer reporting"
-                + " information. If this is not a misconfiguration, please contact support@newrelic.com.", e.toString());
+                + " information. If this is not a misconfiguration, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void shutdownAsync() {
@@ -343,7 +343,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void logForceRestartException(ForceRestartException e) {
         Agent.LOG.log(Level.WARNING, "Received a ForceRestartException: {0}. The agent will attempt to reconnect for"
-                + " data reporting. If this message continues, please contact support@newrelic.com.", e.toString());
+                + " data reporting. If this message continues, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void reconnectSync() throws Exception {
