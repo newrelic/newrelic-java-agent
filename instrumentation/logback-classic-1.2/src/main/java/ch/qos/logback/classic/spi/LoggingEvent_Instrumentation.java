@@ -3,18 +3,15 @@ package ch.qos.logback.classic.spi;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.logbackclassic12.AgentUtil;
 import org.slf4j.Marker;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.getLinkingMetadataAsMap;
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "ch.qos.logback.classic.spi.LoggingEvent", type = MatchType.ExactClass)
 public class LoggingEvent_Instrumentation implements ILoggingEvent {
@@ -31,11 +28,9 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
      * The name of thread in which this logging event was generated.
      */
     private String threadName;
-
     private String loggerName;
     private LoggerContext loggerContext;
     private LoggerContextVO loggerContextVO;
-
     /**
      * Level of logging event.
      * <p/>
@@ -45,14 +40,7 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
      * </p>
      */
     private transient Level level;
-
     private String message;
-
-    // we gain significant space at serialization time by marking
-    // formattedMessage as transient and constructing it lazily in
-    // getFormattedMessage()
-    transient String formattedMessage;
-
     private transient Object[] argumentArray;
 
     private ThrowableProxy throwableProxy;
@@ -73,13 +61,6 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
     }
 
     public LoggingEvent_Instrumentation(String fqcn, Logger logger, Level level, String message, Throwable throwable, Object[] argArray) {
-        HashMap<String, Object> logEventMap = new HashMap<>(getLinkingMetadataAsMap());
-        logEventMap.put("message", message);
-        logEventMap.put("timeStamp", timeStamp);
-        logEventMap.put("log.level", level);
-        logEventMap.put("logger.name", logger.getName());
-        logEventMap.put("class.name", fqcn);
-
         this.fqnOfLoggerClass = fqcn;
         this.loggerName = logger.getName();
         this.loggerContext = logger.getLoggerContext();
@@ -97,7 +78,6 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
         }
 
         if (throwable != null) {
-            logEventMap.put("throwable", throwable);
             this.throwableProxy = new ThrowableProxy(throwable);
             LoggerContext lc = logger.getLoggerContext();
             if (lc.isPackagingDataEnabled()) {
@@ -107,7 +87,7 @@ public class LoggingEvent_Instrumentation implements ILoggingEvent {
 
         timeStamp = System.currentTimeMillis();
 
-        AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
+        recordNewRelicLogEvent(message, timeStamp, level, logger, fqcn, throwable);
     }
 
     private Throwable extractThrowableAnRearrangeArguments(Object[] argArray) {
