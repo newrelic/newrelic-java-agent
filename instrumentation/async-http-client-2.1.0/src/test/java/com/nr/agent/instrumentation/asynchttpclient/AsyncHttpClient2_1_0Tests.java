@@ -7,31 +7,11 @@
 
 package com.nr.agent.instrumentation.asynchttpclient;
 
-import com.newrelic.agent.introspec.CatHelper;
-import com.newrelic.agent.introspec.ExternalRequest;
-import com.newrelic.agent.introspec.InstrumentationTestConfig;
-import com.newrelic.agent.introspec.InstrumentationTestRunner;
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TraceSegment;
-import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.TransactionTrace;
+import com.newrelic.agent.introspec.*;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java10IncompatibleTest;
-import com.newrelic.test.marker.Java11IncompatibleTest;
-import com.newrelic.test.marker.Java12IncompatibleTest;
-import com.newrelic.test.marker.Java13IncompatibleTest;
-import com.newrelic.test.marker.Java14IncompatibleTest;
-import com.newrelic.test.marker.Java15IncompatibleTest;
-import com.newrelic.test.marker.Java16IncompatibleTest;
-import com.newrelic.test.marker.Java17IncompatibleTest;
-import com.newrelic.test.marker.Java9IncompatibleTest;
-import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.BoundRequestBuilder;
-import org.asynchttpclient.DefaultAsyncHttpClientConfig;
-import org.asynchttpclient.Dsl;
-import org.asynchttpclient.Response;
+import com.newrelic.test.marker.*;
+import org.asynchttpclient.*;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,11 +26,11 @@ import java.util.concurrent.Future;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class,
+@Category({Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class,
         Java13IncompatibleTest.class, Java14IncompatibleTest.class, Java15IncompatibleTest.class, Java16IncompatibleTest.class,
-        Java17IncompatibleTest.class })
+        Java17IncompatibleTest.class, Java18IncompatibleTest.class})
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.asynchttpclient", "org.asynchttpclient" })
+@InstrumentationTestConfig(includePrefixes = {"com.nr.agent.instrumentation.asynchttpclient", "org.asynchttpclient"})
 public class AsyncHttpClient2_1_0Tests {
 
     @Rule

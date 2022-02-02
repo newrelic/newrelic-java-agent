@@ -15,13 +15,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.agent.util.Obfuscator;
-import com.newrelic.test.marker.Java11IncompatibleTest;
-import com.newrelic.test.marker.Java12IncompatibleTest;
-import com.newrelic.test.marker.Java13IncompatibleTest;
-import com.newrelic.test.marker.Java14IncompatibleTest;
-import com.newrelic.test.marker.Java15IncompatibleTest;
-import com.newrelic.test.marker.Java16IncompatibleTest;
-import com.newrelic.test.marker.Java17IncompatibleTest;
+import com.newrelic.test.marker.*;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,10 +30,10 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 // Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
-@Category({ Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
-        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class })
+@Category({Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
+        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class, Java18IncompatibleTest.class})
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "akka", "scala", "com.agent", "com.nr" })
+@InstrumentationTestConfig(includePrefixes = {"akka", "scala", "com.agent", "com.nr"})
 public class AkkaHttpRoutesTest {
 
     private static final long TIMEOUT = 30000;

@@ -29,7 +29,7 @@ jobs:
       # max-parallel: 1 ## used to force sequential vs. concurrent
       fail-fast: false
       matrix:
-        java-version: [8, 11, 17]
+        java-version: [8, 11, 17, 18]
     steps:
       - uses: actions/checkout@v2
       #- uses: gradle/wrapper-validation-action@v1.0.4
@@ -67,6 +67,17 @@ jobs:
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
 
+      - name: Set up Java 18-ea
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 18-ea
+
+      - name: Save JAVA_HOME as JDK18 for later usage
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
+
       - name: Check environmental variables
         run: printenv | sort -f
 
@@ -74,7 +85,8 @@ jobs:
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
           s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
-          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|" gradle.properties.gha
+          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|
+          s|jdk18=18|jdk18=${ORG_GRADLE_PROJECT_jdk18}|" gradle.properties.gha
           cat gradle.properties.gha
           rm gradle.properties
           mv gradle.properties.gha gradle.properties

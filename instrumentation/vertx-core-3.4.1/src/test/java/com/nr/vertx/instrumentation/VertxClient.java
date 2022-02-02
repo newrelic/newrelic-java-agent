@@ -18,8 +18,6 @@ import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java16IncompatibleTest;
-import com.newrelic.test.marker.Java17IncompatibleTest;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -43,7 +41,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java16IncompatibleTest.class, Java17IncompatibleTest.class })
+
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class VertxClient {

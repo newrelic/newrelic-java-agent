@@ -68,6 +68,12 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
+      # Save new JDK variable
+      - name: Save JAVA_HOME as JDK17 for later usage
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
+
       # Install 18-ea
       - name: Set up Java 18-ea
         uses: actions/setup-java@v2
@@ -128,7 +134,7 @@ jobs:
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
           cat settings.gradle
-          ./gradlew clean jar --parallel -Dscan.uploadInBackground=false --build-cache
+          ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: Build newrelicJar w/o GE

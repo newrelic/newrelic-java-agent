@@ -13,8 +13,6 @@ import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java16IncompatibleTest;
-import com.newrelic.test.marker.Java17IncompatibleTest;
 import io.vertx.core.Vertx;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -26,7 +24,6 @@ import java.util.concurrent.CountDownLatch;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java16IncompatibleTest.class, Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class VertxBlockingTest {
