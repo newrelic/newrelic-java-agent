@@ -74,7 +74,8 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
         if (config == null) {
             return onNoBrowserConfig();
         }
-        return onBrowserHeaderObtained(config.getBrowserTimingHeader());
+        onBrowserHeaderObtained();
+        return config.getBrowserTimingHeader();
     }
 
     private String getBrowserTimingHeader2(String nonce) {
@@ -82,12 +83,12 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
         if (config == null) {
             return onNoBrowserConfig();
         }
-        return onBrowserHeaderObtained(config.getBrowserTimingHeader(nonce));
+        onBrowserHeaderObtained();
+        return config.getBrowserTimingHeader(nonce);
     }
 
-    private String onBrowserHeaderObtained(String value) {
+    private void onBrowserHeaderObtained() {
         browserHeaderRendered = true;
-        return value;
     }
 
     private String onNoBrowserConfig() {
