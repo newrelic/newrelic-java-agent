@@ -17,7 +17,7 @@ public class NoOpReservoirManager<T extends PriorityAware> implements ReservoirM
     }
 
     @Override
-    public SamplingPriorityQueue<T> getOrCreateReservoir() {
+    public SamplingPriorityQueue<T> getOrCreateReservoir(String appName) {
         return null;
     }
 

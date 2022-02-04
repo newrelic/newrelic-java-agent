@@ -17,7 +17,7 @@ import java.util.List;
  */
 public interface ReservoirManager<T extends PriorityAware> {
 
-    SamplingPriorityQueue<T> getOrCreateReservoir();
+    SamplingPriorityQueue<T> getOrCreateReservoir(String appName);
 
     void clearReservoir();
 

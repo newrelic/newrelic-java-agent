@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
 
 public class SpanEventsServiceTest {
 
-    private final String appName = "Unit Test";
+    private final String APP_NAME = "Unit Test";
 
     MockServiceManager serviceManager;
     @Mock
@@ -50,7 +50,7 @@ public class SpanEventsServiceTest {
         serviceManager = new MockServiceManager();
 
         Map<String, Object> localSettings = new HashMap<>();
-        localSettings.put(AgentConfigImpl.APP_NAME, appName);
+        localSettings.put(AgentConfigImpl.APP_NAME, APP_NAME);
         localSettings.put("distributed_tracing", Collections.singletonMap("enabled", true));
         localSettings.put("span_events", Collections.singletonMap("collect_span_events", true));
         when(spanEventCreationDecider.shouldCreateSpans(any(TransactionData.class))).thenReturn(true);
@@ -63,12 +63,7 @@ public class SpanEventsServiceTest {
         serviceManager.setTransactionService(new TransactionService());
         serviceManager.setThreadService(new ThreadService());
         final MockSpanEventReservoirManager reservoirManager = new MockSpanEventReservoirManager(configService);
-        Consumer<SpanEvent> backendConsumer = new Consumer<SpanEvent>() {
-            @Override
-            public void accept(SpanEvent spanEvent) {
-                reservoirManager.getOrCreateReservoir().add(spanEvent);
-            }
-        };
+        Consumer<SpanEvent> backendConsumer = spanEvent -> reservoirManager.getOrCreateReservoir(APP_NAME).add(spanEvent);
 
         SpanErrorBuilder defaultSpanErrorBuilder = new SpanErrorBuilder(
                 new ErrorAnalyzerImpl(agentConfig.getErrorCollectorConfig()),
@@ -102,7 +97,7 @@ public class SpanEventsServiceTest {
     @Test
     public void testSpanEvent() {
         TransactionData transactionData = new TransactionDataTestBuilder(
-                appName,
+                APP_NAME,
                 ServiceFactory.getConfigService().getDefaultAgentConfig(),
                 new MockDispatcherTracer())
                 .setTracers(Collections.<Tracer>emptyList())
@@ -115,7 +110,7 @@ public class SpanEventsServiceTest {
         SpanEventsServiceImpl spanEventsService = (SpanEventsServiceImpl) ServiceFactory.getSpanEventService();
         spanEventsService.dispatcherTransactionFinished(transactionData, new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         assertEquals(1, reservoir.getSampled());
     }
 
@@ -125,7 +120,7 @@ public class SpanEventsServiceTest {
 
         spanEventsService.setMaxSamplesStored(0);
 
-        final SpanEvent event = new SpanEventFactory(appName)
+        final SpanEvent event = new SpanEventFactory(APP_NAME)
                 .setCategory(SpanCategory.generic)
                 .setDecider(true)
                 .setPriority(1.23f)
@@ -137,7 +132,7 @@ public class SpanEventsServiceTest {
                 .build();
         spanEventsService.storeEvent(event);
 
-        SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         assertEquals(0, reservoir.size());
 
         spanEventsService.setMaxSamplesStored(2);
@@ -148,7 +143,7 @@ public class SpanEventsServiceTest {
         spanEventsService.storeEvent(event);
         spanEventsService.storeEvent(event);
 
-        reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir();
+        reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         assertEquals(2, reservoir.size());
 
         spanEventsService.setMaxSamplesStored(13);
@@ -157,14 +152,14 @@ public class SpanEventsServiceTest {
             spanEventsService.storeEvent(event);
         }
 
-        reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir();
+        reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         assertEquals(13, reservoir.size());
     }
 
     @Test
     public void testDoesNotCreateSpansIfToldNotTo() {
         TransactionData transactionData = new TransactionDataTestBuilder(
-                appName,
+                APP_NAME,
                 ServiceFactory.getConfigService().getDefaultAgentConfig(),
                 new MockDispatcherTracer())
                 .setTracers(Collections.<Tracer>emptyList())
@@ -179,7 +174,7 @@ public class SpanEventsServiceTest {
         SpanEventsServiceImpl spanEventsService = (SpanEventsServiceImpl) ServiceFactory.getSpanEventService();
         spanEventsService.dispatcherTransactionFinished(transactionData, null);
 
-        SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         assertEquals(0, reservoir.getSampled());
     }
 
@@ -187,13 +182,13 @@ public class SpanEventsServiceTest {
     public void spanEventsServiceMaxSamplesStoredRespectsServerSide() {
         //given
         MockRPMService mockRPMService = new MockRPMService();
-        mockRPMService.setApplicationName(appName);
+        mockRPMService.setApplicationName(APP_NAME);
         RPMServiceManager mockRPMServiceManager = mock(RPMServiceManager.class);
         when(mockRPMServiceManager.getRPMService()).thenReturn(mockRPMService);
         serviceManager.setRPMServiceManager(mockRPMServiceManager);
         serviceManager.setHarvestService(new HarvestServiceImpl());
         SpanEventsService spanEventsService = serviceManager.getSpanEventsService();
-        spanEventsService.addHarvestableToService(appName);
+        spanEventsService.addHarvestableToService(APP_NAME);
         HarvestServiceImpl harvestService = (HarvestServiceImpl) serviceManager.getHarvestService();
 
         Map<String, Object> connectionInfo = new HashMap<>();

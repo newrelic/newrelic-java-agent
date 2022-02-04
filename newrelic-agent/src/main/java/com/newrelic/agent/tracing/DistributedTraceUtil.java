@@ -36,11 +36,4 @@ public final class DistributedTraceUtil {
     public static boolean isSampledPriority(float priority) {
         return priority >= 1.0f;
     }
-
-    public static AtomicReference<Float> getSpanEventPriority() {
-        SamplingPriorityQueue<SpanEvent> spanReservoir = ServiceFactory.getServiceManager()
-                .getSpanEventsService().getOrCreateDistributedSamplingReservoir();
-        return new AtomicReference<>(ServiceFactory.getDistributedTraceService().calculatePriority(null, spanReservoir));
-    }
-
 }

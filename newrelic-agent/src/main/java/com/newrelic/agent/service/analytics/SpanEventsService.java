@@ -17,5 +17,5 @@ public interface SpanEventsService extends EventService {
 
     void addHarvestableToService(String appName);
 
-    SamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir();
+    SamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir(String appName);
 }

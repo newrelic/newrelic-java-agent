@@ -35,7 +35,6 @@ public class ReservoirAddingSpanEventConsumerTest {
         agentConfig = mock(AgentConfig.class);
         spanEventsConfig = mock(SpanEventsConfig.class);
         event = SpanEvent.builder().putAgentAttribute("foo", "burg").build();
-        when(reservoirManager.getOrCreateReservoir()).thenReturn(reservoir);
         when(configService.getDefaultAgentConfig()).thenReturn(agentConfig);
         when(agentConfig.getSpanEventsConfig()).thenReturn(spanEventsConfig);
     }
@@ -44,6 +43,7 @@ public class ReservoirAddingSpanEventConsumerTest {
     public void testConfigEnabled() throws Exception {
         when(spanEventsConfig.isEnabled()).thenReturn(true);
         when(reservoirManager.getMaxSamplesStored()).thenReturn(1024);
+        when(reservoirManager.getOrCreateReservoir(any())).thenReturn(reservoir);
         ReservoirAddingSpanEventConsumer testClass = new ReservoirAddingSpanEventConsumer(reservoirManager, configService);
         testClass.accept(event);
         verify(reservoir).add(event);

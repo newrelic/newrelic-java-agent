@@ -27,12 +27,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SpanEventsServiceFactoryTest {
+    private final String APP_NAME = "fakeyMcFakeApp";
+
     SpanEvent event;
     @Mock
     ConfigService configService;
@@ -63,15 +66,16 @@ public class SpanEventsServiceFactoryTest {
         when(agentConfig.getSpanEventsConfig()).thenReturn(spanEventsConfig);
         when(agentConfig.getInfiniteTracingConfig()).thenReturn(infiniteTracingConfig);
         when(reservoirManager.getMaxSamplesStored()).thenReturn(90210);
-        when(reservoirManager.getOrCreateReservoir()).thenReturn(reservoir);
+        when(reservoirManager.getOrCreateReservoir(APP_NAME)).thenReturn(reservoir);
     }
 
     @Test
     public void testBuildPicksStorageBackend_collector() throws Exception {
 
-        when(agentConfig.getApplicationName()).thenReturn("fakeyMcFakeApp");
+        when(agentConfig.getApplicationName()).thenReturn(APP_NAME);
         when(infiniteTracingConfig.isEnabled()).thenReturn(false);
         when(spanEventsConfig.isEnabled()).thenReturn(true);
+        when(reservoirManager.getOrCreateReservoir(any())).thenReturn(reservoir);
 
         SpanEventsService service = SpanEventsServiceFactory.builder()
                 .configService(configService)
@@ -97,7 +101,7 @@ public class SpanEventsServiceFactoryTest {
     @Test
     public void testBuildPicksStorageBackend_infiniteTracing() throws Exception {
 
-        when(agentConfig.getApplicationName()).thenReturn("fakeyMcFakeApp");
+        when(agentConfig.getApplicationName()).thenReturn(APP_NAME);
         when(infiniteTracingConfig.isEnabled()).thenReturn(true);
         when(spanEventsConfig.isEnabled()).thenReturn(true);
 

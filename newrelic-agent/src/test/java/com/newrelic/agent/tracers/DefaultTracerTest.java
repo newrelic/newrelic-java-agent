@@ -85,6 +85,8 @@ import static org.junit.Assert.assertNull;
 
 public class DefaultTracerTest {
 
+    private String APP_NAME;
+
     @BeforeClass
     public static void beforeClass() throws Exception {
         String configPath = getFullPath("/com/newrelic/agent/config/span_events.yml");
@@ -104,7 +106,8 @@ public class DefaultTracerTest {
     @Before
     public void before() throws Exception {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         eventPool.clear();
     }
 
@@ -575,7 +578,7 @@ public class DefaultTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(1, spanEvents.size());
@@ -604,7 +607,7 @@ public class DefaultTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(1, spanEvents.size());
@@ -633,7 +636,7 @@ public class DefaultTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(1, spanEvents.size());
@@ -692,7 +695,7 @@ public class DefaultTracerTest {
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(thirdTracer.getTransaction(), 1024), new TransactionStats());
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(fourthTracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(4, spanEvents.size());
@@ -743,7 +746,7 @@ public class DefaultTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(4, spanEvents.size());
@@ -861,7 +864,7 @@ public class DefaultTracerTest {
         final TransactionData tdB = new TransactionData(txB, 1024);
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(tdB, new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertEquals(5, spanEvents.size());
 
@@ -930,7 +933,7 @@ public class DefaultTracerTest {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
         ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(tracer.getTransaction(), 1024), new TransactionStats());
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
         assertNotNull(spanEvents);
         assertEquals(1, spanEvents.size());
