@@ -389,6 +389,12 @@ public class MetricNames {
     //Supportability metric indicating that the payload was too large
     public static final String SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX = "Supportability/Agent/Collector/MaxPayloadSizeLimit/{0}";
 
+    // Supportability metrics for uncompressed data payloads used to measure usage
+    // {0} = destination (Collector, OTLP, or InfiniteTracing).
+    public static final String SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES = "Supportability/Java/{0}/Output/Bytes";
+    // {0} = destination (Collector, OTLP, or InfiniteTracing). {1} = agent endpoint (connect, analytic_event_data, error_data, etc)
+    public static final String SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES = "Supportability/Java/{0}/{1}/Output/Bytes";
+
     public static final String SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS = "Supportability/Agent/Collector/Connect/BackoffAttempts";
 
     // expected errors
