@@ -17,6 +17,8 @@ class SpanEventSender implements Runnable {
     private final BlockingQueue<SpanEvent> queue;
     private final MetricAggregator aggregator;
     private final ChannelManager channelManager;
+    // Destination for agent data
+    private static final String INFINITE_TRACING = "InfiniteTracing";
 
     SpanEventSender(InfiniteTracingConfig config, BlockingQueue<SpanEvent> queue, MetricAggregator aggregator, ChannelManager channelManager) {
         this.logger = config.getLogger();
@@ -97,6 +99,7 @@ class SpanEventSender implements Runnable {
             logger.log(Level.SEVERE, t, "Unable to send span.");
             throw t;
         }
+        // TODO record data usage metrics here for the INFINITE_TRACING destination
         aggregator.incrementCounter("Supportability/InfiniteTracing/Span/Sent");
     }
 
