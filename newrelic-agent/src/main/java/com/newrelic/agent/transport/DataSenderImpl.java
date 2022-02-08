@@ -91,9 +91,9 @@ public class DataSenderImpl implements DataSender {
     private static final String ENV_METADATA = "metadata";
     private static final int DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES = 1_000_000;
 
+    // Destinations for agent data
     private static final String COLLECTOR = "Collector";
-    private static final String OTLP = "OTLP";
-    private static final String INFINITE_TRACING = "InfiniteTracing";
+    private static final String OTLP = "OTLP"; // Not currently supported by Java agent
 
     // As of P17 these are the only agent endpoints that actually contain data in the response payload for a successful request
     private static final Set<String> METHODS_WITH_RESPONSE_BODY = ImmutableSet.of(
@@ -577,9 +577,7 @@ public class DataSenderImpl implements DataSender {
             logger.info(MessageFormat.format("Received JSON({0}): {1}", method, payloadJsonReceived));
         }
 
-        // TODO some logic to determine the correct destination, maybe PROTOCOL?
-        //  Is this the right place to call this method??? Or should it be before the exception logic?
-        recordDataUsageMetrics(COLLECTOR, method, payloadJsonSent, payloadJsonReceived);
+        recordDataUsageMetrics(method, payloadJsonSent, payloadJsonReceived);
 
         if (dataSenderListener != null) {
             dataSenderListener.dataSent(method, encoding, uri, data);
@@ -591,19 +589,20 @@ public class DataSenderImpl implements DataSender {
     /**
      * Record metrics tracking amount of bytes sent and received for each agent endpoint payload
      *
-     * @param destination data destination (COLLECTOR, OTLP, INFINITE_TRACING)
      * @param method method for the agent endpoint
      * @param payloadJsonSent JSON String of the payload that was sent
      * @param payloadJsonReceived JSON String of the payload that was received
      */
-    private void recordDataUsageMetrics(String destination, String method, String payloadJsonSent, String payloadJsonReceived) {
+    private void recordDataUsageMetrics(String method, String payloadJsonSent, String payloadJsonReceived) {
         int payloadBytesSent = payloadJsonSent.getBytes().length;
         int payloadBytesReceived = payloadJsonReceived.getBytes().length;
 
-        // TODO figure out how to tell the destination of the data Collector, OTLP, or InfiniteTracing
+        // COLLECTOR is always the destination for data reported via DataSenderImpl.
+        // OTLP as a destination is not currently supported by the Java agent.
+        // INFINITE_TRACING destined usage data is sent via SpanEventSender.
         ServiceFactory.getStatsService().doStatsWork(
                 StatsWorks.getRecordDataUsageMetricWork(
-                        MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES, destination),
+                        MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES, COLLECTOR),
                         payloadBytesSent, payloadBytesReceived));
 
         ServiceFactory.getStatsService().doStatsWork(
