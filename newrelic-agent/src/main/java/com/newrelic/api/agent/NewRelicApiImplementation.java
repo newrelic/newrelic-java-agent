@@ -30,7 +30,7 @@ import java.util.logging.Level;
 
 /**
  * The internal New Relic API implementation class.
- *
+ * <p>
  * DO NOT INVOKE THIS CLASS DIRECTLY. Use {@link com.newrelic.api.agent.NewRelic}.
  */
 public class NewRelicApiImplementation implements PublicApi {
@@ -52,7 +52,7 @@ public class NewRelicApiImplementation implements PublicApi {
      * be created and reported to New Relic.
      *
      * @param throwable
-     * @param params Custom parameters to include in the traced error. May be null. Copied to avoid side effects.
+     * @param params    Custom parameters to include in the traced error. May be null. Copied to avoid side effects.
      */
     @Override
     public void noticeError(Throwable throwable, Map<String, ?> params) {
@@ -77,7 +77,7 @@ public class NewRelicApiImplementation implements PublicApi {
      * be created and reported to New Relic.
      *
      * @param message the error message
-     * @param params Custom parameters to include in the traced error. May be null. Map is copied to avoid side effects.
+     * @param params  Custom parameters to include in the traced error. May be null. Map is copied to avoid side effects.
      */
     @Override
     public void noticeError(String message, Map<String, ?> params) {
@@ -262,7 +262,7 @@ public class NewRelicApiImplementation implements PublicApi {
      * Set the name of the current transaction.
      *
      * @param category
-     * @param name The name of the transaction in URI format. example: /store/order
+     * @param name     The name of the transaction in URI format. example: /store/order
      */
     @Override
     public void setTransactionName(String category, String name) {
@@ -354,7 +354,7 @@ public class NewRelicApiImplementation implements PublicApi {
     /**
      * Called by JSPs. Version 2.4.0 got the content type from the JSP. Post-2.4.0 versions get it from the
      * HttpResponse. The argument is retained for backwards-compatibility with JSPs compiled with older Agents.
-     *
+     * <p>
      * NOTE: This method is called by the AbstractRUMState class. It needs to remain static.
      *
      * @see com.newrelic.agent.tracers.jasper.GeneratorVisitTracerFactory
@@ -384,6 +384,11 @@ public class NewRelicApiImplementation implements PublicApi {
 
     @Override
     public String getBrowserTimingHeader() {
+        return getBrowserTimingHeader(null);
+    }
+
+    @Override
+    public String getBrowserTimingHeader(String nonce) {
         Transaction tx = Transaction.getTransaction(false);
         try {
             if (tx == null) {
@@ -392,7 +397,11 @@ public class NewRelicApiImplementation implements PublicApi {
             }
             String header = null;
             synchronized (tx) {
-                header = tx.getBrowserTransactionState().getBrowserTimingHeader();
+                if (nonce == null) {
+                    header = tx.getBrowserTransactionState().getBrowserTimingHeader();
+                } else {
+                    header = tx.getBrowserTransactionState().getBrowserTimingHeader(nonce);
+                }
             }
             if (Agent.LOG.isLoggable(Level.FINER)) {
                 String msg = MessageFormat.format("Got browser timing header in NewRelic API: {0}", header);
@@ -410,7 +419,7 @@ public class NewRelicApiImplementation implements PublicApi {
      * Called by JSPs. The content type is not needed for the footer since it's checked in the header API call, and a
      * footer cannot be written without a header. The argument is retained for backwards-compatibility with JSPs
      * compiled with older Agents.
-     *
+     * <p>
      * NOTE: This method is called by the AbstractRUMState class. It needs to remain static.
      *
      * @see com.newrelic.agent.tracers.jasper.GeneratorVisitTracerFactory
@@ -440,6 +449,11 @@ public class NewRelicApiImplementation implements PublicApi {
 
     @Override
     public String getBrowserTimingFooter() {
+        return getBrowserTimingFooter(null);
+    }
+
+    @Override
+    public String getBrowserTimingFooter(String nonce) {
         Transaction tx = Transaction.getTransaction(false);
         try {
             if (tx == null) {
@@ -448,7 +462,11 @@ public class NewRelicApiImplementation implements PublicApi {
             }
             String footer = null;
             synchronized (tx) {
-                footer = tx.getBrowserTransactionState().getBrowserTimingFooter();
+                if (nonce == null) {
+                    footer = tx.getBrowserTransactionState().getBrowserTimingFooter();
+                } else {
+                    footer = tx.getBrowserTransactionState().getBrowserTimingFooter(nonce);
+                }
             }
             if (Agent.LOG.isLoggable(Level.FINER)) {
                 String msg = MessageFormat.format("Got browser timing footer in NewRelic API: {0}", footer);

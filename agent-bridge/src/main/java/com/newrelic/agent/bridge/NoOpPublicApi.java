@@ -101,7 +101,19 @@ class NoOpPublicApi implements PublicApi {
     }
 
     @Override
+    public String getBrowserTimingHeader(String nonce) {
+
+        return "";
+    }
+
+    @Override
     public String getBrowserTimingFooter() {
+
+        return "";
+    }
+
+    @Override
+    public String getBrowserTimingFooter(String nonce) {
 
         return "";
     }
@@ -126,11 +138,13 @@ class NoOpPublicApi implements PublicApi {
 
     }
 
-    @Override public void setServerInfo(String dispatcherName, String version) {
+    @Override
+    public void setServerInfo(String dispatcherName, String version) {
 
     }
 
-    @Override public void setInstanceName(String instanceName) {
+    @Override
+    public void setInstanceName(String instanceName) {
 
     }
 
