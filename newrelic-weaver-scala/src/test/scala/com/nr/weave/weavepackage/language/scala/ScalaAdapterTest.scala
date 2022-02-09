@@ -33,11 +33,21 @@ class ScalaAdapterTest {
   }
 
   @Test
-  def weaveTraitTest() {
-    val nonoverriding: SomeTrait = new NonOverridingTrait()
+  def weaveClassExtendingTraitTest() {
     val overriding: SomeTrait = new OverridingTrait()
-    Assert.assertEquals("weavedoriginal", nonoverriding.traitmethod())
     Assert.assertEquals("weavedoverride", overriding.traitmethod())
+  }
+
+  @Test
+  def weaveChildClassWithMultipleTraitsTest() {
+    val multipleOverridingWeaved: BaseTrait = new MultipleOverridingWeaved
+    Assert.assertEquals("weaved-ChildWeaveTrait", multipleOverridingWeaved.traitmethod())
+  }
+
+  @Test
+  def nonWeaveChildClassWithMultipleTraitsTest() {
+    val multipleOverridingNonWeaved: BaseTrait = new MultipleOverridingNonWeaved
+    Assert.assertEquals("weaved-ChildNonWeaveTrait", multipleOverridingNonWeaved.traitmethod())
   }
 
 }
@@ -64,14 +74,25 @@ package testclasses {
       "original"
     }
   }
+  trait BaseTrait {
+    def traitmethod(): String
+  }
 
   class OverridingTrait extends SomeTrait {
     override def traitmethod(): String = {
       "override"
     }
   }
-  class NonOverridingTrait extends SomeTrait {
+
+  trait ChildWeaveTrait extends BaseTrait {
+    override def traitmethod(): String = "ChildWeaveTrait"
   }
+  trait ChildNonWeaveTrait extends BaseTrait {
+    override def traitmethod(): String = "ChildNonWeaveTrait"
+  }
+
+  class MultipleOverridingNonWeaved extends ChildWeaveTrait with ChildNonWeaveTrait
+  class MultipleOverridingWeaved extends ChildNonWeaveTrait with ChildWeaveTrait
 
 }
 
@@ -99,6 +120,13 @@ package weaveclasses {
   class TraitWeave {
     def traitmethod(): String = {
       "weaved"+Weaver.callOriginal()
+    }
+  }
+
+  @ScalaWeave(originalName="com.nr.weave.weavepackage.language.scala.testclasses.ChildWeaveTrait", `type`=ScalaMatchType.Trait)
+  class ChildTraitWeave {
+    def traitmethod(): String = {
+      "weaved-"+Weaver.callOriginal()
     }
   }
 

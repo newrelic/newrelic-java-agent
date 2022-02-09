@@ -18,6 +18,7 @@ import com.newrelic.agent.instrumentation.PointCutClassTransformer;
 import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher.Match;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
+import com.newrelic.agent.instrumentation.context.FinalClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
 import com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl;
@@ -540,7 +541,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         };
         try {
             return weavePackageManager.weave(loader, getClassCache(loader), className, classfileBuffer,
-                    classWeavedCallback);
+                    context.getSkipMethods(), classWeavedCallback);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collection;
 
 /**
  * Weaves a match (original and weave classes) into a target class.
@@ -39,20 +40,28 @@ public class ClassWeave {
     private final ClassNode target;
     private final boolean isNonstaticInnerTarget;
     private final List<Method> weavedMethods;
+    private final Map<Method, Collection<String>> skipWeaveMethods;
     private final WeavePackage weavePackage;
 
     private ClassNode composite = new SynchronizedClassNode(WeaveUtils.ASM_API_LEVEL);
 
-    private ClassWeave(PreparedMatch match, ClassNode target, WeavePackage weavePackage) {
+    private ClassWeave(PreparedMatch match,
+                       ClassNode target,
+                       WeavePackage weavePackage,
+                       Map<Method, Collection<String>> skipWeaveMethods) {
         this.match = match;
         this.target = target;
         this.isNonstaticInnerTarget = WeaveUtils.isNonstaticInnerClass(target);
         this.weavedMethods = new ArrayList<>(match.getPreparedMatchedMethods().size());
+        this.skipWeaveMethods = skipWeaveMethods;
         this.weavePackage = weavePackage;
     }
 
-    public static ClassWeave weave(PreparedMatch match, ClassNode target, WeavePackage weavePackage) {
-        ClassWeave result = new ClassWeave(match, target, weavePackage);
+    public static ClassWeave weave(PreparedMatch match,
+                                   ClassNode target,
+                                   WeavePackage weavePackage,
+                                   Map<Method, Collection<String>> skipWeaveMethods) {
+        ClassWeave result = new ClassWeave(match, target, weavePackage, skipWeaveMethods);
         result.weave();
         return result;
     }
@@ -94,6 +103,11 @@ public class ClassWeave {
 
         // weave matched methods
         for (MethodNode matchedMethod : match.getPreparedMatchedMethods().values()) {
+            Collection<String> skipMethodOwningInterfaces =
+              skipWeaveMethods.get(new Method(matchedMethod.name, matchedMethod.desc));
+            if (skipMethodOwningInterfaces != null && skipMethodOwningInterfaces.contains(match.getWeaveName())) {
+              continue; // this can happen when weaving an inherited base class
+            }
 
             // If we have a prepared default constructor from an interface or a @WeavesAllConstructor,
             // skip "regular" weaving of constructors here.

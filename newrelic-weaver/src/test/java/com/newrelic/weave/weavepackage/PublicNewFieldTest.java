@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class PublicNewFieldTest {
@@ -64,7 +65,7 @@ public class PublicNewFieldTest {
         byte[] compositeBytes = result.weave(WeaveUtils.getClassInternalName(origName),
                 ci.getAllSuperNames(cache).toArray(new String[0]),
                 ci.getAllInterfaces(cache).toArray(new String[0]),
-                WeaveTestUtils.getClassBytes(origName), cache).getCompositeBytes(cache);
+                WeaveTestUtils.getClassBytes(origName), cache, Collections.emptyMap()).getCompositeBytes(cache);
         Assert.assertNotNull("Unable to weave: " + origName, compositeBytes);
         Assert.assertFalse("Original class should not be already loaded: " + origName,
                 ClassLoaderUtils.isClassLoadedOnClassLoader(CLASSLOADER, WeaveUtils.getClassBinaryName(origName)));

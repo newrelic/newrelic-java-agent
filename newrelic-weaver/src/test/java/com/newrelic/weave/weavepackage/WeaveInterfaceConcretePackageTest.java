@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class WeaveInterfaceConcretePackageTest {
@@ -54,7 +55,7 @@ public class WeaveInterfaceConcretePackageTest {
         WeaveTestUtils.loadUtilityClasses(classloader, result.computeUtilityClassBytes(cache));
 
         Assert.assertFalse(result.weave("", new String[0], new String[0],
-                WeaveTestUtils.getClassBytes(String.class.getCanonicalName()), cache).weavedClass());
+                WeaveTestUtils.getClassBytes(String.class.getCanonicalName()), cache, Collections.emptyMap()).weavedClass());
 
         String[] superClasses = { "com/newrelic/weave/weavepackage/testclasses/BearBaseClass" };
         String[] interfaces = { "com/newrelic/weave/weavepackage/testclasses/BearInterface" };
@@ -62,7 +63,8 @@ public class WeaveInterfaceConcretePackageTest {
         // super
         byte[] compositeBytes = result.weave("com/newrelic/weave/weavepackage/testclasses/BearConcrete", superClasses,
                 interfaces,
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.BearConcrete"), cache)
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.BearConcrete"), cache,
+                                             Collections.emptyMap())
                 .getCompositeBytes(
                         cache);
         Assert.assertNotNull(compositeBytes);
