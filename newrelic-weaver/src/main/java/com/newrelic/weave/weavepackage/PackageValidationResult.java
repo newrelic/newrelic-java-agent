@@ -312,16 +312,16 @@ public class PackageValidationResult {
      * Weave the target class and return a {@link PackageWeaveResult}.
      */
     public PackageWeaveResult weave(String className, String[] superNames, String[] interfaceNames,
-            byte[] targetBytes, ClassCache cache) {
+            byte[] targetBytes, ClassCache cache, Map<Method, Collection<String>> skipMethods) {
         ClassNode composite = WeaveUtils.convertToClassNode(targetBytes);
-        return weave(className, superNames, interfaceNames, composite, cache);
+        return weave(className, superNames, interfaceNames, composite, cache, skipMethods);
     }
 
     /**
      * Weave the target class and return a {@link PackageWeaveResult}.
      */
     public PackageWeaveResult weave(String className, String[] superNames, String[] interfaceNames,
-            ClassNode targetNode, ClassCache cache) {
+            ClassNode targetNode, ClassCache cache, Map<Method, Collection<String>> skipMethods) {
         ClassNode composite = targetNode;
         final Map<String, List<Method>> weavedMethods = new HashMap<>();
 
@@ -332,7 +332,7 @@ public class PackageValidationResult {
             PreparedMatch exactMatch = exactMatches.get(className);
             if (null != exactMatch) {
                 ClassWeave classWeave;
-                classWeave = ClassWeave.weave(exactMatch, composite, weavePackage);
+                classWeave = ClassWeave.weave(exactMatch, composite, weavePackage, skipMethods);
                 composite = classWeave.getComposite();
                 final String key = exactMatch.getOriginalName();
                 if (weavedMethods.containsKey(key)) {
@@ -346,7 +346,7 @@ public class PackageValidationResult {
             PreparedMatch exactMatch = baseMatches.get(className); // matcher for abstract class
             if (null != exactMatch) {
                 ClassWeave classWeave;
-                classWeave = ClassWeave.weave(exactMatch, composite, weavePackage);
+                classWeave = ClassWeave.weave(exactMatch, composite, weavePackage, skipMethods);
                 composite = classWeave.getComposite();
                 final String key = exactMatch.getOriginalName();
                 if (weavedMethods.containsKey(key)) {
@@ -362,7 +362,7 @@ public class PackageValidationResult {
             PreparedMatch baseMatch = baseMatches.get(superNames[i]);
             if (null != baseMatch) {
                 ClassWeave classWeave;
-                classWeave = ClassWeave.weave(baseMatch, composite, weavePackage);
+                classWeave = ClassWeave.weave(baseMatch, composite, weavePackage, skipMethods);
                 composite = classWeave.getComposite();
                 final String key = baseMatch.getOriginalName();
                 if (weavedMethods.containsKey(key)) {
@@ -378,7 +378,7 @@ public class PackageValidationResult {
             PreparedMatch baseMatch = baseMatches.get(interfaceNames[i]);
             if (null != baseMatch) {
                 ClassWeave classWeave;
-                classWeave = ClassWeave.weave(baseMatch, composite, weavePackage);
+                classWeave = ClassWeave.weave(baseMatch, composite, weavePackage, skipMethods);
                 composite = classWeave.getComposite();
                 final String key = baseMatch.getOriginalName();
                 if (weavedMethods.containsKey(key)) {
@@ -402,7 +402,7 @@ public class PackageValidationResult {
             for (Map.Entry<String, ClassNode> entry : allAnnotationClasses.entrySet()) {
                 if (targetAnnotationsClasses.contains(entry.getKey())) {
                     composite = getAnnotationMatchComposite(targetNode, entry.getValue(), composite, weavedMethods,
-                            cache, annotationProxyClasses);
+                            cache, annotationProxyClasses, skipMethods);
                 }
             }
 
@@ -410,7 +410,7 @@ public class PackageValidationResult {
             for (Map.Entry<String, ClassNode> entry : baseAnnotationClasses.entrySet()) {
                 if (targetInterfacesAnnotationClasses.contains(entry.getKey())) {
                     composite = getAnnotationMatchComposite(targetNode, entry.getValue(), composite, weavedMethods,
-                            cache, annotationProxyClasses);
+                            cache, annotationProxyClasses, skipMethods);
                 }
             }
         }
@@ -422,7 +422,7 @@ public class PackageValidationResult {
             for (Map.Entry<String, ClassNode> entry : allMethodAnnotationClasses.entrySet()) {
                 if (targetMethodAnnotationsClasses.contains(entry.getKey())) {
                     composite = getAnnotationMatchComposite(targetNode, entry.getValue(), composite, weavedMethods,
-                            cache, annotationProxyClasses);
+                            cache, annotationProxyClasses, skipMethods);
 
                     // After we find a match we can break out of the loop to prevent weaving a method multiple times
                     // due to having multiple matching annotations that have the same underlying weave code.
@@ -443,8 +443,13 @@ public class PackageValidationResult {
         return new PackageWeaveResult(this, className, composite, weavedMethods, annotationProxyClasses);
     }
 
-    private ClassNode getAnnotationMatchComposite(ClassNode targetNode, ClassNode weaveNode, ClassNode composite,
-            Map<String, List<Method>> weavedMethods, ClassCache cache, Map<String, byte[]> annotationProxyClasses) {
+    private ClassNode getAnnotationMatchComposite(ClassNode targetNode,
+                                                  ClassNode weaveNode,
+                                                  ClassNode composite,
+                                                  Map<String, List<Method>> weavedMethods,
+                                                  ClassCache cache,
+                                                  Map<String, byte[]> annotationProxyClasses,
+                                                  Map<Method, Collection<String>> skipMethods) {
 
         try {
             boolean isInterfaceMatch = WeaveUtils.isWeaveWithAnnotationInterfaceMatch(weaveNode);
@@ -461,7 +466,7 @@ public class PackageValidationResult {
             for (Map.Entry<String, PreparedMatch> result : results.entrySet()) {
                 PreparedMatch prepared = result.getValue();
                 if (prepared != null) {
-                    ClassWeave classWeave = ClassWeave.weave(prepared, composite, weavePackage);
+                    ClassWeave classWeave = ClassWeave.weave(prepared, composite, weavePackage, skipMethods);
                     composite = classWeave.getComposite();
 
                     // Key is only used for logging at the moment.

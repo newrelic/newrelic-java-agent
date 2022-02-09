@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,12 +76,14 @@ public class WeavePackageTest {
         WeaveTestUtils.loadUtilityClasses(classloader, result.computeUtilityClassBytes(cache));
 
         Assert.assertFalse(result.weave("", new String[0], new String[0],
-                WeaveTestUtils.getClassBytes(String.class.getCanonicalName()), cache).weavedClass());
+                                        WeaveTestUtils.getClassBytes(String.class.getCanonicalName()), cache,
+                                        Collections.emptyMap()).weavedClass());
 
         // exact
         byte[] compositeBytes = result.weave("com/newrelic/weave/weavepackage/testclasses/MyOriginalExact",
                 new String[0], new String[0],
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact"), cache).getCompositeBytes(
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact"), cache,
+                                             Collections.emptyMap()).getCompositeBytes(
                 cache);
         Assert.assertNotNull(compositeBytes);
         WeaveTestUtils.addToContextClassloader("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact",
@@ -91,7 +94,8 @@ public class WeavePackageTest {
 
         compositeBytes = result.weave("com/newrelic/weave/weavepackage/testclasses/MyOriginalBase", new String[0],
                 new String[0],
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), cache).getCompositeBytes(
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), cache,
+                                      Collections.emptyMap()).getCompositeBytes(
                 cache);
         Assert.assertNotNull(compositeBytes);
         WeaveTestUtils.addToContextClassloader("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase",
@@ -103,7 +107,8 @@ public class WeavePackageTest {
         // super
         compositeBytes = result.weave("com/newrelic/weave/weavepackage/testclasses/MyOriginalTarget1", superClasses,
                 interfaces,
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget1"), cache).getCompositeBytes(
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget1"), cache,
+                                      Collections.emptyMap()).getCompositeBytes(
                 cache);
         Assert.assertNotNull(compositeBytes);
         classloader.loadClass("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase");
@@ -120,7 +125,8 @@ public class WeavePackageTest {
         // interface
         compositeBytes = result.weave("com/newrelic/weave/weavepackage/testclasses/MyOriginalTarget2", new String[0],
                 interfaces,
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget2"), cache).getCompositeBytes(
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget2"), cache,
+                                      Collections.emptyMap()).getCompositeBytes(
                 cache);
         Assert.assertNotNull(compositeBytes);
         WeaveTestUtils.addToContextClassloader("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget2",

@@ -458,7 +458,7 @@ public class WeaveTestUtils {
         }
 
         // weave target using the specified match and add composite class to classloader
-        return ClassWeave.weave(preparedMatch, target, null);
+        return ClassWeave.weave(preparedMatch, target, null, Collections.emptyMap());
     }
 
     /**

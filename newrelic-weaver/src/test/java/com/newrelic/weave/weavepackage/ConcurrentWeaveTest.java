@@ -16,6 +16,7 @@ import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -145,7 +146,7 @@ public class ConcurrentWeaveTest {
         result = testPackage.validate(cache);
 
         Assert.assertFalse(result.weave("", new String[0], new String[0],
-                WeaveTestUtils.getClassBytes(String.class.getCanonicalName()), cache).weavedClass());
+                WeaveTestUtils.getClassBytes(String.class.getCanonicalName()), cache, Collections.emptyMap()).weavedClass());
         WeaveTestUtils.expectViolations(result.getViolations());
         
         // This is here to tease out a ClassNode race condition with multiple classloaders sharing the same utility classes
@@ -162,13 +163,14 @@ public class ConcurrentWeaveTest {
 
         // exact
         PackageWeaveResult packageWeaveResult = result.weave(
-                "com/newrelic/weave/weavepackage/testclasses/MyOriginalExact", new String[0], new String[0],
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact"), cache);
+          "com/newrelic/weave/weavepackage/testclasses/MyOriginalExact", new String[0], new String[0],
+          WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact"), cache,
+          Collections.emptyMap());
         Assert.assertTrue(packageWeaveResult.weavedClass());
 
         packageWeaveResult = result.weave("com/newrelic/weave/weavepackage/testclasses/MyOriginalBase", new String[0],
                 new String[0],
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), cache);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), cache, Collections.emptyMap());
         Assert.assertTrue(packageWeaveResult.weavedClass());
 
         String[] superClasses = { "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase" };
@@ -177,13 +179,13 @@ public class ConcurrentWeaveTest {
         // super
         packageWeaveResult = result.weave("com/newrelic/weave/weavepackage/testclasses/MyOriginalTarget1",
                 superClasses, interfaces,
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget1"), cache);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget1"), cache, Collections.emptyMap());
         Assert.assertTrue(packageWeaveResult.weavedClass());
 
         // interface
         packageWeaveResult = result.weave("com/newrelic/weave/weavepackage/testclasses/MyOriginalTarget2",
                 new String[0], interfaces,
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget2"), cache);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalTarget2"), cache, Collections.emptyMap());
         Assert.assertTrue(packageWeaveResult.weavedClass());
     }
 }

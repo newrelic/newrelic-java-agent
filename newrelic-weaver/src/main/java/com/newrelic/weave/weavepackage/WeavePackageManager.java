@@ -21,6 +21,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
@@ -293,10 +294,11 @@ public class WeavePackageManager {
      * @param targetBytes target class bytes
      * @return composite class bytes, or <code>null</code> if no weaving occurred
      */
-    public byte[] weave(ClassLoader classloader, String className, byte[] targetBytes) throws IOException {
+    public byte[] weave(ClassLoader classloader, String className, byte[] targetBytes,
+                        Map<Method, Collection<String>> skipMethods) throws IOException {
         classloader = classLoaderSub(classloader);
         ClassCache cache = new ClassCache(new ClassLoaderFinder(classloader));
-        return weave(classloader, cache, className, targetBytes, null);
+        return weave(classloader, cache, className, targetBytes, skipMethods, null);
     }
 
     /**
@@ -309,7 +311,8 @@ public class WeavePackageManager {
      * @param weaveListener listener containing callback if/when the composite is created
      * @return composite class bytes, or <code>null</code> if no weaving occurred
      */
-    public byte[] weave(ClassLoader classloader, ClassCache cache, String className, byte[] targetBytes,
+    public byte[] weave(ClassLoader classloader, ClassCache cache, String className,
+                        byte[] targetBytes, Map<Method, Collection<String>> skipMethods,
             ClassWeavedListener weaveListener) throws IOException {
         classloader = classLoaderSub(classloader);
 
@@ -337,7 +340,8 @@ public class WeavePackageManager {
         ClassNode composite = WeaveUtils.convertToClassNode(targetBytes);
         PackageWeaveResult finalResult = null;
         for (PackageValidationResult weavePackageResult : matchedPackageResults) {
-            PackageWeaveResult result = weavePackageResult.weave(className, superNames, interfaceNames, composite, cache);
+            PackageWeaveResult result = weavePackageResult.weave(className, superNames, interfaceNames, composite,
+                                                                 cache, skipMethods);
             if (null != weaveListener) {
                 weaveListener.classWeaved(result, classloader, cache);
             }

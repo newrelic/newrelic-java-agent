@@ -18,6 +18,7 @@ import com.newrelic.agent.deps.org.objectweb.asm.Type;
 import com.newrelic.agent.deps.org.objectweb.asm.commons.Method;
 import com.newrelic.agent.deps.org.objectweb.asm.tree.ClassNode;
 import com.newrelic.agent.instrumentation.InstrumentationType;
+import com.newrelic.agent.instrumentation.classmatchers.ScalaTraitMatcher;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.tracing.Annotation;
 import com.newrelic.agent.instrumentation.tracing.NoticeSqlVisitor;
@@ -100,9 +101,10 @@ class InstrumentingClassLoader extends WeavingClassLoader {
         }
 
         final InstrumentationContext context = new InstrumentationContext(classBytes, null, null);
-
+        new ClassReader(classBytes).accept(new ScalaTraitMatcher().newClassMatchVisitor(null, null, null,null,  context)
+                                             , ClassReader.SKIP_FRAMES);
         // weave
-        byte[] weaved = weave(className, classBytes, new ClassWeavedListener() {
+        byte[] weaved = weave(className, classBytes, context.getSkipMethods(), new ClassWeavedListener() {
             @Override
             public void classWeaved(PackageWeaveResult weaveResult, ClassLoader classloader, ClassCache cache) {
                 if (weaveResult.weavedClass()) {

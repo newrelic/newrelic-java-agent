@@ -7,7 +7,7 @@
 
 package com.newrelic.agent.instrumentation.context;
 
-import com.google.common.base.Supplier;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -47,6 +47,7 @@ public class InstrumentationContext implements TraceDetailsList {
     protected final byte[] bytes;
     private boolean modified;
     private Multimap<Method, String> weavedMethods;
+    private Multimap<Method, String> skipMethods;
     private Set<Method> timedMethods;
     private Map<Method, PointCut> oldReflectionStyleInstrumentationMethods;
     private Map<Method, PointCut> oldInvokerStyleInstrumentationMethods;
@@ -106,17 +107,21 @@ public class InstrumentationContext implements TraceDetailsList {
      */
     public void addWeavedMethod(Method method, String instrumentationTitle) {
         if (weavedMethods == null) {
-            weavedMethods = Multimaps.newSetMultimap(new HashMap<Method, Collection<String>>(),
-                    new Supplier<Set<String>>() {
-                        @Override
-                        public Set<String> get() {
-                            return new HashSet<>();
-                        }
-                    });
+            weavedMethods = Multimaps.newSetMultimap(new HashMap<>(), HashSet::new);
         }
-        weavedMethods.put(method, instrumentationTitle);
-        modified = true;
+        if(skipMethods== null || !skipMethods.containsKey(method)) {
+          weavedMethods.put(method, instrumentationTitle);
+          modified = true;
+        }
     }
+
+    public void addSkipMethod(Method method, String owningClass) {
+      if (skipMethods == null) {
+        skipMethods = Multimaps.newSetMultimap(new HashMap<>(), HashSet::new);
+      }
+      skipMethods.put(method, owningClass);
+    }
+
 
     public PointCut getOldStylePointCut(Method method) {
         PointCut pc = getOldInvokerStyleInstrumentationMethods().get(method);
@@ -140,7 +145,11 @@ public class InstrumentationContext implements TraceDetailsList {
         return weavedMethods == null ? Collections.<Method>emptySet() : weavedMethods.keySet();
     }
 
-    /**
+  public Map<Method, Collection<String>> getSkipMethods() {
+    return skipMethods == null ? Collections.emptyMap() : skipMethods.asMap();
+  }
+
+  /**
      * Returns methods that are timed with instrumentation injected by the new {@link TraceClassVisitor} or the old
      * GenericClassAdapter.
      */
@@ -262,7 +271,7 @@ public class InstrumentationContext implements TraceDetailsList {
             }
         }
         if (visitor != null) {
-            reader.accept(visitor, ClassReader.SKIP_CODE);
+            reader.accept(visitor, ClassReader.SKIP_FRAMES);
             if (bridgeMethods != null) {
                 // resolve bridge methods
                 resolveBridgeMethods(reader);

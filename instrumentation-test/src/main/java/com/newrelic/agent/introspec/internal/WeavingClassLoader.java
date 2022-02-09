@@ -11,6 +11,7 @@ import com.newrelic.agent.deps.org.objectweb.asm.AnnotationVisitor;
 import com.newrelic.agent.deps.org.objectweb.asm.ClassReader;
 import com.newrelic.agent.deps.org.objectweb.asm.ClassVisitor;
 import com.newrelic.agent.deps.org.objectweb.asm.MethodVisitor;
+import com.newrelic.agent.deps.org.objectweb.asm.commons.Method;
 import com.newrelic.agent.deps.org.objectweb.asm.Type;
 import com.newrelic.agent.deps.org.objectweb.asm.tree.ClassNode;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
@@ -32,10 +33,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 class WeavingClassLoader extends TransformingClassLoader {
 
@@ -223,13 +227,17 @@ class WeavingClassLoader extends TransformingClassLoader {
         return super.getResource(name);
     }
 
-    protected byte[] weave(String className, byte[] classBytes, ClassWeavedListener listener) throws IOException {
-        return weavePackageManager.weave(this, classCache, className.replace('.', '/'), classBytes, listener);
+    protected byte[] weave(String className,
+                           byte[] classBytes,
+                           Map<Method, Collection<String>> skipMethods,
+                           ClassWeavedListener listener) throws IOException {
+        return weavePackageManager.weave(this, classCache, className.replace('.', '/'), classBytes, skipMethods,
+                                         listener);
     }
 
     @Override
     protected byte[] transform(String className) throws Exception {
         byte[] classBytes = WeaveUtils.getClassBytesFromClassLoaderResource(className, this);
-        return classBytes == null ? null : weave(className, classBytes, null);
+        return classBytes == null ? null : weave(className, classBytes, Collections.emptyMap(), null);
     }
 }
