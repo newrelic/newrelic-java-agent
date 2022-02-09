@@ -26,6 +26,8 @@ import com.newrelic.agent.sql.SlowQueryListener;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
 import com.newrelic.agent.stats.ApdexStats;
 import com.newrelic.agent.stats.ApdexStatsImpl;
+import com.newrelic.agent.stats.DataUsageStats;
+import com.newrelic.agent.stats.DataUsageStatsImpl;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.ResponseTimeStatsImpl;
 import com.newrelic.agent.stats.SimpleStatsEngine;
@@ -69,6 +71,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * DummyTransaction is a lightweight Transaction that gets returned when the agent's circuit
+ * breaker has been tripped in order to minimize the agent's effects on a JVM running near its limits.
+ */
 public class DummyTransaction extends Transaction {
 
     private final String guid;
@@ -851,6 +857,7 @@ public class DummyTransaction extends Transaction {
         static final DummyStats stat = new DummyStats();
         static final DummyResponseTimeStats responseTimeStat = new DummyResponseTimeStats();
         static final DummyApdexStat apdexStat = new DummyApdexStat();
+        static final DummyDataUsageStats dataUsageStats = new DummyDataUsageStats();
 
         @Override
         public Map<String, StatsBase> getStatsMap() {
@@ -874,6 +881,11 @@ public class DummyTransaction extends Transaction {
         @Override
         public ApdexStats getApdexStats(String metricName) {
             return apdexStat;
+        }
+
+        @Override
+        public DataUsageStats getDataUsageStats(String metricName) {
+            return dataUsageStats;
         }
 
         @Override
@@ -1101,6 +1113,58 @@ public class DummyTransaction extends Transaction {
 
         @Override
         public void recordApdexResponseTime(long responseTimeMillis, long apdexTInMillis) {
+        }
+
+        @Override
+        public boolean hasData() {
+            return false;
+        }
+
+        @Override
+        public void reset() {
+        }
+
+        @Override
+        public void writeJSONString(Writer writer) throws IOException {
+        }
+
+        @Override
+        public void merge(StatsBase statsObj) {
+        }
+    }
+
+    static final class DummyDataUsageStats extends DataUsageStatsImpl {
+        DummyDataUsageStats() {
+            super();
+        }
+
+        @Override
+        public Object clone() throws CloneNotSupportedException {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "";
+        }
+
+        @Override
+        public void recordDataUsage(long bytesSent, long bytesReceived) {
+        }
+
+        @Override
+        public int getCount() {
+            return 0;
+        }
+
+        @Override
+        public long getBytesSent() {
+            return 0;
+        }
+
+        @Override
+        public long getBytesReceived() {
+            return 0;
         }
 
         @Override

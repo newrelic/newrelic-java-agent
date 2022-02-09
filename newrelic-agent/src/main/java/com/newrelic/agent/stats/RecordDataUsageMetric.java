@@ -9,7 +9,7 @@ package com.newrelic.agent.stats;
 
 import com.newrelic.agent.metric.MetricName;
 
-final class RecordDataUsageMetric implements StatsWork {
+public final class RecordDataUsageMetric implements StatsWork {
     private final MetricName name;
     private final long bytesSent;
     private final long bytesReceived;
@@ -30,4 +30,15 @@ final class RecordDataUsageMetric implements StatsWork {
         return null;
     }
 
+    public String getName() {
+        return name.getName();
+    }
+
+    public long getBytesSent() {
+        return bytesSent;
+    }
+
+    public long getBytesReceived() {
+        return bytesReceived;
+    }
 }
