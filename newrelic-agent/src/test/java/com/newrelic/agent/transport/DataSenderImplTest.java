@@ -660,14 +660,6 @@ public class DataSenderImplTest {
         }
         return metricData;
     }
-//
-//    private List<MetricData> createMetricData(int metrics) {
-//        List<MetricData> metricData = new ArrayList<>();
-//        for (int i = 0; i < metrics; i++) {
-//            metricData.add(MetricData.create(MetricName.create(String.valueOf(i)), i, new StatsImpl(1, 1, 1, 1, 1)));
-//        }
-//        return metricData;
-//    }
 
     public Map<String, Object> configMap() {
         Map<String, Object> configMap = new HashMap<>();
