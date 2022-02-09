@@ -30,14 +30,6 @@ public class DataUsageStatsImpl implements DataUsageStats {
         super();
     }
 
-//    // Used by the server mode
-//    public DataUsageStatsImpl(int count, int bytesSent, int bytesReceived) {
-//        super();
-//        this.count = count;
-//        this.bytesSent = bytesSent;
-//        this.bytesReceived = bytesReceived;
-//    }
-
     /**
      * Record the uncompressed sizes of sent and received payloads in bytes for each agent endpoint.
      *
