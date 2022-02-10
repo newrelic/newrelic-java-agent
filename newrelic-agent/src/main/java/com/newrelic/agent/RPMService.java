@@ -411,6 +411,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                 // In case of 413 status code, cut the size of the payload in half and try again
                 if (e.isRequestPayloadTooLarge()) {
                     // This will halve the errors payload. If the payload only has 1 item left it will be cut to 0
+                    // TODO should we follow this halving behavior for sendLogEvents?
                     sendErrorData(new ArrayList<>(errors.subList(0, errors.size() / 2)));
                 } else {
                     throw e; // Otherwise re-throw the error so it can be logged
@@ -533,7 +534,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     @Override
     public void sendLogEvents(int reservoirSize, int eventsSeen, final Collection<? extends LogEvent> events) throws Exception {
-        Agent.LOG.log(Level.FINE, "Sending {0} Log Sender event(s)", events.size());
+        Agent.LOG.log(Level.FINE, "Sending {0} log event(s)", events.size());
         try {
             sendLogEventsSyncRestart(reservoirSize, eventsSeen, events);
         } catch (HttpError e) {

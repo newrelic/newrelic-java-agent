@@ -364,13 +364,14 @@ public class DataSenderImpl implements DataSender {
     // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
     private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, int reservoirSize, int eventsSeen,
             Collection<T> events) throws Exception {
+        // FIXME remove unused parameters
         Object runId = agentRunId;
         if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
             return;
         }
 
         JSONObject commonAttributes = new JSONObject();
-        commonAttributes.put("plugin.type", "nr-java-agent");
+        commonAttributes.put("plugin.type", "nr-java-agent"); // TODO do we set this? or does backend service?
 
         // build attributes object
         JSONObject attributes = new JSONObject();
@@ -570,7 +571,7 @@ public class DataSenderImpl implements DataSender {
 
         /*
          * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
-         * payload and try again. See RPMService sendErrorData
+         * payload and try again. See RPMService sendErrorData // TODO does this apply to log data as well?
          */
         if (data.length > maxPayloadSizeInBytes && !method.equals(CollectorMethods.ERROR_DATA)) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
