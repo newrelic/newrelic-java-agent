@@ -11,7 +11,7 @@ import org.apache.logging.log4j.core.LogEvent;
 public class LoggerConfig_Instrumentation {
 
     protected void callAppenders(LogEvent event) {
-        // Generate log usage metrics
+        // Generate log level metrics
         NewRelic.incrementCounter("Logging/lines");
         NewRelic.incrementCounter("Logging/lines/" + event.getLevel().toString());
 

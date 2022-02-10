@@ -20,12 +20,12 @@ import static com.nr.agent.instrumentation.logbackclassic12.ElementName.TIMESTAM
 
 public class AgentUtil {
 
-    public static void recordNewRelicLogEvent(String message, long timeStamp, Level level, Logger logger, String fqcn, Throwable throwable) {
+    public static void recordNewRelicLogEvent(String message, long timeStampMillis, Level level, Logger logger, String fqcn, Throwable throwable) {
         Map<String, String> agentLinkingMetadata = NewRelic.getAgent().getLinkingMetadata();
         HashMap<String, Object> logEventMap = new HashMap<>(agentLinkingMetadata);
 
         logEventMap.put(MESSAGE, message);
-        logEventMap.put(TIMESTAMP,timeStamp);
+        logEventMap.put(TIMESTAMP, timeStampMillis);
         logEventMap.put(LOG_LEVEL, level);
         logEventMap.put(LOGGER_NAME, logger.getName());
         logEventMap.put(CLASS_NAME, fqcn);
@@ -45,6 +45,7 @@ public class AgentUtil {
     }
 
     public static String getLinkingMetadataAsString() {
+        // TODO might need to filter the map entries to remove some (e.g. entity.*) and/or create a differently formatted string
         return NewRelic.getAgent().getLinkingMetadata().toString();
     }
 

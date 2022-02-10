@@ -6,7 +6,7 @@
 package com.nr.agent.instrumentation.log4j2;
 
 public class ExceptionUtil {
-    public static final int MAX_STACK_SIZE = 1000; // TODO figure out size limit
+    public static final int MAX_STACK_SIZE = 1000; // TODO figure out size limit. limited by ConfigConstant.MAX_LOG_EVENT_ATTRIBUTE_SIZE?
 
     public static String getErrorStack(Throwable throwable) {
         if (throwable == null) {
