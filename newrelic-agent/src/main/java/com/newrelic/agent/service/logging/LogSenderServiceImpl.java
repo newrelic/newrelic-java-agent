@@ -51,11 +51,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     private volatile boolean enabled;
     // Key is the app name, value is if it is enabled - should be a limited number of names
     private final ConcurrentMap<String, Boolean> isEnabledForApp = new ConcurrentHashMap<>();
-    /*
-     * Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
-     */
+    // Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
     private volatile int maxSamplesStored;
-
     // Key is app name, value is collection of per-transaction log events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<LogEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
@@ -296,19 +293,15 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     private boolean logEventsDisabled() {
         if (!enabled) {
-            // TODO high security is disabled for now. How should we handle it?
-//            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
-//                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", eventType);
-//            } else {
-//                Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", eventType);
-//            }
-
-            Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", LOG_EVENT_TYPE);
-
-            return true; // Log Sender events are disabled
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
+            } else {
+                Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", LOG_EVENT_TYPE); // FIXME update these logs if log_sending is not used
+            }
+            Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", LOG_EVENT_TYPE); // FIXME update these logs if log_sending is not used
+            return true; // LogEvents are disabled
         }
-
-        return false; // Log Sender events are enabled
+        return false; // LogEvents are enabled
     }
 
     /**
@@ -385,7 +378,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                 }
             } catch (Exception e) {
                 // discard harvest data
-                reservoir.clear();
+                reservoir.clear(); // TODO should we simply discard all events if MaxPayloadException bubbles up to here from DataSenderImpl?
                 Agent.LOG.log(Level.FINE, "Unable to send log events. Unsent events will be dropped.", e);
             }
         }
@@ -507,12 +500,10 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         @Override
         protected Map<String, Object> getAttributeMap() {
-            // FIXME skip this check for now as it isn't clear what to do with Log data if LASP or high security are enabled
-//            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
-//                return userAttributes;
-//            }
-//            return null;
-            return userAttributes;
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
+                return userAttributes;
+            }
+            return null;
         }
     }
 
@@ -534,11 +525,10 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         @Override
         public void recordLogEvent(Map<String, ?> attributes) {
-            // TODO ignore high security for now
-//            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
-//                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
-//                return;
-//            }
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
+                return;
+            }
 
             LogEvent event = createValidatedEvent(attributes);
             if (events.offer(event)) {
