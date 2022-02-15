@@ -16,10 +16,8 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import redis.clients.jedis.args.Rawable;
 import redis.clients.jedis.commands.ProtocolCommand;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 
@@ -39,7 +37,7 @@ public abstract class Connection_Instrumentation {
     @NewField
     private HostAndPort hostAndPort;
 
-    final HostAndPort getHostAndPort(){
+    final HostAndPort getHostAndPort() {
         this.hostAndPort = Weaver.callOriginal();
         this.host = this.hostAndPort.getHost();
         this.port = this.hostAndPort.getPort();
@@ -52,34 +50,27 @@ public abstract class Connection_Instrumentation {
         Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public void sendCommand(final ProtocolCommand cmd, final byte[]... args) {
         Weaver.callOriginal();
 
         updateDbIndex(cmd, new String(args[0], StandardCharsets.UTF_8));
-        reportMethodAsExternal(cmd, this.host, this.port);
+
     }
 
-    @Trace(leaf = true)
+    @Trace
     public void sendCommand(final ProtocolCommand cmd, final String... args) {
         Weaver.callOriginal();
 
         updateDbIndex(cmd, args[0]);
-        reportMethodAsExternal(cmd, this.host, this.port);
     }
 
     @Trace(leaf = true)
-    public void sendCommand(final ProtocolCommand cmd) {
+    public void sendCommand(final CommandArguments args) {
         Weaver.callOriginal();
 
+        ProtocolCommand cmd = args.getCommand();
         reportMethodAsExternal(cmd, this.host, this.port);
-    }
-
-    @Trace(leaf = true)
-    public void sendCommand(final CommandArguments args){
-        Weaver.callOriginal();
-
-        reportMethodAsExternal(args.getCommand(), this.host, this.port);
 
     }
 
@@ -98,11 +89,10 @@ public abstract class Connection_Instrumentation {
     private void reportMethodAsExternal(ProtocolCommand command, String serverUsed, int serverPortUsed) {
         String operation = "unknown";
         try {
-            //TODO: investigate eliminating new String usage. Was it used here for a good reason?
-            //Seems unlikely there's a good reason and all  of these usages should benefit from the String pool since
-            //the commands are from a known bound set of Strings. Maybe the bytes need the charset defined? default for jdk should be  UTF-8 anyway.
+
             operation = new String(command.getRaw(), Protocol.CHARSET).toLowerCase();
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         NewRelic.getAgent().getTracedMethod().reportAsExternal(DatastoreParameters
                 .product(DatastoreVendor.Redis.name())

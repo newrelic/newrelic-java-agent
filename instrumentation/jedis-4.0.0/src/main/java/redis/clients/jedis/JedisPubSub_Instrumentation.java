@@ -31,7 +31,7 @@ public class JedisPubSub_Instrumentation {
         Weaver.callOriginal();
     }
 
-    public void proceed(Connection client, String... channels){
+    public void proceed(Connection client, String... channels) {
         this.host = client.getHostAndPort().getHost();
         this.port = client.getHostAndPort().getPort();
         Weaver.callOriginal();
