@@ -57,18 +57,38 @@ public class AgentUtil {
     }
 
     public static boolean isApplicationLoggingEnabled() {
-        return NewRelic.getAgent().getConfig().getValue("application_logging.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.enabled");
+        // Config value is parsed as a String if it was set by system property or environment variable
+        if (configValue instanceof String) {
+            return Boolean.parseBoolean((String) configValue);
+        }
+        return (Boolean) configValue;
     }
 
     public static boolean isApplicationLoggingMetricsEnabled() {
-        return NewRelic.getAgent().getConfig().getValue("application_logging.metrics.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.metrics.enabled");
+        // Config value is parsed as a String if it was set by system property or environment variable
+        if (configValue instanceof String) {
+            return Boolean.parseBoolean((String) configValue);
+        }
+        return (Boolean) configValue;
     }
 
     public static boolean isApplicationLoggingForwardingEnabled() {
-        return NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.enabled");
+        // Config value is parsed as a String if it was set by system property or environment variable
+        if (configValue instanceof String) {
+            return Boolean.parseBoolean((String) configValue);
+        }
+        return (Boolean) configValue;
     }
 
     public static boolean isApplicationLoggingLocalDecoratingEnabled() {
-        return NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled");
+        // Config value is parsed as a String if it was set by system property or environment variable
+        if (configValue instanceof String) {
+            return Boolean.parseBoolean((String) configValue);
+        }
+        return (Boolean) configValue;
     }
 }
