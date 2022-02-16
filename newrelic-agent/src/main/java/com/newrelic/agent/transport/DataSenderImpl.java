@@ -375,7 +375,6 @@ public class DataSenderImpl implements DataSender {
         }
 
         JSONObject commonAttributes = new JSONObject();
-        commonAttributes.put("plugin.type", "nr-java-agent"); // TODO do we set this? or does backend service?
 
         // build attributes object
         JSONObject attributes = new JSONObject();
