@@ -8,6 +8,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.logbackclassic12.AgentUtil;
 
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.*;
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "ch.qos.logback.classic.spi.LoggingEvent", type = MatchType.ExactClass)
@@ -24,33 +25,44 @@ public class LoggingEvent_Instrumentation {
     private long timeStamp;
 
     public LoggingEvent_Instrumentation(String fqcn, Logger logger, Level level, String message, Throwable throwable, Object[] argArray) {
-        this.fqnOfLoggerClass = fqcn;
-        this.loggerName = logger.getName();
-        this.loggerContext = logger.getLoggerContext();
-        this.loggerContextVO = loggerContext.getLoggerContextRemoteView();
-        this.level = level;
+        // Do nothing if application_logging.enabled: false
+        if (isApplicationLoggingEnabled()) {
+            this.fqnOfLoggerClass = fqcn;
+            this.loggerName = logger.getName();
+            this.loggerContext = logger.getLoggerContext();
+            this.loggerContextVO = loggerContext.getLoggerContextRemoteView();
+            this.level = level;
 
-        // Append New Relic linking metadata from agent to log message
-        // TODO conditional checks based on config
-        //  Should log be decorated? Should the decoration persist in the log file/console? Only log at certain log level?
-        this.message = message + " NR-LINKING-METADATA: " + AgentUtil.getLinkingMetadataAsString();
-        this.argumentArray = argArray;
-
-        if (throwable == null) {
-            throwable = extractThrowableAnRearrangeArguments(argArray);
-        }
-
-        if (throwable != null) {
-            this.throwableProxy = new ThrowableProxy(throwable);
-            LoggerContext lc = logger.getLoggerContext();
-            if (lc.isPackagingDataEnabled()) {
-                this.throwableProxy.calculatePackagingData();
+            if (isApplicationLoggingLocalDecoratingEnabled()) {
+                // Append New Relic linking metadata from agent to log message
+                this.message = message + " NR-LINKING-METADATA: " + getLinkingMetadataAsString();
+            } else {
+                this.message = message;
             }
+
+            this.argumentArray = argArray;
+
+            if (throwable == null) {
+                throwable = extractThrowableAnRearrangeArguments(argArray);
+            }
+
+            if (throwable != null) {
+                this.throwableProxy = new ThrowableProxy(throwable);
+                LoggerContext lc = logger.getLoggerContext();
+                if (lc.isPackagingDataEnabled()) {
+                    this.throwableProxy.calculatePackagingData();
+                }
+            }
+
+            timeStamp = System.currentTimeMillis();
+
+            if (isApplicationLoggingForwardingEnabled()) {
+                // Record and send LogEvent to New Relic
+                recordNewRelicLogEvent(message, timeStamp, level, logger, fqcn, throwable);
+            }
+        } else {
+            Weaver.callOriginal();
         }
-
-        timeStamp = System.currentTimeMillis();
-
-        recordNewRelicLogEvent(message, timeStamp, level, logger, fqcn, throwable);
     }
 
     private Throwable extractThrowableAnRearrangeArguments(Object[] argArray) {

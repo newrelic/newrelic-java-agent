@@ -49,4 +49,19 @@ public class AgentUtil {
         return NewRelic.getAgent().getLinkingMetadata().toString();
     }
 
+    public static boolean isApplicationLoggingEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.enabled");
+    }
+
+    public static boolean isApplicationLoggingMetricsEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.metrics.enabled");
+    }
+
+    public static boolean isApplicationLoggingForwardingEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.enabled");
+    }
+
+    public static boolean isApplicationLoggingLocalDecoratingEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled");
+    }
 }

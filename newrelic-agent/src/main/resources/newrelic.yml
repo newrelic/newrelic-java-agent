@@ -83,6 +83,19 @@ common: &default_settings
   # Default is the logs directory in the newrelic.jar parent directory.
   #log_file_path:
 
+  # Provides the ability to have the agent forward application logs to New Relic
+  # in a format that is enhanced with agent metadata. This allows the logs to be
+  # linked with specific transactions and errors.
+  application_logging:
+    enabled: false
+    forwarding:
+      enabled: false
+      max_samples_stored: 2000
+    local_decorating:
+      enabled: false
+    metrics:
+      enabled: false
+
   # Proxy settings for connecting to the New Relic server:
   # If a proxy is used, the host setting is required.  Other settings
   # are optional.  Default port is 8080.  The username and password

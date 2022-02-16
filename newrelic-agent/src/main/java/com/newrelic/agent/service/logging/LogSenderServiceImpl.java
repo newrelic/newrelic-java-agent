@@ -94,7 +94,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         public void configChanged(String appName, AgentConfig agentConfig) {
             // if the config has changed for the app, just remove it and regenerate enabled next transaction
             isEnabledForApp.remove(appName);
-            enabled = agentConfig.getLogSenderConfig().isEnabled();
+            enabled = agentConfig.getApplicationLoggingConfig().isForwardingEnabled();
+            maxSamplesStored = agentConfig.getApplicationLoggingConfig().getMaxSamplesStored();
         }
     };
 
@@ -103,8 +104,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     public LogSenderServiceImpl() {
         super(LogSenderServiceImpl.class.getSimpleName());
         AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        maxSamplesStored = config.getLogSenderConfig().getMaxSamplesStored();
-        enabled = config.getLogSenderConfig().isEnabled();
+        maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
+        enabled = config.getApplicationLoggingConfig().isForwardingEnabled();
         isEnabledForApp.put(config.getApplicationName(), enabled);
     }
 
@@ -412,7 +413,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     private boolean getIsEnabledForApp(AgentConfig config, String currentAppName) {
         Boolean appEnabled = currentAppName == null ? null : isEnabledForApp.get(currentAppName);
         if (appEnabled == null) {
-            appEnabled = config.getLogSenderConfig().isEnabled();
+            appEnabled = config.getApplicationLoggingConfig().isForwardingEnabled();
             isEnabledForApp.put(currentAppName, appEnabled);
         }
         return appEnabled;
@@ -519,7 +520,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         final LinkedBlockingQueue<LogEvent> events;
 
         TransactionLogs(AgentConfig config) {
-            int maxSamplesStored = config.getLogSenderConfig().getMaxSamplesStored();
+            int maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
             events = new LinkedBlockingQueue<>(maxSamplesStored);
         }
 

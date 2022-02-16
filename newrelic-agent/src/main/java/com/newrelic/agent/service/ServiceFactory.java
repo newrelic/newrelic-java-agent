@@ -35,6 +35,7 @@ import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
@@ -76,6 +77,10 @@ public class ServiceFactory {
 
     public static ConfigService getConfigService() {
         return SERVICE_MANAGER.getConfigService();
+    }
+
+    public static LogSenderService getLogSenderService() {
+        return SERVICE_MANAGER.getLogSenderService();
     }
 
     public static RPMConnectionService getRPMConnectionService() {

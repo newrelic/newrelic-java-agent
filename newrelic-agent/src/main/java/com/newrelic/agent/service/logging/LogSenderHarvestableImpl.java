@@ -34,6 +34,6 @@ public class LogSenderHarvestableImpl extends Harvestable {
      */
     @Override
     public int getMaxSamplesStored() {
-        return ServiceFactory.getConfigService().getDefaultAgentConfig().getLogSenderConfig().getMaxSamplesStored();
+        return ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationLoggingConfig().getMaxSamplesStored();
     }
 }

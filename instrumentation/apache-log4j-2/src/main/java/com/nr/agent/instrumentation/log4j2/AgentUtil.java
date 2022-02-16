@@ -1,6 +1,7 @@
 package com.nr.agent.instrumentation.log4j2;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
@@ -56,5 +57,21 @@ public class AgentUtil {
 
     public static Map<String, String> getLinkingMetadataAsMap() {
         return NewRelic.getAgent().getLinkingMetadata();
+    }
+
+    public static boolean isApplicationLoggingEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.enabled");
+    }
+
+    public static boolean isApplicationLoggingMetricsEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.metrics.enabled");
+    }
+
+    public static boolean isApplicationLoggingForwardingEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.enabled");
+    }
+
+    public static boolean isApplicationLoggingLocalDecoratingEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled");
     }
 }

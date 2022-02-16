@@ -102,6 +102,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String KEY_TRANSACTIONS = "web_transactions_apdex";
 
     // nested configs (alphabetized)
+    public static final String APPLICATION_LOGGING = "application_logging";
     public static final String ATTRIBUTES = "attributes";
     public static final String BROWSER_MONITORING = "browser_monitoring";
     public static final String CLASS_TRANSFORMER = "class_transformer";
@@ -115,7 +116,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
-    public static final String LOG_SENDING = "log_sending";
     public static final String OPEN_TRACING = "open_tracing";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
@@ -254,7 +254,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final ExternalTracerConfig externalTracerConfig;
     private final InfiniteTracingConfig infiniteTracingConfig;
     private final InsightsConfig insightsConfig;
-    private final LogSenderConfig logSenderConfig;
+    private final ApplicationLoggingConfig applicationLoggingConfig;
     private final Config instrumentationConfig;
     private final JarCollectorConfig jarCollectorConfig;
     private final JfrConfig jfrConfig;
@@ -354,7 +354,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         jmxConfig = initJmxConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
-        logSenderConfig = initLogSenderConfig();
+        applicationLoggingConfig = initApplicationLoggingConfig();
         infiniteTracingConfig = initInfiniteTracingConfig(autoAppNamingEnabled);
         attributesConfig = initAttributesConfig();
         reinstrumentConfig = initReinstrumentConfig();
@@ -739,9 +739,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return InsightsConfigImpl.createInsightsConfig(props, highSecurity);
     }
 
-    private LogSenderConfig initLogSenderConfig() {
-        Map<String, Object> props = nestedProps(LOG_SENDING);
-        return LogSenderConfigImpl.createLogSenderConfig(props, highSecurity);
+    private ApplicationLoggingConfig initApplicationLoggingConfig() {
+        Map<String, Object> props = nestedProps(APPLICATION_LOGGING);
+        return ApplicationLoggingConfigImpl.createApplicationLoggingConfig(props, highSecurity);
     }
 
     private AttributesConfig initAttributesConfig() {
@@ -1192,8 +1192,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
-    public LogSenderConfig getLogSenderConfig() {
-        return logSenderConfig;
+    public ApplicationLoggingConfig getApplicationLoggingConfig() {
+        return applicationLoggingConfig;
     }
 
     @Override
