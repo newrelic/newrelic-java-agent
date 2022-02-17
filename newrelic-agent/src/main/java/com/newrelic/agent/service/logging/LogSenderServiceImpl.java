@@ -25,6 +25,7 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
@@ -47,8 +48,8 @@ import java.util.logging.Level;
 import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
 
 public class LogSenderServiceImpl extends AbstractService implements LogSenderService {
-    // Whether the service as a whole is enabled. Disabling shuts down all log events for transactions.
-    private volatile boolean enabled;
+    // Whether the service as a whole is enabled. Disabling shuts down all log events.
+    private volatile boolean forwardingEnabled;
     // Key is the app name, value is if it is enabled - should be a limited number of names
     private final ConcurrentMap<String, Boolean> isEnabledForApp = new ConcurrentHashMap<>();
     // Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
@@ -94,10 +95,36 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         public void configChanged(String appName, AgentConfig agentConfig) {
             // if the config has changed for the app, just remove it and regenerate enabled next transaction
             isEnabledForApp.remove(appName);
-            enabled = agentConfig.getApplicationLoggingConfig().isForwardingEnabled();
+            forwardingEnabled = agentConfig.getApplicationLoggingConfig().isForwardingEnabled();
             maxSamplesStored = agentConfig.getApplicationLoggingConfig().getMaxSamplesStored();
+
+            boolean metricsEnabled = agentConfig.getApplicationLoggingConfig().isMetricsEnabled();
+            boolean localDecoratingEnabled = agentConfig.getApplicationLoggingConfig().isLocalDecoratingEnabled();
+            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled);
         }
     };
+
+    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled) {
+        StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
+
+        if (forwardingEnabled) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED);
+        } else {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED);
+        }
+
+        if (metricsEnabled) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_METRICS_JAVA_ENABLED);
+        } else {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED);
+        }
+
+        if (localDecoratingEnabled) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED);
+        } else {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED);
+        }
+    }
 
     private final List<Harvestable> harvestables = new ArrayList<>();
 
@@ -105,8 +132,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         super(LogSenderServiceImpl.class.getSimpleName());
         AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
         maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
-        enabled = config.getApplicationLoggingConfig().isForwardingEnabled();
-        isEnabledForApp.put(config.getApplicationName(), enabled);
+        forwardingEnabled = config.getApplicationLoggingConfig().isForwardingEnabled();
+        isEnabledForApp.put(config.getApplicationName(), forwardingEnabled);
     }
 
     /**
@@ -115,7 +142,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return forwardingEnabled;
     }
 
     /**
@@ -293,13 +320,13 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * @return true if they are disabled, false if they are enabled
      */
     private boolean logEventsDisabled() {
-        if (!enabled) {
+        if (!forwardingEnabled) {
             if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
                 Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
             } else {
-                Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", LOG_EVENT_TYPE); // FIXME update these logs if log_sending is not used
+                Agent.LOG.log(Level.FINER, "Event of type {0} not collected. application_logging.forwarding not enabled.", LOG_EVENT_TYPE);
             }
-            Agent.LOG.log(Level.FINER, "Event of type {0} not collected. log_sending not enabled.", LOG_EVENT_TYPE); // FIXME update these logs if log_sending is not used
+            Agent.LOG.log(Level.FINER, "Event of type {0} not collected. application_logging.forwarding not enabled.", LOG_EVENT_TYPE);
             return true; // LogEvents are disabled
         }
         return false; // LogEvents are enabled
@@ -402,10 +429,18 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     private void recordSupportabilityMetrics(StatsEngine statsEngine, long durationInNanoseconds,
                                              DistributedSamplingPriorityQueue<LogEvent> reservoir) {
-        statsEngine.getStats(MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_CUSTOMER_SENT)
+        statsEngine.getStats(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_SENT)
                 .incrementCallCount(reservoir.size());
-        statsEngine.getStats(MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_CUSTOMER_SEEN)
+        statsEngine.getStats(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_SEEN)
                 .incrementCallCount(reservoir.getNumberOfTries());
+
+        int droppedLogEvents = reservoir.getNumberOfTries() - reservoir.size();
+        if (droppedLogEvents >= 0) {
+            statsEngine.getStats(MetricNames.LOGGING_FORWARDING_DROPPED).incrementCallCount(droppedLogEvents);
+        } else {
+            Agent.LOG.log(Level.FINE, "Invalid dropped log events value of {0}. This must be a non-negative value.", droppedLogEvents);
+        }
+
         statsEngine.getResponseTimeStats(MetricNames.SUPPORTABILITY_LOG_SENDER_SERVICE_EVENT_HARVEST_TRANSMIT)
                 .recordResponseTime(durationInNanoseconds, TimeUnit.NANOSECONDS);
     }

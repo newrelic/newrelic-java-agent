@@ -218,8 +218,16 @@ public class MetricNames {
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SENT = "Supportability/Events/Customer/Sent";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SEEN = "Supportability/Events/Customer/Seen";
 
-    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_CUSTOMER_SENT = "Supportability/LogEvents/Customer/Sent";
-    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_CUSTOMER_SEEN = "Supportability/LogEvents/Customer/Seen";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_SENT = "Supportability/Logging/Forwarding/Sent";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_SEEN = "Supportability/Logging/Forwarding/Seen";
+    public static final String LOGGING_FORWARDING_DROPPED = "Logging/Forwarding/Dropped";
+
+    public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_ENABLED = "Supportability/Logging/Metrics/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED = "Supportability/Logging/LocalDecorating/Java/disabled";
 
     public static final String SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/ReportPeriod";
     public static final String SUPPORTABILITY_ERROR_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/ErrorEventData/ReportPeriod";
