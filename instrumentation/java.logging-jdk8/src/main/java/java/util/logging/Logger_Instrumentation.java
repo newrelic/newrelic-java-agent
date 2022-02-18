@@ -3,13 +3,9 @@ package java.util.logging;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.instrumentation.jul.AgentUtil;
 
-import java.util.logging.Filter;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-
-import static com.nr.instrumentation.jul.AgentUtil.*;
+import static com.nr.instrumentation.jul.AgentUtil.isApplicationLoggingEnabled;
+import static com.nr.instrumentation.jul.AgentUtil.isApplicationLoggingMetricsEnabled;
 
 @Weave(originalName = "java.util.logging.Logger")
 public class Logger_Instrumentation {

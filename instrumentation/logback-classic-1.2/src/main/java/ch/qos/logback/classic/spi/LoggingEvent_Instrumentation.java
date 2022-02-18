@@ -6,9 +6,11 @@ import ch.qos.logback.classic.LoggerContext;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.logbackclassic12.AgentUtil;
 
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.*;
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.getFilteredLinkingMetadataString;
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingEnabled;
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingForwardingEnabled;
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingLocalDecoratingEnabled;
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "ch.qos.logback.classic.spi.LoggingEvent", type = MatchType.ExactClass)
@@ -35,7 +37,7 @@ public class LoggingEvent_Instrumentation {
 
             if (isApplicationLoggingLocalDecoratingEnabled()) {
                 // Append New Relic linking metadata from agent to log message
-                this.message = message + " NR-LINKING-METADATA: " + getLinkingMetadataAsString();
+                this.message = message + " NR-LINKING-METADATA: " + getFilteredLinkingMetadataString();
             } else {
                 this.message = message;
             }
@@ -58,7 +60,7 @@ public class LoggingEvent_Instrumentation {
 
             if (isApplicationLoggingForwardingEnabled()) {
                 // Record and send LogEvent to New Relic
-                recordNewRelicLogEvent(message, timeStamp, level, logger, fqcn, throwable);
+                recordNewRelicLogEvent(message, timeStamp, level);
             }
         } else {
             Weaver.callOriginal();

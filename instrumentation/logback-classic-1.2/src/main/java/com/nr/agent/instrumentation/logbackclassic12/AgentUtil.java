@@ -1,54 +1,89 @@
 package com.nr.agent.instrumentation.logbackclassic12;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.CLASS_NAME;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.ERROR_CLASS;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.ERROR_MESSAGE;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.ERROR_STACK;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.LOGGER_NAME;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.LOG_LEVEL;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.MESSAGE;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.THROWABLE;
-import static com.nr.agent.instrumentation.logbackclassic12.ElementName.TIMESTAMP;
+import java.util.Set;
 
 public class AgentUtil {
+    // Log message attributes
+    public static final String MESSAGE = "message";
+    public static final String TIMESTAMP = "timestamp";
+    public static final String LOG_LEVEL = "log.level";
+    public static final String UNKNOWN = "UNKNOWN";
+    // Linking metadata attributes to filter out
+    private static final String ENTITY_TYPE = "entity.type";
+    private static final String ENTITY_NAME = "entity.name";
 
-    public static void recordNewRelicLogEvent(String message, long timeStampMillis, Level level, Logger logger, String fqcn, Throwable throwable) {
-        Map<String, String> agentLinkingMetadata = NewRelic.getAgent().getLinkingMetadata();
-        HashMap<String, Object> logEventMap = new HashMap<>(agentLinkingMetadata);
+    /**
+     * Record a LogEvent to be sent to New Relic.
+     *
+     * @param message         log message
+     * @param timeStampMillis log timestamp
+     * @param level           log level
+     */
+    public static void recordNewRelicLogEvent(String message, long timeStampMillis, Level level) {
+        // Bail out and don't create a LogEvent if log message is empty
+        if (!message.isEmpty()) {
+            HashMap<String, Object> logEventMap = new HashMap<>(getFilteredLinkingMetadataMap());
+            logEventMap.put(MESSAGE, message);
+            logEventMap.put(TIMESTAMP, timeStampMillis);
 
-        logEventMap.put(MESSAGE, message);
-        logEventMap.put(TIMESTAMP, timeStampMillis);
-        logEventMap.put(LOG_LEVEL, level);
-        logEventMap.put(LOGGER_NAME, logger.getName());
-        logEventMap.put(CLASS_NAME, fqcn);
+            if (level.toString().isEmpty()) {
+                logEventMap.put(LOG_LEVEL, UNKNOWN);
+            } else {
+                logEventMap.put(LOG_LEVEL, level);
+            }
 
-        if (throwable != null) {
-            logEventMap.put(THROWABLE, throwable.toString());
-            logEventMap.put(ERROR_CLASS, throwable.getClass().getName());
-            logEventMap.put(ERROR_MESSAGE, throwable.getMessage());
-            logEventMap.put(ERROR_STACK, ExceptionUtil.getErrorStack(throwable));
+            AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
         }
-
-        AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
     }
 
-    public static Map<String, String> getLinkingMetadataAsMap() {
-        return NewRelic.getAgent().getLinkingMetadata();
+    /**
+     * Gets a String representing the agent linking metadata after filtering
+     * out entity.type, entity.name, and any attributes with an empty value.
+     *
+     * @return Filtered String of agent linking metadata
+     */
+    public static String getFilteredLinkingMetadataString() {
+        return getFilteredLinkingMetadataMap().toString();
     }
 
-    public static String getLinkingMetadataAsString() {
-        // TODO might need to filter the map entries to remove some (e.g. entity.*) and/or create a differently formatted string
-        return NewRelic.getAgent().getLinkingMetadata().toString();
+    /**
+     * Gets a map of agent linking metadata after filtering out
+     * entity.type, entity.name, and any attributes with an empty value.
+     *
+     * @return Filtered map of agent linking metadata
+     */
+    public static Map<String, String> getFilteredLinkingMetadataMap() {
+        Map<String, String> agentLinkingMetadata = NewRelic.getAgent().getLinkingMetadata();
+
+        if (agentLinkingMetadata != null && agentLinkingMetadata.size() > 0) {
+            Map<String, String> map = new HashMap<>();
+            Set<Map.Entry<String, String>> metadataSet = agentLinkingMetadata.entrySet();
+
+            for (Map.Entry<String, String> entry : metadataSet) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (!key.equals(ENTITY_NAME) && !key.equals(ENTITY_TYPE) && !value.isEmpty()) {
+                    map.put(key, value);
+                }
+            }
+            return map;
+        } else {
+            return Collections.emptyMap();
+        }
     }
 
+    /**
+     * Check if all application_logging features are enabled.
+     *
+     * @return true if enabled, else false
+     */
     public static boolean isApplicationLoggingEnabled() {
         Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.enabled");
         // Config value is parsed as a String if it was set by system property or environment variable
@@ -58,6 +93,11 @@ public class AgentUtil {
         return (Boolean) configValue;
     }
 
+    /**
+     * Check if the application_logging metrics feature is enabled.
+     *
+     * @return true if enabled, else false
+     */
     public static boolean isApplicationLoggingMetricsEnabled() {
         Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.metrics.enabled");
         // Config value is parsed as a String if it was set by system property or environment variable
@@ -67,6 +107,11 @@ public class AgentUtil {
         return (Boolean) configValue;
     }
 
+    /**
+     * Check if the application_logging forwarding feature is enabled.
+     *
+     * @return true if enabled, else false
+     */
     public static boolean isApplicationLoggingForwardingEnabled() {
         Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.enabled");
         // Config value is parsed as a String if it was set by system property or environment variable
@@ -76,6 +121,11 @@ public class AgentUtil {
         return (Boolean) configValue;
     }
 
+    /**
+     * Check if the application_logging local_decorating feature is enabled.
+     *
+     * @return true if enabled, else false
+     */
     public static boolean isApplicationLoggingLocalDecoratingEnabled() {
         Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled");
         // Config value is parsed as a String if it was set by system property or environment variable

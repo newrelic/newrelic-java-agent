@@ -4,10 +4,12 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.log4j2.AgentUtil;
 import org.apache.logging.log4j.core.LogEvent;
 
-import static com.nr.agent.instrumentation.log4j2.AgentUtil.*;
+import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingEnabled;
+import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingForwardingEnabled;
+import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingMetricsEnabled;
+import static com.nr.agent.instrumentation.log4j2.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "org.apache.logging.log4j.core.config.LoggerConfig", type = MatchType.ExactClass)
 public class LoggerConfig_Instrumentation {
