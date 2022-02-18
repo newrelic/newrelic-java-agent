@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -30,7 +30,7 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public static final String FORWARDING = "forwarding";
     public static final String LOCAL_DECORATING = "local_decorating";
 
-    public static final boolean DEFAULT_ENABLED = false; // TODO what is default?
+    public static final boolean DEFAULT_ENABLED = false;
     public static final String ENABLED = "enabled";
 
     private final ApplicationLoggingMetricsConfig applicationLoggingMetricsConfig;
@@ -61,12 +61,6 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
         Map<String, Object> forwardingProps = getProperty(FORWARDING, Collections.emptyMap());
         return new ApplicationLoggingForwardingConfig(forwardingProps, SYSTEM_PROPERTY_ROOT, highSecurity);
     }
-
-//    public boolean initForwardingEnabled(boolean highSecurity) {
-//        boolean storedMoreThan0 = maxSamplesStored > 0;
-//        Boolean configEnabled = getProperty(FORWARDING_ENABLED_PROP, DEFAULT_FORWARDING_ENABLED);
-//        return isEnabled && !highSecurity && storedMoreThan0 && configEnabled;
-//    }
 
     static ApplicationLoggingConfigImpl createApplicationLoggingConfig(Map<String, Object> settings, boolean highSecurity) {
         if (settings == null) {
