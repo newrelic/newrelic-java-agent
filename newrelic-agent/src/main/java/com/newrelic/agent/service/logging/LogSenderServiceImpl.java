@@ -73,14 +73,14 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         @Override
         public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
-            // FIXME not sure this is a great idea to store log events for the duration of a transaction...
+            // Get log events from the transaction when it is finished
             TransactionLogs data = (TransactionLogs) transactionData.getLogEventData();
             storeEvents(transactionData.getApplicationName(), transactionData.getPriority(), data.events);
         }
 
         @Override
         public void dispatcherTransactionCancelled(Transaction transaction) {
-            // FIXME not sure this is a great idea to store log events for the duration of a transaction...
+            // Get log events from the transaction when it is canceled
             // Even if the transaction is canceled we still want to send up any events that were held in it
             TransactionLogs data = (TransactionLogs) transaction.getLogEventData();
             storeEvents(transaction.getApplicationName(), transaction.getPriority(), data.events);
@@ -151,7 +151,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     @Override
     protected void doStart() throws Exception {
-        // TODO it's not clear that log sender events should be tied to transactions in any way
+        // Register transaction listener to associate log events with transaction lifecycle
         ServiceFactory.getTransactionService().addTransactionListener(transactionListener);
         ServiceFactory.getConfigService().addIAgentConfigListener(configListener);
     }
@@ -163,7 +163,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     @Override
     protected void doStop() throws Exception {
         removeHarvestables();
-        // TODO it's not clear that log sender events should be tied to transactions in any way
         ServiceFactory.getTransactionService().removeTransactionListener(transactionListener);
         ServiceFactory.getConfigService().removeIAgentConfigListener(configListener);
         reservoirForApp.clear();
@@ -190,8 +189,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         }
 
         Transaction transaction = ServiceFactory.getTransactionService().getTransaction(false);
-        // FIXME perhaps ignore transaction status and just always send log events...
-        //  what is the benefit of storing them on the transaction? Sampling?
         // Not in a Transaction or an existing Transaction is not in progress or is ignored
         if (transaction == null || !transaction.isInProgress() || transaction.isIgnore()) {
             String applicationName = ServiceFactory.getRPMService().getApplicationName();
@@ -209,7 +206,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             createAndStoreEvent(applicationName, attributes);
         // In a Transaction that is in progress and not ignored
         } else {
-            // FIXME not sure this is a great idea to store log events for the duration of a transaction...
+            // Store log events on the transaction
             transaction.getLogEventData().recordLogEvent(attributes);
         }
         MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
