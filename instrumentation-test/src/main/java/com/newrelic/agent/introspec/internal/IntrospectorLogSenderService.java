@@ -82,7 +82,7 @@ class IntrospectorLogSenderService implements LogSenderService {
     public void recordLogEvent(Map<String, ?> attributes) {
         if (AnalyticsEvent.isValidType(LOG_EVENT_TYPE)) {
             Map<String, Object> atts = Maps.newHashMap(attributes);
-            LogEvent event = new LogEvent(System.currentTimeMillis(), atts, DistributedTraceServiceImpl.nextTruncatedFloat());
+            LogEvent event = new LogEvent(atts, DistributedTraceServiceImpl.nextTruncatedFloat());
             storeEvent("TestApp", event);
         }
     }

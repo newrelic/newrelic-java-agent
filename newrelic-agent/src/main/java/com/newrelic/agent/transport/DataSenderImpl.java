@@ -338,7 +338,7 @@ public class DataSenderImpl implements DataSender {
 
     @Override
     public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
-        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, reservoirSize, eventsSeen, events);
+        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events);
     }
 
     @Override
@@ -366,9 +366,7 @@ public class DataSenderImpl implements DataSender {
 
     // Sends LogEvent data in the MELT format for logs
     // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
-    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, int reservoirSize, int eventsSeen,
-            Collection<T> events) throws Exception {
-        // FIXME remove unused parameters
+    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, Collection<T> events) throws Exception {
         Object runId = agentRunId;
         if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
             return;

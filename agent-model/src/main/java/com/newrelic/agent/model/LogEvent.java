@@ -20,9 +20,8 @@ public class LogEvent extends AnalyticsEvent implements JSONStreamAware {
 
     private volatile float mutablePriority;
 
-    // FIXME probably don't need to pass timestamp as we use the value from the log event captured in the library instrumentation
-    public LogEvent(long timestamp, Map<String, Object> attributes, float priority) {
-        super(LOG_EVENT_TYPE, timestamp, priority, attributes);
+    public LogEvent(Map<String, Object> attributes, float priority) {
+        super(LOG_EVENT_TYPE, System.currentTimeMillis(), priority, attributes);
         this.mutablePriority = priority;
     }
 

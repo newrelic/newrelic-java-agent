@@ -472,9 +472,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     private static LogEvent createValidatedEvent(Map<String, ?> attributes) {
         Map<String, Object> userAttributes = new HashMap<>(attributes.size());
-        // FIXME LogEvent constructor only needs the timestamp for the AnalyticsEvent super class but it won't
-        //  actually be added to the LogEvent as it isn't needed. We use the timestamp captured from the log library.
-        LogEvent event = new LogEvent(System.currentTimeMillis(), userAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
+        LogEvent event = new LogEvent(userAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
         // An AttributeSender is the way to reuse all the existing attribute validations. We
