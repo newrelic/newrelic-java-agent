@@ -572,7 +572,7 @@ public class DataSenderImpl implements DataSender {
 
         /*
          * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
-         * payload and try again. See RPMService sendErrorData // TODO does this apply to log data as well?
+         * payload and try again. See RPMService sendErrorData
          */
         if (data.length > maxPayloadSizeInBytes && !method.equals(CollectorMethods.ERROR_DATA)) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(

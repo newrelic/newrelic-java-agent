@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.agent.instrumentation.log4j1;
 
 import com.newrelic.api.agent.NewRelic;
