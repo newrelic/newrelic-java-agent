@@ -18,7 +18,6 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.metrics.Metrics;
-import org.apache.kafka.common.utils.Timer;
 
 @Weave(originalName = "org.apache.kafka.clients.consumer.KafkaConsumer")
 public class KafkaConsumer_Instrumentation<K, V> {
