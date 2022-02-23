@@ -25,6 +25,11 @@ public class AgentUtil {
     // Linking metadata attributes to filter out
     private static final String ENTITY_TYPE = "entity.type";
     private static final String ENTITY_NAME = "entity.name";
+    // Enabled defaults
+    private static final boolean APP_LOGGING_DEFAULT_ENABLED = false;
+    private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = false;
+    private static final boolean APP_LOGGING_FORWARDING_DEFAULT_ENABLED = false;
+    private static final boolean APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED = false;
 
     /**
      * Record a LogEvent to be sent to New Relic.
@@ -92,7 +97,7 @@ public class AgentUtil {
      * @return true if enabled, else false
      */
     public static boolean isApplicationLoggingEnabled() {
-        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.enabled", APP_LOGGING_DEFAULT_ENABLED);
         // Config value is parsed as a String if it was set by system property or environment variable
         if (configValue instanceof String) {
             return Boolean.parseBoolean((String) configValue);
@@ -106,7 +111,7 @@ public class AgentUtil {
      * @return true if enabled, else false
      */
     public static boolean isApplicationLoggingMetricsEnabled() {
-        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.metrics.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.metrics.enabled", APP_LOGGING_METRICS_DEFAULT_ENABLED);
         // Config value is parsed as a String if it was set by system property or environment variable
         if (configValue instanceof String) {
             return Boolean.parseBoolean((String) configValue);
@@ -120,7 +125,7 @@ public class AgentUtil {
      * @return true if enabled, else false
      */
     public static boolean isApplicationLoggingForwardingEnabled() {
-        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.enabled", APP_LOGGING_FORWARDING_DEFAULT_ENABLED);
         // Config value is parsed as a String if it was set by system property or environment variable
         if (configValue instanceof String) {
             return Boolean.parseBoolean((String) configValue);
@@ -134,7 +139,7 @@ public class AgentUtil {
      * @return true if enabled, else false
      */
     public static boolean isApplicationLoggingLocalDecoratingEnabled() {
-        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled");
+        Object configValue = NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled", APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED);
         // Config value is parsed as a String if it was set by system property or environment variable
         if (configValue instanceof String) {
             return Boolean.parseBoolean((String) configValue);
