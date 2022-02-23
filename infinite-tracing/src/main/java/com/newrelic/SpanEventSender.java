@@ -99,7 +99,6 @@ class SpanEventSender implements Runnable {
             logger.log(Level.SEVERE, t, "Unable to send span.");
             throw t;
         }
-        // TODO record data usage metrics here for the INFINITE_TRACING destination
         aggregator.incrementCounter("Supportability/InfiniteTracing/Span/Sent");
     }
 
