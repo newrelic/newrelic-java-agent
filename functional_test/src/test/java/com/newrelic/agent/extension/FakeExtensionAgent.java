@@ -13,6 +13,7 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
@@ -59,4 +60,9 @@ public class FakeExtensionAgent implements Agent {
 
     @Override
     public boolean ignoreIfUnstartedAsyncContext(Object activityContext) { throw new RuntimeException(); }
+
+    @Override
+    public Logs getLogSender() {
+        throw new RuntimeException();
+    }
 }
