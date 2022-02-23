@@ -77,6 +77,8 @@ public class DistributedTraceCrossAgentTest {
     private Instrumentation savedInstrumentation;
     private com.newrelic.agent.bridge.Agent savedAgent;
 
+    private final String APP_NAME = "Test";
+
     @Parameterized.Parameters(name = "{index}:{0}")
     public static Collection<Object[]> getParameters() throws Exception {
         JSONArray tests = CrossAgentInput.readJsonAndGetTests("com/newrelic/agent/cross_agent_tests/distributed_tracing/distributed_tracing.json");
@@ -108,7 +110,7 @@ public class DistributedTraceCrossAgentTest {
         ServiceFactory.setServiceManager(serviceManager);
 
         Map<String, Object> config = new HashMap<>();
-        config.put(AgentConfigImpl.APP_NAME, "Test");
+        config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
         Map<String, Object> dtConfig = new HashMap<>();
         dtConfig.put("enabled", true);
@@ -193,7 +195,7 @@ public class DistributedTraceCrossAgentTest {
         TransactionData transactionData = new TransactionData(tx, 0);
         TransactionStats transactionStats = transactionData.getTransaction().getTransactionActivity().getTransactionStats();
 
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventsService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
 
         Tracer rootTracer;
         if (webTransaction) {
@@ -256,7 +258,7 @@ public class DistributedTraceCrossAgentTest {
 
     private void replaceConfig(boolean spanEventsEnabled) {
         Map<String, Object> config = new HashMap<>();
-        config.put(AgentConfigImpl.APP_NAME, "Test");
+        config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
         Map<String, Object> dtConfig = new HashMap<>();
         dtConfig.put("enabled", true);

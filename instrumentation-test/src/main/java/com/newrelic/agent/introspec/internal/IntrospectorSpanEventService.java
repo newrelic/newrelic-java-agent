@@ -72,7 +72,7 @@ public class IntrospectorSpanEventService extends SpanEventsServiceImpl {
     }
 
     @Override
-    public DistributedSamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir() {
+    public DistributedSamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir(String appName) {
         return new DistributedSamplingPriorityQueue<>(10);
     }
 

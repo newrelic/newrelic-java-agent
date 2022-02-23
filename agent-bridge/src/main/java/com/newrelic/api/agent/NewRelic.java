@@ -267,12 +267,30 @@ public final class NewRelic {
     }
 
     /**
+     * Get the RUM JavaScript header for the current web transaction.
+     * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
+     * @return RUM JavaScript header for the current web transaction.
+     */
+    public static String getBrowserTimingHeader(String nonce) {
+        return AgentBridge.publicApi.getBrowserTimingHeader(nonce);
+    }
+
+    /**
      * Get the RUM JavaScript footer for the current web transaction.
      * 
      * @return RUM JavaScript footer for the current web transaction.
      */
     public static String getBrowserTimingFooter() {
         return AgentBridge.publicApi.getBrowserTimingFooter();
+    }
+
+    /**
+     * Get the RUM JavaScript footer for the current web transaction.
+     * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
+     * @return RUM JavaScript footer for the current web transaction.
+     */
+    public static String getBrowserTimingFooter(String nonce) {
+        return AgentBridge.publicApi.getBrowserTimingFooter(nonce);
     }
 
     /**

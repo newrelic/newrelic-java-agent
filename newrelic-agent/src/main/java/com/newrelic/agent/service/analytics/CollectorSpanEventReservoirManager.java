@@ -18,12 +18,13 @@ import com.newrelic.api.agent.Logger;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class CollectorSpanEventReservoirManager implements ReservoirManager<SpanEvent> {
 
     private final ConfigService configService;
-    private SamplingPriorityQueue<SpanEvent> reservoir;
+    private ConcurrentHashMap<String, SamplingPriorityQueue<SpanEvent>> spanReservoirsForApp = new ConcurrentHashMap<>();
     private volatile int maxSamplesStored;
 
     public CollectorSpanEventReservoirManager(ConfigService configService) {
@@ -32,15 +33,18 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     }
 
     @Override
-    public SamplingPriorityQueue<SpanEvent> getOrCreateReservoir() {
+    public SamplingPriorityQueue<SpanEvent> getOrCreateReservoir(String appName) {
+       SamplingPriorityQueue<SpanEvent> reservoir = spanReservoirsForApp.get(appName);
         if (reservoir == null) {
-            reservoir = createDistributedSamplingReservoir(0);
+            reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0));
+            if (reservoir == null) {
+                reservoir = spanReservoirsForApp.get(appName);
+            }
         }
         return reservoir;
     }
 
-    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(int decidedLast) {
-        String appName = configService.getDefaultAgentConfig().getApplicationName();
+    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName, int decidedLast) {
         SpanEventsConfig spanEventsConfig = configService.getDefaultAgentConfig().getSpanEventsConfig();
         int target = spanEventsConfig.getTargetSamplesStored();
         return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, decidedLast, target, SPAN_EVENT_COMPARATOR);
@@ -48,7 +52,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
 
     @Override
     public void clearReservoir() {
-        getOrCreateReservoir().clear();
+        spanReservoirsForApp.clear();
     }
 
     @Override
@@ -59,11 +63,11 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
         }
 
         SpanEventsConfig config = configService.getAgentConfig(appName).getSpanEventsConfig();
-        int decidedLast = AdaptiveSampling.decidedLast(reservoir, config.getTargetSamplesStored());
+        int decidedLast = AdaptiveSampling.decidedLast(spanReservoirsForApp.get(appName), config.getTargetSamplesStored());
 
         // save a reference to the old reservoir to finish harvesting, and create a new one
-        final SamplingPriorityQueue<SpanEvent> toSend = reservoir;
-        reservoir = createDistributedSamplingReservoir(decidedLast);
+        final SamplingPriorityQueue<SpanEvent> toSend = spanReservoirsForApp.get(appName);
+        spanReservoirsForApp.put(appName, createDistributedSamplingReservoir(appName, decidedLast));
 
         if (toSend == null || toSend.size() <= 0) {
             return null;
@@ -80,7 +84,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
             if (!e.discardHarvestData()) {
                 logger.log(Level.FINE, "Unable to send span events. Unsent events will be included in the next harvest.", e);
                 // Save unsent data by merging it with toSend data using reservoir algorithm
-                reservoir.retryAll(toSend);
+                spanReservoirsForApp.get(appName).retryAll(toSend);
             } else {
                 // discard harvest data
                 toSend.clear();
@@ -102,17 +106,14 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     @Override
     public void setMaxSamplesStored(int newMax) {
         maxSamplesStored = newMax;
-        reservoir = createDistributedSamplingReservoir(0);
+        ConcurrentHashMap<String, SamplingPriorityQueue<SpanEvent>> newMaxSpanReservoirs = new ConcurrentHashMap<>();
+        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0)));
+        spanReservoirsForApp = newMaxSpanReservoirs;
     }
 
     // This is where you can add secondary sorting for Span Events
-    private static final Comparator<SpanEvent> SPAN_EVENT_COMPARATOR = new Comparator<SpanEvent>() {
-        @Override
-        public int compare(SpanEvent left, SpanEvent right) {
-            return ComparisonChain.start()
-                    .compare(right.getPriority(), left.getPriority()) // Take highest priority first
-                    .result();
-        }
-    };
+    private static final Comparator<SpanEvent> SPAN_EVENT_COMPARATOR = (left, right) -> ComparisonChain.start()
+            .compare(right.getPriority(), left.getPriority()) // Take highest priority first
+            .result();
 
 }

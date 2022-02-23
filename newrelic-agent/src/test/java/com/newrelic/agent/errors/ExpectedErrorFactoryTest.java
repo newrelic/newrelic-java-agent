@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.newrelic.agent.config.ConfigConstant.*;
 import static com.newrelic.agent.config.ConfigHelper.buildConfigMap;
 import static org.junit.Assert.assertEquals;
 
@@ -341,7 +342,7 @@ public class ExpectedErrorFactoryTest {
         assertEquals("HttpClientError 403", error.getExceptionClass());
         assertEquals("HttpClientError 403", event.getErrorClass());
         assertEquals("HttpClientError 403", jsonObject.get("error.class"));
-        assertEquals(255, jsonObject.get("error.message").toString().length());
-        assertEquals(255, event.getErrorMessage().length());
+        assertEquals(MAX_ERROR_MESSAGE_SIZE, jsonObject.get("error.message").toString().length());
+        assertEquals(MAX_ERROR_MESSAGE_SIZE, event.getErrorMessage().length());
     }
 }

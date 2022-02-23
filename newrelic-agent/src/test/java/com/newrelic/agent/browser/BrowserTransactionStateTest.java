@@ -34,6 +34,9 @@ import com.newrelic.agent.transaction.PriorityTransactionName;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -282,12 +285,45 @@ public class BrowserTransactionStateTest {
     }
 
     @Test
+    public void allowMultipleFootersWithNonceDisabled() {
+        BrowserTransactionState bts = mockMultipleFootersTest(false);
+
+        Assert.assertEquals("header", bts.getBrowserTimingHeader());
+        Assert.assertEquals("footerWithNonce", bts.getBrowserTimingFooter("ABC123"));
+        Assert.assertEquals("", bts.getBrowserTimingFooter("ABC123"));
+
+        Mockito.verify(tx, times(1)).freezeTransactionName();
+    }
+
+    @Test
     public void allowMultipleFootersEnabled() throws Exception {
         BrowserTransactionState bts = mockMultipleFootersTest(true);
 
         Assert.assertEquals("header", bts.getBrowserTimingHeader());
         Assert.assertEquals("footer", bts.getBrowserTimingFooter());
         Assert.assertEquals("footer", bts.getBrowserTimingFooter());
+
+        Mockito.verify(tx, times(2)).freezeTransactionName();
+    }
+
+    @Test
+    public void allowMultipleFootersWithNonceEnabled() throws Exception {
+        BrowserTransactionState bts = mockMultipleFootersTest(true);
+
+        Assert.assertEquals("header", bts.getBrowserTimingHeader());
+        Assert.assertEquals("footerWithNonce", bts.getBrowserTimingFooter("ABC123"));
+        Assert.assertEquals("footerWithNonce", bts.getBrowserTimingFooter("ABC123"));
+
+        Mockito.verify(tx, times(2)).freezeTransactionName();
+    }
+
+    @Test
+    public void allowMultipleFootersMixed() throws Exception {
+        BrowserTransactionState bts = mockMultipleFootersTest(true);
+
+        Assert.assertEquals("header", bts.getBrowserTimingHeader());
+        Assert.assertEquals("footer", bts.getBrowserTimingFooter());
+        Assert.assertEquals("footerWithNonce", bts.getBrowserTimingFooter("ABC123"));
 
         Mockito.verify(tx, times(2)).freezeTransactionName();
     }
@@ -320,6 +356,7 @@ public class BrowserTransactionStateTest {
 
         Mockito.when(bConfig.getBrowserTimingHeader()).thenReturn("header");
         Mockito.when(bConfig.getBrowserTimingFooter(bts)).thenReturn("footer");
+        Mockito.when(bConfig.getBrowserTimingFooter(eq(bts), anyString())).thenReturn("footerWithNonce");
         return bts;
     }
 

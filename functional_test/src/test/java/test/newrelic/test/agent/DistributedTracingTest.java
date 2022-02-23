@@ -51,7 +51,8 @@ public class DistributedTracingTest {
             deepTransaction(payload);
 
             SpanEventsService spanEventsService = ServiceFactory.getServiceManager().getSpanEventsService();
-            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir();
+            String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir(appName);
             assertNotNull(spanEventsPool);
             List<SpanEvent> spanEvents = spanEventsPool.asList();
             assertNotNull(spanEvents);
@@ -94,7 +95,8 @@ public class DistributedTracingTest {
             latch.await(30, TimeUnit.SECONDS);
 
             SpanEventsService spanEventsService = ServiceFactory.getServiceManager().getSpanEventsService();
-            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir();
+            String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir(appName);
             assertNotNull(spanEventsPool);
             List<SpanEvent> spanEvents = spanEventsPool.asList();
             assertNotNull(spanEvents);

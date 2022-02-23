@@ -11,46 +11,12 @@ plugins {
     id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.6.1'
 }
 
-boolean isCiServer = System.getenv().containsKey("CI")
-String cacheUser = System.getenv().get("GRADLE_CACHE_USER")
-String cachePassword = System.getenv().get("GRADLE_CACHE_PASSWORD")
-String gradleEnterpriseServer = "https://34.229.76.228/"
-
-println "*** Gradle Enterprise Debug ***"
-println "GRADLE_CACHE_USER=$cacheUser"
-println "isCiServer=$isCiServer"
-
 buildCache {
     local {
         enabled = true
     }
     remote(HttpBuildCache) {
         enabled = false
-    }
-}
-
-gradleEnterprise {
-    allowUntrustedServer = true
-    buildScan {
-        publishAlways()
-        publishIfAuthenticated()
-        server = gradleEnterpriseServer
-        uploadInBackground = true
-        capture {
-            taskInputFiles = true
-        }
-        if (System.getenv("CI")) {
-            tag "CI"
-            tag System.getenv("JRE") ?: "jre-not-specified"
-            tag System.getenv("LANGUAGE") ?: "polyglot"
-            String scalaVersion = System.getenv("SCALA_VERSION")
-            if (scalaVersion) {
-                tag scalaVersion
-            }
-            tag System.getenv("TEST_TYPE") ?: "no-test"
-        } else {
-            tag "Local"
-        }
     }
 }
 
@@ -125,6 +91,7 @@ include 'instrumentation:async-http-client-2.1.0'
 include 'instrumentation:cassandra-datastax-2.1.2'
 include 'instrumentation:cassandra-datastax-3.0.0'
 include 'instrumentation:cassandra-datastax-3.8.0'
+include 'instrumentation:cassandra-datastax-4.0.0'
 include 'instrumentation:cxf-2.7'
 include 'instrumentation:ejb-3.0'
 include 'instrumentation:glassfish-3'

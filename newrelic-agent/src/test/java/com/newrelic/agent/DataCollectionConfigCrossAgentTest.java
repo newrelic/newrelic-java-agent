@@ -269,7 +269,7 @@ public class DataCollectionConfigCrossAgentTest {
         }
 
         // Verify that the correct number of events were stored in the reservoir
-        SamplingPriorityQueue<SpanEvent> eventQueue = spanEventsService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventQueue = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         assertNotNull(eventQueue);
         assertEquals(expectedCount.intValue(), eventQueue.size());
 

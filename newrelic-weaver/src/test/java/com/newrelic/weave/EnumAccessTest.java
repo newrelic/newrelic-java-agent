@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
@@ -44,11 +45,13 @@ public class EnumAccessTest {
         WeaveTestUtils.loadUtilityClasses(EnumAccessTest.class.getClassLoader(), result.computeUtilityClassBytes(cache));
 
         byte[] stateCompositeBytes = result.weave("com/newrelic/weave/EnumAccessTest$Foo$State", new String[0],
-                new String[0], WeaveTestUtils.getClassBytes("com.newrelic.weave.EnumAccessTest$Foo$State"), cache).getCompositeBytes(
+                                                  new String[0], WeaveTestUtils.getClassBytes("com.newrelic.weave.EnumAccessTest$Foo$State"), cache,
+                                                  Collections.emptyMap()).getCompositeBytes(
                 cache);
         Assert.assertNotNull(stateCompositeBytes);
         byte[] aCompositeBytes = result.weave("com/newrelic/weave/EnumAccessTest$Foo", new String[0], new String[0],
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.EnumAccessTest$Foo"), cache).getCompositeBytes(cache);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.EnumAccessTest$Foo"), cache,
+                                              Collections.emptyMap()).getCompositeBytes(cache);
         Assert.assertNotNull(aCompositeBytes);
 
         WeaveTestUtils.addToContextClassloader("com.newrelic.weave.EnumAccessTest$Foo$State", stateCompositeBytes);

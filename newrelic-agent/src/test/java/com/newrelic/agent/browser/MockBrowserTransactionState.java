@@ -9,8 +9,6 @@ package com.newrelic.agent.browser;
 
 import java.util.Map;
 
-import com.newrelic.agent.browser.BrowserTransactionState;
-
 /**
  * This class is thread safe.
  */
@@ -45,12 +43,22 @@ public class MockBrowserTransactionState implements BrowserTransactionState {
     }
 
     @Override
+    public String getBrowserTimingHeader(String nonce) {
+        return null;
+    }
+
+    @Override
     public String getBrowserTimingHeaderForJsp() {
         return null;
     }
 
     @Override
     public String getBrowserTimingFooter() {
+        return null;
+    }
+
+    @Override
+    public String getBrowserTimingFooter(String nonce) {
         return null;
     }
 

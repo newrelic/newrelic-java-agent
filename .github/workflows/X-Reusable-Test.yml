@@ -39,7 +39,7 @@ jobs:
         # https://github.com/actions/setup-java
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: 8
 
       # Save new JDK variable
@@ -52,7 +52,7 @@ jobs:
       - name: Set up Java 11
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: 11
 
       # Save new JDK variable
@@ -65,7 +65,7 @@ jobs:
       - name: Set up Java 17
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: 17
 
       # Save new JDK variable
@@ -73,6 +73,19 @@ jobs:
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
+
+      # Install 18-ea
+      - name: Set up Java 18-ea
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 18-ea
+
+      # Save new JDK variable
+      - name: Save JAVA_HOME as JDK18ea for later usage
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
 
       # Check ENV variables
       - name: Check environmental variables
@@ -121,7 +134,7 @@ jobs:
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
           cat settings.gradle
-          ./gradlew clean jar --parallel -Dscan.uploadInBackground=false --build-cache
+          ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: Build newrelicJar w/o GE
@@ -142,7 +155,8 @@ jobs:
         run: |
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
           s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
-          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|" gradle.properties.gha
+          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|
+          s|jdk18=18|jdk18=${ORG_GRADLE_PROJECT_jdk18}|" gradle.properties.gha
           cat gradle.properties.gha
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
@@ -160,7 +174,7 @@ jobs:
           LANGUAGE: java
           TEST_TYPE: instrumentation
         run: |
-          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue -Dscan.uploadInBackground=false --build-cache
+          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
 
       # Run the build without Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
@@ -169,7 +183,7 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
-          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} -PnoScala --continue
+          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports

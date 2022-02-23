@@ -52,7 +52,7 @@ public class JavaVersionUtilsTest {
     }
 
     @Test
-    public void unsupportedAgentVersionsExceedingJava16() {
+    public void javaVersionHigherThanSupported() {
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("18.0"));
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("18+181"));
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("18.0+181"));
@@ -79,14 +79,14 @@ public class JavaVersionUtilsTest {
     }
 
     @Test
-    public void unsupportedJavaVersionMessageWhenLessThanJava8() {
+    public void unsupportedJavaVersionMessageWhenLessThanMinimalSupportedVersion() {
         String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_7);
         assertThat(msg, containsString(JavaVersionUtils.JAVA_7));
-        assertThat(msg, containsString("6.5.0 New Relic agent"));
+        assertThat(msg, containsString("6.5.3 New Relic agent"));
     }
 
     @Test
-    public void unsupportedJavaVersionMessageWhenGreaterThanJava17() {
+    public void unsupportedJavaVersionMessageWhenGreaterThanMaxSupportedVersion() {
         String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_18);
         assertThat(msg, containsString(JavaVersionUtils.JAVA_18));
         assertThat(msg, containsString("Java greater than 17."));

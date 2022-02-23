@@ -30,7 +30,8 @@ public class XmlRpcPointCutTest {
             doCall();
 
             SpanEventsService spanEventsService = ServiceFactory.getServiceManager().getSpanEventsService();
-            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir();
+            String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir(appName);
             assertNotNull(spanEventsPool);
 
             List<SpanEvent> spanEvents = spanEventsPool.asList();

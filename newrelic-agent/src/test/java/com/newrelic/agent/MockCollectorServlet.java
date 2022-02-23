@@ -64,7 +64,7 @@ public class MockCollectorServlet extends HttpServlet {
             if ("xxxxxxxxxxxxxxxxxxxxxxxxxxx".equals(request.getParameter("license_key"))) {
                 response.setStatus(401);
                 JSONObject inner = new JSONObject();
-                inner.put("message", "Invalid license key, please contact support@newrelic.com");
+                inner.put("message", "Invalid license key, please contact support via https://support.newrelic.com/.");
                 json.put("exception", inner);
             } else {
                 JSONObject inner = new JSONObject();
