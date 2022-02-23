@@ -36,6 +36,7 @@ import com.newrelic.agent.service.analytics.InsightsService;
 import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
@@ -108,6 +109,8 @@ public interface ServiceManager extends Service {
     AttributesService getAttributesService();
 
     InsightsService getInsights();
+
+    LogSenderService getLogSenderService();
 
     AsyncTransactionService getAsyncTxService();
 

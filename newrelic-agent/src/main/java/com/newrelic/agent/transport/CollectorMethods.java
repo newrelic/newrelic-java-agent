@@ -19,6 +19,7 @@ public class CollectorMethods {
     public static final String ANALYTIC_EVENT_DATA = "analytic_event_data";
     public static final String SPAN_EVENT_DATA = "span_event_data";
     public static final String CUSTOM_EVENT_DATA = "custom_event_data";
+    public static final String LOG_EVENT_DATA = "log_event_data";
     public static final String UPDATE_LOADED_MODULES = "update_loaded_modules";
     public static final String SHUTDOWN = "shutdown";
     public static final String SQL_TRACE_DATA = "sql_trace_data";

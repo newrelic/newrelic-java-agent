@@ -11,6 +11,7 @@ import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.Service;
@@ -81,6 +82,8 @@ public interface IRPMService extends Service {
     void sendAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<TransactionEvent> events) throws Exception;
 
     void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception;
+
+    void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception;
 
     void sendErrorEvents(int reservoirSize, int eventsSeen, final Collection<ErrorEvent> events) throws Exception;
 

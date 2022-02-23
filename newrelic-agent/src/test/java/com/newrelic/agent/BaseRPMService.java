@@ -13,6 +13,7 @@ import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.analytics.TransactionEvent;
@@ -160,6 +161,10 @@ public abstract class BaseRPMService implements IRPMService {
 
     @Override
     public void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception {
+    }
+
+    @Override
+    public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
     }
 
     @Override

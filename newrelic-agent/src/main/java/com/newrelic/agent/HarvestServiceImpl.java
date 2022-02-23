@@ -85,6 +85,7 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
     public void startHarvestables(IRPMService rpmService, AgentConfig config) {
         Map<String, Object> eventHarvestConfig = config.getProperty(AgentConfigFactory.EVENT_HARVEST_CONFIG);
         Map<String, Object> spanHarvestConfig = config.getProperty(SERVER_SPAN_HARVEST_CONFIG);
+        // FIXME need to add log event harvest config when it becomes available from the backend
         if (eventHarvestConfig == null) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
                     MetricNames.SUPPORTABILITY_CONNECT_MISSING_EVENT_DATA, 1));
@@ -95,16 +96,26 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
                 int maxSamplesStored = tracker.harvestable.getMaxSamplesStored();
                 long reportPeriodInMillis = HarvestServiceImpl.REPORTING_PERIOD_IN_MILLISECONDS;
                 boolean isSpanEventEndpoint = tracker.harvestable.getEndpointMethodName().equals(SPAN_EVENT_DATA);
+                boolean isLogEventEndpoint = tracker.harvestable.getEndpointMethodName().equals(LOG_EVENT_DATA);
 
-                // The event_harvest_config received from server-side during the connect lifecycle contains config for error_event_data, analytic_event_data, and custom_event_data
+                // The event_harvest_config.harvest_limits received from server-side during the connect lifecycle contains config for error_event_data,
+                // analytic_event_data, and custom_event_data TODO The event_harvest_config.harvest_limits should also include log_event_data endpoint at some point...
                 if (eventHarvestConfig != null && !isSpanEventEndpoint) {
                      Agent.LOG.log(Level.FINE, "event_harvest_config from collector is: {0} samples stored for {1}", maxSamplesStored,
                             tracker.harvestable.getEndpointMethodName());
                     Map<String, Object> harvestLimits = (Map<String, Object>) eventHarvestConfig.get(HARVEST_LIMITS);
-                    Long harvestLimit = (Long) harvestLimits.get(tracker.harvestable.getEndpointMethodName());
+
+                    Long harvestLimit;
+                    // FIXME THIS IS A HACK! Real harvestLimit for log_event_data endpoint should come from server side event_harvest_config.harvest_limits!!!
+                    if (isLogEventEndpoint) {
+                        int maxSamplesStoredLogEvents = ServiceFactory.getLogSenderService().getMaxSamplesStored();
+                        harvestLimit = (long) maxSamplesStoredLogEvents;
+                    } else {
+                        harvestLimit = (Long) harvestLimits.get(tracker.harvestable.getEndpointMethodName());
+                    }
                     if (harvestLimit != null) {
                         maxSamplesStored = harvestLimit.intValue();
-                        reportPeriodInMillis = (long) eventHarvestConfig.get(REPORT_PERIOD_MS);
+                        reportPeriodInMillis = (long) eventHarvestConfig.get(REPORT_PERIOD_MS); // faster event harvest report period
                         ServiceFactory.getStatsService().doStatsWork(
                                 StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS, reportPeriodInMillis / 1000));
                     }

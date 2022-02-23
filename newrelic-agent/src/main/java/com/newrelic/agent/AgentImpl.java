@@ -18,6 +18,7 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
@@ -129,6 +130,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     @Override
     public Insights getInsights() {
         return ServiceFactory.getServiceManager().getInsights();
+    }
+
+    @Override
+    public Logs getLogSender() {
+        return ServiceFactory.getServiceManager().getLogSenderService();
     }
 
     @Override

@@ -42,6 +42,8 @@ public interface StatsEngine {
 
     ApdexStats getApdexStats(MetricName metric);
 
+    DataUsageStats getDataUsageStats(MetricName metric);
+
     /**
      * This is now only used by tests.
      */

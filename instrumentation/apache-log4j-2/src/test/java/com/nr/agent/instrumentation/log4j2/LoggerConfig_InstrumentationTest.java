@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.log4j2" })
+@InstrumentationTestConfig(includePrefixes = { "org.apache.logging.log4j.core" })
 public class LoggerConfig_InstrumentationTest extends TestCase {
 
     private static final String CAPTURED = "This log message should be captured";

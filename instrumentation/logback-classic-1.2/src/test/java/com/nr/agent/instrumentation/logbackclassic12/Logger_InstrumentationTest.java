@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.logbackclassic12" })
+@InstrumentationTestConfig(includePrefixes = { "ch.qos.logback" })
 public class Logger_InstrumentationTest {
 
     private static final String CAPTURED = "This log message should be captured";

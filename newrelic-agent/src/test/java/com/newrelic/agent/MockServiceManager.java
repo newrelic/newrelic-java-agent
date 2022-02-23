@@ -38,6 +38,8 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.analytics.*;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.logging.LogSenderService;
+import com.newrelic.agent.service.logging.LogSenderServiceImpl;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
@@ -85,6 +87,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile SpanEventsService spanEventsService;
     private volatile SourceLanguageService sourceLanguageService;
     private volatile InsightsService insights;
+    private volatile LogSenderService logSenderService;
     private volatile ExpirationService expirationService;
 
     public MockServiceManager() {
@@ -144,6 +147,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         circuitBreakerService = new CircuitBreakerService();
         spanEventsService = Mockito.mock(SpanEventsService.class);
         insights = Mockito.mock(InsightsServiceImpl.class);
+        logSenderService = Mockito.mock(LogSenderServiceImpl.class);
     }
 
     @Override
@@ -591,6 +595,15 @@ public class MockServiceManager extends AbstractService implements ServiceManage
 
     public void setInsights(InsightsService service) {
         insights = service;
+    }
+
+    @Override
+    public LogSenderService getLogSenderService() {
+        return logSenderService;
+    }
+
+    public void setLogSenderService(LogSenderService service) {
+        logSenderService = service;
     }
 
     @Override
