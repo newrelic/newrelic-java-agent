@@ -94,7 +94,6 @@ public class DataSenderImpl implements DataSender {
 
     // Destinations for agent data
     private static final String COLLECTOR = "Collector";
-    private static final String OTLP = "OTLP"; // Not currently supported by Java agent
 
     // As of P17 these are the only agent endpoints that actually contain data in the response payload for a successful request
     private static final Set<String> METHODS_WITH_RESPONSE_BODY = ImmutableSet.of(
