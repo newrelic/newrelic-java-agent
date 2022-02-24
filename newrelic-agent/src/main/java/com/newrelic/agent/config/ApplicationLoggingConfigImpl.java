@@ -18,7 +18,7 @@ import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
  *   enabled: false
  *   forwarding:
  *     enabled: false
- *     max_samples_stored: 2000
+ *     max_samples_stored: 10000
  *   local_decorating:
  *     enabled: false
  *   metrics:

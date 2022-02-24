@@ -108,7 +108,9 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
                     Long harvestLimit;
                     // FIXME THIS IS A HACK! Real harvestLimit for log_event_data endpoint should come from server side event_harvest_config.harvest_limits!!!
                     if (isLogEventEndpoint) {
-                        int maxSamplesStoredLogEvents = ServiceFactory.getLogSenderService().getMaxSamplesStored();
+                        int logEventHarvestPeriodInSeconds = 5;
+                        int harvestsPerMinute = 60 / logEventHarvestPeriodInSeconds;
+                        int maxSamplesStoredLogEvents = ServiceFactory.getLogSenderService().getMaxSamplesStored() / harvestsPerMinute;
                         harvestLimit = (long) maxSamplesStoredLogEvents;
                     } else {
                         harvestLimit = (Long) harvestLimits.get(tracker.harvestable.getEndpointMethodName());
