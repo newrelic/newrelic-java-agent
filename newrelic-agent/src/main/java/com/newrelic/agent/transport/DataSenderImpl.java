@@ -89,7 +89,11 @@ public class DataSenderImpl implements DataSender {
     private static final String METADATA_PREFIX = "NEW_RELIC_METADATA_";
     // the block of env vars we send up to rpm
     private static final String ENV_METADATA = "metadata";
-    private static final int DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES = 1000000;
+    private static final int DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES = 1_000_000;
+
+    // Destinations for agent data
+    private static final String COLLECTOR = "Collector";
+    private static final String OTLP = "OTLP"; // Not currently supported by Java agent
 
     // As of P17 these are the only agent endpoints that actually contain data in the response payload for a successful request
     private static final Set<String> METHODS_WITH_RESPONSE_BODY = ImmutableSet.of(
@@ -551,9 +555,10 @@ public class DataSenderImpl implements DataSender {
 
         ReadResult result = httpClientWrapper.execute(request, new TimingEventHandler(method, ServiceFactory.getStatsService()));
 
+        String payloadJsonSent = DataSenderWriter.toJSONString(params);
+
         if (auditMode && methodShouldBeAudited(method)) {
-            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, url,
-                    DataSenderWriter.toJSONString(params));
+            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, url, payloadJsonSent);
             logger.info(msg);
         }
 
@@ -565,16 +570,45 @@ public class DataSenderImpl implements DataSender {
             throwExceptionFromStatusCode(method, result, data, request);
         }
 
+        String payloadJsonReceived = result.getResponseBody();
+
         // received successful 2xx response
         if (auditMode && methodShouldBeAudited(method)) {
-            logger.info(MessageFormat.format("Received JSON({0}): {1}", method, result.getResponseBody()));
+            logger.info(MessageFormat.format("Received JSON({0}): {1}", method, payloadJsonReceived));
         }
+
+        recordDataUsageMetrics(method, payloadJsonSent, payloadJsonReceived);
 
         if (dataSenderListener != null) {
             dataSenderListener.dataSent(method, encoding, uri, data);
         }
 
         return result;
+    }
+
+    /**
+     * Record metrics tracking amount of bytes sent and received for each agent endpoint payload
+     *
+     * @param method method for the agent endpoint
+     * @param payloadJsonSent JSON String of the payload that was sent
+     * @param payloadJsonReceived JSON String of the payload that was received
+     */
+    private void recordDataUsageMetrics(String method, String payloadJsonSent, String payloadJsonReceived) {
+        int payloadBytesSent = payloadJsonSent.getBytes().length;
+        int payloadBytesReceived = payloadJsonReceived.getBytes().length;
+
+        // COLLECTOR is always the destination for data reported via DataSenderImpl.
+        // OTLP as a destination is not currently supported by the Java agent.
+        // INFINITE_TRACING destined usage data is sent via SpanEventSender.
+        ServiceFactory.getStatsService().doStatsWork(
+                StatsWorks.getRecordDataUsageMetricWork(
+                        MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES, COLLECTOR),
+                        payloadBytesSent, payloadBytesReceived));
+
+        ServiceFactory.getStatsService().doStatsWork(
+                StatsWorks.getRecordDataUsageMetricWork(
+                        MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES, COLLECTOR, method),
+                        payloadBytesSent, payloadBytesReceived));
     }
 
     private void throwExceptionFromStatusCode(String method, ReadResult result, byte[] data, HttpClientWrapper.Request request)
