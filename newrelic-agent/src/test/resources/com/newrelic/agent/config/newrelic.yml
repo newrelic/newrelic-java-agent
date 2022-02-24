@@ -18,6 +18,16 @@ common: &default_settings
 
   wait_for_rpm_connect: false
 
+  application_logging:
+    enabled: true
+    forwarding:
+      enabled: true
+      max_samples_stored: 2000
+    local_decorating:
+      enabled: true
+    metrics:
+      enabled: true
+
   # activemerchant instrumentation: only report dollar amounts (business data)
   # if the following is present and true; otherwise, only response times
   # and throughput to the gateway are reported

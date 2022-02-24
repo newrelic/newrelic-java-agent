@@ -14,7 +14,10 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public class LoggerTest {
+/**
+ * Test for com.newrelic.instrumentation.java.logging-jdk8 instrumentation
+ */
+public class JavaUtilLoggerTest {
 
     private static final String CAPTURED = "This log message should be captured";
     private static final String NOT_CAPTURED = "This message should NOT be captured";
@@ -28,7 +31,7 @@ public class LoggerTest {
     @Test
     public void shouldIncrementEmittedLogsCountersIndependentlyIfLogLevelEnabled() {
         // Given
-        final Logger logger = Logger.getLogger(LoggerTest.class.getName());
+        final Logger logger = Logger.getLogger(JavaUtilLoggerTest.class.getName());
         logger.setLevel(Level.INFO);
 
         // When
@@ -61,7 +64,7 @@ public class LoggerTest {
     @Test
     public void shouldIncrementAllEmittedLogCountersIfLogLevelIsSetToFinest() {
         // Given
-        final Logger logger = Logger.getLogger(LoggerTest.class.getName());
+        final Logger logger = Logger.getLogger(JavaUtilLoggerTest.class.getName());
         logger.setLevel(Level.FINEST);
 
         // When
@@ -89,7 +92,7 @@ public class LoggerTest {
     @Test
     public void shouldIncrementEmittedLogsCountersIndependentlyIfLogLevelEnabledEvenLoggingLogRecordsDirectly() {
         // Given
-        final Logger logger = Logger.getLogger(LoggerTest.class.getName());
+        final Logger logger = Logger.getLogger(JavaUtilLoggerTest.class.getName());
         logger.setLevel(Level.INFO);
 
         // When
