@@ -67,8 +67,12 @@ public class LoggingEvent_Instrumentation {
 
         if (applicationLoggingEnabled && isApplicationLoggingForwardingEnabled()) {
             // Record and send LogEvent to New Relic
-            recordNewRelicLogEvent(message, timeStamp, level);
+            recordNewRelicLogEvent(getFormattedMessage(), timeStamp, level);
         }
+    }
+
+    public String getFormattedMessage() {
+        return Weaver.callOriginal();
     }
 
     private Throwable extractThrowableAnRearrangeArguments(Object[] argArray) {
