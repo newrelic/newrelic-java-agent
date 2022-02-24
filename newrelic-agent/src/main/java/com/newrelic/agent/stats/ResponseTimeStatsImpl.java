@@ -23,6 +23,8 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     private static final long NANOSECONDS_PER_SECOND_SQUARED = TimeConversion.NANOSECONDS_PER_SECOND
             * TimeConversion.NANOSECONDS_PER_SECOND;
 
+    private final Object lock = new Object();
+
     private long total;
     private long totalExclusive;
     private long minValue;
@@ -36,12 +38,14 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     @Override
     public Object clone() throws CloneNotSupportedException {
         ResponseTimeStatsImpl newStats = new ResponseTimeStatsImpl();
-        newStats.count = count;
-        newStats.total = total;
-        newStats.totalExclusive = totalExclusive;
-        newStats.minValue = minValue;
-        newStats.maxValue = maxValue;
-        newStats.sumOfSquares = sumOfSquares;
+        synchronized (lock) {
+            newStats.count = count;
+            newStats.total = total;
+            newStats.totalExclusive = totalExclusive;
+            newStats.minValue = minValue;
+            newStats.maxValue = maxValue;
+            newStats.sumOfSquares = sumOfSquares;
+        }
         return newStats;
     }
 
@@ -67,94 +71,116 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     public void recordResponseTimeInNanos(long responseTime, long exclusiveTime) {
         double responseTimeAsDouble = responseTime;
         responseTimeAsDouble *= responseTimeAsDouble;
-        sumOfSquares += responseTimeAsDouble;
-        if (count > 0) {
-            minValue = Math.min(responseTime, minValue);
-        } else {
-            minValue = responseTime;
-        }
-        count++;
-        total += responseTime;
-        maxValue = Math.max(responseTime, maxValue);
-        totalExclusive += exclusiveTime;
-        if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
-            if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0) {
-                NewRelic.incrementCounter("Supportability/ResponseTimeStatsImpl/NegativeValue");
-                Agent.LOG.log(Level.INFO, "Invalid count {0}, total {1}, totalExclusive {2}, or sum of squares {3}",
-                        count, total, totalExclusive, sumOfSquares);
+        synchronized (lock) {
+            sumOfSquares += responseTimeAsDouble;
+            if (count > 0) {
+                minValue = Math.min(responseTime, minValue);
+            } else {
+                minValue = responseTime;
+            }
+            count++;
+            total += responseTime;
+            maxValue = Math.max(responseTime, maxValue);
+            totalExclusive += exclusiveTime;
+            if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
+                if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0) {
+                    NewRelic.incrementCounter("Supportability/ResponseTimeStatsImpl/NegativeValue");
+                    Agent.LOG.log(Level.INFO, "Invalid count {0}, total {1}, totalExclusive {2}, or sum of squares {3}",
+                            count, total, totalExclusive, sumOfSquares);
+                }
             }
         }
-
     }
 
     @Override
     public boolean hasData() {
-        return count > 0 || total > 0 || totalExclusive > 0;
+        boolean hasData;
+        synchronized (lock) {
+            hasData = count > 0 || total > 0 || totalExclusive > 0;
+        }
+        return hasData;
     }
 
     @Override
     public void reset() {
-        count = 0;
-        total = totalExclusive = minValue = maxValue = 0;
-        sumOfSquares = 0;
+        synchronized (lock) {
+            count = 0;
+            total = totalExclusive = minValue = maxValue = 0;
+            sumOfSquares = 0;
+        }
     }
 
     @Override
     public float getTotal() {
-        return (float) total / TimeConversion.NANOSECONDS_PER_SECOND;
+        synchronized (lock) {
+            return (float) total / TimeConversion.NANOSECONDS_PER_SECOND;
+        }
     }
 
     @Override
     public float getTotalExclusiveTime() {
-        return (float) totalExclusive / TimeConversion.NANOSECONDS_PER_SECOND;
+        synchronized (lock) {
+            return (float) totalExclusive / TimeConversion.NANOSECONDS_PER_SECOND;
+        }
     }
+
 
     @Override
     public float getMaxCallTime() {
-        return (float) maxValue / TimeConversion.NANOSECONDS_PER_SECOND;
+        synchronized (lock) {
+            return (float) maxValue / TimeConversion.NANOSECONDS_PER_SECOND;
+        }
     }
 
     @Override
     public float getMinCallTime() {
-        return (float) minValue / TimeConversion.NANOSECONDS_PER_SECOND;
+        synchronized (lock) {
+            return (float) minValue / TimeConversion.NANOSECONDS_PER_SECOND;
+        }
     }
 
     @Override
     public double getSumOfSquares() {
-        return sumOfSquares / NANOSECONDS_PER_SECOND_SQUARED;
+        synchronized (lock) {
+            return sumOfSquares / NANOSECONDS_PER_SECOND_SQUARED;
+        }
     }
 
     @Override
     public final void merge(StatsBase statsObj) {
         if (statsObj instanceof ResponseTimeStatsImpl) {
             ResponseTimeStatsImpl stats = (ResponseTimeStatsImpl) statsObj;
-            if (stats.count > 0) {
-                if (count > 0) {
-                    minValue = Math.min(minValue, stats.minValue);
-                } else {
-                    minValue = stats.minValue;
+            synchronized (lock) {
+                if (stats.count > 0) {
+                    if (count > 0) {
+                        minValue = Math.min(minValue, stats.minValue);
+                    } else {
+                        minValue = stats.minValue;
+                    }
                 }
-            }
-            count += stats.count;
-            total += stats.total;
-            totalExclusive += stats.totalExclusive;
+                count += stats.count;
+                total += stats.total;
+                totalExclusive += stats.totalExclusive;
 
-            maxValue = Math.max(maxValue, stats.maxValue);
-            sumOfSquares += stats.sumOfSquares;
+                maxValue = Math.max(maxValue, stats.maxValue);
+                sumOfSquares += stats.sumOfSquares;
+            }
         }
     }
 
     @Override
     public void recordResponseTime(int count, long totalTime, long minTime, long maxTime, TimeUnit unit) {
-        long totalTimeInNanos = TimeUnit.NANOSECONDS.convert(totalTime, unit);
-        this.count = count;
-        this.total = totalTimeInNanos;
-        this.totalExclusive = totalTimeInNanos;
-        this.minValue = TimeUnit.NANOSECONDS.convert(minTime, unit);
-        this.maxValue = TimeUnit.NANOSECONDS.convert(maxTime, unit);
-        double totalTimeInNanosAsDouble = totalTimeInNanos;
-        totalTimeInNanosAsDouble *= totalTimeInNanosAsDouble;
-        sumOfSquares += totalTimeInNanosAsDouble;
+        synchronized (lock) {
+            long totalTimeInNanos = TimeUnit.NANOSECONDS.convert(totalTime, unit);
+            this.count = count;
+            this.total = totalTimeInNanos;
+            this.totalExclusive = totalTimeInNanos;
+            this.minValue = TimeUnit.NANOSECONDS.convert(minTime, unit);
+            this.maxValue = TimeUnit.NANOSECONDS.convert(maxTime, unit);
+            double totalTimeInNanosAsDouble = totalTimeInNanos;
+            totalTimeInNanosAsDouble *= totalTimeInNanosAsDouble;
+            sumOfSquares += totalTimeInNanosAsDouble;
+        }
     }
 
     @Override

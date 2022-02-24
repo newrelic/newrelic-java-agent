@@ -18,6 +18,8 @@ import java.util.logging.Level;
  */
 public class StatsImpl extends AbstractStats implements Stats {
 
+    private final Object lock = new Object();
+
     private float total;
     private float minValue;
     private float maxValue;
@@ -39,11 +41,13 @@ public class StatsImpl extends AbstractStats implements Stats {
     @Override
     public Object clone() throws CloneNotSupportedException {
         StatsImpl newStats = new StatsImpl();
-        newStats.count = count;
-        newStats.total = total;
-        newStats.minValue = minValue;
-        newStats.maxValue = maxValue;
-        newStats.sumOfSquares = sumOfSquares;
+        synchronized (lock) {
+            newStats.count = count;
+            newStats.total = total;
+            newStats.minValue = minValue;
+            newStats.maxValue = maxValue;
+            newStats.sumOfSquares = sumOfSquares;
+        }
         return newStats;
     }
 
@@ -58,84 +62,100 @@ public class StatsImpl extends AbstractStats implements Stats {
         if (Float.isNaN(value) || Float.isInfinite(value)) {
             throw new IllegalArgumentException("Data points must be numbers");
         }
-        double sos = sumOfSquares + (value * value);
-        if (sos < sumOfSquares) {
-            throw new IllegalArgumentException("Data value " + value + " caused sum of squares to roll over");
-        }
-        if (count > 0) {
-            minValue = Math.min(value, minValue);
-        } else {
-            minValue = value;
-        }
-        count++;
-        total += value;
-        maxValue = Math.max(value, maxValue);
-        sumOfSquares = sos;
+        synchronized (lock) {
+            double sos = sumOfSquares + (value * value);
+            if (sos < sumOfSquares) {
+                throw new IllegalArgumentException("Data value " + value + " caused sum of squares to roll over");
+            }
+            if (count > 0) {
+                minValue = Math.min(value, minValue);
+            } else {
+                minValue = value;
+            }
+            count++;
+            total += value;
+            maxValue = Math.max(value, maxValue);
+            sumOfSquares = sos;
 
-        if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
-            if (count < 0 || total < 0) {
-                NewRelic.incrementCounter("Supportability/StatsImpl/NegativeValue");
-                Agent.LOG.log(Level.INFO, "Invalid count {0} or total {1}", count, total);
+            if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
+                if (count < 0 || total < 0) {
+                    NewRelic.incrementCounter("Supportability/StatsImpl/NegativeValue");
+                    Agent.LOG.log(Level.INFO, "Invalid count {0} or total {1}", count, total);
 
+                }
             }
         }
-
     }
 
     @Override
     public boolean hasData() {
-        return count > 0 || total > 0;
+        synchronized (lock) {
+            return count > 0 || total > 0;
+        }
     }
 
     @Override
     public void reset() {
-        count = 0;
-        total = minValue = maxValue = 0;
-        sumOfSquares = 0;
+        synchronized (lock) {
+            count = 0;
+            total = minValue = maxValue = 0;
+            sumOfSquares = 0;
+        }
     }
 
     @Override
     public float getTotal() {
-        return total;
+        synchronized (lock) {
+            return total;
+        }
     }
 
     @Override
     public float getTotalExclusiveTime() {
-        return total;
+        synchronized (lock) {
+            return total;
+        }
     }
 
     @Override
     public float getMinCallTime() {
-        return minValue;
+        synchronized (lock) {
+            return minValue;
+        }
     }
 
     @Override
     public float getMaxCallTime() {
-        return maxValue;
+        synchronized (lock) {
+            return maxValue;
+        }
     }
 
     @Override
     public double getSumOfSquares() {
-        return sumOfSquares;
+        synchronized (lock) {
+            return sumOfSquares;
+        }
     }
 
     @Override
     public void merge(StatsBase statsObj) {
         if (statsObj instanceof StatsImpl) {
             StatsImpl stats = (StatsImpl) statsObj;
-            if (stats.count > 0) {
-                if (count > 0) {
-                    minValue = Math.min(minValue, stats.minValue);
-                } else {
-                    minValue = stats.minValue;
+            synchronized (lock) {
+                if (stats.count > 0) {
+                    if (count > 0) {
+                        minValue = Math.min(minValue, stats.minValue);
+                    } else {
+                        minValue = stats.minValue;
+                    }
                 }
-            }
-            count += stats.count;
-            total += stats.total;
+                count += stats.count;
+                total += stats.total;
 
-            maxValue = Math.max(maxValue, stats.maxValue);
-            sumOfSquares += stats.sumOfSquares;
+                maxValue = Math.max(maxValue, stats.maxValue);
+                sumOfSquares += stats.sumOfSquares;
+            }
         }
     }
-
 }
