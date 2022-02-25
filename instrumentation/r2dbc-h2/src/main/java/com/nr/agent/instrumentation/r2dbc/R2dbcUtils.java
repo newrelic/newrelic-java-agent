@@ -16,7 +16,7 @@ public class R2dbcUtils {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("execute");
         return request != null ? request
                 .doOnSubscribe((subscription) -> {
-                    if(segment != null && !(segment instanceof NoOpSegment)) {
+                    if(!(segment instanceof NoOpSegment)) {
                         String[] sqlOperationCollection = R2dbcOperation.extractFrom(sql);
                         if(sqlOperationCollection != null) {
                             segment.reportAsExternal(DatastoreParameters
