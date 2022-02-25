@@ -9,9 +9,6 @@ package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.api.agent.QueryConverter;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class R2dbcObfuscator {
@@ -34,7 +31,6 @@ public class R2dbcObfuscator {
         ALL_DIALECTS_PATTERN = Pattern.compile(String.join("|", SINGLE_QUOTE, DOUBLE_QUOTE, DOLLAR_QUOTE, COMMENT, MULTILINE_COMMENT, UUID, HEX, BOOLEAN, NUMBER), PATTERN_SWITCHES);
         ALL_UNMATCHED_PATTERN = Pattern.compile("'|\"|/\\*|\\*/|\\$", PATTERN_SWITCHES);
         R2DBC_QUERY_CONVERTER = new QueryConverter<String>() {
-
             @Override
             public String toRawQueryString(String statement) {
                 return statement;

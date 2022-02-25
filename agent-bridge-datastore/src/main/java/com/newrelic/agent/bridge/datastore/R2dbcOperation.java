@@ -20,13 +20,13 @@ public class R2dbcOperation {
     static final Map<String, Pattern[]> OPERATION_PATTERNS = new HashMap<>();
 
     static {
-        OPERATION_PATTERNS.put("select", new Pattern[]{Pattern.compile("^\\s*select.*?\\sfrom[\\s\\[]+([^]\\s,)(;]*).*", PATTERN_SWITCHES)});
-        OPERATION_PATTERNS.put("insert", new Pattern[]{Pattern.compile("^\\s*insert(?:\\s+ignore)?(?:\\s+into)?\\s+([^\\s(,;]*).*", PATTERN_SWITCHES)});
-        OPERATION_PATTERNS.put("update", new Pattern[]{Pattern.compile("^\\s*update\\s+([^\\s,;]*).*", PATTERN_SWITCHES)});
-        OPERATION_PATTERNS.put("delete", new Pattern[]{Pattern.compile("^\\s*delete\\s*?.*?\\s+from\\s+([^\\s,(;]*).*", PATTERN_SWITCHES)});
-        OPERATION_PATTERNS.put("with", new Pattern[]{Pattern.compile("^\\s*with\\s+(?:recursive\\s+)?([^\\s,(;]*)", PATTERN_SWITCHES)});
-        OPERATION_PATTERNS.put("call", new Pattern[]{Pattern.compile(".*call\\s+([^\\s(,]*).*", PATTERN_SWITCHES)});
-        OPERATION_PATTERNS.put("exec", new Pattern[]{Pattern.compile(".*(?:exec|execute)\\s+(?!as\\s+)([^\\s(,=;]*+);?\\s*+(?:[^=]|$).*", PATTERN_SWITCHES), Pattern.compile(".*(?:exec|execute)\\s+[^\\s(,]*.*?=(?:\\s|)([^\\s]*)", PATTERN_SWITCHES)});
+        OPERATION_PATTERNS.put("SELECT", new Pattern[]{Pattern.compile("^\\s*select.*?\\sfrom[\\s\\[]+([^]\\s,)(;]*).*", PATTERN_SWITCHES)});
+        OPERATION_PATTERNS.put("INSERT", new Pattern[]{Pattern.compile("^\\s*insert(?:\\s+ignore)?(?:\\s+into)?\\s+([^\\s(,;]*).*", PATTERN_SWITCHES)});
+        OPERATION_PATTERNS.put("UPDATE", new Pattern[]{Pattern.compile("^\\s*update\\s+([^\\s,;]*).*", PATTERN_SWITCHES)});
+        OPERATION_PATTERNS.put("DELETE", new Pattern[]{Pattern.compile("^\\s*delete\\s*?.*?\\s+from\\s+([^\\s,(;]*).*", PATTERN_SWITCHES)});
+        OPERATION_PATTERNS.put("WITH", new Pattern[]{Pattern.compile("^\\s*with\\s+(?:recursive\\s+)?([^\\s,(;]*)", PATTERN_SWITCHES)});
+        OPERATION_PATTERNS.put("CALL", new Pattern[]{Pattern.compile(".*call\\s+([^\\s(,]*).*", PATTERN_SWITCHES)});
+        OPERATION_PATTERNS.put("EXEC", new Pattern[]{Pattern.compile(".*(?:exec|execute)\\s+(?!as\\s+)([^\\s(,=;]*+);?\\s*+(?:[^=]|$).*", PATTERN_SWITCHES), Pattern.compile(".*(?:exec|execute)\\s+[^\\s(,]*.*?=(?:\\s|)([^\\s]*)", PATTERN_SWITCHES)});
     }
 
     public static String[] extractFrom(String sql) {

@@ -6,16 +6,14 @@ dependencies {
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.r2dbc-generic' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.r2dbc-h2' }
 }
 
 verifyInstrumentation {
-    // H2
-    passesOnly 'com.h2database:h2:[0,)'
+    passesOnly 'io.r2dbc:r2dbc-h2:[0,)'
 }
 
 site {
-    title 'Generic R2DBC'
-    type 'Datastore' 
-    versionOverride '[0,)'
+    title 'H2 R2DBC'
+    type 'Datastore'
 }
