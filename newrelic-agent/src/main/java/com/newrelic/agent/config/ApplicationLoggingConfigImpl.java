@@ -15,13 +15,13 @@ import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
 /* Default config should look like:
  *
  * application_logging:
- *   enabled: false
+ *   enabled: true
  *   forwarding:
  *     enabled: false
  *     max_samples_stored: 10000
- *   local_decorating:
- *     enabled: false
  *   metrics:
+ *     enabled: true
+ *   local_decorating:
  *     enabled: false
  */
 public class ApplicationLoggingConfigImpl extends BaseConfig implements ApplicationLoggingConfig {
@@ -30,7 +30,7 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public static final String FORWARDING = "forwarding";
     public static final String LOCAL_DECORATING = "local_decorating";
 
-    public static final boolean DEFAULT_ENABLED = false;
+    public static final boolean DEFAULT_ENABLED = true;
     public static final String ENABLED = "enabled";
 
     private final ApplicationLoggingMetricsConfig applicationLoggingMetricsConfig;

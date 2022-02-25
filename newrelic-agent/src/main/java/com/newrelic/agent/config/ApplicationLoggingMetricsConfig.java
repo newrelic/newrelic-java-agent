@@ -12,7 +12,7 @@ import java.util.Map;
 public class ApplicationLoggingMetricsConfig extends BaseConfig {
     public static final String ROOT = "metrics";
     public static final String ENABLED = "enabled";
-    public static final boolean DEFAULT_ENABLED = false;
+    public static final boolean DEFAULT_ENABLED = true;
 
     private final boolean enabled;
 

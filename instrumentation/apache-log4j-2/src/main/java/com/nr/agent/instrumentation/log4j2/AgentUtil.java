@@ -28,8 +28,8 @@ public class AgentUtil {
     private static final String ENTITY_TYPE = "entity.type";
     private static final String ENTITY_NAME = "entity.name";
     // Enabled defaults
-    private static final boolean APP_LOGGING_DEFAULT_ENABLED = false;
-    private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = false;
+    private static final boolean APP_LOGGING_DEFAULT_ENABLED = true;
+    private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_FORWARDING_DEFAULT_ENABLED = false;
     private static final boolean APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED = false;
 
