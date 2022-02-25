@@ -22,7 +22,6 @@ import com.newrelic.agent.dispatchers.WebRequestDispatcher;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.errors.TracedError;
-import com.newrelic.agent.instrumentation.APISupportabilityTest;
 import com.newrelic.agent.metric.MetricName;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
@@ -1756,7 +1755,7 @@ public class ApiTest implements TransactionListener {
                 return null;
             }
         };
-        ServiceFactory.getStatsService().doStatsWork(statsWork);
+        ServiceFactory.getStatsService().doStatsWork(statsWork, "statsWorkName" );
 
         NewRelic.recordMetric(name.getName(), 1.0f);
     }

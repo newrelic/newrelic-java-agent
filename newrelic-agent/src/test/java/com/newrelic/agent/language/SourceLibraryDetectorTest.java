@@ -45,7 +45,7 @@ public class SourceLibraryDetectorTest {
         sourceLibraryDetector.run();
         ArgumentCaptor<StatsWork> captor = ArgumentCaptor.forClass(StatsWork.class);
         //As of 7.0.0 we are pulling in kotlin as a transitive dependency of JFR-Daemon 
-        verify(ServiceFactory.getStatsService(), times(3)).doStatsWork(captor.capture());
+        verify(ServiceFactory.getStatsService(), times(3)).doStatsWork(captor.capture(), "statsWorkTest");
 
         StatsWork statsWork = captor.getValue();
 

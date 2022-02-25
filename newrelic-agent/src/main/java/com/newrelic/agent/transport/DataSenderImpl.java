@@ -541,7 +541,7 @@ public class DataSenderImpl implements DataSender {
          */
         if (data.length > maxPayloadSizeInBytes && !method.equals(CollectorMethods.ERROR_DATA)) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                    MessageFormat.format(MetricNames.SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX, method), 1));
+                    MessageFormat.format(MetricNames.SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX, method), 1), MetricNames.SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX);
             String msg = MessageFormat.format("Payload of size {0} exceeded maximum size {1} for {2} method ",
                     data.length, maxPayloadSizeInBytes, method);
             logger.log(Level.WARNING, msg);
@@ -564,7 +564,7 @@ public class DataSenderImpl implements DataSender {
 
         // Create supportability metric for all response codes
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_HTTP_CODE, result.getStatusCode()), 1));
+                MessageFormat.format(MetricNames.SUPPORTABILITY_HTTP_CODE, result.getStatusCode()), 1), MetricNames.SUPPORTABILITY_HTTP_CODE);
 
         if (result.getStatusCode() != HttpResponseCode.OK && result.getStatusCode() != HttpResponseCode.ACCEPTED) {
             throwExceptionFromStatusCode(method, result, data, request);
@@ -603,21 +603,22 @@ public class DataSenderImpl implements DataSender {
         ServiceFactory.getStatsService().doStatsWork(
                 StatsWorks.getRecordDataUsageMetricWork(
                         MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES, COLLECTOR),
-                        payloadBytesSent, payloadBytesReceived));
+                        payloadBytesSent, payloadBytesReceived), MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES + " " + COLLECTOR);
 
         ServiceFactory.getStatsService().doStatsWork(
                 StatsWorks.getRecordDataUsageMetricWork(
                         MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES, COLLECTOR, method),
-                        payloadBytesSent, payloadBytesReceived));
+                        payloadBytesSent, payloadBytesReceived),
+                        MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES + " " + COLLECTOR);
     }
 
     private void throwExceptionFromStatusCode(String method, ReadResult result, byte[] data, HttpClientWrapper.Request request)
             throws HttpError, LicenseException, ForceRestartException, ForceDisconnectException {
         // Comply with spec and send supportability metric only for error responses
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1));
+                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR);
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS, method), 1));
+                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS, method), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS);
 
         // HttpError exceptions are typically handled in RPMService or the harvestable service for the requested endpoint
         switch (result.getStatusCode()) {
@@ -763,7 +764,8 @@ public class DataSenderImpl implements DataSender {
             long requestDuration = System.currentTimeMillis() - requestSent;
 
             statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(
-                    MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration));
+                    MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration),
+                    MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION + " " + method);
         }
     }
 }

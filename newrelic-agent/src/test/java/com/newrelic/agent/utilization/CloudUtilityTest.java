@@ -88,11 +88,11 @@ public class CloudUtilityTest {
     @Test
     public void recordsMetric() {
         ArgumentCaptor<StatsWork> captor = ArgumentCaptor.forClass(StatsWork.class);
-        doNothing().when(mockStatsService).doStatsWork(captor.capture());
+        doNothing().when(mockStatsService).doStatsWork(captor.capture(), "statsWorkTest");
 
         new CloudUtility().recordError("some error");
 
-        verify(mockStatsService, times(1)).doStatsWork(any(StatsWork.class));
+        verify(mockStatsService, times(1)).doStatsWork(any(StatsWork.class), "statsWorkTest");
 
         StatsWork argument = captor.getValue();
         assertTrue(argument instanceof IncrementCounter);

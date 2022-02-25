@@ -156,7 +156,7 @@ public class TokenImpl implements Token {
         if (tracer != null) {
             tracer.setMetricNameFormatInfo(tracer.getMetricName(), "Truncated/" + tracer.getMetricName(), tracer.getTransactionSegmentUri());
             String timeoutCauseMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_TIMEOUT_CAUSE, tracer.getClassMethodSignature());
-            ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(timeoutCauseMetric, 1));
+            ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(timeoutCauseMetric, 1), timeoutCauseMetric );
         } else {
             Agent.LOG.log(Level.FINEST, "Initiating tracer is null. Unable to mark segment as truncated.");
         }

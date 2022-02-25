@@ -112,7 +112,7 @@ class TransactionProfile implements JSONStreamAware {
                     return null;
                 }
                 
-            });
+            }, transactionData.getBlameMetricName() );
         }
         
     }
