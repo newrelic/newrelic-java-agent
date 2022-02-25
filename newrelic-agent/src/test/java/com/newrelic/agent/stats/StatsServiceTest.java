@@ -104,12 +104,6 @@ public class StatsServiceTest {
         // RecordDataUsageMetric count 3
         statsService.doStatsWork(new RecordDataUsageMetric("Test2", 100, 5), "statsWorkTest");
 
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
-        statsEngine = new StatsEngineImpl();
-        stats1 = statsEngine.getStats("Test1");
-        stats1.recordDataPoint(200f);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
-        statsService.doStatsWork(new RecordMetric("Test1", 300f), "statsWorkTest");
         StatsEngine harvestStatsEngine = statsService.getStatsEngineForHarvest(appName);
 
         // Number of unique metrics (Test1 and Test2)
