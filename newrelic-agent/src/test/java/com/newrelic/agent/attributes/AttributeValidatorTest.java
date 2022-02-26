@@ -186,6 +186,8 @@ public class AttributeValidatorTest {
         assertEquals(expected, result);
     }
 
+    // TODO testVerifyTruncatedValue for LogEvent data
+
     @Test
     public void testVerifySendOutsideTxn() {
         String methodCalled = "noticeError";

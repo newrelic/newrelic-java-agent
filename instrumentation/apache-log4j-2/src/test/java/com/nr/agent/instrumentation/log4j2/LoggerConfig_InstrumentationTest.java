@@ -21,6 +21,9 @@ public class LoggerConfig_InstrumentationTest extends TestCase {
     private static final String CAPTURED = "This log message should be captured";
     private static final String NOT_CAPTURED = "This message should NOT be captured";
 
+    // TODO add tests for LogEvents being created when recordNewRelicLogEvent is called
+    //  this is probably blocked until the Introspector is updated
+
     @Test
     public void shouldIncrementEmittedLogsCountersIndependentlyIfLogLevelEnabled() {
         // Given

@@ -1223,6 +1223,8 @@ public class AgentConfigImplTest {
         assertEquals("Span max samples should be the harvest limit of: "+harvestLimit.intValue(), harvestLimit.intValue(), config.getSpanEventsConfig().getMaxSamplesStored());
     }
 
+    // TODO test getApplicationLoggingConfig()
+
     private static EnvironmentFacade createEnvironmentFacade(
             Map<String, String> environment, Map<String, String> systemProps) {
         EnvironmentFacade environmentFacade = new MapEnvironmentFacade(environment);

@@ -228,6 +228,8 @@ class IntrospectorImpl implements Introspector, ExtendedTransactionListener, Tra
         service.clearReservoir();
     }
 
+    // TODO add options to get/clear LogEvents to be used in instrumentation tests
+
     @Override
     public int getRandomPort() {
         int port;

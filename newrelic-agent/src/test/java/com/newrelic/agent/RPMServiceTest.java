@@ -586,6 +586,8 @@ public class RPMServiceTest {
         assertEquals(TransactionNamingScheme.LEGACY, svc.getTransactionNamingScheme());
     }
 
+    // TODO sendLogEvents & sendLogEventsWithPut tests?
+
     @Test(timeout = 30000)
     public void sendProfileData() throws Exception {
         Map<String, Object> map = createStagingMap(true, false);

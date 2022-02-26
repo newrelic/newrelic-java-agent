@@ -531,6 +531,7 @@ public class DataSenderImplTest {
         sendAnalyticEventsPayloadTooBig(dataSender);
         sendMetricDataPayloadTooBig(dataSender);
         sendSpanEventsPayloadTooBig(dataSender);
+        // TODO sendLogEventsPayloadTooBig
 
         sendMetricDataSmallPayload(dataSender);
 
