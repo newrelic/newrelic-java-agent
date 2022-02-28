@@ -14,7 +14,7 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.getFilteredLinkingMetadataString;
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.getLinkingMetadataBlob;
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingEnabled;
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingForwardingEnabled;
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingLocalDecoratingEnabled;
@@ -44,7 +44,7 @@ public class LoggingEvent_Instrumentation {
         boolean applicationLoggingEnabled = isApplicationLoggingEnabled();
         if (applicationLoggingEnabled && isApplicationLoggingLocalDecoratingEnabled()) {
             // Append New Relic linking metadata from agent to log message
-            this.message = message + " NR-LINKING-METADATA: " + getFilteredLinkingMetadataString();
+            this.message = message + getLinkingMetadataBlob();
         } else {
             this.message = message;
         }

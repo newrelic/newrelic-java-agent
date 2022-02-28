@@ -25,6 +25,13 @@ public class AgentUtil {
     // Linking metadata attributes to filter out
     private static final String ENTITY_TYPE = "entity.type";
     private static final String ENTITY_NAME = "entity.name";
+    // Linking metadata attributes used in blob
+    private static final String BLOB_PREFIX = "NR-LINKING";
+    private static final String BLOB_DELIMITER = "|";
+    private static final String TRACE_ID = "trace.id";
+    private static final String HOSTNAME = "hostname";
+    private static final String ENTITY_GUID = "entity.guid";
+    private static final String SPAN_ID = "span.id";
     // Enabled defaults
     private static final boolean APP_LOGGING_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = true;
@@ -56,13 +63,30 @@ public class AgentUtil {
     }
 
     /**
-     * Gets a String representing the agent linking metadata after filtering
-     * out entity.type, entity.name, and any attributes with an empty value.
+     * Gets a String representing the agent linking metadata in blob format:
+     * NR-LINKING|entity.guid|hostname|trace.id|span.id|
      *
-     * @return Filtered String of agent linking metadata
+     * @return agent linking metadata string blob
      */
-    public static String getFilteredLinkingMetadataString() {
-        return getFilteredLinkingMetadataMap().toString();
+    public static String getLinkingMetadataBlob() {
+        Map<String, String> agentLinkingMetadata = NewRelic.getAgent().getLinkingMetadata();
+        StringBuilder blob = new StringBuilder();
+        blob.append(" ").append(BLOB_PREFIX).append(BLOB_DELIMITER);
+
+        if (agentLinkingMetadata != null && agentLinkingMetadata.size() > 0) {
+            appendAttributeToBlob(agentLinkingMetadata.get(ENTITY_GUID), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(HOSTNAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(TRACE_ID), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(SPAN_ID), blob);
+        }
+        return blob.toString();
+    }
+
+    private static void appendAttributeToBlob(String attribute, StringBuilder blob) {
+        if (attribute != null && !attribute.isEmpty()) {
+            blob.append(attribute);
+        }
+        blob.append(BLOB_DELIMITER);
     }
 
     /**
