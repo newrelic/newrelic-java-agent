@@ -403,7 +403,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                 }
             } catch (Exception e) {
                 // discard harvest data
-                reservoir.clear(); // TODO should we simply discard all events if MaxPayloadException bubbles up to here from DataSenderImpl?
+                reservoir.clear();
                 Agent.LOG.log(Level.FINE, "Unable to send log events. Unsent events will be dropped.", e);
             }
         }
