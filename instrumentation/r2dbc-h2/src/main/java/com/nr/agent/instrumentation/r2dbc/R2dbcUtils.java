@@ -12,7 +12,6 @@ import com.newrelic.api.agent.Transaction;
 import io.r2dbc.h2.H2Result;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.SignalType;
 
 import java.util.function.Consumer;
 
@@ -23,14 +22,14 @@ public class R2dbcUtils {
             if(transaction != null && !(transaction instanceof NoOpTransaction)) {
                 Segment segment = transaction.startSegment("execute");
                 return request
-                        .doOnSubscribe(onSubscription(sql, databaseName, url, segment))
-                        .doFinally(onFinally(segment));
+                        .doOnSubscribe(reportExecution(sql, databaseName, url, segment))
+                        .doFinally((type) -> segment.end());
             }
         }
         return request;
     }
 
-    private static Consumer<Subscription> onSubscription(String sql, String databaseName, String url, Segment segment) {
+    private static Consumer<Subscription> reportExecution(String sql, String databaseName, String url, Segment segment) {
         return (subscription) -> {
             String[] sqlOperationCollection = R2dbcOperation.extractFrom(sql);
             if (sqlOperationCollection != null) {
@@ -40,13 +39,9 @@ public class R2dbcUtils {
                         .operation(sqlOperationCollection[0])
                         .instance("localhost", JdbcHelper.parseInMemoryIdentifier(url))
                         .databaseName(databaseName)
-                        .slowQuery(sql, R2dbcObfuscator.R2DBC_QUERY_CONVERTER)
+                        .slowQuery(sql, R2dbcObfuscator.QUERY_CONVERTER)
                         .build());
             }
         };
-    }
-
-    private static Consumer<SignalType> onFinally(Segment segment) {
-        return (type) -> segment.end();
     }
 }
