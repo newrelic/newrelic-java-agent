@@ -37,7 +37,8 @@ public class LoggerConfig_Instrumentation {
 
     protected void callAppenders(LogEvent event) {
         // Do nothing if application_logging.enabled: false
-        if (isApplicationLoggingEnabled()) {
+        // Do nothing if logger has parents and isAdditive is set to true to avoid duplicated counters and logs
+        if (isApplicationLoggingEnabled() && getParent() == null || !isAdditive()) {
             if (isApplicationLoggingMetricsEnabled()) {
                 // Generate log level metrics
                 NewRelic.incrementCounter("Logging/lines");
@@ -51,4 +52,13 @@ public class LoggerConfig_Instrumentation {
         }
         Weaver.callOriginal();
     }
+
+    public LoggerConfig getParent() {
+        return Weaver.callOriginal();
+    }
+
+    public boolean isAdditive() {
+        return Weaver.callOriginal();
+    }
+
 }
