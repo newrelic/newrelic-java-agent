@@ -607,7 +607,6 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
     private void replayStartupStatsWork() {
         for (StatsWork work : statsWork) {
-            //TODO: Figure out the best thing to do here. By this point, there is no way to have a null because LinkedBlockingQueue doesn't allow them and the queue is guarded against it anyway.
             statsService.doStatsWork(work, statsService.getName());
         }
         statsWork.clear();
