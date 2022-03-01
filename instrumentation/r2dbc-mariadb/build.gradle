@@ -10,7 +10,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.mariadb:r2dbc-mariadb:[0,)'
+    passesOnly 'org.mariadb:r2dbc-mariadb:[1.0.2,)'
+    excludeRegex(".*(alpha|beta|rc).*")
 }
 
 site {
