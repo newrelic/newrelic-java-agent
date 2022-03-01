@@ -70,7 +70,7 @@ public class AgentWeaverListener implements WeavePackageLifetimeListener {
                 supportabilityLoadedMetric = MetricNames.SUPPORTABILITY_WEAVE_LOADED;
             }
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(
-                    supportabilityLoadedMetric, weavePackageName, weavePackageVersion), 1));
+                    supportabilityLoadedMetric, weavePackageName, weavePackageVersion), 1), supportabilityLoadedMetric);
             Agent.LOG.log(Level.FINE, "{0} - validated classloader {1}", weavePackageName, classloader);
         } else {
             WeavePackage weavePackage = packageResult.getWeavePackage();
@@ -88,7 +88,7 @@ public class AgentWeaverListener implements WeavePackageLifetimeListener {
             String supportabilitySkippedMetric = isCustom ? MetricNames.SUPPORTABILITY_WEAVE_CUSTOM_SKIPPED : MetricNames.SUPPORTABILITY_WEAVE_SKIPPED;
 
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(
-                    supportabilitySkippedMetric, weavePackageName, weavePackageVersion), 1));
+                    supportabilitySkippedMetric, weavePackageName, weavePackageVersion), 1), supportabilitySkippedMetric);
 
             weaveViolationLogger.logWeaveViolations(packageResult, classloader, isCustom);
         }

@@ -42,7 +42,7 @@ public class AsyncApiImpl implements AsyncApi {
                 transactionState.suspendRootTracer();
                 asyncTransactions.put(asyncContext, currentTxn);
                 ServiceFactory.getStatsService().doStatsWork(
-                        StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SUSPEND, 1));
+                        StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SUSPEND, 1), MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SUSPEND );
                 if (logger.isLoggable(Level.FINEST)) {
                     logger.log(Level.FINEST, "Suspended async: {0}, for Transaction: {1}", asyncContext, currentTxn);
                 }
@@ -72,7 +72,7 @@ public class AsyncApiImpl implements AsyncApi {
         if (asyncContext != null) {
             Transaction suspendedTx = asyncTransactions.get(asyncContext);
             ServiceFactory.getStatsService().doStatsWork(
-                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_RESUME, 1));
+                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_RESUME, 1), MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_RESUME);
             if (logger.isLoggable(Level.FINEST)) {
                 logger.log(Level.FINEST, "Resume async: {0}, for Transaction: {1}", asyncContext, suspendedTx);
             }
@@ -91,7 +91,7 @@ public class AsyncApiImpl implements AsyncApi {
     public void completeAsync(Object asyncContext) {
         logger.log(Level.FINEST, "Complete async");
         ServiceFactory.getStatsService().doStatsWork(
-                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE, 1));
+                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE, 1), MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE );
         if (asyncContext == null) {
             logger.log(Level.FINEST, "Complete async context is null");
             return;
@@ -109,7 +109,7 @@ public class AsyncApiImpl implements AsyncApi {
     public void errorAsync(Object asyncContext, Throwable t) {
         logger.log(Level.FINEST, "Error async");
         ServiceFactory.getStatsService().doStatsWork(
-                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_ERROR, 1));
+                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_ERROR, 1), MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_ERROR);
         if (asyncContext == null || t == null) {
             logger.log(Level.FINEST, "Error async context or throwable is null");
             return;

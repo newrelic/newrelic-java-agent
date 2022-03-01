@@ -147,12 +147,14 @@ public class SourceLibraryDetector implements Runnable {
     private void recordSourceLanguageMetric(String language, String version) {
         ServiceFactory
                 .getStatsService()
-                .doStatsWork(getRecordMetricWork(format(MetricNames.SUPPORTABILITY_SOURCE_LANGUAGE_VERSION, language, version), 1));
+                .doStatsWork(getRecordMetricWork(format(MetricNames.SUPPORTABILITY_SOURCE_LANGUAGE_VERSION, language, version), 1),
+                        MetricNames.SUPPORTABILITY_SOURCE_LANGUAGE_VERSION + " language: " + language );
     }
 
     private void recordJvmVendorMetric(String vendor) {
         ServiceFactory
                 .getStatsService()
-                .doStatsWork(getRecordMetricWork(format(MetricNames.SUPPORTABILITY_JVM_VENDOR, vendor), 1));
+                .doStatsWork(getRecordMetricWork(format(MetricNames.SUPPORTABILITY_JVM_VENDOR, vendor), 1),
+                        MetricNames.SUPPORTABILITY_JVM_VENDOR + " vendor: " + vendor  );
     }
 }

@@ -28,6 +28,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -88,11 +89,11 @@ public class CloudUtilityTest {
     @Test
     public void recordsMetric() {
         ArgumentCaptor<StatsWork> captor = ArgumentCaptor.forClass(StatsWork.class);
-        doNothing().when(mockStatsService).doStatsWork(captor.capture());
+        doNothing().when(mockStatsService).doStatsWork(captor.capture(), anyString());
 
         new CloudUtility().recordError("some error");
 
-        verify(mockStatsService, times(1)).doStatsWork(any(StatsWork.class));
+        verify(mockStatsService, times(1)).doStatsWork(any(StatsWork.class), anyString());
 
         StatsWork argument = captor.getValue();
         assertTrue(argument instanceof IncrementCounter);

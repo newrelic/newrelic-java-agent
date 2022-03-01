@@ -142,7 +142,7 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
                         classBeingRedefined, protectionDomain, classfileBuffer, context, null);
                 ServiceFactory.getStatsService().doStatsWork(
                         StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_CLASSLOADER_TRANSFORM_TIME,
-                                System.nanoTime() - transformStartTimeInNs));
+                                System.nanoTime() - transformStartTimeInNs), MetricNames.SUPPORTABILITY_CLASSLOADER_TRANSFORM_TIME);
                 return transformation;
             }
         } catch (Throwable t) {
