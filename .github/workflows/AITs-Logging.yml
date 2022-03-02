@@ -5,17 +5,17 @@ name: AITs - Logging
 
 on:
   pull_request:
-    branches: [ main ] ## branches TBD
+    branches: [ logging-initiative ] ## branches TBD
     types: [opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ main ]
+    branches: [ logging-initiative ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       BRANCH:
-        description: "Specify branch (main is default)"
+        description: "Specify branch (logging-initiative is default)"
         required: false
-        default: 'main'
+        default: 'logging-initiative'
 
 jobs:
   tests:
