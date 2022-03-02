@@ -28,22 +28,7 @@ public abstract class Connection_Instrumentation {
     @NewField
     private long db = 0;
 
-    @NewField
-    private String host;
-
-    @NewField
-    private int port;
-
-    @NewField
-    private HostAndPort hostAndPort;
-
-    final HostAndPort getHostAndPort() {
-        this.hostAndPort = Weaver.callOriginal();
-        this.host = this.hostAndPort.getHost();
-        this.port = this.hostAndPort.getPort();
-        return this.hostAndPort;
-
-    }
+    abstract HostAndPort getHostAndPort();
 
     public void disconnect() {
         db = 0;
@@ -70,7 +55,7 @@ public abstract class Connection_Instrumentation {
         Weaver.callOriginal();
 
         ProtocolCommand cmd = args.getCommand();
-        reportMethodAsExternal(cmd, this.host, this.port);
+        reportMethodAsExternal(cmd);
 
     }
 
@@ -86,7 +71,7 @@ public abstract class Connection_Instrumentation {
         }
     }
 
-    private void reportMethodAsExternal(ProtocolCommand command, String serverUsed, int serverPortUsed) {
+    private void reportMethodAsExternal(ProtocolCommand command) {
         String operation = "unknown";
         try {
 
@@ -98,7 +83,7 @@ public abstract class Connection_Instrumentation {
                 .product(DatastoreVendor.Redis.name())
                 .collection(null)
                 .operation(operation)
-                .instance(serverUsed, serverPortUsed)
+                .instance(getHostAndPort().getHost(), getHostAndPort().getPort())
                 .databaseName(String.valueOf(db))
                 .build());
     }
