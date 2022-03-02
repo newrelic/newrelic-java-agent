@@ -35,7 +35,7 @@ public interface LogSenderService extends EventService, Logs {
     void storeEvent(String appName, LogEvent event);
 
     /**
-     *
+     * Register LogSenderHarvestable
      * @param appName application name
      */
     void addHarvestableToService(String appName);

@@ -11,21 +11,17 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.deps.com.google.common.collect.LinkedListMultimap;
 import com.newrelic.agent.deps.com.google.common.collect.ListMultimap;
-import com.newrelic.agent.deps.com.google.common.collect.Multimaps;
 import com.newrelic.agent.deps.com.google.common.collect.Maps;
-import com.newrelic.agent.introspec.Event;
+import com.newrelic.agent.deps.com.google.common.collect.Multimaps;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
-import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logs;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
@@ -101,20 +97,8 @@ class IntrospectorLogSenderService implements LogSenderService {
     public void addHarvestableToService(String s) {
     }
 
-    public Collection<String> getEventTypes() {
-        return Collections.unmodifiableCollection(events.keys());
-    }
-
-    public Collection<Event> getEvents(String type) {
-        List<LogEvent> currentEvents = events.get(type);
-        if (currentEvents == null) {
-            return null;
-        }
-        List<Event> output = new ArrayList<>(currentEvents.size());
-        for (LogEvent current : currentEvents) {
-            output.add(new EventImpl(current.getType(), current.getUserAttributesCopy()));
-        }
-        return output;
+    public Collection<LogEvent> getLogEvents() {
+        return Collections.unmodifiableCollection(events.values());
     }
 
     public void clear() {
