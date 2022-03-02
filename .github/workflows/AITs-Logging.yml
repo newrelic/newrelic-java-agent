@@ -1,4 +1,4 @@
-name: AITs - Security (2 disabled)
+name: AITs - Logging
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
@@ -19,33 +19,21 @@ on:
 
 jobs:
   tests:
-    name: Security AITs
+    name: Logging
+    # needs: install-all-java
     timeout-minutes: 120
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "security"
-      default-branch: "main"
+      java_func_type: "basic_features"
+      default-branch: "logging_ait"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
-        # functional_path: [basic_features, datastore]
         func_tests:
-          - hsm_atts.py
-          - hsm_custom_events.py
-          - hsm_custom_params.py
-          - hsm_msg_params.py
-#          - hsm_record_sql.py
-          - hsm_strip_exceptions.py
-          - lasp_attributes.py
-          - lasp_custom_events.py
-          - lasp_custom_params.py
-#          - lasp_datastore.py
-          - lasp_msg_params.py
-          - lasp_strip_exceptions.py
-
+          - logging_test.py
     steps:
       - uses: actions/checkout@v2
 
@@ -54,7 +42,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-agent-integration-tests
-          ref: main
+          ref: logging_ait
           token: ${{ secrets.AITPAT }}
           path: agent-integration-tests
 
@@ -116,41 +104,6 @@ jobs:
 
       ## JDK Installs
 
-      # Install 11
-      - name: Set up Java 11
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: 11
-
-      # Set the JDk variable
-      - name: Set the required JDK variable
-        run: |
-          echo "ORG_GRADLE_PROJECT_jdk11=${JAVA_HOME}" >> $GITHUB_ENV
-
-      # Install 17
-      - name: Set up Java 17
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: 17
-
-      # Set the JDk variable
-      - name: Set the required JDK variable
-        run: |
-          echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
-
-      # Install 18 EA
-      - name: Set up Java 18-ea
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: 18-ea
-
-      - name: Save JAVA_HOME as JDK18 for later usage
-        run: |
-          echo "ORG_GRADLE_PROJECT_jdk18=${JAVA_HOME}" >> $GITHUB_ENV
-
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
         uses: actions/setup-java@v2
@@ -162,6 +115,26 @@ jobs:
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk8=${JAVA_HOME}" >> $GITHUB_ENV
+
+      - name: Set up Toolchain
+        shell: bash
+        run: |
+          mkdir -p $HOME/.m2 \
+          && cat << EOF > $HOME/.m2/toolchains.xml
+          <?xml version="1.0" encoding="UTF8"?>
+          <!-- toolchains.xml is used by the pom in the Java11_test_webapp.  -->
+          <toolchains>
+            <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>8</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${ORG_GRADLE_PROJECT_jdk8}</jdkHome>
+            </configuration>
+            </toolchain>
+          </toolchains>
+          EOF
 
       ## End JDK Install
 
@@ -179,7 +152,7 @@ jobs:
       - name: Check new Java home path
         run: |
           echo "Current JAVA_HOME is ${JAVA_HOME}"
-          # ls -la ${ORG_GRADLE_PROJECT_jdk8}
+          # ls -la {ORG_GRADLE_PROJECT_jdk8}
 
 
       # Replication of steps from ait README
@@ -195,13 +168,19 @@ jobs:
           ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
+      - name: Check disk space
+        run: |
+          df -h
+          du -a ${GITHUB_WORKSPACE} | sort -n -r | head -n 10
+
       - name: CD to agent-integration-tests dir.
         run: |
           cd agent-integration-tests/
           ls -la
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
-      - name: Create virtualenv and run AITs - ${{ matrix.func_tests }}
+      ## TODO: This should really be a custom action, too many commands
+      - name: Create virtualenv and run AITs - ${{ matrix.func_tests}}
         if: ${{ failure() || success() }}
         run: |
           cd agent-integration-tests
@@ -223,9 +202,6 @@ jobs:
           bin/pip3 install -r conf/requirements.txt
           echo "run autoconfigure"
           JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
-          JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
-          JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
-          JAVA18JRE=${ORG_GRADLE_PROJECT_jdk18} \
           conf/autoconfigure
           echo "running conf/testenv java"
           . conf/testenv java
@@ -250,15 +226,18 @@ jobs:
           cp conf/java_local_config.yml testing-artifacts/
           echo "check the contents of testing-artifacts"
           ls -la testing-artifacts/
+          echo "check the contents of basic_features"
+          ls -la tests/java/functionality/basic_features
           echo "are we still in agent-integration-tests?"
           pwd
           ## End testing artifacts section
-          echo "Check the current Java Home for this step"
+          echo "Check the current value of JAVA_HOME"
           echo "The current JAVA_HOME is ${JAVA_HOME}"
           echo "RUN THE TESTS"
           echo "Running ${{ matrix.func_basic_features }}"
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
           ./bin/runtest.sh ${java_func_path}/${java_func_type}/${{ matrix.func_tests }}
+
 
       # Rename matrix item to remove problem characers
       - name: Rename Matrix item
@@ -269,12 +248,12 @@ jobs:
           MATRIX_ITEM=$(echo ${MATRIX} | sed 's|/|-|g')
           echo "MATRIX="${MATRIX_ITEM}"" >> $GITHUB_ENV
 
-      # Capture Testing Artifacts temp for development
+      # Capture Testing Artifacts
       - name: Capture testing artifacts
         if: ${{ failure() || success() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.workflow }}-${{ github.job }}-${{ env.Matrix }}
+          name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
           path: |
             agent-integration-tests/testing-artifacts/*
 
