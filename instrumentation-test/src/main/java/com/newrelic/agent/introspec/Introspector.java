@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.introspec;
 
+import com.newrelic.agent.model.LogEvent;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -159,9 +161,29 @@ public interface Introspector {
      */
     String getDispatcherVersion();
 
+    /**
+     * Returns all span events that were collected since this was initialized or cleared.
+     *
+     * @return collection of SpanEvents or null if there are none
+     */
     Collection<SpanEvent> getSpanEvents();
 
+    /**
+     * Clear all existing SpanEvents
+     */
     void clearSpanEvents();
+
+    /**
+     * Returns all log events that were collected since this was initialized or cleared.
+     *
+     * @return collection of LogEvents or null if there are none
+     */
+    Collection<LogEvent> getLogEvents();
+
+    /**
+     * Clear all existing LogEvents
+     */
+    void clearLogEvents();
 
     /**
      * Return random port available
