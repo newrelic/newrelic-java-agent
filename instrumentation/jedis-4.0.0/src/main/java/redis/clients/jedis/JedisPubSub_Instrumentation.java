@@ -16,10 +16,18 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
 @SuppressWarnings({ "ResultOfMethodCallIgnored", "unused" })
-@Weave(type = MatchType.BaseClass, originalName = "redis.clients.jedis.JedisPubSub")
+@Weave(type = MatchType.ExactClass, originalName = "redis.clients.jedis.JedisPubSub")
 public class JedisPubSub_Instrumentation {
 
     private volatile Connection client;
+
+    public void proceed(Connection client, String... channels) {
+        Weaver.callOriginal();
+    }
+
+    public void proceedWithPatterns(Connection client, String... channels) {
+        Weaver.callOriginal();
+    }
 
     @Trace
     public void onMessage(String channel, String message) {
@@ -70,5 +78,6 @@ public class JedisPubSub_Instrumentation {
                 .operation(commandName)
                 .instance(client.getHostAndPort().getHost(), client.getHostAndPort().getPort())
                 .build());
+
     }
 }
