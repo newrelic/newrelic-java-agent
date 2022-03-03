@@ -35,20 +35,11 @@ public class StatsImpl extends AbstractStats implements Stats {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.sumOfSquares = sumOfSquares;
-
     }
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        StatsImpl newStats = new StatsImpl();
-        synchronized (lock) {
-            newStats.setCallCount(this.getCallCount());
-            newStats.total = total;
-            newStats.minValue = minValue;
-            newStats.maxValue = maxValue;
-            newStats.sumOfSquares = sumOfSquares;
-        }
-        return newStats;
+        return this.copy();
     }
 
     @Override
@@ -138,10 +129,23 @@ public class StatsImpl extends AbstractStats implements Stats {
         }
     }
 
+    // make a local copy for merge()
+    private StatsImpl copy() {
+        StatsImpl newStats = new StatsImpl();
+        synchronized (lock) {
+            newStats.setCallCount(this.getCallCount());
+            newStats.total = total;
+            newStats.minValue = minValue;
+            newStats.maxValue = maxValue;
+            newStats.sumOfSquares = sumOfSquares;
+        }
+        return newStats;
+    }
+
     @Override
     public void merge(StatsBase statsObj) {
         if (statsObj instanceof StatsImpl) {
-            StatsImpl stats = (StatsImpl) statsObj;
+            StatsImpl stats = ((StatsImpl) statsObj).copy();
             synchronized (lock) {
                 if (stats.getCallCount() > 0) {
                     if (getCallCount() > 0) {
