@@ -42,7 +42,7 @@ public class StatsImpl extends AbstractStats implements Stats {
     public Object clone() throws CloneNotSupportedException {
         StatsImpl newStats = new StatsImpl();
         synchronized (lock) {
-            newStats.count = count;
+            newStats.setCallCount(this.getCallCount());
             newStats.total = total;
             newStats.minValue = minValue;
             newStats.maxValue = maxValue;
@@ -53,7 +53,7 @@ public class StatsImpl extends AbstractStats implements Stats {
 
     @Override
     public String toString() {
-        return super.toString() + " [total=" + total + ", count=" + count + ", minValue="
+        return super.toString() + " [total=" + total + ", count=" + this.getCallCount() + ", minValue="
                 + minValue + ", maxValue=" + maxValue + ", sumOfSquares=" + sumOfSquares + "]";
     }
 
@@ -67,20 +67,20 @@ public class StatsImpl extends AbstractStats implements Stats {
             if (sos < sumOfSquares) {
                 throw new IllegalArgumentException("Data value " + value + " caused sum of squares to roll over");
             }
-            if (count > 0) {
+            if (this.getCallCount() > 0) {
                 minValue = Math.min(value, minValue);
             } else {
                 minValue = value;
             }
-            count++;
+            incrementCallCount();
             total += value;
             maxValue = Math.max(value, maxValue);
             sumOfSquares = sos;
 
             if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
-                if (count < 0 || total < 0) {
+                if (getCallCount() < 0 || total < 0) {
                     NewRelic.incrementCounter("Supportability/StatsImpl/NegativeValue");
-                    Agent.LOG.log(Level.INFO, "Invalid count {0} or total {1}", count, total);
+                    Agent.LOG.log(Level.INFO, "Invalid count {0} or total {1}", getCallCount(), total);
 
                 }
             }
@@ -90,14 +90,14 @@ public class StatsImpl extends AbstractStats implements Stats {
     @Override
     public boolean hasData() {
         synchronized (lock) {
-            return count > 0 || total > 0;
+            return getCallCount() > 0 || total > 0;
         }
     }
 
     @Override
     public void reset() {
         synchronized (lock) {
-            count = 0;
+            setCallCount(0);
             total = minValue = maxValue = 0;
             sumOfSquares = 0;
         }
@@ -143,14 +143,14 @@ public class StatsImpl extends AbstractStats implements Stats {
         if (statsObj instanceof StatsImpl) {
             StatsImpl stats = (StatsImpl) statsObj;
             synchronized (lock) {
-                if (stats.count > 0) {
-                    if (count > 0) {
+                if (stats.getCallCount() > 0) {
+                    if (getCallCount() > 0) {
                         minValue = Math.min(minValue, stats.minValue);
                     } else {
                         minValue = stats.minValue;
                     }
                 }
-                count += stats.count;
+                setCallCount(stats.getCallCount());
                 total += stats.total;
 
                 maxValue = Math.max(maxValue, stats.maxValue);

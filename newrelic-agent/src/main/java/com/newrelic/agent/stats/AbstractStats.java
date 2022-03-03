@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.simple.JSONArray;
 
@@ -24,7 +25,7 @@ public abstract class AbstractStats implements CountStats {
         Number zero = 0;
         ZERO_ARRAY_LIST = Arrays.asList(zero, zero, zero, zero, zero, zero);
     }
-    protected int count;
+    private final AtomicInteger count = new AtomicInteger(0);
 
     /**
      * Used when we want to send up a metric with a zero call count. Not available in the public api.
@@ -61,33 +62,33 @@ public abstract class AbstractStats implements CountStats {
 
     public AbstractStats(int count) {
         super();
-        this.count = count;
+        this.count.set(count);
     }
 
     @Override
     public void incrementCallCount(int value) {
-        count += value;
+        this.count.addAndGet(value);
     }
 
     @Override
     public void incrementCallCount() {
-        this.count++;
+        this.count.incrementAndGet();
     }
 
     @Override
     public int getCallCount() {
-        return count;
+        return count.get();
     }
 
     @Override
     public void setCallCount(int count) {
-        this.count = count;
+        this.count.set(count);
     }
 
     @Override
     public final void writeJSONString(Writer writer) throws IOException, InvalidStatsException {
         List<Number> list;
-        if (count < 0) {
+        if (count.get() < 0) {
             list = ZERO_ARRAY_LIST;
         } else {
             list = Arrays.asList(count, getTotal(), getTotalExclusiveTime(), getMinCallTime(),

@@ -39,7 +39,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     public Object clone() throws CloneNotSupportedException {
         ResponseTimeStatsImpl newStats = new ResponseTimeStatsImpl();
         synchronized (lock) {
-            newStats.count = count;
+            newStats.setCallCount(this.getCallCount());
             newStats.total = total;
             newStats.totalExclusive = totalExclusive;
             newStats.minValue = minValue;
@@ -73,20 +73,20 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         responseTimeAsDouble *= responseTimeAsDouble;
         synchronized (lock) {
             sumOfSquares += responseTimeAsDouble;
-            if (count > 0) {
+            if (getCallCount() > 0) {
                 minValue = Math.min(responseTime, minValue);
             } else {
                 minValue = responseTime;
             }
-            count++;
+            incrementCallCount();
             total += responseTime;
             maxValue = Math.max(responseTime, maxValue);
             totalExclusive += exclusiveTime;
             if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
-                if (count < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0) {
+                if (getCallCount() < 0 || total < 0 || totalExclusive < 0 || sumOfSquares < 0) {
                     NewRelic.incrementCounter("Supportability/ResponseTimeStatsImpl/NegativeValue");
                     Agent.LOG.log(Level.INFO, "Invalid count {0}, total {1}, totalExclusive {2}, or sum of squares {3}",
-                            count, total, totalExclusive, sumOfSquares);
+                            getCallCount(), total, totalExclusive, sumOfSquares);
                 }
             }
         }
@@ -96,7 +96,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     public boolean hasData() {
         boolean hasData;
         synchronized (lock) {
-            hasData = count > 0 || total > 0 || totalExclusive > 0;
+            hasData = getCallCount() > 0 || total > 0 || totalExclusive > 0;
         }
         return hasData;
     }
@@ -104,7 +104,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     @Override
     public void reset() {
         synchronized (lock) {
-            count = 0;
+            setCallCount(0);
             total = totalExclusive = minValue = maxValue = 0;
             sumOfSquares = 0;
         }
@@ -151,14 +151,14 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         if (statsObj instanceof ResponseTimeStatsImpl) {
             ResponseTimeStatsImpl stats = (ResponseTimeStatsImpl) statsObj;
             synchronized (lock) {
-                if (stats.count > 0) {
-                    if (count > 0) {
+                if (stats.getCallCount() > 0) {
+                    if (getCallCount() > 0) {
                         minValue = Math.min(minValue, stats.minValue);
                     } else {
                         minValue = stats.minValue;
                     }
                 }
-                count += stats.count;
+                incrementCallCount(stats.getCallCount());
                 total += stats.total;
                 totalExclusive += stats.totalExclusive;
 
@@ -172,7 +172,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
     public void recordResponseTime(int count, long totalTime, long minTime, long maxTime, TimeUnit unit) {
         synchronized (lock) {
             long totalTimeInNanos = TimeUnit.NANOSECONDS.convert(totalTime, unit);
-            this.count = count;
+            this.setCallCount(count);
             this.total = totalTimeInNanos;
             this.totalExclusive = totalTimeInNanos;
             this.minValue = TimeUnit.NANOSECONDS.convert(minTime, unit);
