@@ -2,7 +2,9 @@ package com.nr.agent.instrumentation.log4j2;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.MetricsHelper;
+import com.newrelic.agent.model.LogEvent;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -21,19 +23,454 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.apache.logging.log4j.core" }, configName = "application_logging_enabled.yml")
 public class LoggerConfig_InstrumentationTest extends TestCase {
 
     private static final String CAPTURED = "This log message should be captured";
     private static final String NOT_CAPTURED = "This message should NOT be captured";
-
-    // TODO add tests for LogEvents being created when recordNewRelicLogEvent is called
-    //  this is probably blocked until the Introspector is updated
+    private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
 
     @Before
-    public void resetLoggerConfiguration() {
+    public void reset() {
         Configurator.reconfigure();
+        introspector.clearLogEvents();
+    }
+
+    @Test
+    public void testLogEventsAllLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Log at ALL level
+        setLoggerLevel(Level.ALL);
+
+        int expectedTotalEventsCapturedAtFatal = 1;
+        logger.fatal(CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 2;
+        logger.error(CAPTURED);
+        logger.error(CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 3;
+        logger.warn(CAPTURED);
+        logger.warn(CAPTURED);
+        logger.warn(CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 4;
+        logger.info(CAPTURED);
+        logger.info(CAPTURED);
+        logger.info(CAPTURED);
+        logger.info(CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 5;
+        logger.debug(CAPTURED);
+        logger.debug(CAPTURED);
+        logger.debug(CAPTURED);
+        logger.debug(CAPTURED);
+        logger.debug(CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 6;
+        logger.trace(CAPTURED);
+        logger.trace(CAPTURED);
+        logger.trace(CAPTURED);
+        logger.trace(CAPTURED);
+        logger.trace(CAPTURED);
+        logger.trace(CAPTURED);
+
+        int expectedTotalEventsCaptured = expectedTotalEventsCapturedAtFatal +
+                expectedTotalEventsCapturedAtError + expectedTotalEventsCapturedAtWarn +
+                expectedTotalEventsCapturedAtInfo + expectedTotalEventsCapturedAtDebug +
+                expectedTotalEventsCapturedAtTrace;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    @Test
+    public void testLogEventsOffLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Logging is OFF at all levels
+        setLoggerLevel(Level.OFF);
+
+        int expectedTotalEventsCapturedAtFatal = 0;
+        logger.fatal(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 0;
+        logger.error(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 0;
+        logger.warn(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 0;
+        logger.info(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 0;
+        logger.debug(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 0;
+        logger.trace(NOT_CAPTURED);
+
+        int expectedTotalEventsCaptured = 0;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    @Test
+    public void testLogEventsFatalLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Log at FATAL level
+        setLoggerLevel(Level.FATAL);
+
+        int expectedTotalEventsCapturedAtFatal = 1;
+        logger.fatal(CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 0;
+        logger.error(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 0;
+        logger.warn(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 0;
+        logger.info(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 0;
+        logger.debug(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 0;
+        logger.trace(NOT_CAPTURED);
+
+        int expectedTotalEventsCaptured = expectedTotalEventsCapturedAtFatal +
+                expectedTotalEventsCapturedAtError + expectedTotalEventsCapturedAtWarn +
+                expectedTotalEventsCapturedAtInfo + expectedTotalEventsCapturedAtDebug +
+                expectedTotalEventsCapturedAtTrace;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    @Test
+    public void testLogEventsErrorLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Log at ERROR level
+        setLoggerLevel(Level.ERROR);
+
+        int expectedTotalEventsCapturedAtFatal = 1;
+        logger.fatal(CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 1;
+        logger.error(CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 0;
+        logger.warn(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 0;
+        logger.info(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 0;
+        logger.debug(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 0;
+        logger.trace(NOT_CAPTURED);
+
+        int expectedTotalEventsCaptured = expectedTotalEventsCapturedAtFatal +
+                expectedTotalEventsCapturedAtError + expectedTotalEventsCapturedAtWarn +
+                expectedTotalEventsCapturedAtInfo + expectedTotalEventsCapturedAtDebug +
+                expectedTotalEventsCapturedAtTrace;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    @Test
+    public void testLogEventsWarnLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Log at WARN level
+        setLoggerLevel(Level.WARN);
+
+        int expectedTotalEventsCapturedAtFatal = 1;
+        logger.fatal(CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 1;
+        logger.error(CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 1;
+        logger.warn(CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 0;
+        logger.info(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 0;
+        logger.debug(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 0;
+        logger.trace(NOT_CAPTURED);
+
+        int expectedTotalEventsCaptured = expectedTotalEventsCapturedAtFatal +
+                expectedTotalEventsCapturedAtError + expectedTotalEventsCapturedAtWarn +
+                expectedTotalEventsCapturedAtInfo + expectedTotalEventsCapturedAtDebug +
+                expectedTotalEventsCapturedAtTrace;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    @Test
+    public void testLogEventsInfoLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Log at INFO level
+        setLoggerLevel(Level.INFO);
+
+        int expectedTotalEventsCapturedAtFatal = 1;
+        logger.fatal(CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 1;
+        logger.error(CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 1;
+        logger.warn(CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 1;
+        logger.info(CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 0;
+        logger.debug(NOT_CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 0;
+        logger.trace(NOT_CAPTURED);
+
+        int expectedTotalEventsCaptured = expectedTotalEventsCapturedAtFatal +
+                expectedTotalEventsCapturedAtError + expectedTotalEventsCapturedAtWarn +
+                expectedTotalEventsCapturedAtInfo + expectedTotalEventsCapturedAtDebug +
+                expectedTotalEventsCapturedAtTrace;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    @Test
+    public void testLogEventsDebugLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Log at DEBUG level
+        setLoggerLevel(Level.DEBUG);
+
+        int expectedTotalEventsCapturedAtFatal = 1;
+        logger.fatal(CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 1;
+        logger.error(CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 1;
+        logger.warn(CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 1;
+        logger.info(CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 1;
+        logger.debug(CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 0;
+        logger.trace(NOT_CAPTURED);
+
+        int expectedTotalEventsCaptured = expectedTotalEventsCapturedAtFatal +
+                expectedTotalEventsCapturedAtError + expectedTotalEventsCapturedAtWarn +
+                expectedTotalEventsCapturedAtInfo + expectedTotalEventsCapturedAtDebug +
+                expectedTotalEventsCapturedAtTrace;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    @Test
+    public void testLogEventsTraceLevel() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        // Log at TRACE level
+        setLoggerLevel(Level.TRACE);
+
+        int expectedTotalEventsCapturedAtFatal = 1;
+        logger.fatal(CAPTURED);
+
+        int expectedTotalEventsCapturedAtError = 1;
+        logger.error(CAPTURED);
+
+        int expectedTotalEventsCapturedAtWarn = 1;
+        logger.warn(CAPTURED);
+
+        int expectedTotalEventsCapturedAtInfo = 1;
+        logger.info(CAPTURED);
+
+        int expectedTotalEventsCapturedAtDebug = 1;
+        logger.debug(CAPTURED);
+
+        int expectedTotalEventsCapturedAtTrace = 1;
+        logger.trace(CAPTURED);
+
+        int expectedTotalEventsCaptured = expectedTotalEventsCapturedAtFatal +
+                expectedTotalEventsCapturedAtError + expectedTotalEventsCapturedAtWarn +
+                expectedTotalEventsCapturedAtInfo + expectedTotalEventsCapturedAtDebug +
+                expectedTotalEventsCapturedAtTrace;
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+
+        assertEquals(expectedTotalEventsCaptured, logEvents.size());
+
+        List<LogEvent> fatalLevelLogEvents = getFatalLevelLogEvents(logEvents);
+        List<LogEvent> errorLevelLogEvents = getErrorLevelLogEvents(logEvents);
+        List<LogEvent> warnLevelLogEvents = getWarnLevelLogEvents(logEvents);
+        List<LogEvent> infoLevelLogEvents = getInfoLevelLogEvents(logEvents);
+        List<LogEvent> debugLevelLogEvents = getDebugLevelLogEvents(logEvents);
+        List<LogEvent> traceLevelLogEvents = getTraceLevelLogEvents(logEvents);
+
+        assertEquals(expectedTotalEventsCapturedAtFatal, fatalLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtError, errorLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtWarn, warnLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtInfo, infoLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtDebug, debugLevelLogEvents.size());
+        assertEquals(expectedTotalEventsCapturedAtTrace, traceLevelLogEvents.size());
+    }
+
+    private List<LogEvent> getTraceLevelLogEvents(Collection<LogEvent> logEvents) {
+        return logEvents.stream()
+                .filter(logEvent -> logEvent.getUserAttributesCopy().containsValue(Level.TRACE.toString()))
+                .collect(Collectors.toList());
+    }
+
+    private List<LogEvent> getDebugLevelLogEvents(Collection<LogEvent> logEvents) {
+        return logEvents.stream()
+                .filter(logEvent -> logEvent.getUserAttributesCopy().containsValue(Level.DEBUG.toString()))
+                .collect(Collectors.toList());
+    }
+
+    private List<LogEvent> getInfoLevelLogEvents(Collection<LogEvent> logEvents) {
+        return logEvents.stream()
+                .filter(logEvent -> logEvent.getUserAttributesCopy().containsValue(Level.INFO.toString()))
+                .collect(Collectors.toList());
+    }
+
+    private List<LogEvent> getWarnLevelLogEvents(Collection<LogEvent> logEvents) {
+        return logEvents.stream()
+                .filter(logEvent -> logEvent.getUserAttributesCopy().containsValue(Level.WARN.toString()))
+                .collect(Collectors.toList());
+    }
+
+    private List<LogEvent> getErrorLevelLogEvents(Collection<LogEvent> logEvents) {
+        return logEvents.stream()
+                .filter(logEvent -> logEvent.getUserAttributesCopy().containsValue(Level.ERROR.toString()))
+                .collect(Collectors.toList());
+    }
+
+    private List<LogEvent> getFatalLevelLogEvents(Collection<LogEvent> logEvents) {
+        return logEvents.stream()
+                .filter(logEvent -> logEvent.getUserAttributesCopy().containsValue(Level.FATAL.toString()))
+                .collect(Collectors.toList());
     }
 
     @Test
@@ -135,20 +572,20 @@ public class LoggerConfig_InstrumentationTest extends TestCase {
         final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         final Configuration config = ctx.getConfiguration();
         AppenderRef ref = AppenderRef.createAppenderRef("File", null, null);
-        AppenderRef[] refs = new AppenderRef[] {ref};
-        LoggerConfig loggerConfig = LoggerConfig.createLogger(additivity, level, name, "true", refs, null, config, null );
+        AppenderRef[] refs = new AppenderRef[] { ref };
+        LoggerConfig loggerConfig = LoggerConfig.createLogger(additivity, level, name, "true", refs, null, config, null);
         loggerConfig.addAppender(appender, level, null);
         config.addLogger(name, loggerConfig);
     }
 
     private Appender createAppender(String name) {
         Layout<String> layout = PatternLayout.newBuilder()
-            .withPattern(PatternLayout.SIMPLE_CONVERSION_PATTERN)
-            .build();
+                .withPattern(PatternLayout.SIMPLE_CONVERSION_PATTERN)
+                .build();
         Appender appender = ConsoleAppender.newBuilder()
-            .setName(name)
-            .setLayout(layout)
-            .build();
+                .setName(name)
+                .setLayout(layout)
+                .build();
         appender.start();
         return appender;
     }
