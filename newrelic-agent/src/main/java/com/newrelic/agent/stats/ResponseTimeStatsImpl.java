@@ -37,16 +37,7 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        ResponseTimeStatsImpl newStats = new ResponseTimeStatsImpl();
-        synchronized (lock) {
-            newStats.setCallCount(this.getCallCount());
-            newStats.total = total;
-            newStats.totalExclusive = totalExclusive;
-            newStats.minValue = minValue;
-            newStats.maxValue = maxValue;
-            newStats.sumOfSquares = sumOfSquares;
-        }
-        return newStats;
+        return copy();
     }
 
     @Override
@@ -146,10 +137,23 @@ public class ResponseTimeStatsImpl extends AbstractStats implements ResponseTime
         }
     }
 
+    private ResponseTimeStatsImpl copy() {
+        ResponseTimeStatsImpl newStats = new ResponseTimeStatsImpl();
+        synchronized (lock) {
+            newStats.setCallCount(this.getCallCount());
+            newStats.total = total;
+            newStats.totalExclusive = totalExclusive;
+            newStats.minValue = minValue;
+            newStats.maxValue = maxValue;
+            newStats.sumOfSquares = sumOfSquares;
+        }
+        return newStats;
+    }
+
     @Override
     public final void merge(StatsBase statsObj) {
         if (statsObj instanceof ResponseTimeStatsImpl) {
-            ResponseTimeStatsImpl stats = (ResponseTimeStatsImpl) statsObj;
+            ResponseTimeStatsImpl stats = ((ResponseTimeStatsImpl) statsObj).copy();
             synchronized (lock) {
                 if (stats.getCallCount() > 0) {
                     if (getCallCount() > 0) {
