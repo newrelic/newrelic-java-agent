@@ -31,7 +31,7 @@ public class LoggerConfig_Instrumentation {
     public LoggerConfig_Instrumentation() {
         // Generate the instrumentation module supportability metric only once
         if (!instrumented.getAndSet(true)) {
-            NewRelic.incrementCounter("Supportability/Logging/enabled/Java/Log4j2");
+            NewRelic.incrementCounter("Supportability/Logging/Java/Log4j2/enabled");
         }
     }
 

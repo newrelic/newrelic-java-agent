@@ -27,7 +27,7 @@ public abstract class Logger_Instrumentation {
     Logger_Instrumentation() {
         // Generate the instrumentation module supportability metric only once
         if (!instrumented.getAndSet(true)) {
-            NewRelic.incrementCounter("Supportability/Logging/enabled/Java/LogbackClassic1.2");
+            NewRelic.incrementCounter("Supportability/Logging/Java/LogbackClassic1.2/enabled");
         }
     }
 
