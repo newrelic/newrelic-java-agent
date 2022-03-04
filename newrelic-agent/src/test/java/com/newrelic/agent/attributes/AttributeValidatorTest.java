@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.logging.LogSenderServiceImpl;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.servlet.BasicRequestRootTracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
@@ -186,7 +187,24 @@ public class AttributeValidatorTest {
         assertEquals(expected, result);
     }
 
-    // TODO testVerifyTruncatedValue for LogEvent data
+    @Test
+    public void testVerifyTruncatedValueForLogEventData() {
+        Map<String, Object> input = new HashMap<>();
+        String longValue = Strings.padEnd("", 33000, 'e');
+        String longExpectedValue = Strings.padEnd("", 32767, 'e');
+        input.put("key", longValue);
+        input.put("apple", "pie");
+        input.put("sugar", "cream");
+
+        Map<String, Object> expected = ImmutableMap.<String, Object>of("apple", "pie", "sugar", "cream", "key", longExpectedValue);
+
+        AttributeValidator attributeValidator = new AttributeValidator(ATTRIBUTE_TYPE);
+
+        attributeValidator.setTransactional(false);
+        Map<String, Object> result = attributeValidator.verifyParametersAndReturnValues(input, LogSenderServiceImpl.METHOD);
+
+        assertEquals(expected, result);
+    }
 
     @Test
     public void testVerifySendOutsideTxn() {
