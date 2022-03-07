@@ -384,7 +384,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                     public String getAppName() {
                         return appName;
                     }
-                });
+                }, LogSenderServiceImpl.class.getName());
 
                 if (reservoir.size() < reservoir.getNumberOfTries()) {
                     int dropped = reservoir.getNumberOfTries() - reservoir.size();
