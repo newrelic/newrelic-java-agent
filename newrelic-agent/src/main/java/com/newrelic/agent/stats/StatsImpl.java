@@ -154,7 +154,7 @@ public class StatsImpl extends AbstractStats implements Stats {
                         minValue = stats.minValue;
                     }
                 }
-                setCallCount(stats.getCallCount());
+                incrementCallCount(stats.getCallCount());
                 total += stats.total;
 
                 maxValue = Math.max(maxValue, stats.maxValue);
