@@ -217,7 +217,7 @@ public class JdbcHelper {
      * @return identifier parsed from connection string if vendor is part of supported in-memory JDBC drivers,
      *         {@link JdbcHelper#UNKNOWN} otherwise.
      */
-    protected static String parseInMemoryIdentifier(String connectionString) {
+    public static String parseInMemoryIdentifier(String connectionString) {
         if (connectionString == null) {
             return UNKNOWN;
         }

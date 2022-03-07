@@ -88,7 +88,7 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
         // FIXME need to add log event harvest config when it becomes available from the backend
         if (eventHarvestConfig == null) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                    MetricNames.SUPPORTABILITY_CONNECT_MISSING_EVENT_DATA, 1));
+                    MetricNames.SUPPORTABILITY_CONNECT_MISSING_EVENT_DATA, 1), MetricNames.SUPPORTABILITY_CONNECT_MISSING_EVENT_DATA);
         }
 
         for (HarvestableTracker tracker : harvestables.values()) {
@@ -119,7 +119,8 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
                         maxSamplesStored = harvestLimit.intValue();
                         reportPeriodInMillis = (long) eventHarvestConfig.get(REPORT_PERIOD_MS); // faster event harvest report period
                         ServiceFactory.getStatsService().doStatsWork(
-                                StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS, reportPeriodInMillis / 1000));
+                                StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS, reportPeriodInMillis / 1000),
+                                MetricNames.SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS );
                     }
                 } else if (!isSpanEventEndpoint) {
                     Agent.LOG.log(Level.FINE, "event_harvest_config from collector was null. Using default value: {0} samples stored for {1}", maxSamplesStored,

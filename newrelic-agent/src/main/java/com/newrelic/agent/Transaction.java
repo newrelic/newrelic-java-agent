@@ -2016,7 +2016,8 @@ public class Transaction {
 
         synchronized (requestStateChangeLock) {
             ServiceFactory.getStatsService().doStatsWork(
-                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED, 1));
+                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED, 1),
+                    MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED );
             if (this.isFinished()) {
                 return;
             }
@@ -2033,7 +2034,8 @@ public class Transaction {
             } else {
                 // JAVA-825. Ignore multiple requestInitialized() callbacks.
                 ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                        MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED_STARTED, 1));
+                        MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED_STARTED, 1),
+                        MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED_STARTED);
                 Agent.LOG.finer("requestInitialized(): transaction already started.");
             }
         }
@@ -2044,7 +2046,8 @@ public class Transaction {
 
         synchronized (requestStateChangeLock) {
             ServiceFactory.getStatsService().doStatsWork(
-                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_DESTROYED, 1));
+                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_DESTROYED, 1),
+                    MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_DESTROYED);
             if (!this.isInProgress()) {
                 return;
             }

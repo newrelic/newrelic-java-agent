@@ -10,7 +10,17 @@ package com.newrelic.agent.service;
 import com.newrelic.Function;
 import com.newrelic.InfiniteTracing;
 import com.newrelic.InfiniteTracingConfig;
-import com.newrelic.agent.*;
+import com.newrelic.agent.Agent;
+import com.newrelic.agent.AgentConnectionEstablishedListener;
+import com.newrelic.agent.ExpirationService;
+import com.newrelic.agent.GCService;
+import com.newrelic.agent.HarvestService;
+import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.RPMServiceManager;
+import com.newrelic.agent.RPMServiceManagerImpl;
+import com.newrelic.agent.ThreadService;
+import com.newrelic.agent.TracerService;
+import com.newrelic.agent.TransactionService;
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.browser.BrowserService;
 import com.newrelic.agent.browser.BrowserServiceImpl;
@@ -43,11 +53,25 @@ import com.newrelic.agent.samplers.CPUSamplerService;
 import com.newrelic.agent.samplers.NoopSamplerService;
 import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.samplers.SamplerServiceImpl;
-import com.newrelic.agent.service.analytics.*;
+import com.newrelic.agent.service.analytics.InfiniteTracingEnabledCheck;
+import com.newrelic.agent.service.analytics.InsightsService;
+import com.newrelic.agent.service.analytics.InsightsServiceImpl;
+import com.newrelic.agent.service.analytics.SpanEventCreationDecider;
+import com.newrelic.agent.service.analytics.SpanEventsService;
+import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
+import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
 import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.logging.LogSenderServiceImpl;
-import com.newrelic.agent.service.module.*;
+import com.newrelic.agent.service.module.JarAnalystFactory;
+import com.newrelic.agent.service.module.JarCollectorConnectionListener;
+import com.newrelic.agent.service.module.JarCollectorHarvestListener;
+import com.newrelic.agent.service.module.JarCollectorInputs;
+import com.newrelic.agent.service.module.JarCollectorService;
+import com.newrelic.agent.service.module.JarCollectorServiceImpl;
+import com.newrelic.agent.service.module.JarCollectorServiceProcessor;
+import com.newrelic.agent.service.module.JarData;
+import com.newrelic.agent.service.module.TrackedAddSet;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.stats.StatsEngine;
@@ -64,19 +88,20 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 /**
  * Service Manager implementation
- *
+ * <p>
  * This class is thread-safe.
  */
 public class ServiceManagerImpl extends AbstractService implements ServiceManager {
@@ -84,7 +109,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private final ConcurrentMap<String, Service> services = new ConcurrentHashMap<>();
     private final CoreService coreService;
     private final ConfigService configService;
-
+    private final BlockingQueue<StatsWork> statsWork = new LinkedBlockingQueue<>();
     private volatile ExtensionService extensionService;
     private volatile ProfilerService profilerService;
     private volatile TracerService tracerService;
@@ -593,47 +618,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
     private void replayStartupStatsWork() {
         for (StatsWork work : statsWork) {
-            statsService.doStatsWork(work);
+            statsService.doStatsWork(work, statsService.getName());
         }
         statsWork.clear();
-    }
-
-    private final List<StatsWork> statsWork = new ArrayList<>();
-
-    private class InitialStatsService extends AbstractService implements StatsService {
-        private final MetricAggregator metricAggregator = new StatsServiceMetricAggregator(this);
-
-        protected InitialStatsService() {
-            super("Bootstrap stats service");
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-
-        @Override
-        public void doStatsWork(StatsWork statsWork) {
-            ServiceManagerImpl.this.statsWork.add(statsWork);
-        }
-
-        @Override
-        public StatsEngine getStatsEngineForHarvest(String appName) {
-            return null;
-        }
-
-        @Override
-        protected void doStart() throws Exception {
-        }
-
-        @Override
-        protected void doStop() throws Exception {
-        }
-
-        @Override
-        public MetricAggregator getMetricAggregator() {
-            return metricAggregator;
-        }
     }
 
     @Override
@@ -659,6 +646,49 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public ExpirationService getExpirationService() {
         return expirationService;
+    }
+
+    private class InitialStatsService extends AbstractService implements StatsService {
+        private final MetricAggregator metricAggregator = new StatsServiceMetricAggregator(this);
+        private final Logger initialStatsServiceLogger = Agent.LOG.getChildLogger("com.newrelic.InitialStatsService");
+
+        protected InitialStatsService() {
+            super("Bootstrap stats service");
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+
+        @Override
+        public void doStatsWork(StatsWork statsWork, String statsWorkName) {
+            if (statsWork != null) {
+                ServiceManagerImpl.this.statsWork.add(statsWork);
+            } else {
+                initialStatsServiceLogger.log(Level.WARNING,
+                        "Problem adding a StatsWork to queue in InitialStatsService. StatsWork was null for: " + statsWorkName);
+            }
+
+        }
+
+        @Override
+        public StatsEngine getStatsEngineForHarvest(String appName) {
+            return null;
+        }
+
+        @Override
+        protected void doStart() throws Exception {
+        }
+
+        @Override
+        protected void doStop() throws Exception {
+        }
+
+        @Override
+        public MetricAggregator getMetricAggregator() {
+            return metricAggregator;
+        }
     }
 
 }

@@ -38,7 +38,7 @@ class IntrospectorStatsService extends StatsServiceImpl implements StatsService 
     }
 
     @Override
-    public void doStatsWork(StatsWork statsWork) {
+    public void doStatsWork(StatsWork statsWork, String statsWorkName) {
         synchronized (this) {
             statsWork.doWork(engine);
         }

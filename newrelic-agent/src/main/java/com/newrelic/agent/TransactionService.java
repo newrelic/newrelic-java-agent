@@ -156,7 +156,7 @@ public class TransactionService extends AbstractService {
         }
         StatsService statsService = ServiceFactory.getStatsService();
         StatsWork statsWork = new MergeStatsEngineResolvingScope(transactionData.getBlameMetricName(), transactionData.getApplicationName(), transactionStats);
-        statsService.doStatsWork(statsWork);
+        statsService.doStatsWork(statsWork, transactionData.getBlameMetricName());
         if (transactionData.getDispatcher() != null) {
             for (TransactionStatsListener listener : transactionStatsListeners) {
                 listener.dispatcherTransactionStatsFinished(transactionData, transactionStats);
@@ -201,14 +201,21 @@ public class TransactionService extends AbstractService {
         StatsService statsService = ServiceFactory.getStatsService();
 
         //These three are so we can average the number of transactions happening per harvest cycle
-        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED, started));
-        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_FINISHED, finished));
-        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED, cancelled));
+        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED, started),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED);
+        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_FINISHED, finished),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_FINISHED);
+        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED, cancelled),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED);
 
         //These three are so we can get the total number of transactions ever, or the average among all apps' lifetime
-        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_STARTED, (int) started));
-        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_FINISHED, (int) finished));
-        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_CANCELLED, (int) cancelled));
+        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_STARTED, (int) started),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED);
+        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_FINISHED, (int) finished),
+                MetricNames.SUPPORTABILITY_TRANSACTION_FINISHED
+        );
+        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_CANCELLED, (int) cancelled),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED);
     }
 
     @Override

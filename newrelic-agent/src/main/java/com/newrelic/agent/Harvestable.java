@@ -56,7 +56,7 @@ public abstract class Harvestable {
             public String getAppName() {
                 return appName;
             }
-        });
+        }, "HarvestInterval");
     }
 
     public String getAppName() {
@@ -66,9 +66,9 @@ public abstract class Harvestable {
     public void configure(long reportPeriodInMillis, int maxSamplesStored) {
         long reportPeriodInSeconds = TimeUnit.MILLISECONDS.toSeconds(reportPeriodInMillis);
         ServiceFactory.getStatsService().doStatsWork(
-                StatsWorks.getRecordMetricWork(service.getReportPeriodInSecondsMetric(), reportPeriodInSeconds));
+                StatsWorks.getRecordMetricWork(service.getReportPeriodInSecondsMetric(), reportPeriodInSeconds), service.getReportPeriodInSecondsMetric());
         ServiceFactory.getStatsService().doStatsWork(
-                StatsWorks.getRecordMetricWork(service.getEventHarvestLimitMetric(), maxSamplesStored));
+                StatsWorks.getRecordMetricWork(service.getEventHarvestLimitMetric(), maxSamplesStored), service.getEventHarvestLimitMetric());
 
         if (maxSamplesStored != service.getMaxSamplesStored()) {
             service.setMaxSamplesStored(maxSamplesStored);
@@ -81,7 +81,7 @@ public abstract class Harvestable {
     private void maybeSendSpanLimitMetric(int maxSamplesStored) {
         if (service instanceof SpanEventsServiceImpl) {
             ServiceFactory.getStatsService().doStatsWork(
-                    StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_SPAN_EVENT_LIMIT, maxSamplesStored));
+                    StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_SPAN_EVENT_LIMIT, maxSamplesStored), MetricNames.SUPPORTABILITY_SPAN_EVENT_LIMIT);
         }
     }
 }

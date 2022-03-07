@@ -133,7 +133,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 public String getAppName() {
                     return appName;
                 }
-            });
+            },  "HarvestResult");
         }
     }
 

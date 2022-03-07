@@ -138,12 +138,12 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper {
         for (HttpRoute route : routes) {
             String hostName = route.getTargetHost().getHostName();
             if (hostName != null && hostName.equals(requestHost)) {
-                statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_CONNECTION_REUSED, 1));
+                statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_CONNECTION_REUSED, 1), MetricNames.SUPPORTABILITY_CONNECTION_REUSED);
                 willReuse = true;
             }
         }
         if (!willReuse) {
-            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_CONNECTION_NEW, 1));
+            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_CONNECTION_NEW, 1), MetricNames.SUPPORTABILITY_CONNECTION_NEW);
         }
     }
 

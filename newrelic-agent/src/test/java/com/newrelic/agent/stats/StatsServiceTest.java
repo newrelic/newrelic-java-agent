@@ -78,31 +78,31 @@ public class StatsServiceTest {
         StatsEngineImpl statsEngine = new StatsEngineImpl();
         Stats stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(100f);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
 
         // RecordMetric count 2
         statsEngine = new StatsEngineImpl();
         stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(200f);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
 
         // RecordMetric count 3
-        statsService.doStatsWork(new RecordMetric("Test1", 300f));
+        statsService.doStatsWork(new RecordMetric("Test1", 300f), "statsWorkTest");
 
         // RecordDataUsageMetric count 1
         statsEngine = new StatsEngineImpl();
         DataUsageStats dataUsageStats = statsEngine.getDataUsageStats(MetricName.create("Test2"));
         dataUsageStats.recordDataUsage(5000, 25);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
 
         // RecordDataUsageMetric count 2
         statsEngine = new StatsEngineImpl();
         dataUsageStats = statsEngine.getDataUsageStats(MetricName.create("Test2"));
         dataUsageStats.recordDataUsage(1000, 10);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
 
         // RecordDataUsageMetric count 3
-        statsService.doStatsWork(new RecordDataUsageMetric("Test2", 100, 5));
+        statsService.doStatsWork(new RecordDataUsageMetric("Test2", 100, 5), "statsWorkTest");
 
         StatsEngine harvestStatsEngine = statsService.getStatsEngineForHarvest(appName);
 
@@ -145,7 +145,7 @@ public class StatsServiceTest {
 
             @Override
             public void run() {
-                statsService.doStatsWork(statsWork1);
+                statsService.doStatsWork(statsWork1, "statsWorkTest");
                 latch3.countDown();
             }
 
@@ -158,7 +158,7 @@ public class StatsServiceTest {
         stats = statsEngine2.getStats("Test1");
         stats.recordDataPoint(200f);
         final StatsWork statsWork2 = new MergeStatsWork(appName, statsEngine2);
-        statsService.doStatsWork(statsWork2);
+        statsService.doStatsWork(statsWork2, "statsWorkTest");
         latch2.countDown();
         latch3.await();
         StatsEngine harvestStatsEngine = statsService.getStatsEngineForHarvest(appName);
@@ -173,14 +173,14 @@ public class StatsServiceTest {
         StatsService statsService = serviceManager.getStatsService();
         Stats stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(100f);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine),"statsWorkTest" );
         StatsEngine harvestStatsEngine = statsService.getStatsEngineForHarvest(appName);
         Assert.assertEquals(1, harvestStatsEngine.getSize());
         Assert.assertEquals(100f, harvestStatsEngine.getStats("Test1").getTotal(), 0);
         statsEngine = new StatsEngineImpl();
         stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(200f);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine),"statsWorkTest");
         harvestStatsEngine = statsService.getStatsEngineForHarvest(appName);
         Assert.assertEquals(1, harvestStatsEngine.getSize());
         Assert.assertEquals(200f, harvestStatsEngine.getStats("Test1").getTotal(), 0);
@@ -194,19 +194,19 @@ public class StatsServiceTest {
         StatsEngineImpl statsEngine = new StatsEngineImpl();
         Stats stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(100f);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
         statsEngine = new StatsEngineImpl();
         stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(100f);
-        statsService.doStatsWork(new MergeStatsWork(appName2, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName2, statsEngine), "statsWorkTest");
         statsEngine = new StatsEngineImpl();
         stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(200f);
-        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName, statsEngine), "statsWorkTest");
         statsEngine = new StatsEngineImpl();
         stats1 = statsEngine.getStats("Test1");
         stats1.recordDataPoint(200f);
-        statsService.doStatsWork(new MergeStatsWork(appName2, statsEngine));
+        statsService.doStatsWork(new MergeStatsWork(appName2, statsEngine),"statsWorkTest");
         StatsEngine harvestStatsEngine = statsService.getStatsEngineForHarvest(appName);
         Assert.assertEquals(1, harvestStatsEngine.getSize());
         Assert.assertEquals(300f, harvestStatsEngine.getStats("Test1").getTotal(), 0);

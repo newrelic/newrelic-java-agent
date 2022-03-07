@@ -310,7 +310,7 @@ public final class Agent {
     private static void recordPremainTime(StatsService statsService, long startTime) {
         agentPremainTime = System.currentTimeMillis() - startTime;
         LOG.log(Level.INFO, "Premain startup complete in {0}ms", agentPremainTime);
-        statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(MetricNames.SUPPORTABILITY_TIMING_PREMAIN, agentPremainTime));
+        statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(MetricNames.SUPPORTABILITY_TIMING_PREMAIN, agentPremainTime), MetricNames.SUPPORTABILITY_TIMING_PREMAIN);
 
         Map<String, Object> environmentInfo = ImmutableMap.<String, Object>builder()
                 .put("Duration", agentPremainTime)
@@ -335,8 +335,8 @@ public final class Agent {
      */
     private static void recordAgentVersion(StatsService statsService) {
         statsService.doStatsWork(
-                StatsWorks.getIncrementCounterWork(MessageFormat.format(MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION, getVersion()), 1)
-        );
+                StatsWorks.getIncrementCounterWork(MessageFormat.format(MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION, getVersion()), 1),
+                MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION );
     }
 
     /**

@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -210,7 +209,7 @@ public class TransactionEventsService extends AbstractService implements EventSe
                     public String getAppName() {
                         return appName;
                     }
-                });
+                }, reservoirToSend.getServiceName());
             } catch (HttpError e) {
                 if (!e.discardHarvestData()) {
                     Agent.LOG.log(Level.FINE,

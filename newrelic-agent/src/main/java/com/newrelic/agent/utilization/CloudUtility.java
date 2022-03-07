@@ -90,7 +90,7 @@ public class CloudUtility {
     }
 
     public void recordError(String metricName) {
-        ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(metricName, 1));
+        ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(metricName, 1), metricName);
     }
 
     /**

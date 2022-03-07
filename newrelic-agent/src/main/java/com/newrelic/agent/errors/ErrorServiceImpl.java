@@ -179,7 +179,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     public String getAppName() {
                         return appName;
                     }
-                });
+                }, reservoir.getServiceName());
 
                 if (reservoir.size() < reservoir.getNumberOfTries()) {
                     int dropped = reservoir.getNumberOfTries() - reservoir.size();
