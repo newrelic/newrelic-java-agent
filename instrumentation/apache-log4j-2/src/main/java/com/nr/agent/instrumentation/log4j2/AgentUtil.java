@@ -58,12 +58,13 @@ public class AgentUtil {
                     logEventMap.put(TIMESTAMP, event.getTimeMillis());
 
                     Level level = event.getLevel();
-                    String levelName = level.name();
-
-                    if (levelName.isEmpty()) {
-                        logEventMap.put(LOG_LEVEL, UNKNOWN);
-                    } else {
-                        logEventMap.put(LOG_LEVEL, levelName);
+                    if (level != null) {
+                        String levelName = level.name();
+                        if (levelName.isEmpty()) {
+                            logEventMap.put(LOG_LEVEL, UNKNOWN);
+                        } else {
+                            logEventMap.put(LOG_LEVEL, levelName);
+                        }
                     }
 
                     AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
