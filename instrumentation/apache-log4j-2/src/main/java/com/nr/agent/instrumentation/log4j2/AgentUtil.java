@@ -48,25 +48,26 @@ public class AgentUtil {
     public static void recordNewRelicLogEvent(LogEvent event) {
         if (event != null) {
             Message message = event.getMessage();
-            String formattedMessage = message.getFormattedMessage();
+            if (message != null) {
+                String formattedMessage = message.getFormattedMessage();
+                // Bail out and don't create a LogEvent if log message is empty
+                if (formattedMessage != null && !formattedMessage.isEmpty()) {
+                    HashMap<String, Object> logEventMap = new HashMap<>(getFilteredLinkingMetadataMap());
 
-            // Bail out and don't create a LogEvent if log message is empty
-            if (!formattedMessage.isEmpty()) {
-                HashMap<String, Object> logEventMap = new HashMap<>(getFilteredLinkingMetadataMap());
+                    logEventMap.put(MESSAGE, formattedMessage);
+                    logEventMap.put(TIMESTAMP, event.getTimeMillis());
 
-                logEventMap.put(MESSAGE, formattedMessage);
-                logEventMap.put(TIMESTAMP, event.getTimeMillis());
+                    Level level = event.getLevel();
+                    String levelName = level.name();
 
-                Level level = event.getLevel();
-                String levelName = level.name();
+                    if (levelName.isEmpty()) {
+                        logEventMap.put(LOG_LEVEL, UNKNOWN);
+                    } else {
+                        logEventMap.put(LOG_LEVEL, levelName);
+                    }
 
-                if (levelName.isEmpty()) {
-                    logEventMap.put(LOG_LEVEL, UNKNOWN);
-                } else {
-                    logEventMap.put(LOG_LEVEL, levelName);
+                    AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
                 }
-
-                AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
             }
         }
     }
