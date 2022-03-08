@@ -616,7 +616,7 @@ public class RPMServiceTest {
         logEvents.add(logEvent1);
         logEvents.add(logEvent2);
 
-        svc.sendLogEvents(0, 0, logEvents);
+        svc.sendLogEvents(logEvents);
 
         List<LogEvent> seen = dataSenderFactory.getLastDataSender().getLogEvents();
 

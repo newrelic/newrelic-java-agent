@@ -532,10 +532,10 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
-    public void sendLogEvents(int reservoirSize, int eventsSeen, final Collection<? extends LogEvent> events) throws Exception {
+    public void sendLogEvents(final Collection<? extends LogEvent> events) throws Exception {
         Agent.LOG.log(Level.FINE, "Sending {0} log event(s)", events.size());
         try {
-            sendLogEventsSyncRestart(reservoirSize, eventsSeen, events);
+            sendLogEventsSyncRestart(events);
         } catch (HttpError e) {
             // We don't want to resend the data for certain response codes, retry for all others
             if (e.isRetryableError()) {
@@ -594,14 +594,14 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         }
     }
 
-    private void sendLogEventsSyncRestart(int reservoirSize, int eventsSeen, final Collection<? extends LogEvent> events)
+    private void sendLogEventsSyncRestart(final Collection<? extends LogEvent> events)
             throws Exception {
         try {
-            dataSender.sendLogEvents(reservoirSize, eventsSeen, events);
+            dataSender.sendLogEvents(events);
         } catch (ForceRestartException e) {
             logForceRestartException(e);
             reconnectSync();
-            dataSender.sendLogEvents(reservoirSize, eventsSeen, events);
+            dataSender.sendLogEvents(events);
         }
     }
 

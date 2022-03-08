@@ -225,9 +225,9 @@ public class MockRPMService extends BaseRPMService {
     }
 
     @Override
-    public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
         this.events.addAll(events);
-        this.logSenderEventsSeen.addAndGet(eventsSeen);
+        this.logSenderEventsSeen.addAndGet(events.size());
     }
 
     @Override

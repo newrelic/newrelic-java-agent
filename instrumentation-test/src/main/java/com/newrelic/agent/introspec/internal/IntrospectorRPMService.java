@@ -151,7 +151,7 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     }
 
     @Override
-    public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) {
+    public void sendLogEvents(Collection<? extends LogEvent> events) {
     }
 
     @Override

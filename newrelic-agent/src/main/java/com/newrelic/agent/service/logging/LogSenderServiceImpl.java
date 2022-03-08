@@ -371,7 +371,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                 // Send LogEvents
                 ServiceFactory.getRPMServiceManager()
                         .getOrCreateRPMService(appName)
-                        .sendLogEvents(maxSamplesStored, reservoir.getNumberOfTries(), Collections.unmodifiableList(reservoir.asList()));
+                        .sendLogEvents(Collections.unmodifiableList(reservoir.asList()));
 
                 final long durationInNanos = System.nanoTime() - startTimeInNanos;
                 ServiceFactory.getStatsService().doStatsWork(new StatsWork() {
