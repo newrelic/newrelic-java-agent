@@ -153,7 +153,7 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
-    public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
         if (exception != null) {
             throw exception;
         }

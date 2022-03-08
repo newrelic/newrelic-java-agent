@@ -336,7 +336,7 @@ public class DataSenderImpl implements DataSender {
     }
 
     @Override
-    public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
         sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events);
     }
 

@@ -164,7 +164,7 @@ public abstract class BaseRPMService implements IRPMService {
     }
 
     @Override
-    public void sendLogEvents(int reservoirSize, int eventsSeen, Collection<? extends LogEvent> events) throws Exception {
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
     }
 
     @Override
