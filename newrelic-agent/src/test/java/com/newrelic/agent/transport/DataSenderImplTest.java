@@ -51,7 +51,10 @@ import java.net.SocketException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.newrelic.agent.MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR;
