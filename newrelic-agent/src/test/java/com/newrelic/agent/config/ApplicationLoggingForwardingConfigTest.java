@@ -59,7 +59,7 @@ public class ApplicationLoggingForwardingConfigTest {
 
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
                 ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
-        assertEquals(5000, config.getMaxSamplesStored());
+        assertEquals(TEST_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
 
     }
 
@@ -75,7 +75,7 @@ public class ApplicationLoggingForwardingConfigTest {
 
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
                 ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
-        assertEquals(5000, config.getMaxSamplesStored());
+        assertEquals(TEST_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
 
     }
 
