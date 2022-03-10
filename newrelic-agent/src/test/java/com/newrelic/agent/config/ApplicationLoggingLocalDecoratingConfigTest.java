@@ -52,7 +52,7 @@ public class ApplicationLoggingLocalDecoratingConfigTest {
     public void usesSysPropForLocalDecoratingConfig() {
         Properties properties = new Properties();
 
-        properties.put("newrelic.config.application_logging.local_decorating.enabled", "" + "true");
+        properties.put("newrelic.config.application_logging.local_decorating.enabled", "true");
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(properties),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade()
