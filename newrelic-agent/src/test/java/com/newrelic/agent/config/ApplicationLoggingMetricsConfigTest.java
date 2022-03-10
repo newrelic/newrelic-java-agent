@@ -51,7 +51,7 @@ public class ApplicationLoggingMetricsConfigTest {
     public void usesSysPropForLocalDecoratingConfig() {
         Properties properties = new Properties();
 
-        properties.put("newrelic.config.application_logging.metrics.enabled", "" + "false");
+        properties.put("newrelic.config.application_logging.metrics.enabled", "false");
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(properties),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade()
