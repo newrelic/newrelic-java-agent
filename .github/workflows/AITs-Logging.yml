@@ -26,14 +26,14 @@ jobs:
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "logging"
+      java_func_type: "basic_features"
       default-branch: "logging_ait"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
         func_tests:
-          - logging_forwarding.py
+          - logging_test.py
     steps:
       - uses: actions/checkout@v2
 
