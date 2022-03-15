@@ -30,6 +30,13 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
 
     private final Logger logger;
 
+    private static final String TRACE_ID = "trace.id";
+    private static final String SPAN_ID = "span.id";
+    private static final String HOSTNAME = "hostname";
+    private static final String ENTITY_GUID = "entity.guid";
+    private static final String ENTITY_NAME = "entity.name";
+    private static final String ENTITY_TYPE = "entity.type";
+
     public AgentImpl(Logger logger) {
         this.logger = logger;
     }
@@ -157,19 +164,19 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
 
         TraceMetadata traceMetadata = getTraceMetadata();
         String traceId = traceMetadata.getTraceId();
-        linkingMetadata.put("trace.id", traceId);
+        linkingMetadata.put(TRACE_ID, traceId);
 
         String spanId = traceMetadata.getSpanId();
-        linkingMetadata.put("span.id", spanId);
+        linkingMetadata.put(SPAN_ID, spanId);
 
         AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        linkingMetadata.put("hostname", getLinkingMetaHostname(agentConfig));
+        linkingMetadata.put(HOSTNAME, getLinkingMetaHostname(agentConfig));
         try {
             String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
             if (!entityGuid.isEmpty()) {
-                linkingMetadata.put("entity.name", agentConfig.getApplicationName());
-                linkingMetadata.put("entity.type", "SERVICE");
-                linkingMetadata.put("entity.guid", entityGuid);
+                linkingMetadata.put(ENTITY_NAME, agentConfig.getApplicationName());
+                linkingMetadata.put(ENTITY_TYPE, "SERVICE");
+                linkingMetadata.put(ENTITY_GUID, entityGuid);
             }
         } catch (NullPointerException ignored) {
             // it's possible to call getLinkingMetadata in the premain before RPMService has been initialized which will NPE
@@ -179,7 +186,46 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
         return linkingMetadata;
     }
 
-    private String getLinkingMetaHostname(AgentConfig agentConfig) {
+    /**
+     * Gets a map of agent linking metadata minus entity.type,
+     * entity.name, and any attributes with an empty value.
+     * This subset of linking metadata is added to LogEvents.
+     *
+     * @return Filtered map of agent linking metadata
+     */
+    public static Map<String, String> getLogEventLinkingMetadata() {
+        Map<String, String> linkingMetadata = new ConcurrentHashMap<>();
+
+        TraceMetadata traceMetadata = TraceMetadataImpl.INSTANCE;
+        String traceId = traceMetadata.getTraceId();
+        if (!traceId.isEmpty()) {
+            linkingMetadata.put(TRACE_ID, traceId);
+        }
+
+        String spanId = traceMetadata.getSpanId();
+        if (!spanId.isEmpty()) {
+            linkingMetadata.put(SPAN_ID, spanId);
+        }
+
+        AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+        String hostname = getLinkingMetaHostname(agentConfig);
+        if (!hostname.isEmpty()) {
+            linkingMetadata.put(HOSTNAME, hostname);
+        }
+        try {
+            String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
+            if (!entityGuid.isEmpty()) {
+                linkingMetadata.put(ENTITY_GUID, entityGuid);
+            }
+        } catch (NullPointerException ignored) {
+            // it's possible to call getLinkingMetadata in the premain before RPMService has been initialized which will NPE
+            Agent.LOG.log(Level.WARNING, "Cannot get entity.guid from getLinkingMetadata() until RPMService has initialized.");
+        }
+
+        return linkingMetadata;
+    }
+
+    private static String getLinkingMetaHostname(AgentConfig agentConfig) {
         String fullHostname = Hostname.getFullHostname(agentConfig);
         if (fullHostname == null || fullHostname.isEmpty() || fullHostname.equals("localhost")) {
             return Hostname.getHostname(agentConfig);

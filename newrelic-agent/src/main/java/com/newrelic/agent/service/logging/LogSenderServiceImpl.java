@@ -11,6 +11,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.AgentImpl;
 import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.MetricNames;
@@ -471,7 +472,9 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * @return LogEvent instance
      */
     private static LogEvent createValidatedEvent(Map<String, ?> attributes) {
-        Map<String, Object> userAttributes = new HashMap<>(attributes.size());
+        // Initialize new userAttributes map with agent linking metadata required for LogEvents
+        Map<String, Object> userAttributes = new HashMap<>(AgentImpl.getLogEventLinkingMetadata());
+
         LogEvent event = new LogEvent(userAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
