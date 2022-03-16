@@ -184,7 +184,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     @Override
     public void recordLogEvent(Map<String, ?> attributes) {
-        if (logEventsDisabled()) {
+        if (logEventsDisabled() || attributes == null || attributes.isEmpty()) {
             return;
         }
 
