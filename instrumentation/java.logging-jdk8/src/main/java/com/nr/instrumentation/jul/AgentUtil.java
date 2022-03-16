@@ -12,6 +12,7 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.Map;
 
 public class AgentUtil {
+    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 3;
     // Log message attributes
     public static final String MESSAGE = "message";
     public static final String TIMESTAMP = "timestamp";
