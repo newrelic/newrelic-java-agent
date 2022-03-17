@@ -106,6 +106,8 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
 
                     Long harvestLimit = (Long) harvestLimits.get(tracker.harvestable.getEndpointMethodName());
                     if (harvestLimit != null) {
+                        Agent.LOG.log(Level.FINE, "harvest limit from collector is: {0} samples stored per harvest for {1}", harvestLimit,
+                                tracker.harvestable.getEndpointMethodName());
                         maxSamplesStored = harvestLimit.intValue();
                         reportPeriodInMillis = (long) eventHarvestConfig.get(REPORT_PERIOD_MS); // faster event harvest report period
                         ServiceFactory.getStatsService().doStatsWork(
