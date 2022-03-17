@@ -106,12 +106,13 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
 
                     Long harvestLimit = (Long) harvestLimits.get(tracker.harvestable.getEndpointMethodName());
                     if (harvestLimit != null) {
-                        Agent.LOG.log(Level.FINE, "harvest limit from collector is: {0} samples stored per harvest for {1}", harvestLimit,
-                                tracker.harvestable.getEndpointMethodName());
                         maxSamplesStored = harvestLimit.intValue();
                         reportPeriodInMillis = (long) eventHarvestConfig.get(REPORT_PERIOD_MS); // faster event harvest report period
+                        float reportPeriodInSeconds = reportPeriodInMillis / 1000;
+                        Agent.LOG.log(Level.FINE, "harvest limit from collector for {0} is: {1} samples stored per every {2} second harvest",
+                                tracker.harvestable.getEndpointMethodName(), harvestLimit, reportPeriodInSeconds);
                         ServiceFactory.getStatsService().doStatsWork(
-                                StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS, reportPeriodInMillis / 1000),
+                                StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS, reportPeriodInSeconds),
                                 MetricNames.SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS );
                     }
                 } else if (!isSpanEventEndpoint) {
@@ -125,10 +126,11 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
                             tracker.harvestable.getEndpointMethodName());
                     Long harvestLimit = (Long) spanHarvestConfig.get(SERVER_SPAN_HARVEST_LIMIT);
                     if (harvestLimit != null) {
-                        Agent.LOG.log(Level.FINE, "harvest limit from collector is: {0} samples stored per harvest for {1}", harvestLimit,
-                                tracker.harvestable.getEndpointMethodName());
                         maxSamplesStored = harvestLimit.intValue();
                         reportPeriodInMillis = (long) spanHarvestConfig.get(REPORT_PERIOD_MS);
+                        float reportPeriodInSeconds = reportPeriodInMillis / 1000;
+                        Agent.LOG.log(Level.FINE, "harvest limit from collector for {0} is: {1} samples stored per every {2} second harvest",
+                                tracker.harvestable.getEndpointMethodName(), harvestLimit, reportPeriodInSeconds);
                     }
                 } else if (isSpanEventEndpoint) {
                     Agent.LOG.log(Level.FINE, "span_event_harvest_config from collector was null. Using default value: {0} samples stored for {1}", maxSamplesStored,
