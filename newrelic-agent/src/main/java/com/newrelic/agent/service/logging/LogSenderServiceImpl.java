@@ -11,9 +11,11 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.AgentLinkingMetadata;
 import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.TraceMetadataImpl;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeSender;
@@ -471,15 +473,19 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * @return LogEvent instance
      */
     private static LogEvent createValidatedEvent(Map<String, ?> attributes) {
-        Map<String, Object> userAttributes = new HashMap<>(attributes.size());
-        LogEvent event = new LogEvent(userAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
+        Map<String, String> logEventLinkingMetadata = AgentLinkingMetadata.getLogEventLinkingMetadata(TraceMetadataImpl.INSTANCE,
+                ServiceFactory.getConfigService(), ServiceFactory.getRPMService());
+        // Initialize new logEventAttributes map with agent linking metadata
+        Map<String, Object> logEventAttributes = new HashMap<>(logEventLinkingMetadata);
+
+        LogEvent event = new LogEvent(logEventAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
         // An AttributeSender is the way to reuse all the existing attribute validations. We
         // also locally "intern" Strings because we anticipate a lot of reuse of the keys and,
         // possibly, the values. But there's an interaction: if the key or value is chopped
         // within the attribute sender, the modified value won't be "interned" in our map.
-        AttributeSender sender = new LogEventAttributeSender(userAttributes);
+        AttributeSender sender = new LogEventAttributeSender(logEventAttributes);
 
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
             String key = entry.getKey();
@@ -516,11 +522,11 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         private static final String ATTRIBUTE_TYPE = "log";
 
-        private final Map<String, Object> userAttributes;
+        private final Map<String, Object> logEventAttributes;
 
-        public LogEventAttributeSender(Map<String, Object> userAttributes) {
+        public LogEventAttributeSender(Map<String, Object> logEventAttributes) {
             super(new AttributeValidator(ATTRIBUTE_TYPE));
-            this.userAttributes = userAttributes;
+            this.logEventAttributes = logEventAttributes;
             setTransactional(false);
         }
 
@@ -532,7 +538,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         @Override
         protected Map<String, Object> getAttributeMap() {
             if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
-                return userAttributes;
+                return logEventAttributes;
             }
             return null;
         }

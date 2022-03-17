@@ -9,20 +9,15 @@ package com.nr.agent.instrumentation.log4j1;
 
 import com.newrelic.api.agent.NewRelic;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class AgentUtil {
+    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 3;
     // Log message attributes
     public static final String MESSAGE = "message";
     public static final String TIMESTAMP = "timestamp";
     public static final String LOG_LEVEL = "log.level";
     public static final String UNKNOWN = "UNKNOWN";
-    // Linking metadata attributes to filter out
-    private static final String ENTITY_TYPE = "entity.type";
-    private static final String ENTITY_NAME = "entity.name";
     // Linking metadata attributes used in blob
     private static final String BLOB_PREFIX = "NR-LINKING";
     private static final String BLOB_DELIMITER = "|";
@@ -61,32 +56,6 @@ public class AgentUtil {
             blob.append(attribute);
         }
         blob.append(BLOB_DELIMITER);
-    }
-
-    /**
-     * Gets a map of agent linking metadata after filtering out
-     * entity.type, entity.name, and any attributes with an empty value.
-     *
-     * @return Filtered map of agent linking metadata
-     */
-    public static Map<String, String> getFilteredLinkingMetadataMap() {
-        Map<String, String> agentLinkingMetadata = NewRelic.getAgent().getLinkingMetadata();
-
-        if (agentLinkingMetadata != null && agentLinkingMetadata.size() > 0) {
-            Map<String, String> map = new HashMap<>();
-            Set<Map.Entry<String, String>> metadataSet = agentLinkingMetadata.entrySet();
-
-            for (Map.Entry<String, String> entry : metadataSet) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                if (!key.equals(ENTITY_NAME) && !key.equals(ENTITY_TYPE) && !value.isEmpty()) {
-                    map.put(key, value);
-                }
-            }
-            return map;
-        } else {
-            return Collections.emptyMap();
-        }
     }
 
     /**
