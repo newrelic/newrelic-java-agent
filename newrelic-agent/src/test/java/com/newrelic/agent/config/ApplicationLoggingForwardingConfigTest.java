@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,16 @@ public class ApplicationLoggingForwardingConfigTest {
     @Test
     public void testMaxSamplesStoredDefaultValue() {
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
+                false);
+        assertEquals(ApplicationLoggingForwardingConfig.DEFAULT_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
+    }
+
+    @Test
+    public void testMaxSamplesStoredDefaultValueIfValueTooLargeForInteger() {
+        Map<String, Object> maxSamplesStoreTooLarge = new HashMap<>(localProps);
+        maxSamplesStoreTooLarge.put(ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED, new BigInteger("9999999999999999999999"));
+
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(maxSamplesStoreTooLarge, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
                 false);
         assertEquals(ApplicationLoggingForwardingConfig.DEFAULT_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
     }

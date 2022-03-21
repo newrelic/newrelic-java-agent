@@ -7,7 +7,10 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.Agent;
+
 import java.util.Map;
+import java.util.logging.Level;
 
 public class ApplicationLoggingForwardingConfig extends BaseConfig {
     public static final String ROOT = "forwarding";
@@ -22,9 +25,19 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
 
     public ApplicationLoggingForwardingConfig(Map<String, Object> props, String parentRoot, boolean highSecurity) {
         super(props, parentRoot + ROOT + ".");
-        maxSamplesStored = getProperty(MAX_SAMPLES_STORED, DEFAULT_MAX_SAMPLES_STORED);
+        maxSamplesStored = initMaxSamplesStored();
         boolean storedMoreThan0 = maxSamplesStored > 0;
         enabled = storedMoreThan0 && !highSecurity && getProperty(ENABLED, DEFAULT_ENABLED);
+    }
+
+    private int initMaxSamplesStored() {
+        try {
+            return getProperty(MAX_SAMPLES_STORED, DEFAULT_MAX_SAMPLES_STORED);
+        } catch (ClassCastException classCastException) {
+            Agent.LOG.log(Level.WARNING, "The max_samples_stored was likely too large {0}, we will use default {1}",
+                    getProperty(MAX_SAMPLES_STORED), DEFAULT_MAX_SAMPLES_STORED);
+            return DEFAULT_MAX_SAMPLES_STORED;
+        }
     }
 
     public boolean getEnabled() {
