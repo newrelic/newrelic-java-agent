@@ -29,6 +29,7 @@ public class AgentUtil {
     private static final String TRACE_ID = "trace.id";
     private static final String HOSTNAME = "hostname";
     private static final String ENTITY_GUID = "entity.guid";
+    private static final String ENTITY_NAME = "entity.name";
     private static final String SPAN_ID = "span.id";
     // Enabled defaults
     private static final boolean APP_LOGGING_DEFAULT_ENABLED = true;
@@ -76,6 +77,7 @@ public class AgentUtil {
             appendAttributeToBlob(agentLinkingMetadata.get(HOSTNAME), blob);
             appendAttributeToBlob(agentLinkingMetadata.get(TRACE_ID), blob);
             appendAttributeToBlob(agentLinkingMetadata.get(SPAN_ID), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(ENTITY_NAME), blob);
         }
         return blob.toString();
     }
