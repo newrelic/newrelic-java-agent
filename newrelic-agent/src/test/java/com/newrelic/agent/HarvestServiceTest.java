@@ -117,7 +117,7 @@ public class HarvestServiceTest {
             Stats stats = statsEngine.getStats("Test" + String.valueOf(i));
             stats.recordDataPoint(100f);
         }
-        ServiceFactory.getStatsService().doStatsWork(new MergeStatsWork("test", statsEngine));
+        ServiceFactory.getStatsService().doStatsWork(new MergeStatsWork("test", statsEngine), "statsWorkTest");
         harvestService.startHarvest(rpmService);
         Assert.assertTrue(latch.await(5L, TimeUnit.SECONDS));
         harvestService.stop();

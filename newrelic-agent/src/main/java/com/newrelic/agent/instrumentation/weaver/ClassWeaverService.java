@@ -18,7 +18,6 @@ import com.newrelic.agent.instrumentation.PointCutClassTransformer;
 import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher.Match;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
-import com.newrelic.agent.instrumentation.context.FinalClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
 import com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl;
@@ -518,9 +517,10 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
                         Agent.LOG.log(Level.FINE, e, "Unable to add annotation proxy classes");
                     }
 
+                    String weaveClassStat = MessageFormat.format(MetricNames.SUPPORTABILITY_WEAVE_CLASS,
+                            packageName, weaveResult.getClassName());
                     ServiceFactory.getStatsService().doStatsWork(
-                            StatsWorks.getRecordMetricWork(MessageFormat.format(MetricNames.SUPPORTABILITY_WEAVE_CLASS,
-                                    packageName, weaveResult.getClassName()), 1));
+                            StatsWorks.getRecordMetricWork(weaveClassStat, 1), weaveClassStat);
 
                     for (String originalName : weaveResult.getWeavedMethods().keySet()) {
                         Agent.LOG.log(Level.FINE, "{0}: weaved target {1}-{2}", packageName, classloader,

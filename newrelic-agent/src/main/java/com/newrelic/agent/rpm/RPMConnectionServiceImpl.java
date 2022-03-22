@@ -315,7 +315,7 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
             long timeSinceLastConnectionAttemptInSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastConnectionAttempt.get());
 
             if (timeSinceLastConnectionAttemptInSeconds >= BACKOFF_INTERVAL_IN_SEC[backoffIndex.get()]) {
-                ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS, 1));
+                ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS, 1), MetricNames.SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS);
 
                 if (timeSinceLastConnectionAttemptInSeconds < MAX_BACKOFF_DELAY) {
                     backoffIndex.incrementAndGet();

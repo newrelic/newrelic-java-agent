@@ -16,7 +16,7 @@ public interface StatsService extends Service {
     /**
      * Process the given {@link StatsWork}.
      */
-    void doStatsWork(StatsWork statsWork);
+    void doStatsWork(StatsWork statsWork, String statsWorkName);
 
     /**
      * Get a {@link StatsEngine} containing the metric data to be sent to the server in the next harvest.

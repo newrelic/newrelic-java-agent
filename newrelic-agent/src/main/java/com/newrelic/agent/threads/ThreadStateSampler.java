@@ -136,14 +136,14 @@ public class ThreadStateSampler implements Runnable {
         @Override
         protected void doRecordResponseTimeMetric(String name, long totalTime, long exclusiveTime, TimeUnit timeUnit) {
             if (!isAutoAppNamingEnabled) {
-                statsService.doStatsWork(new RecordResponseTimeMetricWorker(null, totalTime, exclusiveTime, name, timeUnit));
+                statsService.doStatsWork(new RecordResponseTimeMetricWorker(null, totalTime, exclusiveTime, name, timeUnit), name);
             } else {
                 List<IRPMService> rpmServices = ServiceFactory.getRPMServiceManager().getRPMServices();
                 RecordResponseTimeMetricWorker responseTimeWorker = new RecordResponseTimeMetricWorker(null, totalTime, exclusiveTime, name, timeUnit);
                 for (IRPMService rpmService : rpmServices) {
                     String appName = rpmService.getApplicationName();
                     responseTimeWorker.setAppName(appName);
-                    statsService.doStatsWork(responseTimeWorker);
+                    statsService.doStatsWork(responseTimeWorker, name);
                 }
             }
         }
@@ -151,14 +151,14 @@ public class ThreadStateSampler implements Runnable {
         @Override
         protected void doRecordMetric(String name, float value) {
             if (!isAutoAppNamingEnabled) {
-                statsService.doStatsWork(new RecordMetricWorker(null, name, value));
+                statsService.doStatsWork(new RecordMetricWorker(null, name, value), name);
             } else {
                 List<IRPMService> rpmServices = ServiceFactory.getRPMServiceManager().getRPMServices();
                 RecordMetricWorker metricWorker = new RecordMetricWorker(null, name, value);
                 for (IRPMService rpmService : rpmServices) {
                     String appName = rpmService.getApplicationName();
                     metricWorker.setAppName(appName);
-                    statsService.doStatsWork(metricWorker);
+                    statsService.doStatsWork(metricWorker, name);
                 }
             }
         }
@@ -166,14 +166,14 @@ public class ThreadStateSampler implements Runnable {
         @Override
         protected void doIncrementCounter(String name, int count) {
             if (!isAutoAppNamingEnabled) {
-                statsService.doStatsWork(new IncrementCounterWorker(null, name, count));
+                statsService.doStatsWork(new IncrementCounterWorker(null, name, count), name);
             } else {
                 List<IRPMService> rpmServices = ServiceFactory.getRPMServiceManager().getRPMServices();
                 IncrementCounterWorker incrementCounterWorker = new IncrementCounterWorker(null, name, count);
                 for (IRPMService rpmService : rpmServices) {
                     String appName = rpmService.getApplicationName();
                     incrementCounterWorker.setAppName(appName);
-                    statsService.doStatsWork(incrementCounterWorker);
+                    statsService.doStatsWork(incrementCounterWorker, name);
                 }
             }
         }

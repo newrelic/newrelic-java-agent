@@ -106,6 +106,23 @@ public class SimpleStatsEngine {
         }
     }
 
+    public DataUsageStats getDataUsageStats(String metricName) {
+        if (metricName == null) {
+            throw new RuntimeException("Cannot get a stat for a null metric");
+        }
+        StatsBase s = stats.get(metricName);
+        if (s == null) {
+            s = new DataUsageStatsImpl();
+            stats.put(metricName, s);
+        }
+        if (s instanceof DataUsageStats) {
+            return (DataUsageStats) s;
+        } else {
+            String msg = MessageFormat.format("The stats object for {0} is of type {1}", metricName, s.getClass().getName());
+            throw new RuntimeException(msg);
+        }
+    }
+
     public void mergeStats(SimpleStatsEngine other) {
         for (Entry<String, StatsBase> entry : other.stats.entrySet()) {
             StatsBase ourStats = stats.get(entry.getKey());

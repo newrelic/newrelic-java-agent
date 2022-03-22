@@ -127,19 +127,19 @@ public class DatastoreMetrics {
         if (host == null) {
             String unknownHostMetric = new StringBuilder(MetricNames.SUPPORTABILITY_DATASTORE_PREFIX)
                     .append(vendor).append(MetricNames.SUPPORTABILITY_DATASTORE_UNKNOWN_HOST).toString();
-            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(unknownHostMetric, 1));
+            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(unknownHostMetric, 1), unknownHostMetric);
         }
 
         if (port == null && identifier == null) {
             String unknownPortMetric = new StringBuilder(MetricNames.SUPPORTABILITY_DATASTORE_PREFIX)
                     .append(vendor).append(MetricNames.SUPPORTABILITY_DATASTORE_UNKNOWN_PORT).toString();
-            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(unknownPortMetric, 1));
+            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(unknownPortMetric, 1), unknownPortMetric);
         }
 
         if (databaseName == null) {
             String unknownDatabaseNameMetric = new StringBuilder(MetricNames.SUPPORTABILITY_DATASTORE_PREFIX)
                     .append(vendor).append(MetricNames.SUPPORTABILITY_DATASTORE_UNKNOWN_DATABASE_NAME).toString();
-            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(unknownDatabaseNameMetric, 1));
+            statsService.doStatsWork(StatsWorks.getIncrementCounterWork(unknownDatabaseNameMetric, 1), unknownDatabaseNameMetric);
         }
     }
 
