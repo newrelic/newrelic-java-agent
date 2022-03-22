@@ -143,8 +143,8 @@ public class AgentLinkingMetadataTest {
         // Can't assert on a specific hostname value as it will resolve to the actual hostname of the machine running the test
         assertFalse("hostname shouldn't be empty", linkingMetadata.get(AgentLinkingMetadata.HOSTNAME).isEmpty());
 
-        assertFalse("entity.name should not be included in LogEvent linking metadata", linkingMetadata.containsValue(AgentLinkingMetadata.ENTITY_NAME));
-        assertFalse("entity.type should not be included in LogEvent linking metadata", linkingMetadata.containsValue(AgentLinkingMetadata.ENTITY_TYPE));
+        assertFalse("entity.type should not be included in LogEvent linking metadata", linkingMetadata.containsKey(AgentLinkingMetadata.ENTITY_TYPE));
+        assertEquals(expectedEntityName, linkingMetadata.get(AgentLinkingMetadata.ENTITY_NAME));
         assertEquals(expectedEntityGuid, linkingMetadata.get(AgentLinkingMetadata.ENTITY_GUID));
 
         assertEquals(expectedTraceId, linkingMetadata.get(AgentLinkingMetadata.TRACE_ID));
@@ -187,12 +187,12 @@ public class AgentLinkingMetadataTest {
         // Can't assert on a specific hostname value as it will resolve to the actual hostname of the machine running the test
         assertFalse("hostname shouldn't be empty", linkingMetadata.get(AgentLinkingMetadata.HOSTNAME).isEmpty());
 
-        assertFalse("entity.name should not be included in LogEvent linking metadata", linkingMetadata.containsValue(AgentLinkingMetadata.ENTITY_NAME));
-        assertFalse("entity.type should not be included in LogEvent linking metadata", linkingMetadata.containsValue(AgentLinkingMetadata.ENTITY_TYPE));
+        assertFalse("entity.type should not be included in LogEvent linking metadata", linkingMetadata.containsKey(AgentLinkingMetadata.ENTITY_TYPE));
+        assertEquals(expectedEntityName, linkingMetadata.get(AgentLinkingMetadata.ENTITY_NAME));
         assertEquals(expectedEntityGuid, linkingMetadata.get(AgentLinkingMetadata.ENTITY_GUID));
 
         // trace.id and span.id would be empty values if getLogEventLinkingMetadata was called outside of a transaction, in which case they are omitted
-        assertFalse("empty trace.id value should not be included in LogEvent linking metadata", linkingMetadata.containsValue(AgentLinkingMetadata.TRACE_ID));
-        assertFalse("empty span.id value should not be included in LogEvent linking metadata", linkingMetadata.containsValue(AgentLinkingMetadata.SPAN_ID));
+        assertFalse("empty trace.id value should not be included in LogEvent linking metadata", linkingMetadata.containsKey(AgentLinkingMetadata.TRACE_ID));
+        assertFalse("empty span.id value should not be included in LogEvent linking metadata", linkingMetadata.containsKey(AgentLinkingMetadata.SPAN_ID));
     }
 }

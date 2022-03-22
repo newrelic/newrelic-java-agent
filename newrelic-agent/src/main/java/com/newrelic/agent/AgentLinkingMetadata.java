@@ -62,8 +62,8 @@ public class AgentLinkingMetadata {
     }
 
     /**
-     * Get a map of agent linking metadata minus entity.type,
-     * entity.name, and any attributes with an empty value.
+     * Get a map of agent linking metadata minus
+     * entity.type and any attributes with an empty value.
      * This subset of linking metadata is added to LogEvents.
      *
      * @param traceMetadata TraceMetadataImpl to get spanId and traceId
@@ -93,6 +93,10 @@ public class AgentLinkingMetadata {
             String entityGuid = rpmService.getEntityGuid();
             if (!entityGuid.isEmpty()) {
                 logEventLinkingMetadata.put(ENTITY_GUID, entityGuid);
+            }
+            String entityName = getEntityName(agentConfig);
+            if (!entityName.isEmpty()) {
+                logEventLinkingMetadata.put(ENTITY_NAME, entityName);
             }
         } catch (NullPointerException ignored) {
             logWarning();
