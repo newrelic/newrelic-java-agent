@@ -9,7 +9,11 @@ package com.nr.agent.instrumentation.log4j1;
 
 import com.newrelic.api.agent.NewRelic;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class AgentUtil {
     public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 3;
@@ -48,7 +52,7 @@ public class AgentUtil {
             appendAttributeToBlob(agentLinkingMetadata.get(HOSTNAME), blob);
             appendAttributeToBlob(agentLinkingMetadata.get(TRACE_ID), blob);
             appendAttributeToBlob(agentLinkingMetadata.get(SPAN_ID), blob);
-            appendAttributeToBlob(agentLinkingMetadata.get(ENTITY_NAME), blob);
+            appendAttributeToBlob(urlEncode(agentLinkingMetadata.get(ENTITY_NAME)), blob);
         }
         return blob.toString();
     }
@@ -58,6 +62,21 @@ public class AgentUtil {
             blob.append(attribute);
         }
         blob.append(BLOB_DELIMITER);
+    }
+
+    /**
+     * URL encode a String value.
+     *
+     * @param value String to encode
+     * @return URL encoded String
+     */
+    static String urlEncode(String value) {
+        try {
+            value = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "Unable to URL encode entity.name for application_logging.local_decorating", e);
+        }
+        return value;
     }
 
     /**
