@@ -34,7 +34,7 @@ public class AgentUtil {
 
     /**
      * Gets a String representing the agent linking metadata in blob format:
-     * NR-LINKING|entity.guid|hostname|trace.id|span.id|
+     * NR-LINKING|entity.guid|hostname|trace.id|span.id|entity.name|
      *
      * @return agent linking metadata string blob
      */
