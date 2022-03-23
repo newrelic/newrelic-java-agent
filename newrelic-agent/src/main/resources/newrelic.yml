@@ -95,15 +95,15 @@ common: &default_settings
 
     # The agent will automatically forward application logs to New Relic in
     # a format that includes agent metadata for linking them to traces and errors.
-    forwarding:
+    #forwarding:
 
       # When true, application logs will be forwarded to New Relic. The default is false.
-      enabled: false
+      #enabled: false
 
       # Application log events are collected up to the configured amount. Afterwards,
       # events are sampled to maintain an even distribution across the harvest cycle.
       # Default is 10000. Setting to 0 will disable.
-      max_samples_stored: 10000
+      #max_samples_stored: 10000
 
     # The agent will generate metrics to indicate the number of
     # application log events occurring at each distinct log level.
@@ -115,10 +115,10 @@ common: &default_settings
     # The agent will add linking metadata to each log line in your application log files.
     # This feature should only be used if you want to use a third party log forwarder, instead
     # of the agent's built-in forwarding feature, to send your application log events to New Relic.
-    local_decorating:
+    #local_decorating:
 
       # When true, the agent will decorate your application log files with linking metadata. The default is false.
-      enabled: false
+      #enabled: false
 
   # Proxy settings for connecting to the New Relic server:
   # If a proxy is used, the host setting is required.  Other settings
