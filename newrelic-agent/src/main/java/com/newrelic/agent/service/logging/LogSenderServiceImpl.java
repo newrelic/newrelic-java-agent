@@ -569,7 +569,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
             LogEvent event = createValidatedEvent(attributes);
             if (events.offer(event)) {
-                Agent.LOG.finest(MessageFormat.format("Added event of type {0} in Transaction.", LOG_EVENT_TYPE));
+                Agent.LOG.log(Level.FINEST, "Added event of type {0} in Transaction.", LOG_EVENT_TYPE);
             } else {
                 // Too many events are cached on the transaction, send directly to the reservoir.
                 String applicationName = ServiceFactory.getRPMService().getApplicationName();
