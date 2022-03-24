@@ -1,6 +1,7 @@
 package com.nr.agent.instrumentation.r2dbc;
 
 import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.agent.bridge.datastore.OperationAndTableName;
 import com.newrelic.agent.bridge.datastore.R2dbcObfuscator;
 import com.newrelic.agent.bridge.datastore.R2dbcOperation;
 import com.newrelic.api.agent.DatastoreParameters;
@@ -30,12 +31,12 @@ public class R2dbcUtils {
 
     private static Consumer<Subscription> reportExecution(String sql, Client client, Segment segment) {
         return (subscription) -> {
-            String[] sqlOperationCollection = R2dbcOperation.extractFrom(sql);
-            if (sqlOperationCollection != null) {
+            OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
+            if (sqlOperation != null) {
                 segment.reportAsExternal(DatastoreParameters
                         .product("MariaDB")
-                        .collection(sqlOperationCollection[1])
-                        .operation(sqlOperationCollection[0])
+                        .collection(sqlOperation.getTableName())
+                        .operation(sqlOperation.getOperation())
                         .instance(client.getConf().getHost(), client.getConf().getPort())
                         .databaseName(client.getConf().getDatabase())
                         .slowQuery(sql, R2dbcObfuscator.MYSQL_QUERY_CONVERTER)

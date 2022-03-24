@@ -29,7 +29,7 @@ public class R2dbcOperation {
         OPERATION_PATTERNS.put("EXEC", new Pattern[]{Pattern.compile(".*(?:exec|execute)\\s+(?!as\\s+)([^\\s(,=;]*+);?\\s*+(?:[^=]|$).*", PATTERN_SWITCHES), Pattern.compile(".*(?:exec|execute)\\s+[^\\s(,]*.*?=(?:\\s|)([^\\s]*)", PATTERN_SWITCHES)});
     }
 
-    public static String[] extractFrom(String sql) {
+    public static OperationAndTableName extractFrom(String sql) {
         try {
             String strippedSql = COMMENT_PATTERN.matcher(sql).replaceAll("");
             for (Map.Entry<String, Pattern[]> operation : OPERATION_PATTERNS.entrySet()) {
@@ -37,7 +37,7 @@ public class R2dbcOperation {
                     Matcher matcher = pattern.matcher(strippedSql);
                     if(matcher.find()) {
                         String model = matcher.groupCount() > 0 ? removeBrackets(unquoteDatabaseName(matcher.group(1).trim())) : "unknown";
-                        return new String[] { operation.getKey(), VALID_METRIC_NAME_MATCHER.matcher(model).matches() ? model : "ParseError" };
+                        return new OperationAndTableName(operation.getKey(), VALID_METRIC_NAME_MATCHER.matcher(model).matches() ? model : "ParseError");
                     }
                 }
             }
