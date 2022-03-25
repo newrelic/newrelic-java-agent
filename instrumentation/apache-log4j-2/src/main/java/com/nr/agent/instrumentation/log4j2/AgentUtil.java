@@ -109,7 +109,9 @@ public class AgentUtil {
      */
     static String urlEncode(String value) {
         try {
-            value = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+            if (value != null) {
+                value = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+            }
         } catch (UnsupportedEncodingException e) {
             NewRelic.getAgent().getLogger().log(java.util.logging.Level.WARNING, "Unable to URL encode entity.name for application_logging.local_decorating", e);
         }
