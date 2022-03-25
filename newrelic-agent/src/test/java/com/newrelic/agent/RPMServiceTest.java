@@ -25,6 +25,7 @@ import com.newrelic.agent.errors.ErrorMessageReplacer;
 import com.newrelic.agent.errors.ErrorServiceImpl;
 import com.newrelic.agent.errors.ThrowableError;
 import com.newrelic.agent.metric.MetricName;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.normalization.NormalizationRule;
 import com.newrelic.agent.normalization.NormalizationRuleFactory;
 import com.newrelic.agent.profile.IProfile;
@@ -87,10 +88,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
@@ -584,6 +582,45 @@ public class RPMServiceTest {
         svc.launch();
 
         assertEquals(TransactionNamingScheme.LEGACY, svc.getTransactionNamingScheme());
+    }
+
+    @Test(timeout = 30000)
+    public void testSendLogEvents() throws Exception {
+        Map<String, Object> map = createStagingMap(true, false);
+        map.put("app_name", "Test");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(map);
+        createServiceManager(config, map);
+        doSendLogEvent();
+    }
+
+    @Test(timeout = 30000)
+    public void testSendLogEventsWithPut() throws Exception {
+        Map<String, Object> map = createStagingMap(true, false, true);
+        map.put("app_name", "Test");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(map);
+        createServiceManager(config, map);
+        doSendLogEvent();
+    }
+
+    private void doSendLogEvent() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
+        List<String> appNames = singletonList("Send Log Events Test App");
+        RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
+
+        svc.launch();
+
+        LogEvent logEvent1 = new LogEvent(null, 1);
+        LogEvent logEvent2 = new LogEvent(null, 2);
+        List<LogEvent> logEvents = new ArrayList<>();
+        logEvents.add(logEvent1);
+        logEvents.add(logEvent2);
+
+        svc.sendLogEvents(logEvents);
+
+        List<LogEvent> seen = dataSenderFactory.getLastDataSender().getLogEvents();
+
+        assertEquals("No log events sent currently", logEvents.size(), seen.size());
     }
 
     @Test(timeout = 30000)

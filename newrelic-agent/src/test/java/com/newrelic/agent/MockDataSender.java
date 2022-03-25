@@ -12,6 +12,7 @@ import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.sql.SqlTrace;
@@ -20,10 +21,7 @@ import com.newrelic.agent.transport.DataSender;
 import com.newrelic.agent.transport.DataSenderListener;
 import org.json.simple.JSONStreamAware;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class MockDataSender implements DataSender {
@@ -34,6 +32,7 @@ public class MockDataSender implements DataSender {
     private static final String DATA_REPORT_PERIOD_KEY = "data_report_period";
 
     private List<TransactionTrace> traces;
+    private List<LogEvent> logEvents;
     Map<String, Object> startupOptions;
     private Exception exception;
     private boolean isConnected;
@@ -118,6 +117,10 @@ public class MockDataSender implements DataSender {
         return traces;
     }
 
+    public List<LogEvent> getLogEvents() {
+        return logEvents;
+    }
+
     public Map<String, Object> getStartupOtions() {
         return startupOptions;
     }
@@ -147,5 +150,13 @@ public class MockDataSender implements DataSender {
 
     @Override
     public void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception {
+    }
+
+    @Override
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
+        if (exception != null) {
+            throw exception;
+        }
+        logEvents = new ArrayList<>(events);
     }
 }

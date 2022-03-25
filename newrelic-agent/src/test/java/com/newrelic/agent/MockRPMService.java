@@ -12,6 +12,7 @@ import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.IProfile;
 import com.newrelic.agent.profile.ProfileData;
@@ -47,6 +48,7 @@ public class MockRPMService extends BaseRPMService {
     private final AtomicInteger transactionEventsSeen = new AtomicInteger(0);
     private final AtomicInteger spanEventsSeen = new AtomicInteger(0);
     private final AtomicInteger customEventsSeen = new AtomicInteger(0);
+    private final AtomicInteger logSenderEventsSeen = new AtomicInteger(0);
     private final AtomicInteger errorEventsSeen = new AtomicInteger(0);
     private final AtomicInteger errorTracesSeen = new AtomicInteger(0);
     private final AtomicInteger transactionTracesSeen = new AtomicInteger(0);
@@ -223,6 +225,12 @@ public class MockRPMService extends BaseRPMService {
     }
 
     @Override
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
+        this.events.addAll(events);
+        this.logSenderEventsSeen.addAndGet(events.size());
+    }
+
+    @Override
     public void sendErrorEvents(int reservoirSize, int eventsSeen, Collection<ErrorEvent> events) throws Exception {
         this.events.addAll(events);
         this.errorEventsSeen.addAndGet(eventsSeen);
@@ -261,6 +269,10 @@ public class MockRPMService extends BaseRPMService {
         return customEventsSeen.get();
     }
 
+    public int getLogSenderEventsSeen() {
+        return logSenderEventsSeen.get();
+    }
+
     public int getErrorEventsSeen() {
         return errorEventsSeen.get();
     }
@@ -280,6 +292,7 @@ public class MockRPMService extends BaseRPMService {
         spanEventsSeen.set(0);
         transactionEventsSeen.set(0);
         customEventsSeen.set(0);
+        logSenderEventsSeen.set(0);
         errorTracesSeen.set(0);
         transactionTracesSeen.set(0);
     }

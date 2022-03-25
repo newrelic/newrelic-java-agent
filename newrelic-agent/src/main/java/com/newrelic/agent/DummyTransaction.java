@@ -50,6 +50,7 @@ import com.newrelic.agent.transaction.TransactionTimer;
 import com.newrelic.api.agent.ApplicationNamePriority;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.Insights;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.Request;
@@ -83,8 +84,9 @@ public class DummyTransaction extends Transaction {
 
     private final Object lock = new Object();
     private final Insights insights = new DummyInsights();
+    private final Logs logs = new DummyLogs();
     private final AgentConfig defaultConfig;
-    private final TracerList tracerList = new TracerList(null, new DummySet<TransactionActivity>());
+    private final TracerList tracerList = new TracerList(null, new DummySet<>());
     private final TransactionTimer timer = new TransactionTimer(0);
     private final InboundHeaderState inboundHeaderState = new InboundHeaderState(null, null);
     private final SlowQueryListener slowQueryListener = new NopSlowQueryListener();
@@ -172,6 +174,11 @@ public class DummyTransaction extends Transaction {
     @Override
     public Insights getInsightsData() {
         return insights;
+    }
+
+    @Override
+    public Logs getLogEventData() {
+        return logs;
     }
 
     @Override
@@ -652,6 +659,12 @@ public class DummyTransaction extends Transaction {
     static final class DummyInsights implements Insights {
         @Override
         public void recordCustomEvent(String eventType, Map<String, ?> attributes) {
+        }
+    }
+
+    static final class DummyLogs implements Logs {
+        @Override
+        public void recordLogEvent(Map<String, ?> attributes) {
         }
     }
 

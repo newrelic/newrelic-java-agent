@@ -83,6 +83,43 @@ common: &default_settings
   # Default is the logs directory in the newrelic.jar parent directory.
   #log_file_path:
 
+  # Provides the ability to forward application logs to New Relic, generate log usage metrics,
+  # and decorate local application log files with agent metadata for use with third party log forwarders.
+  # The application_logging.forwarding and application_logging.local_decorating should not be used together.
+  application_logging:
+
+    # Provides control over all the application logging features for forwarding, local log
+    # decorating, and metrics features. Set as false to disable all application logging features.
+    # Default is true.
+    enabled: true
+
+    # The agent will automatically forward application logs to New Relic in
+    # a format that includes agent metadata for linking them to traces and errors.
+    #forwarding:
+
+      # When true, application logs will be forwarded to New Relic. The default is false.
+      #enabled: false
+
+      # Application log events are collected up to the configured amount. Afterwards,
+      # events are sampled to maintain an even distribution across the harvest cycle.
+      # Default is 10000. Setting to 0 will disable.
+      #max_samples_stored: 10000
+
+    # The agent will generate metrics to indicate the number of
+    # application log events occurring at each distinct log level.
+    metrics:
+
+      # When true, application log metrics will be reported. The default is true.
+      enabled: true
+
+    # The agent will add linking metadata to each log line in your application log files.
+    # This feature should only be used if you want to use a third party log forwarder, instead
+    # of the agent's built-in forwarding feature, to send your application log events to New Relic.
+    #local_decorating:
+
+      # When true, the agent will decorate your application log files with linking metadata. The default is false.
+      #enabled: false
+
   # Proxy settings for connecting to the New Relic server:
   # If a proxy is used, the host setting is required.  Other settings
   # are optional.  Default port is 8080.  The username and password

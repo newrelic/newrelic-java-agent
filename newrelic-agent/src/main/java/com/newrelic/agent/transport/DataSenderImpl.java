@@ -24,6 +24,7 @@ import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.ServiceFactory;
@@ -93,7 +94,6 @@ public class DataSenderImpl implements DataSender {
 
     // Destinations for agent data
     private static final String COLLECTOR = "Collector";
-    private static final String OTLP = "OTLP"; // Not currently supported by Java agent
 
     // As of P17 these are the only agent endpoints that actually contain data in the response payload for a successful request
     private static final Set<String> METHODS_WITH_RESPONSE_BODY = ImmutableSet.of(
@@ -336,6 +336,11 @@ public class DataSenderImpl implements DataSender {
     }
 
     @Override
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
+        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events);
+    }
+
+    @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, Collection<SpanEvent> events) throws Exception {
         sendAnalyticEventsForReservoir(CollectorMethods.SPAN_EVENT_DATA, compressedEncoding, reservoirSize, eventsSeen, events);
     }
@@ -355,6 +360,35 @@ public class DataSenderImpl implements DataSender {
         params.add(metadata);
 
         params.add(events);
+        invokeRunId(method, encoding, runId, params);
+    }
+
+    // Sends LogEvent data in the MELT format for logs
+    // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
+    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, Collection<T> events) throws Exception {
+        Object runId = agentRunId;
+        if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
+            return;
+        }
+
+        JSONObject commonAttributes = new JSONObject();
+
+        // build attributes object
+        JSONObject attributes = new JSONObject();
+        attributes.put("attributes", commonAttributes);
+
+        // build common object
+        JSONObject common = new JSONObject();
+        common.put("common", attributes);
+
+        // build logs object
+        JSONObject logs = new JSONObject();
+        logs.put("logs", events);
+
+        // params is top level
+        InitialSizedJsonArray params = new InitialSizedJsonArray(3);
+        params.add(common);
+        params.add(logs);
         invokeRunId(method, encoding, runId, params);
     }
 
@@ -536,7 +570,7 @@ public class DataSenderImpl implements DataSender {
         byte[] data = writeData(encoding, params);
 
         /*
-         * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
+         * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead, we halve the
          * payload and try again. See RPMService sendErrorData
          */
         if (data.length > maxPayloadSizeInBytes && !method.equals(CollectorMethods.ERROR_DATA)) {

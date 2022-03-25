@@ -61,6 +61,8 @@ import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.logging.LogSenderService;
+import com.newrelic.agent.service.logging.LogSenderServiceImpl;
 import com.newrelic.agent.service.module.JarAnalystFactory;
 import com.newrelic.agent.service.module.JarCollectorConnectionListener;
 import com.newrelic.agent.service.module.JarCollectorHarvestListener;
@@ -138,6 +140,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile AttributesService attsService;
     private volatile UtilizationService utilizationService;
     private volatile InsightsService insightsService;
+    private volatile LogSenderService logSenderService;
     private volatile AsyncTransactionService asyncTxService;
     private volatile CircuitBreakerService circuitBreakerService;
     private volatile DistributedTraceServiceImpl distributedTraceService;
@@ -259,6 +262,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         remoteInstrumentationService = new RemoteInstrumentationServiceImpl();
         attsService = new AttributesService();
         insightsService = new InsightsServiceImpl();
+        logSenderService = new LogSenderServiceImpl();
         spanEventsService = SpanEventsServiceFactory.builder()
                 .configService(configService)
                 .rpmServiceManager(rpmServiceManager)
@@ -301,6 +305,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         remoteInstrumentationService.start();
         attsService.start();
         insightsService.start();
+        logSenderService.start();
         circuitBreakerService.start();
         distributedTraceService.start();
         spanEventsService.start();
@@ -335,6 +340,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     protected synchronized void doStop() throws Exception {
         insightsService.stop();
+        logSenderService.stop();
         circuitBreakerService.stop();
         remoteInstrumentationService.stop();
         configService.stop();
@@ -598,6 +604,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public InsightsService getInsights() {
         return insightsService;
+    }
+
+    @Override
+    public LogSenderService getLogSenderService() {
+        return logSenderService;
     }
 
     @Override

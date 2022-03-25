@@ -218,14 +218,27 @@ public class MetricNames {
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SENT = "Supportability/Events/Customer/Sent";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SEEN = "Supportability/Events/Customer/Seen";
 
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_SENT = "Supportability/Logging/Forwarding/Sent";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_SEEN = "Supportability/Logging/Forwarding/Seen";
+    public static final String LOGGING_FORWARDING_DROPPED = "Logging/Forwarding/Dropped";
+
+    public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_ENABLED = "Supportability/Logging/Metrics/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED = "Supportability/Logging/LocalDecorating/Java/disabled";
+
     public static final String SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/ReportPeriod";
     public static final String SUPPORTABILITY_ERROR_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/ErrorEventData/ReportPeriod";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/CustomEventData/ReportPeriod";
+    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/LogEventData/ReportPeriod";
     public static final String SUPPORTABILITY_SPAN_EVENT_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/SpanEventData/ReportPeriod";
     public static final String SUPPORTABILITY_ANALYTIC_EVENT_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/AnalyticEventData/ReportPeriod";
 
     public static final String SUPPORTABILITY_ERROR_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/ErrorEventData/HarvestLimit";
     public static final String SUPPORTABILITY_CUSTOM_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/CustomEventData/HarvestLimit";
+    public static final String SUPPORTABILITY_LOG_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/LogEventData/HarvestLimit";
     public static final String SUPPORTABILITY_ANALYTIC_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/AnalyticEventData/HarvestLimit";
     public static final String SUPPORTABILITY_SPAN_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/SpanEventData/HarvestLimit";
 
@@ -244,6 +257,9 @@ public class MetricNames {
 
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/Customer/interval";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/Customer/transmit";
+
+    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/LogEvent/interval";
+    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/LogEvent/transmit";
 
     public static final String SUPPORTABILITY_SPAN_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/SpanEvent/interval";
     public static final String SUPPORTABILITY_SPAN_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/SpanEvent/transmit";
@@ -329,6 +345,8 @@ public class MetricNames {
 
     // insights
     public static final String SUPPORTABILITY_API_RECORD_CUSTOM_EVENT = "RecordCustomEvent";
+
+    public static final String SUPPORTABILITY_API_RECORD_LOG_EVENT = "RecordLogEvent";
 
     // attributes
     public static final String SUPPORTABILITY_API_ADD_CUSTOM_PARAMETER = "AddCustomParameter";

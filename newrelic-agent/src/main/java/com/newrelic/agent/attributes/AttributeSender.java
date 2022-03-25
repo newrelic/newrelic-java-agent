@@ -21,9 +21,9 @@ public abstract class AttributeSender {
     }
 
     /**
-     * This is used only for logging.
+     * This is used only for agent logging.
      *
-     * @return The type of attribute (e.g. "agent", "custom")
+     * @return The type of attribute (e.g. "agent", "custom", "log")
      */
     protected abstract String getAttributeType();
 

@@ -19,6 +19,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.metric.MetricName;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.PathHashes;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanEvent;
@@ -70,6 +71,7 @@ public class DataSenderImplTest {
     private static final String SUPPORTABILITY_METRIC_METRIC_DATA = "Supportability/Agent/Collector/MaxPayloadSizeLimit/metric_data";
     private static final String SUPPORTABILITY_METRIC_ANALYTIC_DATA = "Supportability/Agent/Collector/MaxPayloadSizeLimit/analytic_event_data";
     private static final String SUPPORTABILITY_METRIC_SPAN_DATA = "Supportability/Agent/Collector/MaxPayloadSizeLimit/span_event_data";
+    private static final String MAX_PAYLOAD_EXCEPTION = MaxPayloadException.class.getSimpleName();
 
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
@@ -531,6 +533,7 @@ public class DataSenderImplTest {
         sendAnalyticEventsPayloadTooBig(dataSender);
         sendMetricDataPayloadTooBig(dataSender);
         sendSpanEventsPayloadTooBig(dataSender);
+        sendLogEventsPayloadTooBig(dataSender);
 
         sendMetricDataSmallPayload(dataSender);
 
@@ -596,12 +599,23 @@ public class DataSenderImplTest {
         }
     }
 
+    private void sendLogEventsPayloadTooBig(DataSenderImpl dataSender) {
+        boolean exceptionThrown = false;
+        try {
+            dataSender.sendLogEvents(createLogEvents(10000));
+        } catch (Exception e) {
+            assertEquals(MAX_PAYLOAD_EXCEPTION, e.getClass().getSimpleName());
+            exceptionThrown = true;
+        }
+        assertTrue("MaxPayloadException was NOT thrown as expected", exceptionThrown);
+    }
+
     private void sendAnalyticEventsPayloadTooBig(DataSenderImpl dataSender) {
         try {
             // ~ 943 bytes
             dataSender.sendAnalyticsEvents(10000, 10000, createTransactionEvents(1000));
         } catch (Exception e) {
-            assertEquals("MaxPayloadException", e.getClass().getSimpleName());
+            assertEquals(MAX_PAYLOAD_EXCEPTION, e.getClass().getSimpleName());
         }
     }
 
@@ -610,7 +624,7 @@ public class DataSenderImplTest {
             // ~ 2378 bytes
             dataSender.sendMetricData(System.currentTimeMillis() - 60, System.currentTimeMillis(), createMetricData(1000));
         } catch (Exception e) {
-            assertEquals("MaxPayloadException", e.getClass().getSimpleName());
+            assertEquals(MAX_PAYLOAD_EXCEPTION, e.getClass().getSimpleName());
         }
     }
 
@@ -619,7 +633,7 @@ public class DataSenderImplTest {
             // ~ 999 bytes
             dataSender.sendSpanEvents(10000, 10000, createSpanEvents(1000));
         } catch (Exception e) {
-            assertEquals("MaxPayloadException", e.getClass().getSimpleName());
+            assertEquals(MAX_PAYLOAD_EXCEPTION, e.getClass().getSimpleName());
         }
     }
 
@@ -649,6 +663,16 @@ public class DataSenderImplTest {
                     .setPort(8080)
                     .setTripId("tripId")
                     .build());
+        }
+        return events;
+    }
+
+    private List<LogEvent> createLogEvents(int size) {
+        List<LogEvent> events = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            Map<String, Object> attrs = new HashMap<>();
+            attrs.put("key", "value");
+            events.add(new LogEvent(attrs, 0));
         }
         return events;
     }

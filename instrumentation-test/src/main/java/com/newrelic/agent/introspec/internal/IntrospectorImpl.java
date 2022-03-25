@@ -22,6 +22,7 @@ import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.agent.introspec.TransactionTrace;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.TransactionStats;
 
@@ -225,6 +226,18 @@ class IntrospectorImpl implements Introspector, ExtendedTransactionListener, Tra
     @Override
     public void clearSpanEvents() {
         IntrospectorSpanEventService service = (IntrospectorSpanEventService) ServiceFactory.getServiceManager().getSpanEventsService();
+        service.clearReservoir();
+    }
+
+    @Override
+    public Collection<LogEvent> getLogEvents() {
+       IntrospectorLogSenderService service = (IntrospectorLogSenderService) ServiceFactory.getServiceManager().getLogSenderService();
+       return service.getLogEvents();
+    }
+
+    @Override
+    public void clearLogEvents() {
+        IntrospectorLogSenderService service = (IntrospectorLogSenderService) ServiceFactory.getServiceManager().getLogSenderService();
         service.clearReservoir();
     }
 

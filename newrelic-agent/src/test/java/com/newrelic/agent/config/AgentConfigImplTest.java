@@ -11,17 +11,26 @@ import com.newrelic.agent.Mocks;
 import com.newrelic.agent.config.internal.MapEnvironmentFacade;
 import com.newrelic.agent.config.internal.MapSystemProps;
 import com.newrelic.bootstrap.BootstrapAgent;
-
 import org.junit.After;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /* (non-javadoc)
- * Note: the "beacon" was a predecessor technology for correlated transaction traces with the browser. 
+ * Note: the "beacon" was a predecessor technology for correlated transaction traces with the browser.
  * Some appearances of the term could be changed to "browser" now.
  */
 
@@ -92,7 +101,7 @@ public class AgentConfigImplTest {
     }
 
     @Test
-    public void defaultMetricIngestUri()  {
+    public void defaultMetricIngestUri() {
         Map<String, Object> localMap = new HashMap<>();
 
         // regular pre-protocol 15 key
@@ -1120,7 +1129,7 @@ public class AgentConfigImplTest {
         List<String> deprecationMessages = agentConfig.logDeprecatedProperties(settings);
 
         assertTrue(deprecationMessages.contains(
-                        "Configuration my-prop is deprecated and will be removed in the next major version. "
+                "Configuration my-prop is deprecated and will be removed in the next major version. "
                         + "It was set in the configuration file. "
                         + "This property is obsolete."
         ));
@@ -1142,7 +1151,6 @@ public class AgentConfigImplTest {
                         + "Use new-prop instead."
         ));
     }
-
 
     @Test
     public void shouldLogPropertyAfterCheckingTheMap() {
@@ -1220,7 +1228,72 @@ public class AgentConfigImplTest {
         //when
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
         //then
-        assertEquals("Span max samples should be the harvest limit of: "+harvestLimit.intValue(), harvestLimit.intValue(), config.getSpanEventsConfig().getMaxSamplesStored());
+        assertEquals("Span max samples should be the harvest limit of: " + harvestLimit.intValue(), harvestLimit.intValue(),
+                config.getSpanEventsConfig().getMaxSamplesStored());
+    }
+
+    @Test
+    public void getApplicationLoggingConfig() {
+        long NOT_DEFAULT_MAX_SAMPLES_STORED = 5000;
+        Map<String, Object> subForwardingMap = new HashMap<>();
+        subForwardingMap.put(ApplicationLoggingForwardingConfig.ENABLED, !ApplicationLoggingForwardingConfig.DEFAULT_ENABLED);
+        subForwardingMap.put(ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED, NOT_DEFAULT_MAX_SAMPLES_STORED);
+
+        Map<String, Object> subMetricMap = new HashMap<>();
+        subMetricMap.put(ApplicationLoggingMetricsConfig.ENABLED, !ApplicationLoggingMetricsConfig.DEFAULT_ENABLED);
+
+        Map<String, Object> subDecoratingMap = new HashMap<>();
+        subDecoratingMap.put(ApplicationLoggingLocalDecoratingConfig.ENABLED, !ApplicationLoggingLocalDecoratingConfig.DEFAULT_ENABLED);
+
+        Map<String, Object> loggingMap = new HashMap<>();
+        loggingMap.put(ApplicationLoggingConfigImpl.FORWARDING, subForwardingMap);
+        loggingMap.put(ApplicationLoggingConfigImpl.METRICS, subMetricMap);
+        loggingMap.put(ApplicationLoggingConfigImpl.LOCAL_DECORATING, subDecoratingMap);
+
+        Map<String, Object> localMap = new HashMap<>();
+        localMap.put(AgentConfigImpl.APPLICATION_LOGGING, loggingMap);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertEquals(ApplicationLoggingConfigImpl.DEFAULT_ENABLED, config.getApplicationLoggingConfig().isEnabled());
+        assertTrue(config.getApplicationLoggingConfig().isForwardingEnabled());
+        assertEquals(NOT_DEFAULT_MAX_SAMPLES_STORED, config.getApplicationLoggingConfig().getMaxSamplesStored());
+        assertFalse(config.getApplicationLoggingConfig().isMetricsEnabled());
+        assertTrue(config.getApplicationLoggingConfig().isLocalDecoratingEnabled());
+
+    }
+
+    @Test
+    public void getApplicationLoggingConfigDefaults() {
+        Map<String, Object> localMap = new HashMap<>();
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertTrue(config.getApplicationLoggingConfig().isEnabled());
+        assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
+        assertEquals(ApplicationLoggingForwardingConfig.DEFAULT_MAX_SAMPLES_STORED, config.getApplicationLoggingConfig().getMaxSamplesStored());
+        assertTrue(config.getApplicationLoggingConfig().isMetricsEnabled());
+        assertFalse(config.getApplicationLoggingConfig().isLocalDecoratingEnabled());
+
+    }
+
+    @Test
+    public void getApplicationLoggingConfigSystemProperty() {
+
+        String key = ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT + ApplicationLoggingConfigImpl.ENABLED;
+        String val = String.valueOf(!ApplicationLoggingConfigImpl.DEFAULT_ENABLED);
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(key, val);
+
+        SystemPropertyProvider provider = Mocks.createSystemPropertyProvider(properties);
+
+        Map<String, Object> localMap = new HashMap<>();
+        Map<String, Object> loggingMap = new HashMap<>();
+        loggingMap.put(ApplicationLoggingConfigImpl.ENABLED, provider.getSystemProperty(key));
+        localMap.put(ApplicationLoggingConfigImpl.FORWARDING, loggingMap);
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertFalse(ApplicationLoggingConfigImpl.DEFAULT_ENABLED &&
+                config.getTransactionTracerConfig().isEnabled());
     }
 
     private static EnvironmentFacade createEnvironmentFacade(
