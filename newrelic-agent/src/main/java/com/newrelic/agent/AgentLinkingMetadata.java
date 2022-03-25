@@ -50,9 +50,15 @@ public class AgentLinkingMetadata {
         try {
             String entityGuid = getEntityGuid(rpmService);
             if (!entityGuid.isEmpty()) {
-                linkingMetadata.put(ENTITY_NAME, getEntityName(agentConfig));
-                linkingMetadata.put(ENTITY_TYPE, getEntityType());
                 linkingMetadata.put(ENTITY_GUID, entityGuid);
+            }
+            String entityName = getEntityName(agentConfig);
+            if (!entityName.isEmpty()) {
+                linkingMetadata.put(ENTITY_NAME, entityName);
+            }
+            String entityType = getEntityType();
+            if (!entityType.isEmpty()) {
+                linkingMetadata.put(ENTITY_TYPE, entityType);
             }
         } catch (NullPointerException ignored) {
             logWarning();
