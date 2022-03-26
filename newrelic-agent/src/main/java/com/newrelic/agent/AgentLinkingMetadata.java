@@ -46,12 +46,12 @@ public class AgentLinkingMetadata {
         linkingMetadata.put(TRACE_ID, getTraceId(traceMetadata));
         linkingMetadata.put(SPAN_ID, getSpanId(traceMetadata));
         linkingMetadata.put(HOSTNAME, getHostname(agentConfig));
+        linkingMetadata.put(ENTITY_NAME, getEntityName(agentConfig));
+        linkingMetadata.put(ENTITY_TYPE, getEntityType());
 
         try {
             String entityGuid = getEntityGuid(rpmService);
             if (!entityGuid.isEmpty()) {
-                linkingMetadata.put(ENTITY_NAME, getEntityName(agentConfig));
-                linkingMetadata.put(ENTITY_TYPE, getEntityType());
                 linkingMetadata.put(ENTITY_GUID, entityGuid);
             }
         } catch (NullPointerException ignored) {
@@ -89,14 +89,16 @@ public class AgentLinkingMetadata {
         if (!hostname.isEmpty()) {
             logEventLinkingMetadata.put(HOSTNAME, hostname);
         }
+
+        String entityName = getEntityName(agentConfig);
+        if (!entityName.isEmpty()) {
+            logEventLinkingMetadata.put(ENTITY_NAME, entityName);
+        }
+
         try {
             String entityGuid = rpmService.getEntityGuid();
             if (!entityGuid.isEmpty()) {
                 logEventLinkingMetadata.put(ENTITY_GUID, entityGuid);
-            }
-            String entityName = getEntityName(agentConfig);
-            if (!entityName.isEmpty()) {
-                logEventLinkingMetadata.put(ENTITY_NAME, entityName);
             }
         } catch (NullPointerException ignored) {
             logWarning();
