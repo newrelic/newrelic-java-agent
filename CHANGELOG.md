@@ -7,10 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
-## Version 7.6.0 (2021-01-07)
-TBD
 
-## Version 7.5.0 (2021-01-12)
+## Version 7.6.0 (2022-04-04)
+
+### New features and improvements
+* Added built-in agent support for Logs in Context (log4j 2.6+ and Logback 1.1+). Read more about this capability on our [Logs in Context feature page](https://docs.newrelic.com/docs/logs/logs-context/java-configure-logs-context-all/) [718](https://github.com/newrelic/newrelic-java-agent/pull/718)
+* Added instrumentation support for the MariaDB & H2 R2DBC connectors [799](https://github.com/newrelic/newrelic-java-agent/pull/799) [724](https://github.com/newrelic/newrelic-java-agent/pull/724)
+* Updated agent support for Jedis 4.0.0+ [698](https://github.com/newrelic/newrelic-java-agent/pull/698)
+* Updated agent support for Cassandra dataStax 4+ [690](https://github.com/newrelic/newrelic-java-agent/pull/690)
+
+### Fixes
+* Guard against intermittent null pointer exceptions [707](https://github.com/newrelic/newrelic-java-agent/pull/707)
+* Support CSP nonce parameter for RUM header and footer [591](https://github.com/newrelic/newrelic-java-agent/pull/591)
+* Fixed an issue with auto app naming and distributed tracing transactions [566](https://github.com/newrelic/newrelic-java-agent/pull/566)
+* Increased maximum `TransactionError` message size [581](https://github.com/newrelic/newrelic-java-agent/issues/581)
+* The `http.responseCode`, `response.status` and `response.statusMessage` transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by `http.statusCode` and `http.statusText` [513](https://github.com/newrelic/newrelic-java-agent/pull/513):
+
+### Support statement:
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
+  performance benefits. Additionally, older releases will no longer be supported when they reach
+  [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
+
+## Version 7.5.0 (2022-01-12)
 
 ## New features and improvements
 
