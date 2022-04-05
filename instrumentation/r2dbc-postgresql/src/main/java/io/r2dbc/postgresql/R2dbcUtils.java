@@ -39,7 +39,7 @@ public class R2dbcUtils {
                         .operation(sqlOperation.getOperation())
                         .instance(connectionConfiguration.getHost(), connectionConfiguration.getPort())
                         .databaseName(connectionConfiguration.getDatabase())
-                        .slowQuery(sql, R2dbcObfuscator.MYSQL_QUERY_CONVERTER)
+                        .slowQuery(sql, R2dbcObfuscator.POSTGRES_QUERY_CONVERTER)
                         .build());
             }
         };
