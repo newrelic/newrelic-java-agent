@@ -34,8 +34,9 @@ public class UtilizationDataConfig extends BaseConfig {
     private String billingHostname;
 
     private String parseConfigVal(String key) {
-        if (getProperty(key) != null) {
-            return getProperty(key).toString();
+        Object value = getProperty(key);
+        if (value != null) {
+            return value.toString();
         }
         return null;
     }
@@ -43,12 +44,14 @@ public class UtilizationDataConfig extends BaseConfig {
     public UtilizationDataConfig(Map<String, Object> props) throws NumberFormatException {
         super(props, PROPERTY_ROOT);
         try {
-            totalRamMibConfig = parseConfigVal(TOTAL_RAM_MIB) == null ? null : new Long(parseConfigVal(TOTAL_RAM_MIB));
+            String configValue = parseConfigVal(TOTAL_RAM_MIB);
+            totalRamMibConfig =  configValue == null ? null : Long.valueOf(configValue);
         } catch (NumberFormatException e) {
             Agent.LOG.log(Level.WARNING, "Number expected total_ram_mib configuration {0}", e);
         }
         try {
-            logicalProcessorsConfig = parseConfigVal(LOGICAL_PROCESSORS) == null ? null : new Integer(parseConfigVal(LOGICAL_PROCESSORS));
+            String configValue = parseConfigVal(LOGICAL_PROCESSORS);
+            logicalProcessorsConfig = configValue == null ? null : Integer.valueOf(configValue);
         } catch (NumberFormatException e) {
             Agent.LOG.log(Level.WARNING, "Number expected for logical_processors configuration {0}", e);
         }
