@@ -13,10 +13,10 @@ import java.util.regex.Pattern;
  * Simple set of utilities to help us validate that the agent is being run on a supported version of Java.
  */
 public class JavaVersionUtils {
-    private static final Pattern SUPPORTED_JAVA_VERSION_PATTERN = Pattern.compile("^(1\\.8|9|1[0-7])$");
+    private static final Pattern SUPPORTED_JAVA_VERSION_PATTERN = Pattern.compile("^(1\\.8|9|1[0-8])$");
     private static final Pattern EXCLUSIVE_MIN_JAVA_VERSION_PATTERN = Pattern.compile("^1\\.7$");
-    private static final Pattern EXCLUSIVE_MAX_JAVA_VERSION_PATTERN = Pattern.compile("^18$");
-    private static final String MAX_SUPPORTED_VERSION = "17";
+    private static final Pattern EXCLUSIVE_MAX_JAVA_VERSION_PATTERN = Pattern.compile("^19$");
+    private static final String MAX_SUPPORTED_VERSION = "18";
 
     public static final String JAVA_7 = "1.7";
     public static final String JAVA_8 = "1.8";
