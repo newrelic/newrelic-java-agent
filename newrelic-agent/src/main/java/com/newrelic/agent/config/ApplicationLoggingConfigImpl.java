@@ -17,7 +17,7 @@ import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
  * application_logging:
  *   enabled: true
  *   forwarding:
- *     enabled: false
+ *     enabled: true
  *     max_samples_stored: 10000
  *   metrics:
  *     enabled: true
@@ -69,6 +69,7 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
         return new ApplicationLoggingConfigImpl(settings, highSecurity);
     }
 
+    @Override
     public boolean isEnabled() {
         return applicationLoggingEnabled;
     }
@@ -88,6 +89,7 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
         return applicationLoggingEnabled && applicationLoggingForwardingConfig.getEnabled();
     }
 
+    @Override
     public int getMaxSamplesStored() {
         return applicationLoggingForwardingConfig.getMaxSamplesStored();
     }

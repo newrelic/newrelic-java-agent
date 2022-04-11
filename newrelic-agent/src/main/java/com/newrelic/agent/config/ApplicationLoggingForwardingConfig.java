@@ -17,7 +17,7 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
     public static final String ENABLED = "enabled";
     public static final String MAX_SAMPLES_STORED = "max_samples_stored";
 
-    public static final boolean DEFAULT_ENABLED = false;
+    public static final boolean DEFAULT_ENABLED = true;
     public static final int DEFAULT_MAX_SAMPLES_STORED = 10000;
 
     private final boolean enabled;

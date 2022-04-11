@@ -12,14 +12,13 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ApplicationLoggingForwardingConfigTest {
-    private Map<String, Object> localProps;
     private static final int TEST_MAX_SAMPLES_STORED = 5000;
-
     @Rule
     public SaveSystemPropertyProviderRule saveSystemPropertyProviderRule = new SaveSystemPropertyProviderRule();
+    private Map<String, Object> localProps;
 
     @Before
     public void setup() {
@@ -30,8 +29,7 @@ public class ApplicationLoggingForwardingConfigTest {
     public void defaultForwardingConfig() {
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
                 false);
-        assertFalse(config.getEnabled());
-
+        assertTrue(config.getEnabled());
     }
 
     @Test
@@ -46,7 +44,8 @@ public class ApplicationLoggingForwardingConfigTest {
         Map<String, Object> maxSamplesStoreTooLarge = new HashMap<>(localProps);
         maxSamplesStoreTooLarge.put(ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED, new BigInteger("9999999999999999999999"));
 
-        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(maxSamplesStoreTooLarge, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(maxSamplesStoreTooLarge,
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
                 false);
         assertEquals(ApplicationLoggingForwardingConfig.DEFAULT_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
     }
@@ -61,7 +60,6 @@ public class ApplicationLoggingForwardingConfigTest {
 
     @Test
     public void usesEnvVarForNestedConfig() {
-
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(
@@ -71,13 +69,11 @@ public class ApplicationLoggingForwardingConfigTest {
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
                 ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
         assertEquals(TEST_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
-
     }
 
     @Test
     public void usesSysPropForNestedConfig() {
         Properties properties = new Properties();
-
         properties.put("newrelic.config.application_logging.forwarding.max_samples_stored", "" + TEST_MAX_SAMPLES_STORED);
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(properties),
@@ -87,7 +83,6 @@ public class ApplicationLoggingForwardingConfigTest {
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
                 ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
         assertEquals(TEST_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
-
     }
 
 }
