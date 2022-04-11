@@ -1255,11 +1255,10 @@ public class AgentConfigImplTest {
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertEquals(ApplicationLoggingConfigImpl.DEFAULT_ENABLED, config.getApplicationLoggingConfig().isEnabled());
-        assertTrue(config.getApplicationLoggingConfig().isForwardingEnabled());
+        assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
         assertEquals(NOT_DEFAULT_MAX_SAMPLES_STORED, config.getApplicationLoggingConfig().getMaxSamplesStored());
         assertFalse(config.getApplicationLoggingConfig().isMetricsEnabled());
         assertTrue(config.getApplicationLoggingConfig().isLocalDecoratingEnabled());
-
     }
 
     @Test
@@ -1268,16 +1267,14 @@ public class AgentConfigImplTest {
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertTrue(config.getApplicationLoggingConfig().isEnabled());
-        assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
+        assertTrue(config.getApplicationLoggingConfig().isForwardingEnabled());
         assertEquals(ApplicationLoggingForwardingConfig.DEFAULT_MAX_SAMPLES_STORED, config.getApplicationLoggingConfig().getMaxSamplesStored());
         assertTrue(config.getApplicationLoggingConfig().isMetricsEnabled());
         assertFalse(config.getApplicationLoggingConfig().isLocalDecoratingEnabled());
-
     }
 
     @Test
     public void getApplicationLoggingConfigSystemProperty() {
-
         String key = ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT + ApplicationLoggingConfigImpl.ENABLED;
         String val = String.valueOf(!ApplicationLoggingConfigImpl.DEFAULT_ENABLED);
 
