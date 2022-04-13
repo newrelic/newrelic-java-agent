@@ -23,15 +23,15 @@ public abstract class ActorCell_Instrumentation {
 
         String messageClassName = envelope.message().getClass().getName();
         if (receiver != null && !AkkaUtil.isHeartBeatMessage(messageClassName) && !AkkaUtil.isLogger(receiver)) {
-            if (envelope.token != null) {
-                if (envelope.token.link()) {
-                    AgentBridge.getAgent().getTracedMethod().setMetricName("Akka", "receive", receiver);
-                    AgentBridge.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW,
-                            false, "Actor", receiver, "invoke");
-                }
-                envelope.token.expire();
-                envelope.token = null;
-            }
+          if (envelope.token != null) {
+            envelope.token.link();
+            AgentBridge.getAgent().getTracedMethod().setMetricName("Akka", "receive", receiver);
+            AgentBridge.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW,
+                                                                       false, "Actor", receiver, "invoke");
+
+            envelope.token.expire();
+            envelope.token = null;
+          }
         }
 
         Weaver.callOriginal();
