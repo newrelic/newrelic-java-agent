@@ -41,6 +41,9 @@ jobs:
           $ORG_GRADLE_PROJECT_jdk11/bin/java -version
       - name: correct JAVA_HOME
         run: echo "JAVA_HOME=$ORG_GRADLE_PROJECT_jdk8" >> $GITHUB_ENV
+      # these options are required so toolchain only uses the JDKs we specified
+      - name: setup gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8,ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
       # Restore the gradle cache
       - uses: actions/cache@v2
         with:
@@ -73,7 +76,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish -Prelease=true
+        run: ./gradlew $GRADLE_OPTIONS publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish -Prelease=true
       - name: Publish release apis
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -81,4 +84,4 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew :newrelic-scala-api:publish :newrelic-scala-cats-api:publish :newrelic-cats-effect3-api:publish :newrelic-scala-zio-api:publish -Prelease=true
+        run: ./gradlew $GRADLE_OPTIONS :newrelic-scala-api:publish :newrelic-scala-cats-api:publish :newrelic-cats-effect3-api:publish :newrelic-scala-zio-api:publish -Prelease=true

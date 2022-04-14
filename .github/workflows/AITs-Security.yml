@@ -140,7 +140,7 @@ jobs:
         run: |
           echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
 
-      # Install 18 EA
+      # Install 18
       - name: Set up Java 18
         uses: actions/setup-java@v2
         with:
@@ -162,6 +162,10 @@ jobs:
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk8=${JAVA_HOME}" >> $GITHUB_ENV
+
+      # Needed for toolchains and GHA.
+      - name: setup gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8,ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
 
       ## End JDK Install
 
@@ -192,7 +196,7 @@ jobs:
           echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
-          ./gradlew clean jar --parallel
+          ./gradlew $GRADLE_OPTIONS clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: CD to agent-integration-tests dir.
