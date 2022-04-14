@@ -82,14 +82,14 @@ jobs:
           java-version: 18
 
       # Save new JDK variable
-      - name: Save JAVA_HOME as JDK18ea for later usage
+      - name: Save JAVA_HOME as JDK18 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
 
       # Needed for toolchains and GHA.
       - name: setup gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=$ORG_GRADLE_PROJECT_jdk8,$ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8,ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
 
       # Check ENV variables
       - name: Check environmental variables

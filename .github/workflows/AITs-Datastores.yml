@@ -155,7 +155,7 @@ jobs:
 
       # Needed for toolchains and GHA.
       - name: setup gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=$ORG_GRADLE_PROJECT_jdk8,$ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8,ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
 
       ## End JDK Install
 
