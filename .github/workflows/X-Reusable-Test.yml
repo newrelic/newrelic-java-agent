@@ -87,6 +87,10 @@ jobs:
           echo "Current JAVA_HOME = ${JAVA_HOME}"
           echo "ORG_GRADLE_PROJECT_jdk18=$JAVA_HOME" >> $GITHUB_ENV
 
+      # Needed for toolchains and GHA.
+      - name: setup gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=$ORG_GRADLE_PROJECT_jdk8,$ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
+
       # Check ENV variables
       - name: Check environmental variables
         run: printenv | sort -f
@@ -134,7 +138,7 @@ jobs:
           echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
           ls -la
           cat settings.gradle
-          ./gradlew clean jar --parallel
+          ./gradlew $GRADLE_OPTIONS clean jar --parallel
           ls -la newrelic-agent/build/
 
       - name: Build newrelicJar w/o GE
@@ -145,7 +149,7 @@ jobs:
           echo "*** NOT PUBLISHING BUILD SCANS ***"
           ls -la
           cat settings.gradle
-          ./gradlew clean jar --parallel
+          ./gradlew $GRADLE_OPTIONS clean jar --parallel
           ls -la newrelic-agent/build/
 
       # GHA run instrumentation tests
@@ -174,7 +178,7 @@ jobs:
           LANGUAGE: java
           TEST_TYPE: instrumentation
         run: |
-          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
 
       # Run the build without Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
@@ -183,7 +187,7 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
-          ./gradlew --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
