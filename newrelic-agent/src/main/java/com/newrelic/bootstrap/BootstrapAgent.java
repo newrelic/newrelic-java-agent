@@ -123,6 +123,7 @@ public class BootstrapAgent {
 
             // Append K2 JC jar to bootclass path
             inst.appendToBootstrapClassLoaderSearch(jarFileInAgent);
+            inst.appendToSystemClassLoaderSearch(jarFileInAgent);
 
             // Load in bootstrap classloader
             Class agentNew = Class.forName("sun.reflect.com.k2cybersecurity.instrumentator.AgentNew", true, null);
