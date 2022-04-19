@@ -95,10 +95,10 @@ common: &default_settings
 
     # The agent will automatically forward application logs to New Relic in
     # a format that includes agent metadata for linking them to traces and errors.
-    #forwarding:
+    forwarding:
 
-      # When true, application logs will be forwarded to New Relic. The default is false.
-      #enabled: false
+      # When true, application logs will be forwarded to New Relic. The default is true.
+      enabled: true
 
       # Application log events are collected up to the configured amount. Afterwards,
       # events are sampled to maintain an even distribution across the harvest cycle.
