@@ -14,6 +14,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     jcenter()
 }
 
@@ -59,6 +60,7 @@ dependencies {
     jarIntoJar project(":agent-bridge-datastore")
     jarIntoJar project(":newrelic-weaver-api")
     jarIntoJar project(":newrelic-weaver-scala-api")
+    jarIntoJar('com.k2cybersecurity:k2-java-agent:1.0.0')
 
     shadowIntoJar project(":agent-interfaces")
     shadowIntoJar project(":agent-model")

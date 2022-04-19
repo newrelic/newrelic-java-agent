@@ -50,6 +50,8 @@ public class BootstrapLoader {
 
     public static final String WEAVER_API_JAR_NAME = "newrelic-weaver-api";
 
+    public static final String K2_JAVA_AGENT = "k2-java-agent-1.0.0";
+
     static final class ApiClassTransformer implements ClassFileTransformer {
         private final byte[] bytes;
 

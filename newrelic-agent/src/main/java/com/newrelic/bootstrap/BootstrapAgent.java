@@ -27,6 +27,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.jar.JarFile;
 import java.util.zip.InflaterInputStream;
 
 public class BootstrapAgent {
@@ -112,6 +113,25 @@ public class BootstrapAgent {
 
         checkAndApplyIBMLibertyProfileLogManagerWorkaround();
         startAgent(agentArgs, inst);
+        attachK2Agent(agentArgs, inst);
+    }
+
+    private static void attachK2Agent(String agentArgs, Instrumentation inst) {
+        try {
+            // Locate K2 JC jar
+            JarFile jarFileInAgent = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.K2_JAVA_AGENT));
+
+            // Append K2 JC jar to bootclass path
+            inst.appendToBootstrapClassLoaderSearch(jarFileInAgent);
+
+            // Load in bootstrap classloader
+            Class agentNew = Class.forName("sun.reflect.com.k2cybersecurity.instrumentator.AgentNew", true, null);
+            Method premain = agentNew.getMethod("premain", String.class, Instrumentation.class);
+            premain.setAccessible(true);
+            premain.invoke(null, agentArgs, inst);
+        } catch (Throwable throwable){
+            throwable.printStackTrace();
+        }
     }
 
     private static void checkAndApplyIBMLibertyProfileLogManagerWorkaround() {
