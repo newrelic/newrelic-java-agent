@@ -33,18 +33,9 @@ public class CallbackRunnable_Instrumentation<T> {
      */
     public void value_$eq(Try<T> original) {
         Weaver.callOriginal();
-
-        AgentBridge.TokenAndRefCount tokenAndRefCount = AgentBridge.activeToken.get();
-        if (tokenAndRefCount == null) {
-            Transaction tx = AgentBridge.getAgent().getTransaction(false);
-            if (tx != null) {
-                AgentBridge.TokenAndRefCount tokenAndRef = new AgentBridge.TokenAndRefCount(tx.getToken(),
-                        AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
-                value = new WrappedTry<>(value, tokenAndRef);
-            }
-        } else {
-            value = new WrappedTry<>(value, tokenAndRefCount);
-            tokenAndRefCount.refCount.incrementAndGet();
+        AgentBridge.TokenAndRefCount tokenAndRefCount = ScalaUtils.getThreadTokenAndRefCount();
+        if (tokenAndRefCount != null) {
+          value = new WrappedTry<>(value, tokenAndRefCount);
         }
     }
 
@@ -83,10 +74,7 @@ public class CallbackRunnable_Instrumentation<T> {
                     AgentBridge.activeToken.remove();
                 }
 
-                if (wrapped.tokenAndRefCount.refCount.decrementAndGet() == 0) {
-                    wrapped.tokenAndRefCount.token.expire();
-                    wrapped.tokenAndRefCount.token = null;
-                }
+                ScalaUtils.clearThreadTokenAndRefCountAndTxn(wrapped.tokenAndRefCount);
             }
         }
     }

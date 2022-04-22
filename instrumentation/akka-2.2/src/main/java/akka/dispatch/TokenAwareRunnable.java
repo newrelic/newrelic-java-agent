@@ -16,15 +16,15 @@ public final class TokenAwareRunnable implements Runnable {
 
   @Override
   public void run() {
-    try {
-      if (delegate != null) {
-        logTokenInfo(tokenAndRefCount, "Token info set in thread");
-        setThreadTokenAndRefCount(tokenAndRefCount);
-        delegate.run();
+      try {
+        if (delegate != null) {
+          logTokenInfo(tokenAndRefCount, "Token info set in thread");
+          setThreadTokenAndRefCount(tokenAndRefCount);
+          delegate.run();
+        }
+      } finally {
+        logTokenInfo(tokenAndRefCount, "Clearing token info from thread ");
+        clearThreadTokenAndRefCountAndTxn(tokenAndRefCount);
       }
-    } finally {
-      logTokenInfo(tokenAndRefCount, "Clearing token info from thread ");
-      clearThreadTokenAndRefCountAndTxn(tokenAndRefCount);
-    }
   }
 }

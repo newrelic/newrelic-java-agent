@@ -9,11 +9,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class TokenAwareThreadPoolExecuter implements ExecutorService, LoadMetrics {
+public class TokenAwareExecuter implements ExecutorService, LoadMetrics {
 
   private final ExecutorService delegate;
 
-  public TokenAwareThreadPoolExecuter(ExecutorService threadPoolExecutor) {
+  public TokenAwareExecuter(ExecutorService threadPoolExecutor) {
     this.delegate = threadPoolExecutor;
   }
   @Override

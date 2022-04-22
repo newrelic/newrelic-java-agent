@@ -60,11 +60,7 @@ public class Future_Instrumentation<T> {
                     if (remove) {
                         AgentBridge.activeToken.remove();
                     }
-
-                    if (wrapped.tokenAndRefCount.refCount.decrementAndGet() == 0) {
-                        wrapped.tokenAndRefCount.token.expire();
-                        wrapped.tokenAndRefCount.token = null;
-                    }
+                   ScalaUtils.clearThreadTokenAndRefCountAndTxn(wrapped.tokenAndRefCount);
                 }
             }
         }

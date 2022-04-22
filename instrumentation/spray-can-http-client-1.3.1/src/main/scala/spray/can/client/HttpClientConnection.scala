@@ -25,8 +25,10 @@ abstract class HttpClientSettingsGroup {
   def sender(): ActorRef
 
   def aroundReceive(receive :Receive, msg :Any) :Unit = {
-    if (AgentBridge.getAgent.getTransaction(false) != null && msg.isInstanceOf[Http_Instrumentation.Connect]) {
-      msg.asInstanceOf[Http_Instrumentation.Connect].token = NewRelic.getAgent.getTransaction.getToken
+    msg match {
+      case connect: Http_Instrumentation.Connect if AgentBridge.getAgent.getTransaction(false) != null =>
+        connect.token = NewRelic.getAgent.getTransaction.getToken
+      case _ =>
     }
     Weaver.callOriginal()
   }
