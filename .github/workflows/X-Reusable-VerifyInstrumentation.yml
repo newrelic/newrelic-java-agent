@@ -1,0 +1,195 @@
+# Reusable workflow to run Verify Instrumentation on modules.
+# Only processes a fraction of the modules so the they fit into a GHA matrix (which is limited to 255 jobs).
+
+name: X - Reusable Verify Instrumentation
+on:
+  workflow_call:
+    inputs:
+      page:
+        required: true
+        type: string
+        description: 'The page to process (eg: 1/2 or 5/5)'
+      ref:
+        required: true
+        default: main
+        type: string
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+    secrets:
+      aws-access-key-id:
+        required: false
+      aws-secret-access-key:
+        required: false
+
+jobs:
+
+  # this job reads the directories in newrelic-java-agent/instrumentation and creates a JSON with the list of the modules
+  # this list is paginated and will be used in the verify-module job.
+  read-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-modules.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.ref }}
+
+
+      - id: set-modules
+        name: get instrumentation modules as json
+        run: |
+          cd instrumentation
+          tmpfile=$(mktemp /tmp/dirs.XXXXXXXXXX)
+          # lists the folders inside instrumentation, and removes the trailing '/'
+          ls -d */ | cut -d'/' -f 1 > $tmpfile
+          # creates an envar with the requested page of the instrumentation modules in a JSON format
+          modules=$((
+            echo '{ "modules" : '
+            split -n l/${{ inputs.page }} $tmpfile | jq -R -s -c 'split("\n")[:-1]'
+            echo " }"
+          ) | jq -c .)
+          # save the output of the job
+          echo "::set-output name=modules::$modules"
+
+  # build the agent and saves Gradle's cache so all modules can use the cache
+  # At first, the agent jar was being cached, but this caused a problem with the caching mechanism and some
+  # later jobs were not able to retrieve the cached agent jar.
+  build-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Java 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
+      - name: Save JAVA_HOME as JDK11 for later usage
+        run: |
+          echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
+
+      - name: Set up Java 8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 8
+
+      - name: Save JAVA_HOME as JDK8 for later usage
+        run: |
+          echo "JDK8=$JAVA_HOME" >> $GITHUB_ENV
+
+      # Rewrite gradle.properties
+      - name: set gradle.properties
+        run: |
+          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
+          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
+          mv gradle.properties.gha gradle.properties
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Setup Gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
+
+      ## AWS jars - plan to cache
+      - name: Configure AWS Credentials
+        if: ${{ env.AWS_KEY != '' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-region: us-east-2
+
+      - name: Download S3 instrumentation jar zip
+        if: ${{ env.AWS_KEY != '' }}
+        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip  ## 2020?
+
+      - name: Unzip the instrumentation jars
+        if: ${{ env.AWS_KEY != '' }}
+        run: unzip proprietary-jars.zip
+
+      - name: Log jars are in target libs
+        if: ${{ env.AWS_KEY != '' }}
+        run: find instrumentation -name "*.jar"
+      ## End AWS jars - plan to cache (check for cache, restore if required)
+
+      - name: Build agent
+        run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
+
+  verify-module:
+    runs-on: ubuntu-latest
+    needs: [read-modules, build-agent]
+    strategy:
+      fail-fast: false
+      # GHA's IDE think the line below is broken. It is not.
+      matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Java 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
+      - name: Save JAVA_HOME as JDK11 for later usage
+        run: |
+          echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
+
+      - name: Set up Java 8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 8
+
+      - name: Save JAVA_HOME as JDK8 for later usage
+        run: |
+          echo "JDK8=$JAVA_HOME" >> $GITHUB_ENV
+
+      # Rewrite gradle.properties
+      - name: set gradle.properties
+        run: |
+          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
+          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
+          mv gradle.properties.gha gradle.properties
+
+      # The verify task should not save to the cache. It will only use the cache from the build-agent job.
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: true
+
+      - name: Setup Gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
+
+      ## AWS jars - plan to cache
+      - name: Configure AWS Credentials
+        if: ${{ env.AWS_KEY != '' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-region: us-east-2
+
+      - name: Download S3 instrumentation jar zip
+        if: ${{ env.AWS_KEY != '' }}
+        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip  ## 2020?
+
+      - name: Unzip the instrumentation jars
+        if: ${{ env.AWS_KEY != '' }}
+        run: unzip proprietary-jars.zip
+
+      - name: Log jars are in target libs
+        if: ${{ env.AWS_KEY != '' }}
+        run: find instrumentation -name "*.jar"
+      ## End AWS jars - plan to cache (check for cache, restore if required)
+
+      - name: Build agent
+        run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
+
+      - name: Running verifyInstrumentation on (${{ matrix.modules }})
+        run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation
