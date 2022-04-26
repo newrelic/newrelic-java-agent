@@ -35,6 +35,7 @@ public class HttpInstrumentation {
 
             AgentBridge.instrumentation.retransformUninstrumentedClass(AsyncRequestHandler.class);
             AgentBridge.instrumentation.retransformUninstrumentedClass(SyncRequestHandler.class);
+            AgentBridge.instrumentation.retransformUninstrumentedClass(FlowRequestHandler.class);
         }
     }
 

@@ -16,15 +16,24 @@ public final class TokenAwareRunnable implements Runnable {
 
   @Override
   public void run() {
-      try {
-        if (delegate != null) {
+    if (delegate != null) {
+      if(isTokenAwareThread()) {
+        try {
           logTokenInfo(tokenAndRefCount, "Token info set in thread");
           setThreadTokenAndRefCount(tokenAndRefCount);
           delegate.run();
+
+        } finally {
+          logTokenInfo(tokenAndRefCount, "Clearing token info from thread ");
+          clearThreadTokenAndRefCountAndTxn(tokenAndRefCount);
         }
-      } finally {
-        logTokenInfo(tokenAndRefCount, "Clearing token info from thread ");
-        clearThreadTokenAndRefCountAndTxn(tokenAndRefCount);
+      } else {
+        delegate.run();
       }
+    }
+  }
+
+  private boolean isTokenAwareThread() {
+    return !Thread.currentThread().getName().contains("akka.io.pinned-dispatcher");
   }
 }

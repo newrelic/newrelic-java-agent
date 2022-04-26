@@ -41,7 +41,7 @@ public class IncomingConnection {
 
   public Object handleWith(Flow<HttpRequest, HttpResponse, Object> handler, final Materializer fm) {
     if(!bindingInstrumented) {
-      handler = new FlowRequestHandler().instrumentFlow(handler, fm);
+      handler = new FlowRequestHandler().instrumentFlow(handler);
     }
     return Weaver.callOriginal();
   }

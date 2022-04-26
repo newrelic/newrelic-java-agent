@@ -64,21 +64,21 @@ public class HttpExtInstrumentation {
     ServerSettings settings, LoggingAdapter log, Materializer fm) {
 
     if (!bindingInstrumented) {
-      handler = new FlowRequestHandler().instrumentFlow(handler, fm);
+      handler = new FlowRequestHandler().instrumentFlow(handler);
     }
     return Weaver.callOriginal();
   }
 
-    public Future<HttpResponse> singleRequest(HttpRequest httpRequest, HttpsConnectionContext connectionContext,
-                                              ConnectionPoolSettings poolSettings,
-                                              LoggingAdapter loggingAdapter) {
-        final Segment segment = NewRelic.getAgent().getTransaction().startSegment("Akka", "singleRequest");
+  public Future<HttpResponse> singleRequest(HttpRequest httpRequest, HttpsConnectionContext connectionContext,
+                                            ConnectionPoolSettings poolSettings,
+                                            LoggingAdapter loggingAdapter) {
+    final Segment segment = NewRelic.getAgent().getTransaction().startSegment("Akka", "singleRequest");
 
-        Future<HttpResponse> responseFuture = Weaver.callOriginal();
+    Future<HttpResponse> responseFuture = Weaver.callOriginal();
 
-        AkkaHttpUtils.finishSegmentOnComplete(httpRequest, responseFuture, segment);
+    AkkaHttpUtils.finishSegmentOnComplete(httpRequest, responseFuture, segment);
 
-        return responseFuture;
-    }
+    return responseFuture;
+  }
 
 }

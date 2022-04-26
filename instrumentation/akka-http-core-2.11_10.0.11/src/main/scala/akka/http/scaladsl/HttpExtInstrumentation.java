@@ -7,6 +7,7 @@
 
 package akka.http.scaladsl;
 
+import akka.NotUsed;
 import akka.event.LoggingAdapter;
 import akka.http.scaladsl.model.HttpRequest;
 import akka.http.scaladsl.model.HttpResponse;
@@ -64,7 +65,7 @@ public class HttpExtInstrumentation {
     ServerSettings settings, LoggingAdapter log, Materializer fm) {
 
     if (!bindingInstrumented) {
-      handler = new FlowRequestHandler().instrumentFlow(handler, fm);
+      handler =  new FlowRequestHandler().instrumentFlow(handler);
     }
     return Weaver.callOriginal();
   }

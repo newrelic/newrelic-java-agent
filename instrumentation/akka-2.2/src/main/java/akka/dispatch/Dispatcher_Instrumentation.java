@@ -16,8 +16,9 @@ public class Dispatcher_Instrumentation {
 
     private ExecutorService executor$lzycompute() {
       ExecutorService original = Weaver.callOriginal();
-      boolean isPinnedDispatcher = $outer instanceof PinnedDispatcher;
-      return isPinnedDispatcher ? original :new TokenAwareExecuter(original);
+//      boolean isPinnedDispatcher = $outer instanceof PinnedDispatcher;
+//      return isPinnedDispatcher ? original :new TokenAwareExecuter(original);
+      return new TokenAwareExecuter(original);
     }
   }
 }
