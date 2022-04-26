@@ -40,12 +40,12 @@ public class R2dbcUtils {
             String identifier = cachedIdentifier != null ? cachedIdentifier : JdbcHelper.parseAndCacheInMemoryIdentifier(jdbcConnection);
             if (sqlOperation != null && socketAddress != null && identifier != null) {
                 segment.reportAsExternal(DatastoreParameters
-                        .product(DatastoreVendor.Postgres.name())
+                        .product(DatastoreVendor.Oracle.name())
                         .collection(sqlOperation.getTableName())
                         .operation(sqlOperation.getOperation())
                         .instance(socketAddress.getHostName(), socketAddress.getPort())
                         .databaseName(identifier)
-                        .slowQuery(sql, R2dbcObfuscator.POSTGRES_QUERY_CONVERTER)
+                        .slowQuery(sql, R2dbcObfuscator.QUERY_CONVERTER)
                         .build());
             }
         };
