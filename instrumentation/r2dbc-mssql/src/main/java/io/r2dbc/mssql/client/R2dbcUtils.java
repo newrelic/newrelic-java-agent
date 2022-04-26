@@ -38,12 +38,12 @@ public class R2dbcUtils {
             InetSocketAddress socketAddress = extractSocketAddress(client);
             if (sqlOperation != null && socketAddress != null) {
                 segment.reportAsExternal(DatastoreParameters
-                        .product(DatastoreVendor.MySQL.name())
+                        .product(DatastoreVendor.MSSQL.name())
                         .collection(sqlOperation.getTableName())
                         .operation(sqlOperation.getOperation())
                         .instance(socketAddress.getHostName(), socketAddress.getPort())
                         .databaseName(null)
-                        .slowQuery(sql, R2dbcObfuscator.MYSQL_QUERY_CONVERTER)
+                        .slowQuery(sql, R2dbcObfuscator.QUERY_CONVERTER)
                         .build());
             }
         };
