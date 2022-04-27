@@ -1,5 +1,6 @@
 package oracle.r2dbc.impl;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Flux;
 import java.net.InetSocketAddress;
 import java.sql.Connection;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class R2dbcUtils {
     public static Flux<OracleResultImpl> wrapRequest(Flux<OracleResultImpl> request, String sql, Connection jdbcConnection) {
@@ -38,12 +40,12 @@ public class R2dbcUtils {
             InetSocketAddress socketAddress = DatastoreInstanceDetection.getAddressForConnection(jdbcConnection);
             String cachedIdentifier = JdbcHelper.getCachedIdentifierForConnection(jdbcConnection);
             String identifier = cachedIdentifier != null ? cachedIdentifier : JdbcHelper.parseAndCacheInMemoryIdentifier(jdbcConnection);
-            if (sqlOperation != null && socketAddress != null && identifier != null) {
+            if (sqlOperation != null) {
                 segment.reportAsExternal(DatastoreParameters
                         .product(DatastoreVendor.Oracle.name())
                         .collection(sqlOperation.getTableName())
                         .operation(sqlOperation.getOperation())
-                        .instance(socketAddress.getHostName(), socketAddress.getPort())
+                        .instance(socketAddress != null ? socketAddress.getHostName() : "localhost", socketAddress != null ? socketAddress.getPort() : null)
                         .databaseName(identifier)
                         .slowQuery(sql, R2dbcObfuscator.QUERY_CONVERTER)
                         .build());
