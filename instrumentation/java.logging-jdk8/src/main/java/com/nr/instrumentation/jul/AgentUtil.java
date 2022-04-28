@@ -33,7 +33,7 @@ public class AgentUtil {
     // Enabled defaults
     private static final boolean APP_LOGGING_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = true;
-    private static final boolean APP_LOGGING_FORWARDING_DEFAULT_ENABLED = false;
+    private static final boolean APP_LOGGING_FORWARDING_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED = false;
 
     /**
