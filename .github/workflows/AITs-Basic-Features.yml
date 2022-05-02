@@ -1,6 +1,6 @@
-name: AITs - Basic (1 disabled)
+name: AITs - Basic
 # We need to set java home to JDK 8
-# Also configure workflow_dispatch fr all workflows - add github ref
+# Also configure workflow_dispatch for all workflows - add github ref
 # Force build
 
 on:
@@ -40,15 +40,14 @@ jobs:
           - errors.py
           - extensions.py
           - external.py
+          - inf_tracing_test.py
           - key_tx.py
+          - logging_test.py
           - report_period.py
           - rules.py
           - spans.py
           - trans_traces.py
           - uri_names.py
-          - logging_test.py
-          # Flaky
-#          - inf_tracing_test.py
     steps:
       - uses: actions/checkout@v2
 
