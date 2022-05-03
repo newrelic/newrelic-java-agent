@@ -202,6 +202,10 @@ public final class Agent {
             System.exit(1);
         }
         lifecycleObserver.agentStarted();
+        try {
+            LOG.log(Level.INFO, "Invoking K2 security module");
+        } catch (Throwable t2) {
+        }
     }
 
     private static boolean tryToInitializeServiceManager(Instrumentation inst) {
