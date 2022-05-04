@@ -7,8 +7,8 @@ import com.newrelic.instrumentation.kotlin.coroutines.Utils;
 
 import kotlin.coroutines.CoroutineContext;
 
-@Weave(type=MatchType.BaseClass)
-public abstract class AbstractCoroutine<T> {
+@Weave(type=MatchType.BaseClass, originalName = "kotlinx.coroutines.AbstractCoroutine")
+public abstract class AbstractCoroutine_Instrumentation<T> {
 
 	public abstract CoroutineContext getContext();
 	public abstract String nameString$kotlinx_coroutines_core();
