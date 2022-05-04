@@ -14,7 +14,7 @@ import com.newrelic.api.agent.Token;
 
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.AbstractCoroutine;
+import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
 import kotlinx.coroutines.CoroutineName;
 
 public class Utils implements AgentConfigListener {
@@ -172,16 +172,16 @@ public class Utils implements AgentConfigListener {
 	
 	@SuppressWarnings("unchecked")
 	public static <T> String getCoroutineName(CoroutineContext context, Continuation<T> continuation, Class<?> clazz) {
-		if(continuation instanceof AbstractCoroutine) {
-			return ((AbstractCoroutine<T>)continuation).nameString$kotlinx_coroutines_core();
+		if(continuation instanceof AbstractCoroutine_Instrumentation) {
+			return ((AbstractCoroutine_Instrumentation<T>)continuation).nameString$kotlinx_coroutines_core();
 		}
 		return getCoroutineName(context,clazz);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public static <T> String getCoroutineName(CoroutineContext context, Continuation<T> continuation) {
-		if(continuation instanceof AbstractCoroutine) {
-			return ((AbstractCoroutine<T>)continuation).nameString$kotlinx_coroutines_core();
+		if(continuation instanceof AbstractCoroutine_Instrumentation) {
+			return ((AbstractCoroutine_Instrumentation<T>)continuation).nameString$kotlinx_coroutines_core();
 		}
 		return getCoroutineName(context,continuation.getClass());
 	}

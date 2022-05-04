@@ -2,6 +2,7 @@ package kotlinx.coroutines;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.instrumentation.kotlin.coroutines.NRCoroutineToken;
@@ -14,8 +15,8 @@ import kotlin.coroutines.CoroutineContext;
 import kotlin.jvm.functions.Function2;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
-@Weave
-public class BuildersKt {
+@Weave(type = MatchType.ExactClass, originalName = "kotlinx.coroutines.BuildersKt")
+public class BuildersKt_Instrumentation {
 
 	@Trace
 	public static final <T> T runBlocking(CoroutineContext context, Function2<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> block) {
@@ -43,7 +44,7 @@ public class BuildersKt {
 			
 			NRCoroutineToken nrContextToken = Utils.setToken(context);
 			if(nrContextToken != null) {
-				context = context.plus(nrContextToken);
+				//context = context.plus(nrContextToken);
 			}
 			if(!(block instanceof NRFunction2Wrapper)) {
 				NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2Wrapper(block,name);
@@ -76,7 +77,7 @@ public class BuildersKt {
 		if(!Utils.ignoreSuspend(block.getClass(), context) && !Utils.ignoreSuspend(block.getClass(), scope.getCoroutineContext())) {
 			NRCoroutineToken nrContextToken = Utils.setToken(context);
 			if(nrContextToken != null) {
-				context = context.plus(nrContextToken);
+				//context = context.plus(nrContextToken);
 			}
 			if(!(block instanceof NRFunction2Wrapper)) {
 				NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ? extends Object> wrapper = new NRFunction2Wrapper(block,name);
@@ -95,7 +96,7 @@ public class BuildersKt {
 
 			NRCoroutineToken nrContextToken = Utils.setToken(context);
 			if(nrContextToken != null) {
-				context = context.plus(nrContextToken);
+				//context = context.plus(nrContextToken);
 			}
 			if(!(block instanceof NRFunction2Wrapper)) {
 				NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2Wrapper(block,name);

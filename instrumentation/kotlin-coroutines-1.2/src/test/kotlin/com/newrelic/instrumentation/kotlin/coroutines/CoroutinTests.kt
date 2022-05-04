@@ -14,10 +14,12 @@ class CoroutinTests {
     val cut = CoroutineClass()
 
     @Test
-    fun testIt() = runBlocking {
-        val i = 42
-        assertTrue(i == 42)
-        cut.runIt()
+    fun testIt() {
+        runBlocking {
+            val i = 42
+            assertTrue(i == 42)
+            cut.runIt()
+        }
     }
 }
 

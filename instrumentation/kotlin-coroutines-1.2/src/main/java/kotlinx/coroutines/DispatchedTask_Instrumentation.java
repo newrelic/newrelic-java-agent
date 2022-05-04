@@ -11,8 +11,8 @@ import com.newrelic.instrumentation.kotlin.coroutines.Utils;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 
-@Weave(type=MatchType.BaseClass)
-public abstract class DispatchedTask<T> {
+@Weave(type=MatchType.BaseClass, originalName = "kotlinx.coroutines.DispatchedTask")
+public abstract class DispatchedTask_Instrumentation<T> {
 
 	public abstract Continuation<T> getDelegate$kotlinx_coroutines_core();
 	
