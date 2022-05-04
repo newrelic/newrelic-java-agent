@@ -10,13 +10,13 @@ import org.junit.runner.RunWith
 @InstrumentationTestConfig(includePrefixes = ["kotlinx", "com.newrelic.instrumentation"], configName = "distributed_tracing.yml")
 class CoroutinTests {
 
-    //val cut = CoroutineClass()
+    val cut = CoroutineClass()
 
     @Test
     fun testIt() {
         val i = 42
         assertTrue(i == 42)
-        //cut.runIt()
+        cut.runIt()
     }
 }
 
