@@ -44,7 +44,7 @@ public class BuildersKt_Instrumentation {
 			
 			NRCoroutineToken nrContextToken = Utils.setToken(context);
 			if(nrContextToken != null) {
-				//context = context.plus(nrContextToken);
+				context = context.plus(nrContextToken);
 			}
 			if(!(block instanceof NRFunction2Wrapper)) {
 				NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2Wrapper(block,name);
@@ -77,7 +77,7 @@ public class BuildersKt_Instrumentation {
 		if(!Utils.ignoreSuspend(block.getClass(), context) && !Utils.ignoreSuspend(block.getClass(), scope.getCoroutineContext())) {
 			NRCoroutineToken nrContextToken = Utils.setToken(context);
 			if(nrContextToken != null) {
-				//context = context.plus(nrContextToken);
+				context = context.plus(nrContextToken);
 			}
 			if(!(block instanceof NRFunction2Wrapper)) {
 				NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ? extends Object> wrapper = new NRFunction2Wrapper(block,name);
@@ -96,7 +96,7 @@ public class BuildersKt_Instrumentation {
 
 			NRCoroutineToken nrContextToken = Utils.setToken(context);
 			if(nrContextToken != null) {
-				//context = context.plus(nrContextToken);
+				context = context.plus(nrContextToken);
 			}
 			if(!(block instanceof NRFunction2Wrapper)) {
 				NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2Wrapper(block,name);
