@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 
 @RunWith(InstrumentationTestRunner::class)
 @InstrumentationTestConfig(includePrefixes = ["kotlinx", "com.newrelic.instrumentation"], configName = "distributed_tracing.yml")
-class CoroutinTests {
+class CoroutineTests {
 
     val cut = CoroutineClass()
 
