@@ -1,4 +1,4 @@
-name: X - Reusable Test Workflow 
+name: Kotlin Coroutine Instrumentation Tests
 
 on:
   push:
@@ -92,17 +92,17 @@ jobs:
           mv gradle.properties.gha gradle.properties
 
       # Run the build without Gradle Enterprise
-      - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} w/o GE
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          ./gradlew $GRADLE_OPTIONS --console=plain instrumentation:kotlin-coroutines-1.2:test -Ptest${{ inputs.jre }} --continue
+          ./gradlew --console=plain instrumentation:kotlin-coroutines-1.2:test -Ptest${{ matrix.java-version }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: instrumentation-tests-results-java-${{ inputs.jre }}
+          name: instrumentation-tests-results-java-${{ matrix.java-version }}
           path: |
             instrumentation/**/build/reports/tests/*
