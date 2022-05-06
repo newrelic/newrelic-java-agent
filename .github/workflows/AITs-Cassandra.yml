@@ -25,14 +25,14 @@ jobs:
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "basic_features"
+      java_func_type: "datastore"
       default-branch: "main"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
         func_tests:
-          - logging_test.py
+          - r2dbc.py
     steps:
       - uses: actions/checkout@v2
 
@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-agent-integration-tests
-          ref: docker
+          ref: r2dbc
           token: ${{ secrets.AITPAT }}
           path: agent-integration-tests
 
