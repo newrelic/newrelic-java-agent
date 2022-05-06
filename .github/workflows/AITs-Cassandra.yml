@@ -5,17 +5,17 @@ name: AITs - Cassandra
 
 on:
   pull_request:
-    branches: [ main ] ## branches TBD
+    branches: [ docker_ait_test ] ## branches TBD
     types: [opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ main ]
+    branches: [ docker_ait_test ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       BRANCH:
         description: "Specify branch (main is default)"
         required: false
-        default: 'main'
+        default: 'docker_ait_test'
 
 jobs:
   tests:
