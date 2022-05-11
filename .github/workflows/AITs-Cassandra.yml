@@ -25,14 +25,16 @@ jobs:
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
-      java_func_type: "datastore"
+      java_func_type: "r2dbc"
       default-branch: "main"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
         func_tests:
-          - r2dbc.py
+          - postgres.py
+          - mysql.py
+          - mariadb.py
     steps:
       - uses: actions/checkout@v2
 
