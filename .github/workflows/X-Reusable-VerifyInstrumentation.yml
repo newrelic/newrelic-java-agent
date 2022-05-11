@@ -191,5 +191,12 @@ jobs:
       - name: Build agent
         run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
 
+      # Setting up 11 again so tests are run with it. This is so libraries build with 11 can pass.
+      - name: Set up Java 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
       - name: Running verifyInstrumentation on (${{ matrix.modules }})
         run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation
