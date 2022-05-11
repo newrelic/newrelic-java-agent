@@ -1,26 +1,24 @@
-name: X - Reusable Test Workflow 
+name: Java Instrumentation Tests
 
 on:
-  workflow_call:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
     inputs:
-      jre:
-        description: 'The JRE that the tests will run on'
-        default: '8'
+      BRANCH:
+        description: "Specify branch (main is default)"
         required: false
-        type: string
-    secrets:
-      aws-access-key-id:
-        required: false
-      aws-secret-access-key:
-        required: false
-      gradle-enterprise-access-key:
-        required: false
-      gradle-cache-password:
-        required: false
-
+        default: 'main'
 jobs:
   tests:
-    name: Java ${{ inputs.jre }} Instrumentation Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        jre: [8, 11, 17, 18]
+    name: Java ${{ matrix.jre }} Instrumentation Tests
     timeout-minutes: 60
     # needs: install-all-java
     runs-on: ubuntu-latest
@@ -31,7 +29,6 @@ jobs:
       GRADLE_KEY: ${{ secrets.gradle-enterprise-access-key }}
     steps:
       - uses: actions/checkout@v2
-      #- uses: gradle/wrapper-validation-action@v1.0.4
 
       #NEW Install required JDKs
       # Install 8
@@ -130,7 +127,7 @@ jobs:
           GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.gradle-enterprise-access-key }}
           GRADLE_CACHE_USER: gha
           GRADLE_CACHE_PASSWORD: ${{ secrets.gradle-cache-password }}
-          JRE: jre${{ inputs.jre }}
+          JRE: jre${{ matrix.jre }}
           LANGUAGE: java
           TEST_TYPE: instrumentation
         run: |
@@ -166,7 +163,7 @@ jobs:
           mv gradle.properties.gha gradle.properties
 
       # Run the build with Gradle Enterprise
-      - name: Run instrumentation tests for Java ${{ inputs.jre }}
+      - name: Run instrumentation tests for Java ${{ matrix.jre }}
         if: ${{ env.GRADLE_KEY != '' }}
         env:
           CI: GHA
@@ -174,26 +171,26 @@ jobs:
           GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.gradle-enterprise-access-key }}
           GRADLE_CACHE_USER: gha
           GRADLE_CACHE_PASSWORD: ${{ secrets.gradle-cache-password }}
-          JRE: jre${{ inputs.jre }}
+          JRE: jre${{ matrix.jre }}
           LANGUAGE: java
           TEST_TYPE: instrumentation
         run: |
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Run the build without Gradle Enterprise
-      - name: Run instrumentation tests for Java ${{ inputs.jre }} w/o GE
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE
         if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ inputs.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: instrumentation-tests-results-java-${{ inputs.jre }}
+          name: instrumentation-tests-results-java-${{ matrix.jre }}
           path: |
             instrumentation/**/build/reports/tests/*
