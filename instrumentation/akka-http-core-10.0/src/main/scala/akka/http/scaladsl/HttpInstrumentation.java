@@ -13,6 +13,9 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
+import scala.Function0;
+import scala.concurrent.Future;
+import scala.runtime.BoxedUnit;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
