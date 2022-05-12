@@ -73,7 +73,7 @@ class CoroutineTest {
         assertSegmentPresent("segment2", segments)
     }
 
-    @Ignore
+    //@Ignore
     @Test
     fun threadSwitchCoroutineTest() {
         val introspector = InstrumentationTestRunner.getIntrospector()
