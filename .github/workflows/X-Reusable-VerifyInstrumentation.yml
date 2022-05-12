@@ -119,6 +119,7 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
 
   verify-module:
+    name: ${{ matrix.modules }}
     runs-on: ubuntu-latest
     needs: [read-modules, build-agent]
     strategy:
