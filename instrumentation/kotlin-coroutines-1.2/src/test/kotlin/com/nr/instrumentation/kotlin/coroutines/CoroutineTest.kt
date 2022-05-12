@@ -6,6 +6,7 @@ import com.newrelic.api.agent.Trace
 import kotlinx.coroutines.*
 import org.junit.Assert
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.atomic.AtomicInteger
@@ -72,6 +73,7 @@ class CoroutineTest {
         assertSegmentPresent("segment2", segments)
     }
 
+    @Ignore
     @Test
     fun threadSwitchCoroutineTest() {
         val introspector = InstrumentationTestRunner.getIntrospector()
