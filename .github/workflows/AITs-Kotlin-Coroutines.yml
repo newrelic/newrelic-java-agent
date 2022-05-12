@@ -34,6 +34,7 @@ jobs:
       matrix:
         func_tests:
           - kt_coroutines_test.py
+
     steps:
       - uses: actions/checkout@v2
 
@@ -50,6 +51,58 @@ jobs:
       - name: Print Environmental variables
         run: |
           printenv | sort -f
+
+      # Apps repos/caches - this prpcess could be a candidate for custom action
+      - name: Checkout Cache 1
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-1
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache1
+          lfs: true
+
+      - name: Checkout Cache 2
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-2
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache2
+          lfs: true
+
+      - name: Checkout Cache 3
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-3
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache3
+          lfs: true
+
+      - name: Checkout Cache 4
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/java-ait-cache-4
+          ref: gha
+          token: ${{ secrets.AITPAT }}
+          path: appcache4
+          lfs: true
+
+      # Consolidate caches into one directory
+      - name: Consolidate caches into Apps directory
+        run: |
+          ls -la
+          mkdir apps
+          mv appcache1/* apps/
+          mv appcache2/* apps/
+          mv appcache3/* apps/
+          mv appcache4/* apps/
+          cd apps
+          ls -la
+          ls -la java_test_webapp-master/
+          cd ../
+
       ## JDK Installs
 
       # Install 11
@@ -63,6 +116,42 @@ jobs:
       - name: Set the required JDK variable
         run: |
           echo "ORG_GRADLE_PROJECT_jdk11=${JAVA_HOME}" >> $GITHUB_ENV
+
+      # Install Zulu
+      - name: Set up Zulu
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      # Set the JDK variable
+      - name: Set the required JDK variable
+        run: |
+          echo "ORG_GRADLE_PROJECT_zulu=${JAVA_HOME}" >> $GITHUB_ENV
+
+      # Install 17
+      - name: Set up Java 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      # Set the JDk variable
+      - name: Set the required JDK variable
+        run: |
+          echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
+
+      # Install 18
+      - name: Set up Java 18
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 18
+
+      - name: Save JAVA_HOME as JDK18 for later usage
+        run: |
+          echo "ORG_GRADLE_PROJECT_jdk18=${JAVA_HOME}" >> $GITHUB_ENV
+
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
         uses: actions/setup-java@v2
@@ -90,6 +179,33 @@ jobs:
             </provides>
             <configuration>
                     <jdkHome>${ORG_GRADLE_PROJECT_jdk8}</jdkHome>
+            </configuration>
+            </toolchain>
+            <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>11</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${ORG_GRADLE_PROJECT_jdk11}</jdkHome>
+            </configuration>
+            </toolchain>
+            <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>17</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${ORG_GRADLE_PROJECT_jdk17}</jdkHome>
+            </configuration>
+            </toolchain>
+            <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>18</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${ORG_GRADLE_PROJECT_jdk18}</jdkHome>
             </configuration>
             </toolchain>
           </toolchains>
@@ -166,6 +282,9 @@ jobs:
           echo "run autoconfigure"
           JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
+          ZULU=${ORG_GRADLE_PROJECT_zulu} \
+          JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
+          JAVA18JRE=${ORG_GRADLE_PROJECT_jdk18} \
           conf/autoconfigure
           echo "running conf/testenv java"
           . conf/testenv java
