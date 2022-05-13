@@ -67,7 +67,7 @@ public class LoggingEvent_Instrumentation {
 
         if (applicationLoggingEnabled && isApplicationLoggingForwardingEnabled()) {
             // Record and send LogEvent to New Relic
-            recordNewRelicLogEvent(getFormattedMessage(), timeStamp, level);
+            recordNewRelicLogEvent(getFormattedMessage(), timeStamp, level, throwable);
         }
     }
 
