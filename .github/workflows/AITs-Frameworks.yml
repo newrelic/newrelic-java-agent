@@ -8,7 +8,7 @@ on:
     branches: [ main ] ## branches TBD
     types: [opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ main ]
+    branches: [ tcrone/spring-security-vulnerabilities ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -26,26 +26,14 @@ jobs:
     env:
       java_func_path: "tests/java/functionality"
       java_func_type: "framework"
-      default-branch: "main"
+      default-branch: "tcrone/spring-security-vulnerabilities"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
       matrix:
         # functional_path: [basic_features, datastore]
         func_tests:
-          - akka/akka.py
-          - akka/akkahttp.py
-#          - ejb/ejb.py
-          - jaxrs/jaxrs.py
-#          - jms/jms.py
-#          - netty/netty.py
-#          - play/play2.py
-          - quartz/quartz.py
-#          - snap/snap.py
-          - spring/spring_4_3.py
           - spring/spring_5_0.py
-          - spring/spring_webflux.py
-          - thrift/thrift.py
 
     steps:
       - uses: actions/checkout@v2
