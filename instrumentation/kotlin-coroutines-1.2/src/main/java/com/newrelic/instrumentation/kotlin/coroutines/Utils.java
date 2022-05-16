@@ -152,6 +152,7 @@ public class Utils implements AgentConfigListener {
 	}
 
 	public static Token getToken(CoroutineContext context) {
+		// TODO: with jumping threads
 		NRCoroutineToken coroutineToken = context.get(NRCoroutineToken.key);
 		Token token = null;
 		if(coroutineToken != null) {
