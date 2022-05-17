@@ -10,13 +10,16 @@ package com.nr.agent.instrumentation.httpurlconnection;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.bridge.external.URISupport;
+import com.newrelic.api.agent.HttpParameters;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class MetricState {
-
+    private static final String LIBRARY = "HttpURLConnection";
     private boolean metricsRecorded;
     private boolean recordedANetworkCall;
 
@@ -64,13 +67,20 @@ public class MetricState {
     }
 
     private void makeMetric(HttpURLConnection connection, TracedMethod method, String operation) {
-        String uri = URISupport.getURI(connection.getURL());
-        ExternalMetrics.makeExternalComponentMetric(
-                method,
-                connection.getURL().getHost(),
-                "HttpURLConnection",
-                false,
-                uri,
-                operation);
+        try {
+            URI uri = connection.getURL().toURI();
+            int responseCode = connection.getResponseCode();
+            String responseMessage = connection.getResponseMessage();
+
+            method.reportAsExternal(HttpParameters
+                    .library(LIBRARY)
+                    .uri(uri)
+                    .procedure(operation)
+                    .inboundHeaders(new InboundWrapper(connection))
+                    .status(responseCode, responseMessage)
+                    .build());
+        } catch (URISyntaxException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
