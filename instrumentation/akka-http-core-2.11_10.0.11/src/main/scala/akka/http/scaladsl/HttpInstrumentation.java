@@ -13,6 +13,11 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
+import scala.Function0;
+import scala.Function1;
+import scala.concurrent.Future;
+import scala.concurrent.duration.FiniteDuration;
+import scala.runtime.BoxedUnit;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
@@ -33,8 +38,8 @@ public class HttpInstrumentation {
             AgentBridge.publicApi.setAppServerPort(localAddress().getPort());
             AgentBridge.publicApi.setServerInfo("Akka HTTP", ManifestUtils.getVersionFromManifest(getClass(), "akka-http-core", "10.0.11"));
 
-            AgentBridge.instrumentation.retransformUninstrumentedClass(AsyncRequestHandler.class);
             AgentBridge.instrumentation.retransformUninstrumentedClass(SyncRequestHandler.class);
+            AgentBridge.instrumentation.retransformUninstrumentedClass(AsyncRequestHandler.class);
         }
     }
 

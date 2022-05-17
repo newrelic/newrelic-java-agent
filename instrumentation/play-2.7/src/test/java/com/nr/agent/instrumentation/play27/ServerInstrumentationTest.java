@@ -14,7 +14,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
 
-import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -25,9 +25,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java11IncompatibleTest.class })
+@Category({ Java17IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "scala", "akka", "com.nr.agent.instrumentation.play27", "play" })
+@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.play27", "play" })
 public class ServerInstrumentationTest {
 
     @Rule
