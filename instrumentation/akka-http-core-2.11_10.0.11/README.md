@@ -13,7 +13,7 @@ It has been decide that intrumentation is not extended for `bindAndHandle` which
 `akka.stream.scaladsl.Flow` instance. This is due to a clash in the Akka Http Routing DSL instrumentation. 
 
 
-Users wishing to start an HTTP Server from an `akka.stream.scaladsl.Flow` can use the following workarround
+Users wishing to start an HTTP Server from an `akka.stream.scaladsl.Flow` can use the following workaround
 
 ```scala
     val flow: Flow[HttpRequest, HttpResponse, NotUsed] = ???
@@ -21,7 +21,7 @@ Users wishing to start an HTTP Server from an `akka.stream.scaladsl.Flow` can us
     Http().bindAndHandleAsync(asyncHandler, host, port)
 ```
 
-This workarround is not needed for users using  calling `bindAndHandle` using `akka.http.scaladsl.Route` from the 
+This workaround is not needed for users using  calling `bindAndHandle` using `akka.http.scaladsl.Route` from the 
 Akka Http Routing DSL. Instrumentation should work in the same way being called from the other conveniencs methods 
 to start an HTTP Server
 
