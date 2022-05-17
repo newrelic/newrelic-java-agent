@@ -5,17 +5,17 @@ name: AITs - Akka-HTTP
 
 on:
   pull_request:
-    branches: [ akka-http-ait ] ## branches TBD
+    branches: [ main ] ## branches TBD
     types: [opened, synchronize, reopened] ## Types TBD
   push:
-    branches: [ akka-http-ait ]
+    branches: [ akka-http-AIT ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       BRANCH:
         description: "Specify branch (main is default)"
         required: false
-        default: 'akka-http-ait'
+        default: 'akka-http-AIT'
 
 jobs:
   tests:
@@ -27,7 +27,7 @@ jobs:
     env:
       java_func_path: "tests/java/functionality"
       java_func_type: "framework/akka"
-      default-branch: "main"
+      default-branch: "akka-http-ait"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
