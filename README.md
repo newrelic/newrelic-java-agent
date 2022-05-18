@@ -125,6 +125,8 @@ Run an individual functional test:
 
 The instrumentation module tests are also JUnit tests. The framework is the industry-standard JUnit dependency modified by a custom test runner and class loader that support bytecode weaving within the test without the need to fully initialize the agent. Note: fully initializing the agent is not possible when running in an uninstrumented reusable test process like an IntelliJ test subprocess or Gradle daemon. There is also an "introspector" (somewhat equivalent to a local mock collector) for test assertions.
 
+Some of the instrumentation tests use [Testcontainers](https://www.testcontainers.org/) so you might need to have Docker [installed](https://docs.docker.com/get-docker/) to run them locally.
+
 Instrumentation tests are located in each instrumentation module at  `newrelic-java-agent/instrumentation/<INSTRUMENTATION MODULE>/src/test` and are run from the root `newrelic-java-agent` directory as follows:
 
 Run all instrumentation module tests: 
