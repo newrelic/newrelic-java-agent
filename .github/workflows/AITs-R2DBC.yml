@@ -32,11 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         func_tests:
-          - postgres.py
-          - mariadb.py
-          - mysql.py
           - mssql.py
-          - oracle.py
     steps:
       - uses: actions/checkout@v2
 
@@ -171,6 +167,9 @@ jobs:
         run: |
           cd agent-integration-tests/
           ls -la
+          ls -la testapps/java/
+          ls -la testapps/java/r2dbc_mssql_test_app
+          
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
