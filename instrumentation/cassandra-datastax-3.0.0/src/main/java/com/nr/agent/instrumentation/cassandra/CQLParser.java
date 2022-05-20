@@ -87,7 +87,7 @@ public class CQLParser {
                 }
             }
         } catch (Exception ex) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "Exception getting operation and table name");
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Exception getting operation and table name", ex);
             return null;
         }
         return null;
