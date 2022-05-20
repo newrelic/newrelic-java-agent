@@ -7,8 +7,11 @@
 
 package com.nr.agent.instrumentation.cassandra;
 
+import com.newrelic.api.agent.NewRelic;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,6 +87,7 @@ public class CQLParser {
                 }
             }
         } catch (Exception ex) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Exception getting operation and table name");
             return null;
         }
         return null;

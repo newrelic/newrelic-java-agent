@@ -7,8 +7,11 @@
 
 package com.nr.agent.instrumentation.cassandra;
 
+import com.newrelic.api.agent.NewRelic;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,21 +69,26 @@ public class CQLParser {
     }
 
     public OperationAndTableName getOperationAndTableName(String rawQuery) {
-        rawQuery = rawQuery.replaceAll(COMMENT_PATTERN, "").trim();
+        try {
+            rawQuery = rawQuery.replaceAll(COMMENT_PATTERN, "").trim();
 
-        String operation = null;
-        String tableName = null;
-        for (Pattern pattern : PATTERNS) {
-            Matcher matcher = pattern.matcher(rawQuery);
-            if (matcher.find()) {
-                if (matcher.groupCount() >= 1) {
-                    operation = matcher.group(1);
+            String operation = null;
+            String tableName = null;
+            for (Pattern pattern : PATTERNS) {
+                Matcher matcher = pattern.matcher(rawQuery);
+                if (matcher.find()) {
+                    if (matcher.groupCount() >= 1) {
+                        operation = matcher.group(1);
+                    }
+                    if (matcher.groupCount() == 2) {
+                        tableName = matcher.group(2);
+                    }
+                    return new OperationAndTableName(operation, tableName);
                 }
-                if (matcher.groupCount() == 2) {
-                    tableName = matcher.group(2);
-                }
-                return new OperationAndTableName(operation, tableName);
             }
+        } catch (Exception ex) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Exception getting operation and table name");
+            return null;
         }
         return null;
     }

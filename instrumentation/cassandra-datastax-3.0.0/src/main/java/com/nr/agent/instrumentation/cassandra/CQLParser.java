@@ -7,14 +7,17 @@
 
 package com.nr.agent.instrumentation.cassandra;
 
+import com.newrelic.api.agent.NewRelic;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * A very simplistic CQL "Parser" that attempts to extract the information we care about for Datastore requests:
- * 
+ * <p>
  * - Operation (SELECT, INSERT, UPDATE, etc)
  * - Table Name (Column Family)
  */
@@ -41,9 +44,9 @@ public class CQLParser {
     private static final Pattern CREATE_AGGREGATE_PATTERN = Pattern.compile("^(CREATE\\s+(?:OR\\s+REPLACE\\s+)?AGGREGATE)\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?(?:'|\")?(" + IDENTIFIER_REGEX + ")", FLAGS);
     private static final Pattern DROP_AGGREGATE_PATTERN = Pattern.compile("^(DROP\\s+AGGREGATE)\\s+(?:IF\\s+EXISTS\\s+)?(?:'|\")?(" + IDENTIFIER_REGEX + ")", FLAGS);
     private static final String COMMENT_PATTERN = "/\\*(?:.|[\\r\\n])*?\\*/";
-    
+
     private static final List<Pattern> PATTERNS = new LinkedList<>();
-    
+
     static {
         // The order here is a performance optimization to favor more common queries first
         PATTERNS.add(SELECT_PATTERN);
@@ -66,21 +69,26 @@ public class CQLParser {
     }
 
     public OperationAndTableName getOperationAndTableName(String rawQuery) {
-        rawQuery = rawQuery.replaceAll(COMMENT_PATTERN, "").trim();
+        try {
+            rawQuery = rawQuery.replaceAll(COMMENT_PATTERN, "").trim();
 
-        String operation = null;
-        String tableName = null;
-        for (Pattern pattern : PATTERNS) {
-            Matcher matcher = pattern.matcher(rawQuery);
-            if (matcher.find()) {
-                if (matcher.groupCount() >= 1) {
-                    operation = matcher.group(1);
+            String operation = null;
+            String tableName = null;
+            for (Pattern pattern : PATTERNS) {
+                Matcher matcher = pattern.matcher(rawQuery);
+                if (matcher.find()) {
+                    if (matcher.groupCount() >= 1) {
+                        operation = matcher.group(1);
+                    }
+                    if (matcher.groupCount() == 2) {
+                        tableName = matcher.group(2);
+                    }
+                    return new OperationAndTableName(operation, tableName);
                 }
-                if (matcher.groupCount() == 2) {
-                    tableName = matcher.group(2);
-                }
-                return new OperationAndTableName(operation, tableName);
             }
+        } catch (Exception ex) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Exception getting operation and table name");
+            return null;
         }
         return null;
     }
