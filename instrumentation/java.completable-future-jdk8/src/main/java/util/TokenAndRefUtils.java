@@ -23,12 +23,24 @@ public class TokenAndRefUtils {
         return tokenAndRefCount;
     }
 
-    public static void setThreadTokenAndRefCount(AgentBridge.TokenAndRefCount tokenAndRefCount) {
-        if (tokenAndRefCount != null) {
-            AgentBridge.activeToken.set(tokenAndRefCount);
-            tokenAndRefCount.token.link();
-        }
+  public static Transaction getTransaction(AgentBridge.TokenAndRefCount tokenAndRefCount) {
+    if(tokenAndRefCount != null && tokenAndRefCount.token != null) {
+      return (Transaction) tokenAndRefCount.token.getTransaction();
+    } else {
+      return null;
     }
+  }
+
+  public static void setThreadTokenAndRefCount(AgentBridge.TokenAndRefCount tokenAndRefCount, Transaction transaction) {
+    if (tokenAndRefCount != null && tokenAndRefCount.token != null) {
+      AgentBridge.activeToken.set(tokenAndRefCount);
+      tokenAndRefCount.token.link();
+    } else if(tokenAndRefCount != null && transaction != null) {
+      tokenAndRefCount.token = transaction.getToken();
+      tokenAndRefCount.token.link();
+      tokenAndRefCount.refCount = new AtomicInteger(1);
+    }
+  }
 
     public static void clearThreadTokenAndRefCountAndTxn(AgentBridge.TokenAndRefCount tokenAndRefCount) {
         AgentBridge.activeToken.remove();
