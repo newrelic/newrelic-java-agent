@@ -39,12 +39,12 @@ import org.testcontainers.utility.DockerImageName;
 @Ignore("This test is flaky on GHA")
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
-public class Kafka2MessageTest {
+public class Kafka3MessageTest {
     @Rule
-    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
+    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.0.0"));
 
-    private String TOPIC = "life-universe-everything";
-    private String ANOTHER_TOPIC = "vogon-poetry";
+    private final String TOPIC = "life-universe-everything";
+    private final String ANOTHER_TOPIC = "vogon-poetry";
     @Before
     public void before() {
         kafkaContainer.start();
@@ -111,79 +111,63 @@ public class Kafka2MessageTest {
     }
 
     private void assertUnscopedMetrics() {
+        // on the previous instrumentation module there are more metrics being verified.
+        // Kafka 3 changed a little how the values are retrieved and those metrics now return NaN, and thus are not reported.
         assertUnscopedMetricExists(
                 // general kafka metrics, they can change from test to test, so only verifying they exist
                 "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/assigned-partitions",
-                "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/commit-latency-avg",
                 "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/commit-rate",
                 "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/heartbeat-rate",
                 "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/join-rate",
-                "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/join-time-avg",
                 "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/last-heartbeat-seconds-ago",
                 "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/sync-rate",
-                "MessageBroker/Kafka/Internal/consumer-coordinator-metrics/sync-time-avg",
                 "MessageBroker/Kafka/Internal/consumer-fetch-manager-metrics/bytes-consumed-rate",
-                "MessageBroker/Kafka/Internal/consumer-fetch-manager-metrics/fetch-latency-avg",
                 "MessageBroker/Kafka/Internal/consumer-fetch-manager-metrics/fetch-rate",
-                "MessageBroker/Kafka/Internal/consumer-fetch-manager-metrics/fetch-size-avg",
-                "MessageBroker/Kafka/Internal/consumer-fetch-manager-metrics/fetch-throttle-time-avg",
                 "MessageBroker/Kafka/Internal/consumer-fetch-manager-metrics/records-consumed-rate",
-                "MessageBroker/Kafka/Internal/consumer-fetch-manager-metrics/records-per-request-avg",
                 "MessageBroker/Kafka/Internal/consumer-metrics/connection-close-rate",
                 "MessageBroker/Kafka/Internal/consumer-metrics/connection-count",
                 "MessageBroker/Kafka/Internal/consumer-metrics/connection-creation-rate",
                 "MessageBroker/Kafka/Internal/consumer-metrics/incoming-byte-rate",
                 "MessageBroker/Kafka/Internal/consumer-metrics/io-ratio",
-                "MessageBroker/Kafka/Internal/consumer-metrics/io-time-ns-avg",
                 "MessageBroker/Kafka/Internal/consumer-metrics/io-wait-ratio",
-                "MessageBroker/Kafka/Internal/consumer-metrics/io-wait-time-ns-avg",
                 "MessageBroker/Kafka/Internal/consumer-metrics/network-io-rate",
                 "MessageBroker/Kafka/Internal/consumer-metrics/outgoing-byte-rate",
                 "MessageBroker/Kafka/Internal/consumer-metrics/request-rate",
-                "MessageBroker/Kafka/Internal/consumer-metrics/request-size-avg",
                 "MessageBroker/Kafka/Internal/consumer-metrics/response-rate",
                 "MessageBroker/Kafka/Internal/consumer-metrics/select-rate",
                 "MessageBroker/Kafka/Internal/kafka-metrics-count/count",
-                "MessageBroker/Kafka/Internal/producer-metrics/batch-size-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/batch-split-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/buffer-available-bytes",
                 "MessageBroker/Kafka/Internal/producer-metrics/buffer-exhausted-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/buffer-total-bytes",
                 "MessageBroker/Kafka/Internal/producer-metrics/bufferpool-wait-ratio",
-                "MessageBroker/Kafka/Internal/producer-metrics/compression-rate-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/connection-close-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/connection-count",
                 "MessageBroker/Kafka/Internal/producer-metrics/connection-creation-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/incoming-byte-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/io-ratio",
-                "MessageBroker/Kafka/Internal/producer-metrics/io-time-ns-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/io-wait-ratio",
-                "MessageBroker/Kafka/Internal/producer-metrics/io-wait-time-ns-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/metadata-age",
                 "MessageBroker/Kafka/Internal/producer-metrics/network-io-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/outgoing-byte-rate",
-                "MessageBroker/Kafka/Internal/producer-metrics/produce-throttle-time-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/record-error-rate",
-                "MessageBroker/Kafka/Internal/producer-metrics/record-queue-time-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/record-retry-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/record-send-rate",
-                "MessageBroker/Kafka/Internal/producer-metrics/record-size-avg",
-                "MessageBroker/Kafka/Internal/producer-metrics/records-per-request-avg",
-                "MessageBroker/Kafka/Internal/producer-metrics/request-latency-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/request-rate",
-                "MessageBroker/Kafka/Internal/producer-metrics/request-size-avg",
                 "MessageBroker/Kafka/Internal/producer-metrics/requests-in-flight",
                 "MessageBroker/Kafka/Internal/producer-metrics/response-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/select-rate",
                 "MessageBroker/Kafka/Internal/producer-metrics/waiting-threads"
         );
 
-        assertEquals(4, getUnscopedMetricCount("MessageBroker/Kafka/Deserialization/" + TOPIC));
-        assertEquals(8, getUnscopedMetricCount("MessageBroker/Kafka/Serialization/" + TOPIC));
+        // serializer are called more often because they serialize the key and the value
+        assertEquals(2, getUnscopedMetricCount("MessageBroker/Kafka/Deserialization/" + TOPIC));
+        assertEquals(4, getUnscopedMetricCount("MessageBroker/Kafka/Serialization/" + TOPIC));
         assertEquals(2, getUnscopedMetricCount("MessageBroker/Kafka/Topic/Produce/Named/" +TOPIC));
 
+        // deserializer is never called because this topic is never read from
         assertEquals(0, getUnscopedMetricCount("MessageBroker/Kafka/Deserialization/" + ANOTHER_TOPIC));
-        assertEquals(4, getUnscopedMetricCount("MessageBroker/Kafka/Serialization/" + ANOTHER_TOPIC));
+        assertEquals(2, getUnscopedMetricCount("MessageBroker/Kafka/Serialization/" + ANOTHER_TOPIC));
         assertEquals(1, getUnscopedMetricCount("MessageBroker/Kafka/Topic/Produce/Named/" + ANOTHER_TOPIC));
 
         // there are 2 messages in the topic, but they could be read in a single poll, or in 2
@@ -195,10 +179,12 @@ public class Kafka2MessageTest {
     }
 
     private void assertUnscopedMetricExists(String ... metricNames) {
+        int notFoundMetricCount = 0;
         Set<String> existingMetrics= InstrumentationTestRunner.getIntrospector().getUnscopedMetrics().keySet();
         for (String metricName : metricNames) {
             Assert.assertTrue("metric not found: " + metricName, existingMetrics.contains(metricName));
         }
+        System.out.println(notFoundMetricCount + " metrics not found");
     }
 
 }

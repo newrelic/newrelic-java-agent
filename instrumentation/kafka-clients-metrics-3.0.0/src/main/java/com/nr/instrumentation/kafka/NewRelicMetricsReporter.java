@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -9,10 +9,6 @@ package com.nr.instrumentation.kafka;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
-import org.apache.kafka.common.metrics.KafkaMetric;
-import org.apache.kafka.common.metrics.MetricsReporter;
-
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +19,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import org.apache.kafka.common.metrics.KafkaMetric;
+import org.apache.kafka.common.metrics.MetricsReporter;
 
 public class NewRelicMetricsReporter implements MetricsReporter {
 
@@ -72,10 +70,6 @@ public class NewRelicMetricsReporter implements MetricsReporter {
                     if (metricsAsEvents) {
                         NewRelic.getAgent().getInsights().recordCustomEvent("KafkaMetrics", eventData);
                     }
-                } catch (ConcurrentModificationException cme) {
-                    // This is fixed in 1.0.3 and above but since this currently supports 0.11.0.0 we need to keep it here for now
-                    // https://issues.apache.org/jira/browse/KAFKA-4950
-                    // https://github.com/apache/kafka/pull/3907
                 } catch (Exception e) {
                     AgentBridge.getAgent().getLogger().log(Level.FINE, e, "Unable to record kafka metrics");
                 }

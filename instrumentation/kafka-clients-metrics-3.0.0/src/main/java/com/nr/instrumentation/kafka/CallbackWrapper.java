@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -8,10 +8,11 @@
 package com.nr.instrumentation.kafka;
 
 import com.newrelic.api.agent.NewRelic;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.RecordMetadata;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CallbackWrapper implements Callback {
 

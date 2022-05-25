@@ -1,21 +1,22 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
 package org.apache.kafka.clients.consumer;
 
-import static com.nr.instrumentation.kafka.Metrics.REBALANCE_ASSIGNED_BASE;
-import static com.nr.instrumentation.kafka.Metrics.REBALANCE_REVOKED_BASE;
-
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import java.util.Collection;
 import org.apache.kafka.common.TopicPartition;
+
+import java.util.Collection;
+
+import static com.nr.instrumentation.kafka.Metrics.REBALANCE_ASSIGNED_BASE;
+import static com.nr.instrumentation.kafka.Metrics.REBALANCE_REVOKED_BASE;
 
 @Weave(type = MatchType.Interface, originalName = "org.apache.kafka.clients.consumer.ConsumerRebalanceListener")
 public class ConsumerRebalanceListener_Instrumentation {

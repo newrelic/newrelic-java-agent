@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -18,10 +18,11 @@ import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.CallbackWrapper;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
+import org.apache.kafka.common.metrics.Metrics;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
-import org.apache.kafka.common.metrics.Metrics;
 
 @Weave(originalName = "org.apache.kafka.clients.producer.KafkaProducer")
 public class KafkaProducer_Instrumentation<K, V> {
