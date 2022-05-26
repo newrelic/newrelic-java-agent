@@ -184,7 +184,7 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --debug --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
