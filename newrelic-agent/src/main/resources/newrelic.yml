@@ -105,6 +105,12 @@ common: &default_settings
       # Default is 10000. Setting to 0 will disable.
       #max_samples_stored: 10000
 
+      # Whether the log events should include MDC from loggers with support for that.
+      include_mdc:
+
+        # When true, application logs will contain MDC data.
+        enabled: false
+
     # The agent will generate metrics to indicate the number of
     # application log events occurring at each distinct log level.
     metrics:

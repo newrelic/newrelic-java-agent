@@ -40,11 +40,14 @@ public class AgentUtil {
     private static final String ENTITY_GUID = "entity.guid";
     private static final String ENTITY_NAME = "entity.name";
     private static final String SPAN_ID = "span.id";
+    // Log attribute prefixes
+    private static final String MDC_ATTRIBUTE_PREFIX = "mdc.";
     // Enabled defaults
     private static final boolean APP_LOGGING_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_FORWARDING_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED = false;
+    private static final boolean APP_LOGGING_FORWARDING_INCLUDE_MDC_DEFAULT_ENABLED = false;
 
     /**
      * Record a LogEvent to be sent to New Relic.
@@ -53,7 +56,7 @@ public class AgentUtil {
      * @param timeStampMillis log timestamp
      * @param level           log level
      */
-    public static void recordNewRelicLogEvent(String message, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
+    public static void recordNewRelicLogEvent(String message, Map<String, String> mdcPropertyMap, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
             String loggerName, String fqcnLoggerName) {
         boolean messageEmpty = message.isEmpty();
 
@@ -64,6 +67,10 @@ public class AgentUtil {
                 logEventMap.put(MESSAGE, message);
             }
             logEventMap.put(TIMESTAMP, timeStampMillis);
+
+            if (isApplicationLoggingForwardingIncludeMdcEnabled()) {
+                mdcPropertyMap.forEach((key, value) -> logEventMap.put(MDC_ATTRIBUTE_PREFIX + key, value));
+            }
 
             if (level.toString().isEmpty()) {
                 logEventMap.put(LEVEL, UNKNOWN);
@@ -113,6 +120,12 @@ public class AgentUtil {
      */
     private static boolean shouldCreateLogEvent(boolean messageEmpty, Throwable throwable) {
         return !messageEmpty || !ExceptionUtil.isThrowableNull(throwable);
+    }
+
+    private static int getDefaultNumOfLogEventAttributes(Map<String, String> mdcPropertyMap) {
+        return isApplicationLoggingForwardingIncludeMdcEnabled()
+                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 
     /**
@@ -196,5 +209,14 @@ public class AgentUtil {
      */
     public static boolean isApplicationLoggingLocalDecoratingEnabled() {
         return NewRelic.getAgent().getConfig().getValue("application_logging.local_decorating.enabled", APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED);
+    }
+
+    /**
+     * Check if the application_logging forwarding include_mdc feature is enabled.
+     *
+     * @return true if enabled, else false
+     */
+    public static boolean isApplicationLoggingForwardingIncludeMdcEnabled() {
+        return NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.include_mdc.enabled", APP_LOGGING_FORWARDING_INCLUDE_MDC_DEFAULT_ENABLED);
     }
 }

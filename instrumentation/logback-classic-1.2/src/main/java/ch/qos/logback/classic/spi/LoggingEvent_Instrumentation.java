@@ -20,6 +20,8 @@ import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicat
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingLocalDecoratingEnabled;
 import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
 
+import java.util.Map;
+
 @Weave(originalName = "ch.qos.logback.classic.spi.LoggingEvent", type = MatchType.ExactClass)
 public class LoggingEvent_Instrumentation {
 
@@ -71,7 +73,7 @@ public class LoggingEvent_Instrumentation {
 
         if (applicationLoggingEnabled && isApplicationLoggingForwardingEnabled()) {
             // Record and send LogEvent to New Relic
-            recordNewRelicLogEvent(getFormattedMessage(), timeStamp, level, throwable, threadName, threadId, loggerName, fqnOfLoggerClass);
+            recordNewRelicLogEvent(getFormattedMessage(), getMdc(), timeStamp, level, throwable, threadName, threadId, loggerName, fqnOfLoggerClass);
         }
     }
 
@@ -80,6 +82,10 @@ public class LoggingEvent_Instrumentation {
     }
 
     private Throwable extractThrowableAnRearrangeArguments(Object[] argArray) {
+        return Weaver.callOriginal();
+    }
+
+    public Map<String, String> getMdc() {
         return Weaver.callOriginal();
     }
 
