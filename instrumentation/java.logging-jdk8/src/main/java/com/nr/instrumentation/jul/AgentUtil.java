@@ -20,7 +20,7 @@ public class AgentUtil {
     // Log message attributes
     public static final String MESSAGE = "message";
     public static final String TIMESTAMP = "timestamp";
-    public static final String LOG_LEVEL = "log.level";
+    public static final String LEVEL = "level";
     public static final String UNKNOWN = "UNKNOWN";
     // Linking metadata attributes used in blob
     private static final String BLOB_PREFIX = "NR-LINKING";
