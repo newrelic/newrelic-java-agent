@@ -16,6 +16,7 @@ import com.newrelic.agent.instrumentation.ClassNameFilter;
 import com.newrelic.agent.instrumentation.api.ApiImplementationUpdate;
 import com.newrelic.agent.instrumentation.classmatchers.ScalaTraitMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.TraceLambdaVisitor;
+import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldTransformer;
 import com.newrelic.agent.instrumentation.ejb3.EJBAnnotationVisitor;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
@@ -68,7 +69,7 @@ public class InstrumentationContextManager {
         this.classWeaverService = new ClassWeaverService(instrumentation);
 
         // these matchers only modify the InstrumentationContext, they don't actually transform classes
-        matchVisitors.put(new ScalaTraitMatcher(), NO_OP_TRANSFORMER);
+        matchVisitors.put(new ScalaTraitMatcher(), new ScalaTraitFinalFieldTransformer());
         matchVisitors.put(new TraceMatchVisitor(), NO_OP_TRANSFORMER);
         matchVisitors.put(new GeneratedClassDetector(), NO_OP_TRANSFORMER);
 

@@ -20,6 +20,8 @@ import com.newrelic.agent.deps.org.objectweb.asm.tree.ClassNode;
 import com.newrelic.agent.instrumentation.InstrumentationType;
 import com.newrelic.agent.instrumentation.classmatchers.ScalaTraitMatcher;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
+import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldTransformer;
+import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldVisitor;
 import com.newrelic.agent.instrumentation.tracing.Annotation;
 import com.newrelic.agent.instrumentation.tracing.NoticeSqlVisitor;
 import com.newrelic.agent.instrumentation.tracing.TraceClassVisitor;
@@ -137,6 +139,15 @@ class InstrumentingClassLoader extends WeavingClassLoader {
             classBytes = weaved;
         }
 
+        if (classBytes != null && context.isModified() && !context.getNonFinalFields().isEmpty()) {
+            ClassReader reader = new ClassReader(classBytes);
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            ClassVisitor cv = writer;
+            cv = new ScalaTraitFinalFieldVisitor(cv, context.getNonFinalFields());
+            reader.accept(cv, ClassReader.SKIP_FRAMES);
+            classBytes = writer.toByteArray();
+        }
+
         ClassReader reader = new ClassReader(classBytes);
         if (weaved == null) {
             // process trace annotations for non-weaved code
@@ -145,8 +156,8 @@ class InstrumentingClassLoader extends WeavingClassLoader {
 
         if (!context.isTracerMatch()) {
             if (weaved != null) {
-                //printClass(className, weaved);
-                return weaved;
+                printClass(className, classBytes);
+                return classBytes;
             }
             return null;
         }
