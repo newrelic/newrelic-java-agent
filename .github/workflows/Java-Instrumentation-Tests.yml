@@ -26,11 +26,9 @@ jobs:
       default-branch: "main"
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
-      GRADLE_KEY: ${{ secrets.gradle-enterprise-access-key }}
     steps:
       - uses: actions/checkout@v2
 
-      #NEW Install required JDKs
       # Install 8
       - name: Set up Java 8
         # https://github.com/actions/setup-java
@@ -119,31 +117,10 @@ jobs:
 
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
-      - name: Build newrelicJar
-        if: ${{ env.GRADLE_KEY != '' }}
-        env:
-          CI: GHA
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.gradle-enterprise-access-key }}
-          GRADLE_CACHE_USER: gha
-          GRADLE_CACHE_PASSWORD: ${{ secrets.gradle-cache-password }}
-          JRE: jre${{ matrix.jre }}
-          LANGUAGE: java
-          TEST_TYPE: instrumentation
-        run: |
-          # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
-          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
-          ls -la
-          cat settings.gradle
-          ./gradlew $GRADLE_OPTIONS clean jar --parallel
-          ls -la newrelic-agent/build/
-
       - name: Build newrelicJar w/o GE
-        if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          echo "*** NOT PUBLISHING BUILD SCANS ***"
           ls -la
           cat settings.gradle
           ./gradlew $GRADLE_OPTIONS clean jar --parallel
@@ -162,28 +139,10 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      # Run the build with Gradle Enterprise
-      - name: Run instrumentation tests for Java ${{ matrix.jre }}
-        if: ${{ env.GRADLE_KEY != '' }}
-        env:
-          CI: GHA
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.gradle-enterprise-access-key }}
-          GRADLE_CACHE_USER: gha
-          GRADLE_CACHE_PASSWORD: ${{ secrets.gradle-cache-password }}
-          JRE: jre${{ matrix.jre }}
-          LANGUAGE: java
-          TEST_TYPE: instrumentation
-        run: |
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
-
-      # Run the build without Gradle Enterprise
       - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE
-        if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          echo "*** NOT PUBLISHING BUILD SCANS OR CACHE ***"
           ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Capture HTML build result in artifacts
