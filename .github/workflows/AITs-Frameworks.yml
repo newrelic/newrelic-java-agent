@@ -278,6 +278,7 @@ jobs:
 
       # tmp saving agent logs
       - name: Save Agent logs
+        if: ${{ failure() || success() }}
         uses: actions/upload-artifact@v3
         with:
           name: archive-agent-log
