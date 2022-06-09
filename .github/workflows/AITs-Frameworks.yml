@@ -38,7 +38,7 @@ jobs:
 #          - ejb/ejb.py
 #          - jaxrs/jaxrs.py
 #          - jms/jms.py
-          - lettuce/lettuce.py
+#          - lettuce/lettuce.py
 #          - netty/netty.py
 #          - play/play2.py
 #          - quartz/quartz.py
@@ -264,6 +264,7 @@ jobs:
           echo "Running ${{ matrix.func_basic_features }}"
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
+          TEST_SAVE_WORKDIR=1 \
           ./bin/runtest.sh ${java_func_path}/${java_func_type}/${{ matrix.func_tests }}
 
       # Rename matrix item to remove problem characers
@@ -274,6 +275,13 @@ jobs:
         run: |
           MATRIX_ITEM=$(echo ${MATRIX} | sed 's|/|-|g')
           echo "MATRIX="${MATRIX_ITEM}"" >> $GITHUB_ENV
+
+      # tmp saving agent logs
+      - name: Save Agent logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: archive-agent-log
+          path: /tmp/tmp*/logs/*
 
       # Capture Testing Artifacts temp for development
       - name: Capture testing artifacts
