@@ -38,6 +38,7 @@ jobs:
 #          - datastores.py
           - jcache.py
           - redis.py
+          - cassandra.py
     steps:
       - uses: actions/checkout@v2
 
@@ -214,7 +215,7 @@ jobs:
           ls -la bin/
           echo "checking conf"
           ls -la conf/
-          echo "runnig bin/activate"
+          echo "runnig bin/activate"aa
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
           echo "run autoconfigure"
