@@ -16,6 +16,16 @@ import java.util.concurrent.TimeUnit;
 @Weave(type = MatchType.BaseClass, originalName = "reactor.core.scheduler.Schedulers")
 public abstract class Schedulers_Instrumentation {
 
+    /*
+     * Using a TokenAwareRunnable to link the thread that creates these runnables and the thread that executes them.
+     * This was previously done by linking token on flux/mono operations, but it looks like that was causing overhead.
+     *
+     * It is possible that during the processing of the flux/monos thread hops could occur and visibility would be lost.
+     * In this case, custom instrumentation will be needed.
+     *
+     * When using Netty Reactor with SpringBoot the thread linking will be done by the instrumentation in
+     * HttpTrafficHandler_Instrumentation.
+     */
     @Weave(type = MatchType.ExactClass, originalName = "reactor.core.scheduler.Schedulers$CachedScheduler")
     static class CachedScheduler {
         final Scheduler cached = Weaver.callOriginal();

@@ -8,38 +8,36 @@ package reactor.core.scheduler;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.instrumentation.reactor.netty.TokenLinkingSubscriber;
-import reactor.core.publisher.Hooks;
-import reactor.core.publisher.Hooks_Instrumentation;
+import com.nr.instrumentation.TokenAwareRunnable;
+import reactor.core.Disposable;
 
-import static com.nr.instrumentation.reactor.netty.TokenLinkingSubscriber.tokenLift;
+import java.util.concurrent.TimeUnit;
 
 @Weave(type = MatchType.BaseClass, originalName = "reactor.core.scheduler.Schedulers")
 public abstract class Schedulers_Instrumentation {
 
+    /*
+     * Using a TokenAwareRunnable to link the thread that creates these runnables and the thread that executes them.
+     * This was previously done by linking token on flux/mono operations, but it looks like that was causing overhead.
+     *
+     * It is possible that during the processing of the flux/monos thread hops could occur and visibility would be lost.
+     * In this case, custom instrumentation will be needed.
+     *
+     * When using Netty Reactor with SpringBoot the thread linking will be done by the instrumentation in
+     * HttpTrafficHandler_Instrumentation.
+     */
     @Weave(type = MatchType.ExactClass, originalName = "reactor.core.scheduler.Schedulers$CachedScheduler")
     static class CachedScheduler {
-        final Scheduler cached;
-        final String key;
+        final Scheduler cached = Weaver.callOriginal();
 
-        CachedScheduler(String key, Scheduler cached) {
-            /*
-             * Add tokenLift hook if it hasn't already been added. This allows for tokens to be retrieved from
-             * the current context and linked across threads at various points of the Flux/Mono lifecycle.
-             *
-             * When using Netty Reactor with SpringBoot this hook will be added by the HttpTrafficHandler_Instrumentation
-             * but when using other embedded web servers (e.g. Tomcat, Jetty, Undertow) the HttpTrafficHandler class
-             * doesn't get loaded and thus the hook isn't added. This ensures that the hook is added in a common code
-             * path before any Scheduler Tasks are spun off on new threads.
-             */
-            if (!Hooks_Instrumentation.instrumented.getAndSet(true)) {
-                Hooks.onEachOperator(TokenLinkingSubscriber.class.getName(), tokenLift());
-            }
+        public Disposable schedule(Runnable task) {
 
-            this.cached = Weaver.callOriginal();
-            this.key = Weaver.callOriginal();
+            return cached.schedule(new TokenAwareRunnable(task));
         }
 
+        public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
+            return cached.schedule(new TokenAwareRunnable(task), delay, unit);
+        }
     }
 
 }
