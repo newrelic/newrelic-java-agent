@@ -8,6 +8,7 @@
 package java.net;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
@@ -53,7 +54,7 @@ public abstract class HttpURLConnection extends URLConnection {
     @Trace(leaf = true)
     public synchronized InputStream getInputStream() throws IOException {
         MetricState metricState = lazyGetMetricState();
-        com.newrelic.agent.bridge.TracedMethod method = AgentBridge.getAgent().getTracedMethod();
+        TracedMethod method = AgentBridge.getAgent().getTracedMethod();
         metricState.getInputStreamPreamble(connected, this, method);
 
         InputStream inputStream;
@@ -75,7 +76,7 @@ public abstract class HttpURLConnection extends URLConnection {
     @Trace(leaf = true)
     public int getResponseCode() throws Exception {
         MetricState metricState = lazyGetMetricState();
-        com.newrelic.agent.bridge.TracedMethod method = AgentBridge.getAgent().getTracedMethod();
+        TracedMethod method = AgentBridge.getAgent().getTracedMethod();
         metricState.getResponseCodePreamble(this, method);
 
         int responseCodeValue;
