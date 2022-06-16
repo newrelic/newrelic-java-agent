@@ -9,14 +9,16 @@ package com.nr.agent.instrumentation.httpurlconnection;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
-import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.bridge.external.URISupport;
+import com.newrelic.api.agent.ConcurrentHashMapHeaders;
+import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Transaction;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 public class MetricState {
     private static final String LIBRARY = "HttpURLConnection";
@@ -25,62 +27,72 @@ public class MetricState {
 
     public void nonNetworkPreamble(boolean isConnected, HttpURLConnection connection, String operation) {
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
-        Transaction tx = AgentBridge.getAgent().getTransaction(false);
+        Transaction tx = NewRelic.getAgent().getTransaction();
         if (!isConnected && method.isMetricProducer() && tx != null) {
             // This method doesn't have any network I/O so we are explicitly not recording external rollup metrics
-            makeMetric(connection, method, operation);
-            tx.getCrossProcessState().processOutboundRequestHeaders(new OutboundWrapper(connection), method);
+            makeNonRollupExternalMetric(connection, method, operation);
+            ConcurrentHashMapHeaders headers = ConcurrentHashMapHeaders.build(HeaderType.HTTP);
+            tx.insertDistributedTraceHeaders(headers);
         }
     }
 
     public void getInputStreamPreamble(boolean isConnected, HttpURLConnection connection, TracedMethod method) {
-        Transaction tx = AgentBridge.getAgent().getTransaction(false);
+        Transaction tx = NewRelic.getAgent().getTransaction();
         if (method.isMetricProducer() && tx != null) {
             if (!recordedANetworkCall) {
                 this.recordedANetworkCall = true;
-                makeMetric(connection, method, "getInputStream");
+                makeNonRollupExternalMetric(connection, method, "getInputStream");
             }
 
             if (!isConnected) {
-                tx.getCrossProcessState().processOutboundRequestHeaders(new OutboundWrapper(connection), method);
+                ConcurrentHashMapHeaders headers = ConcurrentHashMapHeaders.build(HeaderType.HTTP);
+                tx.insertDistributedTraceHeaders(headers);
             }
         }
     }
 
     public void getResponseCodePreamble(HttpURLConnection connection, TracedMethod method) {
-        Transaction tx = AgentBridge.getAgent().getTransaction(false);
+        Transaction tx = NewRelic.getAgent().getTransaction();
         if (method.isMetricProducer() && tx != null && !recordedANetworkCall) {
             this.recordedANetworkCall = true;
-            makeMetric(connection, method, "getResponseCode");
+            makeNonRollupExternalMetric(connection, method, "getResponseCode");
         }
     }
 
-    public void getInboundPostamble(HttpURLConnection connection, TracedMethod method) {
-        Transaction tx = AgentBridge.getAgent().getTransaction(false);
+    public void getInboundPostamble(HttpURLConnection connection, int responseCode, String responseMessage, String requestMethod, TracedMethod method) {
+        Transaction tx = NewRelic.getAgent().getTransaction();
         if (method.isMetricProducer() && !metricsRecorded && tx != null) {
             this.metricsRecorded = true;
+            // This conversion is necessary as it strips query parameters from the URI
             String uri = URISupport.getURI(connection.getURL());
-            InboundWrapper inboundWrapper = new InboundWrapper(connection);
-            tx.getCrossProcessState()
-                    .processInboundResponseHeaders(inboundWrapper, method, connection.getURL().getHost(), uri, true);
-        }
-    }
 
-    private void makeMetric(HttpURLConnection connection, TracedMethod method, String operation) {
-        try {
-            URI uri = connection.getURL().toURI();
-            int responseCode = connection.getResponseCode();
-            String responseMessage = connection.getResponseMessage();
-
+            // This will result in External rollup metrics being generated
             method.reportAsExternal(HttpParameters
                     .library(LIBRARY)
-                    .uri(uri)
-                    .procedure(operation)
+                    .uri(URI.create(uri))
+                    .procedure(requestMethod)
                     .inboundHeaders(new InboundWrapper(connection))
                     .status(responseCode, responseMessage)
                     .build());
-        } catch (URISyntaxException | IOException e) {
-            throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Sets external metric name (i.e. External/{HOST}/HttpURLConnection).
+     * This does not create rollup metrics such as External/all, External/allWeb, External/allOther, External/{HOST}/all
+     *
+     * @param connection HttpURLConnection instance
+     * @param method     TracedMethod instance
+     * @param operation  String representation of operation
+     */
+    private void makeNonRollupExternalMetric(HttpURLConnection connection, TracedMethod method, String operation) {
+        String uri = URISupport.getURI(connection.getURL());
+        ExternalMetrics.makeExternalComponentMetric(
+                method,
+                connection.getURL().getHost(),
+                LIBRARY,
+                false,
+                uri,
+                operation);
     }
 }

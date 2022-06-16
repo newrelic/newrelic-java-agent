@@ -8,7 +8,6 @@
 package java.net;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
@@ -42,21 +41,19 @@ public abstract class HttpURLConnection extends URLConnection {
     @Trace(leaf = true)
     public void connect() throws IOException {
         lazyGetMetricState().nonNetworkPreamble(connected, this, "connect");
-
         Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
     public synchronized OutputStream getOutputStream() throws IOException {
         lazyGetMetricState().nonNetworkPreamble(connected, this, "getOutputStream");
-
         return Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
     public synchronized InputStream getInputStream() throws IOException {
         MetricState metricState = lazyGetMetricState();
-        TracedMethod method = AgentBridge.getAgent().getTracedMethod();
+        com.newrelic.agent.bridge.TracedMethod method = AgentBridge.getAgent().getTracedMethod();
         metricState.getInputStreamPreamble(connected, this, method);
 
         InputStream inputStream;
@@ -71,15 +68,14 @@ public abstract class HttpURLConnection extends URLConnection {
             throw e;
         }
 
-        metricState.getInboundPostamble(this, method);
-
+        metricState.getInboundPostamble(this, 0, null, "getInputStream", method);
         return inputStream;
     }
 
     @Trace(leaf = true)
     public int getResponseCode() throws Exception {
         MetricState metricState = lazyGetMetricState();
-        TracedMethod method = AgentBridge.getAgent().getTracedMethod();
+        com.newrelic.agent.bridge.TracedMethod method = AgentBridge.getAgent().getTracedMethod();
         metricState.getResponseCodePreamble(this, method);
 
         int responseCodeValue;
@@ -94,8 +90,7 @@ public abstract class HttpURLConnection extends URLConnection {
             throw e;
         }
 
-        metricState.getInboundPostamble(this, method);
-
+        metricState.getInboundPostamble(this, responseCodeValue, null, "getResponseCode", method);
         return responseCodeValue;
     }
 

@@ -54,7 +54,7 @@ public class ExternalMetrics {
         // transaction segment name always contains operations; metric name may or may not
         String operationsPath = fixOperations(operations);
 
-        if(operationsPath == null) {
+        if (operationsPath == null) {
             String metricName = MessageFormat.format(METRIC_NAME, host, library);
             method.setMetricNameFormatInfo(metricName, metricName, uri);
         } else {
@@ -89,7 +89,7 @@ public class ExternalMetrics {
 
         makeExternalComponentMetric(method, hostName, library, includeOperationInMetric, uri, operations);
 
-        if(UNKNOWN_HOST.equals(hostName)) {
+        if (UNKNOWN_HOST.equals(hostName)) {
             return; // NR doesn't add rollup metrics for "UnknownHost"
         }
 
