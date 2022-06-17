@@ -9,13 +9,12 @@ package com.nr.agent.instrumentation.httpurlconnection;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
+import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.bridge.external.URISupport;
 import com.newrelic.api.agent.ConcurrentHashMapHeaders;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Transaction;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -27,8 +26,10 @@ public class MetricState {
 
     public void nonNetworkPreamble(boolean isConnected, HttpURLConnection connection, String operation) {
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
-        Transaction tx = NewRelic.getAgent().getTransaction();
+        Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (!isConnected && method.isMetricProducer() && tx != null) {
+            // Add outbound CAT headers
+            tx.getCrossProcessState().processOutboundRequestHeaders(new OutboundWrapper(connection), method);
             // This method doesn't have any network I/O so we are explicitly not recording external rollup metrics
             makeNonRollupExternalMetric(connection, method, operation);
             ConcurrentHashMapHeaders headers = ConcurrentHashMapHeaders.build(HeaderType.HTTP);
@@ -37,7 +38,7 @@ public class MetricState {
     }
 
     public void getInputStreamPreamble(boolean isConnected, HttpURLConnection connection, TracedMethod method) {
-        Transaction tx = NewRelic.getAgent().getTransaction();
+        Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && tx != null) {
             if (!recordedANetworkCall) {
                 this.recordedANetworkCall = true;
@@ -45,6 +46,8 @@ public class MetricState {
             }
 
             if (!isConnected) {
+                // Add outbound CAT headers
+                tx.getCrossProcessState().processOutboundRequestHeaders(new OutboundWrapper(connection), method);
                 ConcurrentHashMapHeaders headers = ConcurrentHashMapHeaders.build(HeaderType.HTTP);
                 tx.insertDistributedTraceHeaders(headers);
             }
@@ -52,7 +55,7 @@ public class MetricState {
     }
 
     public void getResponseCodePreamble(HttpURLConnection connection, TracedMethod method) {
-        Transaction tx = NewRelic.getAgent().getTransaction();
+        Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && tx != null && !recordedANetworkCall) {
             this.recordedANetworkCall = true;
             makeNonRollupExternalMetric(connection, method, "getResponseCode");
@@ -60,7 +63,7 @@ public class MetricState {
     }
 
     public void getInboundPostamble(HttpURLConnection connection, int responseCode, String responseMessage, String requestMethod, TracedMethod method) {
-        Transaction tx = NewRelic.getAgent().getTransaction();
+        Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && !metricsRecorded && tx != null) {
             this.metricsRecorded = true;
             // This conversion is necessary as it strips query parameters from the URI
