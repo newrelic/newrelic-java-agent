@@ -283,7 +283,7 @@ public final class Agent {
     public static void main(String[] args) {
         String javaSpecVersion = JavaVersionUtils.getJavaSpecificationVersion();
         String sysExperimentalRuntime = System.getProperty("newrelic.config.experimental_runtime");
-        String envExperimentalRuntime = System.getenv("NEW_RELIC_AGENT_EXPERIMENTAL_RUNTIME");
+        String envExperimentalRuntime = System.getenv("NEW_RELIC_EXPERIMENTAL_RUNTIME");
         boolean useExperimentalRuntime = (Boolean.parseBoolean(sysExperimentalRuntime)
                 || ((Boolean.parseBoolean(envExperimentalRuntime))));
 
