@@ -1,0 +1,24 @@
+dependencies {
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":agent-bridge"))
+    implementation 'biz.paluch.redis:lettuce:4.4.1.Final'
+    testImplementation('org.testcontainers:testcontainers:1.17.1')
+    testImplementation('junit:junit:4.13.1')
+
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.lettuce-4.3'
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'biz.paluch.redis:lettuce:[4.2.1.Final,4.5.0.Final]'
+    excludeRegex '.*SNAPSHOT'
+}
+
+site {
+    title 'Lettuce 4.3'
+    type 'Framework'
+}

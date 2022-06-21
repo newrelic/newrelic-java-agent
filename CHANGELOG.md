@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.8.0 (2022-06-16)
+
+### New features and improvements
+* Updated the agent to use caffeine 2.9.3 [832](https://github.com/newrelic/newrelic-java-agent/pull/832)
+* Refactored the `log.level` attribute name on LogEvents to instead be `level` [858](https://github.com/newrelic/newrelic-java-agent/pull/858)
+* Kafka instrumentation - supports metrics for kafka-clients versions 3.x. [860](https://github.com/newrelic/newrelic-java-agent/pull/860) and [865](https://github.com/newrelic/newrelic-java-agent/pull/865)
+* Update to jfr-daemon 1.8.0 [869](https://github.com/newrelic/newrelic-java-agent/pull/869)
+* Lettuce instrumentation - supports lettuce-core 4.3 up to 6.x.  Please remove any other (experimental/incubating) lettuce extensions or else Redis database metrics could be doubled. [872](https://github.com/newrelic/newrelic-java-agent/pull/872)
+
+### Fixes
+* Fixed CQLParser `getOperationAndTableName` exception handling. Exceptions are now handled within the `CQLParser`. [857](https://github.com/newrelic/newrelic-java-agent/pull/857)
+* Removed akka-http-core bindAndHandle instrumentation to resolve scenarios where duplicated transactions could result [850](https://github.com/newrelic/newrelic-java-agent/pull/850) (see [Scala Akka HTTP core instrumentation](https://docs.newrelic.com/docs/apm/agents/java-agent/frameworks/scala-akka-http-core/) for more details)
+
+### Support statement:
+
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
+
+## Version 7.7.0 (2022-05-03)
+
+### New features and improvements
+
+* Supports Java 18 [813](https://github.com/newrelic/newrelic-java-agent/pull/813)
+* APM logs in context. Automatic application log forwarding is now enabled by default. This version of the agent will automatically send enriched application logs to New Relic. To learn more about about this feature see [here](/docs/logs/logs-context/java-configure-logs-context-all), and additional configuration options are available [here](/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#Logs-in-Context). To learn about how to toggle log ingestion on or off by account see [here](/docs/logs/logs-context/disable-automatic-logging). [817](https://github.com/newrelic/newrelic-java-agent/pull/817)
+* Added instrumentation support for the Postgres, MySQL, Oracle & MSSQL R2DBC connectors [810](https://github.com/newrelic/newrelic-java-agent/pull/810) [816](https://github.com/newrelic/newrelic-java-agent/pull/816) [829](https://github.com/newrelic/newrelic-java-agent/pull/829) [828](https://github.com/newrelic/newrelic-java-agent/pull/828)
+
+### Fixes
+
+* Patches a security issue related to an older version of jszip that is included in the Java agent API Javadoc jar [820](https://github.com/newrelic/newrelic-java-agent/pull/820)
+
+### Support statement:
+
+* New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
 
 ## Version 7.6.0 (2022-04-04)
 

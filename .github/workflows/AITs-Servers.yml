@@ -1,4 +1,4 @@
-name: AITs - Servers (7 disabled)
+name: AITs - Servers (6 disabled)
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
@@ -46,7 +46,7 @@ jobs:
 #          - was_liberty.py
 #          - weblogic.py
           - websphere.py
-#          - wildfly.py
+          - wildfly.py
 
     steps:
       - uses: actions/checkout@v2
@@ -264,6 +264,7 @@ jobs:
           echo "RUN THE TESTS"
           echo "Running ${{ matrix.func_basic_features }}"
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
           ./bin/runtest.sh ${java_func_path}/${java_func_type}/${{ matrix.func_tests }}
 
       # Rename matrix item to remove problem characers
