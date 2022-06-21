@@ -12,8 +12,6 @@ import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.bridge.external.URISupport;
-import com.newrelic.api.agent.ConcurrentHashMapHeaders;
-import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
 
 import java.net.HttpURLConnection;
@@ -28,12 +26,10 @@ public class MetricState {
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (!isConnected && method.isMetricProducer() && tx != null) {
-            // Add outbound CAT headers
-            tx.getCrossProcessState().processOutboundRequestHeaders(new OutboundWrapper(connection), method);
             // This method doesn't have any network I/O so we are explicitly not recording external rollup metrics
             makeNonRollupExternalMetric(connection, method, operation);
-            ConcurrentHashMapHeaders headers = ConcurrentHashMapHeaders.build(HeaderType.HTTP);
-            tx.insertDistributedTraceHeaders(headers);
+            // Add CAT/Distributed tracing headers to this outbound request
+            method.addOutboundRequestHeaders(new OutboundWrapper(connection));
         }
     }
 
@@ -46,10 +42,8 @@ public class MetricState {
             }
 
             if (!isConnected) {
-                // Add outbound CAT headers
-                tx.getCrossProcessState().processOutboundRequestHeaders(new OutboundWrapper(connection), method);
-                ConcurrentHashMapHeaders headers = ConcurrentHashMapHeaders.build(HeaderType.HTTP);
-                tx.insertDistributedTraceHeaders(headers);
+                // Add CAT/Distributed tracing headers to this outbound request
+                method.addOutboundRequestHeaders(new OutboundWrapper(connection));
             }
         }
     }
@@ -68,13 +62,17 @@ public class MetricState {
             this.metricsRecorded = true;
             // This conversion is necessary as it strips query parameters from the URI
             String uri = URISupport.getURI(connection.getURL());
+            InboundWrapper inboundWrapper = new InboundWrapper(connection);
+
+            // Add CAT/Distributed tracing headers to this outbound request
+            method.addOutboundRequestHeaders(new OutboundWrapper(connection));
 
             // This will result in External rollup metrics being generated
             method.reportAsExternal(HttpParameters
                     .library(LIBRARY)
                     .uri(URI.create(uri))
                     .procedure(requestMethod)
-                    .inboundHeaders(new InboundWrapper(connection))
+                    .inboundHeaders(inboundWrapper)
                     .status(responseCode, responseMessage)
                     .build());
         }
