@@ -12,12 +12,12 @@ on:
         required: true
 
 jobs:
-  publish_snapshot:
+  create_custom_jar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${ inputs.ref }
+          ref: ${{ inputs.ref }}
       - uses: gradle/wrapper-validation-action@v1
 
       # JDK 11
@@ -39,6 +39,11 @@ jobs:
         uses: gradle/gradle-build-action@v2
       - name: Setup Gradle options
         run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
+      - name: set gradle.properties
+        run: |
+          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
+          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
+          mv gradle.properties.gha gradle.properties
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -50,18 +55,20 @@ jobs:
         run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip
       - name: Unzip the instrumentation jars
         run: unzip proprietary-jars.zip
-#      - name: Log jars are in target libs
-#        run: find instrumentation -name "*.jar"
-
-      - name: Set summary
-        run: echo "${ inputs.description }" >> $GITHUB_STEP_SUMMARY
+      #      - name: Log jars are in target libs
+      #        run: find instrumentation -name "*.jar"
 
       - name: Build agent
         run: ./gradlew $GRADLE_OPTIONS jar
 
+      - name: Set summary
+        run: |
+          echo "${{ inputs.description }}" >> $GITHUB_STEP_SUMMARY
+          echo "This jar was built from the ref (branch/tag/hash): ${{ inputs.ref }}." >> $GITHUB_STEP_SUMMARY
+
       - name: Capture custom jar
         uses: actions/upload-artifact@v2
         with:
-          name: custom-jar
+          name: custom-newrelic-jar
           path: |
             newrelic-agent/build/newrelicJar/newrelic.jar
