@@ -51,7 +51,7 @@ public final class Agent {
     private static final String NEWRELIC_BOOTSTRAP = "newrelic-bootstrap";
     private static final String AGENT_ENABLED_PROPERTY = "newrelic.config.agent_enabled";
 
-    private static final boolean DEBUG = Boolean.getBoolean("newrelic.debug");
+    private static final boolean DEBUG = Agent.setDebug();
     private static final String VERSION = Agent.initVersion();
 
     private static long agentPremainTime;
@@ -75,6 +75,11 @@ public final class Agent {
     public static boolean isDebugEnabled() {
         return DEBUG;
     }
+
+    private static boolean setDebug(){
+       return Boolean.getBoolean("newrelic.debug") || Boolean.parseBoolean(System.getenv("NEWRELIC_DEBUG"));
+    }
+
 
     private static volatile boolean canFastPath = true;
 
