@@ -21,6 +21,8 @@ public class ConfigFileHelper {
     private static final String NEW_RELIC_HOME_DIRECTORY_PROPERTY = "newrelic.home";
     private static final String NEW_RELIC_HOME_DIRECTORY_ENVIRONMENT_VARIABLE = "NEWRELIC_HOME";
     private static final String NEW_RELIC_DEBUG_PROPERTY = "newrelic.debug";
+
+    private static final String NEW_RELIC_DEBUG_ENV = "NEWRELIC_DEBUG";
     private static final String[] SEARCH_DIRECTORIES = { ".", "conf", "config", "etc" };
 
     /**
@@ -36,7 +38,7 @@ public class ConfigFileHelper {
 
         File parentDir = getNewRelicDirectory();
         if (parentDir != null) {
-            if (Boolean.getBoolean(NEW_RELIC_DEBUG_PROPERTY)) {
+            if (Boolean.getBoolean(NEW_RELIC_DEBUG_PROPERTY) || Boolean.parseBoolean(System.getenv(NEW_RELIC_DEBUG_ENV)) ) {
                 System.err.println(MessageFormat.format("New Relic home directory: {0}", parentDir));
             }
         }

@@ -293,7 +293,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
-        debug = Boolean.getBoolean(DEBUG);
+        debug = Boolean.getBoolean(DEBUG) || Boolean.parseBoolean(System.getenv("NEWRELIC_DEBUG"));
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         experimentalRuntime = allowExperimentalRuntimeVersions();
