@@ -1,0 +1,67 @@
+name: Create custom jar
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Specify branch/tag/hash"
+        required: true
+        default: 'main'
+      description:
+        description: "A description for the custom jar that will be generated. It will appear in the summary."
+        required: true
+
+jobs:
+  publish_snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${ inputs.ref }
+      - uses: gradle/wrapper-validation-action@v1
+
+      # JDK 11
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 11
+      - name: save JAVA_HOME as JDK11 for later usage
+        run: echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
+      # setting JDK 8 last so it is the default
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 8
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Setup Gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: Download S3 instrumentation jar zip
+        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip
+      - name: Unzip the instrumentation jars
+        run: unzip proprietary-jars.zip
+#      - name: Log jars are in target libs
+#        run: find instrumentation -name "*.jar"
+
+      - name: Set summary
+        run: echo "${ inputs.description }" >> $GITHUB_STEP_SUMMARY
+
+      - name: Build agent
+        run: ./gradlew $GRADLE_OPTIONS jar
+
+      - name: Capture custom jar
+        uses: actions/upload-artifact@v2
+        with:
+          name: custom-jar
+          path: |
+            newrelic-agent/build/newrelicJar/newrelic.jar
