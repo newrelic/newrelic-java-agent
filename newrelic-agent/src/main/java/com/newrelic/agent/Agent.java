@@ -22,6 +22,7 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.ClassStructure;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.weave.utils.Streams;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.objectweb.asm.ClassReader;
 
 import java.io.ByteArrayOutputStream;
@@ -32,6 +33,7 @@ import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -51,7 +53,6 @@ public final class Agent {
     private static final String NEWRELIC_BOOTSTRAP = "newrelic-bootstrap";
     private static final String AGENT_ENABLED_PROPERTY = "newrelic.config.agent_enabled";
 
-    private static final boolean DEBUG = Agent.setDebug();
     private static final String VERSION = Agent.initVersion();
 
     private static long agentPremainTime;
@@ -73,11 +74,7 @@ public final class Agent {
     }
 
     public static boolean isDebugEnabled() {
-        return DEBUG;
-    }
-
-    private static boolean setDebug(){
-       return Boolean.getBoolean("newrelic.debug") || Boolean.parseBoolean(System.getenv("NEWRELIC_DEBUG"));
+        return DebugFlag.DEBUG;
     }
 
 

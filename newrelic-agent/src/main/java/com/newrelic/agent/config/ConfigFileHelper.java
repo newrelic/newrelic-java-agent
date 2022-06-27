@@ -7,6 +7,9 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.Agent;
+import com.newrelic.agent.DebugFlag;
+
 import java.io.File;
 import java.text.MessageFormat;
 
@@ -20,9 +23,6 @@ public class ConfigFileHelper {
     private static final String CONFIG_FILE_PROPERTY = "newrelic.config.file";
     private static final String NEW_RELIC_HOME_DIRECTORY_PROPERTY = "newrelic.home";
     private static final String NEW_RELIC_HOME_DIRECTORY_ENVIRONMENT_VARIABLE = "NEWRELIC_HOME";
-    private static final String NEW_RELIC_DEBUG_PROPERTY = "newrelic.debug";
-
-    private static final String NEW_RELIC_DEBUG_ENV = "NEWRELIC_DEBUG";
     private static final String[] SEARCH_DIRECTORIES = { ".", "conf", "config", "etc" };
 
     /**
@@ -38,7 +38,7 @@ public class ConfigFileHelper {
 
         File parentDir = getNewRelicDirectory();
         if (parentDir != null) {
-            if (Boolean.getBoolean(NEW_RELIC_DEBUG_PROPERTY) || Boolean.parseBoolean(System.getenv(NEW_RELIC_DEBUG_ENV)) ) {
+            if (DebugFlag.DEBUG) {
                 System.err.println(MessageFormat.format("New Relic home directory: {0}", parentDir));
             }
         }
@@ -151,7 +151,7 @@ public class ConfigFileHelper {
     private static File findConfigFile(File parentDirectory) {
         for (String searchDir : SEARCH_DIRECTORIES) {
             File configDir = new File(parentDirectory, searchDir);
-            if (Boolean.getBoolean(NEW_RELIC_DEBUG_PROPERTY)) {
+            if (DebugFlag.DEBUG) {
                 System.err.println(MessageFormat.format("Searching for New Relic configuration in directory {0}", configDir));
             }
             if (configDir.exists()) {
