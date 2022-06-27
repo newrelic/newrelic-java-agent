@@ -9,7 +9,11 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.AgentJarHelper;
+import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.JarResource;
+import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -22,7 +26,6 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.ClassStructure;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.weave.utils.Streams;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.objectweb.asm.ClassReader;
 
 import java.io.ByteArrayOutputStream;
@@ -32,9 +35,16 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.jar.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -76,7 +86,6 @@ public final class Agent {
     public static boolean isDebugEnabled() {
         return DebugFlag.DEBUG;
     }
-
 
     private static volatile boolean canFastPath = true;
 
@@ -312,7 +321,8 @@ public final class Agent {
     private static void recordPremainTime(StatsService statsService, long startTime) {
         agentPremainTime = System.currentTimeMillis() - startTime;
         LOG.log(Level.INFO, "Premain startup complete in {0}ms", agentPremainTime);
-        statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(MetricNames.SUPPORTABILITY_TIMING_PREMAIN, agentPremainTime), MetricNames.SUPPORTABILITY_TIMING_PREMAIN);
+        statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(MetricNames.SUPPORTABILITY_TIMING_PREMAIN, agentPremainTime),
+                MetricNames.SUPPORTABILITY_TIMING_PREMAIN);
 
         Map<String, Object> environmentInfo = ImmutableMap.<String, Object>builder()
                 .put("Duration", agentPremainTime)
@@ -338,7 +348,7 @@ public final class Agent {
     private static void recordAgentVersion(StatsService statsService) {
         statsService.doStatsWork(
                 StatsWorks.getIncrementCounterWork(MessageFormat.format(MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION, getVersion()), 1),
-                MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION );
+                MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION);
     }
 
     /**
