@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.config;
 
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
 
 import java.io.File;
