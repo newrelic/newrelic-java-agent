@@ -16,7 +16,5 @@ public class DebugFlag {
     // This flag cannot be set via newrelic.yml (AgentConfigImpl) because a ServiceManager and ConfigService have not been initialized for the earliest checks
     // for the debug setting.
     public static final boolean DEBUG = Boolean.getBoolean("newrelic.debug") || Boolean.parseBoolean(System.getenv("NEWRELIC_DEBUG"));
-            ;
-
 
 }
