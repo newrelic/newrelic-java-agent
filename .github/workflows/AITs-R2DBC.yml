@@ -24,7 +24,7 @@ jobs:
     env:
       java_func_path: "tests/java/functionality"
       java_func_type: "r2dbc"
-      default-branch: "ait-logging"
+      default-branch: "main"
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
@@ -34,7 +34,7 @@ jobs:
           - oracle.py
           - postgres.py
           - mysql.py
-          - mssql.py
+#         - mssql.py
           - h2.py
     steps:
       - uses: actions/checkout@v2
