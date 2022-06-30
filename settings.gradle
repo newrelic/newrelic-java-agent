@@ -51,15 +51,15 @@ include 'functional_test:weave_test'
 include 'functional_test:weave_test_impl'
 
 // JDK 9+ module system tests
-if (JavaVersion.current().isJava9Compatible()) {
-    include 'module_test_9'
-}
-if (JavaVersion.current().isJava10Compatible()) {
-    include 'module_test_10'
-}
-if (JavaVersion.current().isJava11Compatible()) {
-    include 'module_test_11'
-}
+//if (JavaVersion.current().isJava9Compatible()) {
+//    include 'module_test_9'
+//}
+//if (JavaVersion.current().isJava10Compatible()) {
+//    include 'module_test_10'
+//}
+//if (JavaVersion.current().isJava11Compatible()) {
+//    include 'module_test_11'
+//}
 
 // Weaver Instrumentation
 include 'instrumentation:anorm-2.3'
