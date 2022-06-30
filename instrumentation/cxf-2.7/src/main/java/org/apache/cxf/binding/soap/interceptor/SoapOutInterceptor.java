@@ -12,7 +12,6 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.cxf27.CxfSoapUtils;
 import org.apache.cxf.binding.soap.SoapMessage;
-import org.apache.cxf.interceptor.Fault;
 
 @Weave
 public class SoapOutInterceptor {
