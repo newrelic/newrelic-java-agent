@@ -28,15 +28,15 @@ public class ScalaTraitFinalFieldTransformer implements ContextClassTransformer 
   private byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                              ProtectionDomain protectionDomain, byte[] classfileBuffer, InstrumentationContext context) {
 
-    if (context.getNonFinalFields().isEmpty()) {
+    if (context.getScalaFinalFields().isEmpty()) {
       return null;
     }
 
     LOG.debug("Instrumenting class " + className);
     ClassReader reader = new ClassReader(classfileBuffer);
-    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     ClassVisitor cv = writer;
-    cv = new ScalaTraitFinalFieldVisitor(cv, context.getNonFinalFields());
+    cv = new ScalaTraitFinalFieldVisitor(cv, context.getScalaFinalFields());
     reader.accept(cv, ClassReader.SKIP_FRAMES);
 
     return writer.toByteArray();

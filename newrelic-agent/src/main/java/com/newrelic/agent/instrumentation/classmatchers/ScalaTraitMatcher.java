@@ -70,7 +70,7 @@ public class ScalaTraitMatcher implements ClassMatchVisitorFactory {
       @Override
       public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
         if(isScalaSource && this.interfaces.size() > 0 && ((access & Opcodes.ACC_FINAL) == Opcodes.ACC_FINAL)) {
-          context.addNonFinalFields(name);
+          context.addScalaFinalField(name);
         }
         return super.visitField(access, name, descriptor, signature, value);
       }

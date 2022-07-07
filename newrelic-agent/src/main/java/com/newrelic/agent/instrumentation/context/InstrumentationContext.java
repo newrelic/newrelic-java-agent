@@ -48,7 +48,7 @@ public class InstrumentationContext implements TraceDetailsList {
     private boolean modified;
     private Multimap<Method, String> weavedMethods;
     private Multimap<Method, String> skipMethods;
-    private Set<String> nonFinalFields;
+    private Set<String> scalaFinalFields;
     private Set<Method> timedMethods;
     private Map<Method, PointCut> oldReflectionStyleInstrumentationMethods;
     private Map<Method, PointCut> oldInvokerStyleInstrumentationMethods;
@@ -123,11 +123,11 @@ public class InstrumentationContext implements TraceDetailsList {
       skipMethods.put(method, owningClass);
     }
 
-    public void addNonFinalFields(String fieldName) {
-      if (nonFinalFields == null) {
-        nonFinalFields = new HashSet<>();
+    public void addScalaFinalField(String fieldName) {
+      if (scalaFinalFields == null) {
+        scalaFinalFields = new HashSet<>();
       }
-      nonFinalFields.add(fieldName);
+      scalaFinalFields.add(fieldName);
     }
 
     public PointCut getOldStylePointCut(Method method) {
@@ -156,8 +156,8 @@ public class InstrumentationContext implements TraceDetailsList {
     return skipMethods == null ? Collections.emptyMap() : skipMethods.asMap();
   }
 
-  public Set<String> getNonFinalFields() {
-      return nonFinalFields == null ? Collections.emptySet() : new HashSet<>(nonFinalFields);
+  public Set<String> getScalaFinalFields() {
+      return scalaFinalFields == null ? Collections.emptySet() : new HashSet<>(scalaFinalFields);
   }
 
   /**

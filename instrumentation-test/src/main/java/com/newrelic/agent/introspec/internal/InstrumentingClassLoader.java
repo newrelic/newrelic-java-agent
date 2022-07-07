@@ -20,14 +20,12 @@ import com.newrelic.agent.deps.org.objectweb.asm.tree.ClassNode;
 import com.newrelic.agent.instrumentation.InstrumentationType;
 import com.newrelic.agent.instrumentation.classmatchers.ScalaTraitMatcher;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
-import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldTransformer;
 import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldVisitor;
 import com.newrelic.agent.instrumentation.tracing.Annotation;
 import com.newrelic.agent.instrumentation.tracing.NoticeSqlVisitor;
 import com.newrelic.agent.instrumentation.tracing.TraceClassVisitor;
 import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
 import com.newrelic.agent.instrumentation.weaver.ClassWeaverService;
-import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPostprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.TracedWeaveInstrumentationTracker;
@@ -139,11 +137,11 @@ class InstrumentingClassLoader extends WeavingClassLoader {
             classBytes = weaved;
         }
 
-        if (classBytes != null && context.isModified() && !context.getNonFinalFields().isEmpty()) {
+        if (classBytes != null && context.isModified() && !context.getScalaFinalFields().isEmpty()) {
             ClassReader reader = new ClassReader(classBytes);
             ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             ClassVisitor cv = writer;
-            cv = new ScalaTraitFinalFieldVisitor(cv, context.getNonFinalFields());
+            cv = new ScalaTraitFinalFieldVisitor(cv, context.getScalaFinalFields());
             reader.accept(cv, ClassReader.SKIP_FRAMES);
             classBytes = writer.toByteArray();
         }
