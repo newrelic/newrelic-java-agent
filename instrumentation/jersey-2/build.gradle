@@ -1,25 +1,22 @@
 dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-api"))
+    implementation("org.glassfish.jersey.core:jersey-server:2.0-m13-3")
 
-    implementation("org.glassfish.jersey.core:jersey-server:2.28")
     testImplementation("com.jayway.restassured:rest-assured:2.7.0")
-    testImplementation("org.eclipse.jetty:jetty-server:10.0.11")
-    testImplementation("org.eclipse.jetty:jetty-servlet:10.0.11")
-
-    testImplementation("org.glassfish.jersey.core:jersey-server:2.28")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet-core:2.28")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-jetty-http:2.28")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:2.28")
-    testImplementation("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
+    testImplementation("org.eclipse.jetty:jetty-server:9.4.6.v20170531")
+    testImplementation("org.eclipse.jetty:jetty-servlet:9.4.6.v20170531")
+    testImplementation("org.glassfish.jersey.core:jersey-server:2.25.1")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet-core:2.25.1")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-jetty-http:2.25.1")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:2.25.1")
+    testImplementation("javax.xml.bind:jaxb-api:2.3.0")
 }
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jersey-2' }
 }
 
-// org.glassfish.jersey.core 2.28 version starts pulling in jakarata jar named dependencies.
-// Version 3.0.0-M1 starts pulling in jakarata with renamed jar and packages
 verifyInstrumentation {
     passesOnly 'org.glassfish.jersey.core:jersey-server:[2.0,3.0.0-M1)'
     exclude 'org.glassfish.jersey.core:jersey-server:[2.0-m05-2,2.0)'
