@@ -13,7 +13,6 @@ import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.weaver.CatchAndLog;
 
 public final class AsyncListenerFactory {
