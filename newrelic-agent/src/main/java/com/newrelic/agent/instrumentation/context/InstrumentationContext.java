@@ -48,6 +48,7 @@ public class InstrumentationContext implements TraceDetailsList {
     private boolean modified;
     private Multimap<Method, String> weavedMethods;
     private Multimap<Method, String> skipMethods;
+    private Set<String> scalaFinalFields;
     private Set<Method> timedMethods;
     private Map<Method, PointCut> oldReflectionStyleInstrumentationMethods;
     private Map<Method, PointCut> oldInvokerStyleInstrumentationMethods;
@@ -122,6 +123,12 @@ public class InstrumentationContext implements TraceDetailsList {
       skipMethods.put(method, owningClass);
     }
 
+    public void addScalaFinalField(String fieldName) {
+      if (scalaFinalFields == null) {
+        scalaFinalFields = new HashSet<>();
+      }
+      scalaFinalFields.add(fieldName);
+    }
 
     public PointCut getOldStylePointCut(Method method) {
         PointCut pc = getOldInvokerStyleInstrumentationMethods().get(method);
@@ -147,6 +154,10 @@ public class InstrumentationContext implements TraceDetailsList {
 
   public Map<Method, Collection<String>> getSkipMethods() {
     return skipMethods == null ? Collections.emptyMap() : skipMethods.asMap();
+  }
+
+  public Set<String> getScalaFinalFields() {
+      return scalaFinalFields == null ? Collections.emptySet() : new HashSet<>(scalaFinalFields);
   }
 
   /**
