@@ -42,14 +42,12 @@ public abstract class HttpURLConnection extends URLConnection {
     @Trace(leaf = true)
     public void connect() throws IOException {
         lazyGetMetricState().nonNetworkPreamble(connected, this, "connect");
-
         Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
     public synchronized OutputStream getOutputStream() throws IOException {
         lazyGetMetricState().nonNetworkPreamble(connected, this, "getOutputStream");
-
         return Weaver.callOriginal();
     }
 
@@ -71,8 +69,7 @@ public abstract class HttpURLConnection extends URLConnection {
             throw e;
         }
 
-        metricState.getInboundPostamble(this, method);
-
+        metricState.getInboundPostamble(this, 0, null, "getInputStream", method);
         return inputStream;
     }
 
@@ -94,8 +91,7 @@ public abstract class HttpURLConnection extends URLConnection {
             throw e;
         }
 
-        metricState.getInboundPostamble(this, method);
-
+        metricState.getInboundPostamble(this, responseCodeValue, null, "getResponseCode", method);
         return responseCodeValue;
     }
 

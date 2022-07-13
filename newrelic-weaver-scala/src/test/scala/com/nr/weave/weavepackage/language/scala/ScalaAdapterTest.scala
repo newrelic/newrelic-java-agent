@@ -16,7 +16,7 @@ import com.newrelic.test.marker.{Java11IncompatibleTest, Java12IncompatibleTest,
 
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("com.nr.weave.weavepackage.language.scala.weaveclasses."))
-@Category(Array(classOf[Java11IncompatibleTest],classOf[Java12IncompatibleTest],classOf[Java13IncompatibleTest],
+@Category(Array(classOf[Java12IncompatibleTest],classOf[Java13IncompatibleTest],
   classOf[Java14IncompatibleTest],classOf[Java15IncompatibleTest],classOf[Java16IncompatibleTest], classOf[Java17IncompatibleTest],
   classOf[Java18IncompatibleTest]))
 class ScalaAdapterTest {
@@ -50,6 +50,10 @@ class ScalaAdapterTest {
     Assert.assertEquals("weaved-ChildNonWeaveTrait", multipleOverridingNonWeaved.traitmethod())
   }
 
+  @Test
+  def weaveChildObjectWithTraitField() {
+    Assert.assertEquals("weaved-other-method", new ChildFieldClass().otherMethod())
+  }
 }
 
 object ScalaAdapterTest {
@@ -94,6 +98,15 @@ package testclasses {
   class MultipleOverridingNonWeaved extends ChildWeaveTrait with ChildNonWeaveTrait
   class MultipleOverridingWeaved extends ChildNonWeaveTrait with ChildWeaveTrait
 
+  trait FieldTrait {
+    val finalField: String = "field-name"
+    var nonFinalField: String = "non-final-field"
+    def otherMethod(): String = "other-method"
+  }
+
+  trait ChildFieldTrait  extends FieldTrait
+  class ChildFieldClass extends ChildFieldTrait
+
 }
 
 package weaveclasses {
@@ -121,6 +134,11 @@ package weaveclasses {
     def traitmethod(): String = {
       "weaved"+Weaver.callOriginal()
     }
+  }
+
+  @ScalaWeave(originalName="com.nr.weave.weavepackage.language.scala.testclasses.FieldTrait", `type`=ScalaMatchType.Trait)
+  class FieldTraitWeave {
+    def otherMethod(): String = "weaved-"+Weaver.callOriginal()
   }
 
   @ScalaWeave(originalName="com.nr.weave.weavepackage.language.scala.testclasses.ChildWeaveTrait", `type`=ScalaMatchType.Trait)
