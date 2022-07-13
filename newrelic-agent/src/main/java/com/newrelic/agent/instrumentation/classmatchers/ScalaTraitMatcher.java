@@ -6,6 +6,7 @@ import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.weave.utils.WeaveUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
@@ -64,6 +65,14 @@ public class ScalaTraitMatcher implements ClassMatchVisitorFactory {
       public void visitSource(String source, String debug) {
         super.visitSource(source, debug);
         this.isScalaSource = source.endsWith(".scala");
+      }
+
+      @Override
+      public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+        if(isScalaSource && this.interfaces.size() > 0 && ((access & Opcodes.ACC_FINAL) == Opcodes.ACC_FINAL)) {
+          context.addScalaFinalField(name);
+        }
+        return super.visitField(access, name, descriptor, signature, value);
       }
 
       @Override

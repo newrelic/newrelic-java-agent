@@ -9,6 +9,7 @@ package com.newrelic.agent.config;
 
 import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 
@@ -69,7 +70,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String MAX_STACK_TRACE_LINES = "max_stack_trace_lines";
     public static final String METRIC_INGEST_URI = "metric_ingest_uri";
     public static final String EVENT_INGEST_URI = "event_ingest_uri";
-    public static final String DEBUG = "newrelic.debug";
     public static final String METRIC_DEBUG = "metric_debug";
     public static final String PLATFORM_INFORMATION_ENABLED = "platform_information_enabled";
     public static final String PORT = "port";
@@ -293,7 +293,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
-        debug = Boolean.getBoolean(DEBUG);
+        debug = DebugFlag.DEBUG;
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         experimentalRuntime = allowExperimentalRuntimeVersions();

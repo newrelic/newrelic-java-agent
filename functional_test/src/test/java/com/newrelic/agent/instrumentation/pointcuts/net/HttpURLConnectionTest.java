@@ -7,8 +7,16 @@
 
 package com.newrelic.agent.instrumentation.pointcuts.net;
 
-import static java.text.MessageFormat.format;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
+import com.newrelic.agent.AgentHelper;
+import com.newrelic.agent.TransactionDataList;
+import com.newrelic.agent.metric.MetricName;
+import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.api.agent.Trace;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,16 +31,8 @@ import java.net.URLConnection;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-import com.newrelic.agent.AgentHelper;
-import com.newrelic.agent.TransactionDataList;
-import com.newrelic.agent.metric.MetricName;
-import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.api.agent.Trace;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static java.text.MessageFormat.format;
+import static org.junit.Assert.assertEquals;
 
 public class HttpURLConnectionTest {
 
@@ -489,43 +489,68 @@ public class HttpURLConnectionTest {
             int scopedNetworkIOCount, int unscopedNetworkIOCount) {
         Set<String> metrics = AgentHelper.getMetrics();
 
+        String httpURLConnectionMetric = "External/{0}/HttpURLConnection";
+        String httpURLConnectionGetInputStreamMetric = "External/{0}/HttpURLConnection/getInputStream";
+        String httpURLConnectionGetResponseCodeMetric = "External/{0}/HttpURLConnection/getResponseCode";
+        String externalHostAllMetric = "External/{0}/all";
+        String externalAllMetric = "External/all";
+        String externalAllOtherMetric = "External/allOther";
+
         if (scopedHttpUrlCount > 0 || unscopedHttpUrlCount > 0) {
-            Assert.assertTrue(metrics.toString(), metrics.contains(format("External/{0}/HttpURLConnection", url)));
+            Assert.assertTrue(metrics.toString(),
+                    metrics.contains(format(httpURLConnectionMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetInputStreamMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetResponseCodeMetric, url)));
         } else {
-            Assert.assertFalse(metrics.toString(), metrics.contains(format("External/{0}/HttpURLConnection", url)));
+            Assert.assertFalse(metrics.toString(),
+                    metrics.contains(format(httpURLConnectionMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetInputStreamMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetResponseCodeMetric, url)));
         }
 
         if (scopedNetworkIOCount > 0 || unscopedNetworkIOCount > 0) {
-            Assert.assertTrue(metrics.toString(), metrics.contains(format("External/{0}/all", url)));
-            Assert.assertTrue(metrics.toString(), metrics.contains("External/all"));
-            Assert.assertTrue(metrics.toString(), metrics.contains("External/allOther"));
+            Assert.assertTrue(metrics.toString(), metrics.contains(format(externalHostAllMetric, url)));
+            Assert.assertTrue(metrics.toString(), metrics.contains(externalAllMetric));
+            Assert.assertTrue(metrics.toString(), metrics.contains(externalAllOtherMetric));
         } else {
-            Assert.assertFalse(metrics.toString(), metrics.contains(format("External/{0}/all", url)));
-            Assert.assertFalse(metrics.toString(), metrics.contains("External/all"));
-            Assert.assertFalse(metrics.toString(), metrics.contains("External/allOther"));
+            Assert.assertFalse(metrics.toString(), metrics.contains(format(externalHostAllMetric, url)));
+            Assert.assertFalse(metrics.toString(), metrics.contains(externalAllMetric));
+            Assert.assertFalse(metrics.toString(), metrics.contains(externalAllOtherMetric));
         }
 
         Map<String, Integer> scopedMetrics = getMetricCounts(
-                MetricName.create(format("External/{0}/HttpURLConnection", url), scope),
-                MetricName.create(format("External/{0}/all", url), scope),
-                MetricName.create("External/all", scope),
-                MetricName.create("External/allOther", scope));
+                MetricName.create(format(httpURLConnectionMetric, url), scope),
+                MetricName.create(format(httpURLConnectionGetInputStreamMetric, url), scope),
+                MetricName.create(format(httpURLConnectionGetResponseCodeMetric, url), scope),
+                MetricName.create(format(externalHostAllMetric, url), scope),
+                MetricName.create(externalAllMetric, scope),
+                MetricName.create(externalAllOtherMetric, scope));
 
         Map<String, Integer> unscopedMetrics = getMetricCounts(
-                MetricName.create(format("External/{0}/HttpURLConnection", url)),
-                MetricName.create(format("External/{0}/all", url)),
-                MetricName.create("External/all"),
-                MetricName.create("External/allOther"));
+                MetricName.create(format(httpURLConnectionMetric, url)),
+                MetricName.create(format(httpURLConnectionGetInputStreamMetric, url)),
+                MetricName.create(format(httpURLConnectionGetResponseCodeMetric, url)),
+                MetricName.create(format(externalHostAllMetric, url)),
+                MetricName.create(externalAllMetric),
+                MetricName.create(externalAllOtherMetric));
 
-        assertEquals(scopedHttpUrlCount, (int) scopedMetrics.get(format("External/{0}/HttpURLConnection", url)));
-        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(format("External/{0}/all", url)));
-        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get("External/all"));
-        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get("External/allOther"));
+        int actualHttpURLConnectionScopedMetricCount = scopedMetrics.get(format(httpURLConnectionMetric, url)) +
+                scopedMetrics.get(format(httpURLConnectionGetInputStreamMetric, url)) +
+                scopedMetrics.get(format(httpURLConnectionGetResponseCodeMetric, url));
 
-        assertEquals(unscopedHttpUrlCount, (int) unscopedMetrics.get(format("External/{0}/HttpURLConnection", url)));
-        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(format("External/{0}/all", url)));
-        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get("External/all"));
-        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get("External/allOther"));
+        int actualHttpURLConnectionUnscopedMetricCount = unscopedMetrics.get(format(httpURLConnectionMetric, url)) +
+                unscopedMetrics.get(format(httpURLConnectionGetInputStreamMetric, url)) +
+                unscopedMetrics.get(format(httpURLConnectionGetResponseCodeMetric, url));
+
+        assertEquals(scopedHttpUrlCount, actualHttpURLConnectionScopedMetricCount);
+        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(format(externalHostAllMetric, url)));
+        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(externalAllMetric));
+        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(externalAllOtherMetric));
+
+        assertEquals(unscopedHttpUrlCount, actualHttpURLConnectionUnscopedMetricCount);
+        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(format(externalHostAllMetric, url)));
+        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(externalAllMetric));
+        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(externalAllOtherMetric));
     }
 
     private Map<String, Integer> getMetricCounts(MetricName... responseTimeMetricNames) {

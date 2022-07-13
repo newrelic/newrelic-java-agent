@@ -70,7 +70,8 @@ public interface TracedMethod extends AttributeHolder {
      *        determines if the external call is HTTP or JMS.
      * @since 3.36.0
      * @deprecated Instead, use the Distributed Tracing API {@link Transaction#insertDistributedTraceHeaders(Headers)} to create a
-     * distributed tracing payload
+     * distributed tracing payload. However, note that the <code>insertDistributedTraceHeaders</code> API only adds distributed tracing
+     * headers and does not add legacy CAT headers. If CAT must be supported then instead use this deprecated API.
      */
     @Deprecated
     void addOutboundRequestHeaders(OutboundHeaders outboundHeaders);
