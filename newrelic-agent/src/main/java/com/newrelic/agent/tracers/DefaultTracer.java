@@ -11,6 +11,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -143,6 +144,20 @@ public class DefaultTracer extends AbstractTracer {
             tracerFlags = TracerFlags.clearSegment(tracerFlags);
         }
 
+        if (classMethodSignature != null) {
+            String className = classMethodSignature.getClassName();
+            if (className != null) {
+                setAgentAttribute(AttributeNames.CLM_NAMESPACE, className);
+            }
+            String methodName = classMethodSignature.getMethodName();
+            if (methodName != null) {
+                setAgentAttribute(AttributeNames.CLM_METHOD, methodName);
+            }
+            String signature = classMethodSignature.getMethodDesc();
+            if (signature != null) {
+                setAgentAttribute(AttributeNames.CLM_METHOD_SIG, signature);
+            }
+        }
         this.tracerFlags = (byte) tracerFlags;
         this.guid = TransactionGuidFactory.generate16CharGuid();
     }
