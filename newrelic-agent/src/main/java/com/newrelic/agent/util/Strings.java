@@ -101,4 +101,45 @@ public class Strings {
         return className;
     }
 
+
+    /**
+     * Replaces occurrences of {@code '.'} and {@code '-'} within the string with the underscore character ({@code '_'}).
+     *
+     * This optimizes the fast path of config reading.
+     *
+     * @param string The string to replace
+     * @return String value with dots and hyphens replaced with underscore character.
+     */
+    public static String replaceDotHyphenWithUnderscore(String string) {
+        // optimize the fast case: no dot or hyphen
+        int matchingChar = findDotOrHyphen(string, 0);
+        if (matchingChar == -1) {
+            return string;
+        }
+
+        final StringBuilder updated = new StringBuilder(string.length());
+        int start = 0;
+        while (matchingChar != -1) {
+            updated.append(string, start, matchingChar).append('_');
+            start = matchingChar + 1;
+            matchingChar = findDotOrHyphen(string, start);
+        }
+        // append tail
+        updated.append(string, start, string.length());
+        return updated.toString();
+    }
+
+    private static int findDotOrHyphen(String string, int start) {
+        if (string == null) {
+            return -1;
+        }
+        for (int i = start; i < string.length(); i++) {
+            final char ch = string.charAt(i);
+            if (ch == '.' || ch == '-') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
 }

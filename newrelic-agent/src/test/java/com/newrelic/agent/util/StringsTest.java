@@ -55,4 +55,17 @@ public class StringsTest {
         Assert.assertEquals("org/test/Dude", Strings.fixInternalClassName("org.test.Dude"));
     }
 
+    @Test
+    public void replaceDotHyphenWithUnderscore() {
+        Assert.assertNull(Strings.replaceDotHyphenWithUnderscore(null));
+        Assert.assertEquals("", Strings.replaceDotHyphenWithUnderscore(""));
+        Assert.assertEquals("string without dot OR hyphen",
+                Strings.replaceDotHyphenWithUnderscore("string without dot OR hyphen"));
+
+        Assert.assertEquals("string_with_dots_AND_hyphens",
+                Strings.replaceDotHyphenWithUnderscore("string.with-dots-AND.hyphens"));
+
+        Assert.assertEquals("___string_with_dots_AND_hyphens_at_ends__",
+                Strings.replaceDotHyphenWithUnderscore("-.-string.with-dots-AND.hyphens.at_ends.-"));
+    }
 }

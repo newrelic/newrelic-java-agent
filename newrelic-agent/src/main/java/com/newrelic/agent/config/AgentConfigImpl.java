@@ -12,6 +12,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
+import com.newrelic.agent.util.Strings;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -186,7 +187,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     // per protocol 15+, region aware license keys must match this regex before constructing collector host
     public static final Pattern REGION_AWARE = Pattern.compile("^.+?x");
-    private static final Pattern DOT_HYPHEN_PATTERN = Pattern.compile("[.-]");
 
     // root configs (alphabetized)
     private final long apdexTInMillis;
@@ -601,7 +601,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getValue(String path, T defaultValue) {
-        Object value = flattenedProperties.get(DOT_HYPHEN_PATTERN.matcher(path).replaceAll("_"));
+        Object value = flattenedProperties.get(Strings.replaceDotHyphenWithUnderscore(path));
         if (value == null) {
             value = flattenedProperties.get(path);
         }
