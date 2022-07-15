@@ -127,7 +127,7 @@ class CatsEffectIOTest2 {
     val segments = getSegments(traces)
 
     Assert.assertEquals("Result correct", Option(2), result)
-    Assert.assertEquals("Transaction finished", 1, txnCount)
+    Assert.assertEquals("Transaction finished", 1, txnCount)d
     Assert.assertEquals("Trace present", 1, traces.size)
 
     Assert.assertTrue("one segment exists", segments.exists(_.getName == s"Custom/one"))
