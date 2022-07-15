@@ -5,20 +5,18 @@
  *
  */
 
-package com.nr.agent.instrumentation.jetty93;
+package com.nr.agent.instrumentation.jetty10;
 
-import java.io.IOException;
+import com.newrelic.agent.bridge.AgentBridge;
+import org.eclipse.jetty.server.HttpChannelState;
 
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
-
-import org.eclipse.jetty.server.HttpChannelState;
-
-import com.newrelic.agent.bridge.AgentBridge;
+import java.io.IOException;
 
 public final class AsyncListenerFactory {
 
-    /*
+    /* 
      * The public enum Action was added in 9.1 and does not exist in 9.0.*. So declaring a variable of this type is
      * sufficient to prevent this instrumentation module from loading in 9.0.*.
      */
