@@ -1,4 +1,4 @@
-name: AITs - Frameworks (5 disabled)
+name: AITs - Frameworks (2 disabled)
 # We need to set java home to JDK 8
 # Also configure workflow_dispatch fr all workflows - add github ref
 # Force build
@@ -20,7 +20,7 @@ on:
 jobs:
   tests:
     name: Frameworks
-    timeout-minutes: 120
+    timeout-minutes: 180
     runs-on: ubuntu-latest
     # Determine if easier to make the env strings below part of the matrix
     env:
@@ -37,12 +37,12 @@ jobs:
           - akka/akkahttp.py
           - cats/cats2.py
           - cats/cats3.py
-#          - ejb/ejb.py
+          - ejb/ejb.py
           - jaxrs/jaxrs.py
-#          - jms/jms.py
+          - jms/jms.py
           - lettuce/lettuce.py
           - monix/monix.py
-#          - netty/netty.py
+          - netty/netty.py
 #          - play/play2.py
           - quartz/quartz.py
 #          - snap/snap.py
@@ -73,7 +73,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-ait-cache-1
-          ref: gha
+          ref: main
           token: ${{ secrets.AITPAT }}
           path: appcache1
           lfs: true
@@ -82,7 +82,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-ait-cache-2
-          ref: gha
+          ref: main
           token: ${{ secrets.AITPAT }}
           path: appcache2
           lfs: true
@@ -91,7 +91,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-ait-cache-3
-          ref: gha
+          ref: main
           token: ${{ secrets.AITPAT }}
           path: appcache3
           lfs: true
@@ -100,7 +100,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: newrelic/java-ait-cache-4
-          ref: gha
+          ref: main
           token: ${{ secrets.AITPAT }}
           path: appcache4
           lfs: true
