@@ -9,6 +9,7 @@ jar {
 }
 
 verifyInstrumentation {
+    // For newer versions of Jetty this instrumentation has moved to the jetty-9.x and jetty-10.x modules
     passesOnly 'org.eclipse.jetty:jetty-servlet:[7.0.0.v20091005,9.0.7.v20131107)'
 
     excludeRegex ".*(RC|M).*"
