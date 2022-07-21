@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -22,7 +22,7 @@ public class ServerHelper {
 
     /**
      * If there is a #ContextHandler, then Jetty is not embedded.
-     * 
+     *
      * @return true if there is a Jetty #ContextHandler.
      */
     public static boolean hasContextHandler() {

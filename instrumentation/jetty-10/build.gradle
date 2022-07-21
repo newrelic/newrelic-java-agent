@@ -1,10 +1,8 @@
 
-
 dependencies {
     implementation(project(":agent-bridge"))
 
     implementation("org.eclipse.jetty:jetty-server:10.0.11")
-    implementation("org.eclipse.jetty:jetty-start:10.0.11")
 }
 
 jar {
@@ -12,7 +10,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.eclipse.jetty.aggregate:jetty-all:[10.0.0-alpha1,11.0.0-alpha0)'
+    passesOnly 'org.eclipse.jetty:jetty-server:[10.0.0-alpha1,11.0.0-alpha0)'
 }
 
 site {
@@ -20,8 +18,14 @@ site {
     type 'Appserver'
 }
 
+// Jetty Server 10 is only compatible with Java 11+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
     }
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
 }
