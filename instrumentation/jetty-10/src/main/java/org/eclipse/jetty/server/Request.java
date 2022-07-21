@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -8,11 +8,10 @@
 package org.eclipse.jetty.server;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.jetty10.AsyncListenerFactory;
-import org.eclipse.jetty.server.HttpChannelState;
-import org.eclipse.jetty.server.Response;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletRequest;
@@ -20,7 +19,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.util.logging.Level;
 
-@Weave
+@Weave(type = MatchType.ExactClass, originalName = "org.eclipse.jetty.server.Request")
 public abstract class Request implements HttpServletRequest {
 
     @Override
