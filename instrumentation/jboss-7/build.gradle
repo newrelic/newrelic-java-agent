@@ -7,9 +7,8 @@ repositories {
 
 dependencies {
     implementation(project(":agent-bridge"))
-
-    implementation("org.jboss.web:jbossweb:7.0.0.Final")
-    implementation("javax.servlet:javax.servlet-api:3.0.1")
+    implementation("org.jboss.web:jbossweb:7.5.10.Final")
+    implementation("jakarta.servlet:jakarta.servlet-api:4.0.4")
 }
 
 jar {
@@ -18,7 +17,7 @@ jar {
 
 verifyInstrumentation {
     passes('org.jboss.web:jbossweb:[7.0,)') {
-        compile("javax.servlet:javax.servlet-api:3.0.1")
+        compile("jakarta.servlet:jakarta.servlet-api:4.0.4")
     }
     excludeRegex(".*(Alpha|Beta|CR).*")
     exclude("org.jboss.web:jbossweb:7.5.6.Final") // this appears to be a bad release that was excluded from multiple repos
