@@ -25,7 +25,7 @@ object TransactionMiddleware {
   private def setupTxn[F[_]:Sync](txn: Transaction, request: Request[F]): F[Token] = construct {
     val t = txn.asInstanceOf[com.newrelic.api.agent.Transaction]
     val token = t.getToken
-    txn.setTransactionName(TransactionNamePriority.SERVLET_NAME, true, "HTTP4s", "BlazeServerHandler")
+    txn.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "HTTP4s", "BlazeServerHandler")
     txn.getTracedMethod.setMetricName("HTTP4s", "RequestHandler")
     t.setWebRequest(RequestWrapper(request))
     token

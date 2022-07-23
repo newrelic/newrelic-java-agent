@@ -42,7 +42,7 @@ class Log4jLogger implements IAgentLogger {
      */
     static final String CONVERSION_PATTERN = "%d{ISO8601_OFFSET_DATE_TIME_HHMM} [%pid %tid] %logger %marker: %m%n";
 
-    /**
+  /**
      * The logger for this Log4jLogger.
      */
     private final Logger logger;

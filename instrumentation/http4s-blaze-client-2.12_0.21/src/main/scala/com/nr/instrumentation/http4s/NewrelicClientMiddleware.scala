@@ -14,7 +14,7 @@ object NewrelicClientMiddleware {
   def clientResource[F[_] : ConcurrentEffect](client: Client[F]): Client[F] =
     Client { req: Request[F] =>
       for {
-        seg <- Resource.liftF(
+        seg <- Resource.eval(
           construct {
           val txn = AgentBridge.getAgent.getTransaction
           val segment = txn.startSegment("HTTP4S client call")
@@ -22,7 +22,7 @@ object NewrelicClientMiddleware {
           segment
         })
         response <- client.run(req)
-        newRes <- Resource.liftF(
+        newRes <- Resource.eval(
           ConcurrentEffect[F].handleErrorWith
           (construct {
             seg.reportAsExternal(HttpParameters

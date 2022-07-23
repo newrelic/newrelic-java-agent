@@ -2406,6 +2406,10 @@ public class Transaction {
         checkFinishTransaction(null, null);
     }
 
+    public void checkFinishTransactionFromActivity(TransactionActivity txa) {
+      checkFinishTransaction(txa, null);
+    }
+
     private void checkFinishTransaction(TransactionActivity txa) {
         checkFinishTransaction(txa, txa.hashCode());
     }
