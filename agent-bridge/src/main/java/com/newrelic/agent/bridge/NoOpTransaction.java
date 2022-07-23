@@ -293,6 +293,11 @@ public class NoOpTransaction implements Transaction {
     }
 
     @Override
+    public boolean clearTransaction() {
+      return false;
+    }
+
+  @Override
     public DistributedTracePayload createDistributedTracePayload() {
         return NoOpDistributedTracePayload.INSTANCE;
     }

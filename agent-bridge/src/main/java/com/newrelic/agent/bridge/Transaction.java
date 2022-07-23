@@ -273,6 +273,8 @@ public interface Transaction extends com.newrelic.api.agent.Transaction {
      */
     void expireAllTokens();
 
+    boolean clearTransaction();
+
     /**
      * @Deprecated Do not use. Use {@link com.newrelic.api.agent.Transaction#startSegment(String)} instead.
      * Create and start a {@link TracedActivity} for this transaction.

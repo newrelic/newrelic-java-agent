@@ -58,13 +58,13 @@ public final class Utils {
     }
   }
 
-  public static void setFiberTokenAndRefCount(IOFiber fiber) {
-    AgentBridge.TokenAndRefCount tokenAndRefCount = getThreadTokenAndRefCount();
-    if (tokenAndRefCount != null) {
-      logTokenInfo(tokenAndRefCount, "setting token to fiber");
-      fiber.tokenAndRefCount = tokenAndRefCount;
-    }
-  }
+//  public static void setFiberTokenAndRefCount(IOFiber fiber) {
+//    AgentBridge.TokenAndRefCount tokenAndRefCount = getThreadTokenAndRefCount();
+//    if (tokenAndRefCount != null) {
+//      logTokenInfo(tokenAndRefCount, "setting token to fiber");
+//      fiber.tokenAndRefCount = tokenAndRefCount;
+//    }
+//  }
 
   public static void expireOrDecTokenRefToken(AgentBridge.TokenAndRefCount tokenAndRefCount) {
     if (tokenAndRefCount != null) {
@@ -84,9 +84,9 @@ public final class Utils {
     }
   }
 
-  private static Token getTokenHash(IOFiber ioFiber) {
-    return (ioFiber != null && ioFiber.tokenAndRefCount != null) ? ioFiber.tokenAndRefCount.token : null;
-  }
+//  private static Token getTokenHash(IOFiber ioFiber) {
+//    return (ioFiber != null && ioFiber.tokenAndRefCount != null) ? ioFiber.tokenAndRefCount.token : null;
+//  }
 
   private static String getFiberHash(IOFiber ioFiber) {
     return Optional.ofNullable(ioFiber).map(f -> f.hashCode() + "").orElse(null);

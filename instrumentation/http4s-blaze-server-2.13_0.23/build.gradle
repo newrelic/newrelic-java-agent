@@ -7,19 +7,21 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
     implementation("org.scala-lang:scala-library:2.13.3")
-    implementation('org.http4s:http4s-blaze-server_2.13:0.21.24')
-    testImplementation(project(":instrumentation:cats-effect-2")) { transitive = false }
-    testImplementation("org.http4s:http4s-dsl_2.13:0.21.24")
+    implementation('org.http4s:http4s-blaze-server_2.13:0.23.12')
+    implementation("org.typelevel:cats-effect_2.13:3.3.12")
+    testImplementation(project(":instrumentation:cats-effect-3")) { transitive = false }
+    testImplementation("org.http4s:http4s-dsl_2.13:0.23.12")
 
 }
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'com.newrelic.instrumentation.http4s-blaze-server-2.13_0.21'
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.http4s-blaze-server-2.13_0.23'
     }
 }
+
 verifyInstrumentation {
-    passes 'org.http4s:http4s-blaze-server_2.13:[0.21,0.22)'
+    passes 'org.http4s:http4s-blaze-server_2.13:[0.23)'
     excludeRegex '.*(RC|M)[0-9]*'
 
 }

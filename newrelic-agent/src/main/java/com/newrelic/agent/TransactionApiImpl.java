@@ -472,6 +472,21 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     }
 
     @Override
+    public boolean clearTransaction() {
+        Transaction tx = getTransactionIfExists();
+        TransactionActivity txa = tx.getTransactionActivity();
+        if(txa != null) {
+          tx.checkFinishTransactionFromActivity(txa);
+        }
+      if (null != tx) {
+        Transaction.clearTransaction();
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+  @Override
     public void acceptDistributedTracePayload(String payload) {
         Transaction tx = getTransactionIfExists();
         if (tx != null) {
