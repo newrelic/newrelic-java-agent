@@ -146,16 +146,10 @@ public class DefaultTracer extends AbstractTracer {
 
         if (classMethodSignature != null) {
             String className = classMethodSignature.getClassName();
-            if (className != null) {
-                setAgentAttribute(AttributeNames.CLM_NAMESPACE, className);
-            }
             String methodName = classMethodSignature.getMethodName();
-            if (methodName != null) {
-                setAgentAttribute(AttributeNames.CLM_METHOD, methodName);
-            }
-            String signature = classMethodSignature.getMethodDesc();
-            if (signature != null) {
-                setAgentAttribute(AttributeNames.CLM_METHOD_SIG, signature);
+            if (className != null && methodName != null) {
+                addCustomAttribute(AttributeNames.CLM_NAMESPACE, className);
+                addCustomAttribute(AttributeNames.CLM_METHOD, methodName);
             }
         }
         this.tracerFlags = (byte) tracerFlags;

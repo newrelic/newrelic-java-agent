@@ -73,5 +73,4 @@ public final class AttributeNames {
     // Code Level Metrics
     public static final String CLM_NAMESPACE = "code.namespace";
     public static final String CLM_METHOD = "code.function";
-    public static final String CLM_METHOD_SIG = "code.tmp_functionSignature";
 }
