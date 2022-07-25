@@ -144,14 +144,6 @@ public class DefaultTracer extends AbstractTracer {
             tracerFlags = TracerFlags.clearSegment(tracerFlags);
         }
 
-        if (classMethodSignature != null) {
-            String className = classMethodSignature.getClassName();
-            String methodName = classMethodSignature.getMethodName();
-            if (className != null && methodName != null) {
-                addCustomAttribute(AttributeNames.CLM_NAMESPACE, className);
-                addCustomAttribute(AttributeNames.CLM_METHOD, methodName);
-            }
-        }
         this.tracerFlags = (byte) tracerFlags;
         this.guid = TransactionGuidFactory.generate16CharGuid();
     }
@@ -294,6 +286,21 @@ public class DefaultTracer extends AbstractTracer {
                         classMethodSignature.getClassName(), t.toString());
                 Agent.LOG.severe(msg);
                 Agent.LOG.log(Level.FINER, msg, t);
+            }
+
+            try {
+                if (classMethodSignature != null) {
+                    String className = classMethodSignature.getClassName();
+                    String methodName = classMethodSignature.getMethodName();
+                    if (className != null && methodName != null) {
+                        addCustomAttribute(AttributeNames.CLM_NAMESPACE, className);
+                        addCustomAttribute(AttributeNames.CLM_METHOD, methodName);
+                    }
+                }
+            } catch (Throwable t) {
+                String msg = "An error occurred saving the clm attributes: " + t;
+                Agent.LOG.severe(msg);
+                Agent.LOG.log(Level.FINER, msg);
             }
 
             try {
