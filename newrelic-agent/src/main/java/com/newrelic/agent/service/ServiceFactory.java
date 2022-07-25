@@ -24,6 +24,7 @@ import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
+import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -34,6 +35,7 @@ import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
@@ -77,6 +79,10 @@ public class ServiceFactory {
         return SERVICE_MANAGER.getConfigService();
     }
 
+    public static LogSenderService getLogSenderService() {
+        return SERVICE_MANAGER.getLogSenderService();
+    }
+
     public static RPMConnectionService getRPMConnectionService() {
         return SERVICE_MANAGER.getRPMConnectionService();
     }
@@ -99,6 +105,10 @@ public class ServiceFactory {
 
     public static CommandParser getCommandParser() {
         return SERVICE_MANAGER.getCommandParser();
+    }
+
+    public static JfrService getJfrService() {
+        return SERVICE_MANAGER.getJfrService();
     }
 
     public static JmxService getJmxService() {

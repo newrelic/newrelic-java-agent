@@ -7,6 +7,7 @@
 
 package com.newrelic.weave.weavepackage;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -78,12 +79,13 @@ public class WeavePackageManagerTest {
         byte[] compositeBytes = WeaveTestUtils.getClassBytes(className);
         Assert.assertNotNull(compositeBytes);
         // /*-
-        compositeBytes = wpm.weave(Thread.currentThread().getContextClassLoader(), internalName, compositeBytes);
+        compositeBytes = wpm.weave(Thread.currentThread().getContextClassLoader(), internalName, compositeBytes,
+                                   Collections.emptyMap());
         for (PackageValidationResult res :
                 wpm.validPackages.getIfPresent(Thread.currentThread().getContextClassLoader()).values()) {
             WeaveTestUtils.expectViolations(res);
         }
-        Assert.assertEquals(1, wpm.validPackages.size());
+        Assert.assertEquals(1, getCacheSize(wpm.validPackages));
         Assert.assertEquals(2, wpm.validPackages.getIfPresent(Thread.currentThread().getContextClassLoader()).size());
 
         Assert.assertNotNull(compositeBytes);
@@ -121,11 +123,11 @@ public class WeavePackageManagerTest {
 
         Assert.assertEquals(1, wpm.match(classloader, targetInternalName, cache).size());
         byte[] result = wpm.weave(classloader, targetInternalName,
-                WeaveTestUtils.getClassBytes(targetClassName));
+                WeaveTestUtils.getClassBytes(targetClassName), Collections.emptyMap());
         Assert.assertTrue(bsPackage.hasMatcher(targetInternalName, superNames, interfaceNames,
                 Collections.<String>emptySet(), Collections.<String>emptySet(), null));
-        Assert.assertEquals(0, wpm.invalidPackages.size());
-        Assert.assertEquals(1, wpm.validPackages.size());
+        Assert.assertEquals(0, getCacheSize(wpm.invalidPackages));
+        Assert.assertEquals(1, getCacheSize(wpm.validPackages));
         Assert.assertNotNull(wpm.validPackages.getIfPresent(BootstrapLoader.PLACEHOLDER));
         Assert.assertNotNull(wpm.validPackages.getIfPresent(BootstrapLoader.PLACEHOLDER).get(bsPackage));
 
@@ -146,8 +148,8 @@ public class WeavePackageManagerTest {
         String className = "com.newrelic.weave.weavepackage.WeavePackageManagerTest$OriginalCacheTestClass";
         byte[] compositeBytes = WeaveTestUtils.getClassBytes(className);
         Assert.assertNotNull(compositeBytes);
-        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes);
-        Assert.assertEquals(1, wpm.validPackages.size());
+        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes, Collections.emptyMap());
+        Assert.assertEquals(1, getCacheSize(wpm.validPackages));
         Assert.assertEquals(1, wpm.validPackages.getIfPresent(originalClassLoader).size());
 
         Assert.assertNotNull(compositeBytes);
@@ -167,14 +169,15 @@ public class WeavePackageManagerTest {
             classloaders.add(cl);
 
             wpm.weave(cl, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"));
+                      WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                      Collections.emptyMap());
         }
-        Assert.assertTrue(wpm.validPackages.size() <= WeavePackageManager.MAX_VALID_PACKAGE_CACHE);
+        Assert.assertTrue(getCacheSize(wpm.validPackages) <= WeavePackageManager.MAX_VALID_PACKAGE_CACHE);
 
         // 3) load the original class and a new class with the original classloader and verify they load + weave
 
         // Original class
-        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes);
+        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes, Collections.emptyMap());
         Assert.assertNotNull(compositeBytes);
         octc = new OriginalCacheTestClass();
         Assert.assertEquals(0, octc.originalCacheTestWeaveInvokes);
@@ -186,8 +189,8 @@ public class WeavePackageManagerTest {
         String newClassName = "com.newrelic.weave.weavepackage.WeavePackageManagerTest$NewCacheTestClass";
         byte[] newCompositeBytes = WeaveTestUtils.getClassBytes(newClassName);
         Assert.assertNotNull(newCompositeBytes);
-        newCompositeBytes = wpm.weave(originalClassLoader, newInternalName, newCompositeBytes);
-        Assert.assertTrue(wpm.validPackages.size() <= WeavePackageManager.MAX_VALID_PACKAGE_CACHE);
+        newCompositeBytes = wpm.weave(originalClassLoader, newInternalName, newCompositeBytes, Collections.emptyMap());
+        Assert.assertTrue(getCacheSize(wpm.validPackages) <= WeavePackageManager.MAX_VALID_PACKAGE_CACHE);
         Assert.assertEquals(1, wpm.validPackages.getIfPresent(originalClassLoader).size());
 
         Assert.assertNotNull(newCompositeBytes);
@@ -217,8 +220,8 @@ public class WeavePackageManagerTest {
         String className = "com.newrelic.weave.weavepackage.WeavePackageManagerTest$NoMatchClass";
         byte[] compositeBytes = WeaveTestUtils.getClassBytes(className);
         Assert.assertNotNull(compositeBytes);
-        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes);
-        Assert.assertEquals(1, wpm.invalidPackages.size());
+        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes, Collections.emptyMap());
+        Assert.assertEquals(1, getCacheSize(wpm.invalidPackages));
         Assert.assertEquals(1, wpm.invalidPackages.getIfPresent(originalClassLoader).size());
 
         Assert.assertNull(compositeBytes);
@@ -237,13 +240,16 @@ public class WeavePackageManagerTest {
             classloaders.add(cl);
 
             wpm.weave(cl, "com/newrelic/weave/weavepackage/WeavePackageManagerTest$NewNoMatchClass",
-                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.WeavePackageManagerTest$NewNoMatchClass"));
+                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.WeavePackageManagerTest$NewNoMatchClass"),
+                      Collections.emptyMap()
+            );
+
         }
-        Assert.assertTrue(WeavePackageManager.MAX_INVALID_PACKAGE_CACHE >= wpm.invalidPackages.size());
+        Assert.assertTrue(WeavePackageManager.MAX_INVALID_PACKAGE_CACHE >= getCacheSize(wpm.invalidPackages));
 
         // 3) load with the original classloader again and verify that class loads but doesn't weave (pushes to invalid)
         compositeBytes = WeaveTestUtils.getClassBytes(className);
-        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes);
+        compositeBytes = wpm.weave(originalClassLoader, internalName, compositeBytes, Collections.emptyMap());
         Assert.assertNull(compositeBytes);
         nmc = new NoMatchClass();
         Assert.assertEquals(0, nmc.noMatchWeaveInvokes);
@@ -267,18 +273,20 @@ public class WeavePackageManagerTest {
             classloaders.add(cl);
 
             wpm.weave(cl, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"));
+                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                      Collections.emptyMap());
         }
-        Assert.assertEquals(numClassLoaders, wpm.validPackages.size());
+        Assert.assertEquals(numClassLoaders, getCacheSize(wpm.validPackages));
 
         for (int i = 0; i < 5; ++i) {
             System.gc();
             ClassLoader cl = new ClassLoader(context) {
             };
             wpm.weave(cl, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"));
+                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                      Collections.emptyMap());
         }
-        Assert.assertTrue(wpm.validPackages.size() >= numClassLoaders);
+        Assert.assertTrue(getCacheSize(wpm.validPackages) >= numClassLoaders);
 
         classloaders.clear();
         for (int i = 0; i < 10; ++i) {
@@ -286,12 +294,13 @@ public class WeavePackageManagerTest {
             ClassLoader cl = new ClassLoader(context) {
             };
             wpm.weave(cl, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"));
+                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                      Collections.emptyMap());
             wpm.invalidPackages.invalidate(cl);
             wpm.validPackages.invalidate(cl);
         }
 
-        Assert.assertTrue(wpm.validPackages.size() < numClassLoaders);
+        Assert.assertTrue(getCacheSize(wpm.validPackages) < numClassLoaders);
     }
 
     /**
@@ -304,12 +313,14 @@ public class WeavePackageManagerTest {
         WeavePackageManager wpm = new WeavePackageManager();
         byte[] result = wpm.weave(cl, new ClassCache(new ClassLoaderFinder(cl)),
                 "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), null);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                                  Collections.emptyMap(), null);
         Assert.assertNull(result);
         wpm.register(testPackage1);
         result = wpm.weave(cl, new ClassCache(new ClassLoaderFinder(cl)),
                 "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), null);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                           Collections.emptyMap(), null);
         Assert.assertNotNull(result);
     }
 
@@ -340,7 +351,8 @@ public class WeavePackageManagerTest {
                                 Thread.currentThread().setContextClassLoader(originalCl);
                                 byte[] result = wpm.weave(cl, classCache,
                                         "com/newrelic/weave/weavepackage/testclasses/MyOriginalExact",
-                                        WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact"), null);
+                                        WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact"),
+                                                          Collections.emptyMap(), null);
 
                                 Thread.currentThread().setContextClassLoader(cl);
                                 WeaveTestUtils.addToContextClassloader("com.newrelic.weave.weavepackage.testclasses.MyOriginalExact", result);
@@ -354,7 +366,8 @@ public class WeavePackageManagerTest {
                                 Thread.currentThread().setContextClassLoader(originalCl);
                                 byte[] result = wpm.weave(cl, classCache,
                                         "com/newrelic/weave/weavepackage/testclasses/OriginalNameInterface",
-                                        WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.OriginalNameInterface"), null);
+                                        WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.OriginalNameInterface"),
+                                                          Collections.emptyMap(), null);
 
                                 Thread.currentThread().setContextClassLoader(cl);
                                 WeaveTestUtils.addToContextClassloader("com.newrelic.weave.weavepackage.testclasses.OriginalNameInterface", result);
@@ -362,7 +375,8 @@ public class WeavePackageManagerTest {
                                 Thread.currentThread().setContextClassLoader(originalCl);
                                 byte[] result2 = wpm.weave(cl, classCache,
                                         "com/newrelic/weave/weavepackage/testclasses/OriginalNameInterfaceImpl",
-                                        WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.OriginalNameInterfaceImpl"), null);
+                                        WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.OriginalNameInterfaceImpl"),
+                                                           Collections.emptyMap(), null);
 
                                 Thread.currentThread().setContextClassLoader(cl);
                                 WeaveTestUtils.addToContextClassloader("com.newrelic.weave.weavepackage.testclasses.OriginalNameInterfaceImpl", result2);
@@ -416,14 +430,16 @@ public class WeavePackageManagerTest {
         };
         byte[] result = wpm.weave(cl, new ClassCache(new ClassLoaderFinder(cl)),
                 "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), listener);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                                  Collections.emptyMap(), listener);
         Assert.assertNotNull(result);
         expectedInvokeCount += 4; // two packages, each with a match and weave
         Assert.assertTrue(expectedInvokeCount == listener.invokeCount);
 
         byte[] result2 = wpm.weave(cl, new ClassCache(new ClassLoaderFinder(cl)),
                 "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
-                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"), listener);
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                                   Collections.emptyMap(), listener);
         Assert.assertNotNull(result2);
         expectedInvokeCount += 2; // shouldn't validate again. Only weave.
         Assert.assertTrue(expectedInvokeCount == listener.invokeCount);
@@ -434,6 +450,12 @@ public class WeavePackageManagerTest {
         wpm.deregister(testPackage2.getName());
         expectedInvokeCount++;
         Assert.assertTrue(expectedInvokeCount == listener.invokeCount);
+    }
+
+    private static int getCacheSize(Cache<?, ?> cache) {
+        // Trigger cache cleanup to evict expired entries.
+        cache.cleanUp();
+        return cache.asMap().size();
     }
 
     private static class TestListener implements WeavePackageLifetimeListener, ClassWeavedListener {

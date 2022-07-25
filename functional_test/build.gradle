@@ -2,8 +2,6 @@ import com.nr.builder.JarUtil
 
 evaluationDependsOn(":newrelic-agent") // This is important because we need newrelic-agent to be configured before functional_test so the correct ("unversioned") jar name gets used
 
-apply plugin: 'scala'
-
 jar {
     manifest { attributes 'Premain-Class': 'com.newrelic.agent.test.agent.FunctionalAgent' }
 }
@@ -16,8 +14,6 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":agent-bridge-datastore"))
     implementation(project(":newrelic-weaver"))
-
-    implementation("org.scala-lang:scala-library:2.10.7")
 
     testImplementation(project(":functional_test:weave_test_impl"))
 
@@ -54,10 +50,10 @@ dependencies {
     testImplementation("com.sun.faces:jsf-impl:2.0.2")
     testImplementation("com.sun.faces.extensions:jsf-extensions-test-time:2.0")
 
-    testImplementation("org.ow2.asm:asm-commons:8.0.1")
-    testImplementation("org.ow2.asm:asm-tree:8.0.1")
-    testImplementation("org.ow2.asm:asm-analysis:8.0.1")
-    testImplementation("org.ow2.asm:asm-util:8.0.1")
+    testImplementation("org.ow2.asm:asm-commons:$asmVersion")
+    testImplementation("org.ow2.asm:asm-tree:$asmVersion")
+    testImplementation("org.ow2.asm:asm-analysis:$asmVersion")
+    testImplementation("org.ow2.asm:asm-util:$asmVersion")
 
     // javaassist is used by hibernate
     testImplementation("javassist:javassist:3.3")
@@ -66,8 +62,7 @@ dependencies {
     testImplementation("com.sun.jersey:jersey-core:1.9.1")
     testImplementation("javax.xml:jaxrpc-api:1.1")
 
-    // Removed from the JDK starting in Java 11
-    testImplementation("javax.xml.bind:jaxb-api:2.3.0")
+    testImplementation("jakarta.xml.ws:jakarta.xml.ws-api:2.3.3")
 
     testImplementation("org.apache.derby:derby:10.10.1.1")
     testImplementation("org.apache.struts:struts-core:1.3.5")
@@ -82,14 +77,6 @@ dependencies {
     }
     testImplementation("com.ning:async-http-client:1.9.40")
     testImplementation("javax.ws.rs:javax.ws.rs-api:2.1")
-}
-
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
 }
 
 def functional_test_args = [
@@ -108,27 +95,13 @@ test {
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
     //testLogging.showStandardStreams = true
+    if (project.hasProperty("test9") || project.hasProperty("test10")) {
+        jvmArgs += ["--add-modules", "java.xml.bind"]
+    }
 
-    if (project.hasProperty("test15")) {
-        executable = jdk15 + '/bin/java'
-    } else if (project.hasProperty("test14")) {
-        executable = jdk14 + '/bin/java'
-    } else if (project.hasProperty("test13")) {
-        executable = jdk13 + '/bin/java'
-    } else if (project.hasProperty("test12")) {
-        executable = jdk12 + '/bin/java'
-    } else if (project.hasProperty("test11")) {
-        executable = jdk11 + '/bin/java'
-    } else if (project.hasProperty("test10")) {
-        executable = jdk10 + '/bin/java'
-        jvmArgs += ["--add-modules", "java.xml.bind"]
-    } else if (project.hasProperty("test9")) {
-        executable = jdk9 + '/bin/java'
-        jvmArgs += ["--add-modules", "java.xml.bind"]
-    } else if (project.hasProperty("test8")) {
-        executable = jdk8 + '/bin/java'
-    } else if (project.hasProperty("test7")) {
-        executable = jdk7 + '/bin/java'
+    // when using an early access Java version, we need to pass an extra param to the agent
+    if (project.hasProperty("test18")) {
+        jvmArgs += ["-Dnewrelic.config.experimental_runtime=true"]
     }
 
     minHeapSize = "256m"

@@ -10,23 +10,21 @@ package com.nr.vertx.instrumentation;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.api.agent.NewRelic;
+import static com.nr.vertx.test.handlers.SimpleHandlers.createHandler;
+import static com.nr.vertx.test.handlers.SimpleHandlers.createLambdaHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import java.util.Map;
 import org.hamcrest.CoreMatchers;
+import static org.hamcrest.Matchers.containsString;
 import org.junit.Assert;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Map;
-
-import static com.nr.vertx.test.handlers.SimpleHandlers.createHandler;
-import static com.nr.vertx.test.handlers.SimpleHandlers.createLambdaHandler;
-import static org.junit.Assert.assertNotNull;
-import static org.hamcrest.Matchers.containsString;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })

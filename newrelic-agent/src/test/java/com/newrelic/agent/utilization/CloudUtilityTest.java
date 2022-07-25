@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import static org.junit.Assert.assertEquals;
@@ -27,6 +28,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -87,11 +89,11 @@ public class CloudUtilityTest {
     @Test
     public void recordsMetric() {
         ArgumentCaptor<StatsWork> captor = ArgumentCaptor.forClass(StatsWork.class);
-        doNothing().when(mockStatsService).doStatsWork(captor.capture());
+        doNothing().when(mockStatsService).doStatsWork(captor.capture(), anyString());
 
         new CloudUtility().recordError("some error");
 
-        verify(mockStatsService, times(1)).doStatsWork(any(StatsWork.class));
+        verify(mockStatsService, times(1)).doStatsWork(any(StatsWork.class), anyString());
 
         StatsWork argument = captor.getValue();
         assertTrue(argument instanceof IncrementCounter);
@@ -105,6 +107,19 @@ public class CloudUtilityTest {
 
         when(mockClientCreator.apply(anyInt())).thenReturn(explodingClient);
         when(explodingClient.execute(isA(HttpUriRequest.class))).thenThrow(new SocketTimeoutException("oof"));
+
+        CloudUtility testClass = new CloudUtility(mockClientCreator);
+        String result = testClass.httpGet("https://example.com/some/path", 12, "foo:bar");
+        assertNull(result);
+    }
+
+    @Test
+    public void testSocketExceptionIsHandled() throws Exception {
+        Function<Integer, CloseableHttpClient> mockClientCreator = mock(Function.class);
+        CloseableHttpClient explodingClient = mock(CloseableHttpClient.class);
+
+        when(mockClientCreator.apply(anyInt())).thenReturn(explodingClient);
+        when(explodingClient.execute(isA(HttpUriRequest.class))).thenThrow(new SocketException("oof"));
 
         CloudUtility testClass = new CloudUtility(mockClientCreator);
         String result = testClass.httpGet("https://example.com/some/path", 12, "foo:bar");

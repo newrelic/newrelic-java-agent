@@ -9,14 +9,28 @@ package com.newrelic.agent.config;
 
 import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
+import com.newrelic.agent.util.Strings;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_LIMIT;
 
 public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
@@ -36,6 +50,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ENABLE_BOOTSTRAP_CLASS_INSTRUMENTATION = "enable_bootstrap_class_instrumentation";
     public static final String ENABLE_CLASS_RETRANSFORMATION = "enable_class_retransformation";
     public static final String ENABLE_CUSTOM_TRACING = "enable_custom_tracing";
+    public static final String EXPERIMENTAL_RUNTIME = "experimental_runtime";
     public static final String EXT_CONFIG_DIR = "extensions.dir";
     public static final String HIGH_SECURITY = "high_security";
     public static final String HOST = "host";
@@ -55,7 +70,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String LOG_LIMIT = "log_limit_in_kbytes";
     public static final String MAX_STACK_TRACE_LINES = "max_stack_trace_lines";
     public static final String METRIC_INGEST_URI = "metric_ingest_uri";
-    public static final String DEBUG = "newrelic.debug";
+    public static final String EVENT_INGEST_URI = "event_ingest_uri";
+    public static final String METRIC_DEBUG = "metric_debug";
     public static final String PLATFORM_INFORMATION_ENABLED = "platform_information_enabled";
     public static final String PORT = "port";
     public static final String PROXY_HOST = "proxy_host";
@@ -87,6 +103,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String KEY_TRANSACTIONS = "web_transactions_apdex";
 
     // nested configs (alphabetized)
+    public static final String APPLICATION_LOGGING = "application_logging";
     public static final String ATTRIBUTES = "attributes";
     public static final String BROWSER_MONITORING = "browser_monitoring";
     public static final String CLASS_TRANSFORMER = "class_transformer";
@@ -99,6 +116,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String INSTRUMENTATION = "instrumentation";
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
+    public static final String JFR = "jfr";
     public static final String OPEN_TRACING = "open_tracing";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
@@ -119,7 +137,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
     public static final boolean DEFAULT_ENABLE_CUSTOM_TRACING = true;
+    public static final boolean DEFAULT_EXPERIMENTAL_RUNTIME = false;
     public static final boolean DEFAULT_HIGH_SECURITY = false;
+    public static final boolean DEFAULT_METRIC_DEBUG = false;
+
     /*
      * If a customer wants to add a . to the end of their collector hostname to avoid one DNS lookup they can configure
      * host in newrelic.yml. This value makes the default behavior always work.
@@ -137,7 +158,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_LOG_LEVEL = "info";
     public static final int DEFAULT_LOG_LIMIT = 0;
     public static final int DEFAULT_MAX_STACK_TRACE_LINES = 30;
-    public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com";
+    public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com/metric/v1";
+    public static final String DEFAULT_EVENT_INGEST_URI = "https://insights-collector.newrelic.com/v1/accounts/events";
+    public static final String EU_METRIC_INGEST_URI = "https://metric-api.eu.newrelic.com/metric/v1";
+    public static final String EU_EVENT_INGEST_URI = "https://insights-collector.eu01.nr-data.net/v1/accounts/events";
     public static final boolean DEFAULT_PLATFORM_INFORMATION_ENABLED = true;
     public static final int DEFAULT_PORT = 80;
     public static final String DEFAULT_PROXY_HOST = null;
@@ -176,7 +200,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean customInstrumentationEditorAllowed;
     private final boolean customParameters;
     private final boolean debug;
+    private final boolean metricDebug;
     private final boolean enabled;
+    private final boolean experimentalRuntime;
     private final boolean genericJdbcSupportEnabled;
     private final boolean highSecurity;
     private final String host;
@@ -191,6 +217,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final String logLevel;
     private final int maxStackTraceLines;
     private final String metricIngestUri;
+    private final String eventIngestUri;
     private final boolean platformInformationEnabled;
     private final int port;
     private final String proxyHost;
@@ -227,8 +254,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final ExternalTracerConfig externalTracerConfig;
     private final InfiniteTracingConfig infiniteTracingConfig;
     private final InsightsConfig insightsConfig;
+    private final ApplicationLoggingConfig applicationLoggingConfig;
     private final Config instrumentationConfig;
     private final JarCollectorConfig jarCollectorConfig;
+    private final JfrConfig jfrConfig;
     private final JmxConfig jmxConfig;
     private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
@@ -264,10 +293,15 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
-        debug = Boolean.getBoolean(DEBUG);
+        debug = DebugFlag.DEBUG;
+        metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
+        experimentalRuntime = allowExperimentalRuntimeVersions();
         licenseKey = getProperty(LICENSE_KEY);
-        host = parseHost(licenseKey);
+        String region = parseRegion(licenseKey);
+        host = parseHost(region);
+        metricIngestUri = parseMetricIngestUri(region);
+        eventIngestUri = parseEventIngestUri(region);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
@@ -294,7 +328,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         ibmWorkaroundEnabled = getProperty(IBM_WORKAROUND, DEFAULT_IBM_WORKAROUND);
         transactionNamingMode = parseTransactionNamingMode();
         maxStackTraceLines = getProperty(MAX_STACK_TRACE_LINES, DEFAULT_MAX_STACK_TRACE_LINES);
-        metricIngestUri = getProperty(METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
         String[] jdbcSupport = getProperty(JDBC_SUPPORT, DEFAULT_JDBC_SUPPORT).split(",");
         this.jdbcSupport = new HashSet<>(Arrays.asList(jdbcSupport));
         genericJdbcSupportEnabled = this.jdbcSupport.contains(GENERIC_JDBC_SUPPORT);
@@ -317,9 +350,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         utilizationConfig = initUtilizationConfig();
         datastoreConfig = initDatastoreConfig();
         externalTracerConfig = initExternalTracerConfig();
+        jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
+        applicationLoggingConfig = initApplicationLoggingConfig();
         infiniteTracingConfig = initInfiniteTracingConfig(autoAppNamingEnabled);
         attributesConfig = initAttributesConfig();
         reinstrumentConfig = initReinstrumentConfig();
@@ -340,6 +375,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         propsWithSystemProps.putAll(SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix());
         flatten("", propsWithSystemProps, flattenedProps);
         checkHighSecurityPropsInFlattened(flattenedProps);
+        setServerSpanHarvestLimit();
         this.flattenedProperties = Collections.unmodifiableMap(flattenedProps);
         this.waitForTransactionsInMillis = getProperty(WAIT_FOR_TRANSACTIONS, DEFAULT_WAIT_FOR_TRANSACTIONS);
         this.customInstrumentationEditorAllowed = getProperty(LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, !highSecurity);
@@ -350,14 +386,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
-
     private String initSSLConfig() {
         String caBundlePath = getProperty(CA_BUNDLE_PATH, DEFAULT_CA_BUNDLE_PATH);
         if (getProperty(USE_PRIVATE_SSL) != null) {
             if (caBundlePath != null) {
                 Agent.LOG.log(Level.INFO, "use_private_ssl configuration setting has been removed.");
             } else {
-                Agent.LOG.log(Level.SEVERE, "use_private_ssl configuration setting has been removed. Please use ca_bundle_path instead.");
+                Agent.LOG.log(Level.SEVERE,
+                        "The use_private_ssl configuration setting has been removed and will be ignored. The agent will use the JVM/JRE truststore by default unless you configure ca_bundle_path to use a different truststore.");
             }
         }
         return caBundlePath;
@@ -379,18 +415,17 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /**
-     * If host was set explicitly, then always use it and don't construct the collector host from the license key.
-     * If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the new
-     * host using the region section of the license key.
+     * If host was set explicitly, then always use it and don't construct the collector host from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the
+     * new host using the region section of the license key.
      */
-    private String parseHost(String licenseKey) {
+    private String parseHost(String region) {
         String host = getProperty(HOST);
         if (host != null) {
             Agent.LOG.log(Level.INFO, "Using configured collector host: {0}", host);
             return host;
         }
 
-        String region = parseRegion(licenseKey);
         if (region.isEmpty()) {
             Agent.LOG.log(Level.INFO, "Using default collector host: {0}", DEFAULT_HOST);
             return DEFAULT_HOST;
@@ -400,6 +435,68 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         Agent.LOG.log(Level.INFO, "Using region aware collector host: {0}", host);
 
         return host;
+    }
+
+    /**
+     * If metric ingest URI was set explicitly, then always use it and don't construct the metric ingest URI from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default metric ingest URI, otherwise construct the
+     * new metric ingest URI using the region section of the license key.
+     * <p>
+     * US Prod metric ingest URI: https://metric-api.newrelic.com/metric/v1
+     * EU Prod metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+     */
+    private String parseMetricIngestUri(String region) {
+        String metricIngestUri = getProperty(METRIC_INGEST_URI);
+        if (metricIngestUri != null) {
+            Agent.LOG.log(Level.INFO, "Using configured metric ingest URI: {0}", metricIngestUri);
+            return metricIngestUri;
+        }
+
+        if (region.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "Using default metric ingest URI: {0}", DEFAULT_METRIC_INGEST_URI);
+            return DEFAULT_METRIC_INGEST_URI;
+        }
+
+        if (region.toLowerCase().contains("eu")) {
+            Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", EU_METRIC_INGEST_URI);
+            return EU_METRIC_INGEST_URI;
+        }
+
+        Agent.LOG.log(Level.INFO,
+                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}",
+                METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
+        return DEFAULT_METRIC_INGEST_URI;
+    }
+
+    /**
+     * If event ingest URI was set explicitly, then always use it and don't construct the event ingest URI from the region parsed from the
+     * license key. If the license key doesn't conform to protocol 15+, then return the default event ingest URI, otherwise construct the
+     * new event ingest URI using the region section of the license key.
+     * <p>
+     * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+     * EU Prod event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+     */
+    private String parseEventIngestUri(String region) {
+        String eventIngestUri = getProperty(EVENT_INGEST_URI);
+        if (eventIngestUri != null) {
+            Agent.LOG.log(Level.INFO, "Using configured event ingest URI: {0}", eventIngestUri);
+            return eventIngestUri;
+        }
+
+        if (region.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "Using default event ingest URI: {0}", DEFAULT_EVENT_INGEST_URI);
+            return DEFAULT_EVENT_INGEST_URI;
+        }
+
+        if (region.toLowerCase().contains("eu")) {
+            Agent.LOG.log(Level.INFO, "Using region aware event ingest URI: {0}", EU_EVENT_INGEST_URI);
+            return EU_EVENT_INGEST_URI;
+        }
+
+        Agent.LOG.log(Level.INFO,
+                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}",
+                EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
+        return DEFAULT_EVENT_INGEST_URI;
     }
 
     private OpenTracingConfig initOpenTracingConfig() {
@@ -458,6 +555,30 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
+    private boolean initMetricDebugConfig() {
+        Object val = getProperty(METRIC_DEBUG);
+        if (val instanceof Boolean && (Boolean) val) {
+            Agent.LOG.log(Level.INFO, "metric_debug is enabled");
+        }
+        return getProperty(METRIC_DEBUG, DEFAULT_METRIC_DEBUG);
+    }
+
+    private boolean allowExperimentalRuntimeVersions() {
+        Object val = getProperty(EXPERIMENTAL_RUNTIME);
+        if (val instanceof Boolean && (Boolean) val) {
+            Agent.LOG.log(Level.INFO, "experimental_runtime is enabled");
+        }
+        return getProperty(EXPERIMENTAL_RUNTIME, DEFAULT_EXPERIMENTAL_RUNTIME);
+    }
+
+    private void setServerSpanHarvestLimit() {
+        Map<String, Object> spanEventHarvestLimits = getProperty(SERVER_SPAN_HARVEST_CONFIG);
+        if (spanEventHarvestLimits != null) {
+            Long harvestLimit = (Long) spanEventHarvestLimits.get(SERVER_SPAN_HARVEST_LIMIT);
+            spanEventsConfig.setMaxSamplesStoredByServerProp(harvestLimit.intValue());
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private void flatten(String prefix, Map<String, Object> source, Map<String, Object> dest) {
         for (Map.Entry<String, Object> e : source.entrySet()) {
@@ -480,7 +601,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getValue(String path, T defaultValue) {
-        Object value = flattenedProperties.get(path.replaceAll("[.-]", "_"));
+        Object value = flattenedProperties.get(Strings.replaceDotHyphenWithUnderscore(path));
         if (value == null) {
             value = flattenedProperties.get(path);
         }
@@ -598,6 +719,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return sqlTraceConfig;
     }
 
+    private JfrConfig initJfrConfig() {
+        Map<String, Object> props = nestedProps(JFR);
+        return JfrConfigImpl.createJfrConfig(props);
+    }
+
     private JmxConfig initJmxConfig() {
         Map<String, Object> props = nestedProps(JMX);
         return JmxConfigImpl.createJmxConfig(props);
@@ -611,6 +737,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private InsightsConfig initInsightsConfig() {
         Map<String, Object> props = nestedProps(CUSTOM_INSIGHT_EVENTS);
         return InsightsConfigImpl.createInsightsConfig(props, highSecurity);
+    }
+
+    private ApplicationLoggingConfig initApplicationLoggingConfig() {
+        Map<String, Object> props = nestedProps(APPLICATION_LOGGING);
+        return ApplicationLoggingConfigImpl.createApplicationLoggingConfig(props, highSecurity);
     }
 
     private AttributesConfig initAttributesConfig() {
@@ -910,7 +1041,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             }
             if (result instanceof Map) {
                 Map<?, ?> resultMap = (Map<?, ?>) result;
-                result = resultMap.containsKey(component) ? resultMap.get(component) : null;
+                result = resultMap.getOrDefault(component, null);
             }
         }
 
@@ -1041,6 +1172,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
+    public JfrConfig getJfrConfig() {
+        return jfrConfig;
+    }
+
+    @Override
     public JmxConfig getJmxConfig() {
         return jmxConfig;
     }
@@ -1053,6 +1189,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public InsightsConfig getInsightsConfig() {
         return insightsConfig;
+    }
+
+    @Override
+    public ApplicationLoggingConfig getApplicationLoggingConfig() {
+        return applicationLoggingConfig;
     }
 
     @Override
@@ -1136,6 +1277,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public String getMetricIngestUri() {
         return metricIngestUri;
+    }
+
+    @Override
+    public String getEventIngestUri() {
+        return eventIngestUri;
     }
 
     @Override

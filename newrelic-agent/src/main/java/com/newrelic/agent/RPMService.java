@@ -25,6 +25,7 @@ import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.Normalizer;
 import com.newrelic.agent.profile.ProfileData;
@@ -141,6 +142,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void addHarvestablesToServices() {
         ServiceFactory.getServiceManager().getInsights().addHarvestableToService(appName);
+        ServiceFactory.getServiceManager().getLogSenderService().addHarvestableToService(appName);
         ServiceFactory.getTransactionEventsService().addHarvestableToService(appName);
         errorService.addHarvestableToService();
         ServiceFactory.getSpanEventService().addHarvestableToService(appName);
@@ -329,12 +331,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void logForceDisconnectException(ForceDisconnectException e) {
         Agent.LOG.log(Level.SEVERE, "Received a ForceDisconnectException: {0}. The agent is no longer reporting"
-                + " information. If this is not a misconfiguration, please contact support@newrelic.com.", e.toString());
+                + " information. If this is not a misconfiguration, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void logLicenseException(LicenseException e) {
         Agent.LOG.log(Level.SEVERE, "Invalid license key, the agent is no longer reporting"
-                + " information. If this is not a misconfiguration, please contact support@newrelic.com.", e.toString());
+                + " information. If this is not a misconfiguration, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void shutdownAsync() {
@@ -343,7 +345,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void logForceRestartException(ForceRestartException e) {
         Agent.LOG.log(Level.WARNING, "Received a ForceRestartException: {0}. The agent will attempt to reconnect for"
-                + " data reporting. If this message continues, please contact support@newrelic.com.", e.toString());
+                + " data reporting. If this message continues, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void reconnectSync() throws Exception {
@@ -529,6 +531,27 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         }
     }
 
+    @Override
+    public void sendLogEvents(final Collection<? extends LogEvent> events) throws Exception {
+        Agent.LOG.log(Level.FINE, "Sending {0} log event(s)", events.size());
+        try {
+            sendLogEventsSyncRestart(events);
+        } catch (HttpError e) {
+            // We don't want to resend the data for certain response codes, retry for all others
+            if (e.isRetryableError()) {
+                throw e;
+            }
+        } catch (ForceRestartException e) {
+            logForceRestartException(e);
+            reconnectAsync();
+            throw e;
+        } catch (ForceDisconnectException e) {
+            logForceDisconnectException(e);
+            shutdownAsync();
+            throw e;
+        }
+    }
+
     private void sendSpanEventsSyncRestart(int reservoirSize, int eventsSeen, final Collection<SpanEvent> events) throws Exception {
         try {
             dataSender.sendSpanEvents(reservoirSize, eventsSeen, events);
@@ -568,6 +591,17 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             logForceRestartException(e);
             reconnectSync();
             dataSender.sendCustomAnalyticsEvents(reservoirSize, eventsSeen, events);
+        }
+    }
+
+    private void sendLogEventsSyncRestart(final Collection<? extends LogEvent> events)
+            throws Exception {
+        try {
+            dataSender.sendLogEvents(events);
+        } catch (ForceRestartException e) {
+            logForceRestartException(e);
+            reconnectSync();
+            dataSender.sendLogEvents(events);
         }
     }
 
@@ -863,11 +897,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                 // LicenseException handled here
                 logMetricDataError(e);
                 retry = true;
-                String message = e.getMessage().toLowerCase();
-                // if our data can't be parsed, we probably have a bad metric
-                // (web transaction maybe?). clear out the metrics
-                if (message.contains("json") && message.contains("parse")) {
-                    retry = false;
+                if (e.getMessage() != null) {
+                    String message = e.getMessage().toLowerCase();
+                    // if our data can't be parsed, we probably have a bad metric
+                    // (web transaction maybe?). clear out the metrics
+                    if (message.contains("json") && message.contains("parse")) {
+                        retry = false;
+                    }
                 }
             }
             long duration = System.nanoTime() - startTime;

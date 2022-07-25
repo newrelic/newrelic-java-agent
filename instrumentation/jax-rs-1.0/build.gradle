@@ -1,10 +1,11 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("javax.ws.rs:javax.ws.rs-api:2.1")
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:2.1.6")
+    implementation ("org.glassfish.jersey.inject:jersey-hk2:2.28")
 
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:2.16")
-    testImplementation("org.glassfish.jersey.test-framework:jersey-test-framework-core:2.16")
-    testImplementation("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.16")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:2.28")
+    testImplementation("org.glassfish.jersey.test-framework:jersey-test-framework-core:2.28")
+    testImplementation("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.28")
     testImplementation(project(":instrumentation:jersey-2"))
 }
 

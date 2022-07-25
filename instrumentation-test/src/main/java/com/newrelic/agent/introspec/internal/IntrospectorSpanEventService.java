@@ -50,11 +50,11 @@ public class IntrospectorSpanEventService extends SpanEventsServiceImpl {
     private static TracerToSpanEvent buildTracerToSpanEvent(AgentConfig agentConfig, EnvironmentService environmentService,
             TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics) {
         Map<String, SpanErrorBuilder> map = new HashMap<>();
-        map.put(agentConfig.getApplicationName(), new SpanErrorBuilder(
+        SpanErrorBuilder spanErrorBuilder = new SpanErrorBuilder(
                 new ErrorAnalyzerImpl(agentConfig.getErrorCollectorConfig()),
-                new ErrorMessageReplacer(agentConfig.getStripExceptionConfig())
-        ));
-        return new TracerToSpanEvent(map, environmentService, transactionDataToDistributedTraceIntrinsics);
+                new ErrorMessageReplacer(agentConfig.getStripExceptionConfig()));
+        map.put(agentConfig.getApplicationName(), spanErrorBuilder);
+        return new TracerToSpanEvent(map, environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class IntrospectorSpanEventService extends SpanEventsServiceImpl {
     }
 
     @Override
-    public DistributedSamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir() {
+    public DistributedSamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir(String appName) {
         return new DistributedSamplingPriorityQueue<>(10);
     }
 

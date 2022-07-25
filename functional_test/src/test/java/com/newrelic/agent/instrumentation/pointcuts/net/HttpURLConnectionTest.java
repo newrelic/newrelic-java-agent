@@ -7,25 +7,6 @@
 
 package com.newrelic.agent.instrumentation.pointcuts.net;
 
-import static java.text.MessageFormat.format;
-import static org.junit.Assert.assertEquals;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.common.collect.Sets;
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.TransactionDataList;
@@ -37,8 +18,21 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Map;
+import java.util.Set;
+
+import static java.text.MessageFormat.format;
+import static org.junit.Assert.assertEquals;
 
 public class HttpURLConnectionTest {
 
@@ -64,14 +58,14 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/doTestConnect", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 0);
+        verifyMetrics("example.com", scope, 1, 0, 0, 0);
     }
 
     @Trace(dispatcher = true)
     public void doTestConnect() {
         HttpURLConnection connection = null;
         try {
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.connect();
             connection.connect();// should be no-op
         } catch (Throwable e) {
@@ -93,7 +87,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/doOutputStreamFirstTest", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 0);
+        verifyMetrics("example.com", scope, 1, 0, 0, 0);
     }
 
     @Trace(dispatcher = true)
@@ -101,7 +95,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         OutputStream os = null;
         try {
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.setDoOutput(true);
             connection.getOutputStream();
             connection.connect();// should be no-op
@@ -130,7 +124,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/doConnectFirstTest", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 0);
+        verifyMetrics("example.com", scope, 1, 0, 0, 0);
     }
 
     @Trace(dispatcher = true)
@@ -138,7 +132,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         OutputStream os = null;
         try {
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.setDoOutput(true);
             connection.connect();
             connection.getOutputStream();
@@ -168,7 +162,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/doInputStreamFirstTest", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 1);
+        verifyMetrics("example.com", scope, 1, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -176,7 +170,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         InputStream is = null;
         try {
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             try {
                 connection.setDoInput(true);
                 System.out.println("Not yet Connected");
@@ -208,7 +202,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run1", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 0);
+        verifyMetrics("example.com", scope, 1, 0, 0, 0);
     }
 
     @Trace(dispatcher = true)
@@ -216,7 +210,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 1: connect()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.connect(); // No network I/O
         } catch (Exception e) {
             e.printStackTrace();
@@ -234,7 +228,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run2", testClass);
 
-        verifyMetrics("newrelic.com", scope, 2, 0, 0, 1);
+        verifyMetrics("example.com", scope, 2, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -242,7 +236,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 2: connect() + getInputStream()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.connect(); // No network I/O
             read(connection.getInputStream()); // GETs URL and reads response (Network I/O)
         } catch (Exception e) {
@@ -261,7 +255,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run3", testClass);
 
-        verifyMetrics("newrelic.com", scope, 2, 0, 0, 1);
+        verifyMetrics("example.com", scope, 2, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -269,7 +263,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 3: connect() + getResponseCode()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.connect(); // No network I/O
             // GETs URL and reads response code (Network I/O)
             System.out.println("Response code: " + connection.getResponseCode());
@@ -289,7 +283,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run4", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 1);
+        verifyMetrics("example.com", scope, 1, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -297,7 +291,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 4: getInputStream()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             read(connection.getInputStream()); // GETs URL and reads response (Network I/O)
         } catch (Exception e) {
             e.printStackTrace();
@@ -315,7 +309,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run5", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 1);
+        verifyMetrics("example.com", scope, 1, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -323,7 +317,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 5: getInputStream() + getResponseCode()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             read(connection.getInputStream()); // GETs URL and reads response (Network I/O)
             System.out.println("Response code: " + connection.getResponseCode()); // No network I/O
         } catch (Exception e) {
@@ -342,7 +336,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run6", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 0);
+        verifyMetrics("example.com", scope, 1, 0, 0, 0);
     }
 
     @Trace(dispatcher = true)
@@ -350,7 +344,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 6: getOutputStream()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.setDoOutput(true);
             write(connection.getOutputStream(), "post_data"); // No network I/O, No POST
         } catch (Exception e) {
@@ -369,7 +363,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run7", testClass);
 
-        verifyMetrics("newrelic.com", scope, 2, 0, 0, 1);
+        verifyMetrics("example.com", scope, 2, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -377,7 +371,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 7: getOutputStream() + getResponseCode()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.setDoOutput(true);
             write(connection.getOutputStream(), "post_data"); // No network I/O, No POST
 
@@ -399,7 +393,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run8", testClass);
 
-        verifyMetrics("newrelic.com", scope, 2, 0, 0, 1);
+        verifyMetrics("example.com", scope, 2, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -407,7 +401,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 8: getOutputStream() + getResponseCode() + getInputStream()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             connection.setDoOutput(true);
             write(connection.getOutputStream(), "post_data"); // No network I/O, No POST
             System.out.println("Response code: " + connection.getResponseCode()); // POSTs URL and reads response code (Network I/O)
@@ -428,7 +422,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run9", testClass);
 
-        verifyMetrics("newrelic.com", scope, 1, 0, 0, 1);
+        verifyMetrics("example.com", scope, 1, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -436,7 +430,7 @@ public class HttpURLConnectionTest {
         HttpURLConnection connection = null;
         try {
             // Test 9: getResponseCode()
-            connection = getHttpsNewrelicComConnection();
+            connection = getHttpsExampleComConnection();
             // GETs URL and reads response code (Network I/O)
             System.out.println("Response code: " + connection.getResponseCode());
         } catch (Exception e) {
@@ -487,59 +481,76 @@ public class HttpURLConnectionTest {
         writer.close();
     }
 
-    // newrelic.com no longer supports TLSv1, so we have to force it to 1.2 to continue connecting.
-    private HttpURLConnection getHttpsNewrelicComConnection() throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL("https://newrelic.com").openConnection();
-        if (System.getProperty("java.specification.version").equals("1.7") && connection instanceof HttpsURLConnection) {
-            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-            sslContext.init(null, null, new SecureRandom());
-            ((HttpsURLConnection)connection).setSSLSocketFactory(sslContext.getSocketFactory());
-        }
-
-        return connection;
+    private HttpURLConnection getHttpsExampleComConnection() throws Exception {
+        return (HttpURLConnection) new URL("https://example.com").openConnection();
     }
 
     private void verifyMetrics(String url, String scope, int scopedHttpUrlCount, int unscopedHttpUrlCount,
             int scopedNetworkIOCount, int unscopedNetworkIOCount) {
         Set<String> metrics = AgentHelper.getMetrics();
 
+        String httpURLConnectionMetric = "External/{0}/HttpURLConnection";
+        String httpURLConnectionGetInputStreamMetric = "External/{0}/HttpURLConnection/getInputStream";
+        String httpURLConnectionGetResponseCodeMetric = "External/{0}/HttpURLConnection/getResponseCode";
+        String externalHostAllMetric = "External/{0}/all";
+        String externalAllMetric = "External/all";
+        String externalAllOtherMetric = "External/allOther";
+
         if (scopedHttpUrlCount > 0 || unscopedHttpUrlCount > 0) {
-            Assert.assertTrue(metrics.toString(), metrics.contains(format("External/{0}/HttpURLConnection", url)));
+            Assert.assertTrue(metrics.toString(),
+                    metrics.contains(format(httpURLConnectionMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetInputStreamMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetResponseCodeMetric, url)));
         } else {
-            Assert.assertFalse(metrics.toString(), metrics.contains(format("External/{0}/HttpURLConnection", url)));
+            Assert.assertFalse(metrics.toString(),
+                    metrics.contains(format(httpURLConnectionMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetInputStreamMetric, url)) ||
+                            metrics.contains(format(httpURLConnectionGetResponseCodeMetric, url)));
         }
 
         if (scopedNetworkIOCount > 0 || unscopedNetworkIOCount > 0) {
-            Assert.assertTrue(metrics.toString(), metrics.contains(format("External/{0}/all", url)));
-            Assert.assertTrue(metrics.toString(), metrics.contains("External/all"));
-            Assert.assertTrue(metrics.toString(), metrics.contains("External/allOther"));
+            Assert.assertTrue(metrics.toString(), metrics.contains(format(externalHostAllMetric, url)));
+            Assert.assertTrue(metrics.toString(), metrics.contains(externalAllMetric));
+            Assert.assertTrue(metrics.toString(), metrics.contains(externalAllOtherMetric));
         } else {
-            Assert.assertFalse(metrics.toString(), metrics.contains(format("External/{0}/all", url)));
-            Assert.assertFalse(metrics.toString(), metrics.contains("External/all"));
-            Assert.assertFalse(metrics.toString(), metrics.contains("External/allOther"));
+            Assert.assertFalse(metrics.toString(), metrics.contains(format(externalHostAllMetric, url)));
+            Assert.assertFalse(metrics.toString(), metrics.contains(externalAllMetric));
+            Assert.assertFalse(metrics.toString(), metrics.contains(externalAllOtherMetric));
         }
 
         Map<String, Integer> scopedMetrics = getMetricCounts(
-                MetricName.create(format("External/{0}/HttpURLConnection", url), scope),
-                MetricName.create(format("External/{0}/all", url), scope),
-                MetricName.create("External/all", scope),
-                MetricName.create("External/allOther", scope));
+                MetricName.create(format(httpURLConnectionMetric, url), scope),
+                MetricName.create(format(httpURLConnectionGetInputStreamMetric, url), scope),
+                MetricName.create(format(httpURLConnectionGetResponseCodeMetric, url), scope),
+                MetricName.create(format(externalHostAllMetric, url), scope),
+                MetricName.create(externalAllMetric, scope),
+                MetricName.create(externalAllOtherMetric, scope));
 
         Map<String, Integer> unscopedMetrics = getMetricCounts(
-                MetricName.create(format("External/{0}/HttpURLConnection", url)),
-                MetricName.create(format("External/{0}/all", url)),
-                MetricName.create("External/all"),
-                MetricName.create("External/allOther"));
+                MetricName.create(format(httpURLConnectionMetric, url)),
+                MetricName.create(format(httpURLConnectionGetInputStreamMetric, url)),
+                MetricName.create(format(httpURLConnectionGetResponseCodeMetric, url)),
+                MetricName.create(format(externalHostAllMetric, url)),
+                MetricName.create(externalAllMetric),
+                MetricName.create(externalAllOtherMetric));
 
-        assertEquals(scopedHttpUrlCount, (int) scopedMetrics.get(format("External/{0}/HttpURLConnection", url)));
-        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(format("External/{0}/all", url)));
-        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get("External/all"));
-        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get("External/allOther"));
+        int actualHttpURLConnectionScopedMetricCount = scopedMetrics.get(format(httpURLConnectionMetric, url)) +
+                scopedMetrics.get(format(httpURLConnectionGetInputStreamMetric, url)) +
+                scopedMetrics.get(format(httpURLConnectionGetResponseCodeMetric, url));
 
-        assertEquals(unscopedHttpUrlCount, (int) unscopedMetrics.get(format("External/{0}/HttpURLConnection", url)));
-        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(format("External/{0}/all", url)));
-        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get("External/all"));
-        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get("External/allOther"));
+        int actualHttpURLConnectionUnscopedMetricCount = unscopedMetrics.get(format(httpURLConnectionMetric, url)) +
+                unscopedMetrics.get(format(httpURLConnectionGetInputStreamMetric, url)) +
+                unscopedMetrics.get(format(httpURLConnectionGetResponseCodeMetric, url));
+
+        assertEquals(scopedHttpUrlCount, actualHttpURLConnectionScopedMetricCount);
+        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(format(externalHostAllMetric, url)));
+        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(externalAllMetric));
+        assertEquals(scopedNetworkIOCount, (int) scopedMetrics.get(externalAllOtherMetric));
+
+        assertEquals(unscopedHttpUrlCount, actualHttpURLConnectionUnscopedMetricCount);
+        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(format(externalHostAllMetric, url)));
+        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(externalAllMetric));
+        assertEquals(unscopedNetworkIOCount, (int) unscopedMetrics.get(externalAllOtherMetric));
     }
 
     private Map<String, Integer> getMetricCounts(MetricName... responseTimeMetricNames) {

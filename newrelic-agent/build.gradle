@@ -64,18 +64,20 @@ dependencies {
     shadowIntoJar project(":agent-model")
     shadowIntoJar(project(":newrelic-weaver"))
     shadowIntoJar(project(":infinite-tracing"))
-
-    shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.0")
-
-    shadowIntoJar 'org.ow2.asm:asm:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-tree:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-commons:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-util:8.0.1'
-    shadowIntoJar 'org.ow2.asm:asm-analysis:8.0.1'
+    shadowIntoJar(project(":discovery")) {
+        transitive = false
+    }
+    shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
+    shadowIntoJar("com.newrelic:jfr-daemon:1.9.0")
+    shadowIntoJar "org.ow2.asm:asm:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-tree:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-commons:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-util:$asmVersion"
+    shadowIntoJar "org.ow2.asm:asm-analysis:$asmVersion"
 
     shadowIntoJar 'net.sourceforge.jregex:jregex:1.2_01'
 
-    shadowIntoJar 'org.apache.httpcomponents:httpclient:4.5.9'
+    shadowIntoJar 'org.apache.httpcomponents:httpclient:4.5.13'
     // We use this explicitly for its Base64 class. It's also a dependency of httpclient.
     shadowIntoJar("commons-codec:commons-codec:1.11")
     // We use StringUtils. Since we still support Java 7, we can't go much higher than this.
@@ -84,20 +86,16 @@ dependencies {
     // for command line parsing
     shadowIntoJar 'commons-cli:commons-cli:1.2'
 
-    shadowIntoJar 'org.apache.logging.log4j:log4j-core:2.11.2'
+    shadowIntoJar 'org.apache.logging.log4j:log4j-core:2.17.1'
     shadowIntoJar 'org.slf4j:slf4j-api:1.7.25'
 
     shadowIntoJar 'com.googlecode.json-simple:json-simple:1.1'
 
-    // this is using the android version because it supports JDK 7+ (the jre version only supports JDK 8+)
-    shadowIntoJar('com.google.guava:guava:28.2-android') {
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-        exclude group: 'com.google.guava', module: 'listenablefuture'
-        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
-        exclude group: "org.checkerframework", module: "checker-compat-qual"
-    }
+    shadowIntoJar('com.google.guava:guava:30.1.1-jre')
 
-    shadowIntoJar("org.yaml:snakeyaml:1.26")
+    shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.3')
+
+    shadowIntoJar("org.yaml:snakeyaml:1.27")
 
     implementation("javax.management.j2ee:management-api:1.1-rev-1") {
         transitive = false
@@ -167,13 +165,14 @@ task relocatedShadowJar(type: ShadowJar) {
             // stuff we use
             "com.google", "org.yaml", "org.slf4j", "org.objectweb", "org.json",
             "org.apache.commons", "org.apache.http", "org.apache.logging", "jregex",
-            "io.grpc", "com.squareup", "okio", "io.perfmark", "android",
+            "io.grpc", "com.squareup", "okio", "io.perfmark", "android", "com.github.benmanes",
 
             // The following rules are to prevent these transitive dependencies from breaking anything
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",
             "org.checkerframework", "org.dom4j", "org.zeromq", "org.apache.kafka",
             "com.lmax", "com.conversantmedia", "org.jctools",
-            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource"
+            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource", "kotlin", "org.jetbrains",
+            "okhttp3", "org.bouncycastle", "org.conscrypt", "org.openjsse"
     ].each {
         relocate(it, "com.newrelic.agent.deps.$it")
     }
@@ -286,6 +285,7 @@ task newrelicVersionedAgentJar(type: Jar) {
                 'Specification-Version': project.version,
                 'Build-Id': System.getProperty('BUILD_ID') ?: "None",
                 'Multi-Release': true,
+                'Agent-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Premain-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Main-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'X-Git-SHA': System.getenv("GITHUB_SHA") ?: GitUtil.sha(project) ?: "UNKNOWN"

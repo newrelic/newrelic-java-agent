@@ -24,6 +24,7 @@ import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.model.ErrorEvent;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.ServiceFactory;
@@ -89,7 +90,10 @@ public class DataSenderImpl implements DataSender {
     private static final String METADATA_PREFIX = "NEW_RELIC_METADATA_";
     // the block of env vars we send up to rpm
     private static final String ENV_METADATA = "metadata";
-    private static final int DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES = 1000000;
+    private static final int DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES = 1_000_000;
+
+    // Destinations for agent data
+    private static final String COLLECTOR = "Collector";
 
     // As of P17 these are the only agent endpoints that actually contain data in the response payload for a successful request
     private static final Set<String> METHODS_WITH_RESPONSE_BODY = ImmutableSet.of(
@@ -332,6 +336,11 @@ public class DataSenderImpl implements DataSender {
     }
 
     @Override
+    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
+        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events);
+    }
+
+    @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, Collection<SpanEvent> events) throws Exception {
         sendAnalyticEventsForReservoir(CollectorMethods.SPAN_EVENT_DATA, compressedEncoding, reservoirSize, eventsSeen, events);
     }
@@ -351,6 +360,35 @@ public class DataSenderImpl implements DataSender {
         params.add(metadata);
 
         params.add(events);
+        invokeRunId(method, encoding, runId, params);
+    }
+
+    // Sends LogEvent data in the MELT format for logs
+    // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
+    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, Collection<T> events) throws Exception {
+        Object runId = agentRunId;
+        if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
+            return;
+        }
+
+        JSONObject commonAttributes = new JSONObject();
+
+        // build attributes object
+        JSONObject attributes = new JSONObject();
+        attributes.put("attributes", commonAttributes);
+
+        // build common object
+        JSONObject common = new JSONObject();
+        common.put("common", attributes);
+
+        // build logs object
+        JSONObject logs = new JSONObject();
+        logs.put("logs", events);
+
+        // params is top level
+        InitialSizedJsonArray params = new InitialSizedJsonArray(3);
+        params.add(common);
+        params.add(logs);
         invokeRunId(method, encoding, runId, params);
     }
 
@@ -532,12 +570,12 @@ public class DataSenderImpl implements DataSender {
         byte[] data = writeData(encoding, params);
 
         /*
-         * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead we halve the
+         * We don't enforce max_payload_size_in_bytes for error_data (aka error traces). Instead, we halve the
          * payload and try again. See RPMService sendErrorData
          */
         if (data.length > maxPayloadSizeInBytes && !method.equals(CollectorMethods.ERROR_DATA)) {
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                    MessageFormat.format(MetricNames.SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX, method), 1));
+                    MessageFormat.format(MetricNames.SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX, method), 1), MetricNames.SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX);
             String msg = MessageFormat.format("Payload of size {0} exceeded maximum size {1} for {2} method ",
                     data.length, maxPayloadSizeInBytes, method);
             logger.log(Level.WARNING, msg);
@@ -551,24 +589,29 @@ public class DataSenderImpl implements DataSender {
 
         ReadResult result = httpClientWrapper.execute(request, new TimingEventHandler(method, ServiceFactory.getStatsService()));
 
+        String payloadJsonSent = DataSenderWriter.toJSONString(params);
+
         if (auditMode && methodShouldBeAudited(method)) {
-            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, url,
-                    DataSenderWriter.toJSONString(params));
+            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, url, payloadJsonSent);
             logger.info(msg);
         }
 
         // Create supportability metric for all response codes
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_HTTP_CODE, result.getStatusCode()), 1));
+                MessageFormat.format(MetricNames.SUPPORTABILITY_HTTP_CODE, result.getStatusCode()), 1), MetricNames.SUPPORTABILITY_HTTP_CODE);
 
         if (result.getStatusCode() != HttpResponseCode.OK && result.getStatusCode() != HttpResponseCode.ACCEPTED) {
             throwExceptionFromStatusCode(method, result, data, request);
         }
 
+        String payloadJsonReceived = result.getResponseBody();
+
         // received successful 2xx response
         if (auditMode && methodShouldBeAudited(method)) {
-            logger.info(MessageFormat.format("Received JSON({0}): {1}", method, result.getResponseBody()));
+            logger.info(MessageFormat.format("Received JSON({0}): {1}", method, payloadJsonReceived));
         }
+
+        recordDataUsageMetrics(method, payloadJsonSent, payloadJsonReceived);
 
         if (dataSenderListener != null) {
             dataSenderListener.dataSent(method, encoding, uri, data);
@@ -577,13 +620,39 @@ public class DataSenderImpl implements DataSender {
         return result;
     }
 
+    /**
+     * Record metrics tracking amount of bytes sent and received for each agent endpoint payload
+     *
+     * @param method method for the agent endpoint
+     * @param payloadJsonSent JSON String of the payload that was sent
+     * @param payloadJsonReceived JSON String of the payload that was received
+     */
+    private void recordDataUsageMetrics(String method, String payloadJsonSent, String payloadJsonReceived) {
+        int payloadBytesSent = payloadJsonSent.getBytes().length;
+        int payloadBytesReceived = payloadJsonReceived.getBytes().length;
+
+        // COLLECTOR is always the destination for data reported via DataSenderImpl.
+        // OTLP as a destination is not currently supported by the Java agent.
+        // INFINITE_TRACING destined usage data is sent via SpanEventSender.
+        ServiceFactory.getStatsService().doStatsWork(
+                StatsWorks.getRecordDataUsageMetricWork(
+                        MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES, COLLECTOR),
+                        payloadBytesSent, payloadBytesReceived), MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES + " " + COLLECTOR);
+
+        ServiceFactory.getStatsService().doStatsWork(
+                StatsWorks.getRecordDataUsageMetricWork(
+                        MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES, COLLECTOR, method),
+                        payloadBytesSent, payloadBytesReceived),
+                        MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES + " " + COLLECTOR);
+    }
+
     private void throwExceptionFromStatusCode(String method, ReadResult result, byte[] data, HttpClientWrapper.Request request)
             throws HttpError, LicenseException, ForceRestartException, ForceDisconnectException {
         // Comply with spec and send supportability metric only for error responses
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1));
+                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR);
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS, method), 1));
+                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS, method), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS);
 
         // HttpError exceptions are typically handled in RPMService or the harvestable service for the requested endpoint
         switch (result.getStatusCode()) {
@@ -729,7 +798,8 @@ public class DataSenderImpl implements DataSender {
             long requestDuration = System.currentTimeMillis() - requestSent;
 
             statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(
-                    MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration));
+                    MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration),
+                    MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION + " " + method);
         }
     }
 }

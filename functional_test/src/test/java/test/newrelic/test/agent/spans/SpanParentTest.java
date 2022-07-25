@@ -124,7 +124,8 @@ public class SpanParentTest {
             assertEquals(4, tracers2.size()); // 1 "rootTracer" (not in this list) + 2 non-external/datastore tracers + 2 external datastore tracers
 
             SpanEventsService spanEventsService = ServiceFactory.getServiceManager().getSpanEventsService();
-            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir();
+            String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir(appName);
             assertNotNull(spanEventsPool);
             List<SpanEvent> spanEvents = spanEventsPool.asList();
             spanEventsPool.clear();
@@ -167,9 +168,9 @@ public class SpanParentTest {
             Collection<Tracer> tracers2 = tx2.getTracers();
             assertEquals(4, tracers2.size()); // 1 "rootTracer" (not in this list) + 2 non-external/datastore tracers + 2 external datastore tracers
 
-            String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
             SpanEventsService spanEventsService = ServiceFactory.getServiceManager().getSpanEventsService();
-            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir();
+            String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir(appName);
             assertNotNull(spanEventsPool);
             List<SpanEvent> spanEvents = spanEventsPool.asList();
             spanEventsPool.clear();

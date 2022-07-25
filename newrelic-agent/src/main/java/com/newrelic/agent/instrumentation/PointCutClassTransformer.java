@@ -380,8 +380,9 @@ public class PointCutClassTransformer implements ContextClassTransformer {
 
         private void recordSupportabilityMetrics(List<PointCut> appliedPointCuts) {
             for (PointCut pointCut: appliedPointCuts) {
-                ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(
-                        MetricNames.SUPPORTABILITY_POINTCUT_LOADED, pointCut.getName()), 1));
+                String pointCutMetricName = MessageFormat.format(
+                        MetricNames.SUPPORTABILITY_POINTCUT_LOADED, pointCut.getName());
+                ServiceFactory.getStatsService().doStatsWork(StatsWorks.getRecordMetricWork(pointCutMetricName, 1), pointCutMetricName);
             }
         }
 

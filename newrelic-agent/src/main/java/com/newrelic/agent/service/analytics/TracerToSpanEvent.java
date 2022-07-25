@@ -53,25 +53,28 @@ public class TracerToSpanEvent {
     private final Supplier<Long> timestampSupplier;
     private final EnvironmentService environmentService;
     private final TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics;
+    private final SpanErrorBuilder defaultSpanErrorBuilder;
 
     public TracerToSpanEvent(Map<String, SpanErrorBuilder> errorBuilderForApp, EnvironmentService environmentService,
-            TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics) {
+            TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics, SpanErrorBuilder defaultSpanErrorBuilder) {
         this(
                 errorBuilderForApp,
                 AttributeFilters.SPAN_EVENTS_ATTRIBUTE_FILTER,
                 SpanEventFactory.DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER,
                 environmentService,
-                transactionDataToDistributedTraceIntrinsics);
+                transactionDataToDistributedTraceIntrinsics,
+                defaultSpanErrorBuilder);
     }
 
     TracerToSpanEvent(Map<String, SpanErrorBuilder> errorBuilderForApp, AttributeFilter filter, Supplier<Long> timestampSupplier,
             EnvironmentService environmentService,
-            TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics) {
+            TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics, SpanErrorBuilder defaultSpanErrorBuilder) {
         this.errorBuilderForApp = errorBuilderForApp;
         this.filter = filter;
         this.timestampSupplier = timestampSupplier;
         this.environmentService = environmentService;
         this.transactionDataToDistributedTraceIntrinsics = transactionDataToDistributedTraceIntrinsics;
+        this.defaultSpanErrorBuilder = defaultSpanErrorBuilder;
     }
 
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
@@ -94,6 +97,7 @@ public class TracerToSpanEvent {
                 .setDecider(inboundPayload == null || inboundPayload.priority == null);
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
+        builder = maybeSetGraphQLAttributes(tracer, builder);
 
         W3CTraceState traceState = spanProxy.getInitiatingW3CTraceState();
         if (traceState != null) {
@@ -119,8 +123,21 @@ public class TracerToSpanEvent {
         return builder.build();
     }
 
+    private SpanEventFactory maybeSetGraphQLAttributes(Tracer tracer, SpanEventFactory builder) {
+        Map<String, Object> agentAttributes = tracer.getAgentAttributes();
+        boolean containsGraphQLAttributes = agentAttributes.keySet().stream().anyMatch(key -> key.contains("graphql"));
+        if (containsGraphQLAttributes){
+            agentAttributes.entrySet().stream()
+                    .filter(e -> e.getKey().contains("graphql"))
+                    .forEach(e -> builder.putAgentAttribute(e.getKey(), e.getValue()));
+        }
+        return builder;
+    }
+
     private SpanEventFactory maybeSetError(Tracer tracer, TransactionData transactionData, boolean isRoot, SpanEventFactory builder) {
         SpanErrorBuilder spanErrorBuilder = errorBuilderForApp.get(transactionData.getApplicationName());
+        spanErrorBuilder = spanErrorBuilder == null ? defaultSpanErrorBuilder : spanErrorBuilder;
+
         if (spanErrorBuilder.areErrorsEnabled()) {
             final SpanError spanError = spanErrorBuilder.buildSpanError(
                     tracer,

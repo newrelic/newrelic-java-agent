@@ -1,7 +1,6 @@
-
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("javax.servlet:servlet-api:2.4")
+    implementation('jakarta.servlet:jakarta.servlet-api:4.0.4')
 }
 
 jar {
@@ -9,9 +8,8 @@ jar {
 }
 
 verifyInstrumentation {
-
     passesOnly 'javax.servlet:servlet-api:[2.4,)'
-
+    passesOnly 'jakarta.servlet:jakarta.servlet-api:[4.0.2,5.0.0-M1)'
     exclude 'javax.servlet:servlet-api:2.4.public_draft'
 }
 

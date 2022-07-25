@@ -10,18 +10,16 @@ package com.nr.vertx.instrumentation;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.nr.vertx.test.handlers.ErrorHandler;
+import static com.nr.vertx.test.handlers.SimpleHandlers.createHandler;
+import static com.nr.vertx.test.handlers.SimpleHandlers.createLambdaHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.util.Map;
-
-import static com.nr.vertx.test.handlers.SimpleHandlers.createHandler;
-import static com.nr.vertx.test.handlers.SimpleHandlers.createLambdaHandler;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx", "com.nr.vert" })

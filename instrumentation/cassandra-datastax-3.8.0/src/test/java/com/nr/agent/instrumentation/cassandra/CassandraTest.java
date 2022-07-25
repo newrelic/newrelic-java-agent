@@ -16,6 +16,7 @@ import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SimpleStatement;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.StatementWrapper;
 import com.google.common.collect.Iterables;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.database.DatastoreMetrics;
@@ -27,6 +28,8 @@ import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionTrace;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java16IncompatibleTest;
+import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java7IncompatibleTest;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;
@@ -49,9 +52,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+/*
+ * Gradle hangs indefinitely when these tests run on Java 16
+ *
+ * FIXME capture jmap/jstack thread dumps?
+ */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.datastax.driver.core")
-@Category({ Java7IncompatibleTest.class})
+@Category({ Java7IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class})
 public class CassandraTest {
 
     private static final String CASSANDRA_PRODUCT = DatastoreVendor.Cassandra.toString();
@@ -65,7 +73,7 @@ public class CassandraTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         // Embedded Cassandra doesn't play nice in java9 - when you attempt to start it, it attempts to create and initialize
-        // a directory on the local file system. It uses the it's own FileUtils class do so, which contains a static
+        // a directory on the local file system. It uses its own FileUtils class do so, which contains a static
         // initialization block that tries to cast a ByteBuffer to a DirectBuffer, which doesn't exist in Java 9. This falls
         // through to a catch block, which subsequently calls JVMStabilityInspector.inspectThrowable(t), which in turn
         // calls DatabaseDescriptor.getDiskFailurePolicy(), and that, in turn, relies on the directory having been created.
@@ -165,6 +173,74 @@ public class CassandraTest {
 
         // Show that the user is gone
         session.execute("SELECT * FROM users");
+    }
+
+    @Test
+    public void testBasicWrapped() {
+        demoBasicWrapped();
+
+        assertEquals(1, InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(1000));
+        Collection<String> transactionNames = InstrumentationTestRunner.getIntrospector().getTransactionNames();
+        assertEquals(1, transactionNames.size());
+
+        String txName = transactionNames.iterator().next();
+        DatastoreHelper helper = new DatastoreHelper(CASSANDRA_PRODUCT);
+        helper.assertScopedStatementMetricCount(txName, "INSERT", "users", 1);
+        helper.assertScopedStatementMetricCount(txName, "SELECT", "users", 3);
+        helper.assertScopedStatementMetricCount(txName, "UPDATE", "users", 1);
+        helper.assertScopedStatementMetricCount(txName, "DELETE", "users", 1);
+
+        helper.assertAggregateMetrics();
+        helper.assertUnscopedOperationMetricCount("INSERT", 1);
+        helper.assertUnscopedOperationMetricCount("SELECT", 3);
+        helper.assertUnscopedOperationMetricCount("UPDATE", 1);
+        helper.assertUnscopedOperationMetricCount("DELETE", 1);
+        helper.assertUnscopedStatementMetricCount("INSERT", "users", 1);
+        helper.assertUnscopedStatementMetricCount("SELECT", "users", 3);
+        helper.assertUnscopedStatementMetricCount("UPDATE", "users", 1);
+        helper.assertUnscopedStatementMetricCount("DELETE", "users", 1);
+
+        Collection<TransactionTrace> traces =
+                InstrumentationTestRunner.getIntrospector().getTransactionTracesForTransaction(txName);
+        assertEquals(1, traces.size());
+        TransactionTrace trace = Iterables.getFirst(traces, null);
+        assertNotNull(trace);
+        assertBasicTraceSegmentAttributes(trace);
+    }
+
+
+    /*
+    A wrapped statement is a class that the driver supplies to support custom Retry and LoadBalancing policies.
+    */
+    class SimpleStatementWrapper extends StatementWrapper {
+        public SimpleStatementWrapper(Statement  wrapped){
+            super(wrapped);
+        }
+    }
+
+    @Trace(dispatcher = true)
+    public void demoBasicWrapped() {
+        SimpleStatement insertStatement = new SimpleStatement(
+                "/* This is an INSERT query. yay*/ INSERT INTO users (lastname, age, city, email, firstname) VALUES ('Jones', 35, 'Austin', 'bob@example.com', 'Bob')");
+        SimpleStatementWrapper wrappedInsertStatement = new SimpleStatementWrapper(insertStatement);
+
+        wrappedInsertStatement.enableTracing();
+        session.execute(wrappedInsertStatement);
+
+        // Use select to get the user we just entered
+        session.execute(new SimpleStatementWrapper(new SimpleStatement("SELECT * FROM users WHERE lastname='Jones'")));
+
+        // Update the same user with a new age
+        session.execute(new SimpleStatementWrapper(new SimpleStatement("update users set age = 36 where lastname = 'Jones'")));
+
+        // Select and show the change
+        session.execute(new SimpleStatementWrapper(new SimpleStatement("select * from users where lastname='Jones'")));
+
+        // Delete the user from the users table
+        session.execute(new SimpleStatementWrapper(new SimpleStatement("DELETE FROM users WHERE lastname = 'Jones'")));
+
+        // Show that the user is gone
+        session.execute(new SimpleStatementWrapper(new SimpleStatement("SELECT * FROM users")));
     }
 
     @Test

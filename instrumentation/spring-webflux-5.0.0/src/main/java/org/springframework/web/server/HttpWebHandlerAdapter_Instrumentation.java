@@ -16,7 +16,6 @@ import com.nr.agent.instrumentation.spring.reactive.ServerHttpResponseWrapper;
 import com.nr.agent.instrumentation.spring.reactive.Util;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
 @Weave(type = MatchType.ExactClass, originalName = "org.springframework.web.server.adapter.HttpWebHandlerAdapter")
 public class HttpWebHandlerAdapter_Instrumentation {

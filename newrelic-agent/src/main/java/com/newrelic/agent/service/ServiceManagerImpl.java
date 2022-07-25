@@ -29,6 +29,7 @@ import com.newrelic.agent.circuitbreaker.CircuitBreakerService;
 import com.newrelic.agent.commands.CommandParser;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.config.JmxConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
@@ -38,6 +39,7 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.instrumentation.ClassTransformerServiceImpl;
+import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -59,6 +61,8 @@ import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
+import com.newrelic.agent.service.logging.LogSenderService;
+import com.newrelic.agent.service.logging.LogSenderServiceImpl;
 import com.newrelic.agent.service.module.JarAnalystFactory;
 import com.newrelic.agent.service.module.JarCollectorConnectionListener;
 import com.newrelic.agent.service.module.JarCollectorHarvestListener;
@@ -84,19 +88,20 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 /**
  * Service Manager implementation
- *
+ * <p>
  * This class is thread-safe.
  */
 public class ServiceManagerImpl extends AbstractService implements ServiceManager {
@@ -104,7 +109,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private final ConcurrentMap<String, Service> services = new ConcurrentHashMap<>();
     private final CoreService coreService;
     private final ConfigService configService;
-
+    private final BlockingQueue<StatsWork> statsWork = new LinkedBlockingQueue<>();
     private volatile ExtensionService extensionService;
     private volatile ProfilerService profilerService;
     private volatile TracerService tracerService;
@@ -113,6 +118,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile HarvestService harvestService;
     private volatile Service gcService;
     private volatile TransactionService transactionService;
+    private volatile JfrService jfrService;
     private volatile JmxService jmxService;
     private volatile TransactionEventsService transactionEventsService;
     private volatile CommandParser commandParser;
@@ -134,6 +140,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile AttributesService attsService;
     private volatile UtilizationService utilizationService;
     private volatile InsightsService insightsService;
+    private volatile LogSenderService logSenderService;
     private volatile AsyncTransactionService asyncTxService;
     private volatile CircuitBreakerService circuitBreakerService;
     private volatile DistributedTraceServiceImpl distributedTraceService;
@@ -230,11 +237,15 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         AgentConnectionEstablishedListener agentConnectionEstablishedListener = new UpdateInfiniteTracingAfterConnect(infiniteTracingEnabledCheck,
                 infiniteTracing);
 
+        JfrConfig jfrConfig = config.getJfrConfig();
+        jfrService = new JfrService(jfrConfig, configService.getDefaultAgentConfig());
+        AgentConnectionEstablishedListener jfrServiceConnectionListener = new JfrServiceConnectionListener(jfrService);
+
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
 
-        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener);
+        rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener, jfrServiceConnectionListener);
         normalizationService = new NormalizationServiceImpl();
         harvestService = new HarvestServiceImpl();
         gcService = realAgent ? new GCService() : new NoopService("GC Service");
@@ -251,6 +262,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         remoteInstrumentationService = new RemoteInstrumentationServiceImpl();
         attsService = new AttributesService();
         insightsService = new InsightsServiceImpl();
+        logSenderService = new LogSenderServiceImpl();
         spanEventsService = SpanEventsServiceFactory.builder()
                 .configService(configService)
                 .rpmServiceManager(rpmServiceManager)
@@ -293,6 +305,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         remoteInstrumentationService.start();
         attsService.start();
         insightsService.start();
+        logSenderService.start();
         circuitBreakerService.start();
         distributedTraceService.start();
         spanEventsService.start();
@@ -309,8 +322,6 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
     private InfiniteTracing buildInfiniteTracing(ConfigService configService) {
         com.newrelic.agent.config.InfiniteTracingConfig config = configService.getDefaultAgentConfig().getInfiniteTracingConfig();
-        Double flakyPercentage = configService.getDefaultAgentConfig().getInfiniteTracingConfig().getFlakyPercentage();
-        boolean usePlaintext = configService.getDefaultAgentConfig().getInfiniteTracingConfig().getUsePlaintext();
 
         InfiniteTracingConfig infiniteTracingConfig = InfiniteTracingConfig.builder()
                 .maxQueueSize(config.getSpanEventsQueueSize())
@@ -318,8 +329,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
                 .host(config.getTraceObserverHost())
                 .port(config.getTraceObserverPort())
                 .licenseKey(configService.getDefaultAgentConfig().getLicenseKey())
-                .flakyPercentage(flakyPercentage)
-                .usePlaintext(usePlaintext)
+                .flakyPercentage(config.getFlakyPercentage())
+                .flakyCode(config.getFlakyCode())
+                .usePlaintext(config.getUsePlaintext())
                 .build();
 
         return InfiniteTracing.initialize(infiniteTracingConfig, NewRelic.getAgent().getMetricAggregator());
@@ -328,6 +340,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     protected synchronized void doStop() throws Exception {
         insightsService.stop();
+        logSenderService.stop();
         circuitBreakerService.stop();
         remoteInstrumentationService.stop();
         configService.stop();
@@ -350,6 +363,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         transactionEventsService.stop();
         profilerService.stop();
         commandParser.stop();
+        jfrService.stop();
         jmxService.stop();
         rpmServiceManager.stop();
         environmentService.stop();
@@ -418,6 +432,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         config.put("CommandParser", serviceInfo);
 
         serviceInfo = new HashMap<>();
+        serviceInfo.put("enabled", jfrService.isEnabled());
+        config.put("JfrService", serviceInfo);
+
+        serviceInfo = new HashMap<>();
         serviceInfo.put("enabled", jmxService.isEnabled());
         config.put("JmxService", serviceInfo);
 
@@ -476,6 +494,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public TransactionService getTransactionService() {
         return transactionService;
+    }
+
+    @Override
+    public JfrService getJfrService() {
+        return jfrService;
     }
 
     @Override
@@ -584,53 +607,20 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     }
 
     @Override
+    public LogSenderService getLogSenderService() {
+        return logSenderService;
+    }
+
+    @Override
     public CircuitBreakerService getCircuitBreakerService() {
         return circuitBreakerService;
     }
 
     private void replayStartupStatsWork() {
         for (StatsWork work : statsWork) {
-            statsService.doStatsWork(work);
+            statsService.doStatsWork(work, statsService.getName());
         }
         statsWork.clear();
-    }
-
-    private final List<StatsWork> statsWork = new ArrayList<>();
-
-    private class InitialStatsService extends AbstractService implements StatsService {
-        private final MetricAggregator metricAggregator = new StatsServiceMetricAggregator(this);
-
-        protected InitialStatsService() {
-            super("Bootstrap stats service");
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-
-        @Override
-        public void doStatsWork(StatsWork statsWork) {
-            ServiceManagerImpl.this.statsWork.add(statsWork);
-        }
-
-        @Override
-        public StatsEngine getStatsEngineForHarvest(String appName) {
-            return null;
-        }
-
-        @Override
-        protected void doStart() throws Exception {
-        }
-
-        @Override
-        protected void doStop() throws Exception {
-        }
-
-        @Override
-        public MetricAggregator getMetricAggregator() {
-            return metricAggregator;
-        }
     }
 
     @Override
@@ -656,6 +646,49 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public ExpirationService getExpirationService() {
         return expirationService;
+    }
+
+    private class InitialStatsService extends AbstractService implements StatsService {
+        private final MetricAggregator metricAggregator = new StatsServiceMetricAggregator(this);
+        private final Logger initialStatsServiceLogger = Agent.LOG.getChildLogger("com.newrelic.InitialStatsService");
+
+        protected InitialStatsService() {
+            super("Bootstrap stats service");
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+
+        @Override
+        public void doStatsWork(StatsWork statsWork, String statsWorkName) {
+            if (statsWork != null) {
+                ServiceManagerImpl.this.statsWork.add(statsWork);
+            } else {
+                initialStatsServiceLogger.log(Level.WARNING,
+                        "Problem adding a StatsWork to queue in InitialStatsService. StatsWork was null for: " + statsWorkName);
+            }
+
+        }
+
+        @Override
+        public StatsEngine getStatsEngineForHarvest(String appName) {
+            return null;
+        }
+
+        @Override
+        protected void doStart() throws Exception {
+        }
+
+        @Override
+        protected void doStop() throws Exception {
+        }
+
+        @Override
+        public MetricAggregator getMetricAggregator() {
+            return metricAggregator;
+        }
     }
 
 }

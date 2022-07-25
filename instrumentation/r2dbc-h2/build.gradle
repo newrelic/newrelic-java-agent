@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
+    testImplementation("com.h2database:h2:1.4.200")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.r2dbc-h2' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.r2dbc:r2dbc-h2:[0,1.0.0.RC1)'
+}
+
+site {
+    title 'H2 R2DBC'
+    type 'Datastore'
+}

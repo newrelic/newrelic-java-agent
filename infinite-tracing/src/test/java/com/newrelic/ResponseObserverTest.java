@@ -5,115 +5,123 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.trace.v1.V1;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class ResponseObserverTest {
-    @Test
-    public void shouldIncrementCounterOnNext() {
-        MetricAggregator metricAggregator = mock(MetricAggregator.class);
 
-        ResponseObserver target = new ResponseObserver(
-                metricAggregator,
-                mock(Logger.class),
-                mock(DisconnectionHandler.class), shouldRecreateCall);
+    @Mock
+    private Logger logger;
+    @Mock
+    private ChannelManager channelManager;
+    @Mock
+    private MetricAggregator aggregator;
+    @Mock
+    private BackoffPolicy backoffPolicy;
 
-        target.onNext(V1.RecordStatus.newBuilder().setMessagesSeen(3000).build());
+    private ResponseObserver target;
 
-        verify(metricAggregator).incrementCounter("Supportability/InfiniteTracing/Response");
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.initMocks(this);
+        target = spy(new ResponseObserver(logger, channelManager, aggregator, backoffPolicy));
     }
 
     @Test
-    public void shouldDisconnectOnNormalException() {
-        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
-        MetricAggregator metricAggregator = mock(MetricAggregator.class);
+    void onNext_IncrementsCounter() {
+        target.onNext(V1.RecordStatus.newBuilder().build());
 
-        ResponseObserver target = new ResponseObserver(
-                metricAggregator,
-                mock(Logger.class),
-                disconnectionHandler, shouldRecreateCall);
-
-        target.onError(new Throwable());
-
-        verify(metricAggregator).incrementCounter("Supportability/InfiniteTracing/Response/Error");
-        verify(disconnectionHandler).handle(null);
+        verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Response");
+        verify(backoffPolicy).reset();
     }
 
     @Test
-    public void shouldReportStatusOnError() {
-        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
-        MetricAggregator metricAggregator = mock(MetricAggregator.class);
-
-        ResponseObserver target = new ResponseObserver(
-                metricAggregator,
-                mock(Logger.class),
-                disconnectionHandler, shouldRecreateCall);
-
-        StatusRuntimeException exception = new StatusRuntimeException(Status.CANCELLED);
-
-        target.onError(exception);
-
-        verify(metricAggregator).incrementCounter("Supportability/InfiniteTracing/Span/gRPC/CANCELLED");
-        verify(metricAggregator).incrementCounter("Supportability/InfiniteTracing/Response/Error");
-        verify(disconnectionHandler).handle(Status.CANCELLED);
-    }
-
-    @Test
-    public void shouldNotDisconnectWhenChannelClosing() {
-        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
-        MetricAggregator metricAggregator = mock(MetricAggregator.class);
-
-        ResponseObserver target = new ResponseObserver(
-                metricAggregator,
-                mock(Logger.class),
-                disconnectionHandler, shouldRecreateCall);
-
+    void onError_ChannelClosingExceptionReturns() {
         StatusRuntimeException exception = Status.CANCELLED.withCause(new ChannelClosingException()).asRuntimeException();
+
         target.onError(exception);
 
-        verifyNoInteractions(disconnectionHandler, metricAggregator);
+        verifyNoInteractions(channelManager, aggregator);
     }
 
     @Test
-    public void shouldDisconnectOnCompleted() {
-        DisconnectionHandler mockHandler = mock(DisconnectionHandler.class);
-        MetricAggregator metricAggregator = mock(MetricAggregator.class);
-
-        ResponseObserver target = new ResponseObserver(
-                metricAggregator,
-                mock(Logger.class),
-                mockHandler, shouldRecreateCall);
-
-        target.onCompleted();
-
-        verify(metricAggregator).incrementCounter("Supportability/InfiniteTracing/Response/Completed");
-        assertTrue(shouldRecreateCall.get());
-    }
-
-    @Test
-    public void shouldTerminateOnALPNError() {
-        DisconnectionHandler disconnectionHandler = mock(DisconnectionHandler.class);
-        MetricAggregator metricAggregator = mock(MetricAggregator.class);
-
-        ResponseObserver target = new ResponseObserver(
-                metricAggregator,
-                mock(Logger.class),
-                disconnectionHandler, shouldRecreateCall);
-
+    void onError_AlpnErrorShutdownChannelForever() {
         RuntimeException cause = new RuntimeException("TLS ALPN negotiation failed with protocols: [h2]");
         StatusRuntimeException exception = Status.UNAVAILABLE.withCause(cause).asRuntimeException();
 
         target.onError(exception);
 
-        verify(metricAggregator).incrementCounter("Supportability/InfiniteTracing/NoALPNSupport");
-        verify(disconnectionHandler).terminate();
+        verify(aggregator).incrementCounter("Supportability/InfiniteTracing/NoALPNSupport");
+        verify(channelManager).shutdownChannelForever();
     }
 
-    AtomicBoolean shouldRecreateCall = new AtomicBoolean();
+    @Test
+    void onError_UnimplementedShutdownChannelForever() {
+        target.onError(Status.UNIMPLEMENTED.asException());
+
+        verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Span/gRPC/" + Status.UNIMPLEMENTED.getCode());
+        verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Response/Error");
+        verify(channelManager).shutdownChannelForever();
+    }
+
+    @Test
+    void onError_OtherStatusShutdownChannelAndBackoff() {
+        doNothing().when(target).shutdownChannelAndBackoff(ArgumentMatchers.<Status>any());
+
+        target.onError(Status.INTERNAL.asException());
+        target.onError(Status.FAILED_PRECONDITION.asException());
+        target.onError(Status.UNKNOWN.asException());
+
+        verify(aggregator, times(6)).incrementCounter(anyString());
+        verify(target, times(3)).shutdownChannelAndBackoff(ArgumentMatchers.<Status>any());
+    }
+
+    @Test
+    void shutdownChannelAndBackoff_ConnectTimeoutBackoffZeroSeconds() {
+        Status status = Status.fromCode(Status.Code.INTERNAL).withDescription("No error: A GRPC status of OK should have been sent\nRst Stream");
+
+        target.shutdownChannelAndBackoff(status);
+
+        verify(logger).log(eq(Level.FINE), any(Throwable.class), anyString(), anyString());
+        verify(channelManager).shutdownChannelAndBackoff(0);
+    }
+
+    @Test
+    void shutdownChannelAndBackoff_FailedPreconditionBackoffSequence() {
+        int backoffSeconds = 5;
+        when(backoffPolicy.getNextBackoffSeconds()).thenReturn(backoffSeconds);
+
+        target.shutdownChannelAndBackoff(Status.FAILED_PRECONDITION);
+
+        verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), anyString());
+        verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(backoffSeconds);
+    }
+
+    @Test
+    void shutdownChannelAndBackoff_OtherStatusDefaultBackoff() {
+        int backoffSeconds = 5;
+        when(backoffPolicy.getDefaultBackoffSeconds()).thenReturn(backoffSeconds);
+
+        target.shutdownChannelAndBackoff(Status.UNKNOWN);
+
+        verify(logger).log(eq(Level.WARNING), any(Throwable.class), anyString(), anyString());
+        verify(channelManager, atLeast(1)).shutdownChannelAndBackoff(backoffSeconds);
+    }
+
+    @Test
+    void onCompleted_IncrementsCounterCancelsSpanObserver() {
+        target.onCompleted();
+
+        verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Response/Completed");
+        verify(channelManager).recreateSpanObserver();
+    }
+
 }

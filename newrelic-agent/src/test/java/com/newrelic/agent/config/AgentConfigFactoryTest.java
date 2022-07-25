@@ -187,10 +187,16 @@ public class AgentConfigFactoryTest {
     @Test
     public void crossProcess() throws Exception {
         Map<String, Object> localSettings = createMap();
+        Map<String, Object> catSettings = createMap();
         Map<String, Object> serverData = createMap();
+
+        // cat must be enabled for the other properties to be returned
+        catSettings.put(CrossProcessConfigImpl.ENABLED, true);
+        localSettings.put(AgentConfigImpl.CROSS_APPLICATION_TRACER, catSettings);
+
         List<String> trustedIds = new ArrayList<>();
         trustedIds.add("12345");
-        serverData.put(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING, false); // deprecated setting
+        serverData.put(CrossProcessConfigImpl.CROSS_APPLICATION_TRACING, false); // deprecated setting is ignored when coming from the server
         serverData.put(CrossProcessConfigImpl.CROSS_PROCESS_ID, "1234#5678");
         serverData.put(CrossProcessConfigImpl.TRUSTED_ACCOUNT_IDS, trustedIds);
         serverData.put(CrossProcessConfigImpl.ENCODING_KEY, "test");

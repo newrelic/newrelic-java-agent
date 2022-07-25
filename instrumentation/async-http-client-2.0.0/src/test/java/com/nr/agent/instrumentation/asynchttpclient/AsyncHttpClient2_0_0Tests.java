@@ -7,22 +7,16 @@
 
 package com.nr.agent.instrumentation.asynchttpclient;
 
-import com.newrelic.agent.introspec.CatHelper;
-import com.newrelic.agent.introspec.ExternalRequest;
-import com.newrelic.agent.introspec.InstrumentationTestConfig;
-import com.newrelic.agent.introspec.InstrumentationTestRunner;
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TraceSegment;
-import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.TransactionTrace;
+import com.newrelic.agent.introspec.*;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.*;
 import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.Response;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.net.URI;
@@ -33,8 +27,11 @@ import java.util.concurrent.Future;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Category({Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class,
+        Java13IncompatibleTest.class, Java14IncompatibleTest.class, Java15IncompatibleTest.class, Java16IncompatibleTest.class,
+        Java17IncompatibleTest.class, Java18IncompatibleTest.class})
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.asynchttpclient", "org.asynchttpclient" })
+@InstrumentationTestConfig(includePrefixes = {"com.nr.agent.instrumentation.asynchttpclient", "org.asynchttpclient"})
 public class AsyncHttpClient2_0_0Tests {
 
     @Rule
@@ -83,6 +80,8 @@ public class AsyncHttpClient2_0_0Tests {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         assertEquals(1, externalRequest.getCount());
         assertEquals(endpoint.getHost(), externalRequest.getHostname());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
 
     }
 
@@ -140,6 +139,8 @@ public class AsyncHttpClient2_0_0Tests {
         assertEquals(host, externalRequest.getHostname());
         assertEquals("AsyncHttpClient", externalRequest.getLibrary());
         assertEquals("onCompleted", externalRequest.getOperation());
+        assertEquals(Integer.valueOf(200), externalRequest.getStatusCode());
+        assertEquals("OK", externalRequest.getStatusText());
     }
 
     @Test
@@ -194,7 +195,8 @@ public class AsyncHttpClient2_0_0Tests {
         assertEquals("AsyncHttpClient", externalRequest.getLibrary());
     }
 
-    @SuppressWarnings("TryFinallyCanBeTryWithResources") // Fails with "DefaultAsyncHttpClient cannot be converted to AutoCloseable".
+    @SuppressWarnings("TryFinallyCanBeTryWithResources")
+    // Fails with "DefaultAsyncHttpClient cannot be converted to AutoCloseable".
     @Trace(dispatcher = true)
     private static int makeAsyncRequest(String url) {
         DefaultAsyncHttpClient client = new DefaultAsyncHttpClient();

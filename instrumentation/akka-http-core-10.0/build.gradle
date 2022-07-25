@@ -1,5 +1,7 @@
 apply plugin: 'scala'
 
+isScalaProjectEnabled(project, "scala-2.11")
+
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-core-10.0' }
 }
@@ -9,7 +11,6 @@ dependencies {
     implementation("org.scala-lang:scala-library:2.11.12")
     implementation("com.typesafe.akka:akka-http-core_2.11:10.0.0")
     implementation("com.typesafe.akka:akka-actor_2.11:2.3.14")
-    testImplementation(project(":instrumentation:akka-2.2")) { transitive = false }
 }
 
 verifyInstrumentation {

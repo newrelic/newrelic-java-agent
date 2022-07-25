@@ -26,6 +26,8 @@ import com.newrelic.agent.sql.SlowQueryListener;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
 import com.newrelic.agent.stats.ApdexStats;
 import com.newrelic.agent.stats.ApdexStatsImpl;
+import com.newrelic.agent.stats.DataUsageStats;
+import com.newrelic.agent.stats.DataUsageStatsImpl;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.ResponseTimeStatsImpl;
 import com.newrelic.agent.stats.SimpleStatsEngine;
@@ -37,10 +39,8 @@ import com.newrelic.agent.trace.TransactionGuidFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.MetricNameFormatWithHost;
 import com.newrelic.agent.tracers.NoOpTracer;
-import com.newrelic.agent.tracers.OtherRootTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TracerFactory;
-import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionCache;
 import com.newrelic.agent.transaction.TransactionCounts;
@@ -50,6 +50,7 @@ import com.newrelic.agent.transaction.TransactionTimer;
 import com.newrelic.api.agent.ApplicationNamePriority;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.Insights;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.Request;
@@ -70,6 +71,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * DummyTransaction is a lightweight Transaction that gets returned when the agent's circuit
+ * breaker has been tripped in order to minimize the agent's effects on a JVM running near its limits.
+ */
 public class DummyTransaction extends Transaction {
 
     private final String guid;
@@ -79,8 +84,9 @@ public class DummyTransaction extends Transaction {
 
     private final Object lock = new Object();
     private final Insights insights = new DummyInsights();
+    private final Logs logs = new DummyLogs();
     private final AgentConfig defaultConfig;
-    private final TracerList tracerList = new TracerList(null, new DummySet<TransactionActivity>());
+    private final TracerList tracerList = new TracerList(null, new DummySet<>());
     private final TransactionTimer timer = new TransactionTimer(0);
     private final InboundHeaderState inboundHeaderState = new InboundHeaderState(null, null);
     private final SlowQueryListener slowQueryListener = new NopSlowQueryListener();
@@ -168,6 +174,11 @@ public class DummyTransaction extends Transaction {
     @Override
     public Insights getInsightsData() {
         return insights;
+    }
+
+    @Override
+    public Logs getLogEventData() {
+        return logs;
     }
 
     @Override
@@ -651,6 +662,12 @@ public class DummyTransaction extends Transaction {
         }
     }
 
+    static final class DummyLogs implements Logs {
+        @Override
+        public void recordLogEvent(Map<String, ?> attributes) {
+        }
+    }
+
     static final class DummyCrossProcessState implements CrossProcessTransactionState {
         public static final CrossProcessTransactionState INSTANCE = new DummyCrossProcessState();
 
@@ -840,6 +857,7 @@ public class DummyTransaction extends Transaction {
         static final DummyStats stat = new DummyStats();
         static final DummyResponseTimeStats responseTimeStat = new DummyResponseTimeStats();
         static final DummyApdexStat apdexStat = new DummyApdexStat();
+        static final DummyDataUsageStats dataUsageStats = new DummyDataUsageStats();
 
         @Override
         public Map<String, StatsBase> getStatsMap() {
@@ -863,6 +881,11 @@ public class DummyTransaction extends Transaction {
         @Override
         public ApdexStats getApdexStats(String metricName) {
             return apdexStat;
+        }
+
+        @Override
+        public DataUsageStats getDataUsageStats(String metricName) {
+            return dataUsageStats;
         }
 
         @Override
@@ -1090,6 +1113,58 @@ public class DummyTransaction extends Transaction {
 
         @Override
         public void recordApdexResponseTime(long responseTimeMillis, long apdexTInMillis) {
+        }
+
+        @Override
+        public boolean hasData() {
+            return false;
+        }
+
+        @Override
+        public void reset() {
+        }
+
+        @Override
+        public void writeJSONString(Writer writer) throws IOException {
+        }
+
+        @Override
+        public void merge(StatsBase statsObj) {
+        }
+    }
+
+    static final class DummyDataUsageStats extends DataUsageStatsImpl {
+        DummyDataUsageStats() {
+            super();
+        }
+
+        @Override
+        public Object clone() throws CloneNotSupportedException {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "";
+        }
+
+        @Override
+        public void recordDataUsage(long bytesSent, long bytesReceived) {
+        }
+
+        @Override
+        public int getCount() {
+            return 0;
+        }
+
+        @Override
+        public long getBytesSent() {
+            return 0;
+        }
+
+        @Override
+        public long getBytesReceived() {
+            return 0;
         }
 
         @Override

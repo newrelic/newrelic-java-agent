@@ -7,13 +7,12 @@ repositories {
 
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("javax.servlet:javax.servlet-api:3.0.1")
-    implementation("org.wildfly:wildfly-undertow:8.0.0.Final") {
+    implementation("org.wildfly:wildfly-undertow:26.1.1.Final") {
         exclude(group: "org.jacorb", module: "jacorb")
     }
-    implementation("org.jboss.xnio:xnio-api:3.2.0.Final")
-    implementation("org.jboss.logging:jboss-logging:3.1.0.GA")
-    implementation("org.jboss.msc:jboss-msc:1.2.0.Final")
+    implementation("org.jboss.xnio:xnio-api:3.8.7.Final")
+    implementation("org.jboss.logging:jboss-logging:3.5.0.Final")
+    implementation("org.jboss.msc:jboss-msc:1.4.13.Final")
 }
 
 jar {

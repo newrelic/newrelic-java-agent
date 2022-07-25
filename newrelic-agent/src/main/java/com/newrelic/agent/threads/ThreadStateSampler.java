@@ -13,9 +13,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.config.AgentConfig;
@@ -34,15 +33,8 @@ public class ThreadStateSampler implements Runnable {
      * A cache of thread ids to some tracked thread state.  The cpu times reported by the Java apis we use are monotonically
      * increasing, so we have to track previous values and compute deltas.
      */
-    private final LoadingCache<Long, ThreadTracker> threads = CacheBuilder.newBuilder().expireAfterAccess(3, TimeUnit.MINUTES).build(
-            new CacheLoader<Long, ThreadTracker>() {
-
-                @Override
-                public ThreadTracker load(Long threadId) throws Exception {
-                    return new ThreadTracker();
-                }
-
-            });
+    private final LoadingCache<Long, ThreadTracker> threads = Caffeine.newBuilder().expireAfterAccess(3, TimeUnit.MINUTES).executor(Runnable::run).build(
+            threadId -> new ThreadTracker());
     private final ThreadMXBean threadMXBean;
     private final ThreadNameNormalizer threadNameNormalizer;
     private final MetricAggregator metricAggregator;
@@ -58,15 +50,11 @@ public class ThreadStateSampler implements Runnable {
         long[] allThreadIds = threadMXBean.getAllThreadIds();
         ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(allThreadIds, 0);
         for (ThreadInfo thread : threadInfos) {
-            try {
-                // a thread may terminate after getting its tid but before getting its thread info
-                if (thread != null) {
-                    threads.get(thread.getThreadId()).update(thread);
-                } else {
-                    Agent.LOG.finer("ThreadStateSampler: Skipping null thread.");
-                }
-            } catch (Exception e) {
-                Agent.LOG.log(Level.FINEST, e, e.getMessage());
+            // a thread may terminate after getting its tid but before getting its thread info
+            if (thread != null) {
+                threads.get(thread.getThreadId()).update(thread);
+            } else {
+                Agent.LOG.finer("ThreadStateSampler: Skipping null thread.");
             }
         }
     }
@@ -148,14 +136,14 @@ public class ThreadStateSampler implements Runnable {
         @Override
         protected void doRecordResponseTimeMetric(String name, long totalTime, long exclusiveTime, TimeUnit timeUnit) {
             if (!isAutoAppNamingEnabled) {
-                statsService.doStatsWork(new RecordResponseTimeMetricWorker(null, totalTime, exclusiveTime, name, timeUnit));
+                statsService.doStatsWork(new RecordResponseTimeMetricWorker(null, totalTime, exclusiveTime, name, timeUnit), name);
             } else {
                 List<IRPMService> rpmServices = ServiceFactory.getRPMServiceManager().getRPMServices();
                 RecordResponseTimeMetricWorker responseTimeWorker = new RecordResponseTimeMetricWorker(null, totalTime, exclusiveTime, name, timeUnit);
                 for (IRPMService rpmService : rpmServices) {
                     String appName = rpmService.getApplicationName();
                     responseTimeWorker.setAppName(appName);
-                    statsService.doStatsWork(responseTimeWorker);
+                    statsService.doStatsWork(responseTimeWorker, name);
                 }
             }
         }
@@ -163,14 +151,14 @@ public class ThreadStateSampler implements Runnable {
         @Override
         protected void doRecordMetric(String name, float value) {
             if (!isAutoAppNamingEnabled) {
-                statsService.doStatsWork(new RecordMetricWorker(null, name, value));
+                statsService.doStatsWork(new RecordMetricWorker(null, name, value), name);
             } else {
                 List<IRPMService> rpmServices = ServiceFactory.getRPMServiceManager().getRPMServices();
                 RecordMetricWorker metricWorker = new RecordMetricWorker(null, name, value);
                 for (IRPMService rpmService : rpmServices) {
                     String appName = rpmService.getApplicationName();
                     metricWorker.setAppName(appName);
-                    statsService.doStatsWork(metricWorker);
+                    statsService.doStatsWork(metricWorker, name);
                 }
             }
         }
@@ -178,14 +166,14 @@ public class ThreadStateSampler implements Runnable {
         @Override
         protected void doIncrementCounter(String name, int count) {
             if (!isAutoAppNamingEnabled) {
-                statsService.doStatsWork(new IncrementCounterWorker(null, name, count));
+                statsService.doStatsWork(new IncrementCounterWorker(null, name, count), name);
             } else {
                 List<IRPMService> rpmServices = ServiceFactory.getRPMServiceManager().getRPMServices();
                 IncrementCounterWorker incrementCounterWorker = new IncrementCounterWorker(null, name, count);
                 for (IRPMService rpmService : rpmServices) {
                     String appName = rpmService.getApplicationName();
                     incrementCounterWorker.setAppName(appName);
-                    statsService.doStatsWork(incrementCounterWorker);
+                    statsService.doStatsWork(incrementCounterWorker, name);
                 }
             }
         }

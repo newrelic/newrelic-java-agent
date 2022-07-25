@@ -1,10 +1,7 @@
 apply plugin: 'scala'
+scala.zincVersion = "1.2.5"
 
-repositories {
-    maven {
-        url 'https://dl.bintray.com/typesafe/maven-releases/'
-    }
-}
+isScalaProjectEnabled(project, "scala-2.11")
 
 dependencies {
     implementation(project(":newrelic-api"))

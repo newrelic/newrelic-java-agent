@@ -18,13 +18,11 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.web.Router;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 // Test that transaction always finishes
 @RunWith(InstrumentationTestRunner.class)

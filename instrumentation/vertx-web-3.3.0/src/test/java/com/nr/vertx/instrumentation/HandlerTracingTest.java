@@ -14,12 +14,10 @@ import com.nr.vertx.test.handlers.ProductHandlers;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
+import java.util.Map;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Map;
-
-import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })

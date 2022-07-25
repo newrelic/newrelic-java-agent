@@ -115,6 +115,14 @@ public class StatsEngineImpl implements StatsEngine {
     }
 
     @Override
+    public DataUsageStats getDataUsageStats(MetricName metricName) {
+        if (metricName == null) {
+            throw new RuntimeException("Cannot get a stat for a null metric");
+        }
+        return getStatsEngine(metricName).getDataUsageStats(metricName.getName());
+    }
+
+    @Override
     public List<MetricName> getMetricNames() {
         List<MetricName> result = new ArrayList<>(getSize());
         for (String name : unscopedStats.getStatsMap().keySet()) {

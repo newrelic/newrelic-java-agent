@@ -9,7 +9,7 @@ package com.rabbitmq.client;
 
 import java.io.IOException;
 
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.nr.agent.instrumentation.rabbitamqp350.InboundWrapper;
 import com.nr.agent.instrumentation.rabbitamqp350.RabbitAMQPMetricUtil;
 import com.newrelic.agent.bridge.AgentBridge;

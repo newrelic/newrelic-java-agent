@@ -18,7 +18,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 
 public final class AsyncListenerFactory {
 
-    /* 
+    /*
      * The public enum Action was added in 9.1 and does not exist in 9.0.*. So declaring a variable of this type is
      * sufficient to prevent this instrumentation module from loading in 9.0.*.
      */

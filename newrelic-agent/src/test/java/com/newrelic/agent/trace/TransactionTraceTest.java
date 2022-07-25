@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.trace;
 
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.MockConfigService;
 import com.newrelic.agent.MockDispatcher;
@@ -23,6 +24,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.dispatchers.Dispatcher;
@@ -86,7 +88,12 @@ public class TransactionTraceTest {
         MockServiceManager manager = new MockServiceManager();
         ServiceFactory.setServiceManager(manager);
 
+        ImmutableMap<String, Object> distributedTracingSettings = ImmutableMap.<String, Object>builder()
+                .put(DistributedTracingConfig.ENABLED, Boolean.FALSE)
+                .build();
+
         Map<String, Object> settings = new HashMap<>();
+        settings.put(AgentConfigImpl.DISTRIBUTED_TRACING, distributedTracingSettings);
         setConfigAttributes(settings, isCaptureAtts, captureRequestAtts, requestUri, simpleCompression);
         ConfigService cService = new MockConfigService(AgentConfigImpl.createAgentConfig(settings));
         manager.setConfigService(cService);

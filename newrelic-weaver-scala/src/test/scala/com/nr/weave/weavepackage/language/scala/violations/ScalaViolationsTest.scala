@@ -24,7 +24,6 @@ class ScalaViolationsTest {
   def onlyWeaveClasses {
     val classesToLoad: Array[String] = Array[String](
       "com.nr.weave.weavepackage.language.scala.violations.weaveclasses.WeaveTrait"
-        ,"com.nr.weave.weavepackage.language.scala.violations.weaveclasses.WeaveTrait$class"
         ,"com.nr.weave.weavepackage.language.scala.violations.weaveclasses.WeaveObject"
         ,"com.nr.weave.weavepackage.language.scala.violations.weaveclasses.WeaveObject$")
     var weaveBytes: java.util.List[Array[Byte]] = new java.util.ArrayList[Array[Byte]]()
@@ -48,7 +47,6 @@ class ScalaViolationsTest {
   def utilTraitsAndObjectsOkay {
     val classesToLoad: Array[String] = Array[String](
       "com.nr.weave.weavepackage.language.scala.violations.weaveclasses.UtilTrait"
-        ,"com.nr.weave.weavepackage.language.scala.violations.weaveclasses.UtilTrait$class"
         ,"com.nr.weave.weavepackage.language.scala.violations.weaveclasses.UtilObject"
         ,"com.nr.weave.weavepackage.language.scala.violations.weaveclasses.UtilObject$")
     var weaveBytes: java.util.List[Array[Byte]] = new java.util.ArrayList[Array[Byte]]()

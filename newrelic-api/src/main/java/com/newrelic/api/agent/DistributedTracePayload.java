@@ -10,9 +10,11 @@ package com.newrelic.api.agent;
 /**
  * Payload used to connect two services in a distributed system.
  *
- * Use {@link com.newrelic.api.agent.Transaction#createDistributedTracePayload() createDistributedTracePayload()}
- * to create a payload, and {@link com.newrelic.api.agent.Transaction#acceptDistributedTracePayload(DistributedTracePayload)} acceptDistributedTracePayload()} to accept the payload on the second service.
+ * @deprecated Instead, use the Distributed Tracing API {@link Transaction#insertDistributedTraceHeaders(Headers)} to create a
+ * distributed tracing payload and {@link Transaction#acceptDistributedTraceHeaders(TransportType, Headers)} to link the services
+ * together.
  */
+@Deprecated
 public interface DistributedTracePayload {
 
     /**

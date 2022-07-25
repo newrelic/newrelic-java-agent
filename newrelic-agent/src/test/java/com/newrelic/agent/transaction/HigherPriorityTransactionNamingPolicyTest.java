@@ -7,12 +7,7 @@
 
 package com.newrelic.agent.transaction;
 
-import java.util.Collections;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.MockHarvestService;
 import com.newrelic.agent.MockRPMServiceManager;
@@ -20,15 +15,22 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.trace.TransactionTraceService;
-import com.newrelic.agent.bridge.TransactionNamePriority;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class HigherPriorityTransactionNamingPolicyTest {
 
@@ -47,8 +49,15 @@ public class HigherPriorityTransactionNamingPolicyTest {
         ThreadService threadService = new ThreadService();
         serviceManager.setThreadService(threadService);
 
-        AgentConfig config = AgentConfigImpl.createAgentConfig(Collections.EMPTY_MAP);
-        ConfigService configService = ConfigServiceFactory.createConfigService(config, Collections.EMPTY_MAP);
+        ImmutableMap<String, Object> distributedTracingSettings = ImmutableMap.<String, Object>builder()
+                .put(DistributedTracingConfig.ENABLED, Boolean.FALSE)
+                .build();
+
+        Map<String, Object> settings = new HashMap<>();
+        settings.put(AgentConfigImpl.DISTRIBUTED_TRACING, distributedTracingSettings);
+
+        AgentConfig config = AgentConfigImpl.createAgentConfig(settings);
+        ConfigService configService = ConfigServiceFactory.createConfigService(config, settings);
         serviceManager.setConfigService(configService);
 
         HarvestService harvestService = new MockHarvestService();

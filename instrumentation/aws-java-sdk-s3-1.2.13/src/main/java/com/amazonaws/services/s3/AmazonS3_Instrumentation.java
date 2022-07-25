@@ -12,6 +12,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.model.*;
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -28,64 +29,145 @@ public class AmazonS3_Instrumentation {
 
     @Trace
     public Bucket createBucket(CreateBucketRequest createBucketRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "createBucket");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            Bucket bucket = Weaver.callOriginal();
+            statusCode = 200;
+            return bucket;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + createBucketRequest.getBucketName();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "createBucket");
+        }
+
     }
 
     @Trace
     public void deleteBucket(DeleteBucketRequest deleteBucketRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "deleteBucket");
-        Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            Weaver.callOriginal();
+            statusCode = 200;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + deleteBucketRequest.getBucketName();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "deleteBucket");
+        }
     }
 
     @Trace
     public List<Bucket> listBuckets(ListBucketsRequest listBucketsRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "listBuckets");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            List<Bucket> buckets = Weaver.callOriginal();
+            statusCode = 200;
+            return buckets;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://amazon/";
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "listBuckets");
+        }
     }
 
     @Trace
     public String getBucketLocation(GetBucketLocationRequest getBucketLocationRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "getBucketLocation");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            String bucketLocation = Weaver.callOriginal();
+            statusCode = 200;
+            return bucketLocation;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + getBucketLocationRequest.getBucketName();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "getBucketLocation");
+        }
     }
 
     @Trace
     public S3Object getObject(GetObjectRequest getObjectRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "getObject");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            S3Object s3Object = Weaver.callOriginal();
+            statusCode = 200;
+            return s3Object;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + getObjectRequest.getBucketName() + "/" + getObjectRequest.getKey();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "getObject");
+        }
     }
 
     @Trace
     public ObjectListing listObjects(ListObjectsRequest listObjectsRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "listObjects");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            ObjectListing objectListing = Weaver.callOriginal();
+            statusCode = 200;
+            return objectListing;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + listObjectsRequest.getBucketName();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "listObjects");
+        }
     }
 
     @Trace
     public PutObjectResult putObject(PutObjectRequest putObjectRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "putObject");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            PutObjectResult putObjectResult = Weaver.callOriginal();
+            statusCode = 200;
+            return putObjectResult;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + putObjectRequest.getBucketName() + "/" + putObjectRequest.getKey();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "putObject");
+        }
     }
 
     @Trace
     public void deleteObject(DeleteObjectRequest deleteObjectRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "deleteObject");
-        Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            Weaver.callOriginal();
+            statusCode = 200;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + deleteObjectRequest.getBucketName() + "/" + deleteObjectRequest.getKey();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "deleteObject");
+        }
     }
 
     @Trace
     public DeleteObjectsResult deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
-        S3MetricUtil.metrics(AgentBridge.getAgent().getTransaction(), AgentBridge.getAgent().getTracedMethod(),
-                "deleteObjects");
-        return Weaver.callOriginal();
+        Integer statusCode = null;
+        try {
+            DeleteObjectsResult deleteObjectsResult = Weaver.callOriginal();
+            statusCode = 200;
+            return deleteObjectsResult;
+        } catch (AmazonServiceException exception) {
+            statusCode = exception.getStatusCode();
+            throw exception;
+        } finally {
+            String uri = "s3://" + deleteObjectsRequest.getBucketName();
+            S3MetricUtil.reportExternalMetrics(NewRelic.getAgent().getTracedMethod(), uri, statusCode, "deleteObjects");
+        }
+
     }
 }

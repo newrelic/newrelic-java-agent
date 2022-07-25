@@ -12,17 +12,15 @@ import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class AgentImpl implements com.newrelic.agent.bridge.Agent {
@@ -132,6 +130,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     }
 
     @Override
+    public Logs getLogSender() {
+        return ServiceFactory.getServiceManager().getLogSenderService();
+    }
+
+    @Override
     public boolean startAsyncActivity(Object activityContext) {
         return ServiceFactory.getAsyncTxService().startAsyncActivity(activityContext);
     }
@@ -146,35 +149,9 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
         return TraceMetadataImpl.INSTANCE;
     }
 
+    @Override
     public Map<String, String> getLinkingMetadata() {
-        Map<String, String> linkingMetadata = new ConcurrentHashMap<>();
-
-        TraceMetadata traceMetadata = getTraceMetadata();
-        String traceId = traceMetadata.getTraceId();
-        linkingMetadata.put("trace.id", traceId);
-
-        String spanId = traceMetadata.getSpanId();
-        linkingMetadata.put("span.id", spanId);
-
-        AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
-        if (!entityGuid.isEmpty()) {
-            linkingMetadata.put("entity.name", agentConfig.getApplicationName());
-            linkingMetadata.put("entity.type", "SERVICE");
-            linkingMetadata.put("entity.guid", entityGuid);
-        }
-
-        linkingMetadata.put("hostname", getLinkingMetaHostname(agentConfig));
-
-        return linkingMetadata;
-    }
-
-    private String getLinkingMetaHostname(AgentConfig agentConfig) {
-        String fullHostname = Hostname.getFullHostname(agentConfig);
-        if(fullHostname == null || fullHostname.isEmpty() || fullHostname.equals("localhost")) {
-            return Hostname.getHostname(agentConfig);
-        }
-        return fullHostname;
+        return AgentLinkingMetadata.getLinkingMetadata(getTraceMetadata(), ServiceFactory.getConfigService(), ServiceFactory.getRPMService());
     }
 
 }

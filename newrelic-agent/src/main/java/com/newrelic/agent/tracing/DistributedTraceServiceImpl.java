@@ -16,7 +16,7 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;

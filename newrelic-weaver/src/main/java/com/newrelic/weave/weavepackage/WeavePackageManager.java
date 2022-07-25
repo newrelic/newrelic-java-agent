@@ -7,8 +7,8 @@
 
 package com.newrelic.weave.weavepackage;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.Sets;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.ClassCache;
@@ -21,6 +21,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class WeavePackageManager {
     /**
      * ClassLoader -> (WeavePackageName -> WeavePackage)
      */
-    private final Cache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = CacheBuilder.newBuilder().weakKeys().build();
+    private final Cache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = Caffeine.newBuilder().weakKeys().executor(Runnable::run).build();
 
     private final WeavePackageLifetimeListener packageListener;
     private final Instrumentation instrumentation;
@@ -87,13 +88,13 @@ public class WeavePackageManager {
     /**
      * classloader -> (weave package -> result of successful weaving)
      */
-    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = CacheBuilder.newBuilder().weakKeys().concurrencyLevel(
-            8).maximumSize(MAX_VALID_PACKAGE_CACHE).build();
+    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
+            8).maximumSize(MAX_VALID_PACKAGE_CACHE).executor(Runnable::run).build();
     /**
      * classloader -> (weave package -> result of successful weaving)
      */
-    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = CacheBuilder.newBuilder().weakKeys().concurrencyLevel(
-            8).maximumSize(MAX_INVALID_PACKAGE_CACHE).build();
+    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
+            8).maximumSize(MAX_INVALID_PACKAGE_CACHE).executor(Runnable::run).build();
 
     WeavePackageManager() {
         this(null);
@@ -267,7 +268,7 @@ public class WeavePackageManager {
         Set<PackageValidationResult> matchedPackageResults = Sets.newConcurrentHashSet();
 
         Map<String, WeavePackage> classloaderWeavePackages;
-        if (preValidateWeavePackages && optimizedWeavePackages.size() < maxPreValidatedClassLoaders) {
+        if (preValidateWeavePackages && optimizedWeavePackages.asMap().size() < maxPreValidatedClassLoaders) {
             classloaderWeavePackages = getOptimizedWeavePackages(classloader, cache);
         } else {
             classloaderWeavePackages = weavePackages;
@@ -293,10 +294,11 @@ public class WeavePackageManager {
      * @param targetBytes target class bytes
      * @return composite class bytes, or <code>null</code> if no weaving occurred
      */
-    public byte[] weave(ClassLoader classloader, String className, byte[] targetBytes) throws IOException {
+    public byte[] weave(ClassLoader classloader, String className, byte[] targetBytes,
+                        Map<Method, Collection<String>> skipMethods) throws IOException {
         classloader = classLoaderSub(classloader);
         ClassCache cache = new ClassCache(new ClassLoaderFinder(classloader));
-        return weave(classloader, cache, className, targetBytes, null);
+        return weave(classloader, cache, className, targetBytes, skipMethods, null);
     }
 
     /**
@@ -309,7 +311,8 @@ public class WeavePackageManager {
      * @param weaveListener listener containing callback if/when the composite is created
      * @return composite class bytes, or <code>null</code> if no weaving occurred
      */
-    public byte[] weave(ClassLoader classloader, ClassCache cache, String className, byte[] targetBytes,
+    public byte[] weave(ClassLoader classloader, ClassCache cache, String className,
+                        byte[] targetBytes, Map<Method, Collection<String>> skipMethods,
             ClassWeavedListener weaveListener) throws IOException {
         classloader = classLoaderSub(classloader);
 
@@ -337,7 +340,8 @@ public class WeavePackageManager {
         ClassNode composite = WeaveUtils.convertToClassNode(targetBytes);
         PackageWeaveResult finalResult = null;
         for (PackageValidationResult weavePackageResult : matchedPackageResults) {
-            PackageWeaveResult result = weavePackageResult.weave(className, superNames, interfaceNames, composite, cache);
+            PackageWeaveResult result = weavePackageResult.weave(className, superNames, interfaceNames, composite,
+                                                                 cache, skipMethods);
             if (null != weaveListener) {
                 weaveListener.classWeaved(result, classloader, cache);
             }

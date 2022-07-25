@@ -9,6 +9,7 @@ package com.newrelic.agent.instrumentation;
 
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionStatsListener;
+import com.newrelic.agent.async.ExternalAsyncTest;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedActivity;
 import com.newrelic.agent.service.ServiceFactory;
@@ -25,6 +26,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import test.newrelic.EnvironmentHolderSettingsGenerator;
+import test.newrelic.test.agent.EnvironmentHolder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,6 +38,8 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     private TransactionData data;
     private TransactionStats stats;
+    private static final String CONFIG_FILE = "configs/cross_app_tracing_test.yml";
+    private static final ClassLoader CLASS_LOADER = APISupportabilityTest.class.getClassLoader();
 
     @Before
     public void before() throws Exception {
@@ -46,6 +51,13 @@ public class APISupportabilityTest implements TransactionStatsListener {
     @After
     public void after() {
         ServiceFactory.getTransactionService().removeTransactionStatsListener(this);
+    }
+
+    public EnvironmentHolder setupEnvironmentHolder(String environment) throws Exception {
+        EnvironmentHolderSettingsGenerator envHolderSettings = new EnvironmentHolderSettingsGenerator(CONFIG_FILE, environment, CLASS_LOADER);
+        EnvironmentHolder environmentHolder = new EnvironmentHolder(envHolderSettings);
+        environmentHolder.setupEnvironment();
+        return environmentHolder;
     }
 
     public static class TokenApiDispatcherTestClass {
@@ -858,15 +870,22 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testProcessRequestMetadataDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.ProcessRequestMetadataDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
-        final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
-        new ProcessRequestMetadataDispatcherTestClass().getProcessRequestMetadata();
+        try {
+            String className = APISupportabilityTest.ProcessRequestMetadataDispatcherTestClass.class.getName();
+            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
 
-        Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
-        Assert.assertNotNull(metricData.get(processRequestMetadataMetric));
-        Assert.assertEquals(Integer.valueOf(1), metricData.get(processRequestMetadataMetric));
+            final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
+            new ProcessRequestMetadataDispatcherTestClass().getProcessRequestMetadata();
+
+            Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
+            Assert.assertNotNull(metricData.get(processRequestMetadataMetric));
+            Assert.assertEquals(Integer.valueOf(1), metricData.get(processRequestMetadataMetric));
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
@@ -885,15 +904,22 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeProcessRequestMetadataDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.ProcessRequestMetadataDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
-        final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
-        new ProcessRequestMetadataDispatcherBridgeTestClass().getProcessRequestMetadata();
+        try {
+            String className = APISupportabilityTest.ProcessRequestMetadataDispatcherBridgeTestClass.class.getName();
+            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
 
-        Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
-        Assert.assertNotNull(metricData.get(processRequestMetadataMetric));
-        Assert.assertEquals(Integer.valueOf(1), metricData.get(processRequestMetadataMetric));
+            final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
+            new ProcessRequestMetadataDispatcherBridgeTestClass().getProcessRequestMetadata();
+
+            Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
+            Assert.assertNotNull(metricData.get(processRequestMetadataMetric));
+            Assert.assertEquals(Integer.valueOf(1), metricData.get(processRequestMetadataMetric));
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
@@ -912,15 +938,22 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testProcessResponseMetadataDispatcherSupportabilityTracking1() throws Exception {
-        String className = APISupportabilityTest.ProcessResponseMetadataDispatcherTestClass1.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
-        final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
-        new ProcessResponseMetadataDispatcherTestClass1().getProcessResponseMetadata();
+        try {
+            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherTestClass1.class.getName();
+            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
 
-        Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
-        Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
-        Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+            final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
+            new ProcessResponseMetadataDispatcherTestClass1().getProcessResponseMetadata();
+
+            Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
+            Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
+            Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
@@ -939,15 +972,22 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeProcessResponseMetadataDispatcherSupportabilityTracking1() throws Exception {
-        String className = APISupportabilityTest.ProcessResponseMetadataDispatcherBridgeTestClass1.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
-        final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
-        new ProcessResponseMetadataDispatcherBridgeTestClass1().getProcessResponseMetadata();
+        try {
+            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherBridgeTestClass1.class.getName();
+            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
 
-        Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
-        Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
-        Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+            final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
+            new ProcessResponseMetadataDispatcherBridgeTestClass1().getProcessResponseMetadata();
+
+            Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
+            Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
+            Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
@@ -966,15 +1006,22 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testProcessResponseMetadataDispatcherSupportabilityTracking2() throws Exception {
-        String className = APISupportabilityTest.ProcessResponseMetadataDispatcherTestClass2.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
-        final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
-        new ProcessResponseMetadataDispatcherTestClass2().getProcessResponseMetadata();
+        try {
+            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherTestClass2.class.getName();
+            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
 
-        Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
-        Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
-        Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+            final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
+            new ProcessResponseMetadataDispatcherTestClass2().getProcessResponseMetadata();
+
+            Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
+            Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
+            Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
@@ -993,15 +1040,22 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeProcessResponseMetadataDispatcherSupportabilityTracking2() throws Exception {
-        String className = APISupportabilityTest.ProcessResponseMetadataDispatcherBridgeTestClass2.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
-        final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
-        new ProcessResponseMetadataDispatcherBridgeTestClass2().getProcessResponseMetadata();
+        try {
+            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherBridgeTestClass2.class.getName();
+            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
 
-        Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
-        Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
-        Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+            final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
+            new ProcessResponseMetadataDispatcherBridgeTestClass2().getProcessResponseMetadata();
+
+            Map<String, Integer> metricData = InstrumentTestUtils.getAndClearMetricData();
+            Assert.assertNotNull(metricData.get(processResponseMetadataMetric));
+            Assert.assertEquals(Integer.valueOf(1), metricData.get(processResponseMetadataMetric));
+        } finally {
+            holder.close();
+        }
     }
 
     @Test

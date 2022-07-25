@@ -8,14 +8,6 @@ dependencies {
     testImplementation(project(":instrumentation:spring-webclient-5.0"))
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 compileJava.options.bootstrapClasspath = null
 
 jar {
@@ -23,7 +15,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly('org.springframework:spring-webflux:[5.1.0.RELEASE,)')
+    passesOnly('org.springframework:spring-webflux:[5.1.0.RELEASE,5.3.0)')
     excludeRegex '.*.M[0-9]'
     excludeRegex '.*.RC[0-9]'
 }

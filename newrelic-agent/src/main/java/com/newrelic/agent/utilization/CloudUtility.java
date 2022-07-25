@@ -24,6 +24,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
@@ -31,7 +32,7 @@ public class CloudUtility {
 
     // Spec: All characters should be in the following character class: over U+007F
     private static final int MIN_CHAR_CODEPOINT = "\u007F".codePointAt(0);
-    private final Function<Integer,CloseableHttpClient> httpClientCreator;
+    private final Function<Integer, CloseableHttpClient> httpClientCreator;
 
     public CloudUtility() {
         this(new Function<Integer, CloseableHttpClient>() {
@@ -58,7 +59,8 @@ public class CloudUtility {
         return makeHttpRequest(httpPut, requestTimeoutMillis, headers);
     }
 
-    private String makeHttpRequest(HttpUriRequest request, int requestTimeoutMillis, String[] headers) throws IOException {
+    private String makeHttpRequest(HttpUriRequest request, int requestTimeoutMillis, String[] headers)
+            throws IOException {
         try (CloseableHttpClient httpclient = httpClientCreator.apply(requestTimeoutMillis)) {
             for (String header : headers) {
                 String[] parts = header.split(":");
@@ -70,7 +72,7 @@ public class CloudUtility {
             if (response.getStatusLine().getStatusCode() <= HttpStatus.SC_MULTI_STATUS) {
                 return EntityUtils.toString(response.getEntity(), "UTF-8");
             }
-        } catch (ConnectTimeoutException | UnknownHostException | SocketTimeoutException ignored) {
+        } catch (ConnectTimeoutException | UnknownHostException | SocketTimeoutException | SocketException ignored) {
             // we expect these values in situations where there is no cloud provider, or
             // we're on a different cloud provider than expected.
         }
@@ -88,7 +90,7 @@ public class CloudUtility {
     }
 
     public void recordError(String metricName) {
-        ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(metricName, 1));
+        ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(metricName, 1), metricName);
     }
 
     /**

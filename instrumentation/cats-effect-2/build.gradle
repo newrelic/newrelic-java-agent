@@ -1,0 +1,33 @@
+apply plugin: 'scala'
+
+isScalaProjectEnabled(project, "scala-2.12", "scala-2.13")
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.typelevel:cats-effect_2.13:2.5.1")
+    implementation("org.scala-lang:scala-library:2.13.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.cats-effect-2',
+            'Implementation-Title-Alias': 'cats-effect_instrumentation' }
+}
+
+verifyInstrumentation {
+    // scala 12
+    passes 'org.typelevel:cats-effect_2.12:[2.1,3.0)'
+    fails 'org.typelevel:cats-effect_2.12:[3.0,)'
+
+    // scala 13
+    passes 'org.typelevel:cats-effect_2.13:[2.1,3.0)'
+    fails 'org.typelevel:cats-effect_2.13:[3.0,)'
+
+    excludeRegex '.*(RC|M)[0-9]*'
+}
+
+site {
+    title 'Scala'
+    type 'Other'
+}

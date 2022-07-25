@@ -1,0 +1,54 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.13'
+
+    }
+}
+apply plugin: 'com.google.protobuf'
+compileJava.options.bootstrapClasspath = null
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.grpc:grpc-all:1.40.1")
+    implementation("com.google.protobuf:protobuf-java:3.7.0")
+    implementation("io.grpc:grpc-protobuf:1.40.1")
+    implementation("io.perfmark:perfmark-api:0.23.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.grpc-1.40.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.grpc:grpc-all:[1.40.0,)'
+}
+
+def grpcVersion = '1.41.0' // CURRENT_GRPC_VERSION
+def protobufVersion = '3.7.0'
+def protocVersion = protobufVersion
+
+// to generate the proto classes, run ./gradlew generateTestProto
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+test {
+    // instrumentation is incompatible with version of java less than 1.8
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'gRPC'
+    type 'Messaging'
+}

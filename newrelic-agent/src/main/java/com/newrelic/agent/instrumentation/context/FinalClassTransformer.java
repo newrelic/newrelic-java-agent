@@ -206,9 +206,10 @@ public class FinalClassTransformer implements ContextClassTransformer {
             for (Method m : context.getTimedMethods()) {
                 TraceDetails traceDetails = context.getTraceInformation().getTraceAnnotations().get(m);
                 if (traceDetails != null && traceDetails.isCustom()) {
-                    statsService.doStatsWork(StatsWorks.getRecordMetricWork(MessageFormat.format(
+                    String metricOrigin = MessageFormat.format(
                             MetricNames.SUPPORTABILITY_INSTRUMENT, className.replace('/', '.'), m.getName(),
-                            m.getDescriptor()), 1));
+                            m.getDescriptor());
+                    statsService.doStatsWork(StatsWorks.getRecordMetricWork(metricOrigin, 1), metricOrigin);
                 }
             }
         }

@@ -21,7 +21,7 @@ import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
 import com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl;
-import com.newrelic.agent.instrumentation.weaver.extension.GuavaBackedExtensionClass;
+import com.newrelic.agent.instrumentation.weaver.extension.CaffeineBackedExtensionClass;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPostprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.TracedWeaveInstrumentationTracker;
@@ -93,7 +93,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         AgentBridge.extensionHolderFactory = new ExtensionHolderFactoryImpl();
         try {
             EXTENSION_TEMPLATE = WeaveUtils.convertToClassNode(WeaveUtils.getClassBytesFromClassLoaderResource(
-                    GuavaBackedExtensionClass.class.getName(), GuavaBackedExtensionClass.class.getClassLoader()));
+                    CaffeineBackedExtensionClass.class.getName(), CaffeineBackedExtensionClass.class.getClassLoader()));
         } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.WARNING, e,
                     "Unable to initialize custom extension class template. Falling back to default java NewField implementation");
@@ -517,9 +517,10 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
                         Agent.LOG.log(Level.FINE, e, "Unable to add annotation proxy classes");
                     }
 
+                    String weaveClassStat = MessageFormat.format(MetricNames.SUPPORTABILITY_WEAVE_CLASS,
+                            packageName, weaveResult.getClassName());
                     ServiceFactory.getStatsService().doStatsWork(
-                            StatsWorks.getRecordMetricWork(MessageFormat.format(MetricNames.SUPPORTABILITY_WEAVE_CLASS,
-                                    packageName, weaveResult.getClassName()), 1));
+                            StatsWorks.getRecordMetricWork(weaveClassStat, 1), weaveClassStat);
 
                     for (String originalName : weaveResult.getWeavedMethods().keySet()) {
                         Agent.LOG.log(Level.FINE, "{0}: weaved target {1}-{2}", packageName, classloader,
@@ -540,7 +541,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         };
         try {
             return weavePackageManager.weave(loader, getClassCache(loader), className, classfileBuffer,
-                    classWeavedCallback);
+                    context.getSkipMethods(), classWeavedCallback);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

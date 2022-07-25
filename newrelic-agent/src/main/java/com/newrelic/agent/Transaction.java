@@ -22,7 +22,8 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.NoOpToken;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TransactionNamePriority;
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.Logs;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.browser.BrowserTransactionState;
 import com.newrelic.agent.browser.BrowserTransactionStateImpl;
@@ -42,6 +43,7 @@ import com.newrelic.agent.normalization.Normalizer;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceUtils;
 import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
+import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SlowQueryListener;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
 import com.newrelic.agent.stats.StatsWorks;
@@ -123,20 +125,13 @@ public class Transaction {
     static final ClassMethodSignature REQUEST_INITIALIZED_CLASS_SIGNATURE = new ClassMethodSignature(
             "javax.servlet.ServletRequestListener", "requestInitialized", "(Ljavax/servlet/ServletRequestEvent;)V");
     static final int REQUEST_INITIALIZED_CLASS_SIGNATURE_ID = ClassMethodSignatures.get().add(REQUEST_INITIALIZED_CLASS_SIGNATURE);
+  static final ClassMethodSignature SCALA_API_TXN_CLASS_SIGNATURE = new ClassMethodSignature(
+    "newrelic.scala.api.TraceOps$", "txn", null);
+  public static final int SCALA_API_TXN_CLASS_SIGNATURE_ID =
+    ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
     private static final String THREAD_ASSERTION_FAILURE = "Thread assertion failed!";
 
-    private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<Transaction>() {
-        @Override
-        public void remove() {
-            super.remove();
-        }
-
-        @Override
-        public void set(Transaction value) {
-            super.set(value);
-        }
-    };
-
+    private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<>();
 
     private static volatile DatabaseStatementParser databaseStatementParser;
 
@@ -196,6 +191,9 @@ public class Transaction {
 
     // Insights events added by the user during this transaction
     private final AtomicReference<Insights> insights;
+
+    // Log events added by the user during this transaction
+    private final AtomicReference<Logs> logEvents;
 
     // contains all work currently running
     private final Map<Integer, TransactionActivity> runningChildren;
@@ -300,14 +298,6 @@ public class Transaction {
         return payload;
     }
 
-    void publicApiAcceptDistributedTracePayload(String payload) {
-        acceptDistributedTracePayload(payload);
-    }
-
-    void publicApiAcceptDistributedTracePayload(DistributedTracePayload payload) {
-        acceptDistributedTracePayload(payload);
-    }
-
     public boolean acceptDistributedTracePayload(String payload) {
         if (getAgentConfig().getDistributedTracingConfig().isEnabled()) {
             long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(
@@ -351,7 +341,7 @@ public class Transaction {
             DistributedTracePayloadImpl inboundPayload = spanProxy.get().getInboundDistributedTracePayload();
             Float inboundPriority = inboundPayload != null ? inboundPayload.priority : null;
 
-            DistributedSamplingPriorityQueue reservoir = ServiceFactory.getTransactionEventsService()
+            DistributedSamplingPriorityQueue<TransactionEvent> reservoir = ServiceFactory.getTransactionEventsService()
                     .getOrCreateDistributedSamplingReservoir(getApplicationName());
 
             priority.compareAndSet(null, distributedTraceService.calculatePriority(inboundPriority, reservoir));
@@ -462,6 +452,7 @@ public class Transaction {
         userAttributes = new LazyMapImpl<>(factory);
         errorAttributes = new LazyMapImpl<>(factory);
         insights = new AtomicReference<>();
+        logEvents = new AtomicReference<>();
         runningChildren = new LazyMapImpl<>(factory);
         activeTokensCache = new AtomicReference<>();
         activeCount = new AtomicInteger(0);
@@ -485,8 +476,7 @@ public class Transaction {
     // of its new owning transaction using the context key under which it was
     // registered.
     private void postConstruct() {
-        TransactionActivity txa = TransactionActivity.create(this, nextActivityId.getAndIncrement());
-        this.initialActivity = txa;
+        this.initialActivity = TransactionActivity.create(this, nextActivityId.getAndIncrement());;
         checkAndSetPriority();
     }
 
@@ -626,6 +616,16 @@ public class Transaction {
             insightsData = insights.get();
         }
         return insightsData;
+    }
+
+    public Logs getLogEventData() {
+        Logs logEventData = logEvents.get();
+        if (logEventData == null) {
+            AgentConfig defaultConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+            logEvents.compareAndSet(null, ServiceFactory.getServiceManager().getLogSenderService().getTransactionLogs(defaultConfig));
+            logEventData = logEvents.get();
+        }
+        return logEventData;
     }
 
     public TransactionTracerConfig getTransactionTracerConfig() {
@@ -985,10 +985,6 @@ public class Transaction {
     private void finishTransaction() {
         try {
             synchronized (lock) {
-                if (Agent.LOG.isFinestEnabled()) {
-                    threadAssertion();
-                }
-
                 // this may have the side-effect of ignoring the transaction
                 freezeTransactionName();
 
@@ -1135,7 +1131,7 @@ public class Transaction {
         boolean reportingCpu = true;
         // this is for the legacy async
         Object val = getIntrinsicAttributes().remove(AttributeNames.CPU_TIME_PARAMETER_NAME);
-        if (val != null && val instanceof Long) {
+        if (val instanceof Long) {
             totalCpuTime = (Long) val;
             if (totalCpuTime < 0) {
                 reportingCpu = false;
@@ -1355,7 +1351,6 @@ public class Transaction {
      * TransactionActivity from its thread-local variable on the current thread.
      */
     public static void clearTransaction() {
-        Transaction tx = transactionHolder.get();
         transactionHolder.remove();
         TransactionActivity.clear();
         AgentBridge.activeToken.remove();
@@ -2000,6 +1995,11 @@ public class Transaction {
     private static final int REQUEST_TRACER_FLAGS = TracerFlags.GENERATE_SCOPED_METRIC
             | TracerFlags.TRANSACTION_TRACER_SEGMENT | TracerFlags.DISPATCHER;
 
+  public static final int SCALA_API_TRACER_FLAGS = TracerFlags.GENERATE_SCOPED_METRIC
+                                                    | TracerFlags.TRANSACTION_TRACER_SEGMENT
+                                                    | TracerFlags.DISPATCHER
+                                                    | TracerFlags.CUSTOM;
+
     // There exist broken servlet frameworks that spew multiple
     // requestInitialized and Destroyed
     // calls. Since requestDestroyed can result in finishing a transaction and
@@ -2016,7 +2016,8 @@ public class Transaction {
 
         synchronized (requestStateChangeLock) {
             ServiceFactory.getStatsService().doStatsWork(
-                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED, 1));
+                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED, 1),
+                    MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED );
             if (this.isFinished()) {
                 return;
             }
@@ -2033,7 +2034,8 @@ public class Transaction {
             } else {
                 // JAVA-825. Ignore multiple requestInitialized() callbacks.
                 ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                        MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED_STARTED, 1));
+                        MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED_STARTED, 1),
+                        MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_INITIALIZED_STARTED);
                 Agent.LOG.finer("requestInitialized(): transaction already started.");
             }
         }
@@ -2044,7 +2046,8 @@ public class Transaction {
 
         synchronized (requestStateChangeLock) {
             ServiceFactory.getStatsService().doStatsWork(
-                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_DESTROYED, 1));
+                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_DESTROYED, 1),
+                    MetricNames.SUPPORTABILITY_TRANSACTION_REQUEST_DESTROYED);
             if (!this.isInProgress()) {
                 return;
             }
@@ -2110,7 +2113,7 @@ public class Transaction {
             if (policy.canSetApplicationName(this, priority)) {
                 String name = stripLeadingForwardSlash(appName);
                 PriorityApplicationName pan = PriorityApplicationName.create(name, priority);
-                if (pan == null || pan.equals(getPriorityApplicationName())) {
+                if (pan.equals(getPriorityApplicationName())) {
                     return;
                 }
                 Agent.LOG.log(Level.FINE, "Set application name to {0}", pan.getName());
@@ -2122,7 +2125,7 @@ public class Transaction {
     private static String stripLeadingForwardSlash(String appName) {
         final String FORWARD_SLASH = "/";
         if (appName.length() > 1 && appName.startsWith(FORWARD_SLASH)) {
-            return appName.substring(1, appName.length());
+            return appName.substring(1);
         }
         return appName;
     }

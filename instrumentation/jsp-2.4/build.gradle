@@ -1,16 +1,26 @@
 
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("javax.servlet:jsp-api:2.0")
-    implementation("javax.servlet:servlet-api:2.4")
+    implementation("jakarta.servlet.jsp:jakarta.servlet.jsp-api:2.3.6")
+    implementation("jakarta.servlet:jakarta.servlet-api:4.0.4")
 }
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jsp-2.4' }
 }
 
+verifyInstrumentation {
+    passesOnly 'javax.servlet:jsp-api:[2.0,)'
+    passesOnly 'javax.servlet.jsp:jsp-api:[2.0,)'
+    passesOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:[2.3.4,3.0.0-M1)'
+
+    exclude 'javax.servlet:jsp-api:2.0.public_draft'
+    // this version seems to have a bad metadata descriptor
+    exclude 'javax.servlet.jsp:jsp-api:2.1.2'
+}
+
 site {
     title 'JSP'
     type 'Other'
-    versionOverride '[2.0,2.2)'
+    versionOverride '[2.0,3.0)'
 }

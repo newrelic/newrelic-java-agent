@@ -1,11 +1,21 @@
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.3.31" apply false
+    id 'com.github.prokod.gradle-crossbuild' version '0.12.1' apply false
+    id "org.jetbrains.kotlin.jvm" version "1.6.20" apply false
     id "com.newrelic.gradle-verify-instrumentation-plugin" version "3.2" apply false
     id "com.newrelic.gradle-compatibility-doc-plugin" version "1.1" apply false
 }
 
 allprojects {
     apply plugin: 'idea'
+
+    // ignores MANIFEST.MF
+    normalization {
+        runtimeClasspath {
+            metaInf {
+                ignoreManifest()
+            }
+        }
+    }
 
     group = 'com.newrelic.agent.java'
     version = agentVersion + (project.findProperty("release") == "true" ? "" : "-SNAPSHOT")
@@ -36,6 +46,7 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        jcenter()
     }
 
     def isJavaProject = ![
@@ -54,4 +65,12 @@ subprojects {
             testOutputDir = file('test')
         }
     }
+}
+
+ext {
+    // when upgrading ASM, check the javadoc for the following classes:
+    // SynchronizedAnnotationNode, SynchronizedClassNode, SynchronizedFieldNode, SynchronizedInnerClassNode, SynchronizedInnerClassNode, SynchronizedMethodNode,
+    // SynchronizedModuleExportNode, SynchronizedModuleNode, SynchronizedModuleOpenNode, SynchronizedModuleProvideNode, SynchronizedModuleRequireNode,
+    // SynchronizedTypeAnnotationNode
+    asmVersion=9.2
 }

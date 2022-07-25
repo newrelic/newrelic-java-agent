@@ -9,11 +9,8 @@ package io.grpc.stub;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
-import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
-import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.grpc.GrpcConfig;
 import io.grpc.ClientCall_Instrumentation;
@@ -22,7 +19,8 @@ import io.grpc.ClientCall_Instrumentation;
 public final class ClientCalls_Instrumentation {
 
     private static <ReqT, RespT> void startCall(ClientCall_Instrumentation<ReqT, RespT> call,
-            ClientCall_Instrumentation.Listener<RespT> responseListener, boolean streamingResponse) {
+                                                ClientCall_Instrumentation.Listener<RespT> responseListener,
+                                                boolean streamingResponse) {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("gRPC", "External");
         call.segment = segment;
         Weaver.callOriginal();

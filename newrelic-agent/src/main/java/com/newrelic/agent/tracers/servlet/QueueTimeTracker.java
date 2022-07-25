@@ -64,7 +64,7 @@ public class QueueTimeTracker {
             } else {
                 String msg = MessageFormat.format("Failed to parse queue start time in {0} header: {1}",
                         REQUEST_X_QUEUE_START_HEADER, requestXQueueStartHeader);
-                Agent.LOG.log(Level.WARNING, msg);
+                Agent.LOG.log(Level.FINER, msg);
             }
         }
 

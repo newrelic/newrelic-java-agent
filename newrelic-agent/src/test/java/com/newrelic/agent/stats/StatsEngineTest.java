@@ -433,6 +433,27 @@ public class StatsEngineTest {
     }
 
     @Test
+    public void getMetricNamesFromDataUsageStats() {
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        DataUsageStats stats = statsEngine.getDataUsageStats(MetricName.create("Test"));
+        stats.recordDataUsage(100, 5);
+        stats.recordDataUsage(300, 10);
+
+        List<MetricName> data = statsEngine.getMetricNames();
+        Assert.assertEquals(1, data.size());
+        Assert.assertEquals(1, statsEngine.getSize());
+        Assert.assertEquals("Test", data.get(0).getName());
+        DataUsageStats harvestedStats = statsEngine.getDataUsageStats(data.get(0));
+        Assert.assertEquals(400, harvestedStats.getBytesSent());
+        Assert.assertEquals(15, harvestedStats.getBytesReceived());
+
+        statsEngine.clear();
+        data.clear();
+        data = statsEngine.getMetricNames();
+        Assert.assertEquals(0, data.size());
+    }
+
+    @Test
     public void getMetricData() {
         StatsEngineImpl statsEngine = new StatsEngineImpl();
         Stats stats = statsEngine.getStats("Test");
@@ -447,6 +468,23 @@ public class StatsEngineTest {
         Assert.assertNull(data.get(0).getMetricId());
         Assert.assertEquals(300f, ((CountStats) data.get(0).getStats()).getTotal(), 0);
         Assert.assertEquals(2, ((CountStats) data.get(0).getStats()).getCallCount());
+    }
+
+    @Test
+    public void getMetricDataFromDataUsageStats() {
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        DataUsageStats stats = statsEngine.getDataUsageStats(MetricName.create("Test"));
+        stats.recordDataUsage(100, 5);
+        stats.recordDataUsage(300, 10);
+
+        MockNormalizer metricNormalizer = new MockNormalizer();
+        List<MetricData> data = statsEngine.getMetricData(metricNormalizer);
+        Assert.assertEquals(1, data.size());
+        Assert.assertEquals(1, statsEngine.getSize());
+        Assert.assertEquals("Test", data.get(0).getMetricName().getName());
+        Assert.assertNull(data.get(0).getMetricId());
+        Assert.assertEquals(400, ((DataUsageStats) data.get(0).getStats()).getBytesSent());
+        Assert.assertEquals(15, ((DataUsageStats) data.get(0).getStats()).getBytesReceived());
     }
 
     @Test
@@ -467,6 +505,26 @@ public class StatsEngineTest {
         Assert.assertNull(data.get(0).getMetricId());
         Assert.assertEquals(300f, ((CountStats) data.get(0).getStats()).getTotal(), 0);
         Assert.assertEquals(2, ((CountStats) data.get(0).getStats()).getCallCount());
+    }
+
+    @Test
+    public void getMetricDataNormalizeFromDataUsageStats() {
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        DataUsageStats stats = statsEngine.getDataUsageStats(MetricName.create("Test"));
+        stats.recordDataUsage(100, 5);
+        stats.recordDataUsage(300, 10);
+
+        MockNormalizer metricNormalizer = new MockNormalizer();
+        Map<String, String> normalizationResults = new HashMap<>();
+        normalizationResults.put("Test", "Test2");
+        metricNormalizer.setNormalizationResults(normalizationResults);
+        List<MetricData> data = statsEngine.getMetricData(metricNormalizer);
+        Assert.assertEquals(1, data.size());
+        Assert.assertEquals(1, statsEngine.getSize());
+        Assert.assertEquals("Test2", data.get(0).getMetricName().getName());
+        Assert.assertNull(data.get(0).getMetricId());
+        Assert.assertEquals(400, ((DataUsageStats) data.get(0).getStats()).getBytesSent());
+        Assert.assertEquals(15, ((DataUsageStats) data.get(0).getStats()).getBytesReceived());
     }
 
     @Test
@@ -491,6 +549,33 @@ public class StatsEngineTest {
         Assert.assertEquals(100f, stats1.getTotal(), 0);
         Assert.assertEquals(200f, stats2.getTotal(), 0);
         Assert.assertEquals(100f, stats3.getTotal(), 0);
+    }
+
+    @Test
+    public void mergeDataUsageStats() {
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        DataUsageStats stats1 = statsEngine.getDataUsageStats(MetricName.create("Test1"));
+        stats1.recordDataUsage(100, 5);
+        DataUsageStats stats2 = statsEngine.getDataUsageStats(MetricName.create("Test2"));
+        stats2.recordDataUsage(300, 10);
+
+        StatsEngineImpl statsEngine2 = new StatsEngineImpl();
+        DataUsageStats stats3 = statsEngine.getDataUsageStats(MetricName.create("Test3"));
+        stats3.recordDataUsage(200, 20);
+        DataUsageStats stats4 = statsEngine.getDataUsageStats(MetricName.create("Test2"));
+        stats4.recordDataUsage(400, 50);
+
+        statsEngine.mergeStats(statsEngine2);
+        Assert.assertEquals(3, statsEngine.getSize());
+        Assert.assertEquals(1, stats1.getCount());
+        Assert.assertEquals(2, stats2.getCount());
+        Assert.assertEquals(1, stats3.getCount());
+        Assert.assertEquals(100, stats1.getBytesSent());
+        Assert.assertEquals(700, stats2.getBytesSent());
+        Assert.assertEquals(200, stats3.getBytesSent());
+        Assert.assertEquals(5, stats1.getBytesReceived());
+        Assert.assertEquals(60, stats2.getBytesReceived());
+        Assert.assertEquals(20, stats3.getBytesReceived());
     }
 
 }

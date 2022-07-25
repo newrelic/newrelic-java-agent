@@ -18,6 +18,7 @@ import com.newrelic.weave.utils.WeaveUtils;
 import com.newrelic.weave.violation.WeaveViolation;
 import com.newrelic.weave.weavepackage.language.LanguageAdapter;
 import com.newrelic.weave.weavepackage.language.LanguageAdapterResult;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -123,26 +124,27 @@ public class ScalaAdapter implements LanguageAdapter {
      * @return A list of all violations encountered
      */
     private List<WeaveViolation> validateScalaNodes(Map<String, ClassNode> input) {
-        // check that the user only annotated scala classes with @Weave or @ScalaWeave
-        List<WeaveViolation> violations = new ArrayList<>();
-        for(String name : input.keySet()) {
-            if (name.endsWith(("$class"))) {
-                // check for trait
-                String traitName = name.substring(0, name.length() - 6);
-                ClassNode traitNode = input.get(traitName);
-                if (null != traitNode && isWeaveClass(traitNode)) {
-                    violations.add(new ScalaWeaveViolation(traitName, ScalaWeaveViolationType.CLASS_WEAVE_IS_TRAIT));
-                }
-            }
-            if (name.endsWith("$") && isWeaveClass(input.get(name))) {
-                // check for object
-                String implName = name.substring(0, name.length()-1);
-                if (input.containsKey(implName)) {
-                    violations.add(new ScalaWeaveViolation(name, ScalaWeaveViolationType.CLASS_WEAVE_IS_OBJECT));
-                }
-            }
+      // check that the user only annotated scala classes with @Weave or @ScalaWeave
+      List<WeaveViolation> violations = new ArrayList<>();
+      for (String name : input.keySet()) {
+        ClassNode node = input.get(name);
+        boolean isWeaveClass = isWeaveClass(node);
+        if (isWeaveClass && isInterface(node)) {
+          violations.add(new ScalaWeaveViolation(name, ScalaWeaveViolationType.CLASS_WEAVE_IS_TRAIT));
         }
-        return violations;
+        if (isWeaveClass && name.endsWith("$")) {
+          // check for object
+          String implName = name.substring(0, name.length() - 1);
+          if (input.containsKey(implName)) {
+            violations.add(new ScalaWeaveViolation(name, ScalaWeaveViolationType.CLASS_WEAVE_IS_OBJECT));
+          }
+        }
+      }
+      return violations;
+    }
+
+    private boolean isInterface(ClassNode node) {
+      return (node.access & Opcodes.ACC_INTERFACE) != 0;
     }
 
     private boolean isWeaveClass(ClassNode node) {

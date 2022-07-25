@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.ConfigConstant;
+import com.newrelic.agent.service.logging.LogSenderServiceImpl;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -161,13 +162,23 @@ public class AttributeValidator {
     }
 
     private String truncateValue(String key, String value, String methodCalled) {
-        String truncatedVal = truncateString(value, ConfigConstant.MAX_USER_ATTRIBUTE_SIZE);
+        String truncatedVal;
+        if (methodCalled.equals(LogSenderServiceImpl.METHOD)) {
+            truncatedVal = truncateString(value, ConfigConstant.MAX_LOG_EVENT_ATTRIBUTE_SIZE);
+            logTruncatedValue(key, value, truncatedVal, methodCalled, ConfigConstant.MAX_LOG_EVENT_ATTRIBUTE_SIZE);
+        } else {
+            truncatedVal = truncateString(value, ConfigConstant.MAX_USER_ATTRIBUTE_SIZE);
+            logTruncatedValue(key, value, truncatedVal, methodCalled, ConfigConstant.MAX_USER_ATTRIBUTE_SIZE);
+        }
+        return truncatedVal;
+    }
+
+    private void logTruncatedValue(String key, String value, String truncatedVal, String methodCalled, int maxAttributeSize) {
         if (!value.equals(truncatedVal)) {
             Agent.LOG.log(Level.FINER,
                     "{0} was invoked with a value longer than {2} bytes for key \"{3}\". The value will be shortened to the first {4} characters.",
-                    methodCalled, value, ConfigConstant.MAX_USER_ATTRIBUTE_SIZE, key, truncatedVal.length());
+                    methodCalled, value, maxAttributeSize, key, truncatedVal.length());
         }
-        return truncatedVal;
     }
 
     /**
@@ -176,7 +187,7 @@ public class AttributeValidator {
      *
      * @param s String to be truncated
      * @param maxBytes Maximum number of bytes in UTF-8 charset encoding
-     * @return
+     * @return truncated input string
      */
     public static String truncateString(String s, int maxBytes) {
         int truncatedSize = 0;

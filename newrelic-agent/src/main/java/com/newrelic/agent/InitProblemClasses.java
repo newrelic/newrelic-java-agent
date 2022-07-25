@@ -73,6 +73,26 @@ public class InitProblemClasses {
             } catch (Throwable e) {
                 // This might happen on non-sun JVMs
             }
+
+            // This works around a ClassCircularityError with the doubly nested inner of ReentrantReadWriteLock.
+            try {
+                String holdCounterClassName = "java.util.concurrent.locks.ReentrantReadWriteLock$Sync$HoldCounter";
+                Class.forName(holdCounterClassName);
+                Agent.LOG.log(Level.FINE, "Worked around loading class " + holdCounterClassName);
+            } catch (ClassNotFoundException e) {
+                Agent.LOG.log(Level.WARNING, "Error working around class loading issue:", e);
+            }
+
+            // This works around a ClassCircularityError with ThreadLocalRandom. The issue
+            // started after a change that adds an executor to Caffeine caches.
+            // resolving PR: work-around ClassCircularityError #600
+            try {
+                String holdCounterClassName = "java.util.concurrent.ThreadLocalRandom";
+                Class.forName(holdCounterClassName);
+                Agent.LOG.log(Level.FINE, "Worked around loading class " + holdCounterClassName);
+            } catch (ClassNotFoundException e) {
+                Agent.LOG.log(Level.WARNING, "Error working around class loading issue:", e);
+            }
         } catch (Throwable e) {
             Agent.LOG.log(Level.FINE, e, "Exception while performing initial loading");
         }

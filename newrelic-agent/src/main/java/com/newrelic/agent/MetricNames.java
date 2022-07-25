@@ -82,6 +82,7 @@ public class MetricNames {
     public static final String JAVA = "Java";
     public static final String DISPATCHER = "HttpDispatcher";
     public static final String REQUEST_DISPATCHER = "RequestDispatcher";
+    public static final String GRAPHQL = "GraphQL";
     public static final String APDEX = "Apdex";
     public static final String APDEX_OTHER = "ApdexOther";
     public static final String APDEX_OTHER_TRANSACTION = "ApdexOther/Transaction";
@@ -217,14 +218,27 @@ public class MetricNames {
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SENT = "Supportability/Events/Customer/Sent";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SEEN = "Supportability/Events/Customer/Seen";
 
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_SENT = "Supportability/Logging/Forwarding/Sent";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_SEEN = "Supportability/Logging/Forwarding/Seen";
+    public static final String LOGGING_FORWARDING_DROPPED = "Logging/Forwarding/Dropped";
+
+    public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_ENABLED = "Supportability/Logging/Metrics/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED = "Supportability/Logging/LocalDecorating/Java/disabled";
+
     public static final String SUPPORTABILITY_EVENT_HARVEST_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/ReportPeriod";
     public static final String SUPPORTABILITY_ERROR_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/ErrorEventData/ReportPeriod";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/CustomEventData/ReportPeriod";
+    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/LogEventData/ReportPeriod";
     public static final String SUPPORTABILITY_SPAN_EVENT_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/SpanEventData/ReportPeriod";
     public static final String SUPPORTABILITY_ANALYTIC_EVENT_SERVICE_REPORT_PERIOD_IN_SECONDS = "Supportability/EventHarvest/AnalyticEventData/ReportPeriod";
 
     public static final String SUPPORTABILITY_ERROR_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/ErrorEventData/HarvestLimit";
     public static final String SUPPORTABILITY_CUSTOM_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/CustomEventData/HarvestLimit";
+    public static final String SUPPORTABILITY_LOG_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/LogEventData/HarvestLimit";
     public static final String SUPPORTABILITY_ANALYTIC_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/AnalyticEventData/HarvestLimit";
     public static final String SUPPORTABILITY_SPAN_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/SpanEventData/HarvestLimit";
 
@@ -243,6 +257,9 @@ public class MetricNames {
 
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/Customer/interval";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/Customer/transmit";
+
+    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/LogEvent/interval";
+    public static final String SUPPORTABILITY_LOG_SENDER_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/LogEvent/transmit";
 
     public static final String SUPPORTABILITY_SPAN_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/SpanEvent/interval";
     public static final String SUPPORTABILITY_SPAN_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/SpanEvent/transmit";
@@ -329,6 +346,8 @@ public class MetricNames {
     // insights
     public static final String SUPPORTABILITY_API_RECORD_CUSTOM_EVENT = "RecordCustomEvent";
 
+    public static final String SUPPORTABILITY_API_RECORD_LOG_EVENT = "RecordLogEvent";
+
     // attributes
     public static final String SUPPORTABILITY_API_ADD_CUSTOM_PARAMETER = "AddCustomParameter";
 
@@ -377,6 +396,12 @@ public class MetricNames {
 
     //Supportability metric indicating that the payload was too large
     public static final String SUPPORTABILITY_PAYLOAD_SIZE_EXCEEDS_MAX = "Supportability/Agent/Collector/MaxPayloadSizeLimit/{0}";
+
+    // Supportability metrics for uncompressed data payloads used to measure usage
+    // {0} = destination (Collector, OTLP, or InfiniteTracing).
+    public static final String SUPPORTABILITY_DATA_USAGE_DESTINATION_OUTPUT_BYTES = "Supportability/Java/{0}/Output/Bytes";
+    // {0} = destination (Collector, OTLP, or InfiniteTracing). {1} = agent endpoint (connect, analytic_event_data, error_data, etc)
+    public static final String SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES = "Supportability/Java/{0}/{1}/Output/Bytes";
 
     public static final String SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS = "Supportability/Agent/Collector/Connect/BackoffAttempts";
 
@@ -433,6 +458,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_SPAN_EVENTS = "Supportability/SpanEvents"; // feature is enabled
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_SENT = "Supportability/SpanEvent/TotalEventsSent";
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_SEEN = "Supportability/SpanEvent/TotalEventsSeen";
+    public static final String SUPPORTABILITY_SPAN_EVENT_LIMIT = "Supportability/SpanEvent/Limit";
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_DISCARDED = "Supportability/SpanEvent/Discarded";
 
     public static final String SUPPORTABILITY_INTERNAL_CUSTOM_EVENTS_TOTAL_EVENTS_SENT = "Supportability/InternalCustomEvents/TotalEventsSent";
@@ -441,6 +467,9 @@ public class MetricNames {
 
     // Deprecated features
     public static final String SUPPORTABILITY_DEPRECATED_CONFIG_JAR_COLLECTOR = "Supportability/Deprecated/Config/JarCollector";
+
+    // JMX
+    public static final String LINKING_METADATA_MBEAN = "Supportability/LinkingMetadataMBean/Enabled";
 
     // parent.type/parent.account/parent.appId/transport
     public static final String PARENT_DATA = "{0}/{1}/{2}/{3}/{4}";
@@ -453,6 +482,10 @@ public class MetricNames {
     public static final String ERRORS_BY_PARENT = "ErrorsByCaller/" + PARENT_DATA;
     public static final String ERRORS_BY_PARENT_UNKNOWN = "ErrorsByCaller/Unknown/Unknown/Unknown/{0}/all";
     public static final String TRANSPORT_DURATION_BY_PARENT = "TransportDuration/" + PARENT_DATA;
+
+    // JFR Service
+    public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS = "Supportability/JfrService/Started/Success";
+    public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
 
     /**
      * Utility method for adding supportability metrics to APIs

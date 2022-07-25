@@ -25,6 +25,7 @@ import com.newrelic.agent.errors.ErrorMessageReplacer;
 import com.newrelic.agent.errors.ErrorServiceImpl;
 import com.newrelic.agent.errors.ThrowableError;
 import com.newrelic.agent.metric.MetricName;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.normalization.NormalizationRule;
 import com.newrelic.agent.normalization.NormalizationRuleFactory;
 import com.newrelic.agent.profile.IProfile;
@@ -67,6 +68,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.net.ssl.SSLHandshakeException;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -86,10 +88,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
@@ -234,7 +233,6 @@ public class RPMServiceTest {
     }
 
     private void doTestLaunch() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -335,7 +333,6 @@ public class RPMServiceTest {
     }
 
     private void doTestMetricNormalizationRules() throws Exception {
-        addTrustStore();
         List<String> appNames = new ArrayList<>(1);
         appNames.add("MyApplication");
         final AtomicReference<Map<String, Object>> data = new AtomicReference<>();
@@ -369,7 +366,6 @@ public class RPMServiceTest {
     }
 
     private void doTestConnectionListener() throws Exception {
-        addTrustStore();
         final AtomicBoolean connected = new AtomicBoolean();
         ConnectionListener connectionListener = new ConnectionListener() {
 
@@ -473,7 +469,6 @@ public class RPMServiceTest {
     }
 
     private void doTestLaunchAndRestart() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -503,7 +498,6 @@ public class RPMServiceTest {
     }
 
     private void doHarvest() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -591,6 +585,45 @@ public class RPMServiceTest {
     }
 
     @Test(timeout = 30000)
+    public void testSendLogEvents() throws Exception {
+        Map<String, Object> map = createStagingMap(true, false);
+        map.put("app_name", "Test");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(map);
+        createServiceManager(config, map);
+        doSendLogEvent();
+    }
+
+    @Test(timeout = 30000)
+    public void testSendLogEventsWithPut() throws Exception {
+        Map<String, Object> map = createStagingMap(true, false, true);
+        map.put("app_name", "Test");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(map);
+        createServiceManager(config, map);
+        doSendLogEvent();
+    }
+
+    private void doSendLogEvent() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
+        List<String> appNames = singletonList("Send Log Events Test App");
+        RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
+
+        svc.launch();
+
+        LogEvent logEvent1 = new LogEvent(null, 1);
+        LogEvent logEvent2 = new LogEvent(null, 2);
+        List<LogEvent> logEvents = new ArrayList<>();
+        logEvents.add(logEvent1);
+        logEvents.add(logEvent2);
+
+        svc.sendLogEvents(logEvents);
+
+        List<LogEvent> seen = dataSenderFactory.getLastDataSender().getLogEvents();
+
+        assertEquals("No log events sent currently", logEvents.size(), seen.size());
+    }
+
+    @Test(timeout = 30000)
     public void sendProfileData() throws Exception {
         Map<String, Object> map = createStagingMap(true, false);
         map.put("app_name", "Test");
@@ -609,7 +642,6 @@ public class RPMServiceTest {
     }
 
     private void doSendProfileData() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         ProfilerParameters parameters = new ProfilerParameters(0L, 0L, 0L, false, false, Agent.isDebugEnabled(), null,
@@ -705,7 +737,6 @@ public class RPMServiceTest {
     }
 
     private void doGetAgentCommands() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -730,7 +761,6 @@ public class RPMServiceTest {
     }
 
     private void doSendEmptyCommandResults() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -754,7 +784,6 @@ public class RPMServiceTest {
     }
 
     private void doSendCommandResults() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -818,7 +847,6 @@ public class RPMServiceTest {
     }
 
     private void doTestTracedErrors() throws Exception {
-        addTrustStore();
         ErrorCollectorConfig config = mock(ErrorCollectorConfig.class);
 
         List<String> appNames = new ArrayList<>(1);
@@ -864,7 +892,6 @@ public class RPMServiceTest {
     }
 
     private void doTestTracedErrorsSizeLimit() throws Exception {
-        addTrustStore();
         List<String> appNames = new ArrayList<>(1);
         appNames.add("MyApplication");
 
@@ -914,7 +941,6 @@ public class RPMServiceTest {
 
     @Test(timeout = 30000)
     public void testLaunchHttps() throws Exception {
-        addTrustStore();
         Map<String, Object> config = createStagingMap(true, false);
         createServiceManager(config);
         doTestLaunchHttps();
@@ -922,7 +948,6 @@ public class RPMServiceTest {
 
     @Test(timeout = 30000)
     public void testLaunchHttpsWithPut() throws Exception {
-        addTrustStore();
         Map<String, Object> config = createStagingMap(true, false, true);
         createServiceManager(config);
         doTestLaunchHttps();
@@ -939,7 +964,6 @@ public class RPMServiceTest {
 
     @Test(timeout = 30000)
     public void testStatusCodeSupportabilityMetrics() throws Exception {
-        addTrustStore();
         Map<String, Object> config = createStagingMap(true, false, true);
         createServiceManager(config);
         doTestStatusCodeSupportabilityMetrics();
@@ -1055,7 +1079,6 @@ public class RPMServiceTest {
     }
 
     private void doTestLaunchToSendMetricData() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -1076,6 +1099,34 @@ public class RPMServiceTest {
             data.add(MetricData.create(MetricName.create(metric), stats));
         }
         return data;
+    }
+
+    @Test(timeout = 30000)
+    public void testCombinedSSLConfig() throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        map.put("host", "localhost");
+        map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
+        map.put("license_key", "deadbeefcafebabe8675309babecafe1beefdead");
+        map.put("use_private_ssl", true);
+        map.put("ca_bundle_path", "src/test/resources/server.cer");
+        map.put(AgentConfigImpl.APP_NAME, "MyApplication");
+        createServiceManager(map);
+
+        doTestLaunchHttps();
+    }
+
+
+    @Test(timeout = 30000, expected = SSLHandshakeException.class)
+    public void testUsePrivateSSLConfig() throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        map.put("host", "localhost");
+        map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
+        map.put("license_key", "deadbeefcafebabe8675309babecafe1beefdead");
+        map.put("use_private_ssl", true);
+        map.put(AgentConfigImpl.APP_NAME, "MyApplication");
+        createServiceManager(map);
+
+        doTestLaunchHttps();
     }
 
     @Test(expected = LicenseException.class)
@@ -1106,7 +1157,6 @@ public class RPMServiceTest {
     }
 
     private void doTestBadLicense() throws Exception {
-        addTrustStore();
         List<String> appNames = singletonList("");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
@@ -1182,8 +1232,4 @@ public class RPMServiceTest {
         }
     }
 
-    private void addTrustStore() {
-        System.setProperty("javax.net.ssl.trustStore", "src/test/resources/cacerts.jks");
-        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
-    }
 }

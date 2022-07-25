@@ -8,6 +8,9 @@
 package com.newrelic.agent.service.analytics;
 
 import com.google.common.base.Joiner;
+import com.newrelic.agent.Transaction;
+import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -193,6 +196,23 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory setHttpStatusCode(Integer statusCode) {
+        if (filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_CODE)) {
+            builder.putAgentAttribute(AttributeNames.HTTP_STATUS_CODE, statusCode);
+        }
+        if (filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS)) {
+            builder.putAgentAttribute(AttributeNames.HTTP_STATUS, statusCode);
+        }
+        return this;
+    }
+
+    public SpanEventFactory setHttpStatusText(String statusText) {
+        if (filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_TEXT)) {
+            builder.putAgentAttribute(AttributeNames.HTTP_STATUS_TEXT, statusText);
+        }
+        return this;
+    }
+
     // datastore parameter
     public SpanEventFactory setDatabaseName(String databaseName) {
         builder.putIntrinsic("db.instance", databaseName);
@@ -301,6 +321,8 @@ public class SpanEventFactory {
             setCategory(SpanCategory.http);
             setUri(httpParameters.getUri());
             setHttpMethod(httpParameters.getProcedure());
+            setHttpStatusCode(httpParameters.getStatusCode());
+            setHttpStatusText(httpParameters.getStatusText());
             setHttpComponent((httpParameters).getLibrary());
             setKindFromUserAttributes();
         } else if (parameters instanceof DatastoreParameters) {

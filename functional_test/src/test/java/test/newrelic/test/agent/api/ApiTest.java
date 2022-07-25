@@ -66,6 +66,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import test.newrelic.EnvironmentHolderSettingsGenerator;
+import test.newrelic.test.agent.EnvironmentHolder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -89,6 +91,8 @@ import java.util.Map;
 
 public class ApiTest implements TransactionListener {
     ApiTestHelper apiTestHelper = new ApiTestHelper();
+    private static final String CONFIG_FILE = "configs/cross_app_tracing_test.yml";
+    private static final ClassLoader CLASS_LOADER = ApiTest.class.getClassLoader();
 
     @Before
     public void before() {
@@ -108,6 +112,13 @@ public class ApiTest implements TransactionListener {
 
         ServiceFactory.getStatsService().getStatsEngineForHarvest(null).clear();
         ServiceFactory.getTransactionService().addTransactionListener(this);
+    }
+
+    public EnvironmentHolder setupEnvironmentHolder(String environment) throws Exception {
+        EnvironmentHolderSettingsGenerator envHolderSettings = new EnvironmentHolderSettingsGenerator(CONFIG_FILE, environment, CLASS_LOADER);
+        EnvironmentHolder environmentHolder = new EnvironmentHolder(envHolderSettings);
+        environmentHolder.setupEnvironment();
+        return environmentHolder;
     }
 
     @Override
@@ -1744,7 +1755,7 @@ public class ApiTest implements TransactionListener {
                 return null;
             }
         };
-        ServiceFactory.getStatsService().doStatsWork(statsWork);
+        ServiceFactory.getStatsService().doStatsWork(statsWork, "statsWorkName" );
 
         NewRelic.recordMetric(name.getName(), 1.0f);
     }
@@ -1869,7 +1880,9 @@ public class ApiTest implements TransactionListener {
     /* External/CAT - FIT to Public API */
 
     @Test
-    public void testExternalCatAPI() {
+    public void testExternalCatAPI() throws Exception {
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
         TestServer server = new TestServer(8088);
 
         try {
@@ -1881,6 +1894,7 @@ public class ApiTest implements TransactionListener {
         } finally {
             Transaction.clearTransaction();
             server.closeAllConnections();
+            holder.close();
         }
     }
 
@@ -2030,8 +2044,11 @@ public class ApiTest implements TransactionListener {
     /* Messaging - FIT to Public API */
 
     @Test
-    public void testMessagingAPI() {
+    public void testMessagingAPI() throws Exception {
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
         MessagingTestServer server = new MessagingTestServer(8088);
+
         try {
             server.start();
             runTestMessagingAPI();
@@ -2043,6 +2060,7 @@ public class ApiTest implements TransactionListener {
         } finally {
             Transaction.clearTransaction();
             server.closeAllConnections();
+            holder.close();
         }
     }
 

@@ -36,10 +36,9 @@ The Java agent uses a variety of JDK versions when building and running tests. T
 
 Edit or create the `~/.gradle/gradle.properties` file and add the following JDKs, ensuring that the vendors/versions match what is installed in your environment (Mac OS X examples shown).
 
-JDK 7 and JDK 8 are required to build the agent:
+JDK 8 is required to build the agent:
 
 ```
-jdk7=/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home
 jdk8=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
 ```
 
@@ -51,7 +50,7 @@ jdk9=/Library/Java/JavaVirtualMachines/adoptopenjdk-9.jdk/Contents/Home
 
 #### Gradle build
 
-The Java agent requires JDK 1.8 to build; your `JAVA_HOME` must be set to this JDK version.
+The Java agent requires JDK 8 to build; your `JAVA_HOME` must be set to this JDK version.
 
 To build the agent jar, run the following command from the project root directory:  
 `./gradlew clean jar --parallel`
@@ -74,9 +73,9 @@ We recommend using IntelliJ IDEA for development on this project. Configure as f
 5. Add Java 8 SDK: select `File > Project Structure... > Platform Settings > SDKs > Add New SDK`.
 6. Configure project SDK and target language level: select `File > Project Structure... > Project Settings > Project`.
     - Set `Project SDK` to JDK 1.8
-    - Set `Project language level` to 7  
+    - Set `Project language level` to 8
 ![IntelliJ screen shot for Project SDK and Language Level](./wiki-images/project-sdk-language-level.png)
-7. Increase Intellij memory heap﻿ if you encounter "Low Memory" issues. Recommended: 2048 MB. To do this, select `Help > Change Memory Settings > Save and Restart`.
+7. Increase Intellij memory heap if you encounter "Low Memory" issues. Recommended: 2048 MB. To do this, select `Help > Change Memory Settings > Save and Restart`.
 
 ## Testing
 
@@ -84,7 +83,25 @@ The Java agent utilizes the following four distinct test suites, each of which i
 
 #### Conventional unit tests
 
-The unit tests are conventional JUnit tests. The supporting framework is the industry-standard JUnit dependency. Unit tests rely on a variety of different mock object frameworks combined with complex test initialization patterns that simulate agent initialization.
+The unit tests are conventional JUnit tests. The supporting framework is the industry-standard JUnit dependency. Unit tests rely on a variety of different mock object frameworks combined with complex test initialization patterns that simulate agent initialization. Scala test tasks are excluded by default. Including the -PincludeScala project property includes Scala test tasks.
+
+Run all unit tests:
+
+```
+./gradlew -PnoInstrumentation clean test --continue --parallel
+```
+
+Run an individual unit test:
+
+```
+./gradlew -PnoInstrumentation clean newrelic-weaver:test --tests "com.newrelic.weave.LineNumberWeaveTest.testRemoveWeaveLineNumbers" --parallel
+```
+
+Run an individual unit test on a specific version of Java:
+
+```
+./gradlew -Ptest16 -PnoInstrumentation clean newrelic-weaver:test --tests "com.newrelic.weave.LineNumberWeaveTest.testRemoveWeaveLineNumbers" --parallel
+```
 
 #### Functional tests
 
@@ -96,33 +113,40 @@ Functional tests are located in `newrelic-java-agent/functional_test/src/test/` 
 
 Run all functional tests: 
 ```
-./gradlew functional_test:test --parallel
+./gradlew functional_test:test --continue --parallel
 ```
 
 Run an individual functional test: 
 ```
-./gradlew functional_test:test --parallel --tests test.newrelic.test.agent.AgentTest
+./gradlew functional_test:test --tests test.newrelic.test.agent.AgentTest --parallel
 ```
 
 #### Instrumentation module tests
 
 The instrumentation module tests are also JUnit tests. The framework is the industry-standard JUnit dependency modified by a custom test runner and class loader that support bytecode weaving within the test without the need to fully initialize the agent. Note: fully initializing the agent is not possible when running in an uninstrumented reusable test process like an IntelliJ test subprocess or Gradle daemon. There is also an "introspector" (somewhat equivalent to a local mock collector) for test assertions.
 
+Some of the instrumentation tests use [Testcontainers](https://www.testcontainers.org/) so you might need to have Docker [installed](https://docs.docker.com/get-docker/) to run them locally.
+
 Instrumentation tests are located in each instrumentation module at  `newrelic-java-agent/instrumentation/<INSTRUMENTATION MODULE>/src/test` and are run from the root `newrelic-java-agent` directory as follows:
 
 Run all instrumentation module tests: 
 ```
-./gradlew instrumentation:test --parallel
+./gradlew instrumentation:test --continue --parallel
 ```
 
 Run all tests for a specific instrumentation module: 
 ```
-./gradlew instrumentation:akka-http-core-10.0.11:test
+./gradlew instrumentation:akka-http-core-10.0.11:test --parallel
 ```
 
 Run a single test for a specific instrumentation module:
 ```
-./gradlew instrumentation:vertx-web-3.2.0:test --tests com.nr.vertx.instrumentation.RoutingTest
+./gradlew instrumentation:vertx-web-3.2.0:test --tests com.nr.vertx.instrumentation.RoutingTest --parallel
+```
+
+Run all tests for a specific Scala instrumentation module:
+```
+./gradlew -PincludeScala instrumentation:sttp-2.13_2.2.3:test --parallel
 ```
 
 ## Support

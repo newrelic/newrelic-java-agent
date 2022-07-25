@@ -9,6 +9,7 @@ package com.newrelic.agent;
 
 import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.analytics.SpanEventsServiceImpl;
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.StatsWorks;
@@ -55,7 +56,7 @@ public abstract class Harvestable {
             public String getAppName() {
                 return appName;
             }
-        });
+        }, "HarvestInterval");
     }
 
     public String getAppName() {
@@ -65,14 +66,22 @@ public abstract class Harvestable {
     public void configure(long reportPeriodInMillis, int maxSamplesStored) {
         long reportPeriodInSeconds = TimeUnit.MILLISECONDS.toSeconds(reportPeriodInMillis);
         ServiceFactory.getStatsService().doStatsWork(
-                StatsWorks.getRecordMetricWork(service.getReportPeriodInSecondsMetric(), reportPeriodInSeconds));
+                StatsWorks.getRecordMetricWork(service.getReportPeriodInSecondsMetric(), reportPeriodInSeconds), service.getReportPeriodInSecondsMetric());
         ServiceFactory.getStatsService().doStatsWork(
-                StatsWorks.getRecordMetricWork(service.getEventHarvestLimitMetric(), maxSamplesStored));
+                StatsWorks.getRecordMetricWork(service.getEventHarvestLimitMetric(), maxSamplesStored), service.getEventHarvestLimitMetric());
 
         if (maxSamplesStored != service.getMaxSamplesStored()) {
             service.setMaxSamplesStored(maxSamplesStored);
+            maybeSendSpanLimitMetric(maxSamplesStored);
             service.harvestEvents(appName);
             service.clearReservoir();
+        }
+    }
+
+    private void maybeSendSpanLimitMetric(int maxSamplesStored) {
+        if (service instanceof SpanEventsServiceImpl) {
+            ServiceFactory.getStatsService().doStatsWork(
+                    StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_SPAN_EVENT_LIMIT, maxSamplesStored), MetricNames.SUPPORTABILITY_SPAN_EVENT_LIMIT);
         }
     }
 }

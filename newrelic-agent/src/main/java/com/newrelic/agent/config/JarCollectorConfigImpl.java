@@ -13,22 +13,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class JarCollectorConfigImpl extends BaseConfig implements JarCollectorConfig {
 
-    public static final Integer DEFAULT_MAX_CLASS_LOADERS = 5000;
     public static final String ENABLED = "enabled";
-    public static final String MAX_CLASS_LOADERS = "max_class_loaders";
-    public static final Boolean DEFAULT_ENABLED = Boolean.TRUE;
+    public static final String SKIP_TEMP_JARS = "skip_temp_jars";
+    public static final String JARS_PER_SECOND = "jars_per_second";
+
+    public static final boolean DEFAULT_ENABLED = Boolean.TRUE;
+    public static final boolean DEFAULT_SKIP_TEMP_JARS = Boolean.TRUE;
+    public static final int DEFAULT_JARS_PER_SECOND = 10;
+
     // The newrelic.config.module root shouldn't be used but is kept for backwards compatibility
     public static final String SYSTEM_PROPERTY_ROOT_DEPRECATED = "newrelic.config.module."; // NEW_RELIC_MODULE_
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.jar_collector."; // NEW_RELIC_JAR_COLLECTOR_
     private static final AtomicBoolean isUsingDeprecatedConfigSettings = new AtomicBoolean(false);
 
     private final boolean isEnabled;
-    private final int maxClassLoaders;
+    private final boolean skipTempJars;
+    private final Integer jarsPerSecond;
 
     public JarCollectorConfigImpl(Map<String, Object> pProps) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
         isEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
-        maxClassLoaders = getProperty(MAX_CLASS_LOADERS, DEFAULT_MAX_CLASS_LOADERS);
+        skipTempJars = getProperty(SKIP_TEMP_JARS, DEFAULT_SKIP_TEMP_JARS);
+        jarsPerSecond = getProperty(JARS_PER_SECOND, DEFAULT_JARS_PER_SECOND);
     }
 
     // This method gets hit multiple times due to merging local and server side configs
@@ -45,8 +51,13 @@ public class JarCollectorConfigImpl extends BaseConfig implements JarCollectorCo
     }
 
     @Override
-    public int getMaxClassLoaders() {
-        return maxClassLoaders;
+    public boolean skipTempJars() {
+        return skipTempJars;
+    }
+
+    @Override
+    public int getJarsPerSecond() {
+        return jarsPerSecond;
     }
 
     @Override

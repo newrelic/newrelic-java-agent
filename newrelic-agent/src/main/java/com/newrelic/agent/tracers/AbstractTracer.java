@@ -51,6 +51,7 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
     private String customPrefix = "Custom";
     // doesn't need to be thread safe since this flag affects the decision to registerAsync
     private Boolean trackChildThreads = null;
+    private Boolean trackCallBackRunnable = false;
     private AtomicReference<TracedException> tracerError = new AtomicReference<>(TracedException.NO_EXCEPTION);
 
     private final long startTimeInMillis;
@@ -230,6 +231,24 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
             }
         }
         return this.trackChildThreads;
+    }
+
+    @Override
+    public void setTrackCallbackRunnable(boolean shouldTrack) {
+        this.trackCallBackRunnable = shouldTrack;
+    }
+
+    @Override
+    public boolean isTrackCallbackRunnable() {
+        return this.trackCallBackRunnable || this.isParentTrackCallbackRunnable();
+    }
+
+    private boolean isParentTrackCallbackRunnable() {
+        TracedMethod parent = this.getParentTracedMethod();
+        if (null == parent) {
+            return false;
+        }
+        return parent.isTrackCallbackRunnable();
     }
 
     @Override

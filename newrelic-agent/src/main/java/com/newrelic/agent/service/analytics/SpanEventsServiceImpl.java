@@ -97,7 +97,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             return;
         }
 
-        SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir();
+        String appName = transactionData.getApplicationName();
+        SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir(appName);
         if (reservoir.isFull() && reservoir.getMinPriority() >= transactionData.getPriority()) {
             // The reservoir is full and this event wouldn't make it in, so lets prevent some object allocations
             reservoir.incrementNumberOfTries();
@@ -132,7 +133,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 public String getAppName() {
                     return appName;
                 }
-            });
+            },  "HarvestResult");
         }
     }
 
@@ -217,17 +218,11 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         reservoirManager.clearReservoir();
     }
 
-    /**
-     * There is only one event reservoir for Distributed Tracing so there only needs to be one harvestable for it.
-     */
     @Override
     public void addHarvestableToService(String appName) {
-        final String primaryApplication = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
-        if (primaryApplication.equals(appName)) {
             Harvestable harvestable = new SpanEventHarvestableImpl(this, appName);
             ServiceFactory.getHarvestService().addHarvestable(harvestable);
             harvestables.add(harvestable);
-        }
     }
 
     @Override
@@ -243,8 +238,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
     }
 
     @Override
-    public SamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir() {
-        return reservoirManager.getOrCreateReservoir();
+    public SamplingPriorityQueue<SpanEvent> getOrCreateDistributedSamplingReservoir(String appName) {
+        return reservoirManager.getOrCreateReservoir(appName);
     }
 
     public static Builder builder() {

@@ -1,0 +1,25 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+// This instrumentation module should not use the bootstrap classpath
+compileJava.options.bootstrapClasspath = null
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java.logging-jdk8' }
+}
+
+verifyInstrumentation {
+    verifyClasspath = false // We don't want to verify classpath since these are JDK classes
+}
+
+site {
+    title 'Java Logging'
+    type 'Other'
+    versionOverride '[8,)'
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
+}

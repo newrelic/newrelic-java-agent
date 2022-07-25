@@ -1,11 +1,12 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("javax.jms:jms-api:1.1-rev-1")
+    implementation 'jakarta.jms:jakarta.jms-api:2.0.3'
 
-    testImplementation("org.apache.activemq:activemq-broker:5.8.0")
-    testImplementation("org.hornetq:hornetq-core-client:2.3.0.Final")
-    testImplementation("org.hornetq:hornetq-jms-client:2.3.0.Final")
-    testImplementation("org.hornetq:hornetq-jms-server:2.3.0.Final") {
+    // org.apache.activemq:activemq-broker:5.17.0 and above requires Java 11
+    testImplementation('org.apache.activemq:activemq-broker:5.16.5')
+    testImplementation("org.hornetq:hornetq-core-client:2.4.9.Final")
+    testImplementation("org.hornetq:hornetq-jms-client:2.4.9.Final")
+    testImplementation("org.hornetq:hornetq-jms-server:2.4.9.Final") {
         exclude(group: "org.jboss.naming", module: "jnpserver")
     }
 }
@@ -14,8 +15,13 @@ jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jms-1.1' }
 }
 
+verifyInstrumentation {
+    passesOnly 'javax.jms:jms-api:[1.1-rev-1,)'
+    passesOnly 'jakarta.jms:jakarta.jms-api:[2.0.2,3.0.0-RC1)'
+}
+
 site {
     title 'JMS'
     type 'Messaging'
-    versionOverride '[1.1,)'
+    versionOverride '[1.1,3.0.0)'
 }

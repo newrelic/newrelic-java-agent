@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class RootSpanStatusErrorsTest {
+    private String APP_NAME;
     private static final String CONFIG_FILE = "configs/span_events_test.yml";
     private static final ClassLoader CLASS_LOADER = RootSpanStatusErrorsTest.class.getClassLoader();
 
@@ -33,9 +34,10 @@ public class RootSpanStatusErrorsTest {
     public void before() throws Exception {
         holder = new EnvironmentHolder(new EnvironmentHolderSettingsGenerator(CONFIG_FILE, "all_enabled_test", CLASS_LOADER));
         holder.setupEnvironment();
+        APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
 
         ServiceFactory.getSpanEventService()
-                .getOrCreateDistributedSamplingReservoir()
+                .getOrCreateDistributedSamplingReservoir(APP_NAME)
                 .clear();
     }
 
@@ -44,7 +46,7 @@ public class RootSpanStatusErrorsTest {
         holder.close();
 
         ServiceFactory.getSpanEventService()
-                .getOrCreateDistributedSamplingReservoir()
+                .getOrCreateDistributedSamplingReservoir(APP_NAME)
                 .clear();
     }
 
@@ -64,7 +66,7 @@ public class RootSpanStatusErrorsTest {
 
     private void assertRootSpanAttributes(Integer expectedStatus, String errorClass) {
         SamplingPriorityQueue<SpanEvent> reservoir = ServiceFactory.getSpanEventService()
-                .getOrCreateDistributedSamplingReservoir();
+                .getOrCreateDistributedSamplingReservoir(APP_NAME);
         assertTrue(reservoir.asList().size() > 0);
         List<String> seenNames = new LinkedList<>();
         for(SpanEvent event : reservoir.asList()) {

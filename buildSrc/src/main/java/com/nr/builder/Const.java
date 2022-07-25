@@ -10,6 +10,6 @@ package com.nr.builder;
 import org.objectweb.asm.Opcodes;
 
 public final class Const {
-    public static final int ASM_API = Opcodes.ASM7;
+    public static final int ASM_API = Opcodes.ASM9;
     private Const() {}
 }

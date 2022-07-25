@@ -135,6 +135,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     SqlTraceConfig getSqlTraceConfig();
 
     /**
+     * Gets the JFR configuration settings.
+     *
+     * @return JFR configuration settings.
+     */
+    JfrConfig getJfrConfig();
+
+    /**
      * Gets the JMX configuration settings.
      *
      * @return JMX configuration settings.
@@ -164,6 +171,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      * Get the Insights configuration.
      */
     InsightsConfig getInsightsConfig();
+
+    /**
+     * Get the application logging configuration.
+     *
+     * @return ApplicationLoggingConfig used by LogSenderService
+     */
+    ApplicationLoggingConfig getApplicationLoggingConfig();
 
     /**
      * Get the attributes configuration.
@@ -264,6 +278,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     Config getInstrumentationConfig();
 
     String getMetricIngestUri();
+
+    String getEventIngestUri();
 
     boolean isHighSecurity();
 

@@ -157,9 +157,8 @@ public class BaseConfig implements Config {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T getProperty(String key) {
-        return (T) getProperty(key, null);
+        return getProperty(key, null);
     }
 
     protected Set<Integer> getIntegerSet(String key, Set<Integer> defaultVal) {
@@ -181,7 +180,7 @@ public class BaseConfig implements Config {
      *
      * @see BaseConfig#getUniqueStrings(String, String)
      */
-    protected Collection<String> getUniqueStrings(String key) {
+    protected List<String> getUniqueStrings(String key) {
         return getUniqueStrings(key, COMMA_SEPARATOR);
     }
 
@@ -189,7 +188,7 @@ public class BaseConfig implements Config {
      * Returns a collection of strings for the given key.  The property value can be a collection or
      * a String list that uses a separator character.
      */
-    protected Collection<String> getUniqueStrings(String key, String separator) {
+    protected List<String> getUniqueStrings(String key, String separator) {
         Object val = getProperty(key);
         if (val instanceof String) {
             return Collections.unmodifiableList(getUniqueStringsFromString((String) val, separator));
@@ -197,7 +196,7 @@ public class BaseConfig implements Config {
         if (val instanceof Collection<?>) {
             return Collections.unmodifiableList(getUniqueStringsFromCollection((Collection<?>) val));
         }
-        return Collections.emptySet();
+        return Collections.emptyList();
     }
 
     public static List<String> getUniqueStringsFromCollection(Collection<?> values, String prefix) {

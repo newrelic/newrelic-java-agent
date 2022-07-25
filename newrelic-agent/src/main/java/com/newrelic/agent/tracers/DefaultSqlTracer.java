@@ -49,6 +49,9 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     private static final String PARAMETER_REGEX = "\\?";
     private static final Pattern PARAMETER_PATTERN = Pattern.compile(PARAMETER_REGEX);
 
+    // A non skipped single quote, ie not \'. This is intended to be used on strings used as parameters, not whole queries.
+    private static final Pattern UNESCAPED_QUOTE_PATTERN = Pattern.compile("(?<!\\\\)'");
+
     private ConnectionFactory connectionFactory = null;
     private String sql = null;
     private Object[] params = null;
@@ -516,11 +519,19 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                 } else if (val == null) {
                     sb.append(piece).append("?");
                 } else {
-                    sb.append(piece).append("'").append(val.toString()).append("'");
+                    String escapedVal = escapeQuotes(val.toString());
+                    sb.append(piece).append("'").append(escapedVal).append("'");
                 }
             }
         }
         return sb.toString();
+    }
+
+    private static String escapeQuotes(String val) {
+        if (val.indexOf('\'') == -1) {
+            return val;
+        }
+        return UNESCAPED_QUOTE_PATTERN.matcher(val).replaceAll("''");
     }
 
     private static class SqlQueryConverter implements QueryConverter<String> {

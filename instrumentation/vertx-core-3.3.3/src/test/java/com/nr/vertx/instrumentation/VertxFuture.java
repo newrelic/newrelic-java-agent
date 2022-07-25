@@ -16,6 +16,7 @@ import com.newrelic.api.agent.Trace;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Map;

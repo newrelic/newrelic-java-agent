@@ -418,7 +418,7 @@ public class JmxService extends AbstractService implements HarvestListener {
     }
 
     private void registerAgentMBeans() {
-        if(jmxConfig.registerLinkingMetadataMBean()){
+        if (jmxConfig.registerLinkingMetadataMBean()) {
             // This registers the mbean that exposes linking metadata
             new LinkingMetadataRegistration(Agent.LOG).registerLinkingMetadata();
         }

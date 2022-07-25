@@ -1,0 +1,28 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.httpclient-jdk11'
+    }
+}
+
+verifyInstrumentation {
+    verifyClasspath = false // We don't want to verify classpath since these are JDK classes
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
+}
+
+
+
+

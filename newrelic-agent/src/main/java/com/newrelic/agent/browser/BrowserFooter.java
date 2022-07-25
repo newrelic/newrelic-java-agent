@@ -49,7 +49,8 @@ public class BrowserFooter {
     private static final String AGENT_PAYLOAD_SCRIPT_KEY = "agent";
 
     // Used by functional tests
-    public static final String FOOTER_START_SCRIPT = "\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=";
+    static final String FOOTER_JS_START = "window.NREUM||(NREUM={});NREUM.info=";
+    public static final String FOOTER_START_SCRIPT = "\n<script type=\"text/javascript\">" + FOOTER_JS_START;
     public static final String FOOTER_END = "</script>";
 
     private final String beacon;
@@ -78,6 +79,20 @@ public class BrowserFooter {
         String jsonString = jsonToString(createMapWithData(state));
         if (jsonString != null) {
             return FOOTER_START_SCRIPT + jsonString + FOOTER_END;
+        } else {
+            return "";
+        }
+    }
+
+    String getFooter(BrowserTransactionState state, String nonce) {
+        String jsonString = jsonToString(createMapWithData(state));
+        if (jsonString != null) {
+            return "\n<script type=\"text/javascript\" nonce=\""
+                    + nonce
+                    + "\">"
+                    + FOOTER_JS_START
+                    + jsonString
+                    + FOOTER_END;
         } else {
             return "";
         }

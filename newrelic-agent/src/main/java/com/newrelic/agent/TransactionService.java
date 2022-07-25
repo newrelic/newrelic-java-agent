@@ -11,22 +11,14 @@ import com.google.common.collect.MapMaker;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.stats.StatsService;
-import com.newrelic.agent.stats.StatsWork;
-import com.newrelic.agent.stats.StatsWorks;
-import com.newrelic.agent.stats.TransactionStats;
+import com.newrelic.agent.stats.*;
 import com.newrelic.agent.transaction.MergeStatsEngineResolvingScope;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.util.TimeConversion;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -71,12 +63,7 @@ public class TransactionService extends AbstractService {
 
         // run as daemon to not prevent shutdown of application
         scheduler = Executors.newScheduledThreadPool(numMaintenanceThreads, new DefaultThreadFactory(TRANSACTION_SERVICE_PROCESSOR_THREAD_NAME, true));
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                processQueue();
-            }
-        }, initialDelayMilli, delayMilli, TimeUnit.MILLISECONDS);
+        scheduler.scheduleWithFixedDelay(() -> TransactionService.this.processQueue(), initialDelayMilli, delayMilli, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -169,7 +156,7 @@ public class TransactionService extends AbstractService {
         }
         StatsService statsService = ServiceFactory.getStatsService();
         StatsWork statsWork = new MergeStatsEngineResolvingScope(transactionData.getBlameMetricName(), transactionData.getApplicationName(), transactionStats);
-        statsService.doStatsWork(statsWork);
+        statsService.doStatsWork(statsWork, transactionData.getBlameMetricName());
         if (transactionData.getDispatcher() != null) {
             for (TransactionStatsListener listener : transactionStatsListeners) {
                 listener.dispatcherTransactionStatsFinished(transactionData, transactionStats);
@@ -214,14 +201,21 @@ public class TransactionService extends AbstractService {
         StatsService statsService = ServiceFactory.getStatsService();
 
         //These three are so we can average the number of transactions happening per harvest cycle
-        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED, started));
-        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_FINISHED, finished));
-        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED, cancelled));
+        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED, started),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED);
+        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_FINISHED, finished),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_FINISHED);
+        statsService.doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED, cancelled),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED);
 
         //These three are so we can get the total number of transactions ever, or the average among all apps' lifetime
-        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_STARTED, (int) started));
-        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_FINISHED, (int) finished));
-        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_CANCELLED, (int) cancelled));
+        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_STARTED, (int) started),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_STARTED);
+        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_FINISHED, (int) finished),
+                MetricNames.SUPPORTABILITY_TRANSACTION_FINISHED
+        );
+        statsService.doStatsWork(StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TRANSACTION_CANCELLED, (int) cancelled),
+                MetricNames.SUPPORTABILITY_HARVEST_TRANSACTION_CANCELLED);
     }
 
     @Override

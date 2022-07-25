@@ -11,23 +11,32 @@ import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.modules.ClassLoaderUtil;
 import com.newrelic.agent.modules.ClassLoaderUtilImpl;
+import com.newrelic.agent.modules.HttpModuleUtil;
+import com.newrelic.agent.modules.HttpModuleUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
+import org.apache.commons.codec.binary.Base64;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.zip.InflaterInputStream;
 
 public class BootstrapAgent {
 
+    public static final String TRY_IBM_ATTACH_SYSTEM_PROPERTY = "newrelic.try_ibm_attach";
+    public static final String NR_AGENT_ARGS_SYSTEM_PROPERTY = "nr-internal-agent-args";
     private static final String AGENT_CLASS_NAME = "com.newrelic.agent.Agent";
     private static final String JAVA_LOG_MANAGER = "java.util.logging.manager";
     private static final String WS_SERVER_JAR = "ws-server.jar";
     private static final String WS_LOG_MANAGER = "com.ibm.ws.kernel.boot.logging.WsLogManager";
-    private static final String IBM_VENDOR = "IBM";
 
     public static URL getAgentJarUrl() {
         return BootstrapAgent.class.getProtectionDomain().getCodeSource().getLocation();
@@ -42,6 +51,7 @@ public class BootstrapAgent {
         try {
             Collection<URL> urls = BootstrapLoader.getJarURLs();
             urls.add(getAgentJarUrl());
+            @SuppressWarnings("resource")
             ClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[0]), null);
             Class<?> agentClass = classLoader.loadClass(AGENT_CLASS_NAME);
             Method main = agentClass.getDeclaredMethod("main", String[].class);
@@ -53,13 +63,49 @@ public class BootstrapAgent {
     }
 
     /**
+     * This is invoked when the agent is attached to a running process.
+     */
+    public static void agentmain(String agentArgs, Instrumentation inst) {
+        if (agentArgs == null || agentArgs.isEmpty()) {
+            throw new IllegalArgumentException("Unable to attach. The license key was not specified");
+        }
+        System.out.println("Attaching the New Relic java agent");
+        try {
+            agentArgs = decodeAndDecompressAgentArguments(agentArgs);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        System.setProperty(NR_AGENT_ARGS_SYSTEM_PROPERTY, agentArgs);
+        premain(agentArgs, inst);
+    }
+
+    static String decodeAndDecompressAgentArguments(String agentArgs) throws IOException {
+        byte[] decodeBase64 = Base64.decodeBase64(agentArgs);
+        InflaterInputStream zipStream = new InflaterInputStream(new ByteArrayInputStream(decodeBase64));
+        return new BufferedReader(new InputStreamReader(zipStream)).readLine();
+    }
+
+    /**
      * This is called via the Java 1.5 Instrumentation startup sequence (JSR 163). Boot up the agent.
      * <p>
      * Thanks Mr. Cobb! ;)
      */
     public static void premain(String agentArgs, Instrumentation inst) {
         String javaSpecVersion = JavaVersionUtils.getJavaSpecificationVersion();
-        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion)) {
+        String sysExperimentalRuntime = System.getProperty("newrelic.config.experimental_runtime");
+        String envExperimentalRuntime = System.getenv("NEW_RELIC_EXPERIMENTAL_RUNTIME");
+        boolean useExperimentalRuntime = (Boolean.parseBoolean(sysExperimentalRuntime)
+                || ((Boolean.parseBoolean(envExperimentalRuntime))));
+
+        if (useExperimentalRuntime) {
+            System.out.println("----------");
+            System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
+            System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
+                    " or upcoming Java releases or at your own risk.");
+            System.out.println("----------");
+        }
+        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion) && !useExperimentalRuntime) {
             System.err.println("----------");
             System.err.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
             System.err.println("----------");
@@ -68,12 +114,12 @@ public class BootstrapAgent {
 
         String sysPropEnabled = System.getProperty("newrelic.config.agent_enabled");
         String envVarEnabled = System.getenv("NEW_RELIC_AGENT_ENABLED");
-        if (sysPropEnabled != null && !Boolean.valueOf(sysPropEnabled)) {
+        if (sysPropEnabled != null && !Boolean.parseBoolean(sysPropEnabled)) {
             System.err.println("----------");
             System.err.println("New Relic Agent is disabled by -Dnewrelic.config.agent_enabled system property.");
             System.err.println("----------");
             return;
-        } else if (envVarEnabled != null && !Boolean.valueOf(envVarEnabled)) {
+        } else if (envVarEnabled != null && !Boolean.parseBoolean(envVarEnabled)) {
             System.err.println("----------");
             System.err.println("New Relic Agent is disabled by NEW_RELIC_AGENT_ENABLED environment variable.");
             System.err.println("----------");
@@ -85,8 +131,7 @@ public class BootstrapAgent {
     }
 
     private static void checkAndApplyIBMLibertyProfileLogManagerWorkaround() {
-        String javaVendor = System.getProperty("java.vendor");
-        if (javaVendor != null && (javaVendor.startsWith(IBM_VENDOR))) {
+        if (IBMUtils.isIbmJVM()) {
             String javaClassPath = System.getProperty("java.class.path");
             // WS_SERVER_JAR is characteristic of a Liberty Profile installation
             if (javaClassPath != null && javaClassPath.contains(WS_SERVER_JAR)) {
@@ -139,7 +184,8 @@ public class BootstrapAgent {
 
                 classLoader = new JVMAgentClassLoader(codeSource, agentClassLoaderParent);
 
-                exportModulesToUnnamedModule(inst, classLoader);
+                redefineJavaBaseModule(inst, classLoader);
+                addReadUnnamedModuleToHttpModule(inst, agentClassLoaderParent);
             }
 
             Class<?> agentClass = classLoader.loadClass(AGENT_CLASS_NAME);
@@ -174,13 +220,33 @@ public class BootstrapAgent {
      * <p>{@link ModuleUtil} is compiled in a multi-release jar. In Java &lt; 9, this
      * results in a no-op implementation.</p>
      *
-     * @param inst The premain {@link Instrumentation} interface.
+     * @param inst             The premain {@link Instrumentation} interface.
      * @param agentClassLoader The class loader used for loading agent classes.
      */
-    private static void exportModulesToUnnamedModule(Instrumentation inst, ClassLoader agentClassLoader) {
+    private static void redefineJavaBaseModule(Instrumentation inst, ClassLoader agentClassLoader) {
         try {
             ModuleUtil util = new ModuleUtilImpl();
-            util.redefineModules(inst, agentClassLoader);
+            util.redefineJavaBaseModule(inst, agentClassLoader);
+        } catch (Throwable t) {
+            System.err.println("The agent failed to redefine modules as necessary. " + t);
+        }
+    }
+
+    /**
+     * Modify the java.net.http module so that it can read from the platform classloader's
+     * unnamed module. The agent http client instrumentation utility classes are
+     * in this specific unnamed module.
+     *
+     * <p>{@link ModuleUtil} is compiled in a multi-release jar. In Java &lt; 11, this
+     * results in a no-op implementation.</p>
+     *
+     * @param inst                The premain {@link Instrumentation} interface.
+     * @param platformClassLoader
+     */
+    private static void addReadUnnamedModuleToHttpModule(Instrumentation inst, ClassLoader platformClassLoader) {
+        try {
+            HttpModuleUtil util = new HttpModuleUtilImpl();
+            util.addReadHttpModule(inst, platformClassLoader);
         } catch (Throwable t) {
             System.err.println("The agent failed to redefine modules as necessary. " + t);
         }

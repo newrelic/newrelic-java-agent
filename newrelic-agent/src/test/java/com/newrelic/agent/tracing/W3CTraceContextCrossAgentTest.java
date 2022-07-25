@@ -14,7 +14,7 @@ import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.attributes.CrossAgentInput;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Instrumentation;
-import com.newrelic.agent.bridge.TransportType;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.*;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
@@ -66,6 +66,8 @@ public class W3CTraceContextCrossAgentTest {
 
     private SpanEventsService spanEventService;
 
+    private final String APP_NAME = "Test";
+
     @Parameterized.Parameter(0)
     public String testName;
 
@@ -96,7 +98,7 @@ public class W3CTraceContextCrossAgentTest {
         ServiceFactory.setServiceManager(serviceManager);
 
         Map<String, Object> config = Maps.newHashMap();
-        config.put(AgentConfigImpl.APP_NAME, "Test");
+        config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
         Map<String, Object> dtConfig = Maps.newHashMap();
         dtConfig.put("enabled", true);
@@ -207,7 +209,7 @@ public class W3CTraceContextCrossAgentTest {
         TransactionData transactionData = new TransactionData(tx, 0);
         TransactionStats transactionStats = transactionData.getTransaction().getTransactionActivity().getTransactionStats();
 
-        eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
 
         List<String> parents = Lists.newArrayList();
         List<String> states = Lists.newArrayList();
@@ -284,7 +286,7 @@ public class W3CTraceContextCrossAgentTest {
         TransactionEvent transactionEvent = serviceManager.getTransactionEventsService().createEvent(transactionData, transactionStats, "wat");
         JSONObject txnEvents = serializeAndParseEvents(transactionEvent);
 
-        StatsEngine statsEngine = statsService.getStatsEngineForHarvest("Test");
+        StatsEngine statsEngine = statsService.getStatsEngineForHarvest(APP_NAME);
         assertExpectedMetrics(expectedMetrics, statsEngine);
 
         for (Object event : targetEvents) {
@@ -300,7 +302,7 @@ public class W3CTraceContextCrossAgentTest {
 
     private void replaceConfig(boolean spanEventsEnabled) {
         Map<String, Object> config = Maps.newHashMap();
-        config.put(AgentConfigImpl.APP_NAME, "Test");
+        config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
         Map<String, Object> dtConfig = Maps.newHashMap();
         dtConfig.put("enabled", true);

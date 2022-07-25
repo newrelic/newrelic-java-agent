@@ -57,7 +57,7 @@ public class StatsServiceImpl extends AbstractService implements StatsService {
     }
 
     @Override
-    public void doStatsWork(StatsWork work) {
+    public void doStatsWork(StatsWork work, String statsWorkName) {
         String appName = work.getAppName();
         boolean done = false;
         while (!done) {

@@ -8,18 +8,14 @@
 package com.nr.agent.instrumentation.httpurlconnection;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.introspec.HttpTestServer;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.agent.introspec.TransactionTrace;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.Trace;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,8 +63,8 @@ public class MetricStateResponseCodeTest {
         String transactionName = fetchTransactionName(introspector, "callGetResponseCode");
 
         // We only have one call to this external metric.
-        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection"));
-        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection").getCallCount());
+        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection/getResponseCode"));
+        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection/getResponseCode").getCallCount());
 
         // The number of segments is equal to the number of calls to getResponseCode.
         TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
@@ -94,8 +90,8 @@ public class MetricStateResponseCodeTest {
 
         // Only one external call.
         String transactionName = fetchTransactionName(introspector, "callGetResponseCodeThenGetInputStream");
-        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection"));
-        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection").getCallCount());
+        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection/getResponseCode"));
+        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection/getResponseCode").getCallCount());
 
         // Two child segments within the transaction.
         TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
@@ -125,8 +121,8 @@ public class MetricStateResponseCodeTest {
 
         // Only one external call.
         String transactionName = fetchTransactionName(introspector, "callGetInputStreamThenResponseCode");
-        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection"));
-        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection").getCallCount());
+        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection/getInputStream"));
+        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection/getInputStream").getCallCount());
 
         // Two child segments within the transaction.
         TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
@@ -204,14 +200,12 @@ public class MetricStateResponseCodeTest {
     @Trace(leaf = true)
     private void simulatedInstrumentedGetResponseCodeMethod(HttpURLConnection conn, MetricState target) {
         target.getResponseCodePreamble(conn, AgentBridge.getAgent().getTracedMethod());
-
-        target.getInboundPostamble(conn, AgentBridge.getAgent().getTracedMethod());
+        target.getInboundPostamble(conn, 0, null, "getResponseCode", AgentBridge.getAgent().getTracedMethod());
     }
 
     @Trace(leaf = true)
     private void simulatedInstrumentedGetInputStreamMethod(boolean isConnected, HttpURLConnection conn, MetricState target) {
         target.getInputStreamPreamble(isConnected, conn, AgentBridge.getAgent().getTracedMethod());
-
-        target.getInboundPostamble(conn, AgentBridge.getAgent().getTracedMethod());
+        target.getInboundPostamble(conn, 0, null, "getInputStream", AgentBridge.getAgent().getTracedMethod());
     }
 }

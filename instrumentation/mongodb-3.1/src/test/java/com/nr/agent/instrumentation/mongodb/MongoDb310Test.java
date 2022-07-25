@@ -17,13 +17,18 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.api.agent.Trace;
+import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.config.IRuntimeConfig;
+import de.flapdoodle.embed.process.extract.ITempNaming;
 import de.flapdoodle.embed.process.runtime.Network;
 import org.junit.After;
 import org.junit.Before;
@@ -40,23 +45,47 @@ import static org.junit.Assert.assertEquals;
 public class MongoDb310Test {
 
     private static final String MONGODB_PRODUCT = DatastoreVendor.MongoDB.toString();
-    private static final MongodStarter mongodStarter = MongodStarter.getDefaultInstance();
+    private static final MongodStarter mongodStarter;
+
+    static {
+        IRuntimeConfig runtimeConfig = new RuntimeConfigBuilder().defaults(Command.MongoD)
+                .artifactStore(new ExtractedArtifactStoreBuilder()
+                        .defaults(Command.MongoD)
+                        // The default configuration creates executables whose names contain random UUIDs, which
+                        // prompts repetitive firewall dialog popups. Instead, we use a naming strategy that
+                        // produces a stable executable name and only have to acknowledge the firewall dialogs once.
+                        // On macOS systems, the dialogs must be acknowledged quickly in order to be registered.
+                        // Failure to click fast enough will result in additional dialogs on subsequent test runs.
+                        // This firewall dialog issue only seems to occur with versions of mongo < 3.6.0
+                        .executableNaming(new ITempNaming() {
+                            @Override
+                            public String nameFor(String prefix, String postfix) {
+                                return prefix + "-Db310-" + postfix;
+                            }
+                        }))
+                .build();
+        mongodStarter = MongodStarter.getInstance(runtimeConfig);
+    }
+
     private MongodExecutable mongodExecutable;
     private MongodProcess mongodProcess;
     private MongoClient mongoClient;
 
     @Before
     public void startMongo() throws Exception {
-        final int port = InstrumentationTestRunner.getIntrospector().getRandomPort();
-        IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.V3_2_0).net(new Net(port,
-                Network.localhostIsIPv6())).build();
+        int port = Network.getFreeServerPort();
+        IMongodConfig mongodConfig = new MongodConfigBuilder()
+                .version(Version.V3_2_0)
+                .net(new Net(port, Network.localhostIsIPv6()))
+                .build();
+
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
         mongoClient = new MongoClient("localhost", port);
     }
 
     @After
-    public void stopMongo() throws Exception {
+    public void stopMongo() {
         if (mongoClient != null) {
             mongoClient.close();
         }

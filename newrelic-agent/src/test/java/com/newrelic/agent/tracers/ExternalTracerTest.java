@@ -10,6 +10,7 @@ package com.newrelic.agent.tracers;
 import com.newrelic.agent.MockCoreService;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
+import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
@@ -42,10 +43,10 @@ public class ExternalTracerTest {
     public void before(String ymlPath) throws Exception {
         String configPath = getFullPath(ymlPath);
         System.setProperty("newrelic.config.file", configPath);
-
         MockCoreService.getMockAgentAndBootstrapTheServiceManager();
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(appName);
         eventPool.clear();
     }
 

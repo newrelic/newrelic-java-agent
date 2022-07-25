@@ -132,7 +132,7 @@ public class SamplerServiceImpl extends AbstractService implements SamplerServic
     private void mergeStatsEngine(String appName) {
         StatsService statsService = ServiceFactory.getStatsService();
         StatsWork work = new MergeStatsEngine(appName, statsEngine);
-        statsService.doStatsWork(work);
+        statsService.doStatsWork(work, statsService.getName());
     }
 
     @Override

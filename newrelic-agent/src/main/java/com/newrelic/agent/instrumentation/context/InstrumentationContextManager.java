@@ -14,6 +14,8 @@ import com.newrelic.agent.config.ClassTransformerConfig;
 import com.newrelic.agent.config.Config;
 import com.newrelic.agent.instrumentation.ClassNameFilter;
 import com.newrelic.agent.instrumentation.api.ApiImplementationUpdate;
+import com.newrelic.agent.instrumentation.classmatchers.ScalaTraitMatcher;
+import com.newrelic.agent.instrumentation.classmatchers.TraceLambdaVisitor;
 import com.newrelic.agent.instrumentation.ejb3.EJBAnnotationVisitor;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
@@ -66,6 +68,7 @@ public class InstrumentationContextManager {
         this.classWeaverService = new ClassWeaverService(instrumentation);
 
         // these matchers only modify the InstrumentationContext, they don't actually transform classes
+        matchVisitors.put(new ScalaTraitMatcher(), NO_OP_TRANSFORMER);
         matchVisitors.put(new TraceMatchVisitor(), NO_OP_TRANSFORMER);
         matchVisitors.put(new GeneratedClassDetector(), NO_OP_TRANSFORMER);
 
@@ -94,6 +97,20 @@ public class InstrumentationContextManager {
             Agent.LOG.log(Level.FINEST, "servlet_annotations instrumentation is disabled because it is not explicitly enabled");
         } else {
             matchVisitors.put(new ServletAnnotationVisitor(), NO_OP_TRANSFORMER);
+        }
+
+        if (agentConfig.getValue("instrumentation.trace_lambda.enabled", false)) {
+            Agent.LOG.log(Level.FINEST, "trace_lambda instrumentation is enabled");
+            matchVisitors.put(new TraceLambdaVisitor(), NO_OP_TRANSFORMER);
+        } else {
+            Agent.LOG.log(Level.FINEST, "trace_lambda instrumentation is disabled because it is not explicitly enabled");
+        }
+
+        if (agentConfig.getValue("instrumentation.scala_future_trace.enabled", false)) {
+          Agent.LOG.log(Level.FINEST, "scala_future_trace instrumentation is enabled");
+          matchVisitors.put(new TraceByReturnTypeMatchVisitor(), NO_OP_TRANSFORMER);
+        } else {
+          Agent.LOG.log(Level.FINEST, "scala_future_trace instrumentation is disabled because it is not explicitly enabled");
         }
 
         Config instrumentationConfig = agentConfig.getClassTransformerConfig().getInstrumentationConfig(

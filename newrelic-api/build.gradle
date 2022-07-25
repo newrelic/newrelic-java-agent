@@ -8,7 +8,7 @@ plugins {
 jar {
     from("$rootDir/LICENSE")
     manifest {
-        attributes 'Implementation-Title': 'New Relic Agent API', 'Implementation-Version': project.version
+        attributes 'Implementation-Title': 'New Relic Agent API', 'Implementation-Version': project.version, 'Automatic-Module-Name': 'newrelic.api'
     }
 }
 
@@ -21,11 +21,13 @@ tasks.withType(GenerateModuleMetadata.class) {
     enabled = false
 }
 
-javadoc {
-    if (JavaVersion.current() == JavaVersion.VERSION_11) {
-        options.addBooleanOption("-frames", true)
-        options.addBooleanOption("-no-module-directories", true)
+tasks.withType(Javadoc).configureEach {
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
     }
+
+    options.addBooleanOption("-frames", true)
+    options.addBooleanOption("-no-module-directories", true)
 }
 
 PublishConfig.config(

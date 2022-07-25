@@ -22,7 +22,7 @@ import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
-import com.newrelic.agent.instrumentation.weaver.extension.GuavaBackedExtensionClass;
+import com.newrelic.agent.instrumentation.weaver.extension.CaffeineBackedExtensionClass;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.ClassCache;
@@ -32,11 +32,13 @@ import com.newrelic.weave.violation.WeaveViolation;
 import com.newrelic.weave.weavepackage.ExtensionClassTemplate;
 import com.newrelic.weave.weavepackage.NewClassAppender;
 import com.newrelic.weave.weavepackage.PackageValidationResult;
+import com.newrelic.weave.weavepackage.PackageWeaveResult;
 import com.newrelic.weave.weavepackage.WeavePackage;
 import com.newrelic.weave.weavepackage.WeavePackageConfig;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
@@ -45,6 +47,8 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,10 +129,10 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
 
         AgentBridge.getAgent().getLogger().log(Level.FINER, "classloadersToSkip: {0}", classloadersToSkip);
 
-        // Try to use a custom Guava-based extension template to make NewField access better
+        // Try to use a custom Caffeine based extension template to make NewField access better
         try {
             extensionTemplate = WeaveUtils.convertToClassNode(WeaveUtils.getClassBytesFromClassLoaderResource(
-                    GuavaBackedExtensionClass.class.getName(), GuavaBackedExtensionClass.class.getClassLoader()));
+                    CaffeineBackedExtensionClass.class.getName(), CaffeineBackedExtensionClass.class.getClassLoader()));
         } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.WARNING, e, "Unable to initialize custom extension class "
                     + "template. Falling back to default java NewField implementation");
@@ -354,12 +358,16 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
                     superNames = new String[] { "java/lang/ClassLoader" };
                 }
 
-                // This applies the "checkPackageAccess" weaved code only if it should be enabled from the constructor above
+                Map<Method, Collection<String>> skipMethods = (context != null)
+                  ? context.getSkipMethods()
+                  : Collections.emptyMap();
+
+              // This applies the "checkPackageAccess" weaved code only if it should be enabled from the constructor above
                 byte[] newBytes = classfileBuffer;
                 if (checkPackageAccessPackage != null && newBytes != null && className.equals("java/lang/ClassLoader")) {
                     PackageValidationResult checkPackageAccessResult = checkPackageAccessPackage.validate(cache);
                     if (checkPackageAccessResult.succeeded()) {
-                        newBytes = checkPackageAccessResult.weave(className, superNames, new String[0], newBytes, cache).getCompositeBytes(cache);
+                        newBytes = checkPackageAccessResult.weave(className, superNames, new String[0], newBytes, cache, skipMethods).getCompositeBytes(cache);
                     } else {
                         logClassLoaderWeaveViolations(checkPackageAccessResult, className);
                     }
@@ -369,8 +377,10 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
                     }
                 }
 
+              PackageWeaveResult packageWeaveResult = result.weave(className, superNames, new String[0], newBytes,
+                                                                   cache, skipMethods);
                 // Do the weaving and use our "non-findResource" cache from above
-                newBytes = result.weave(className, superNames, new String[0], newBytes, cache).getCompositeBytes(cache);
+                newBytes = packageWeaveResult.getCompositeBytes(cache);
                 if (newBytes != null) {
                     Agent.LOG.log(Level.FINE, "ClassLoaderClassTransformer patched {0} -- {1}", loader, className);
                     return newBytes;

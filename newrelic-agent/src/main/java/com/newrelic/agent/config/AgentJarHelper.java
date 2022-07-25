@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.DebugFlag;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -223,12 +225,9 @@ public class AgentJarHelper {
         }
     }
 
-    // The "newrelic.debug" flag redirects all Agent logging to the standard output. Unfortunately,
-    // we haven't initialized the Agent yet, so we cannot check it in the usual low-cost way by
-    // calling Agent.isDebugEnabled(). So we duplicate the functionality here for use in a few cases.
     private static final boolean isNewRelicDebug() {
-        final String newrelicDebug = "newrelic.debug";
-        return System.getProperty(newrelicDebug) != null && Boolean.getBoolean(newrelicDebug);
+
+        return DebugFlag.DEBUG;
     }
 
     // Use of this method should be limited to serious error cases that would cause the Agent to

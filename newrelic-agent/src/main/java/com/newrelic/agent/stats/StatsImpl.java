@@ -7,6 +7,12 @@
 
 package com.newrelic.agent.stats;
 
+import com.newrelic.agent.Agent;
+import com.newrelic.agent.config.AgentConfigImpl;
+import com.newrelic.api.agent.NewRelic;
+
+import java.util.logging.Level;
+
 /**
  * This class is not thread-safe.
  */
@@ -27,6 +33,7 @@ public class StatsImpl extends AbstractStats implements Stats {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.sumOfSquares = sumOfSquares;
+
     }
 
     @Override
@@ -42,8 +49,8 @@ public class StatsImpl extends AbstractStats implements Stats {
 
     @Override
     public String toString() {
-        // Don't bother with sOS because it's rarely used
-        return super.toString() + " [tot=" + total + ", min=" + minValue + ", maxV=" + maxValue + "]";
+        return super.toString() + " [total=" + total + ", count=" + count + ", minValue="
+                + minValue + ", maxValue=" + maxValue + ", sumOfSquares=" + sumOfSquares + "]";
     }
 
     @Override
@@ -64,6 +71,15 @@ public class StatsImpl extends AbstractStats implements Stats {
         total += value;
         maxValue = Math.max(value, maxValue);
         sumOfSquares = sos;
+
+        if (NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.METRIC_DEBUG, AgentConfigImpl.DEFAULT_METRIC_DEBUG)) {
+            if (count < 0 || total < 0) {
+                NewRelic.incrementCounter("Supportability/StatsImpl/NegativeValue");
+                Agent.LOG.log(Level.INFO, "Invalid count {0} or total {1}", count, total);
+
+            }
+        }
+
     }
 
     @Override

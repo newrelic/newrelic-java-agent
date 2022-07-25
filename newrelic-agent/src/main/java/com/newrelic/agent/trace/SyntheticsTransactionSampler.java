@@ -46,7 +46,7 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
      * this deterministic collector is supposed to prevent, because it would result in lost traces intertwingled with
      * held traces.
      * 
-     * Since there is no locking around the either the (increment, enqueue) or the (dequeue, decrement) sequences, the
+     * Since there is no locking around either the (increment, enqueue) or the (dequeue, decrement) sequences, the
      * counter may not correctly indicate the actual number of items on the queue at a given point in time. But since
      * there are no blocking operations, the counter is "eventually consistent" with the sum of enqueues and dequeues.
      * 

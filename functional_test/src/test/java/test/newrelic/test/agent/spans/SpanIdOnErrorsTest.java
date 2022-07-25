@@ -29,6 +29,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class SpanIdOnErrorsTest {
+    private String APP_NAME;
     private static final String CONFIG_FILE = "configs/span_events_test.yml";
     private static final ClassLoader CLASS_LOADER = SpanParentTest.class.getClassLoader();
 
@@ -38,6 +39,8 @@ public class SpanIdOnErrorsTest {
     public void before() throws Exception {
         holder = new EnvironmentHolder(new EnvironmentHolderSettingsGenerator(CONFIG_FILE, "all_enabled_test", CLASS_LOADER));
         holder.setupEnvironment();
+        APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+
         cleanup();
     }
 
@@ -52,7 +55,7 @@ public class SpanIdOnErrorsTest {
         ServiceFactory.getRPMService().getErrorService().clearReservoir();
         Transaction.clearTransaction();
         ServiceFactory.getSpanEventService()
-                .getOrCreateDistributedSamplingReservoir()
+                .getOrCreateDistributedSamplingReservoir(APP_NAME)
                 .clear();
         ServiceFactory.getTransactionEventsService()
                 .getOrCreateDistributedSamplingReservoir(ServiceFactory.getRPMService().getApplicationName())
@@ -111,7 +114,7 @@ public class SpanIdOnErrorsTest {
 
     private void assertMethodWhereErrorOriginatedHasThisSpanId(Object spanId, String expectedSpanName) {
         List<String> seenSpanNames = new LinkedList<>();
-        for(SpanEvent spanEvent : ServiceFactory.getSpanEventService().getOrCreateDistributedSamplingReservoir().asList()) {
+        for(SpanEvent spanEvent : ServiceFactory.getSpanEventService().getOrCreateDistributedSamplingReservoir(APP_NAME).asList()) {
             if (spanEvent.getGuid().equals(spanId)) {
                 assertEquals(expectedSpanName, spanEvent.getName());
                 return;

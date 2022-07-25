@@ -12,6 +12,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.instrumentation.InstrumentationUtils;
 import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher;
+import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldTransformer;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
@@ -43,6 +44,8 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
     private final boolean defaultMethodTracingEnabled;
     private final AtomicBoolean initialized = new AtomicBoolean(false);
     private final FinalClassTransformer finalClassTransformer = new FinalClassTransformer();
+    private final ScalaTraitFinalFieldTransformer scalaTraitFinalFieldTransformer =
+      new ScalaTraitFinalFieldTransformer();
 
     public InstrumentationClassTransformer(InstrumentationContextManager manager,
             TraceClassTransformer traceTransformer, boolean bootstrapClassloaderEnabled, boolean defaultMethodTracingEnabled) {
@@ -137,12 +140,20 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
                 }
             }
 
+            if(context.isModified() && !context.getScalaFinalFields().isEmpty()) {
+              byte[] bytes = scalaTraitFinalFieldTransformer.transform(loader, className, classBeingRedefined,
+                                                                       protectionDomain, classfileBuffer, context, null);
+              if(bytes != null) {
+                classfileBuffer = bytes;
+              }
+            }
+
             if (context.isModified()) {
                 byte[] transformation = finalClassTransformer.transform(loader, className,
                         classBeingRedefined, protectionDomain, classfileBuffer, context, null);
                 ServiceFactory.getStatsService().doStatsWork(
                         StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_CLASSLOADER_TRANSFORM_TIME,
-                                System.nanoTime() - transformStartTimeInNs));
+                                System.nanoTime() - transformStartTimeInNs), MetricNames.SUPPORTABILITY_CLASSLOADER_TRANSFORM_TIME);
                 return transformation;
             }
         } catch (Throwable t) {

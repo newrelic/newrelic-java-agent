@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.NewRelic;
 
 /**
@@ -86,5 +87,12 @@ public interface Agent extends com.newrelic.api.agent.Agent {
      * @return true if the context is recognized and an action is taken. False if the context does not exist.
      */
     boolean ignoreIfUnstartedAsyncContext(Object activityContext);
+
+    /**
+     * Provides access to the LogSender events API.
+     *
+     * @return Object used to add custom events.
+     */
+    Logs getLogSender();
 
 }

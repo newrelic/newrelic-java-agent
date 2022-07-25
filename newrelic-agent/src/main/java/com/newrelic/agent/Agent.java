@@ -63,7 +63,6 @@ public final class Agent {
     private static final String NEWRELIC_BOOTSTRAP = "newrelic-bootstrap";
     private static final String AGENT_ENABLED_PROPERTY = "newrelic.config.agent_enabled";
 
-    private static final boolean DEBUG = Boolean.getBoolean("newrelic.debug");
     private static final String VERSION = Agent.initVersion();
 
     private static long agentPremainTime;
@@ -85,7 +84,7 @@ public final class Agent {
     }
 
     public static boolean isDebugEnabled() {
-        return DEBUG;
+        return DebugFlag.DEBUG;
     }
 
     private static volatile boolean canFastPath = true;
@@ -120,6 +119,10 @@ public final class Agent {
      */
     @SuppressWarnings("unused")
     public static void continuePremain(String agentArgs, Instrumentation inst, long startTime) {
+        final LifecycleObserver lifecycleObserver = LifecycleObserver.createLifecycleObserver(agentArgs);
+        if (!lifecycleObserver.isAgentSafe()) {
+            return;
+        }
         // This *MUST* be done first thing in the premain
         addMixinInterfacesToBootstrap(inst);
 
@@ -131,6 +134,7 @@ public final class Agent {
 
         if (ServiceFactory.getServiceManager() != null) {
             LOG.warning("New Relic Agent is already running! Check if more than one -javaagent switch is used on the command line.");
+            lifecycleObserver.agentAlreadyRunning();
             return;
         }
         String enabled = System.getProperty(AGENT_ENABLED_PROPERTY);
@@ -155,6 +159,7 @@ public final class Agent {
             // is written to the newrelic_agent.log rather than to the console. Configuring the log also applies the
             // log_level setting from the newrelic.yml so debugging levels become available here, if so configured.
             serviceManager.start();
+            lifecycleObserver.serviceManagerStarted(serviceManager);
 
             LOG.info(MessageFormat.format("New Relic Agent v{0} has started", Agent.getVersion()));
 
@@ -196,6 +201,7 @@ public final class Agent {
             t.printStackTrace();
             System.exit(1);
         }
+        lifecycleObserver.agentStarted();
     }
 
     private static boolean tryToInitializeServiceManager(Instrumentation inst) {
@@ -287,13 +293,24 @@ public final class Agent {
 
     public static void main(String[] args) {
         String javaSpecVersion = JavaVersionUtils.getJavaSpecificationVersion();
-        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion)) {
+        String sysExperimentalRuntime = System.getProperty("newrelic.config.experimental_runtime");
+        String envExperimentalRuntime = System.getenv("NEW_RELIC_EXPERIMENTAL_RUNTIME");
+        boolean useExperimentalRuntime = (Boolean.parseBoolean(sysExperimentalRuntime)
+                || ((Boolean.parseBoolean(envExperimentalRuntime))));
+
+        if (useExperimentalRuntime) {
+            System.out.println("----------");
+            System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
+            System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
+                    " or upcoming Java releases or at your own risk.");
+            System.out.println("----------");
+        }
+        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion) && !useExperimentalRuntime) {
             System.err.println("----------");
             System.err.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
             System.err.println("----------");
             return;
         }
-
         new AgentCommandLineParser().parseCommand(args);
     }
 
@@ -304,7 +321,8 @@ public final class Agent {
     private static void recordPremainTime(StatsService statsService, long startTime) {
         agentPremainTime = System.currentTimeMillis() - startTime;
         LOG.log(Level.INFO, "Premain startup complete in {0}ms", agentPremainTime);
-        statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(MetricNames.SUPPORTABILITY_TIMING_PREMAIN, agentPremainTime));
+        statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(MetricNames.SUPPORTABILITY_TIMING_PREMAIN, agentPremainTime),
+                MetricNames.SUPPORTABILITY_TIMING_PREMAIN);
 
         Map<String, Object> environmentInfo = ImmutableMap.<String, Object>builder()
                 .put("Duration", agentPremainTime)
@@ -329,8 +347,8 @@ public final class Agent {
      */
     private static void recordAgentVersion(StatsService statsService) {
         statsService.doStatsWork(
-                StatsWorks.getIncrementCounterWork(MessageFormat.format(MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION, getVersion()), 1)
-        );
+                StatsWorks.getIncrementCounterWork(MessageFormat.format(MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION, getVersion()), 1),
+                MetricNames.SUPPORTABILITY_JAVA_AGENTVERSION);
     }
 
     /**
@@ -372,8 +390,8 @@ public final class Agent {
      * re-introduced. It is safer to ensure that code used under these special conditions remains right here.
      *
      * @param agentJarResource the Agent's jar file, or a test jar file for unit testing.
-     * @param agentJarUrl the Agent's jar URL, or a test URL for unit testing.
-     * @param inst the JVM instrumentation interface, or a mock for unit testing.
+     * @param agentJarUrl      the Agent's jar URL, or a test URL for unit testing.
+     * @param inst             the JVM instrumentation interface, or a mock for unit testing.
      */
     public static void addMixinInterfacesToBootstrap(JarResource agentJarResource, URL agentJarUrl, Instrumentation inst) {
         boolean succeeded = false;

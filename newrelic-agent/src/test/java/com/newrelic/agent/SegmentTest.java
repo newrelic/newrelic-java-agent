@@ -83,6 +83,8 @@ public class SegmentTest implements ExtendedTransactionListener {
     private static Instrumentation savedInstrumentation;
     private static com.newrelic.agent.bridge.Agent savedAgent;
 
+    private static final String APP_NAME = "Unit Test";
+
     // Wrap the ExpirationService so we can know when a segment has fully ended
     private static class InlineExpirationService extends ExpirationService {
 
@@ -895,7 +897,7 @@ public class SegmentTest implements ExtendedTransactionListener {
 
     private static Map<String, Object> createConfigMap() {
         Map<String, Object> map = new HashMap<>();
-        map.put(AgentConfigImpl.APP_NAME, "Unit Test");
+        map.put(AgentConfigImpl.APP_NAME, APP_NAME);
         map.put("traced_activity_timeout", 3);
         map.put("token_timeout", 2);
         map.put(AgentConfigImpl.THREAD_CPU_TIME_ENABLED, Boolean.TRUE);
@@ -1161,7 +1163,7 @@ public class SegmentTest implements ExtendedTransactionListener {
     @Test
     public void testSpanParenting() {
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
-        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir();
+        SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
 
         Transaction.clearTransaction();
         Tracer rootTracer = makeTransaction();

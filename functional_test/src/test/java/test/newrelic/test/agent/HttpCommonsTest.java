@@ -65,13 +65,13 @@ public class HttpCommonsTest {
         httpURLConnectionTx();
 
         Set<String> metrics = AgentHelper.getMetrics();
-        assertTrue(metrics.toString(), metrics.contains("External/" + HOST + "/HttpURLConnection"));
+        assertTrue(metrics.toString(), metrics.contains("External/" + HOST + "/HttpURLConnection/getResponseCode"));
 
         Map<String, Integer> metricCounts = getMetricCounts(
-                MetricName.create("External/" + HOST + "/HttpURLConnection",
+                MetricName.create("External/" + HOST + "/HttpURLConnection/getResponseCode",
                         "OtherTransaction/Custom/test.newrelic.test.agent.HttpCommonsTest/httpURLConnectionTx"));
 
-        assertEquals(1, (int) metricCounts.get("External/" + HOST + "/HttpURLConnection"));
+        assertEquals(1, (int) metricCounts.get("External/" + HOST + "/HttpURLConnection/getResponseCode"));
     }
 
     @Trace(dispatcher = true)
@@ -90,12 +90,15 @@ public class HttpCommonsTest {
 
         Set<String> metrics = AgentHelper.getMetrics();
         assertTrue(metrics.toString(), metrics.contains("External/localhost/CommonsHttp"));
+        assertTrue(metrics.toString(), metrics.contains("External/localhost/CommonsHttp/execute"));
         assertTrue(metrics.toString(), metrics.contains("External/localhost/all"));
         assertTrue(metrics.toString(), metrics.contains("External/all"));
         assertTrue(metrics.toString(), metrics.contains("External/allOther"));
 
         Map<String, Integer> metricCounts = getMetricCounts(
                 MetricName.create("External/localhost/CommonsHttp",
+                        "OtherTransaction/Custom/test.newrelic.test.agent.HttpCommonsTest/httpMethodImpl"),
+                MetricName.create("External/localhost/CommonsHttp/execute",
                         "OtherTransaction/Custom/test.newrelic.test.agent.HttpCommonsTest/httpMethodImpl"),
                 MetricName.create("External/localhost/all"),
                 MetricName.create("External/all"),
@@ -105,9 +108,10 @@ public class HttpCommonsTest {
         assertEquals(3, (int) metricCounts.get("External/all"));
         assertEquals(3, (int) metricCounts.get("External/allOther"));
 
-        // This is 6 because the loop executes 3 times and each loop calls
+        // This is 3 because the loop executes 3 times and each loop calls
         // execute() and releaseConnection(), both of which are instrumented
-        assertEquals(6, (int) metricCounts.get("External/localhost/CommonsHttp"));
+        assertEquals(3, (int) metricCounts.get("External/localhost/CommonsHttp")); // releaseConnection
+        assertEquals(3, (int) metricCounts.get("External/localhost/CommonsHttp/execute"));
     }
 
     @Trace(dispatcher = true)

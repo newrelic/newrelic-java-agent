@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -18,7 +19,6 @@ public class JavaVersionUtilsTest {
 
     @Test
     public void supportAgentJavaSpecVersions() {
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_7));
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_8));
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_9));
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_10));
@@ -27,10 +27,14 @@ public class JavaVersionUtilsTest {
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_13));
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_14));
         assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_15));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_16));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_17));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_18));
+
     }
 
     @Test
-    public void unsupportedAgentVersionsLessThanJava7() {
+    public void unsupportedAgentVersionsLessThanJava8() {
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.5"));
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.5.0"));
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.5.0_11"));
@@ -41,18 +45,23 @@ public class JavaVersionUtilsTest {
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.6.0_11"));
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.6.0_11-b12"));
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.6.1_gibberish"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.7"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.7.0"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.7.0_11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.7.0_11-b12"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.7.1_gibberish"));
     }
 
     @Test
-    public void unsupportedAgentVersionsExceedingJava14() {
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16+181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0+181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0_b181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1+11"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1_11"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("16.0.1_11-b11"));
+    public void javaVersionHigherThanSupported() {
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19.0"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19+181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19.0+181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19.0_b181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19.0.1"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19.0.1+11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19.0.1_11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("19.0.1_11-b11"));
     }
 
     @Test
@@ -71,26 +80,26 @@ public class JavaVersionUtilsTest {
     }
 
     @Test
-    public void unsupportedJavaVersionMessageWhenLessThanJava7() {
-        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_6);
-        assertThat(msg, containsString(JavaVersionUtils.JAVA_6));
-        assertThat(msg, containsString("4.3.x New Relic agent"));
+    public void unsupportedJavaVersionMessageWhenLessThanMinimalSupportedVersion() {
+        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_7);
+        assertThat(msg, containsString(JavaVersionUtils.JAVA_7));
+        assertThat(msg, containsString("6.5.3 New Relic agent"));
     }
 
     @Test
-    public void unsupportedJavaVersionMessageWhenGreaterThanJava9() {
-        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_16);
-        assertThat(msg, containsString(JavaVersionUtils.JAVA_16));
-        assertThat(msg, containsString("Java greater than 15."));
+    public void unsupportedJavaVersionMessageWhenGreaterThanMaxSupportedVersion() {
+        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_19);
+        assertThat(msg, containsString(JavaVersionUtils.JAVA_19));
+        assertThat(msg, containsString("Java greater than 18."));
     }
 
     @Test
     public void emptyMessageReturnedWhenJavaVersionSupported() {
         String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_8);
-        assertTrue(msg.length() == 0);
+        assertEquals(0, msg.length());
 
         msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(null);
-        assertTrue(msg.length() == 0);
+        assertEquals(0, msg.length());
     }
 
 }

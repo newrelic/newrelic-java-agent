@@ -64,7 +64,7 @@ public class DataSenderFactory {
         }
 
         private ApacheHttpClientWrapper buildApacheHttpClientWrapper(DataSenderConfig config, Logger logger) {
-            SSLContext sslContext = ApacheSSLManager.createSSLContext(config.getCaBundlePath());
+            SSLContext sslContext = ApacheSSLManager.createSSLContext(config);
 
             ApacheProxyManager proxyManager = new ApacheProxyManager(
                     config.getProxyHost(),
