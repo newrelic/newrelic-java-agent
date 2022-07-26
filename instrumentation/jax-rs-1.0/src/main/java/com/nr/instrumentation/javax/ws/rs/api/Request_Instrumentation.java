@@ -1,4 +1,4 @@
-package com.nr.instrumentation.jakarta.ws.rs.api;
+package com.nr.instrumentation.javax.ws.rs.api;
 
 /*
  *
@@ -11,10 +11,10 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-@Weave(type = MatchType.Interface, originalName = "jakarta.ws.rs.core.Request")
+@Weave(type = MatchType.Interface, originalName = "javax.ws.rs.core.Request")
 public class Request_Instrumentation {
 
-    public String getMethod(){
+    public String getMethod() {
         return Weaver.callOriginal();
     }
 }
