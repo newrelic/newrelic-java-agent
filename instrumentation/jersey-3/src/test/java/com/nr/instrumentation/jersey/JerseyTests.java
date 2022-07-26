@@ -7,6 +7,8 @@
 
 package com.nr.instrumentation.jersey;
 
+import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Response;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
@@ -19,9 +21,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Response;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -33,7 +32,7 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.instrumentation.jersey", "org.glassfish.jersey" })
 public class JerseyTests {
-    
+
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private static final int TIMEOUT = 30000;

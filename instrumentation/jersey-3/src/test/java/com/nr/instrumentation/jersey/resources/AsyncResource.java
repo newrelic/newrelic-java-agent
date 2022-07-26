@@ -8,7 +8,6 @@
 package com.nr.instrumentation.jersey.resources;
 
 import com.newrelic.api.agent.NewRelic;
-
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -16,6 +15,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.container.TimeoutHandler;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,8 +29,8 @@ public class AsyncResource {
     @GET
     @Path("/resume")
     public void resume(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                       @Suspended final AsyncResponse response) {
-        
+            @Suspended final AsyncResponse response) {
+
         NewRelic.setTransactionName("AsyncResource", "resume");
         new Thread(new Runnable() {
             @Override
@@ -50,7 +50,7 @@ public class AsyncResource {
     @Path("/resumeWithIOException")
     @SyntheticIOException
     public void resumeWithIOException(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                                      @Suspended final AsyncResponse response) {
+            @Suspended final AsyncResponse response) {
 
         NewRelic.setTransactionName("AsyncResource", "resumeWithIOException");
         new Thread(new Runnable() {
@@ -85,7 +85,7 @@ public class AsyncResource {
     @GET
     @Path("/multipleResume")
     public void multipleResume(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                               @Suspended final AsyncResponse response) throws Exception {
+            @Suspended final AsyncResponse response) throws Exception {
 
         NewRelic.setTransactionName("AsyncResource", "multipleResume");
         ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -127,7 +127,7 @@ public class AsyncResource {
     @GET
     @Path("/resumeThrowable")
     public void resumeThrowable(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                       @Suspended final AsyncResponse response) {
+            @Suspended final AsyncResponse response) {
 
         NewRelic.setTransactionName("AsyncResource", "resumeThrowable");
         new Thread(new Runnable() {
@@ -147,7 +147,7 @@ public class AsyncResource {
     @GET
     @Path("/cancel")
     public void cancel(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                       @Suspended final AsyncResponse response) {
+            @Suspended final AsyncResponse response) {
         NewRelic.setTransactionName("AsyncResource", "cancel");
 
         new Thread(new Runnable() {
@@ -167,7 +167,7 @@ public class AsyncResource {
     @GET
     @Path("/timeout")
     public void timeout(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                       @Suspended final AsyncResponse response) {
+            @Suspended final AsyncResponse response) {
 
         NewRelic.setTransactionName("AsyncResource", "timeout");
         System.out.println("Timeout set: " + response.setTimeout(1L, TimeUnit.SECONDS));
@@ -195,7 +195,7 @@ public class AsyncResource {
     @GET
     @Path("/timeoutThrowable")
     public void timeoutThrowable(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                        @Suspended final AsyncResponse response) {
+            @Suspended final AsyncResponse response) {
 
         NewRelic.setTransactionName("AsyncResource", "timeoutThrowable");
         System.out.println("Timeout set: " + response.setTimeout(1L, TimeUnit.SECONDS));
@@ -223,7 +223,7 @@ public class AsyncResource {
     @GET
     @Path("/timeoutCancel")
     public void timeoutCancel(@DefaultValue("1") @QueryParam("sleep") final int sleepMillis,
-                                 @Suspended final AsyncResponse response) {
+            @Suspended final AsyncResponse response) {
 
         NewRelic.setTransactionName("AsyncResource", "timeoutCancel");
         System.out.println("Timeout set: " + response.setTimeout(1L, TimeUnit.SECONDS));
