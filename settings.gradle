@@ -51,12 +51,12 @@ include 'functional_test:weave_test'
 include 'functional_test:weave_test_impl'
 
 // JDK 9+ module system tests
-if (JavaVersion.current().isJava9Compatible()) {
-    include 'module_test_9'
-}
-if (JavaVersion.current().isJava10Compatible()) {
-    include 'module_test_10'
-}
+//if (JavaVersion.current().isJava9Compatible()) {
+//    include 'module_test_9'
+//}
+//if (JavaVersion.current().isJava10Compatible()) {
+//    include 'module_test_10'
+//}
 if (JavaVersion.current().isJava11Compatible()) {
     include 'module_test_11'
 }
@@ -110,7 +110,6 @@ include 'instrumentation:hibernate-3.3'
 include 'instrumentation:hibernate-3.5'
 include 'instrumentation:hibernate-4.0'
 include 'instrumentation:hibernate-4.2'
-include 'instrumentation:hibernate-4.3'
 include 'instrumentation:http4s-blaze-server-2.13_0.21'
 include 'instrumentation:http4s-blaze-server-2.12_0.21'
 include 'instrumentation:http4s-blaze-client-2.13_0.21'

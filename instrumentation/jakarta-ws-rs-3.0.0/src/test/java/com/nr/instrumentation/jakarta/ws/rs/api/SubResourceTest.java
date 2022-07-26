@@ -10,7 +10,10 @@ package com.nr.instrumentation.jakarta.ws.rs.api;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.test.marker.Java10IncompatibleTest;
 import com.newrelic.test.marker.Java7IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
+import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
@@ -21,7 +24,7 @@ import jakarta.ws.rs.core.Application;
 
 import static org.junit.Assert.assertEquals;
 
-@Category({ Java7IncompatibleTest.class })
+@Category({ Java7IncompatibleTest.class, Java8IncompatibleTest.class, Java9IncompatibleTest.class, Java10IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.glassfish", "com.nr.instrumentation.jakarta.ws" })
 public class SubResourceTest extends JerseyTest {
