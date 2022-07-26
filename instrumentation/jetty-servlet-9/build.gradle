@@ -1,11 +1,28 @@
 
-
 dependencies {
     implementation(project(":agent-bridge"))
-
-    implementation("org.eclipse.jetty:jetty-servlet:9.0.3.v20130506")
+    implementation("org.eclipse.jetty:jetty-servlet:9.0.6.v20130930")
 }
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jetty-servlet-9' }
+}
+
+verifyInstrumentation {
+    // For newer versions of Jetty this instrumentation has moved to the jetty-9.x and jetty-10.x modules
+    passesOnly 'org.eclipse.jetty:jetty-servlet:[7.0.0.v20091005,9.0.7.v20131107)'
+
+    excludeRegex ".*(RC|M).*"
+
+    // Old versions with weave violations
+    exclude 'org.eclipse.jetty:jetty-servlet:8.2.0.v20160908'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.22.v20160922'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.21.v20160908'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.20.v20160902'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.19.v20160209'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.18.v20150929'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.17.v20150415'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.16.v20140903'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.15.v20140411'
+    exclude 'org.eclipse.jetty:jetty-servlet:8.1.14.v20131031'
 }
