@@ -1,11 +1,11 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
-package javax.interceptor;
+package jakarta.interceptor;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
