@@ -1,17 +1,16 @@
 dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-api"))
-//    implementation("org.glassfish.jersey.core:jersey-server:2.28")
-    implementation 'org.glassfish.jersey.core:jersey-server:3.1.0-M3'
+    implementation 'org.glassfish.jersey.core:jersey-server:3.0.0'
 
     testImplementation("com.jayway.restassured:rest-assured:2.7.0")
-    testImplementation("org.eclipse.jetty:jetty-server:11.0.11")
-    testImplementation("org.eclipse.jetty:jetty-servlet:11.0.11")
-    testImplementation("org.glassfish.jersey.core:jersey-server:3.1.0-M3")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet-core:3.1.0-M3")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-jetty-http:3.1.0-M3")
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.1.0-M3")
-    testImplementation('org.glassfish.jersey.inject:jersey-hk2:3.1.0-M3')
+    testImplementation("org.eclipse.jetty:jetty-server:9.4.6.v20170531")
+    testImplementation("org.eclipse.jetty:jetty-servlet:9.4.6.v20170531")
+    testImplementation("org.glassfish.jersey.core:jersey-server:3.0.0")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet-core:3.0.0")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-jetty-http:3.0.0")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.0")
+    testImplementation('org.glassfish.jersey.inject:jersey-hk2:3.0.0')
     testImplementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
 
 }
@@ -24,22 +23,11 @@ jar {
 // Version 3.0.0-M1 starts pulling in jakarata with renamed jar and packages
 verifyInstrumentation {
     passesOnly 'org.glassfish.jersey.core:jersey-server:[3.0.0-M1,)'
-//    exclude 'org.glassfish.jersey.core:jersey-server:[2.0-m05-2,2.0)'
+
 }
 
 test {
     onlyIf {
         !project.hasProperty('test7')
     }
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    }
-}
-
-compileJava {
-    options.fork = true
-    options.bootstrapClasspath = null
 }
