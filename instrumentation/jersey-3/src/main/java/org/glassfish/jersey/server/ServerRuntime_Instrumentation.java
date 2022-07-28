@@ -16,9 +16,10 @@ import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
+import org.glassfish.jersey.internal.util.collection.Value;
+
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.core.Response;
-import org.glassfish.jersey.internal.util.collection.Value;
 
 public class ServerRuntime_Instrumentation {
 

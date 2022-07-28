@@ -7,15 +7,17 @@
 
 package org.glassfish.jersey.server;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+
+import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
+
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
-import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
 
 @Weave
 public abstract class ContainerResponse {
