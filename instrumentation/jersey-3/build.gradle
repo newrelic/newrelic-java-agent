@@ -2,32 +2,119 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-api"))
     implementation 'org.glassfish.jersey.core:jersey-server:3.0.0'
+//    implementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
 
     testImplementation("com.jayway.restassured:rest-assured:2.7.0")
-    testImplementation("org.eclipse.jetty:jetty-server:9.4.6.v20170531")
-    testImplementation("org.eclipse.jetty:jetty-servlet:9.4.6.v20170531")
+    testImplementation("org.eclipse.jetty:jetty-server:11.0.11")
+    testImplementation("org.eclipse.jetty:jetty-servlet:11.0.11")
+//    testImplementation("org.eclipse.jetty:jetty-server:9.4.48.v20220622")
+//    testImplementation("org.eclipse.jetty:jetty-servlet:9.4.48.v20220622")
     testImplementation("org.glassfish.jersey.core:jersey-server:3.0.0")
     testImplementation("org.glassfish.jersey.containers:jersey-container-servlet-core:3.0.0")
     testImplementation("org.glassfish.jersey.containers:jersey-container-jetty-http:3.0.0")
     testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.0")
     testImplementation('org.glassfish.jersey.inject:jersey-hk2:3.0.0')
-    testImplementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
+//    testImplementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
+    testImplementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
 
 }
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jersey-3' }
 }
+//sourceSets.test.java.srcDirs = ['test']
+//sourceSets {
+//    main {
+//        java {
+//            //srcDir 'src'
+//        }
+//    }
+//    test {
+//        java {
+//            srcDir 'test/java'
+//        }
+//    }
+//}
 
-// org.glassfish.jersey.core 2.28 version starts pulling in jakarata jar named dependencies.
-// Version 3.0.0-M1 starts pulling in jakarata with renamed jar and packages
+// org.glassfish.jersey.core 3.0.0 version starts pulling in jakarta jar named dependencies.
+// Version 3.0.0-M1 starts pulling in jakarta with renamed jar and packages
 verifyInstrumentation {
     passesOnly 'org.glassfish.jersey.core:jersey-server:[3.0.0-M1,)'
 
 }
 
 test {
+    useJUnit()
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+
     onlyIf {
         !project.hasProperty('test7')
+
     }
 }
+//java {
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(11))
+//    }
+//}
+//
+//compileTestJava {
+//    options.fork = true
+//    options.bootstrapClasspath = null
+//    sourceCompatibility = JavaVersion.VERSION_11
+//    targetCompatibility = JavaVersion.VERSION_11
+//}
+//task('testsOn11', type: Test) {//JavaCompiler
+//    javaLauncher = javaToolchains.launcherFor {
+//        languageVersion = JavaLanguageVersion.of(11)
+//    }
+//}
+
+//tasks.withType(Test).configureEach {
+//    javaLauncher = javaToolchains.compilerFor {
+//        languageVersion = JavaLanguageVersion.of(11)
+//    }
+//}
+//compileJava {
+//    options.fork = true
+//    options.bootstrapClasspath = null
+//}
+
+//tasks.withType(Test).configureEach {
+//    javaLauncher = javaToolchains.launcherFor {
+//        languageVersion = JavaLanguageVersion.of(11)
+//    }
+//}
+//
+//tasks.withType(Test).configureEach {
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(11))
+//    }
+//}
+//java {
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(11))
+//    }
+//}
+
+//task(compileTestJava, type: Test) {
+//    javaLauncher = javaToolchains.launcherFor {
+//        languageVersion = JavaLanguageVersion.of(11)
+//    }
+//}
+//task('runOn11', type: Test) { //JavaCompiler
+//    javaLauncher = javaToolchains.launcherFor {
+//        languageVersion = JavaLanguageVersion.of(11)
+//    }
+//
+//    classpath = sourceSets.main.runtimeClasspath
+//    mainClass = com.nr.instrumentation.jersey.JerseyTests
+//}
+//
+//compileTestJava {
+//    sourceCompatibility = JavaVersion.VERSION_11
+//    targetCompatibility = JavaVersion.VERSION_11
+//}

@@ -48,7 +48,7 @@ public class JerseyTests {
         servletContextHandler.setContextPath("/");
         server.setHandler(servletContextHandler);
 
-        ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/api/*");
+        ServletHolder servletHolder = servletContextHandler.addServlet(String.valueOf(ServletContainer.class), "/api/*");
         servletHolder.setInitOrder(0);
         servletHolder.setInitParameter(
                 "jersey.config.server.provider.packages",
