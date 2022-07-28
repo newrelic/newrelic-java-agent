@@ -65,13 +65,13 @@ public class HttpCommonsTest {
         httpURLConnectionTx();
 
         Set<String> metrics = AgentHelper.getMetrics();
-        assertTrue(metrics.toString(), metrics.contains("External/" + HOST + "/HttpURLConnection/getResponseCode"));
+        assertTrue(metrics.toString(), metrics.contains("External/" + HOST + "/HttpURLConnection"));
 
         Map<String, Integer> metricCounts = getMetricCounts(
-                MetricName.create("External/" + HOST + "/HttpURLConnection/getResponseCode",
+                MetricName.create("External/" + HOST + "/HttpURLConnection",
                         "OtherTransaction/Custom/test.newrelic.test.agent.HttpCommonsTest/httpURLConnectionTx"));
 
-        assertEquals(1, (int) metricCounts.get("External/" + HOST + "/HttpURLConnection/getResponseCode"));
+        assertEquals(1, (int) metricCounts.get("External/" + HOST + "/HttpURLConnection"));
     }
 
     @Trace(dispatcher = true)
