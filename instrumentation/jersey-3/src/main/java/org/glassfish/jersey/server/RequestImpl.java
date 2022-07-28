@@ -7,14 +7,15 @@
 
 package org.glassfish.jersey.server;
 
-import com.newrelic.api.agent.ExtendedRequest;
-import com.newrelic.api.agent.HeaderType;
-import jakarta.ws.rs.core.Cookie;
-import jakarta.ws.rs.core.SecurityContext;
-
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.List;
+
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.SecurityContext;
+
+import com.newrelic.api.agent.ExtendedRequest;
+import com.newrelic.api.agent.HeaderType;
 
 public class RequestImpl extends ExtendedRequest {
 

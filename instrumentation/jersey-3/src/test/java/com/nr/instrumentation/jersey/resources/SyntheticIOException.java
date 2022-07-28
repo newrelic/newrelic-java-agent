@@ -8,7 +8,6 @@
 package com.nr.instrumentation.jersey.resources;
 
 import jakarta.ws.rs.NameBinding;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
