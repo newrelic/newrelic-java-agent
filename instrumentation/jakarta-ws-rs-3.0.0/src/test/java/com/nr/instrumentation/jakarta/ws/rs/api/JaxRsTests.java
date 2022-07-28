@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 @Category({ Java7IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.instrumentation.jakarta.ws.rs.api" })
-public class JakartaRsTests {
+public class JaxRsTests {
 
     @Test
     public void testTransactionNamePatch() {

@@ -1,11 +1,11 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.0.0")
-    implementation ("org.glassfish.jersey.inject:jersey-hk2:3.0.0")
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
+    implementation ("org.glassfish.jersey.inject:jersey-hk2:3.1.0-M1")
 
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.0")
-    testImplementation("org.glassfish.jersey.test-framework:jersey-test-framework-core:3.0.0")
-    testImplementation("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:3.0.0")
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.1.0-M1")
+    testImplementation("org.glassfish.jersey.test-framework:jersey-test-framework-core:3.1.0-M1")
+    testImplementation("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:3.1.0-M1")
     testImplementation(project(":instrumentation:jersey-3"))
 }
 
@@ -22,5 +22,15 @@ test {
 
 verifyInstrumentation{
     passesOnly 'jakarta.ws.rs:jakarta.ws.rs-api:[3.0.0-M1,)'
+}
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
 }
