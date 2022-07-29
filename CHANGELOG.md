@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.9.0 (2022-08-28)
+
+### New features and improvements
+* Where applicable, existing instrumentation has been tested and verified as compatible with Jakarta EE 8. https://github.com/newrelic/newrelic-java-agent/pull/900
+* Add new instrumentation to support Jetty 10. https://github.com/newrelic/newrelic-java-agent/pull/936
+* Update to jfr-daemon 1.9.0 to address [CVE-2020-29582](https://github.com/advisories/GHSA-cqj8-47ch-rvvq) and improve CPU overhead. https://github.com/newrelic/newrelic-java-agent/pull/937
+* Add support to pass a boolean environment variable `NEWRELIC_DEBUG` where setting it to `true` activates the debug configuration. https://github.com/newrelic/newrelic-java-agent/pull/890
+* Improved performance by internally replacing regex replace with iterative char replace (thanks to @zowens for this contribution) https://github.com/newrelic/newrelic-java-agent/pull/933
+
+### Fixes
+* Update the `httpurlconnection` instrumentation to use newer distributed tracing APIs so that spans are correctly marked as external calls in distributed traces and contain the expected `http.*` attributes. https://github.com/newrelic/newrelic-java-agent/pull/885
+* Illegal Access Exception is no longer thrown from apps using NR agent with scala 2.12 and Java 11. https://github.com/newrelic/newrelic-java-agent/pull/876
+
+### Support statement
+New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
 ## Version 7.8.0 (2022-06-16)
 
 ### New features and improvements
