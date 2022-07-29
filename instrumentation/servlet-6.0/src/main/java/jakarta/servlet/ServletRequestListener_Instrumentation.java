@@ -12,7 +12,6 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import jakarta.servlet.ServletRequestEvent;
 
 import java.util.logging.Level;
 
