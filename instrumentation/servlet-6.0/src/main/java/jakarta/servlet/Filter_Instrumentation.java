@@ -17,7 +17,6 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.servlet6.NRRequestWrapper;
 import com.nr.instrumentation.servlet6.NRResponseWrapper;
 import com.nr.instrumentation.servlet6.ServletHelper;
-import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -64,7 +63,7 @@ public abstract class Filter_Instrumentation {
     /*
      * The FilterConfig must be nulled out here in order to avoid a memory leak. The memory leak is possible when the
      * application containing this filter is reloaded in the application sever.
-     * 
+     *
      * The @NewField annotation causes the FilterConfig to be stored in a map where the key is the instance of this
      * Filter and the value is a special New Relic object containing the FilterConfig. The map uses weak keys and strong
      * values. A memory leak occurs because the Map contains a strong reference to the FilterConfig which contains a

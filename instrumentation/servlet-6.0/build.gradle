@@ -17,6 +17,11 @@ java {
     }
 }
 
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
+}
+
 site {
     title 'Servlet'
     type 'Framework'

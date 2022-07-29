@@ -16,10 +16,6 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.servlet6.NRRequestWrapper;
 import com.nr.instrumentation.servlet6.NRResponseWrapper;
 import com.nr.instrumentation.servlet6.ServletHelper;
-import jakarta.servlet.Servlet;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
