@@ -297,8 +297,8 @@ public class DefaultTracer extends AbstractTracer {
 
                     // tracers created by the API will only have the className and should be ignored
                     if (StringUtils.isNotEmpty(className) && StringUtils.isNotEmpty(methodName)) {
-                        addCustomAttribute(AttributeNames.CLM_NAMESPACE, className);
-                        addCustomAttribute(AttributeNames.CLM_METHOD, methodName);
+                        setAgentAttribute(AttributeNames.CLM_NAMESPACE, className);
+                        setAgentAttribute(AttributeNames.CLM_FUNCTION, methodName);
                     }
                 }
             } catch (Throwable t) {

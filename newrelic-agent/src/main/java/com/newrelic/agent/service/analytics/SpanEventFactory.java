@@ -8,8 +8,6 @@
 package com.newrelic.agent.service.analytics;
 
 import com.google.common.base.Joiner;
-import com.newrelic.agent.Transaction;
-import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
@@ -122,6 +120,16 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory putClmAttributes(Map<String, Object> agentAttributes) {
+        if (agentAttributes == null || agentAttributes.isEmpty()) {
+            return this;
+        }
+        if (agentAttributes.containsKey(AttributeNames.CLM_NAMESPACE) && agentAttributes.containsKey(AttributeNames.CLM_FUNCTION)) {
+            builder.putAgentAttribute(AttributeNames.CLM_NAMESPACE, agentAttributes.get(AttributeNames.CLM_NAMESPACE));
+            builder.putAgentAttribute(AttributeNames.CLM_FUNCTION, agentAttributes.get(AttributeNames.CLM_FUNCTION));
+        }
+        return this;
+    }
 
     public SpanEventFactory putAllUserAttributes(Map<String, ?> userAttributes) {
         userAttributes = filter.filterUserAttributes(appName, userAttributes);
