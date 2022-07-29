@@ -120,6 +120,13 @@ common: &default_settings
       # When true, the agent will decorate your application log files with linking metadata. The default is false.
       #enabled: false
 
+  # Adds integration with CodeStream, introducing Code-Level Metrics! Golden Signals visible in your
+  # IDE through New Relic CodeStream.
+  code_level_metrics:
+    # When true the agent will capture namespace and function information
+    # on spans to enable code level metrics in CodeStream.
+    enabled: false
+
   # Proxy settings for connecting to the New Relic server:
   # If a proxy is used, the host setting is required.  Other settings
   # are optional.  Default port is 8080.  The username and password

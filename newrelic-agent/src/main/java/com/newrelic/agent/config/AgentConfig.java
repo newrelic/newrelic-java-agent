@@ -180,6 +180,11 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     ApplicationLoggingConfig getApplicationLoggingConfig();
 
     /**
+     * Get the Code Level Metrics config.
+     */
+    CodeLevelMetricsConfig getCodeLevelMetricsConfig();
+
+    /**
      * Get the attributes configuration.
      */
     AttributesConfig getAttributesConfig();

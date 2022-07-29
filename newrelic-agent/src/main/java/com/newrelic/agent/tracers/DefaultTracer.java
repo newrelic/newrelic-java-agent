@@ -39,6 +39,7 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
+import org.apache.commons.lang3.StringUtils;
 import org.objectweb.asm.Opcodes;
 
 import java.net.URI;
@@ -289,10 +290,13 @@ public class DefaultTracer extends AbstractTracer {
             }
 
             try {
-                if (classMethodSignature != null) {
+                if (classMethodSignature != null &&
+                        ServiceFactory.getConfigService().getDefaultAgentConfig().getCodeLevelMetricsConfig().isEnabled()) {
                     String className = classMethodSignature.getClassName();
                     String methodName = classMethodSignature.getMethodName();
-                    if (className != null && methodName != null) {
+
+                    // tracers created by the API will only have the className and should be ignored
+                    if (StringUtils.isNotEmpty(className) && StringUtils.isNotEmpty(methodName)) {
                         addCustomAttribute(AttributeNames.CLM_NAMESPACE, className);
                         addCustomAttribute(AttributeNames.CLM_METHOD, methodName);
                     }

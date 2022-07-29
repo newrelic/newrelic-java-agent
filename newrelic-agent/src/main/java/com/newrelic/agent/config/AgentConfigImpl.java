@@ -42,6 +42,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String APP_NAME = "app_name";
     public static final String ASYNC_TIMEOUT = "async_timeout";
     public static final String CA_BUNDLE_PATH = "ca_bundle_path";
+
+    public static final String CODE_LEVEL_METRICS = "code_level_metrics";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
     public static final String ENABLED = "enabled";
@@ -255,6 +257,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final InfiniteTracingConfig infiniteTracingConfig;
     private final InsightsConfig insightsConfig;
     private final ApplicationLoggingConfig applicationLoggingConfig;
+    private final CodeLevelMetricsConfig codeLevelMetricsConfig;
     private final Config instrumentationConfig;
     private final JarCollectorConfig jarCollectorConfig;
     private final JfrConfig jfrConfig;
@@ -355,6 +358,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
         applicationLoggingConfig = initApplicationLoggingConfig();
+        codeLevelMetricsConfig = initClmConfig();
         infiniteTracingConfig = initInfiniteTracingConfig(autoAppNamingEnabled);
         attributesConfig = initAttributesConfig();
         reinstrumentConfig = initReinstrumentConfig();
@@ -742,6 +746,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private ApplicationLoggingConfig initApplicationLoggingConfig() {
         Map<String, Object> props = nestedProps(APPLICATION_LOGGING);
         return ApplicationLoggingConfigImpl.createApplicationLoggingConfig(props, highSecurity);
+    }
+
+    private CodeLevelMetricsConfig initClmConfig() {
+        Map<String, Object> props = nestedProps(CODE_LEVEL_METRICS);
+        return CodeLevelMetricsConfigImpl.createClmConfig(props);
     }
 
     private AttributesConfig initAttributesConfig() {
@@ -1194,6 +1203,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public ApplicationLoggingConfig getApplicationLoggingConfig() {
         return applicationLoggingConfig;
+    }
+
+    @Override
+    public CodeLevelMetricsConfig getCodeLevelMetricsConfig() {
+        return codeLevelMetricsConfig;
     }
 
     @Override

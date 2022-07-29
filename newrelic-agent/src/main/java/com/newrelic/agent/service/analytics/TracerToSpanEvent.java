@@ -84,6 +84,7 @@ public class TracerToSpanEvent {
 
         SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier)
                 .setGuid(tracer.getGuid())
+                .putAllAgentAttributes(tracer.getAgentAttributes())
                 .setTraceId(spanProxy.getOrCreateTraceId())
                 .setSampled(transactionData.sampled())
                 .setParentId(getParentId(tracer, transactionData, crossProcessOnly))
