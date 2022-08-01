@@ -14,7 +14,6 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import jakarta.servlet.ServletRequestEvent;
 
 /**
  * We instrument ServletRequestListener in order to work around buggy servlet frameworks (I'm looking at you, Tomcat)

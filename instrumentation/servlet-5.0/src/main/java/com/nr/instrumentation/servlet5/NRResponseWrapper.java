@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.instrumentation.servlet60;
+package com.nr.instrumentation.servlet5;
 
 import jakarta.servlet.http.HttpServletResponse;
 

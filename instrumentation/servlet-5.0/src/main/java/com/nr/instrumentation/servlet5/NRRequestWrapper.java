@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.instrumentation.servlet60;
+package com.nr.instrumentation.servlet5;
 
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.HeaderType;
