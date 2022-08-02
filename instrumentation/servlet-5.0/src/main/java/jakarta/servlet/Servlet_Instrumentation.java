@@ -13,14 +13,10 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.instrumentation.servlet60.NRRequestWrapper;
-import com.nr.instrumentation.servlet60.NRResponseWrapper;
-import com.nr.instrumentation.servlet60.ServletHelper;
+import com.nr.instrumentation.servlet5.NRRequestWrapper;
+import com.nr.instrumentation.servlet5.NRResponseWrapper;
+import com.nr.instrumentation.servlet5.ServletHelper;
 
-import jakarta.servlet.Servlet;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
