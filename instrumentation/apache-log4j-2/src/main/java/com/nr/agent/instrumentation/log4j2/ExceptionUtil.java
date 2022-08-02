@@ -1,7 +1,7 @@
 package com.nr.agent.instrumentation.log4j2;
 
 public class ExceptionUtil {
-    public static final int MAX_STACK_SIZE = 500;
+    public static final int MAX_STACK_SIZE = 300;
 
     public static boolean isThrowableNull(Throwable throwable) {
         return throwable == null;

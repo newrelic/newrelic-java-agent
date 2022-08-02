@@ -64,11 +64,14 @@ public class LoggingEvent_Instrumentation {
         }
 
         timeStamp = System.currentTimeMillis();
-        String currentThreadName = (Thread.currentThread()).getName();
+
+        Thread thread = Thread.currentThread();
+        String threadName = thread.getName();
+        long threadId = thread.getId();
 
         if (applicationLoggingEnabled && isApplicationLoggingForwardingEnabled()) {
             // Record and send LogEvent to New Relic
-            recordNewRelicLogEvent(getFormattedMessage(), timeStamp, level, throwable, currentThreadName);
+            recordNewRelicLogEvent(getFormattedMessage(), timeStamp, level, throwable, threadName, threadId, loggerName, fqnOfLoggerClass);
         }
     }
 

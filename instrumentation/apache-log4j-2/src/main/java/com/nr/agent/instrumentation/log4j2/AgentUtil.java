@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AgentUtil {
-    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 7;
+    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 10;
     // Log message attributes
     public static final String MESSAGE = "message";
     public static final String TIMESTAMP = "timestamp";
@@ -29,6 +29,9 @@ public class AgentUtil {
     public static final String ERROR_CLASS = "error.class";
     public static final String ERROR_STACK = "error.stack";
     public static final String THREAD_NAME = "thread.name";
+    public static final String THREAD_ID = "thread.id";
+    public static final String LOGGER_NAME = "logger.name";
+    public static final String LOGGER_FQCN = "logger.fqcn";
     public static final String UNKNOWN = "UNKNOWN";
 
     // Linking metadata attributes used in blob
@@ -90,6 +93,18 @@ public class AgentUtil {
                     String threadName = event.getThreadName();
                     if (threadName != null) {
                         logEventMap.put(THREAD_NAME, threadName);
+                    }
+
+                    logEventMap.put(THREAD_ID, event.getThreadId());
+
+                    String loggerName = event.getLoggerName();
+                    if (loggerName != null) {
+                        logEventMap.put(LOGGER_NAME, loggerName);
+                    }
+
+                    String loggerFqcn = event.getLoggerFqcn();
+                    if (loggerFqcn != null) {
+                        logEventMap.put(LOGGER_FQCN, loggerFqcn);
                     }
 
                     AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
