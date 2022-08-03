@@ -1,0 +1,19 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.servlet-user-5.0', 'Enabled': 'false' }
+}
+
+verifyInstrumentation {
+    passesOnly 'jakarta.servlet:jakarta.servlet-api:[5.0.0,)'
+    exclude 'jakarta.servlet:jakarta.servlet-api:[5.0.0-M1,5.0.0-M2]'
+}
+
+site {
+    title 'Servlet'
+    type 'Framework'
+}
