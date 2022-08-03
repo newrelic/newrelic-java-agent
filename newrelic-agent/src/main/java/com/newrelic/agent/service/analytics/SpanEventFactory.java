@@ -120,7 +120,7 @@ public class SpanEventFactory {
         return this;
     }
 
-    public SpanEventFactory putClmAttributes(Map<String, Object> agentAttributes) {
+    public SpanEventFactory setClmAttributes(Map<String, Object> agentAttributes) {
         if (agentAttributes == null || agentAttributes.isEmpty()) {
             return this;
         }

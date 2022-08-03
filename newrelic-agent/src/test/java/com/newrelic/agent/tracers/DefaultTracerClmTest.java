@@ -19,7 +19,6 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionErrorPriority;
-import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpToken;
 import com.newrelic.agent.bridge.Token;
@@ -78,17 +77,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.newrelic.agent.AgentHelper.getFullPath;
+import static com.newrelic.agent.attributes.AttributeNames.CLM_FUNCTION;
+import static com.newrelic.agent.attributes.AttributeNames.CLM_NAMESPACE;
+import static com.newrelic.agent.attributes.AttributeNames.TRANSACTION_TRACE_ID_PARAMETER_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-public class DefaultTracerTest {
+public class DefaultTracerClmTest {
 
     private String APP_NAME;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        String configPath = getFullPath("/com/newrelic/agent/config/span_events.yml");
+        String configPath = getFullPath("/com/newrelic/agent/config/span_events_clm.yml");
         System.setProperty("newrelic.config.file", configPath);
 
         MockCoreService.getMockAgentAndBootstrapTheServiceManager();
@@ -111,42 +113,20 @@ public class DefaultTracerTest {
     }
 
     @Test
-    public void test() {
-        Transaction tx = Transaction.getTransaction();
-        Assert.assertFalse(tx.isWebTransaction());
-    }
-
-    @Test
     public void testNameTx() {
         Transaction tx = Transaction.getTransaction();
-        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
+        String method = "dude";
+        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), method, "()V");
         DefaultTracer parentTracer = new OtherRootTracer(tx, sig, this, new SimpleMetricNameFormat("test"));
         tx.getTransactionActivity().tracerStarted(parentTracer);
         tx.convertToWebTransaction(); //the important thing is that we're changing the dispatcher
         tx.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, "custom", "foo");
         assertEquals(0, AgentHelper.getChildren(parentTracer).size());
+
+        assertClmAbsent(parentTracer);
         parentTracer.finish(Opcodes.RETURN, null);
         assertEquals("WebTransaction/custom/foo", tx.getPriorityTransactionName().getName());
-        assertClmAbsent(parentTracer);
-    }
-
-    @Test
-    public void sizeofString() {
-        assertEquals(9, DefaultTracer.sizeof("Dude man!"));
-    }
-
-    @Test
-    public void sizeofArray() {
-        assertEquals(7, DefaultTracer.sizeof(new String[] { "Dude", "man" }));
-    }
-
-    @Test
-    public void sizeofStackTrace() {
-        StackTraceElement stackTraceElement = new StackTraceElement("foo.Bar", "getFoo", "foo/Bar.java", 100);
-        StackTraceElement[] stack = new StackTraceElement[] { stackTraceElement,
-                new StackTraceElement("foo.Bar", "getBar", "foo/Bar.java", 120) };
-        assertEquals(35, DefaultTracer.sizeof(stackTraceElement));
-        assertEquals(70, DefaultTracer.sizeof(stack));
+        assertClm(parentTracer, method);
     }
 
     @Test
@@ -157,8 +137,13 @@ public class DefaultTracerTest {
         long childDuration = 100;
         int childCount = 3;
 
-        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
-        DefaultTracer parentTracer = new OtherRootTracer(tx, sig, this, new SimpleMetricNameFormat("test"));
+        String parentMethod = "dude";
+        ClassMethodSignature parentSig = new ClassMethodSignature(getClass().getName(), parentMethod, "()V");
+
+        String childMethod = "lilDude";
+        ClassMethodSignature childSig = new ClassMethodSignature(getClass().getName(), childMethod, "()V");
+
+        DefaultTracer parentTracer = new OtherRootTracer(tx, parentSig, this, new SimpleMetricNameFormat("test"));
         tx.getTransactionActivity().tracerStarted(parentTracer);
         assertEquals(0, AgentHelper.getChildren(parentTracer).size());
 
@@ -167,7 +152,7 @@ public class DefaultTracerTest {
             wait(parentDuration);
 
             for (int i = 0; i < childCount; i++) {
-                DefaultTracer kid = new DefaultTracer(tx, sig, this);
+                DefaultTracer kid = new DefaultTracer(tx, childSig, this);
                 tx.getTransactionActivity().tracerStarted(kid);
                 wait(childDuration);
                 kid.finish(Opcodes.RETURN, null);
@@ -181,23 +166,32 @@ public class DefaultTracerTest {
         Assert.assertTrue(parentTracer.getDurationInMilliseconds() >= parentDuration);
         Assert.assertNotSame(parentTracer.getExclusiveDuration(), parentTracer.getDuration());
         assertEquals(actualChildDuratioNanos, parentTracer.getDuration() - parentTracer.getExclusiveDuration());
-
+        assertClm(parentTracer, parentMethod);
         assertEquals(childCount, AgentHelper.getChildren(parentTracer).size());
-        assertClmAbsent(parentTracer);
+        for (Tracer child : AgentHelper.getChildren(parentTracer)) {
+            assertClm(child, childMethod);
+        }
     }
 
     @Test
     public void testParameters() {
         try {
+            String method = "dude";
             DefaultTracer kid = new DefaultTracer(Transaction.getTransaction(), new ClassMethodSignature(
-                    getClass().getName(), "dude", "()V"), this);
+                    getClass().getName(), method, "()V"), this);
+
             Assert.assertNotNull(kid.getAgentAttributes());
             Assert.assertTrue(kid.getAgentAttributes().isEmpty());
 
             kid.setAgentAttribute("key", "value");
             assertEquals("value", kid.getAgentAttribute("key"));
             assertNull(kid.getAgentAttribute("notpresent"));
+
+            // testing that CLM attrs only appear after finish is called
             assertClmAbsent(kid);
+            kid.finish(0, null);
+            assertClm(kid, method);
+
         } finally {
             Transaction.clearTransaction();
         }
@@ -219,6 +213,7 @@ public class DefaultTracerTest {
         List backtrace = (List) params.get(DefaultSqlTracer.BACKTRACE_PARAMETER_NAME);
 
         Assert.assertTrue(backtrace.size() > 2);
+
         assertClmAbsent(tracer);
     }
 
@@ -266,12 +261,13 @@ public class DefaultTracerTest {
             assertExternal(stats, externalCount, host, library, procedure);
             assertEquals(externalCount, stats.getScopedStats().getOrCreateResponseTimeStats("External/" + host + "/"
                     + library + "/" + procedure).getCallCount());
+            assertClmAbsent(tracer);
             tracer.finish(0, null);
             externalCount++;
             assertExternal(stats, externalCount, host, library, procedure);
             assertEquals(externalCount, stats.getScopedStats().getOrCreateResponseTimeStats("External/" + host + "/"
                     + library + "/" + procedure).getCallCount());
-            assertClmAbsent(tracer);
+            assertClm(tracer, "javax.servlet.ServletRequestListener", "requestInitialized");
         }
 
         final DatastoreVendor vendor = DatastoreVendor.MySQL;
@@ -295,12 +291,13 @@ public class DefaultTracerTest {
                     .instance(host, port)
                     .build());
             assertDatastore(stats, datastoreCount, vendor.toString(), collection, operation, host, port);
+            assertClmAbsent(tracer);
             tracer.finish(0, null);
             datastoreCount++;
             assertDatastore(stats, datastoreCount, vendor.toString(), collection, operation, host, port);
             // http external should be unchanged
             assertExternal(stats, externalCount, host, library, procedure);
-            assertClmAbsent(tracer);
+            assertClm(tracer, "javax.servlet.ServletRequestListener", "requestInitialized");
         }
 
         { // http + DT
@@ -321,6 +318,7 @@ public class DefaultTracerTest {
                     .build());
             assertCat(tracer, false);
             assertExternal(stats, externalCount, host, library, procedure);
+            assertClmAbsent(tracer);
             tracer.finish(0, null);
             externalCount++;
             assertCat(tracer, false); // DT is enabled, there should not be any CAT
@@ -328,7 +326,7 @@ public class DefaultTracerTest {
             assertExternal(stats, externalCount, host, library, procedure);
             assertEquals(0, stats.getScopedStats().getOrCreateResponseTimeStats("ExternalTransaction/" + host
                     + "/12345/Foo").getCallCount());
-            assertClmAbsent(tracer);
+            assertClm(tracer, "javax.servlet.ServletRequestListener", "requestInitialized");
         }
 
         { // last inboundHeaders win
@@ -350,6 +348,7 @@ public class DefaultTracerTest {
             tracer.readInboundResponseHeaders(new Inbound("Bar")); // headers trump the previous call
             assertCat(tracer, false);
             assertExternal(stats, externalCount, host, library, procedure);
+            assertClmAbsent(tracer);
             tracer.finish(0, null);
             externalCount++;
             assertCat(tracer, false); // DT is enabled, there should not be any CAT
@@ -357,7 +356,7 @@ public class DefaultTracerTest {
             assertExternal(stats, externalCount, host, library, procedure);
             assertEquals(0, stats.getScopedStats().getOrCreateResponseTimeStats("ExternalTransaction/" + host
                     + "/12345/Bar").getCallCount());
-            assertClmAbsent(tracer);
+            assertClm(tracer, "javax.servlet.ServletRequestListener", "requestInitialized");
         }
 
         { // set headers manually
@@ -373,6 +372,7 @@ public class DefaultTracerTest {
             tracer.readInboundResponseHeaders(new Inbound("Baz")); // headers trump the previous call
             assertCat(tracer, false);
             assertExternal(stats, externalCount, host, library, procedure);
+            assertClmAbsent(tracer);
             tracer.finish(0, null);
             externalCount++;
             assertCat(tracer, false); // DT is enabled, there should not be any CAT
@@ -380,7 +380,7 @@ public class DefaultTracerTest {
             assertExternal(stats, externalCount, host, library, procedure);
             assertEquals(0, stats.getScopedStats().getOrCreateResponseTimeStats("ExternalTransaction/" + host
                     + "/12345/Baz").getCallCount());
-            assertClmAbsent(tracer);
+            assertClm(tracer, "javax.servlet.ServletRequestListener", "requestInitialized");
         }
 
         root.finish(0, null);
@@ -392,8 +392,12 @@ public class DefaultTracerTest {
         Transaction.clearTransaction();
         Transaction tx = Transaction.getTransaction();
         TransactionActivity txa = TransactionActivity.get();
-        Tracer root = new OtherRootTracer(tx, new ClassMethodSignature("com.newrelic.agent.TracedActivityTest",
-                "makeTransaction", "()V"), null, DefaultTracer.NULL_METRIC_NAME_FORMATTER);
+        String className = "com.newrelic.agent.TracedActivityTest";
+        String method = "makeTransaction";
+        Tracer root = new OtherRootTracer(tx,
+                new ClassMethodSignature(className, method, "()V"),
+                null,
+                DefaultTracer.NULL_METRIC_NAME_FORMATTER);
         txa.tracerStarted(root);
 
         final Token token = NoOpToken.INSTANCE;
@@ -409,8 +413,9 @@ public class DefaultTracerTest {
 
         assertNull(tracer);
 
-        root.finish(0, null);
         assertClmAbsent(root);
+        root.finish(0, null);
+        assertClm(root, className, method);
     }
 
     @Test
@@ -419,8 +424,12 @@ public class DefaultTracerTest {
         Transaction.clearTransaction();
         Transaction tx = Transaction.getTransaction();
         TransactionActivity txa = TransactionActivity.get();
-        Tracer root = new OtherRootTracer(tx, new ClassMethodSignature("com.newrelic.agent.TracedActivityTest",
-                "makeTransaction", "()V"), null, DefaultTracer.NULL_METRIC_NAME_FORMATTER);
+        String className = "com.newrelic.agent.TracedActivityTest";
+        String method = "makeTransaction";
+        Tracer root = new OtherRootTracer(tx,
+                new ClassMethodSignature(className, method, "()V"),
+                null,
+                DefaultTracer.NULL_METRIC_NAME_FORMATTER);
         txa.tracerStarted(root);
 
         final Token token = tx.getToken();
@@ -436,9 +445,12 @@ public class DefaultTracerTest {
 
         Assert.assertNotNull(tracer);
 
-        root.finish(0, null);
         assertClmAbsent(root);
         assertClmAbsent(tracer);
+        tracer.finish(0, null);
+        root.finish(0, null);
+        assertClm(root, className, method);
+        assertClm(tracer, "javax.servlet.ServletRequestListener", "requestInitialized");
     }
 
     @Test
@@ -455,8 +467,10 @@ public class DefaultTracerTest {
                 .build());
         tracer.recordMetrics(stats);
 
-        // this test lacked assertions prior to this one
+        // this test had no assertions prior to these
         assertClmAbsent(tracer);
+        tracer.finish(0, null);
+        assertClm(tracer, "method");
     }
 
     @Test
@@ -473,8 +487,10 @@ public class DefaultTracerTest {
                 .build());
         tracer.recordMetrics(stats);
 
-        // this test lacked assertions prior to this one
+        // this test had no assertions prior to these
         assertClmAbsent(tracer);
+        tracer.finish(0, null);
+        assertClm(tracer, "method");
     }
 
     @Test
@@ -490,7 +506,10 @@ public class DefaultTracerTest {
                 .build());
         tracer.recordMetrics(stats);
         checkUnknownDatastoreSupportabilityMetrics("Product", 1, 0, 1);
+
         assertClmAbsent(tracer);
+        tracer.finish(0, null);
+        assertClm(tracer, "method");
     }
 
     @Test
@@ -506,7 +525,10 @@ public class DefaultTracerTest {
                 .build());
         tracer.recordMetrics(stats);
         assertEquals(uri, tracer.getTransactionSegmentUri());
+
         assertClmAbsent(tracer);
+        tracer.finish(0, null);
+        assertClm(tracer, "method");
     }
 
     @Test
@@ -550,7 +572,6 @@ public class DefaultTracerTest {
         tracer.finish(0, null);
 
         checkUnknownDatastoreSupportabilityMetrics("Product", 1, 1, 1);
-        assertClmAbsent(tracer);
     }
 
     @Test
@@ -569,7 +590,6 @@ public class DefaultTracerTest {
         tracer.reportAsExternal(parameters);
         tracer.finish(0, null);
         checkUnknownDatastoreSupportabilityMetrics("Product", 0, 0, 0);
-        assertClmAbsent(tracer);
     }
 
     @Test
@@ -588,7 +608,6 @@ public class DefaultTracerTest {
         tracer.reportAsExternal(parameters);
         tracer.finish(0, null);
         checkUnknownDatastoreSupportabilityMetrics("Product", 0, 0, 0);
-        assertClmAbsent(tracer);
     }
 
     @Test
@@ -610,11 +629,11 @@ public class DefaultTracerTest {
         assertNull(spanEvent.getParentId());
         assertEquals(tracer.getGuid(), spanEvent.getGuid());
         assertEquals(tracer.getTransaction().getGuid(), spanEvent.getTransactionId());
-        assertEquals("Java/class/method", spanEvent.getName());
+        assertEquals("Java/com.newrelic.agent.tracers.DefaultTracerClmTest/method", spanEvent.getName());
         assertEquals(true, spanEvent.getIntrinsics().get("nr.entryPoint"));
         assertEquals((float) tracer.getDurationInMilliseconds() / TimeConversion.MILLISECONDS_PER_SECOND,
                 spanEvent.getDuration(), 0.001f);
-        assertClmAbsent(spanEvent);
+        assertClm(tracer, spanEvent);
     }
 
     @Test
@@ -642,7 +661,7 @@ public class DefaultTracerTest {
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertEquals("http://www.newrelic.com", spanEvent.getAgentAttributes().get("http.url"));
         assertEquals("call", spanEvent.getAgentAttributes().get("http.method"));
-        assertClmAbsent(spanEvent);
+        assertClm(tracer, spanEvent);
     }
 
     @Test
@@ -673,7 +692,7 @@ public class DefaultTracerTest {
         assertEquals("dbName", spanEvent.getIntrinsics().get("db.instance"));
         assertEquals("databaseServer:1234", spanEvent.getIntrinsics().get("peer.address"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
-        assertClmAbsent(spanEvent);
+        assertClm(tracer, spanEvent);
     }
 
     @Test
@@ -731,7 +750,6 @@ public class DefaultTracerTest {
         assertNotNull(parsedPayload);
         for (SpanEvent event : spanEvents) {
             assertEquals("Span events must have same trace id", parsedPayload.traceId, event.getTraceId());
-            assertClmAbsent(event);
         }
     }
 
@@ -1005,7 +1023,7 @@ public class DefaultTracerTest {
                 String.format("Datastore/instance/DB/%s/%s", expectedHost, expectedInstanceID));
 
         assertEquals(responseTimeStats.getCallCount(), 1);
-        assertClmAbsent(tracer);
+        assertClm(tracer, "method");
     }
 
     private void checkUnknownDatastoreSupportabilityMetrics(String product, int expectedUnkownHost, int expectedUnknownPort,
@@ -1034,21 +1052,30 @@ public class DefaultTracerTest {
         Transaction.clearTransaction();
         Transaction tx = Transaction.getTransaction();
 
-        DefaultTracer tracer = new OtherRootTracer(tx, new ClassMethodSignature("class", "method", "()V"), null, DefaultTracer.NULL_METRIC_NAME_FORMATTER);
+        DefaultTracer tracer = new OtherRootTracer(tx, new ClassMethodSignature(getClass().getName(), "method", "()V"), null, DefaultTracer.NULL_METRIC_NAME_FORMATTER);
         tx.getTransactionActivity().tracerStarted(tracer);
 
         return tracer;
     }
 
-    private static void assertClmAbsent(Tracer tracer) {
-        assertNull(tracer.getAgentAttribute(AttributeNames.CLM_NAMESPACE));
-        assertNull(tracer.getAgentAttribute(AttributeNames.CLM_FUNCTION));
+    private void assertClm(DefaultTracer tracer, SpanEvent spanEvent) {
+        ClassMethodSignature expectedClassMethodSig = tracer.getClassMethodSignature();
+        Map<String, Object> actualAgentAttrs = spanEvent.getAgentAttributes();
+        assertEquals(expectedClassMethodSig.getClassName(), actualAgentAttrs.get(CLM_NAMESPACE));
+        assertEquals(expectedClassMethodSig.getMethodName(), actualAgentAttrs.get(CLM_FUNCTION));
     }
 
-    private static void assertClmAbsent(SpanEvent spanEvent) {
-        Map<String, Object> agentAttributes = spanEvent.getAgentAttributes();
-        assertNull(agentAttributes.get(AttributeNames.CLM_NAMESPACE));
-        assertNull(agentAttributes.get(AttributeNames.CLM_FUNCTION));
+    private void assertClm(Tracer tracer, String className, String method) {
+        assertEquals(className, tracer.getAgentAttribute(CLM_NAMESPACE));
+        assertEquals(method, tracer.getAgentAttribute(CLM_FUNCTION));
+    }
+    
+    private void assertClm(Tracer tracer, String method) {
+        assertClm(tracer, getClass().getName(), method);
+    }
+    private static void assertClmAbsent(Tracer tracer) {
+        assertNull(tracer.getAgentAttribute(CLM_NAMESPACE));
+        assertNull(tracer.getAgentAttribute(CLM_FUNCTION));
     }
 
     private static void assertDatastore(TransactionStats stats, int count, String vendor, String collection,
@@ -1067,9 +1094,9 @@ public class DefaultTracerTest {
 
     private static void assertCat(DefaultTracer tracer, boolean catExpected) {
         if (catExpected) {
-            Assert.assertNotNull(tracer.getAgentAttribute(AttributeNames.TRANSACTION_TRACE_ID_PARAMETER_NAME));
+            Assert.assertNotNull(tracer.getAgentAttribute(TRANSACTION_TRACE_ID_PARAMETER_NAME));
         } else {
-            assertNull(tracer.getAgentAttribute(AttributeNames.TRANSACTION_TRACE_ID_PARAMETER_NAME));
+            assertNull(tracer.getAgentAttribute(TRANSACTION_TRACE_ID_PARAMETER_NAME));
         }
     }
 
