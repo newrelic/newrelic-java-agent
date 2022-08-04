@@ -73,7 +73,7 @@ public abstract class HttpURLConnection extends URLConnection {
         return inputStream;
     }
 
-    @Trace(leaf = true)
+    @Trace
     public int getResponseCode() throws Exception {
         MetricState metricState = lazyGetMetricState();
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();

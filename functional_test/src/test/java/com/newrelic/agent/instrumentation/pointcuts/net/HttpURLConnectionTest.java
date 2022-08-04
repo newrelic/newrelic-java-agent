@@ -255,7 +255,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run3", testClass);
 
-        verifyMetrics("example.com", scope, 2, 0, 0, 1);
+        verifyMetrics("example.com", scope, 3, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -363,7 +363,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run7", testClass);
 
-        verifyMetrics("example.com", scope, 2, 0, 0, 1);
+        verifyMetrics("example.com", scope, 3, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -393,7 +393,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run8", testClass);
 
-        verifyMetrics("example.com", scope, 2, 0, 0, 1);
+        verifyMetrics("example.com", scope, 3, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
@@ -422,7 +422,7 @@ public class HttpURLConnectionTest {
         String testClass = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
         String scope = format("OtherTransaction/Custom/{0}/run9", testClass);
 
-        verifyMetrics("example.com", scope, 1, 0, 0, 1);
+        verifyMetrics("example.com", scope, 2, 0, 0, 1);
     }
 
     @Trace(dispatcher = true)
