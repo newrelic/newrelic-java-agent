@@ -41,7 +41,7 @@ public class CodeLevelMetricsConfigImplTest {
     @Test
     public void canConfigureViaSystemProperty() {
         Properties properties = new Properties();
-        //default application_logging is true
+        //default CLM is false
         properties.put("newrelic.config.code_level_metrics.enabled", "true");
 
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
@@ -58,9 +58,9 @@ public class CodeLevelMetricsConfigImplTest {
     @Test
     public void canConfigureViaEnvironmentVariables() {
 
-        //default forwarding is false
+        //default CLM is false
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
-                new SaveSystemPropertyProviderRule.TestSystemProps(), //use default configs except for forwarding environment variable
+                new SaveSystemPropertyProviderRule.TestSystemProps(), //use default configs except for CLM
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(Collections.singletonMap("NEW_RELIC_CODE_LEVEL_METRICS_ENABLED", "true"))
         ));
 
