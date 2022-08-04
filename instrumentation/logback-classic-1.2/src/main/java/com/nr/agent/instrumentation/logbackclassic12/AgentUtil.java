@@ -55,10 +55,14 @@ public class AgentUtil {
      */
     public static void recordNewRelicLogEvent(String message, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
             String loggerName, String fqcnLoggerName) {
-        // Bail out and don't create a LogEvent if log message is empty
-        if (!message.isEmpty()) {
+        boolean messageEmpty = message.isEmpty();
+
+        if (shouldCreateLogEvent(messageEmpty, throwable)) {
             HashMap<String, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
-            logEventMap.put(MESSAGE, message);
+
+            if (!messageEmpty) {
+                logEventMap.put(MESSAGE, message);
+            }
             logEventMap.put(TIMESTAMP, timeStampMillis);
 
             if (level.toString().isEmpty()) {
@@ -98,6 +102,17 @@ public class AgentUtil {
 
             AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
         }
+    }
+
+    /**
+     * A LogEvent MUST NOT be reported if neither a log message nor an error is logged. If either is present report the LogEvent.
+     *
+     * @param messageEmpty Message to validate
+     * @param throwable    Throwable to validate
+     * @return true if a LogEvent should be created, otherwise false
+     */
+    private static boolean shouldCreateLogEvent(boolean messageEmpty, Throwable throwable) {
+        return !messageEmpty || !ExceptionUtil.isThrowableNull(throwable);
     }
 
     /**
