@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 import jakarta.servlet.ServletRequest;
 
-import org.apache.catalina.connector.Request;
+import org.apache.catalina.connector.Request_Instrumentation;
 import org.apache.catalina.connector.RequestFacade;
 
 import com.newrelic.api.agent.NewRelic;
@@ -38,10 +38,10 @@ public class RequestFacadeHelper {
         return null;
     }
 
-    private static Request getRequest(RequestFacade requestFacade) {
+    private static Request_Instrumentation getRequest(RequestFacade requestFacade) {
         if (REQUEST_FIELD != null) {
             try {
-                return (Request) REQUEST_FIELD.get(requestFacade);
+                return (Request_Instrumentation) REQUEST_FIELD.get(requestFacade);
             } catch (Exception e) {
                 NewRelic.getAgent().getLogger().log(Level.FINEST, e,
                         "Unable to fetch the request field value from RequestFacade");
@@ -50,9 +50,9 @@ public class RequestFacadeHelper {
         return null;
     }
 
-    public static Request getRequest(ServletRequest servletRequest) {
-        if (servletRequest instanceof Request) {
-            return (Request) servletRequest;
+    public static Request_Instrumentation getRequest(ServletRequest servletRequest) {
+        if (servletRequest instanceof Request_Instrumentation) {
+            return (Request_Instrumentation) servletRequest;
         } else if (servletRequest instanceof RequestFacade) {
             return getRequest((RequestFacade) servletRequest);
         }

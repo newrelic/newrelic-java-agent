@@ -13,7 +13,7 @@ import jakarta.servlet.AsyncEvent;
 import jakarta.servlet.AsyncListener;
 import jakarta.servlet.ServletRequest;
 
-import org.apache.catalina.connector.Request;
+import org.apache.catalina.connector.Request_Instrumentation;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.CatchAndLog;
@@ -29,7 +29,7 @@ public final class AsyncListenerFactory {
         @CatchAndLog
         public void onComplete(AsyncEvent asyncEvent) throws IOException {
             ServletRequest servletRequest = asyncEvent.getSuppliedRequest();
-            Request request = RequestFacadeHelper.getRequest(servletRequest);
+            Request_Instrumentation request = RequestFacadeHelper.getRequest(servletRequest);
             if (request != null) {
                 AgentBridge.asyncApi.completeAsync(asyncEvent.getAsyncContext());
             }
@@ -44,7 +44,7 @@ public final class AsyncListenerFactory {
         @CatchAndLog
         public void onError(AsyncEvent asyncEvent) throws IOException {
             ServletRequest servletRequest = asyncEvent.getSuppliedRequest();
-            Request request = RequestFacadeHelper.getRequest(servletRequest);
+            Request_Instrumentation request = RequestFacadeHelper.getRequest(servletRequest);
             if (request != null) {
                 AgentBridge.asyncApi.errorAsync(asyncEvent.getAsyncContext(), asyncEvent.getThrowable());
             }

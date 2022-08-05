@@ -12,12 +12,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.Response;
 
-public class TomcatResponse implements Response {
+public class GlassfishResponse implements Response {
 
     private final org.apache.catalina.Response delegate;
     private final HttpServletResponse response;
 
-    public TomcatResponse(org.apache.catalina.Response response) {
+    public GlassfishResponse(org.apache.catalina.Response response) {
         this.delegate = response;
         if (response.getResponse() instanceof HttpServletResponse) {
             this.response = (HttpServletResponse) response.getResponse();

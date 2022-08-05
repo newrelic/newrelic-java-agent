@@ -11,16 +11,15 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 
-import org.apache.catalina.connector.Request;
+import org.apache.catalina.connector.Request_Instrumentation;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.glassfish6.RequestFacadeHelper;
 
-@Weave
-public class ApplicationDispatcher {
+@Weave(originalName = "org.apache.catalina.core.ApplicationDispatcher")
+public class ApplicationDispatcher_Instrumentation {
 
     /**
      * If this is an async dispatch there are no #ServletRequestListener calls, so handle async here.
@@ -28,13 +27,13 @@ public class ApplicationDispatcher {
      * {@link ServletRequest#getAsyncContext()} throws an #IllegalStateException, and the asyncContext field in #Request
      * is null, so use the #ServletRequest to find the suspended transaction.
      * 
-     * The transaction is suspended in {@link Request#startAsync(ServletRequest, ServletResponse, boolean)}
+     * The transaction is suspended in {@link Request_Instrumentation#startAsync(ServletRequest, ServletResponse, boolean)}
      */
     public void dispatch(ServletRequest servletRequest, ServletResponse servletResponse, DispatcherType dispatcherType) {
 
         boolean isAsyncDispatch = dispatcherType == DispatcherType.ASYNC;
         if (isAsyncDispatch) {
-            Request request = RequestFacadeHelper.getRequest(servletRequest);
+            Request_Instrumentation request = RequestFacadeHelper.getRequest(servletRequest);
             if (request != null) {
                 AgentBridge.asyncApi.resumeAsync(request);
             }
@@ -44,7 +43,7 @@ public class ApplicationDispatcher {
 
         if (isAsyncDispatch) {
             if (servletRequest.isAsyncStarted()) {
-                Request request = RequestFacadeHelper.getRequest(servletRequest);
+                Request_Instrumentation request = RequestFacadeHelper.getRequest(servletRequest);
                 if (request != null) {
                     AgentBridge.asyncApi.suspendAsync(request);
                 }

@@ -13,15 +13,15 @@ import java.util.logging.Level;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.glassfish6.TomcatServletRequestListener;
+import com.nr.agent.instrumentation.glassfish6.GlassfishServletRequestListener;
 
-@Weave
-public abstract class StandardContext {
+@Weave(originalName = "org.apache.catalina.core.StandardContext")
+public abstract class StandardContext_Instrumentation {
 
     protected void contextListenerStart() {
 
         try {
-            addListener(new TomcatServletRequestListener());
+            addListener(new GlassfishServletRequestListener());
             NewRelic.getAgent().getLogger().log(Level.FINER, "Registered ServletRequestListener for {0} : {1}",
                     this.getClass(), getPath());
         } catch (Exception e) {

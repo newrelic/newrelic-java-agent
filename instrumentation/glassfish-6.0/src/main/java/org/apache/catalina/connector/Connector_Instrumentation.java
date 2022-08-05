@@ -8,16 +8,17 @@
 package org.apache.catalina.connector;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-@Weave
-public class CoyoteWriter {
+@Weave(originalName = "org.apache.catalina.connector.Connector")
+public abstract class Connector_Instrumentation {
 
-    public void close() {
+    public void start() {
 
-        NewRelic.getAgent().getTransaction().addOutboundResponseHeaders();
+        AgentBridge.publicApi.setAppServerPort(getPort());
         Weaver.callOriginal();
     }
+
+    public abstract int getPort();
 }

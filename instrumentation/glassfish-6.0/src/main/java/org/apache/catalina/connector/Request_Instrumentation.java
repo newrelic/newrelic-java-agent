@@ -21,8 +21,8 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.glassfish6.AsyncListenerFactory;
 import com.nr.agent.instrumentation.glassfish6.RequestFacadeHelper;
 
-@Weave
-public abstract class Request implements HttpServletRequest {
+@Weave(originalName = "org.apache.catalina.connector.Request")
+public abstract class Request_Instrumentation implements HttpServletRequest {
 
     @SuppressWarnings("unused")
     private AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse,
@@ -33,7 +33,7 @@ public abstract class Request implements HttpServletRequest {
         asyncContext.addListener(AsyncListenerFactory.getAsyncListener(), servletRequest, servletResponse);
         NewRelic.getAgent().getLogger().log(Level.FINER, "Added async listener");
 
-        Request request = RequestFacadeHelper.getRequest(servletRequest);
+        Request_Instrumentation request = RequestFacadeHelper.getRequest(servletRequest);
         if (request != null) {
             AgentBridge.asyncApi.suspendAsync(request);
         }

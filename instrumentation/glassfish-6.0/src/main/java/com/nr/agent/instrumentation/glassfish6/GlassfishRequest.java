@@ -17,10 +17,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.HeaderType;
 
-public class TomcatRequest extends ExtendedRequest {
+public class GlassfishRequest extends ExtendedRequest {
     private final HttpServletRequest request;
 
-    public TomcatRequest(HttpServletRequest request) {
+    public GlassfishRequest(HttpServletRequest request) {
         super();
         this.request = request;
     }

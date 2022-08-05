@@ -11,16 +11,17 @@ import jakarta.servlet.ServletRequestEvent;
 import jakarta.servlet.ServletRequestListener;
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.apache.catalina.connector.Request;
+import org.apache.catalina.connector.Request_Instrumentation;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.CatchAndLog;
+import org.apache.catalina.core.ApplicationDispatcher_Instrumentation;
 
 /**
  * This class handles the initial request. An async dispatch is handled by
- * {@link org.apache.catalina.core.ApplicationDispatcher}.
+ * {@link ApplicationDispatcher_Instrumentation}.
  */
-public final class TomcatServletRequestListener implements ServletRequestListener {
+public final class GlassfishServletRequestListener implements ServletRequestListener {
 
     private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
 
@@ -54,14 +55,14 @@ public final class TomcatServletRequestListener implements ServletRequestListene
         return null;
     }
 
-    private TomcatRequest getTomcatRequest(HttpServletRequest httpServletRequest) {
-        return new TomcatRequest(httpServletRequest);
+    private GlassfishRequest getTomcatRequest(HttpServletRequest httpServletRequest) {
+        return new GlassfishRequest(httpServletRequest);
     }
 
-    private TomcatResponse getTomcatResponse(HttpServletRequest httpServletRequest) {
-        Request request = RequestFacadeHelper.getRequest(httpServletRequest);
+    private GlassfishResponse getTomcatResponse(HttpServletRequest httpServletRequest) {
+        Request_Instrumentation request = RequestFacadeHelper.getRequest(httpServletRequest);
         if (request != null) {
-            return new TomcatResponse(request.getResponse());
+            return new GlassfishResponse(request.getResponse());
         }
         return null;
     }
