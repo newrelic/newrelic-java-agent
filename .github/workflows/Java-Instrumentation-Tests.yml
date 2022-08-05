@@ -101,7 +101,7 @@ jobs:
 
       - name: Download S3 instrumentation jar zip
         if: ${{ env.AWS_KEY != '' }}
-        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20200717.zip proprietary-jars.zip  ## 2020?
+        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip  ## 2020?
 
       - name: Unzip the instrumentation jars
         if: ${{ env.AWS_KEY != '' }}
