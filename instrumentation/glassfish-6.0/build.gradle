@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
+    implementation("org.glassfish.main.web:web-core:6.0.0")
+    implementation("org.eclipse.persistence:jakarta.persistence:2.2.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.glassfish-6.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.glassfish.main.web:web-core:[6.0.0-RC1,7.0.0-M3)'
+}
+
+site {
+    title 'Glassfish'
+    type 'Appserver'
+    versionOverride '[6.0,)'
+}
