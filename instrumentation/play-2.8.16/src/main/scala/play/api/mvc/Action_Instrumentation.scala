@@ -10,7 +10,7 @@ package play.api.mvc
 import com.newrelic.api.agent.Trace
 import com.newrelic.api.agent.weaver.Weaver
 import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
-import com.nr.agent.instrumentation.play27.PlayUtil
+import com.nr.agent.instrumentation.play2816.PlayUtil
 
 import scala.concurrent.Future
 
@@ -18,7 +18,7 @@ import scala.concurrent.Future
 class Action_Instrumentation[A] {
   @Trace(async = true, metricName = "Play2Controller")
   def apply(request: Request[A]): Future[Result] = {
-    val tokenOption = request.attrs.get(PlayUtil.newRelicToken)
+    val tokenOption = request.attrs.get(com.nr.agent.instrumentation.play2816.PlayUtil.newRelicToken)
     if (tokenOption.isDefined) {
       tokenOption.get.linkAndExpire()
     }
