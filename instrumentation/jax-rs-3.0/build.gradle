@@ -1,0 +1,42 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
+    implementation ("org.glassfish.jersey.inject:jersey-hk2:3.0.2")
+
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.2")
+    testImplementation("org.glassfish.jersey.test-framework:jersey-test-framework-core:3.0.2")
+    testImplementation("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:3.0.2")
+    testImplementation(project(":instrumentation:jersey-3"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jax-rs-3.0',
+    'Implementation-Title-Alias': 'rest_annotations'}
+}
+
+test {
+    if (project.hasProperty("test9") || project.hasProperty("test10")) {
+        jvmArgs "--add-modules=java.activation"
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'jakarta.ws.rs:jakarta.ws.rs-api:[3.0-M1,)'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
+}
+
+site {
+    title 'JAX-RS'
+    type 'Framework'
+    versionOverride '[3.0,)'
+}

@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.instrumentation.javax.ws.rs.api;
+package com.nr.instrumentation.jakarta.ws.rs.api;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
@@ -15,30 +15,22 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 import com.newrelic.api.agent.weaver.Weaver;
+import jakarta.ws.rs.*;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
 import java.util.Queue;
 import java.util.logging.Level;
 
-@WeaveWithAnnotation(annotationClasses = { "javax.ws.rs.Path" }, type = MatchType.Interface)
-public class JavaxWsRsApi_Instrumentation {
+@WeaveWithAnnotation(annotationClasses = { "jakarta.ws.rs.Path" }, type = MatchType.Interface)
+public class JakartaWsRsApi_Instrumentation {
 
-    @WeaveWithAnnotation(annotationClasses = { "javax.ws.rs.PUT", "javax.ws.rs.POST", "javax.ws.rs.GET",
-            "javax.ws.rs.DELETE", "javax.ws.rs.HEAD", "javax.ws.rs.OPTIONS", "javax.ws.rs.PATCH" })
+    @WeaveWithAnnotation(annotationClasses = { "jakarta.ws.rs.PUT", "jakarta.ws.rs.POST", "jakarta.ws.rs.GET",
+            "jakarta.ws.rs.DELETE", "jakarta.ws.rs.HEAD", "jakarta.ws.rs.OPTIONS", "jakarta.ws.rs.PATCH" })
     @WeaveIntoAllMethods
     @Trace(dispatcher = true)
     private static void instrumentation() {
         Transaction transaction = AgentBridge.getAgent().getWeakRefTransaction(false);
         if (transaction != null) {
-            JavaxWsRsApiHelper.ResourcePath resourcePath = JavaxWsRsApiHelper.subresourcePath.get();
+            JakartaWsRsApiHelper.ResourcePath resourcePath = JakartaWsRsApiHelper.subresourcePath.get();
             if (!transaction.equals(resourcePath.transaction)) {
                 resourcePath.pathQueue.clear();
                 resourcePath.transaction = transaction;
@@ -83,7 +75,7 @@ public class JavaxWsRsApi_Instrumentation {
             if (httpMethod != null) {
                 Queue<String> subresourcePath = resourcePath.pathQueue;
 
-                String fullPath = JavaxWsRsApiHelper.getPath(rootPath, methodPath, httpMethod);
+                String fullPath = JakartaWsRsApiHelper.getPath(rootPath, methodPath, httpMethod);
                 subresourcePath.offer(fullPath);
 
                 StringBuilder txNameBuilder = new StringBuilder();
@@ -95,7 +87,7 @@ public class JavaxWsRsApi_Instrumentation {
                 transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "RestWebService",
                         txNameBuilder.toString());
             } else {
-                String fullPath = JavaxWsRsApiHelper.getPath(rootPath, methodPath, null);
+                String fullPath = JakartaWsRsApiHelper.getPath(rootPath, methodPath, null);
                 if (!resourcePath.pathQueue.offer(fullPath)) {
                     AgentBridge.getAgent().getLogger().log(Level.FINE, "JAX-RS Subresource naming queue is full.");
                     resourcePath.pathQueue.clear();

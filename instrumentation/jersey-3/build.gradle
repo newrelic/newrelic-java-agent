@@ -1,0 +1,33 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-api"))
+    implementation('org.glassfish.jersey.core:jersey-server:3.0.6')
+
+    testImplementation("com.jayway.restassured:rest-assured:2.7.0")
+    testImplementation('org.eclipse.jetty:jetty-servlets:11.0.11')
+    testImplementation('org.glassfish.jersey.core:jersey-server:3.0.5')
+    testImplementation('org.glassfish.jersey.containers:jersey-container-servlet-core:3.0.5')
+    testImplementation('org.glassfish.jersey.containers:jersey-container-jetty-http:3.0.5')
+    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.5")
+    testImplementation('org.glassfish.jersey.inject:jersey-hk2:3.0.5')
+    testImplementation('jakarta.xml.bind:jakarta.xml.bind-api:4.0.0')
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jersey-3' }
+}
+
+verifyInstrumentation {
+    passes 'org.glassfish.jersey.core:jersey-server:[3.0,)'
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test7')
+    }
+}
+
+site {
+    title 'Jersey'
+    type 'Framework'
+}
