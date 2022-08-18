@@ -176,18 +176,18 @@ public class Jersey3Tests extends JerseyTest {
         assertEquals("WebTransaction/AsyncResource/timeoutThrowable", transactionName);
     }
 
-//    @Test
-//    public void asyncTimeoutTestCancel() {
-//        Response response = getRequest("/api/async/timeoutCancel", server.getURI().getPort());
-//        assertNotNull(response);
-//        assertEquals(503, response.statusCode());
-//
-//        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-//        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
-//        assertEquals(1, finishedTransactionCount);
-//
-//        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
-//        assertNotNull(transactionName);
-//        assertEquals("WebTransaction/AsyncResource/timeoutCancel", transactionName);
-//    }
+    @Test
+    public void asyncTimeoutTestCancel() {
+        Response response = target("/async/timeoutCancel").request().get();
+        assertNotNull(response);
+        assertEquals(503, response.getStatus());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
+        assertEquals(1, finishedTransactionCount);
+
+        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
+        assertNotNull(transactionName);
+        assertEquals("WebTransaction/AsyncResource/timeoutCancel", transactionName);
+    }
 }
