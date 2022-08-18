@@ -8,6 +8,7 @@
 package com.newrelic.agent.service.analytics;
 
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.environment.Environment;
@@ -17,6 +18,7 @@ import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.stats.TransactionStats;
+import com.newrelic.agent.tracers.ErrorTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.SpanProxy;
@@ -50,6 +52,9 @@ import static com.newrelic.agent.attributes.AttributeNames.RESPONSE_CONTENT_TYPE
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -58,7 +63,7 @@ public class TracerToSpanEventTest {
 
     private final String appName = "appName";
     private final String traceId = "12345";
-    private final boolean isRoot = true;
+    private boolean isRoot = true;
     private final boolean sampled = true;
     private final long duration = 1500L;
     private final long timestamp = 12345L;
@@ -386,7 +391,7 @@ public class TracerToSpanEventTest {
     }
 
     @Test
-    public void testDistributedTraceIntrinicsAreAdded() {
+    public void testDistributedTraceIntrinsicsAreAdded() {
         Map<String, Object> distributedTraceIntrinsics = Collections.singletonMap("dt-intrinsic", "yuppers");
 
         when(transactionDataToDistributedTraceIntrinsics.buildDistributedTracingIntrinsics(any(TransactionData.class), anyBoolean()))
@@ -406,7 +411,7 @@ public class TracerToSpanEventTest {
     }
 
     @Test
-    public void testDistributedTraceIntrinicsAreAddedAndFiltered() {
+    public void testDistributedTraceIntrinsicsAreAddedAndFiltered() {
         Map<String, Object> distributedTraceIntrinsics = new HashMap<>();
         distributedTraceIntrinsics.put("dt-intrinsic", "yuppers");
         distributedTraceIntrinsics.put("parentSpanId", "that's a no from me");
@@ -661,6 +666,54 @@ public class TracerToSpanEventTest {
 
         when(txnData.getAgentAttributes()).thenReturn(transactionAgentAttributes);
         // assertions
+        assertEquals(expectedSpanEvent, spanEvent);
+    }
+
+    @Test
+    public void testClmAttributes() {
+        isRoot = false;
+        expectedAgentAttributes.put(AttributeNames.CLM_NAMESPACE, "className");
+        expectedAgentAttributes.put(AttributeNames.CLM_FUNCTION, "method");
+        // these attrs make sense for a root span, but not to a non-root span
+        expectedAgentAttributes.remove("port");
+        expectedAgentAttributes.remove("error.class");
+        expectedIntrinsicAttributes.remove("nr.entryPoint");
+        expectedIntrinsicAttributes.remove("transaction.name");
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
+
+        tracerAgentAttributes.put(AttributeNames.CLM_NAMESPACE, "className");
+        tracerAgentAttributes.put(AttributeNames.CLM_FUNCTION, "method");
+        tracerAgentAttributes.put("randomAttribute", "some value"); // only the CLM attrs should be in the spanEvent
+
+        when(spanErrorBuilder.buildSpanError(any(ErrorTracer.class), eq(false), anyInt(), anyString(), any(TransactionThrowable.class)))
+                .thenReturn(new SpanError());
+
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
+
+        assertEquals(expectedSpanEvent, spanEvent);
+    }
+
+    @Test
+    public void testClmAttributesOnRootSpan() {
+        expectedAgentAttributes.put(AttributeNames.CLM_NAMESPACE, "className");
+        expectedAgentAttributes.put(AttributeNames.CLM_FUNCTION, "method");
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
+
+        tracerAgentAttributes.put(AttributeNames.CLM_NAMESPACE, "className");
+        tracerAgentAttributes.put(AttributeNames.CLM_FUNCTION, "method");
+        tracerAgentAttributes.put("randomAttribute", "some value"); // only the CLM attrs should be in the spanEvent
+
+        when(spanErrorBuilder.buildSpanError(any(ErrorTracer.class), eq(false), anyInt(), anyString(), any(TransactionThrowable.class)))
+                .thenReturn(new SpanError());
+
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
+
         assertEquals(expectedSpanEvent, spanEvent);
     }
 

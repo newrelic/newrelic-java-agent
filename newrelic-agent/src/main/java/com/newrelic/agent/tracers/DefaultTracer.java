@@ -11,6 +11,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -38,6 +39,7 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
+import org.apache.commons.lang3.StringUtils;
 import org.objectweb.asm.Opcodes;
 
 import java.net.URI;
@@ -285,6 +287,24 @@ public class DefaultTracer extends AbstractTracer {
                         classMethodSignature.getClassName(), t.toString());
                 Agent.LOG.severe(msg);
                 Agent.LOG.log(Level.FINER, msg, t);
+            }
+
+            try {
+                if (classMethodSignature != null &&
+                        ServiceFactory.getConfigService().getDefaultAgentConfig().getCodeLevelMetricsConfig().isEnabled()) {
+                    String className = classMethodSignature.getClassName();
+                    String methodName = classMethodSignature.getMethodName();
+
+                    // tracers created by the API will only have the className and should be ignored
+                    if (StringUtils.isNotEmpty(className) && StringUtils.isNotEmpty(methodName)) {
+                        setAgentAttribute(AttributeNames.CLM_NAMESPACE, className);
+                        setAgentAttribute(AttributeNames.CLM_FUNCTION, methodName);
+                    }
+                }
+            } catch (Throwable t) {
+                String msg = "An error occurred saving the clm attributes: " + t;
+                Agent.LOG.severe(msg);
+                Agent.LOG.log(Level.FINER, msg);
             }
 
             try {

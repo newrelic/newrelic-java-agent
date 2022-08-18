@@ -9,15 +9,23 @@ package com.newrelic.agent.tracers;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.newrelic.agent.*;
+import com.newrelic.agent.AgentHelper;
+import com.newrelic.agent.MockCoreService;
+import com.newrelic.agent.Transaction;
+import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeNames;
-import com.newrelic.agent.bridge.datastore.*;
+import com.newrelic.agent.bridge.datastore.ConnectionFactory;
+import com.newrelic.agent.bridge.datastore.DatabaseVendor;
+import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
+import com.newrelic.agent.bridge.datastore.DatastoreVendor;
+import com.newrelic.agent.bridge.datastore.JdbcDatabaseVendor;
+import com.newrelic.agent.bridge.datastore.JdbcHelper;
+import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.TransactionTracerConfig;
-import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.database.DatastoreMetrics;
+import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
@@ -42,15 +50,24 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.newrelic.agent.AgentHelper.getFullPath;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DefaultSqlTracerTest {
+public class DefaultSqlTracerClmTest {
 
     private String APP_NAME;
 
@@ -64,7 +81,7 @@ public class DefaultSqlTracerTest {
 
     @Before
     public void before() throws Exception {
-        String configPath = getFullPath("/com/newrelic/agent/config/span_events.yml");
+        String configPath = getFullPath("/com/newrelic/agent/config/span_events_clm.yml");
         System.setProperty("newrelic.config.file", configPath);
         MockCoreService.getMockAgentAndBootstrapTheServiceManager();
         APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
@@ -84,15 +101,17 @@ public class DefaultSqlTracerTest {
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
 
-        Map params = (Map) json.get(3);
-        List backtrace = (List) params.get(DefaultSqlTracer.BACKTRACE_PARAMETER_NAME);
+        Map<?,?> params = (Map<?, ?>) json.get(3);
+        List<?> backtrace = (List<?>) params.get(DefaultSqlTracer.BACKTRACE_PARAMETER_NAME);
 
         assertTrue(backtrace.size() > 2);
+
         assertClmAbsent(tracer);
+        tracer.finish(0, null);
+        assertClm(tracer);
     }
 
     @SuppressWarnings("unchecked")
-    @Test
     public void testSqlInParameterMap() throws Exception {
         String inputSql = "select * from dudette";
         DefaultSqlTracer tracer = newTracer(inputSql);
@@ -104,16 +123,19 @@ public class DefaultSqlTracerTest {
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
         assertEquals(2, tracer.getAgentAttributes().size()); // exclusive_duration_millis and sql
-        assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql"));
+        assertEquals(inputSql, tracer.getAgentAttributes().get("sql"));
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
 
-        Map params = (Map) json.get(3);
+        Map<?, ?> params = (Map<?, ?>) json.get(3);
         // the name changes when it is obfuscated
         String sqlStatement = (String) params.get("sql_obfuscated");
 
         assertEquals(inputSql, sqlStatement);
+
         assertClmAbsent(tracer);
+        tracer.finish(0, null);
+        assertClm(tracer);
     }
 
     @SuppressWarnings("unchecked")
@@ -141,23 +163,23 @@ public class DefaultSqlTracerTest {
 
         assertTrue(tracer.getAgentAttributes().isEmpty());
 
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.RETURN, null);
 
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(5, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id
-        assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
+        assertEquals(7, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id, code.namespace, code.function
+        assertEquals(inputSql, tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
+        assertClm(tracer);
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
 
-        Map params = (Map) json.get(3);
+        Map<?, ?> params = (Map<?, ?>) json.get(3);
         // the name changes when it is obfuscated
-        String sqlStatement = (String) params.get("sql_obfuscated");
-        assertEquals(obfuscatedInputSql, sqlStatement);
+        assertEquals(obfuscatedInputSql, params.get("sql_obfuscated"));
 
-        String rawSql = (String) params.get("sql");
-        assertNull(rawSql); // raw sql should be null since high security is on
+        assertNull(params.get("sql")); // (raw) sql should be null since high security is on
 
         // Ensure that we do not send up unobfuscated sql in the intrinsics
         Transaction transaction = Transaction.getTransaction(false);
@@ -165,7 +187,6 @@ public class DefaultSqlTracerTest {
         Map<String, Object> intrinsics = transaction.getIntrinsicAttributes();
         assertNotNull(intrinsics);
         assertNull(intrinsics.get(SqlTracer.SQL_PARAMETER_NAME));
-        assertClmAbsent(tracer);
     }
 
     @SuppressWarnings("unchecked")
@@ -193,13 +214,15 @@ public class DefaultSqlTracerTest {
 
         assertTrue(tracer.getAgentAttributes().isEmpty());
 
+        assertClmAbsent(tracer);
         tracer.finish(new RuntimeException());
 
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(2, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql
+        assertEquals(4, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, code.namespace, code.function
         assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
+        assertClm(tracer);
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
 
@@ -217,15 +240,6 @@ public class DefaultSqlTracerTest {
         Map<String, Object> intrinsics = transaction.getIntrinsicAttributes();
         assertNotNull(intrinsics);
         assertEquals(obfuscatedInputSql, intrinsics.get(SqlTracer.SQL_PARAMETER_NAME));
-        assertClmAbsent(tracer);
-    }
-
-    @Test
-    public void testTruncateSql() {
-        String sql = "insert into my_table select * from dudes where id != 09349858 and something";
-
-        assertTrue(sql == TransactionSegment.truncateSql(sql, 10000000));
-        assertEquals("insert int..(65 more chars)", TransactionSegment.truncateSql(sql, 10));
     }
 
     @Test
@@ -236,6 +250,7 @@ public class DefaultSqlTracerTest {
         }
 
         DefaultSqlTracer tracer = newTracer(sql);
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.RETURN, null);
 
         assertEquals(getScopedMetric("test", "insert"), tracer.getMetricName());
@@ -250,20 +265,22 @@ public class DefaultSqlTracerTest {
         assertNotNull(truncatedSql);
         assertTrue(truncatedSql.length() < sql.length());
         assertTrue(truncatedSql.endsWith("more chars)"));
-        assertClmAbsent(tracer);
+
+        assertClm(tracer);
     }
 
     @Test
     public void testShowStatementGeneratesZeroDatastoreMetrics() throws Exception {
         DefaultSqlTracer tracer = newTracer("show tables");
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.RETURN, null);
+        assertClm(tracer);
 
         Set<String> data = AgentHelper.getMetrics();
 
         // The agent does not capture any Datastore metrics pertaining to a 'show' statement. Other metrics may potentially
         // be generated during test execution; therefore, this only asserts that no 'Datastore'-namespaced metrics were captured.
         assertThat(data, not(hasItem(containsString(DatastoreMetrics.METRIC_NAMESPACE))));
-        assertClmAbsent(tracer);
     }
 
     @Test
@@ -274,13 +291,14 @@ public class DefaultSqlTracerTest {
         }
 
         DefaultSqlTracer tracer = newTracer(sql);
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.RETURN, null);
         assertEquals(getScopedMetric("test", "insert"), tracer.getMetricName());
         String truncatedSql = tracer.getSql().toString();
         assertNotNull(truncatedSql);
         assertEquals(sql.length(), truncatedSql.length());
         assertFalse(truncatedSql.endsWith("more chars)"));
-        assertClmAbsent(tracer);
+        assertClm(tracer);
     }
 
     @Test
@@ -294,9 +312,10 @@ public class DefaultSqlTracerTest {
             }
         }
 
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.LRETURN, new DummyResultSet()); // should return result set
         assertEquals(getScopedMetric("metrics", "select"), tracer.getMetricName());
-        assertClmAbsent(tracer);
+        assertClm(tracer);
     }
 
     @Test
@@ -308,10 +327,11 @@ public class DefaultSqlTracerTest {
 
         DefaultSqlTracer tracer = newInstanceDBTracer("select * from metrics", connection, "MySQL", "mysql");
 
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.ARETURN, new DummyResultSet()); // should return result set
         String expectedRollupMetricName = getScopedInstanceDBMetric(DatastoreVendor.MySQL.name(), "mycoolhost.net", "3306");
         assertTrue(tracer.getRollupMetricNames().contains(expectedRollupMetricName));
-        assertClmAbsent(tracer);
+        assertClm(tracer);
     }
 
     @Test
@@ -319,10 +339,11 @@ public class DefaultSqlTracerTest {
         final Connection connection = mock(Connection.class);
         DefaultSqlTracer tracer = newInstanceDBTracer("select * from metrics", connection, "MySQL", "mysql");
 
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.ARETURN, new DummyResultSet());
         String expectedRollupMetricName = getScopedInstanceDBMetric(DatastoreVendor.MySQL.name(), "unknown", "unknown");
         assertTrue(tracer.getRollupMetricNames().contains(expectedRollupMetricName));
-        assertClmAbsent(tracer);
+        assertClm(tracer);
     }
 
     @Test
@@ -334,6 +355,7 @@ public class DefaultSqlTracerTest {
 
         String dbVendor = "MySQL";
         DefaultSqlTracer sqlTracer = newInstanceDBTracer("select * from metrics", connection, dbVendor, "mysql");
+        assertClmAbsent(sqlTracer);
         sqlTracer.finish(Opcodes.ARETURN, new DummyResultSet());
 
         assertNull(DatastoreInstanceDetection.getAddressForConnection(connection));
@@ -343,15 +365,17 @@ public class DefaultSqlTracerTest {
         String hostname = Hostname.getHostname(ServiceFactory.getConfigService().getDefaultAgentConfig());
         String expectedInstanceMetric = getScopedInstanceDBMetric(dbVendor, hostname, "mydbname");
         assertTrue(sqlTracer.getRollupMetricNames().contains(expectedInstanceMetric));
-        assertClmAbsent(sqlTracer);
+
+        assertClm(sqlTracer);
     }
 
     @Test
     public void multipleStatements() throws SQLException {
         DefaultSqlTracer tracer = newTracer("select * from dude; select * from test");
+        assertClmAbsent(tracer);
         tracer.finish(Opcodes.RETURN, null);
         assertEquals(getScopedMetric("dude", "select"), tracer.getMetricName());
-        assertClmAbsent(tracer);
+        assertClm(tracer);
     }
 
     private DefaultSqlTracer newTracer(String sql) throws SQLException {
@@ -419,203 +443,6 @@ public class DefaultSqlTracerTest {
     }
 
     @Test
-    public void testObfuscated() {
-        String jsonString = getJSON(RecordSql.obfuscated);
-        assertEquals("select * from user where ssn = ?", jsonString);
-    }
-
-    @Test
-    public void testRaw() {
-        String jsonString = getJSON(RecordSql.raw);
-        assertEquals("select * from user where ssn = 666666666", jsonString);
-    }
-
-    private String getJSON(RecordSql recordSql) {
-        MockServiceManager serviceManager = new MockServiceManager();
-        serviceManager.setConfigService(new MockConfigService(
-                AgentConfigFactory.createAgentConfig(Collections.<String, Object>emptyMap(),
-                        Collections.<String, Object>emptyMap(), null)));
-        ServiceManager originalServiceManager = ServiceFactory.getServiceManager();
-
-        try {
-            ServiceFactory.setServiceManager(serviceManager);
-            Transaction transaction = mock(Transaction.class);
-            TransactionActivity txa = mock(TransactionActivity.class);
-            when(transaction.getTransactionActivity()).thenReturn(txa);
-            when(txa.getTransaction()).thenReturn(transaction);
-
-            TransactionTracerConfig ttConfig = mock(TransactionTracerConfig.class);
-            when(ttConfig.getRecordSql()).thenReturn(recordSql.toString());
-            when(transaction.getTransactionTracerConfig()).thenReturn(ttConfig);
-
-            ClassMethodSignature sig = new ClassMethodSignature("", "", "");
-
-            DefaultSqlTracer tracer = new DefaultSqlTracer(transaction, sig, new Object(),
-                    new SimpleMetricNameFormat("BoundedConcurrentCacheTest"), TracerFlags.GENERATE_SCOPED_METRIC);
-            tracer.setRawSql("select * from user where ssn = ?");
-            tracer.setParams(new Object[] { 666666666 });
-
-            Object sqlObject = tracer.getSql();
-
-            return sqlObject.toString();
-        } finally {
-            ServiceFactory.setServiceManager(originalServiceManager);
-        }
-    }
-
-    @Test
-    public void nullParameters() throws Exception {
-        String sql = "SELECT * FROM ROGER WHERE COL1 = ? AND COL2 = ? AND COL3 = ? AND COL4 = ?";
-        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, null));
-    }
-
-    @Test
-    public void emptyParameters() throws Exception {
-        String sql = "SELECT * FROM ROGER WHERE COL1 = ? AND COL2 = ? AND COL3 = ? AND COL4 = ?";
-        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, new Object[0]));
-    }
-
-    @Test
-    public void nullSql() throws Exception {
-        String sql = null;
-        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, new Object[] { "String1" }));
-    }
-
-    @Test
-    public void emptySql() throws Exception {
-        String sql = "";
-        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, new Object[] { "String1" }));
-    }
-
-    @Test
-    public void trailingParameter() throws Exception {
-        String sql = "SELECT * FROM ROGER WHERE COL1 = ?";
-        String expectedSql = "SELECT * FROM ROGER WHERE COL1 = 'String1'";
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql,
-                new Object[] { "String1" }));
-    }
-
-    @Test
-    public void noTrailingParameter() throws Exception {
-        String sql = "CALL PROC(?)";
-        String expectedSql = "CALL PROC('String1')";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql,
-                new Object[] { "String1" }));
-    }
-
-    @Test
-    public void multipleParametersTrailing() throws Exception {
-        String sql = "SELECT * FROM ROGER WHERE COL1 = ? AND COL2 = ? AND COL3 = ? AND COL4 = ?";
-        String expectedSql = "SELECT * FROM ROGER WHERE COL1 = 'String1' AND COL2 = 1.0 AND COL3 = 1 AND COL4 = '2010-08-07'";
-        Calendar cal = Calendar.getInstance();
-        cal.set(2010, 7, 7);
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {
-                "String1", 1.0f, 1, new java.sql.Date(cal.getTimeInMillis()) }));
-    }
-
-    @Test
-    public void multipleParametersNoTrailing() throws Exception {
-        String sql = "CALL PROC(?, ?)";
-        String expectedSql = "CALL PROC('String1', 'String2')";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {
-                "String1", "String2" }));
-    }
-
-    @Test
-    public void literal() throws Exception {
-        String sql = "select x, ? as lang from z where y = 1";
-        String expectedSql = "select x, 'q' as lang from z where y = 1";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] { "q" }));
-    }
-
-    @Test
-    public void allParameters() throws Exception {
-        String sql = "? ? ?";
-        String expectedSql = "'String1' 'String2' 'String3'";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {
-                "String1", "String2", "String3" }));
-    }
-
-    @Test
-    public void allParametersTrailingSpaces() throws Exception {
-        String sql = "? ? ? ";
-        String expectedSql = "'String1' 'String2' 'String3' ";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {
-                "String1", "String2", "String3" }));
-    }
-
-    @Test
-    public void missingParameters() throws Exception {
-        String sql = "SELECT * FROM ROGER WHERE COL1 = ? AND COL2 = ? AND COL3 = ? AND COL4 = ?";
-        String expectedSql = "SELECT * FROM ROGER WHERE COL1 = 'String1' AND COL2 = 1.0 AND COL3 = 1 AND COL4 = ?";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {
-                "String1", 1.0f, 1 }));
-    }
-
-    @Test
-    public void escapingQuotesParams() throws Exception {
-        String sql = "UPDATE Table SET content = ? WHERE title = ?";
-        String expectedSql = "UPDATE Table SET content = 'A long content ''with quotes''' WHERE title = 'Some ''Title'''";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"A long content 'with quotes'", "Some 'Title'"}));
-    }
-
-    @Test
-    public void notEscapingQuotesInQuery() throws Exception {
-        String sql = "UPDATE Table SET content = 'A long content ''with quotes''' WHERE title = 'Some ''Title'''";
-
-        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, null));
-    }
-
-    @Test
-    public void notEscapingEscapedQuoteInParam() throws Exception {
-        String sql = "UPDATE Table SET content = ?";
-        String expectedSql = "UPDATE Table SET content = 'Chris O\\'Dowd'";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"Chris O\\'Dowd"}));
-    }
-
-    @Test
-    public void mixedQuotes() throws Exception {
-        String sql = "UPDATE Table SET content = ?";
-        String expectedSql = "UPDATE Table SET content = 'Chris ''Roy'' O\\'Dowd'";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"Chris 'Roy' O\\'Dowd"}));
-    }
-
-    @Test
-    public void oracleQuotesInQuery() throws Exception {
-        String sql = "UPDATE Table SET content = q'[content'with'quotes]'";
-
-        assertEquals(sql, DefaultSqlTracer.parameterizeSql(sql, null));
-    }
-
-    @Test
-    public void oracleQuotesInParam() throws Exception {
-        String sql = "UPDATE Table SET content = ?";
-        // since the oracle quote is inside the param, JDBC would treat it as part of a regular string.
-        String expectedSql = "UPDATE Table SET content = 'q''[around''quote]'''";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"q'[around'quote]'"}));
-    }
-
-    @Test
-    public void oracleQuotesInQueryAndParam() throws Exception {
-        String sql         = "UPDATE Table SET content = q'[?]'";
-        // this case looks awkward, but the resulting query should be what the app gets when a PreparedStatement is used.
-        String expectedSql = "UPDATE Table SET content = q'['a''b']'";
-
-        assertEquals(expectedSql, DefaultSqlTracer.parameterizeSql(sql, new Object[] {"a'b"}));
-    }
-
-    @Test
     public void testSpanEventDatastore() throws SQLException {
         final Connection connection = mock(Connection.class);
         DatastoreInstanceDetection.detectConnectionAddress();
@@ -647,7 +474,7 @@ public class DefaultSqlTracerTest {
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
         assertNotNull(spanEvent.getGuid());
-        assertClmAbsent(spanEvent);
+        assertClm(spanEvent);
     }
 
     @Test
@@ -683,7 +510,7 @@ public class DefaultSqlTracerTest {
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
         assertNotNull(spanEvent.getGuid());
-        assertClmAbsent(spanEvent);
+        assertClm(spanEvent);
     }
 
     @Test
@@ -719,18 +546,7 @@ public class DefaultSqlTracerTest {
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
         assertNotNull(spanEvent.getGuid());
-        assertClmAbsent(spanEvent);
-    }
-
-    private static void assertClmAbsent(Tracer tracer) {
-        assertNull(tracer.getAgentAttribute(AttributeNames.CLM_NAMESPACE));
-        assertNull(tracer.getAgentAttribute(AttributeNames.CLM_FUNCTION));
-    }
-
-    private static void assertClmAbsent(SpanEvent spanEvent) {
-        Map<String, Object> agentAttrs = spanEvent.getAgentAttributes();
-        assertNull(agentAttrs.get(AttributeNames.CLM_NAMESPACE));
-        assertNull(agentAttrs.get(AttributeNames.CLM_FUNCTION));
+        assertClm(spanEvent);
     }
 
     // @Test
@@ -746,6 +562,22 @@ public class DefaultSqlTracerTest {
         String msg = MessageFormat.format("{0} iterations took {1} milliseconds ({2} nanoseconds per iteration)",
                 count, stopTime - startTime, (stopTime - startTime) * 1000 / count);
         System.out.println(msg);
+    }
+
+    public static void assertClmAbsent(Tracer tracer) {
+        assertNull(tracer.getAgentAttribute(AttributeNames.CLM_NAMESPACE));
+        assertNull(tracer.getAgentAttribute(AttributeNames.CLM_FUNCTION));
+    }
+
+    public static void assertClm(Tracer tracer) {
+        assertEquals("com.foo.Statement", tracer.getAgentAttribute(AttributeNames.CLM_NAMESPACE));
+        assertEquals("executeQuery", tracer.getAgentAttribute(AttributeNames.CLM_FUNCTION));
+    }
+
+    public static void assertClm(SpanEvent spanEvent) {
+        Map<String, Object> agentAttrs = spanEvent.getAgentAttributes();
+        assertEquals("com.foo.Statement", agentAttrs.get(AttributeNames.CLM_NAMESPACE));
+        assertEquals("executeQuery", agentAttrs.get(AttributeNames.CLM_FUNCTION));
     }
 
 }
