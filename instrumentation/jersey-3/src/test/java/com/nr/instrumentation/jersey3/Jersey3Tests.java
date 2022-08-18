@@ -69,20 +69,20 @@ public class Jersey3Tests extends JerseyTest {
         assertEquals("WebTransaction/AsyncResource/resumeWithIOException", transactionName);
     }
 
-//    @Test
-//    public void syncEndpointTest() {
-//        Response response = getRequest("/api/async/syncEndpoint", server.getURI().getPort());
-//        assertNotNull(response);
-//        assertEquals(200, response.statusCode());
-//
-//        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-//        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
-//        assertEquals(1, finishedTransactionCount);
-//
-//        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
-//        assertNotNull(transactionName);
-//        assertEquals("WebTransaction/AsyncResource/syncEndpoint", transactionName);
-//    }
+    @Test
+    public void syncEndpointTest() {
+        Response response = target("/async/syncEndpoint").request().get();
+        assertNotNull(response);
+        assertEquals(200, response.getStatus());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
+        assertEquals(1, finishedTransactionCount);
+
+        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
+        assertNotNull(transactionName);
+        assertEquals("WebTransaction/AsyncResource/syncEndpoint", transactionName);
+    }
 //
 //    @Test
 //    public void syncEndpointWithIOExceptionTest() {
