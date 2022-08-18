@@ -129,23 +129,23 @@ public class Jersey3Tests extends JerseyTest {
         assertNotNull(transactionName);
         assertEquals("WebTransaction/AsyncResource/resumeThrowable", transactionName);
     }
-//
-//    @Test
-//    public void asyncCancelTest() {
-//        Response response = getRequest("/api/async/cancel", server.getURI().getPort());
-//        assertNotNull(response);
-//        // Status code should be 503 since the request is timing out
-//        assertEquals(503, response.statusCode());
-//
-//        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-//        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
-//        assertEquals(1, finishedTransactionCount);
-//
-//        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
-//        assertNotNull(transactionName);
-//        assertEquals("WebTransaction/AsyncResource/cancel", transactionName);
-//    }
-//
+
+    @Test
+    public void asyncCancelTest() {
+        Response response = target("/async/cancel").request().get();
+        assertNotNull(response);
+        // Status code should be 503 since the request is timing out
+        assertEquals(503, response.getStatus());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
+        assertEquals(1, finishedTransactionCount);
+
+        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
+        assertNotNull(transactionName);
+        assertEquals("WebTransaction/AsyncResource/cancel", transactionName);
+    }
+
 //    @Test
 //    public void asyncTimeoutTest() {
 //        Response response = getRequest("/api/async/timeout", server.getURI().getPort());
