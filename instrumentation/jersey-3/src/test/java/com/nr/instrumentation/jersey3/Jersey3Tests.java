@@ -115,20 +115,20 @@ public class Jersey3Tests extends JerseyTest {
         assertEquals("WebTransaction/AsyncResource/multipleResume", transactionName);
     }
 
-//    @Test
-//    public void asyncResumeThrowableTest() {
-//        Response response = getRequest("/api/async/resumeThrowable", server.getURI().getPort());
-//        assertNotNull(response);
-//        assertEquals(500, response.statusCode());
-//
-//        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-//        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
-//        assertEquals(1, finishedTransactionCount);
-//
-//        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
-//        assertNotNull(transactionName);
-//        assertEquals("WebTransaction/AsyncResource/resumeThrowable", transactionName);
-//    }
+    @Test
+    public void asyncResumeThrowableTest() {
+        Response response = target("/async/resumeThrowable").request().get();
+        assertNotNull(response);
+        assertEquals(500, response.getStatus());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
+        assertEquals(1, finishedTransactionCount);
+
+        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
+        assertNotNull(transactionName);
+        assertEquals("WebTransaction/AsyncResource/resumeThrowable", transactionName);
+    }
 //
 //    @Test
 //    public void asyncCancelTest() {
