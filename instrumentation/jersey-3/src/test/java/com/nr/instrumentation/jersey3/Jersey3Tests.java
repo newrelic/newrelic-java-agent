@@ -15,7 +15,6 @@ import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -88,8 +87,8 @@ public class Jersey3Tests extends JerseyTest {
     public void syncEndpointWithIOExceptionTest() {
         Response response = target("/async/syncEndpointWithIOException").request().get();
         assertNotNull(response);
-        //???
-//        assertEquals(500, response.getStatus());
+        // Why is this coming back as 200 now?
+        //assertEquals(500, response.getStatus());
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
