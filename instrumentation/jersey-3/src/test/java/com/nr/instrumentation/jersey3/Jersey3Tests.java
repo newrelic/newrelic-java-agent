@@ -99,22 +99,22 @@ public class Jersey3Tests extends JerseyTest {
         assertNotNull(transactionName);
         assertEquals("WebTransaction/AsyncResource/syncEndpointWithIOException", transactionName);
     }
-//
-//    @Test
-//    public void asyncMultipleResumeTest() {
-//        Response response = getRequest("/api/async/multipleResume", server.getURI().getPort());
-//        assertNotNull(response);
-//        assertEquals(200, response.statusCode());
-//
-//        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-//        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
-//        assertEquals(1, finishedTransactionCount);
-//
-//        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
-//        assertNotNull(transactionName);
-//        assertEquals("WebTransaction/AsyncResource/multipleResume", transactionName);
-//    }
-//
+
+    @Test
+    public void asyncMultipleResumeTest() {
+        Response response = target("/async/multipleResume").request().get();
+        assertNotNull(response);
+        assertEquals(200, response.getStatus());
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        int finishedTransactionCount = introspector.getFinishedTransactionCount(TIMEOUT);
+        assertEquals(1, finishedTransactionCount);
+
+        String transactionName = introspector.getTransactionNames().toArray()[0].toString();
+        assertNotNull(transactionName);
+        assertEquals("WebTransaction/AsyncResource/multipleResume", transactionName);
+    }
+
 //    @Test
 //    public void asyncResumeThrowableTest() {
 //        Response response = getRequest("/api/async/resumeThrowable", server.getURI().getPort());
