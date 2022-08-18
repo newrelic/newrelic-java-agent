@@ -3,12 +3,16 @@ dependencies {
     implementation(project(":newrelic-api"))
     implementation('org.glassfish.jersey.core:jersey-server:3.0.6')
 
-    testImplementation("com.jayway.restassured:rest-assured:2.7.0")
-    testImplementation('org.eclipse.jetty:jetty-servlets:11.0.11')
-    testImplementation('org.glassfish.jersey.core:jersey-server:3.0.5')
-    testImplementation('org.glassfish.jersey.containers:jersey-container-servlet-core:3.0.5')
-    testImplementation('org.glassfish.jersey.containers:jersey-container-jetty-http:3.0.5')
-    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.5")
+//    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.2")
+    testImplementation("org.glassfish.jersey.test-framework:jersey-test-framework-core:3.0.2")
+    testImplementation("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:3.0.2")
+
+//    testImplementation("com.jayway.restassured:rest-assured:2.7.0")
+//    testImplementation('org.eclipse.jetty:jetty-servlets:11.0.11')
+//    testImplementation('org.glassfish.jersey.core:jersey-server:2.22.1')
+//    testImplementation('org.glassfish.jersey.containers:jersey-container-servlet-core:3.0.5')
+//    testImplementation('org.glassfish.jersey.containers:jersey-container-jetty-http:3.0.5')
+//    testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.5")
     testImplementation('org.glassfish.jersey.inject:jersey-hk2:3.0.5')
     testImplementation('jakarta.xml.bind:jakarta.xml.bind-api:4.0.0')
 }

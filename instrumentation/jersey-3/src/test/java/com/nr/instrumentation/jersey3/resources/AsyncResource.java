@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.instrumentation.jersey.resources;
+package com.nr.instrumentation.jersey3.resources;
 
 import com.newrelic.api.agent.NewRelic;
 
