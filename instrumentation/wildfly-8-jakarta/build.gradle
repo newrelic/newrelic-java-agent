@@ -3,9 +3,7 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
     implementation("io.undertow:undertow-servlet-jakarta:2.2.18.Final")
-    implementation("io.undertow:undertow-core:2.2.18.Final")
     implementation("org.jboss.logging:jboss-logging:3.5.0.Final")
-    implementation("jakarta.management.j2ee:jakarta.management.j2ee-api:1.1.4")
 }
 
 jar {
@@ -13,7 +11,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.undertow:undertow-servlet:[1.0.0.Alpha19,2.3.0.Alpha1)'
+    passesOnly 'io.undertow:undertow-servlet-jakarta:[2.2.14.Final,)'
+    passesOnly 'io.undertow:undertow-servlet-jakartaee9:[2.2.0.Final,)'
 }
 
 site {

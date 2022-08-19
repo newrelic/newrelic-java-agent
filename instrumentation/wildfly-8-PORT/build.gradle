@@ -20,7 +20,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.wildfly:wildfly-undertow:[8.0.0.Final,)'
+    passesOnly 'org.wildfly:wildfly-undertow:[8.0.0.Final,)' // Verify against org.wildfly:wildfly-undertow-jakarta when it is fully released.
     excludeRegex '.*(Alpha|Beta|CR).*'
 }
 
