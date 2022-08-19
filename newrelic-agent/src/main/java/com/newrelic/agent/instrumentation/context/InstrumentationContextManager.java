@@ -20,6 +20,7 @@ import com.newrelic.agent.instrumentation.ejb3.EJBAnnotationVisitor;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassWeaverService;
+import com.newrelic.agent.instrumentation.webservices.JakartaWebServiceVisitor;
 import com.newrelic.agent.instrumentation.webservices.WebServiceVisitor;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.servlet.ServletAnnotationVisitor;
@@ -84,6 +85,15 @@ public class InstrumentationContextManager {
             Agent.LOG.log(Level.FINEST, "web_services instrumentation is disabled because it is not explicitly enabled");
         } else {
             matchVisitors.put(new WebServiceVisitor(), NO_OP_TRANSFORMER);
+        }
+
+        if (agentConfig.getValue("instrumentation.jakarta_web_services.enabled", false)) {
+            Agent.LOG.log(Level.FINEST, "jakarta_web_services instrumentation is enabled");
+            matchVisitors.put(new JakartaWebServiceVisitor(), NO_OP_TRANSFORMER);
+        } else if (!classTransformerConfig.isDefaultInstrumentationEnabled()) {
+            Agent.LOG.log(Level.FINEST, "jakarta_web_services instrumentation is disabled because it is not explicitly enabled");
+        } else {
+            matchVisitors.put(new JakartaWebServiceVisitor(), NO_OP_TRANSFORMER);
         }
 
         classNameFilter = new ClassNameFilter(Agent.LOG);

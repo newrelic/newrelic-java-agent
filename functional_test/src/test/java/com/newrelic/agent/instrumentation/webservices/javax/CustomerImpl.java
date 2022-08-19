@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.agent.instrumentation.webservices;
+package com.newrelic.agent.instrumentation.webservices.javax;
 
 import javax.ws.rs.QueryParam;
 
