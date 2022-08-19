@@ -1,16 +1,16 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
-package com.newrelic.agent.instrumentation.webservices;
+package com.newrelic.agent.instrumentation.webservices.jakarta;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
 
-@WebService(endpointInterface = "com.newrelic.agent.instrumentation.webservices.HelloWorld")
+@WebService(endpointInterface = "com.newrelic.agent.instrumentation.webservices.jakarta.HelloWorld")
 public class HelloWorldImpl implements HelloWorld, Runnable {
 
     @Override

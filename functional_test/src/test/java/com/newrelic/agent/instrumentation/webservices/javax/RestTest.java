@@ -5,18 +5,17 @@
  *
  */
 
-package com.newrelic.agent.instrumentation.webservices;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
+package com.newrelic.agent.instrumentation.webservices.javax;
 
 import com.newrelic.agent.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 
 public class RestTest {
 
@@ -106,7 +105,7 @@ public class RestTest {
 
         Assert.assertEquals("OtherTransaction/RestWebService/user (GET)",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/noPath",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/noPath",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 
@@ -118,7 +117,7 @@ public class RestTest {
         Assert.assertEquals("OtherTransaction/RestWebService/resource (GET)",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
 
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/noPathPrefix",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/noPathPrefix",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 
@@ -131,7 +130,7 @@ public class RestTest {
         Assert.assertEquals("OtherTransaction/Custom/Dude",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
 
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/customOverride",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/customOverride",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 
@@ -142,7 +141,7 @@ public class RestTest {
 
         Assert.assertEquals("OtherTransaction/RestWebService/user/exception (GET)",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/exceptionCase",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/exceptionCase",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 
@@ -153,7 +152,7 @@ public class RestTest {
 
         Assert.assertEquals("OtherTransaction/RestWebService/user/exception/variable/{id} (GET)",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/exceptionCaseWithVariable",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/exceptionCaseWithVariable",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 
@@ -164,7 +163,7 @@ public class RestTest {
 
         Assert.assertEquals("OtherTransaction/RestWebService/user/exception/variables/{id}/{id2}/{id3} (GET)",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/exceptionCaseWithVariables",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/exceptionCaseWithVariables",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 
@@ -175,7 +174,7 @@ public class RestTest {
 
         Assert.assertEquals("OtherTransaction/RestWebService/user/exception/variable/trycatch/{id} (GET)",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/exceptionCaseWithVariableAndNormalTryCatch",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/exceptionCaseWithVariableAndNormalTryCatch",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 
@@ -186,7 +185,7 @@ public class RestTest {
 
         Assert.assertEquals("OtherTransaction/RestWebService/user/static (GET)",
                 Transaction.getTransaction().getPriorityTransactionName().getName());
-        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.RestTest/staticMethod",
+        Assert.assertEquals("Java/com.newrelic.agent.instrumentation.webservices.javax.RestTest/staticMethod",
                 Transaction.getTransaction().getTransactionActivity().getLastTracer().getMetricName());
     }
 

@@ -5,19 +5,21 @@
  *
  */
 
-package com.newrelic.agent.instrumentation.webservices;
+package com.newrelic.agent.instrumentation.webservices.javax;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
 
-@WebService
-public class WsExample {
+@WebService(endpointInterface = "com.newrelic.agent.instrumentation.webservices.javax.HelloWorld")
+public class HelloWorldImpl implements HelloWorld, Runnable {
 
+    @Override
     @WebMethod
-    public String getWebMethod(String name) {
+    public String getHelloWorld(String name) {
         return "Hey what's up " + name;
     }
 
+    @Override
     public void run() {
         // This should not be traced
     }

@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.agent.instrumentation.webservices;
+package com.newrelic.agent.instrumentation.webservices.javax;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;

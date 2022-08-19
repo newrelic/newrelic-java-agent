@@ -77,6 +77,13 @@ dependencies {
     }
     testImplementation("com.ning:async-http-client:1.9.40")
     testImplementation("javax.ws.rs:javax.ws.rs-api:2.1")
+
+    //Webservices updates for jakarta ee 9
+    implementation('jakarta.jws:jakarta.jws-api:3.0.0')
+    testImplementation('jakarta.jws:jakarta.jws-api:3.0.0')
+    testImplementation('jakarta.ws.rs:jakarta.ws.rs-api:3.0.0')
+    testImplementation('jakarta.xml.bind:jakarta.xml.bind-api:4.0.0')
+    testImplementation('jakarta.xml.ws:jakarta.xml.ws-api:4.0.0')
 }
 
 def functional_test_args = [
