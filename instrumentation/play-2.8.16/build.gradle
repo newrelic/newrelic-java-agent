@@ -1,6 +1,8 @@
 import play.routes.compiler.InjectedRoutesGenerator$
 import play.routes.compiler.RoutesCompiler
 import play.routes.compiler.RoutesCompiler$
+import scala.collection.JavaConversions
+
 
 apply plugin: 'scala'
 scala.zincVersion = "1.2.5"
@@ -9,7 +11,7 @@ isScalaProjectEnabled(project, "scala-2.11")
 
 buildscript {
     dependencies {
-        classpath 'com.typesafe.play:routes-compiler_2.13:2.8.16'
+        classpath 'com.typesafe.play:routes-compiler_2.12:2.7.0-M2'
     }
     repositories {
         mavenCentral()
@@ -27,9 +29,9 @@ dependencies {
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":newrelic-weaver-scala-api"))
     implementation("org.scala-lang:scala-library:2.13.+")
-    implementation("com.typesafe.play:play-server_2.13:2.8.16")
-    testImplementation("com.typesafe.play:play-test_2.13:2.8.16")
-    testImplementation("com.typesafe.play:play-java_2.13:2.8.16")
+    implementation("com.typesafe.play:play-server_2.12:2.8.16")
+    testImplementation("com.typesafe.play:play-test_2.12:2.8.16")
+    testImplementation("com.typesafe.play:play-java_2.12:2.8.16")
     testImplementation("com.jayway.restassured:rest-assured:2.7.0")
     testImplementation("jakarta.xml.ws:jakarta.xml.ws-api:2.3.3")
 }
