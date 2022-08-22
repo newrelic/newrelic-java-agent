@@ -73,6 +73,8 @@ public abstract class HttpURLConnection extends URLConnection {
         return inputStream;
     }
 
+    // this method is no longer a leaf because it prevented the DT headers from being added to the request.
+    // See https://github.com/newrelic/newrelic-java-agent/pull/959
     @Trace
     public int getResponseCode() throws Exception {
         MetricState metricState = lazyGetMetricState();
