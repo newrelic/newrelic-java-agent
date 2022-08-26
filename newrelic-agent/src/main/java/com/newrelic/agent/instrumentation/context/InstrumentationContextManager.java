@@ -124,12 +124,27 @@ public class InstrumentationContextManager {
           Agent.LOG.log(Level.FINEST, "scala_future_trace instrumentation is disabled because it is not explicitly enabled");
         }
 
-        doPutMatchVisitorsIfConfigIsEnabled(agentConfig,
-                "class_transformer.com.newrelic.instrumentation.ejb-3.0.enabled", "ejb-3.0",
-                new EJBAnnotationVisitor());
-        doPutMatchVisitorsIfConfigIsEnabled(agentConfig,
-                "class_transformer.com.newrelic.instrumentation.ejb-4.0.enabled", "ejb-4.0",
-                new EJB4AnnotationVisitor());
+        Config ejb3InstrumentationConfig = agentConfig.getClassTransformerConfig().getInstrumentationConfig(
+                "com.newrelic.instrumentation.ejb-3.0");
+        if (ejb3InstrumentationConfig.getProperty("enabled", false)) {
+            Agent.LOG.log(Level.FINEST, "ejb-3.0 instrumentation is enabled");
+            matchVisitors.put(new EJBAnnotationVisitor(), NO_OP_TRANSFORMER);
+        } else if (!classTransformerConfig.isDefaultInstrumentationEnabled()) {
+            Agent.LOG.log(Level.FINEST, "ejb-3.0 instrumentation is disabled because it is not explicitly enabled");
+        } else {
+            matchVisitors.put(new EJBAnnotationVisitor(), NO_OP_TRANSFORMER);
+        }
+
+        Config ejb4InstrumentationConfig = agentConfig.getClassTransformerConfig().getInstrumentationConfig(
+                "com.newrelic.instrumentation.ejb-4.0");
+        if (ejb4InstrumentationConfig.getProperty("enabled", false)) {
+            Agent.LOG.log(Level.FINEST, "ejb-4.0 instrumentation is enabled");
+            matchVisitors.put(new EJB4AnnotationVisitor(), NO_OP_TRANSFORMER);
+        } else if (!classTransformerConfig.isDefaultInstrumentationEnabled()) {
+            Agent.LOG.log(Level.FINEST, "ejb-4.0 instrumentation is disabled because it is not explicitly enabled");
+        } else {
+            matchVisitors.put(new EJB4AnnotationVisitor(), NO_OP_TRANSFORMER);
+        }
 
         classloaderExclusions = agentConfig.getClassTransformerConfig().getClassloaderExclusions();
         matchVisitors.put(ServiceFactory.getJarCollectorService().getSourceVisitor(), NO_OP_TRANSFORMER);
@@ -140,19 +155,6 @@ public class InstrumentationContextManager {
         } catch (Exception e) {
             Agent.LOG.log(Level.FINEST, e, e.toString());
         }
-    }
-
-    private void doPutMatchVisitorsIfConfigIsEnabled(AgentConfig agentConfig, String configKey,
-                                                     String instrumentationName,
-                                                     ClassMatchVisitorFactory classMatchVisitorFactory) {
-        String message = null;
-        if (agentConfig.getValue(configKey, false)) {
-            message = instrumentationName + " instrumentation is enabled";
-            matchVisitors.put(classMatchVisitorFactory, NO_OP_TRANSFORMER);
-        } else {
-            message = instrumentationName + " instrumentation is disabled because it is not explicitly enabled";
-        }
-        Agent.LOG.log(Level.FINEST, message);
     }
 
     public Map<ClassMatchVisitorFactory, ContextClassTransformer> getMatchVisitors() {
