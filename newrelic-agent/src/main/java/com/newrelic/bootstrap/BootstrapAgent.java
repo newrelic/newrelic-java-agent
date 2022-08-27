@@ -165,6 +165,12 @@ public class BootstrapAgent {
             if (System.getProperty("ibm_iv25688_workaround") != null) {
                 ibmWorkaround = Boolean.parseBoolean(System.getProperty("ibm_iv25688_workaround"));
             }
+            //Do not go through IBM workaround and always go through the platform classloader path in order to test against current JVM test suites.
+            //The system class loader path was done in order to workaround some bugs. Those bugs were on IBM jdk versions 6 and 7. The agent no longer supports
+            //6 and 7 obsolete code and we can open up suppport for Openj9 and Semeru
+            //When we go through the System Classloader code path, we never add the AgentBridge...datastore jar to the class path
+            //This causes the RecordSql NoClassDefFound exception
+            ibmWorkaround = false;
 
             ClassLoader classLoader;
             if (ibmWorkaround) {
