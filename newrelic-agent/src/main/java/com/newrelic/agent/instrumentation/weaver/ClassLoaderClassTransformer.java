@@ -266,9 +266,15 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
 
         // Avoid the IBM jvm crasher. See JAVA-1206.
         if (ServiceFactory.getConfigService().getDefaultAgentConfig().getIbmWorkaroundEnabled()) {
-            Agent.LOG.log(Level.FINE,
-                    "ClassLoaderClassTransformer: skipping redefine of {0}. IBM SR {1}. java.runtime.version {2}",
-                    ClassLoader.class.getName(), IBMUtils.getIbmSRNumber(), System.getProperty("java.runtime.version"));
+//            Agent.LOG.log(Level.FINE,
+//                    "ClassLoaderClassTransformer: skipping redefine of {0}. IBM SR {1}. java.runtime.version {2}",
+//                    ClassLoader.class.getName(), IBMUtils.getIbmSRNumber(), System.getProperty("java.runtime.version"));
+            try {
+                Agent.LOG.log(Level.FINER, "IBM WORKAROUND PATH: ClassLoaderClassTransformer: Attempting to redefine {0}", ClassLoader.class);
+                InstrumentationProxy.forceRedefinition(instrumentation, ClassLoader.class);
+            } catch (Exception e) {
+                Agent.LOG.log(Level.FINEST, e, "ClassLoaderClassTransformer: Error redefining {0}", ClassLoader.class.getName());
+            }
         } else {
             try {
                 Agent.LOG.log(Level.FINER, "ClassLoaderClassTransformer: Attempting to redefine {0}", ClassLoader.class);
