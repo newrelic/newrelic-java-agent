@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.utilization;
 
-import com.newrelic.Function;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import org.apache.http.HttpStatus;
@@ -27,6 +26,7 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.function.Function;
 
 public class CloudUtility {
 
