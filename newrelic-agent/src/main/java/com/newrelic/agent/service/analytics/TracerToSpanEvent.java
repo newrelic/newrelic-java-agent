@@ -12,7 +12,6 @@ import com.google.common.collect.Maps;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributesUtils;
 import com.newrelic.agent.environment.EnvironmentService;
-import com.newrelic.agent.interfaces.backport.Supplier;
 import com.newrelic.agent.json.AttributeFilters;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanError;
@@ -30,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.newrelic.agent.MetricNames.QUEUE_TIME;
 import static com.newrelic.agent.attributes.AttributeNames.QUEUE_DURATION;

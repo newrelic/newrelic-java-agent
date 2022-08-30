@@ -12,7 +12,6 @@ import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.database.SqlObfuscator;
-import com.newrelic.agent.interfaces.backport.Supplier;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
@@ -28,6 +27,7 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.newrelic.agent.json.AttributeFilters.SPAN_EVENTS_ATTRIBUTE_FILTER;
 import static com.newrelic.agent.model.SpanEvent.SPAN;
