@@ -13,7 +13,6 @@ import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.environment.EnvironmentService;
-import com.newrelic.agent.interfaces.backport.Supplier;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
@@ -33,6 +32,7 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.newrelic.agent.MetricNames.QUEUE_TIME;
 import static com.newrelic.agent.attributes.AttributeNames.HTTP_REQUEST_PREFIX;
