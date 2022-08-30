@@ -75,8 +75,11 @@ public class InstrumentationContextClassMatcherHelper {
     }
 
     // generated classes
-    if (className.contains("GeneratedConstructorAccessor") || className.contains("GeneratedMethodAccessor")
-        || className.contains("BoundMethodHandle$") || className.startsWith("jdk.jfr.internal.handlers.EventHandler")) {
+    if (className.contains("GeneratedConstructorAccessor") ||
+            className.contains("GeneratedMethodAccessor") ||
+            className.contains("GeneratedSerializationConstructor") ||
+            className.contains("BoundMethodHandle$") ||
+            className.startsWith("jdk.jfr.internal.handlers.EventHandler")) {
       return true;
     }
     return false;

@@ -10,8 +10,10 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
+import com.newrelic.test.marker.IBMJ9IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -49,6 +51,7 @@ public class JfrServiceTest {
         when(agentConfig.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
                 .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
     }
+
 
     @Test
     public void daemonConfigBuiltCorrect() {
@@ -94,7 +97,7 @@ public class JfrServiceTest {
         assertFalse(spyJfr.isEnabled());
         verify(spyJfr, times(0)).startJfrLoop();
     }
-
+    @Category( IBMJ9IncompatibleTest.class )
     @Test
     public void jfrLoopDoesStart() {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
