@@ -1,5 +1,5 @@
-# This file configures the New Relic Agent.  New Relic monitors
-# Java applications with deep visibility and low overhead.  For more details and additional
+# This file configures the New Relic agent. New Relic monitors
+# Java applications with deep visibility and low overhead. For more details and additional
 # configuration options visit https://docs.newrelic.com/docs/agents/java-agent/configuration/java-agent-configuration-config-file.
 #
 # <%= generated_for_user %>
@@ -12,18 +12,18 @@ common: &default_settings
   # You must specify the license key associated with your New Relic
   # account. For example, if your license key is 12345 use this:
   # license_key: '12345'
-  # The key binds your Agent's data to your account in the New Relic service.
+  # The key binds your agent's data to your account in the New Relic UI.
   license_key: '<%= license_key %>'
 
-  # Agent Enabled
+  # Agent enabled
   # Use this setting to disable the agent instead of removing it from the startup command.
   # Default is true.
   agent_enabled: true
 
-  # Set the name of your application as you'd like it show up in New Relic.
+  # Set the name of your application as you'd like it to show up in the New Relic UI.
   # If enable_auto_app_naming is false, the agent reports all data to this application.
   # Otherwise, the agent reports only background tasks (transactions for non-web applications)
-  # to this application. To report data to more than one application 
+  # to this application. To report data to more than one application
   # (useful for rollup reporting), separate the application names with ";".
   # For example, to report data to "My Application" and "My Application 2" use this:
   # app_name: My Application;My Application 2
@@ -50,7 +50,7 @@ common: &default_settings
   enable_auto_transaction_naming: true
 
   # The agent uses its own log file to keep its logging
-  # separate from that of your application.  Specify the log level here.
+  # separate from that of your application. Specify the log level here.
   # This setting is dynamic, so changes do not require restarting your application.
   # The levels in increasing order of verboseness are:
   #   off, severe, warning, info, fine, finer, finest
@@ -120,16 +120,9 @@ common: &default_settings
       # When true, the agent will decorate your application log files with linking metadata. The default is false.
       #enabled: false
 
-  # Adds integration with CodeStream, introducing Code-Level Metrics! Golden Signals visible in your
-  # IDE through New Relic CodeStream.
-  code_level_metrics:
-    # When true the agent will capture namespace and function information
-    # on spans to enable code level metrics in CodeStream.
-    enabled: false
-
   # Proxy settings for connecting to the New Relic server:
-  # If a proxy is used, the host setting is required.  Other settings
-  # are optional.  Default port is 8080.  The username and password
+  # If a proxy is used, the host setting is required. Other settings
+  # are optional. Default port is 8080. The username and password
   # settings will be used to authenticate to Basic Auth challenges
   # from a proxy server. Proxy scheme will allow the agent to
   # connect through proxies using the HTTPS scheme.
@@ -139,22 +132,22 @@ common: &default_settings
   #proxy_password: password
   #proxy_scheme: https
 
-  # Limits the number of lines to capture for each stack trace. 
+  # Limits the number of lines to capture for each stack trace.
   # Default is 30
   max_stack_trace_lines: 30
 
   # Provides the ability to configure the attributes sent to New Relic. These
-  # attributes can be found in transaction traces, traced errors, Insight's 
-  # transaction events, and Insight's page views.
+  # attributes can be found in transaction traces, traced errors,
+  # transaction events, and page views.
   attributes:
-  
+
     # When true, attributes will be sent to New Relic. The default is true.
     enabled: true
-    
+
     #A comma separated list of attribute keys whose values should 
     # be sent to New Relic.
     #include:
-    
+
     # A comma separated list of attribute keys whose values should 
     # not be sent to New Relic.
     #exclude:
@@ -203,8 +196,8 @@ common: &default_settings
     # Default is true.
     explain_enabled: true
 
-    # Threshold for query execution time below which query plans will not 
-    # not be captured.  Relevant only when `explain_enabled` is true.
+    # Threshold for query execution time below which query plans will 
+    # not be captured. Relevant only when `explain_enabled` is true.
     # Default is 0.5 seconds.
     explain_threshold: 0.5
 
@@ -232,10 +225,10 @@ common: &default_settings
     # Use this property to exclude specific http status codes from being reported as errors
     # by providing a comma separated list of status codes.
     # The default is to exclude 404s. If you want to override
-    # this, you must provide any new value as an empty list is ignored.
+    # this, you must provide any new value because an empty list is ignored.
     ignore_status_codes: 404
 
-  # Transaction Events are used for Histograms and Percentiles. Un-aggregated data is collected
+  # Transaction events are used for histograms and percentiles. Non-aggregated data is collected
   # for each web transaction and sent to the server on harvest. 
   transaction_events:
 
@@ -245,7 +238,7 @@ common: &default_settings
 
     # Events are collected up to the configured amount. Afterwards, events are sampled to
     # maintain an even distribution across the harvest cycle.
-    # Default is 2000.  Setting to 0 will disable.
+    # Default is 2000. Setting to 0 will disable.
     max_samples_stored: 2000
 
   # Distributed tracing lets you see the path that a request takes through your distributed system.
@@ -293,7 +286,7 @@ common: &default_settings
 
   # Cross Application Tracing adds request and response headers to
   # external calls using supported HTTP libraries to provide better
-  # performance data when calling applications monitored by other New Relic Agents.
+  # performance data when calling applications monitored by other New Relic agents.
   #
   # Distributed tracing is replacing cross application tracing as the default
   # means of tracing between services. To continue using cross application
@@ -301,9 +294,10 @@ common: &default_settings
   # `distributed_tracing.enabled = false`
   cross_application_tracer:
 
-    # Set to true to enable cross application tracing.
-    # Default is false.
-    enabled: false
+    # Set to false to disable cross-application tracing.
+    # Default is true.
+    enabled: true
+
 
   # Thread profiler measures wall clock time, CPU time, and method call counts
   # in your application's threads as they run.
@@ -314,7 +308,7 @@ common: &default_settings
     # Default is true.
     enabled: true
 
-  # New Relic Real User Monitoring gives you insight into the performance real users are
+  # New Relic Real User Monitoring (RUM) gives you insight into the performance real users are
   # experiencing with your website. This is accomplished by measuring the time it takes for
   # your users' browsers to download and render your web pages by injecting a small amount
   # of JavaScript code into the header and footer of each page. 
