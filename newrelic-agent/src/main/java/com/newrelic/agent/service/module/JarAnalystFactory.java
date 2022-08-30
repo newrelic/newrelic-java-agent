@@ -6,11 +6,11 @@
  */
 package com.newrelic.agent.service.module;
 
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.api.agent.Logger;
 
 import java.io.File;
 import java.net.URL;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class JarAnalystFactory {

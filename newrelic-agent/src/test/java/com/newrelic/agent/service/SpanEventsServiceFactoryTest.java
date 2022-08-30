@@ -17,7 +17,6 @@ import com.newrelic.agent.config.InfiniteTracingConfig;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.analytics.SpanEventsService;
 import org.junit.Before;
@@ -25,6 +24,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;

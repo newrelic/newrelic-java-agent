@@ -16,7 +16,6 @@ import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.errors.ErrorAnalyzerImpl;
 import com.newrelic.agent.errors.ErrorMessageReplacer;
 import com.newrelic.agent.interfaces.ReservoirManager;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.analytics.CollectorSpanEventReservoirManager;
 import com.newrelic.agent.service.analytics.CollectorSpanEventSender;
@@ -30,6 +29,7 @@ import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceInt
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Responsible for creating a preconfigured instance of SpanEventsService
