@@ -160,33 +160,28 @@ public class BootstrapAgent {
             String javaVersion = System.getProperty("java.version", "");
             BootstrapLoader.load(inst, isJavaSqlLoadedOnPlatformClassLoader(javaVersion));
 
-            // Check for the IBM workaround
-            boolean ibmWorkaround = IBMUtils.getIbmWorkaroundDefault();
-            if (System.getProperty("ibm_iv25688_workaround") != null) {
-                ibmWorkaround = Boolean.parseBoolean(System.getProperty("ibm_iv25688_workaround"));
-            }
+            ClassLoader agentClassLoaderParent = getPlatformClassLoaderOrNull();
 
-            ClassLoader classLoader;
-            if (ibmWorkaround) {
-                // For the IBM workaround lets just use the System ClassLoader
-                classLoader = ClassLoader.getSystemClassLoader();
+            // Create a new URLClassLoader instance for the agent to use instead of relying
+            // on the System ClassLoader (aka and now called Application ClassLoader)
+            URL[] codeSource;
+            if (isJavaSqlLoadedOnPlatformClassLoader(javaVersion)) {
+                //Java 9+ we haven't added the agent-bridge-datastore.jar to the classpath yet
+                //because java.sql is loaded by the platform loader, so we skipped loading agent-bridge-datastore for Java 9+ versions.
+                //We now need to give the agent-bridge-datastore url and the platform classloader (as the parent classloader).
+                URL url = BootstrapLoader.getDatastoreJarURL();
+                codeSource = new URL[] { getAgentJarUrl(), url };
             } else {
-                ClassLoader agentClassLoaderParent = getPlatformClassLoaderOrNull();
-
-                // Create a new URLClassLoader instance for the agent to use instead of relying on the System ClassLoader
-                URL[] codeSource;
-                if (isJavaSqlLoadedOnPlatformClassLoader(javaVersion)) {
-                    URL url = BootstrapLoader.getDatastoreJarURL();
-                    codeSource = new URL[] { getAgentJarUrl(), url };
-                } else {
-                    codeSource = new URL[] { getAgentJarUrl() };
-                }
-
-                classLoader = new JVMAgentClassLoader(codeSource, agentClassLoaderParent);
-
-                redefineJavaBaseModule(inst, classLoader);
-                addReadUnnamedModuleToHttpModule(inst, agentClassLoaderParent);
+                //agent-bridge-datastore.jar was already added to the classpath by the BootstrapLoader
+                codeSource = new URL[] { getAgentJarUrl() };
             }
+            // When we have come through the above 'else' path (java versions < 9) the agentClassLoaderParent will be null. This is okay
+            // because the url provides the jar and all the agent classes. The weaver, agent-api, agent-bridge, and agent-datastore
+            //jars have already been added to the classpath and loaded by the com.newrelic.BootstrapLoader (which is loaded by AppClassLoader) for this case.
+            ClassLoader classLoader = new JVMAgentClassLoader(codeSource, agentClassLoaderParent);
+
+            redefineJavaBaseModule(inst, classLoader);
+            addReadUnnamedModuleToHttpModule(inst, agentClassLoaderParent);
 
             Class<?> agentClass = classLoader.loadClass(AGENT_CLASS_NAME);
             Method continuePremain = agentClass.getDeclaredMethod("continuePremain", String.class, Instrumentation.class, long.class);

@@ -11,9 +11,12 @@ import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.test.marker.IBMJ9IncompatibleTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Categories;
+import org.junit.experimental.categories.Category;
 import test.newrelic.EnvironmentHolderSettingsGenerator;
 import test.newrelic.test.agent.EnvironmentHolder;
 
@@ -98,6 +101,7 @@ public class SpanErrorsTest {
         ));
     }
 
+    @Category(IBMJ9IncompatibleTest.class)
     @Test
     public void testNoticedErrorOverridesThrownError() {
         runTransaction(new SpanErrorFlow.NoticeAndThrow());

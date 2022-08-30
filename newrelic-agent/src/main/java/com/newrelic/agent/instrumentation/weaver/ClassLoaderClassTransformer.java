@@ -12,7 +12,6 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.ClassTransformerConfig;
-import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.instrumentation.ClassLoaderClassFinder;
 import com.newrelic.agent.instrumentation.builtin.AgentClassLoaderBaseInstrumentation;
 import com.newrelic.agent.instrumentation.builtin.AgentClassLoaderInstrumentation;
@@ -264,18 +263,11 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
             }
         }
 
-        // Avoid the IBM jvm crasher. See JAVA-1206.
-        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getIbmWorkaroundEnabled()) {
-            Agent.LOG.log(Level.FINE,
-                    "ClassLoaderClassTransformer: skipping redefine of {0}. IBM SR {1}. java.runtime.version {2}",
-                    ClassLoader.class.getName(), IBMUtils.getIbmSRNumber(), System.getProperty("java.runtime.version"));
-        } else {
-            try {
-                Agent.LOG.log(Level.FINER, "ClassLoaderClassTransformer: Attempting to redefine {0}", ClassLoader.class);
-                InstrumentationProxy.forceRedefinition(instrumentation, ClassLoader.class);
-            } catch (Exception e) {
-                Agent.LOG.log(Level.FINEST, e, "ClassLoaderClassTransformer: Error redefining {0}", ClassLoader.class.getName());
-            }
+        try {
+            Agent.LOG.log(Level.FINER, "ClassLoaderClassTransformer: Attempting to redefine {0}", ClassLoader.class);
+            InstrumentationProxy.forceRedefinition(instrumentation, ClassLoader.class);
+        } catch (Exception e) {
+            Agent.LOG.log(Level.FINEST, e, "ClassLoaderClassTransformer: Error redefining {0}", ClassLoader.class.getName());
         }
     }
 

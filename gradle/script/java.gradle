@@ -142,16 +142,19 @@ test {
     if (project.hasProperty("test11")) {
         configureTest("jdk11") {
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest', 'com.newrelic.test.marker.IBMJ9IncompatibleTest'
             }
+
         }
     }
     if (project.hasProperty("test8")) {
         configureTest("jdk8") {
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest', 'com.newrelic.test.marker.IBMJ9IncompatibleTest'
             }
+
         }
+
     }
 
     // Alternate JDK distributions that we test against

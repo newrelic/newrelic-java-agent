@@ -12,6 +12,7 @@ import com.newrelic.agent.introspec.DatastoreHelper;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.test.marker.IBMJ9IncompatibleTest;
 import com.newrelic.test.marker.Java11IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java19IncompatibleTest;
@@ -25,7 +26,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 
 // Issue when running cassandra unit on Java 9+ - https://github.com/jsevellec/cassandra-unit/issues/249
-@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java19IncompatibleTest.class })
+@Category({ IBMJ9IncompatibleTest.class, Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java19IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "none" })
 public class CassandraNoInstrumentation {

@@ -56,7 +56,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String EXT_CONFIG_DIR = "extensions.dir";
     public static final String HIGH_SECURITY = "high_security";
     public static final String HOST = "host";
-    public static final String IBM_WORKAROUND = "ibm_iv25688_workaround";
     public static final String IGNORE_JARS = "ignore_jars";
     public static final String INSERT_API_KEY = "insert_api_key";
     public static final String JDBC_SUPPORT = "jdbc_support";
@@ -148,7 +147,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * host in newrelic.yml. This value makes the default behavior always work.
      */
     public static final String DEFAULT_HOST = "collector.newrelic.com";
-    public static final boolean DEFAULT_IBM_WORKAROUND = IBMUtils.getIbmWorkaroundDefault();
     public static final String DEFAULT_INSERT_API_KEY = "";
     // jdbc support
     public static final String GENERIC_JDBC_SUPPORT = "generic";
@@ -208,7 +206,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean genericJdbcSupportEnabled;
     private final boolean highSecurity;
     private final String host;
-    private final boolean ibmWorkaroundEnabled;
     private final List<String> ignoreJars;
     private final String insertApiKey;
     private final boolean isApdexTSet;
@@ -328,7 +325,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         caBundlePath = initSSLConfig();
         trimStats = getProperty(TRIM_STATS, DEFAULT_TRIM_STATS);
         platformInformationEnabled = getProperty(PLATFORM_INFORMATION_ENABLED, DEFAULT_PLATFORM_INFORMATION_ENABLED);
-        ibmWorkaroundEnabled = getProperty(IBM_WORKAROUND, DEFAULT_IBM_WORKAROUND);
         transactionNamingMode = parseTransactionNamingMode();
         maxStackTraceLines = getProperty(MAX_STACK_TRACE_LINES, DEFAULT_MAX_STACK_TRACE_LINES);
         String[] jdbcSupport = getProperty(JDBC_SUPPORT, DEFAULT_JDBC_SUPPORT).split(",");
@@ -1316,11 +1312,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public boolean isPutForDataSend() {
         return putForDataSend;
-    }
-
-    @Override
-    public boolean getIbmWorkaroundEnabled() {
-        return this.ibmWorkaroundEnabled;
     }
 
     @Override

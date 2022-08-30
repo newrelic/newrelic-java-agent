@@ -288,8 +288,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     boolean isHighSecurity();
 
-    boolean getIbmWorkaroundEnabled();
-
     /**
      * Get the agent's label configuration.
      *
