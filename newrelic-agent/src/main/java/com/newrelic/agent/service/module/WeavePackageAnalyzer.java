@@ -8,12 +8,12 @@ package com.newrelic.agent.service.module;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.weave.weavepackage.WeavePackageConfig;
 
 import java.io.File;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class WeavePackageAnalyzer implements Runnable {

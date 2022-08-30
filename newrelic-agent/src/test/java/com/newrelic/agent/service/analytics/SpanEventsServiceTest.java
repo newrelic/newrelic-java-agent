@@ -14,7 +14,6 @@ import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.errors.ErrorAnalyzerImpl;
 import com.newrelic.agent.errors.ErrorMessageReplacer;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
@@ -29,6 +28,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 import static org.junit.Assert.assertEquals;

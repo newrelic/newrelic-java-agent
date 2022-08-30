@@ -22,7 +22,6 @@ import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.interfaces.ReservoirManager;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
@@ -51,6 +50,7 @@ import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.utilization.UtilizationService;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 class IntrospectorServiceManager extends AbstractService implements ServiceManager {
 

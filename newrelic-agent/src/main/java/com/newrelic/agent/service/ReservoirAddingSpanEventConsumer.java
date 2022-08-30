@@ -11,8 +11,9 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.model.SpanEvent;
+
+import java.util.function.Consumer;
 
 public class ReservoirAddingSpanEventConsumer implements Consumer<SpanEvent> {
     private final ReservoirManager<SpanEvent> reservoirManager;
