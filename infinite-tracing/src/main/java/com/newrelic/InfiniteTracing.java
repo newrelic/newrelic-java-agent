@@ -1,7 +1,6 @@
 package com.newrelic;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
@@ -15,6 +14,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class InfiniteTracing implements Consumer<SpanEvent> {

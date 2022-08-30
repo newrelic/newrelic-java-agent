@@ -17,7 +17,6 @@ import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -33,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**

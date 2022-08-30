@@ -1,7 +1,6 @@
 package com.newrelic.agent.service.module;
 
 import com.newrelic.agent.extension.ExtensionServiceTest;
-import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.weave.weavepackage.WeavePackageConfig;
 import org.junit.Test;
@@ -10,6 +9,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
