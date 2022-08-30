@@ -1,6 +1,5 @@
 package com.newrelic.agent.service.module;
 
-import com.newrelic.Function;
 import com.newrelic.agent.interfaces.backport.Consumer;
 import com.newrelic.api.agent.Logger;
 import org.junit.Test;
@@ -8,6 +7,7 @@ import org.junit.Test;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
+import java.util.function.Function;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

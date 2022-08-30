@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.utilization;
 
-import com.newrelic.Function;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.stats.IncrementCounter;
@@ -21,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
