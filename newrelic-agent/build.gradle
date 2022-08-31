@@ -29,8 +29,8 @@ configurations {
     finalArtifact
 }
 
-configurations.compile.extendsFrom(configurations.shadowIntoJar)
-configurations.compile.extendsFrom(configurations.jarIntoJar)
+configurations.implementation.extendsFrom(configurations.shadowIntoJar)
+configurations.implementation.extendsFrom(configurations.jarIntoJar)
 
 project.ext {
     instrumentProjects = {
