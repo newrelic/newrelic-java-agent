@@ -7,15 +7,14 @@
 
 package org.springframework.aop.support;
 
-import java.lang.reflect.Method;
-import java.util.logging.Level;
-
-import org.springframework.aop.MethodMatcher;
-
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import org.springframework.aop.MethodMatcher;
+
+import java.lang.reflect.Method;
+import java.util.logging.Level;
 
 @Weave
 public abstract class MethodMatchers {
@@ -29,7 +28,7 @@ public abstract class MethodMatchers {
                 Class<?> declaringClass = concreteMethod.getDeclaringClass();
                 String className = declaringClass.getName();
                 boolean coreClass = className == null || className.startsWith("java") || className.startsWith("javax")
-                        || className.startsWith("sun") || className.startsWith("com.sun");
+                        || className.startsWith("jakarta") || className.startsWith("sun") || className.startsWith("com.sun");
                 if (!coreClass) {
                     AgentBridge.instrumentation.instrument(concreteMethod, "Spring/Java/");
                 }

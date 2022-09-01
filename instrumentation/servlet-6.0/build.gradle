@@ -1,0 +1,28 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation('jakarta.servlet:jakarta.servlet-api:6.0.0')
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.servlet-6.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'jakarta.servlet:jakarta.servlet-api:[6.0.0,)'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
+}
+
+site {
+    title 'Servlet'
+    type 'Framework'
+}

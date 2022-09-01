@@ -1,0 +1,32 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation("org.eclipse.jetty:jetty-server:11.0.11")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jetty-11' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.eclipse.jetty:jetty-server:[11.0.0,)'
+    exclude 'org.eclipse.jetty:jetty-server:[11.0.0-alpha0,11.0.0.beta3]'
+}
+
+site {
+    title 'Jetty'
+    type 'Appserver'
+}
+
+// Jetty Server 10+ is only compatible with Java 11+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
+}

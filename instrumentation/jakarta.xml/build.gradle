@@ -1,0 +1,14 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation 'jakarta.xml.ws:jakarta.xml.ws-api:3.0.0'
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jakarta.xml' }
+}
+
+verifyInstrumentation{
+    passesOnly 'jakarta.xml.ws:jakarta.xml.ws-api:[3.0.0,)'
+    exclude 'jakarta.xml.ws:jakarta.xml.ws-api:[3.0.0-RC1,3.0.0-RC3]'
+}
