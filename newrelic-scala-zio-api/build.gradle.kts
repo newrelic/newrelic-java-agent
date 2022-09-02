@@ -3,7 +3,7 @@ import com.nr.builder.publish.PublishConfig
 plugins {
     `maven-publish`
     `signing`
-    id("com.github.prokod.gradle-crossbuild-scala")
+    id("com.github.prokod.gradle-crossbuild-scala" )
 }
 evaluationDependsOn(":newrelic-api")
 
