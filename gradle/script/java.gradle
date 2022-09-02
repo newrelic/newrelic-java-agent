@@ -251,14 +251,3 @@ dependencies {
     testImplementation(project(":test-annotations"))
 }
 
-// Make ScalaCompile tasks cacheable.  This is a workaround for a defect fixed in Gradle 7.1.0.
-tasks.withType(ScalaCompile).configureEach {
-    options.getForkOptions().setExecutable(null)
-    def launcher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(8)
-    }
-    inputs.property("javaLauncherVersion", launcher.map { it.metadata.languageVersion })
-    doFirst {
-        options.getForkOptions().setExecutable(launcher.get().getExecutablePath().asFile.absolutePath)
-    }
-}
