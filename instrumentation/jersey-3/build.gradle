@@ -14,7 +14,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'org.glassfish.jersey.core:jersey-server:[3.0,)'
+    passes 'org.glassfish.jersey.core:jersey-server:[3.0,3.1)'
+    excludeRegex '.*-M[0-9]*'
 }
 
 // cannot run tests in Java 8 cause newer Jersey implementation requires Java 11 to run
