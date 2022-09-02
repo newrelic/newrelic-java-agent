@@ -2,13 +2,13 @@ plugins{
     id 'scala'
 }
 
-scala.zincVersion = "1.2.5"
+scala.zincVersion = "1.7.1"
 
 
 isScalaProjectEnabled(project, "scala-2.13")
 
 dependencies {
-    zinc("org.scala-sbt:zinc_2.12:1.2.5")
+    zinc("org.scala-sbt:zinc_2.12:1.7.1")
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":newrelic-weaver-scala-api"))

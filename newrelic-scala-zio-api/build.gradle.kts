@@ -5,6 +5,7 @@ plugins {
     `signing`
     id("com.github.prokod.gradle-crossbuild-scala" )
 }
+
 evaluationDependsOn(":newrelic-api")
 
 crossBuild {
@@ -22,7 +23,7 @@ java {
 }
 
 dependencies {
-    zinc("org.scala-sbt:zinc_2.12:1.2.5")
+    zinc("org.scala-sbt:zinc_2.13:1.7.1")
     implementation("org.scala-lang:scala-library:2.13.5")
     implementation("dev.zio:zio_2.13:1.0.9")
     implementation(project(":newrelic-api"))
