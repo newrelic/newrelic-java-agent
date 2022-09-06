@@ -1,4 +1,5 @@
 apply plugin: 'java-library'
+apply plugin: 'scala'
 
 configurations {
     includeInJar
@@ -6,6 +7,7 @@ configurations {
 
 dependencies {
     configurations.implementation.extendsFrom(configurations.includeInJar)
+
 }
 
 jar {
