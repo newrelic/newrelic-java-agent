@@ -10,9 +10,7 @@ isScalaProjectEnabled(project, "scala-2.12")
 // resolution fails for this module. It succeeds when gradle tasks are isolated to this module, but _may_
 // fail when gradle tasks span multiple scala modules with different versions. Its not deterministic and
 // quite mysterious.
-//configurations.zinc {
-//    resolutionStrategy.force "org.scala-lang:scala-library:2.12.12"
-//}
+
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-core-10.2.0' }
