@@ -10,9 +10,3 @@ compileJava.options.bootstrapClasspath = null
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.javax.xml' }
 }
-
-verifyInstrumentation {
-    passesOnly 'com.sun.net.httpserver:http:[20070405,)'
-    passesOnly 'javax.xml.ws:jaxws-api:[2.0,)'
-
-}
