@@ -10,3 +10,8 @@ dependencies {
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.javax.xml' }
 }
+
+verifyInstrumentation {
+    passesOnly 'javax.xml.ws:jaxws-api:[2.0,)'
+
+}
