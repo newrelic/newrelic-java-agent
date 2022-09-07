@@ -28,10 +28,10 @@ jar {
 // but we can't verify that because the artifacts are enterprise only (behind auth)
 verifyInstrumentation {
     passes('org.mule:mule-core:3.7.0') {
-        compile("org.mule.modules:mule-module-http:3.7.0")
+        implementation("org.mule.modules:mule-module-http:3.7.0")
     }
     passes('org.mule:mule-core:[3.8.0,3.8.2)') {
-        compile("org.mule.modules:mule-module-http:3.7.0")
+        implementation("org.mule.modules:mule-module-http:3.7.0")
     }
 
     // these versions cause problems getting artifacts

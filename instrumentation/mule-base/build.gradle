@@ -34,10 +34,10 @@ jar {
 
 verifyInstrumentation {
     passes('org.mule:mule-core:[3.4.0,3.8.2)') {
-        compile("org.mule.transports:mule-transport-http:3.4.0")
-        compile("org.mule.modules:mule-module-launcher:3.4.0")
-        compile("org.mule.modules:mule-module-client:3.4.0")
-        compile("commons-httpclient:commons-httpclient:3.1")
+        implementation("org.mule.transports:mule-transport-http:3.4.0")
+        implementation("org.mule.modules:mule-module-launcher:3.4.0")
+        implementation("org.mule.modules:mule-module-client:3.4.0")
+        implementation("commons-httpclient:commons-httpclient:3.1")
     }
 
     // these versions cause problems getting artifacts
