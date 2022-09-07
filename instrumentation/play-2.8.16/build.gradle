@@ -7,7 +7,7 @@ import scala.collection.JavaConversions
 apply plugin: 'scala'
 scala.zincVersion = "1.7.1"
 
-isScalaProjectEnabled(project, "scala-2.11")
+isScalaProjectEnabled(project, "scala-2.12")
 
 buildscript {
     dependencies {
@@ -43,7 +43,6 @@ jar {
 verifyInstrumentation {
     passesOnly 'com.typesafe.play:play-server_2.13:[2.8.16,)'
     passesOnly 'com.typesafe.play:play-server_2.12:[2.8.16,)'
-    passesOnly 'com.typesafe.play:play-server_2.11:[2.8.16,)'
 
     // build snapshots
     excludeRegex '.*-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]{7}$'
