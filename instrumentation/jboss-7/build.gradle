@@ -17,7 +17,7 @@ jar {
 
 verifyInstrumentation {
     passes('org.jboss.web:jbossweb:[7.0,)') {
-        compile("jakarta.servlet:jakarta.servlet-api:4.0.4")
+        implementation("jakarta.servlet:jakarta.servlet-api:4.0.4")
     }
     excludeRegex(".*(Alpha|Beta|CR).*")
     exclude("org.jboss.web:jbossweb:7.5.6.Final") // this appears to be a bad release that was excluded from multiple repos

@@ -27,10 +27,10 @@ dependencies {
 verifyInstrumentation {
     passesOnly 'com.typesafe.akka:akka-http-experimental_2.11:[2.4.5,)'
     passesOnly('com.typesafe.akka:akka-http_2.11:[10.0.0,)') {
-        compile("com.typesafe.akka:akka-stream_2.11:2.5.19")
+        implementation("com.typesafe.akka:akka-stream_2.11:2.5.19")
     }
     passesOnly('com.typesafe.akka:akka-http_2.12:[10.0.0,)') {
-        compile("com.typesafe.akka:akka-stream_2.11:2.5.19")
+        implementation("com.typesafe.akka:akka-stream_2.11:2.5.19")
     }
     fails('com.typesafe.akka:akka-http_2.13:[10.1.8,)')
 
