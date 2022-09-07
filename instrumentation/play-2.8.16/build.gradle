@@ -5,7 +5,7 @@ import scala.collection.JavaConversions
 
 
 apply plugin: 'scala'
-scala.zincVersion = "1.2.5"
+scala.zincVersion = "1.7.1"
 
 isScalaProjectEnabled(project, "scala-2.11")
 
@@ -28,7 +28,7 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":newrelic-weaver-scala-api"))
-    implementation("org.scala-lang:scala-library:2.13.+")
+    implementation("org.scala-lang:scala-library:2.12.+")
     implementation("com.typesafe.play:play-server_2.12:2.8.16")
     testImplementation("com.typesafe.play:play-test_2.12:2.8.16")
     testImplementation("com.typesafe.play:play-java_2.12:2.8.16")
@@ -41,6 +41,7 @@ jar {
 }
 
 verifyInstrumentation {
+    passesOnly 'com.typesafe.play:play-server_2.13:[2.8.16,)'
     passesOnly 'com.typesafe.play:play-server_2.12:[2.8.16,)'
     passesOnly 'com.typesafe.play:play-server_2.11:[2.8.16,)'
 
