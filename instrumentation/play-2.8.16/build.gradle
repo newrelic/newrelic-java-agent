@@ -1,7 +1,6 @@
 import play.routes.compiler.InjectedRoutesGenerator$
 import play.routes.compiler.RoutesCompiler
 import play.routes.compiler.RoutesCompiler$
-import scala.collection.JavaConversions
 
 
 apply plugin: 'scala'
@@ -11,7 +10,7 @@ isScalaProjectEnabled(project, "scala-2.12")
 
 buildscript {
     dependencies {
-        classpath 'com.typesafe.play:routes-compiler_2.12:2.7.0-M2'
+        classpath 'com.typesafe.play:routes-compiler_2.12:2.8.16'
     }
     repositories {
         mavenCentral()
@@ -68,11 +67,11 @@ compileTestScala {
     // this manually compiles the conf/routes file into an Routes.scala file, which is subsequently read on startup by our test application
     doFirst {
         def RoutesCompiler.RoutesCompilerTask routesCompilerTask = new RoutesCompiler.RoutesCompilerTask(
-                routeFile, JavaConversions.asScalaBuffer(Collections.<String> emptyList()).toSeq(),
+                routeFile, scala.collection.immutable.List$.MODULE$.empty().toSeq(),
                 true, false, false)
         RoutesCompiler$.MODULE$.compile(routesCompilerTask, InjectedRoutesGenerator$.MODULE$, generatedSourcesDir.get().asFile)
         source generatedSourcesDir
-
+        scala.collection.immutable.List$.MODULE$.empty()
     }
 }
 
