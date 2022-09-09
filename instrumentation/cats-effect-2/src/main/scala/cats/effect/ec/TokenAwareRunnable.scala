@@ -10,16 +10,13 @@ final class TokenAwareRunnable(val delegate: Runnable) extends Runnable {
   private val tokenAndRefCount:AgentBridge.TokenAndRefCount = getThreadTokenAndRefCount
   logTokenInfo(tokenAndRefCount, "EC TokenAwareRunnable token info set")
   clearTxn()
-  logTokenInfo(tokenAndRefCount, "EC TokenAwareRunnable clling thread txn state cleared")
 
   override def run(): Unit = {
     try if (delegate != null) {
-      logTokenInfo(tokenAndRefCount, "EC Token info set in thread")
       setThreadTokenAndRefCount(tokenAndRefCount)
       delegate.run()
     }
     finally {
-      logTokenInfo(tokenAndRefCount, "EC Clearing token info from thread ")
       clearThreadTokenAndRefCountAndTxn(tokenAndRefCount)
     }
   }

@@ -10,12 +10,12 @@ dependencies {
     implementation("org.typelevel:cats-effect_2.13:3.2.8")
     implementation("org.scala-lang:scala-library:2.13.3")
 }
-
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.cats-effect-3',
-            'Implementation-Title-Alias': 'cats-effect-3_instrumentation' }
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.cats-effect-3.2'
+    }
 }
-
+//should be 3.2.*
 verifyInstrumentation {
     passes 'org.typelevel:cats-effect_2.13:[3.2,3.3)'
     passes 'org.typelevel:cats-effect_2.12:[3.2,3.3)'
