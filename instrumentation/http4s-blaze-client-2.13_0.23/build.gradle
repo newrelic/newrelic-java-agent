@@ -7,7 +7,8 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":newrelic-weaver-scala-api"))
-    implementation("org.scala-lang:scala-library:2.13.3")
+    implementation("org.scala-lang:scala-library:2.13.6")
+    implementation('org.http4s:http4s-blaze-server_2.13:0.23.12')
     implementation('org.http4s:http4s-blaze-client_2.13:0.23.12')
     testImplementation(project(":instrumentation:cats-effect-2")) { transitive = false }
     testImplementation(project(":instrumentation:newrelic-scala-cats-api")) { transitive = false }
@@ -22,9 +23,9 @@ jar {
     }
 }
 verifyInstrumentation {
-    passes 'org.http4s:http4s-blaze-client_2.13:[0.22.0,0.23.0)'
+    passes 'org.http4s:http4s-blaze-client_2.13:[0.23.0,0.24.0)'
     excludeRegex '.*(RC|M)[0-9]*'
-    excludeRegex '.*0.22\\-[0-9].*'
+    excludeRegex '.*0.23\\-[0-9].*'
 }
 
 sourceSets.main.scala.srcDirs = ['src/main/scala', 'src/main/java']

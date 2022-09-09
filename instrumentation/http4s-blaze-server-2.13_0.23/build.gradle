@@ -9,7 +9,7 @@ dependencies {
     implementation("org.scala-lang:scala-library:2.13.3")
     implementation('org.http4s:http4s-blaze-server_2.13:0.23.12')
     implementation("org.typelevel:cats-effect_2.13:3.3.12")
-    testImplementation(project(":instrumentation:cats-effect-3")) { transitive = false }
+    testImplementation(project(":instrumentation:cats-effect-3.3.0")) { transitive = false }
     testImplementation("org.http4s:http4s-dsl_2.13:0.23.12")
 
 }
@@ -21,7 +21,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'org.http4s:http4s-blaze-server_2.13:[0.23)'
+    passes 'org.http4s:http4s-blaze-server_2.13:[0.23.0,0.24.0)'
     excludeRegex '.*(RC|M)[0-9]*'
 
 }
