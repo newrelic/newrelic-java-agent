@@ -227,7 +227,8 @@ common: &default_settings
     # by providing a comma separated list of full class names.
     # The default is to exclude akka.actor.ActorKilledException. If you want to override
     # this, you must provide any new value as an empty list is ignored.
-    ignore_errors: akka.actor.ActorKilledException
+    ignore_classes:
+      - "akka.actor.ActorKilledException"
 
     # Use this property to exclude specific http status codes from being reported as errors
     # by providing a comma separated list of status codes.
@@ -290,20 +291,6 @@ common: &default_settings
 
       # A comma separated list of attribute keys whose values should not be sent to New Relic.
       #exclude:
-
-  # Cross Application Tracing adds request and response headers to
-  # external calls using supported HTTP libraries to provide better
-  # performance data when calling applications monitored by other New Relic Agents.
-  #
-  # Distributed tracing is replacing cross application tracing as the default
-  # means of tracing between services. To continue using cross application
-  # tracing, enable it with `cross_application_tracer.enabled = true` and
-  # `distributed_tracing.enabled = false`
-  cross_application_tracer:
-
-    # Set to true to enable cross application tracing.
-    # Default is false.
-    enabled: false
 
   # Thread profiler measures wall clock time, CPU time, and method call counts
   # in your application's threads as they run.
