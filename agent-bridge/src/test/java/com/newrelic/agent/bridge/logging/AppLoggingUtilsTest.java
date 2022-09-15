@@ -1,9 +1,19 @@
-package com.nr.agent.instrumentation.logbackclassic12;
+/*
+ *
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+package com.newrelic.agent.bridge.logging;
 
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class AgentUtilTest {
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
+public class AppLoggingUtilsTest {
 
     @Test
     public void testUrlEncoding() {
@@ -14,9 +24,8 @@ public class AgentUtilTest {
         final String valueToEncode = "|My Application|";
         final String expectedEncodedValue = ENCODED_PIPE + "My" + ENCODED_SPACE + "Application" + ENCODED_PIPE;
 
-        String encodedValue = AgentUtil.urlEncode(valueToEncode);
+        String encodedValue = AppLoggingUtils.urlEncode(valueToEncode);
 
         Assert.assertEquals(expectedEncodedValue, encodedValue);
     }
-
 }

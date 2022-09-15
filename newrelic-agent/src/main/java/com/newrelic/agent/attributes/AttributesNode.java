@@ -79,7 +79,7 @@ public class AttributesNode {
     }
 
     private void logMatch(String key) {
-        if (Agent.LOG.isFinerEnabled()) {
+        if (Agent.LOG.isFinestEnabled()) {
             Agent.LOG.log(Level.FINEST, "{0}: Attribute key \"{1}\" matched {2} {3} rule \"{4}\"", destination, key,
                     isDefaultRule ? "default" : "config", includeDestination ? "INCLUDE" : "EXCLUDE", original);
         }

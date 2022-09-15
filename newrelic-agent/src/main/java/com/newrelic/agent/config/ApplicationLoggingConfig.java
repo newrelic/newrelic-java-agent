@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.config;
 
+import java.util.List;
+
 /**
  * Configuration for application logging features. These settings do not pertain to agent logs.
  */
@@ -34,6 +36,13 @@ public interface ApplicationLoggingConfig {
     boolean isForwardingEnabled();
 
     /**
+     * Allow the agent to forward context data along with the application logs to New Relic.
+     *
+     * @return true if context data forwarding is enabled, false otherwise
+     */
+    boolean isForwardingContextDataEnabled();
+
+    /**
      * Allow the agent to decorate application log files and console output with New Relic specific linking metadata.
      *
      * @return true is local log decorating is enabled, otherwise false
@@ -47,4 +56,17 @@ public interface ApplicationLoggingConfig {
      */
     int getMaxSamplesStored();
 
+    /**
+     * Get the include list for context data.
+     *
+     * @return
+     */
+    List<String> getForwardingContextDataInclude();
+
+    /**
+     * Get the exclude list for context data.
+     *
+     * @return a list of Strings
+     */
+    List<String> getForwardingContextDataExclude();
 }

@@ -105,11 +105,17 @@ common: &default_settings
       # Default is 10000. Setting to 0 will disable.
       #max_samples_stored: 10000
 
-      # Whether the log events should include MDC from loggers with support for that.
-      include_mdc:
+      # Whether the log events should include context from loggers with support for that.
+      include_context_data:
 
-        # When true, application logs will contain MDC data.
+        # When true, application logs will contain context data.
         enabled: false
+
+        # A comma separated list of attribute keys whose values should be sent to New Relic.
+        #include:
+
+        # A comma separated list of attribute keys whose values should not be sent to New Relic.
+        #exclude:
 
     # The agent will generate metrics to indicate the number of
     # application log events occurring at each distinct log level.

@@ -7,6 +7,8 @@
 
 package com.newrelic.api.agent;
 
+import com.newrelic.agent.bridge.logging.LogAttributeKey;
+
 import java.util.Map;
 
 /**
@@ -22,5 +24,5 @@ public interface Logs {
      *                   For map values that are not String, Number, or Boolean object types the toString value will be used.
      * @since 7.6.0
      */
-    void recordLogEvent(Map<String, ?> attributes);
+    void recordLogEvent(Map<LogAttributeKey, ?> attributes);
 }

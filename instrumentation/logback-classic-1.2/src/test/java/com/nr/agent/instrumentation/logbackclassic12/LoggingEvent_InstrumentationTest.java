@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.Collection;
 import java.util.List;
@@ -359,5 +360,25 @@ public class LoggingEvent_InstrumentationTest {
         return logEvents.stream()
                 .filter(logEvent -> logEvent.getUserAttributesCopy().containsValue(Level.ERROR))
                 .collect(Collectors.toList());
+    }
+
+    @Test
+    public void contextDataDisabledTest() {
+
+        final Logger logger = (Logger) LoggerFactory.getLogger(Logger_InstrumentationTest.class);
+        MDC.put("include", "42");
+        MDC.put("common", "life, the universe and everything");
+        MDC.put("exclude", "panic");
+        logger.error("message");
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+        assertEquals(1, logEvents.size());
+
+        // verify no context attrs
+        LogEvent logEvent = logEvents.iterator().next();
+        long contextAttrCount = logEvent.getUserAttributesCopy().keySet().stream()
+                .filter(key -> key.startsWith("context."))
+                .count();
+        assertEquals(0, contextAttrCount);
     }
 }

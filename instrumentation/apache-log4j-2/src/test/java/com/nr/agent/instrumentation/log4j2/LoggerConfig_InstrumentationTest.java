@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -25,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RunWith(InstrumentationTestRunner.class)
@@ -596,6 +598,25 @@ public class LoggerConfig_InstrumentationTest extends TestCase {
         final LoggerConfig rootConfig = configuration.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
         rootConfig.setLevel(level);
         context.updateLoggers();
+    }
+
+    @Test
+    public void contextDataDisabledTest() {
+        final Logger logger = LogManager.getLogger(LoggerConfig_InstrumentationTest.class);
+        ThreadContext.put("include", "42");
+        ThreadContext.put("exclude", "panic");
+
+        logger.error("message");
+
+        Collection<LogEvent> logEvents = introspector.getLogEvents();
+        assertEquals(1, logEvents.size());
+
+        // verify no context attrs
+        Map<String, Object> attributes = logEvents.iterator().next().getUserAttributesCopy();
+        long contextAttrCount = attributes.keySet().stream()
+                .filter(key -> key.startsWith("context."))
+                .count();
+        assertEquals(0L, contextAttrCount);
     }
 
 }

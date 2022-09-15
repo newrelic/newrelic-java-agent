@@ -20,8 +20,16 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeSender;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.attributes.DisabledExcludeIncludeFilter;
+import com.newrelic.agent.attributes.ExcludeIncludeFilter;
+import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
+import com.newrelic.agent.bridge.logging.LogAttributeKey;
+import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
+import com.newrelic.agent.config.ApplicationLoggingConfig;
+import com.newrelic.agent.config.ApplicationLoggingContextDataConfig;
+import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -65,6 +73,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     public static final String METHOD = "add log event attribute";
     public static final String LOG_SENDER_SERVICE = "Log Sender Service";
 
+    private volatile ExcludeIncludeFilter contextDataKeyFilter;
+
     /**
      * Lifecycle listener for log events associated with a transaction
      */
@@ -95,13 +105,17 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     protected final AgentConfigListener configListener = new AgentConfigListener() {
         @Override
         public void configChanged(String appName, AgentConfig agentConfig) {
+            ApplicationLoggingConfig appLoggingConfig = agentConfig.getApplicationLoggingConfig();
+
             // if the config has changed for the app, just remove it and regenerate enabled next transaction
             isEnabledForApp.remove(appName);
-            forwardingEnabled = agentConfig.getApplicationLoggingConfig().isForwardingEnabled();
-            maxSamplesStored = agentConfig.getApplicationLoggingConfig().getMaxSamplesStored();
 
-            boolean metricsEnabled = agentConfig.getApplicationLoggingConfig().isMetricsEnabled();
-            boolean localDecoratingEnabled = agentConfig.getApplicationLoggingConfig().isLocalDecoratingEnabled();
+            maxSamplesStored = appLoggingConfig.getMaxSamplesStored();
+            forwardingEnabled = appLoggingConfig.isForwardingEnabled();
+            contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
+
+            boolean metricsEnabled = appLoggingConfig.isMetricsEnabled();
+            boolean localDecoratingEnabled = appLoggingConfig.isLocalDecoratingEnabled();
             recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled);
         }
     };
@@ -133,13 +147,28 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     public LogSenderServiceImpl() {
         super(LogSenderServiceImpl.class.getSimpleName());
         AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
-        forwardingEnabled = config.getApplicationLoggingConfig().isForwardingEnabled();
+        ApplicationLoggingConfig appLoggingConfig = config.getApplicationLoggingConfig();
+
+        maxSamplesStored = appLoggingConfig.getMaxSamplesStored();
+        forwardingEnabled = appLoggingConfig.isForwardingEnabled();
+        contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
+
         isEnabledForApp.put(config.getApplicationName(), forwardingEnabled);
+    }
+
+    private ExcludeIncludeFilter createContextDataKeyFilter(ApplicationLoggingConfig appLoggingConfig) {
+        if (appLoggingConfig.isForwardingContextDataEnabled()) {
+            List<String> include = appLoggingConfig.getForwardingContextDataInclude();
+            List<String> exclude = appLoggingConfig.getForwardingContextDataExclude();
+            return new ExcludeIncludeFilterImpl("application_logging.forwarding.context_data", exclude, include);
+        } else {
+            return DisabledExcludeIncludeFilter.INSTANCE;
+        }
     }
 
     /**
      * Whether the LogSenderService is enabled or not
+     *
      * @return true if enabled, else false
      */
     @Override
@@ -180,12 +209,13 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     /**
      * Records a LogEvent. If a LogEvent occurs within a Transaction it will be associated with it.
+     *
      * @param attributes A map of log event data (e.g. log message, log timestamp, log level)
      *                   Each key should be a String and each value should be a String, Number, or Boolean.
      *                   For map values that are not String, Number, or Boolean object types the toString value will be used.
      */
     @Override
-    public void recordLogEvent(Map<String, ?> attributes) {
+    public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
         if (logEventsDisabled() || attributes == null || attributes.isEmpty()) {
             return;
         }
@@ -300,16 +330,16 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     /**
      * Create and store a LogEvent instance
-     * @param appName application name
+     *
+     * @param appName    application name
      * @param attributes Map of attributes to create a LogEvent from
      */
-    private void createAndStoreEvent(String appName, Map<String, ?> attributes) {
+    private void createAndStoreEvent(String appName, Map<LogAttributeKey, ?> attributes) {
         if (logEventsDisabled()) {
             return;
         }
-
         DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
-        eventList.add(createValidatedEvent(attributes));
+        eventList.add(createValidatedEvent(attributes, contextDataKeyFilter));
         Agent.LOG.finest(MessageFormat.format("Added event of type {0}", LOG_EVENT_TYPE));
     }
 
@@ -469,10 +499,12 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     /**
      * Create a validated LogEvent
-     * @param attributes Map of attributes to create a LogEvent from
+     *
+     * @param attributes           Map of attributes to create a LogEvent from
+     * @param contextDataKeyFilter
      * @return LogEvent instance
      */
-    private static LogEvent createValidatedEvent(Map<String, ?> attributes) {
+    private static LogEvent createValidatedEvent(Map<LogAttributeKey, ?> attributes, ExcludeIncludeFilter contextDataKeyFilter) {
         Map<String, String> logEventLinkingMetadata = AgentLinkingMetadata.getLogEventLinkingMetadata(TraceMetadataImpl.INSTANCE,
                 ServiceFactory.getConfigService(), ServiceFactory.getRPMService());
         // Initialize new logEventAttributes map with agent linking metadata
@@ -487,31 +519,34 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // within the attribute sender, the modified value won't be "interned" in our map.
         AttributeSender sender = new LogEventAttributeSender(logEventAttributes);
 
-        for (Map.Entry<String, ?> entry : attributes.entrySet()) {
-            String key = entry.getKey();
+        for (Map.Entry<LogAttributeKey, ?> entry : attributes.entrySet()) {
+            LogAttributeKey logAttrKey = entry.getKey();
             Object value = entry.getValue();
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
-            if (key == null || value == null) {
+            if (logAttrKey == null || logAttrKey.getKey() == null || value == null) {
                 Agent.LOG.log(Level.WARNING, "Log event with invalid attributes key or value of null was reported for a transaction but ignored."
                         + " Each key should be a String and each value should be a String, Number, or Boolean.");
                 continue;
             }
 
-            mapInternString(key);
+            // filter out context attrs that should not be included
+            if (logAttrKey.type == LogAttributeType.CONTEXT && !contextDataKeyFilter.shouldInclude(logAttrKey.getKey())) {
+                continue;
+            }
 
+            String prefixedKey = mapInternString(logAttrKey.getPrefixedKey());
             if (value instanceof String) {
-                sender.addAttribute(key, mapInternString((String) value), METHOD);
+                sender.addAttribute(prefixedKey, mapInternString((String) value), METHOD);
             } else if (value instanceof Number) {
-                sender.addAttribute(key, (Number) value, METHOD);
+                sender.addAttribute(prefixedKey, (Number) value, METHOD);
             } else if (value instanceof Boolean) {
-                sender.addAttribute(key, (Boolean) value, METHOD);
+                sender.addAttribute(prefixedKey, (Boolean) value, METHOD);
             } else {
                 // Java Agent specific - toString the value. This allows for e.g. enums as arguments.
-                sender.addAttribute(key, mapInternString(value.toString()), METHOD);
+                sender.addAttribute(prefixedKey, mapInternString(value.toString()), METHOD);
             }
         }
-
         return event;
     }
 
@@ -546,28 +581,30 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     @Override
     public Logs getTransactionLogs(AgentConfig config) {
-        return new TransactionLogs(config);
+        return new TransactionLogs(config, contextDataKeyFilter);
     }
 
     /**
      * Used to record LogEvents on Transactions
      */
     public static final class TransactionLogs implements Logs {
-        final LinkedBlockingQueue<LogEvent> events;
+        private final LinkedBlockingQueue<LogEvent> events;
+        private final ExcludeIncludeFilter contextDataKeyFilter;
 
-        TransactionLogs(AgentConfig config) {
+        TransactionLogs(AgentConfig config, ExcludeIncludeFilter contextDataKeyFilter) {
             int maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
             events = new LinkedBlockingQueue<>(maxSamplesStored);
+            this.contextDataKeyFilter = contextDataKeyFilter;
         }
 
         @Override
-        public void recordLogEvent(Map<String, ?> attributes) {
+        public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
             if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
                 Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
                 return;
             }
 
-            LogEvent event = createValidatedEvent(attributes);
+            LogEvent event = createValidatedEvent(attributes, contextDataKeyFilter);
             if (events.offer(event)) {
                 Agent.LOG.log(Level.FINEST, "Added event of type {0} in Transaction.", LOG_EVENT_TYPE);
             } else {
