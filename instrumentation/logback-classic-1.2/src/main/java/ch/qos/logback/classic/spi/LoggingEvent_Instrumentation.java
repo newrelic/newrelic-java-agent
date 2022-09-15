@@ -14,13 +14,15 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.getLinkingMetadataBlob;
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingEnabled;
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingForwardingEnabled;
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.isApplicationLoggingLocalDecoratingEnabled;
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
-
+import java.util.Collections;
 import java.util.Map;
+
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.getLinkingMetadataBlob;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isAppLoggingContextDataEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingForwardingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingLocalDecoratingEnabled;
+import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "ch.qos.logback.classic.spi.LoggingEvent", type = MatchType.ExactClass)
 public class LoggingEvent_Instrumentation {
@@ -72,8 +74,14 @@ public class LoggingEvent_Instrumentation {
         long threadId = thread.getId();
 
         if (applicationLoggingEnabled && isApplicationLoggingForwardingEnabled()) {
+            Map<String, String> mdc;
+            if (isAppLoggingContextDataEnabled()) {
+                mdc = getMdc();
+            } else {
+                mdc = Collections.emptyMap();
+            }
             // Record and send LogEvent to New Relic
-            recordNewRelicLogEvent(getFormattedMessage(), getMdc(), timeStamp, level, throwable, threadName, threadId, loggerName, fqnOfLoggerClass);
+            recordNewRelicLogEvent(getFormattedMessage(), mdc, timeStamp, level, throwable, threadName, threadId, loggerName, fqnOfLoggerClass);
         }
     }
 

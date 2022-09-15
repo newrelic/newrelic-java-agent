@@ -7,8 +7,12 @@
 
 package com.newrelic.agent.config;
 
+import com.google.common.collect.Sets;
 import com.newrelic.agent.Agent;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -22,12 +26,14 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
 
     private final boolean enabled;
     private final int maxSamplesStored;
+    private final ApplicationLoggingContextDataConfig contextDataConfig;
 
     public ApplicationLoggingForwardingConfig(Map<String, Object> props, String parentRoot, boolean highSecurity) {
         super(props, parentRoot + ROOT + ".");
         maxSamplesStored = initMaxSamplesStored();
         boolean storedMoreThan0 = maxSamplesStored > 0;
         enabled = storedMoreThan0 && !highSecurity && getProperty(ENABLED, DEFAULT_ENABLED);
+        contextDataConfig = createContextDataConfig(highSecurity);
     }
 
     private int initMaxSamplesStored() {
@@ -40,11 +46,28 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
         }
     }
 
+    private ApplicationLoggingContextDataConfig createContextDataConfig(boolean highSecurity) {
+        Map<String, Object> contextDataProps = getProperty(ApplicationLoggingContextDataConfig.ROOT, Collections.emptyMap());
+        return new ApplicationLoggingContextDataConfig(contextDataProps, systemPropertyPrefix, highSecurity);
+    }
+
     public boolean getEnabled() {
         return enabled;
     }
 
     public int getMaxSamplesStored() {
         return maxSamplesStored;
+    }
+
+    public boolean isContextDataEnabled() {
+        return enabled && contextDataConfig.getEnabled();
+    }
+
+    public List<String> contextDataInclude() {
+        return contextDataConfig.getInclude();
+    }
+
+    public List<String> contextDataExclude() {
+        return contextDataConfig.getExclude();
     }
 }

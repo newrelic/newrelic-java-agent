@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.api.agent.Logs;
 
 import java.util.Map;
@@ -18,7 +19,7 @@ class NoOpLogs implements Logs {
     }
 
     @Override
-    public void recordLogEvent(Map<String, ?> attributes) {
-    }
+    public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
 
+    }
 }

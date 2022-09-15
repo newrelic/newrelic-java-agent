@@ -11,8 +11,8 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import static com.nr.instrumentation.jul.AgentUtil.isApplicationLoggingEnabled;
-import static com.nr.instrumentation.jul.AgentUtil.isApplicationLoggingMetricsEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingMetricsEnabled;
 
 @Weave(originalName = "java.util.logging.Logger")
 public class Logger_Instrumentation {

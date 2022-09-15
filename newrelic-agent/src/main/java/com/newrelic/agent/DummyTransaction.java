@@ -12,6 +12,7 @@ import com.newrelic.agent.bridge.CrossProcessState;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
+import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.browser.BrowserTransactionState;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.CrossProcessConfig;
@@ -664,7 +665,7 @@ public class DummyTransaction extends Transaction {
 
     static final class DummyLogs implements Logs {
         @Override
-        public void recordLogEvent(Map<String, ?> attributes) {
+        public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
         }
     }
 
