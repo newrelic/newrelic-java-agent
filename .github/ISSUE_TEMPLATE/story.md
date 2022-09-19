@@ -22,6 +22,3 @@ _Some common areas: UI, collector, documentation_
 
 ### Additional context
 _What else should we know about this story that might not fit into the other categories?_
-
-### Estimates
-_Please provide initial t-shirt size. S = 1-3 days,  M = 3-5 days (1 week), L = 1-2 weeks_
