@@ -1,14 +1,11 @@
 package cats.effect;
 
 import cats.effect.kernel.Outcome;
-import cats.effect.unsafe.IORuntime;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
-import scala.Function1;
-import scala.collection.immutable.Map;
-import scala.concurrent.ExecutionContext;
 
 
 import static cats.effect.internals.Utils.*;
@@ -19,7 +16,8 @@ public class IOFiber {
   @NewField
   public AgentBridge.TokenAndRefCount tokenAndRefCount;
 
-  public IOFiber(final int initMask, final Map initLocalState, final Function1 cb, final IO startIO, final ExecutionContext startEC, final IORuntime runtime) {
+  @WeaveAllConstructors
+  public IOFiber() {
     this.tokenAndRefCount = getThreadTokenAndRefCount();
     incrementTokenRefCount(this.tokenAndRefCount);
     logTokenInfo(tokenAndRefCount, "IOFiber token info set");
