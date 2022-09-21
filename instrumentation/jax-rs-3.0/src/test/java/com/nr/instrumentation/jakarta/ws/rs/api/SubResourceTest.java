@@ -10,17 +10,15 @@ package com.nr.instrumentation.jakarta.ws.rs.api;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import com.newrelic.test.marker.Java8IncompatibleTest;
+import jakarta.ws.rs.core.Application;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import jakarta.ws.rs.core.Application;
-
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 @Category({ Java8IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
