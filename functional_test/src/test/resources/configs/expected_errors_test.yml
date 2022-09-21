@@ -15,6 +15,19 @@ expected_error_test:
       -
         class_name: "test.newrelic.test.agent.ExpectedError"
 
+expected_error_config_api_test:
+
+  error_collector:
+
+    expected_classes:
+      -
+        class_name: "test.newrelic.test.agent.ExpectedError"
+      -
+        class_name: "java.lang.RuntimeException"
+        message: "I should be expected by my message"
+
+
+
 
 expected_error_bad_message_test:
 

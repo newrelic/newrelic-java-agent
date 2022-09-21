@@ -203,6 +203,37 @@ public class ExpectedErrorsTest {
         }
     }
 
+    private static class UnExpectedException extends RuntimeException {
+        UnExpectedException(String msg) {
+            super(msg);
+        }
+    }
+
+    @Test
+    public void testNoticeErrorAPIExpectedViaConfig() throws Exception {
+        EnvironmentHolder holder = setupEnvironemntHolder("expected_error_config_api_test");
+
+        try {
+            NewRelic.noticeError(new UnExpectedException("I'm not expected")); //nothing configured
+            NewRelic.noticeError(new ExpectedError("You should have expected me")); //only exception class is configured
+            NewRelic.noticeError(new RuntimeException("I should be expected by my message")); //exception class plus message is configured
+
+            TransactionDataList transactionList = holder.getTransactionList();
+            ServiceFactory.getHarvestService().harvestNow();
+            StatsEngine statsEngine = holder.getStatsEngine();
+            assertEquals(0, transactionList.size());
+
+            assertEquals(2, statsEngine.getStats("ErrorsExpected/all").getCallCount());
+            assertEquals(1, statsEngine.getStats("Errors/all").getCallCount());
+
+            verifyExpectedErrorSupportabilityApiCalls(statsEngine, 0, 2, 1, 1);
+        } finally {
+
+            holder.close();
+        }
+
+    }
+
     @Test
     public void expectedStatusSoClose() throws Exception {
         EnvironmentHolder holder = setupEnvironemntHolder("non_expected_status_code_test");
@@ -251,6 +282,7 @@ public class ExpectedErrorsTest {
             verifyExpectedErrorSupportabilityApiCalls(statsEngine, 0, 0, 1, 0);
             verifyIgnoreErrorSupportabilityApiCalls(statsEngine, 0, 0, 0);
         } finally {
+
             holder.close();
         }
     }
@@ -504,12 +536,17 @@ public class ExpectedErrorsTest {
      * the config file. However, due to how the environment holder is setup, the config is read twice, so you will see
      * ErrorCollectorConfigImpl#initExpectedErrors called twice which doubles our metrics. Therefore the values need to
      * be doubled.
-     *
+     * <p>
+     * The apiThrowable metric is recorded in the noticeError API and does not suffer from the same need to double count
+     * in the assertion.
+     * <p>
      * When calling this method, pass in the number of 'actual' calls you expect to occur under normal operation.
      */
     private void verifyExpectedErrorSupportabilityApiCalls(StatsEngine statsEngine, int apiMessage, int apiThrowable, int configClass, int configClassMessage) {
         assertEquals(2 * apiMessage, statsEngine.getStats("Supportability/API/ExpectedError/Api/Message/API").getCallCount());
-        assertEquals(2 * apiThrowable, statsEngine.getStats("Supportability/API/ExpectedError/Api/Throwable/API").getCallCount());
+        //The apiThrowable metric is not dependent on the config double read. You should pass in the actual expected count and the assertion should
+        //not double count
+        assertEquals(1 * apiThrowable, statsEngine.getStats("Supportability/API/ExpectedError/Api/Throwable/API").getCallCount());
         assertEquals(2 * configClass, statsEngine.getStats("Supportability/API/ExpectedError/Config/Class/API").getCallCount());
         assertEquals(2 * configClassMessage, statsEngine.getStats("Supportability/API/ExpectedError/Config/ClassMessage/API").getCallCount());
     }

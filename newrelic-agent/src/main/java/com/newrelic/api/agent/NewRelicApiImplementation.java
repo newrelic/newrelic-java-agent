@@ -15,6 +15,7 @@ import com.newrelic.agent.attributes.CustomAttributeSender;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.PublicApi;
 import com.newrelic.agent.config.ConfigConstant;
+import com.newrelic.agent.config.ExpectedErrorConfig;
 import com.newrelic.agent.dispatchers.Dispatcher;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transaction.TransactionNamingPolicy;
@@ -24,6 +25,7 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -56,7 +58,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void noticeError(Throwable throwable, Map<String, ?> params) {
-        noticeError(throwable, params, false);
+        noticeError(throwable, params, isExpectedErrorConfigured(throwable));
     }
 
     /**
@@ -68,14 +70,16 @@ public class NewRelicApiImplementation implements PublicApi {
     @Override
     public void noticeError(Throwable throwable) {
         Map<String, String> params = Collections.emptyMap();
-        noticeError(throwable, params, false);
+        noticeError(throwable, params, isExpectedErrorConfigured(throwable));
+
     }
 
     /**
      * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
      * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
      * be created and reported to New Relic.
-     *
+     * Expecting Errors via configuration is not supported from the APIs that do not accept a Throwable as an attribute.
+     * To mark an Error that accepts a String as expected use the API that accepts a boolean.
      * @param message the error message
      * @param params  Custom parameters to include in the traced error. May be null. Map is copied to avoid side effects.
      */
@@ -86,7 +90,8 @@ public class NewRelicApiImplementation implements PublicApi {
 
     /**
      * Report an error to New Relic.
-     *
+     * Expecting Errors via configuration is not supported from the APIs that do not accept a Throwable as an attribute.
+     * To mark an Error that accepts a String as expected use the API that accepts a boolean.
      * @param message the error message
      * @see #noticeError(String, Map)
      */
@@ -97,11 +102,19 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     @Override
+    public void noticeError(Throwable throwable, boolean expected) {
+        Map<String, String> params = Collections.emptyMap();
+        noticeError(throwable, params, expected);
+    }
+
     public void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
         try {
             ServiceFactory.getRPMService().getErrorService().reportException(throwable, filterErrorAtts(params, attributeSender), expected);
 
             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_NOTICE_ERROR);
+            //SUPPORTABILITY_API_EXPECTED_ERROR_API_THROWABLE metric is intended to be recorded independent of whether
+            //the expected error was defined in config or via the actual api.  Read simply as the call came through the noticeError API (SUPPORTABILITY_API_NOTICE_ERROR)
+            //and it was expected.
             if (expected) {
                 MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_EXPECTED_ERROR_API_THROWABLE);
             }
@@ -117,15 +130,10 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     @Override
-    public void noticeError(Throwable throwable, boolean expected) {
-        Map<String, String> params = Collections.emptyMap();
-        noticeError(throwable, params, expected);
-    }
-
-    @Override
     public void noticeError(String message, Map<String, ?> params, boolean expected) {
         try {
             ServiceFactory.getRPMService().getErrorService().reportError(message, filterErrorAtts(params, attributeSender), expected);
+
             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_NOTICE_ERROR);
             if (expected) {
                 MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_EXPECTED_ERROR_API_MESSAGE);
@@ -145,6 +153,25 @@ public class NewRelicApiImplementation implements PublicApi {
     public void noticeError(String message, boolean expected) {
         Map<String, String> params = Collections.emptyMap();
         noticeError(message, params, expected);
+    }
+
+    private boolean isExpectedErrorConfigured(Throwable throwable) {
+        if (throwable != null) {
+            String expectedConfigName = throwable.getClass().getName();
+            String message = throwable.getMessage();
+            String app_name = NewRelic.getAgent().getConfig().getValue("app_name");
+            Set<ExpectedErrorConfig> expectedErrors = ServiceFactory.getConfigService().getErrorCollectorConfig(app_name).getExpectedErrors();
+            for (ExpectedErrorConfig errorConfig : expectedErrors) {
+                String errorClass = errorConfig.getErrorClass();
+                String errorMessage = errorConfig.getErrorMessage();
+                if ((errorClass.equals(expectedConfigName) && errorMessage == null) ||
+                        (errorMessage != null) &&
+                                (errorClass.equals(expectedConfigName) && errorMessage.equals(message))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static Map<String, ?> filterErrorAtts(Map<String, ?> params, AttributeSender attributeSender) {
