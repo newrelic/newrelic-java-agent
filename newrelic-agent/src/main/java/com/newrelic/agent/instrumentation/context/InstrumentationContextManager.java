@@ -17,9 +17,11 @@ import com.newrelic.agent.instrumentation.api.ApiImplementationUpdate;
 import com.newrelic.agent.instrumentation.classmatchers.ScalaTraitMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.TraceLambdaVisitor;
 import com.newrelic.agent.instrumentation.ejb3.EJBAnnotationVisitor;
+import com.newrelic.agent.instrumentation.ejb4.EJB4AnnotationVisitor;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassWeaverService;
+import com.newrelic.agent.instrumentation.webservices.JakartaWebServiceVisitor;
 import com.newrelic.agent.instrumentation.webservices.WebServiceVisitor;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.servlet.ServletAnnotationVisitor;
@@ -86,6 +88,15 @@ public class InstrumentationContextManager {
             matchVisitors.put(new WebServiceVisitor(), NO_OP_TRANSFORMER);
         }
 
+        if (agentConfig.getValue("instrumentation.jakarta_web_services.enabled", false)) {
+            Agent.LOG.log(Level.FINEST, "jakarta_web_services instrumentation is enabled");
+            matchVisitors.put(new JakartaWebServiceVisitor(), NO_OP_TRANSFORMER);
+        } else if (!classTransformerConfig.isDefaultInstrumentationEnabled()) {
+            Agent.LOG.log(Level.FINEST, "jakarta_web_services instrumentation is disabled because it is not explicitly enabled");
+        } else {
+            matchVisitors.put(new JakartaWebServiceVisitor(), NO_OP_TRANSFORMER);
+        }
+
         classNameFilter = new ClassNameFilter(Agent.LOG);
         classNameFilter.addConfigClassFilters(agentConfig);
         classNameFilter.addExcludeFileClassFilters();
@@ -113,15 +124,26 @@ public class InstrumentationContextManager {
           Agent.LOG.log(Level.FINEST, "scala_future_trace instrumentation is disabled because it is not explicitly enabled");
         }
 
-        Config instrumentationConfig = agentConfig.getClassTransformerConfig().getInstrumentationConfig(
+        Config ejb3InstrumentationConfig = agentConfig.getClassTransformerConfig().getInstrumentationConfig(
                 "com.newrelic.instrumentation.ejb-3.0");
-        if (instrumentationConfig.getProperty("enabled", false)) {
+        if (ejb3InstrumentationConfig.getProperty("enabled", false)) {
             Agent.LOG.log(Level.FINEST, "ejb-3.0 instrumentation is enabled");
             matchVisitors.put(new EJBAnnotationVisitor(), NO_OP_TRANSFORMER);
         } else if (!classTransformerConfig.isDefaultInstrumentationEnabled()) {
             Agent.LOG.log(Level.FINEST, "ejb-3.0 instrumentation is disabled because it is not explicitly enabled");
         } else {
             matchVisitors.put(new EJBAnnotationVisitor(), NO_OP_TRANSFORMER);
+        }
+
+        Config ejb4InstrumentationConfig = agentConfig.getClassTransformerConfig().getInstrumentationConfig(
+                "com.newrelic.instrumentation.ejb-4.0");
+        if (ejb4InstrumentationConfig.getProperty("enabled", false)) {
+            Agent.LOG.log(Level.FINEST, "ejb-4.0 instrumentation is enabled");
+            matchVisitors.put(new EJB4AnnotationVisitor(), NO_OP_TRANSFORMER);
+        } else if (!classTransformerConfig.isDefaultInstrumentationEnabled()) {
+            Agent.LOG.log(Level.FINEST, "ejb-4.0 instrumentation is disabled because it is not explicitly enabled");
+        } else {
+            matchVisitors.put(new EJB4AnnotationVisitor(), NO_OP_TRANSFORMER);
         }
 
         classloaderExclusions = agentConfig.getClassTransformerConfig().getClassloaderExclusions();

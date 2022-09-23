@@ -4,7 +4,7 @@ import play.routes.compiler.RoutesCompiler$
 import scala.collection.JavaConversions
 
 apply plugin: 'scala'
-scala.zincVersion = "1.2.5"
+scala.zincVersion = "1.7.1"
 
 isScalaProjectEnabled(project, "scala-2.11")
 
@@ -20,7 +20,7 @@ buildscript {
 sourceSets.test.scala.srcDir "src/test/java"
 sourceSets.test.java.srcDirs = []
 
-compileJava.options.bootstrapClasspath = null
+
 
 dependencies {
     implementation(project(":newrelic-api"))

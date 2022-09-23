@@ -18,12 +18,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AgentUtil {
-    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 3;
+    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 10;
     // Log message attributes
     public static final String MESSAGE = "message";
     public static final String TIMESTAMP = "timestamp";
     public static final String LEVEL = "level";
+    public static final String ERROR_MESSAGE = "error.message";
+    public static final String ERROR_CLASS = "error.class";
+    public static final String ERROR_STACK = "error.stack";
+    public static final String THREAD_NAME = "thread.name";
+    public static final String THREAD_ID = "thread.id";
+    public static final String LOGGER_NAME = "logger.name";
+    public static final String LOGGER_FQCN = "logger.fqcn";
     public static final String UNKNOWN = "UNKNOWN";
+
     // Linking metadata attributes used in blob
     private static final String BLOB_PREFIX = "NR-LINKING";
     private static final String BLOB_DELIMITER = "|";
@@ -45,11 +53,16 @@ public class AgentUtil {
      * @param timeStampMillis log timestamp
      * @param level           log level
      */
-    public static void recordNewRelicLogEvent(String message, long timeStampMillis, Level level) {
-        // Bail out and don't create a LogEvent if log message is empty
-        if (!message.isEmpty()) {
+    public static void recordNewRelicLogEvent(String message, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
+            String loggerName, String fqcnLoggerName) {
+        boolean messageEmpty = message.isEmpty();
+
+        if (shouldCreateLogEvent(messageEmpty, throwable)) {
             HashMap<String, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
-            logEventMap.put(MESSAGE, message);
+
+            if (!messageEmpty) {
+                logEventMap.put(MESSAGE, message);
+            }
             logEventMap.put(TIMESTAMP, timeStampMillis);
 
             if (level.toString().isEmpty()) {
@@ -58,8 +71,48 @@ public class AgentUtil {
                 logEventMap.put(LEVEL, level);
             }
 
+            String errorStack = ExceptionUtil.getErrorStack(throwable);
+            if (errorStack != null) {
+                logEventMap.put(ERROR_STACK, errorStack);
+            }
+
+            String errorMessage = ExceptionUtil.getErrorMessage(throwable);
+            if (errorMessage != null) {
+                logEventMap.put(ERROR_MESSAGE, errorMessage);
+            }
+
+            String errorClass = ExceptionUtil.getErrorClass(throwable);
+            if (errorClass != null) {
+                logEventMap.put(ERROR_CLASS, errorClass);
+            }
+
+            if (threadName != null) {
+                logEventMap.put(THREAD_NAME, threadName);
+            }
+
+            logEventMap.put(THREAD_ID, threadId);
+
+            if (loggerName != null) {
+                logEventMap.put(LOGGER_NAME, loggerName);
+            }
+
+            if (fqcnLoggerName != null) {
+                logEventMap.put(LOGGER_FQCN, fqcnLoggerName);
+            }
+
             AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
         }
+    }
+
+    /**
+     * A LogEvent MUST NOT be reported if neither a log message nor an error is logged. If either is present report the LogEvent.
+     *
+     * @param messageEmpty Message to validate
+     * @param throwable    Throwable to validate
+     * @return true if a LogEvent should be created, otherwise false
+     */
+    private static boolean shouldCreateLogEvent(boolean messageEmpty, Throwable throwable) {
+        return !messageEmpty || !ExceptionUtil.isThrowableNull(throwable);
     }
 
     /**
@@ -102,7 +155,9 @@ public class AgentUtil {
                 value = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
             }
         } catch (UnsupportedEncodingException e) {
-            NewRelic.getAgent().getLogger().log(java.util.logging.Level.WARNING, "Unable to URL encode entity.name for application_logging.local_decorating", e);
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(java.util.logging.Level.WARNING, "Unable to URL encode entity.name for application_logging.local_decorating", e);
         }
         return value;
     }

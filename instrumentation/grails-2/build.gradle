@@ -12,7 +12,7 @@ verifyInstrumentation {
     excludeRegex '.*.RC[0-9]'
     excludeRegex '.*.M[0-9]'
     passesOnly('org.grails:grails-web:[2.0,3.0.0.RC1)'){
-      compile("org.codehaus.groovy:groovy-all:2.0.5")
+      implementation("org.codehaus.groovy:groovy-all:2.0.5")
     }
 
     // Version 1.2-M2 has an invalid POM file.  It is missing Spring dependencies.  Exclude from verification.
