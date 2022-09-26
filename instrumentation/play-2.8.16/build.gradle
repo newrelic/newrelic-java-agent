@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":newrelic-weaver-scala-api"))
-    implementation("org.scala-lang:scala-library:2.12.+")
+    implementation("org.scala-lang:scala-library:2.12.2.12.14")
     implementation("com.typesafe.play:play-server_2.12:2.8.16")
     testImplementation("com.typesafe.play:play-test_2.12:2.8.16")
     testImplementation("com.typesafe.play:play-java_2.12:2.8.16")
@@ -49,11 +49,6 @@ verifyInstrumentation {
     excludeRegex'.*-RC[0-9]*'
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
 
 compileTestScala {
     def routeFile = file("src/test/resources/conf/routes")
