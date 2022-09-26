@@ -304,7 +304,7 @@ public class DefaultTracer extends AbstractTracer {
             } catch (Throwable t) {
                 String msg = "An error occurred saving the clm attributes: " + t;
                 Agent.LOG.severe(msg);
-                Agent.LOG.log(Level.FINER, msg);
+                Agent.LOG.log(Level.FINER, msg, t);
             }
 
             try {
