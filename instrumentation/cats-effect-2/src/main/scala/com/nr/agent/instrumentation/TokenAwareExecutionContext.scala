@@ -1,4 +1,4 @@
-package cats.effect.ec
+package com.nr.agent.instrumentation
 
 import com.newrelic.agent.bridge.AgentBridge
 

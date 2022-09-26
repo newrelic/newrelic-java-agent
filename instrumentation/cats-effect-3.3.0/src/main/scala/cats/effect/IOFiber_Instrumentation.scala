@@ -1,10 +1,9 @@
 package cats.effect
 
-import cats.effect.internals.Utils._
-import cats.effect.tracing.RingBuffer
 import cats.effect.unsafe.IORuntime
 import com.newrelic.agent.bridge.AgentBridge
 import com.newrelic.api.agent.weaver.{NewField, Weave, Weaver}
+import com.nr.agent.instrumentation.Utils._
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
@@ -18,39 +17,33 @@ private final class IOFiber_Instrumentation[A](initLocalState: IOLocalState,
                                private[this] val runtime: IORuntime
                               ) {
 
-  //possibly wrap startEc
-
   @NewField
-  private val tokenAndRefCount: AtomicReference[AgentBridge.TokenAndRefCount] =
-    new AtomicReference(getThreadTokenAndRefCount(fiberRef))
+  private var tokenAndRefCount: AgentBridge.TokenAndRefCount = getThreadTokenAndRefCount
 
-  incrementTokenRefCount(this.tokenAndRefCount.get())
-  logTokenInfo(tokenAndRefCount.get(), fiberRef, "IOFiber token info set")
+  incrementTokenRefCount(this.tokenAndRefCount)
+  logTokenInfo(tokenAndRefCount, "IOFiber token info set")
   private val IOEndFiber: IO.EndFiber.type = Weaver.callOriginal();
 
-  private def fiberRef: IOFiber[A] = this.asInstanceOf[IOFiber[A]]
   def run(): Unit = {
-    val fiberTokenEmpty = this.tokenAndRefCount.get() == null
+    val fiberTokenEmpty = this.tokenAndRefCount == null
     try {
-      if (!fiberTokenEmpty) setThreadTokenAndRefCount(tokenAndRefCount, fiberRef)
+      if (!fiberTokenEmpty) setThreadTokenAndRefCount(tokenAndRefCount)
       Weaver.callOriginal
     } finally {
-      val threadTokenAndRefCount = getThreadTokenAndRefCount(fiberRef)
+      val threadTokenAndRefCount = getThreadTokenAndRefCount
       if (fiberTokenEmpty && threadTokenAndRefCount != null) {
-        if (threadTokenAndRefCount != null) {
-          this.tokenAndRefCount.set(threadTokenAndRefCount)
-        }
-        incrementTokenRefCount(this.tokenAndRefCount.get())
+         this.tokenAndRefCount = threadTokenAndRefCount
+        incrementTokenRefCount(this.tokenAndRefCount)
       }
-      attemptExpireTokenRefCount(threadTokenAndRefCount, fiberRef)
+      attemptExpireTokenRefCount(threadTokenAndRefCount)
     }
   }
 
   private def done(oc: OutcomeIO[A]): Unit = {
     Weaver.callOriginal()
     if (tokenAndRefCount != null) {
-      decrementTokenRefCount(tokenAndRefCount.get())
-      attemptExpireTokenRefCount(tokenAndRefCount.get(), fiberRef)
+      decrementTokenRefCount(tokenAndRefCount)
+      attemptExpireTokenRefCount(tokenAndRefCount)
     }
   }
 
@@ -69,11 +62,10 @@ private final class IOFiber_Instrumentation[A](initLocalState: IOLocalState,
                       cancelationIterations: Int,
                       autoCedeIterations: Int): Unit = {
     val threadLocalTokenAndRefCount = AgentBridge.activeToken.get()
-    if(this.tokenAndRefCount.get() == null && threadLocalTokenAndRefCount != null)
-      this.tokenAndRefCount.set(threadLocalTokenAndRefCount)
-
+    if(this.tokenAndRefCount == null && threadLocalTokenAndRefCount != null) {
+      this.tokenAndRefCount = threadLocalTokenAndRefCount
+    }
     Weaver.callOriginal()
-
   }
 
   private  def clearTxn(): Unit = {

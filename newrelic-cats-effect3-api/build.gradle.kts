@@ -24,7 +24,7 @@ java {
 
 dependencies {
     implementation("org.scala-lang:scala-library:2.13.5")
-    implementation("org.typelevel:cats-effect_2.13:3.2.8")
+    implementation("org.typelevel:cats-effect_2.13:3.3.5")
     implementation(project(":newrelic-api"))
     testImplementation(project(":instrumentation-test"))
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
