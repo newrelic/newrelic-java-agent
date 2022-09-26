@@ -1,13 +1,10 @@
-package cats.effect.internals;
+package com.nr.agent.instrumentation;
 
-import cats.effect.IOFiber;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Token;
 
 import java.text.MessageFormat;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -15,7 +12,7 @@ public final class Utils {
   private Utils() {
   }
 
-  public static AgentBridge.TokenAndRefCount getThreadTokenAndRefCount(IOFiber<?> ioFiber) {
+  public static AgentBridge.TokenAndRefCount getThreadTokenAndRefCount() {
     AgentBridge.TokenAndRefCount tokenAndRefCount = AgentBridge.activeToken.get();
     if (tokenAndRefCount == null) {
       Transaction tx = AgentBridge.getAgent().getTransaction(false);
@@ -26,7 +23,7 @@ public final class Utils {
         AgentBridge.activeToken.set(tokenAndRefCount);
       }
     }
-    logTokenInfo(tokenAndRefCount, ioFiber, "getThreadTokenAndRefCount");
+    logTokenInfo(tokenAndRefCount, "getThreadTokenAndRefCount");
     return tokenAndRefCount;
   }
 
@@ -45,28 +42,18 @@ public final class Utils {
       tokenAndRefCount.refCount.decrementAndGet();
     }
   }
-  public static void attemptExpireTokenRefCount(AgentBridge.TokenAndRefCount tokenAndRefCount, IOFiber<?> ioFiber) {
+  public static void attemptExpireTokenRefCount(AgentBridge.TokenAndRefCount tokenAndRefCount) {
       if (tokenAndRefCount != null && tokenAndRefCount.refCount.get() == 0) {
         expireOrDecTokenRefToken(tokenAndRefCount);
-        logTokenInfo(tokenAndRefCount, ioFiber, "token expired");
+        logTokenInfo(tokenAndRefCount, "token expired");
       } else if (tokenAndRefCount != null) {
-        logTokenInfo(tokenAndRefCount, ioFiber, "unable to expire refcount"+ tokenAndRefCount.refCount.get());
+        logTokenInfo(tokenAndRefCount, "unable to expire refcount"+ tokenAndRefCount.refCount.get());
       }
   }
 
-  public static void clearTxnThreadState(Transaction transaction) {
-    AgentBridge.activeToken.remove();
-    transaction.clearTransaction();
-  }
-
-
-
-
-
-
-  public static void setThreadTokenAndRefCount(AtomicReference<AgentBridge.TokenAndRefCount> tokenAndRefCount, IOFiber<?> ioFiber) {
+  public static void setThreadTokenAndRefCount(AtomicReference<AgentBridge.TokenAndRefCount> tokenAndRefCount) {
     if (tokenAndRefCount.get() != null && tokenAndRefCount.get().token != null) {
-      logTokenInfo(tokenAndRefCount.get(), ioFiber,"setting token to thread");
+      logTokenInfo(tokenAndRefCount.get(), "setting token to thread");
       AgentBridge.activeToken.set(tokenAndRefCount.get());
       tokenAndRefCount.get().token.link();
     }
@@ -81,23 +68,18 @@ public final class Utils {
     }
   }
 
-  public static void logTokenInfo(AgentBridge.TokenAndRefCount tokenAndRefCount,  IOFiber<?> ioFiber, String msg) {
-    int fiberHash = ioFiber == null ? -1 : ioFiber.hashCode();
+  public static void logTokenInfo(AgentBridge.TokenAndRefCount tokenAndRefCount, String msg) {
     if (AgentBridge.getAgent().getLogger().isLoggable(Level.FINEST)) {
       String tokenMsg = (tokenAndRefCount != null && tokenAndRefCount.token != null)
         ? String.format("[%s:%s:%d]", tokenAndRefCount.token, tokenAndRefCount.token.getTransaction(),
                         tokenAndRefCount.refCount.get())
         : "[Empty token]";
-      AgentBridge.getAgent().getLogger().log(Level.FINEST, MessageFormat.format("{0}:{1} IOFiber[{2}] token info {3}",
+      AgentBridge.getAgent().getLogger().log(Level.FINEST, MessageFormat.format("{0}:{1} token info {2}",
                                                                                 tokenMsg,
                                                                                 NewRelic.getAgent().getTransaction(),
-                                                                                fiberHash,
                                                                                 msg));
     }
   }
 
-  private static String getFiberHash(IOFiber ioFiber) {
-    return Optional.ofNullable(ioFiber).map(f -> f.hashCode() + "").orElse(null);
-  }
 
 }
