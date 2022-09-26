@@ -319,6 +319,11 @@ public class NoOpTransaction implements Transaction {
     }
 
     @Override
+    public String getGuid() {
+        return null;
+    }
+
+    @Override
     public void setTransportType(TransportType transportType) {
     }
 }
