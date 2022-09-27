@@ -37,7 +37,7 @@ public class ServerInstrumentationTest {
     @Test
     public void testControllerActions() {
         given()
-                .baseUri("http://localhost:" + playApplicationServerRule.getTestServer().getRunningHttpPort())
+                .baseUri("http://localhost:" + runningPort())
                 .when()
                 .get("/hello")
                 .then()
@@ -48,7 +48,7 @@ public class ServerInstrumentationTest {
         InstrumentationTestRunner.getIntrospector().clear();
 
         given()
-                .baseUri("http://localhost:" + playApplicationServerRule.getTestServer().getRunningHttpPort())
+                .baseUri("http://localhost:" + runningPort())
                 .when()
                 .get("/simple")
                 .then()
@@ -59,7 +59,7 @@ public class ServerInstrumentationTest {
         InstrumentationTestRunner.getIntrospector().clear();
 
         given()
-                .baseUri("http://localhost:" + playApplicationServerRule.getTestServer().getRunningHttpPort())
+                .baseUri("http://localhost:" + runningPort())
                 .when()
                 .get("/index")
                 .then()
@@ -70,7 +70,7 @@ public class ServerInstrumentationTest {
         InstrumentationTestRunner.getIntrospector().clear();
 
         given()
-                .baseUri("http://localhost:" + playApplicationServerRule.getTestServer().getRunningHttpPort())
+                .baseUri("http://localhost:" + runningPort())
                 .when()
                 .get("/scalaHello")
                 .then()
@@ -94,5 +94,12 @@ public class ServerInstrumentationTest {
 
         Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(expectedTxName);
         assertTrue(metricsForTransaction.containsKey("Play2Routing"));
+    }
+
+    private int runningPort() {
+        return playApplicationServerRule.getTestServer().getRunningHttpPort()
+                                        .orElseThrow(
+                                          () -> new RuntimeException("playApplicationServerRule port not set")
+                                        );
     }
 }
