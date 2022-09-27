@@ -15,12 +15,6 @@ verifyInstrumentation {
     passesOnly 'com.rabbitmq:amqp-client:[5.0.0,)'
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 site {
     title 'RabbitAMQP'
     type 'Messaging'

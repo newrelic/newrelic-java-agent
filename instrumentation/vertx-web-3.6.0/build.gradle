@@ -24,13 +24,6 @@ verifyInstrumentation {
     passesOnly 'io.vertx:vertx-web:[3.6.0.CR1,3.8.0)'
 }
 
-test {
-    // instrumentation is incompatible with version of java less than 1.8
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 site {
     title 'Vertx'
     type 'Framework'

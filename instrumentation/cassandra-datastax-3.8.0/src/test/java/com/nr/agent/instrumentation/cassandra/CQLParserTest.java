@@ -9,11 +9,8 @@ package com.nr.agent.instrumentation.cassandra;
 
 import static org.junit.Assert.*;
 
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category({ Java7IncompatibleTest.class})
 public class CQLParserTest {
 
     private static final CQLParser parser = new CQLParser();

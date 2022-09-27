@@ -13,12 +13,6 @@ dependencies {
 
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 verifyInstrumentation {
     passes 'software.amazon.awssdk:s3:[2.1.0,)'
     excludeRegex ".*preview.*"

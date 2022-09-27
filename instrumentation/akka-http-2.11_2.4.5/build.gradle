@@ -47,11 +47,3 @@ site {
     title 'Akka Http'
     type 'Framework'
 }
-
-test {
-    // our dependency on rest-assured precludes running the tests on java 1.7 due to
-    // akka http only being able to run on java 1.8 and above from this version onward
-    onlyIf {
-        !project.hasProperty("test7")
-    }
-}

@@ -15,15 +15,12 @@ import java.net.URLDecoder;
 import java.util.Set;
 
 import com.newrelic.api.agent.QueryConverter;
-import com.newrelic.test.marker.Java7IncompatibleTest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category({ Java7IncompatibleTest.class})
 public class CassandraObfuscationCrossAgentTest {
 
     @Test

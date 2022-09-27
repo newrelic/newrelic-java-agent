@@ -48,13 +48,6 @@ verifyInstrumentation {
     excludeRegex '.*-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]{7}$'
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
-
 compileTestScala {
     def routeFile = file("src/test/resources/conf/routes")
     def generatedSourcesDir = layout.buildDirectory.dir("generated/scala")

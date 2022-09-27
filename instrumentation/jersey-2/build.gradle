@@ -26,12 +26,6 @@ verifyInstrumentation {
     exclude 'org.glassfish.jersey.core:jersey-server:[2.0-m05-2,2.0)'
 }
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 site {
     title 'Jersey'
     type 'Framework'

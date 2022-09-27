@@ -7,12 +7,6 @@ dependencies {
 
 
 
-test {
-    onlyIf {
-        !project.hasProperty('test7')
-    }
-}
-
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-sqs-2.1.0' }
 }
