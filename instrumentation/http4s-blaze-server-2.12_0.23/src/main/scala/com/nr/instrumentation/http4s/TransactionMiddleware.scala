@@ -14,13 +14,14 @@ object TransactionMiddleware {
   def genHttpApp[F[_] : Sync](httpApp: Kleisli[F, Request[F], Response[F]]): Kleisli[F, Request[F], Response[F]] =
     Kleisli { req: Request[F] => nrRequestResponse(req, httpApp) }
 
-  def nrRequestResponse[F[_] : Sync](request: Request[F], httpAp: Kleisli[F, Request[F], Response[F]]): F[Response[F]] =
+  def nrRequestResponse[F[_] : Sync](request: Request[F], httpApp: Kleisli[F, Request[F], Response[F]])
+  : F[Response[F]] =
     construct(AgentBridge.instrumentation.createScalaTxnTracer())
-      .redeemWith(_ => httpAp(request),
+      .redeemWith(_ => httpApp(request),
         tracer => for {
           txn <- construct(AgentBridge.getAgent.getTransaction)
           token <- setupTxn(txn, request)
-          res <- attachErrorEvent(httpAp(request), tracer, token)
+          res <- attachErrorEvent(httpApp(request), tracer, token)
           _ <- completeTxn(tracer, token)
         } yield res
       )
@@ -38,7 +39,7 @@ object TransactionMiddleware {
 
   private def completeTxn[F[_] : Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {
     logTokenInfo(AgentBridge.activeToken.get, s"completeTxn for Token, txn: ${AgentBridge.getAgent.getTransaction}")
-    expireTokenIfNeceessary(token)
+    expireTokenIfNecessary(token)
     tracer.finish(176, null)
   }.handleErrorWith(_ => Sync[F].unit)
 
@@ -46,7 +47,7 @@ object TransactionMiddleware {
 
   private def attachErrorEvent[S, F[_] : Sync](body: F[S], tracer: ExitTracer, token: Token) =
     body.handleErrorWith(throwable => {
-      expireTokenIfNeceessary(token)
+      expireTokenIfNecessary(token)
       tracer.finish(throwable)
       Sync[F].raiseError(throwable)
     })
@@ -60,7 +61,7 @@ object TransactionMiddleware {
     }
   }
 
-  private def expireTokenIfNeceessary(token: Token): Unit =
+  private def expireTokenIfNecessary(token: Token): Unit =
     if (AgentBridge.activeToken.get() == null && token.isActive)
       token.expire()
 }

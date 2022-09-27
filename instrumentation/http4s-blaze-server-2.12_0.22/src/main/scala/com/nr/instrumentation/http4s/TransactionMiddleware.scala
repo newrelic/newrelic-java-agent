@@ -32,7 +32,7 @@ object TransactionMiddleware {
   }
 
   private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {
-    expireTokenIfNeceessary(token)
+    expireTokenIfNecessary(token)
     tracer.finish(176, null)
   }.handleErrorWith(_ => Sync[F].unit)
 
@@ -40,12 +40,12 @@ object TransactionMiddleware {
 
   private def attachErrorEvent[S, F[_]: Sync](body: F[S], tracer: ExitTracer, token: Token) =
     body.handleErrorWith(throwable => {
-      expireTokenIfNeceessary(token)
+      expireTokenIfNecessary(token)
       tracer.finish(throwable)
       Sync[F].raiseError(throwable)
     })
 
-  private def expireTokenIfNeceessary(token: Token): Unit =
+  private def expireTokenIfNecessary(token: Token): Unit =
     if (AgentBridge.activeToken.get() == null && token.isActive)
       token.expire()
 }

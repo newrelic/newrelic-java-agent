@@ -1,4 +1,4 @@
-package org.http4s.server.blaze;
+package org.http4s.ember.server;
 
 import cats.data.Kleisli;
 import cats.effect.kernel.Async;

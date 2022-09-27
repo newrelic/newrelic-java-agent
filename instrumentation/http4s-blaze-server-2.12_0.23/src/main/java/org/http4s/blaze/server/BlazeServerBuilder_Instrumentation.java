@@ -1,4 +1,4 @@
-package org.http4s.server.blaze;
+package org.http4s.blaze.server;
 
 import cats.data.Kleisli;
 import cats.effect.kernel.Async;
@@ -17,8 +17,6 @@ public class BlazeServerBuilder_Instrumentation<F> {
 
   public BlazeServerBuilder<F> withHttpApp(Kleisli<F, Request<F>, Response<F>> httpApp) {
     httpApp = TransactionMiddleware$.MODULE$.genHttpApp(httpApp, this.F);
-    Seq<String> l = scala.collection.immutable.Vector$.MODULE$.empty();
-
     return Weaver.callOriginal();
   }
 }
