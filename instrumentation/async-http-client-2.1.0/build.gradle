@@ -14,28 +14,17 @@ verifyInstrumentation {
 }
 
 test {
+    // FIXME can this be simplified to the following?
+//    onlyIf {
+//        project.hasProperty('test8')
+//    }
+
     // These instrumentation tests only run on Java 8 regardless of the -PtestN gradle property that is set.
     // The jvmArgs properties get set for a specific version of Java in java.gradle when using -PtestN but then this overrides
     // that to always run on Java 8 instead of version N, potentially causing an error if the options are invalid in Java 8.
-    if (project.hasProperty("test9")) {
-        enabled = false
-    } else if (project.hasProperty("test10")) {
-        enabled = false
-    } else if (project.hasProperty("test11")) {
-        enabled = false
-    } else if (project.hasProperty("test12")) {
-        enabled = false
-    } else if (project.hasProperty("test13")) {
-        enabled = false
-    } else if (project.hasProperty("test14")) {
-        enabled = false
-    } else if (project.hasProperty("test15")) {
-        enabled = false
-    } else if (project.hasProperty("test16")) {
-        enabled = false
-    } else if (project.hasProperty("test17")) {
-        enabled = false
-    } else if (project.hasProperty("test18")) {
+    if (project.hasProperty("test9") || project.hasProperty("test10") || project.hasProperty("test11") || project.hasProperty("test12") ||
+            project.hasProperty("test13") || project.hasProperty("test14") || project.hasProperty("test15") || project.hasProperty("test16") ||
+            project.hasProperty("test17") || project.hasProperty("test18") || project.hasProperty("test19")) {
         enabled = false
     }
 }

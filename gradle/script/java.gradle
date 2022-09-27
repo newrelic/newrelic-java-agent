@@ -95,6 +95,20 @@ test {
         executable = project.property(jdkName) + '/bin/java'
         configuration.call()
     }
+    if (project.hasProperty("test19")) {
+        configureTest("jdk19") {
+            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util=ALL-UNNAMED',
+                    '--add-opens=java.base/java.net=ALL-UNNAMED',
+                    '--add-opens=java.base/java.io=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
+                    '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
+                    '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java19IncompatibleTest'
+            }
+        }
+    }
     if (project.hasProperty("test18")) {
         configureTest("jdk18") {
             jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',

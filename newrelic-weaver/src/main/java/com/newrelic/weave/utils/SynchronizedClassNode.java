@@ -26,14 +26,13 @@ import java.util.ArrayList;
  * This class exists only to work around the fact that ClassNode instances are NOT thread safe. If multiple threads call
  * {@link #accept(ClassVisitor)} at the same time there is a race condition that exists that has been shown to cause
  * VerifyErrors and other serious bytecode-related exceptions.
- *
+ * <p>
  * By synchronizing on the {@link #accept(ClassVisitor)} method we are ensuring that any usage of this ClassNode in the
  * agent can be accessed by multiple threads. One important thing to note is that this ties us pretty strongly to an
  * ASM version due to the fact that we had to copy/paste/modify a few of the methods in this class in order to generate
  * thread-safe versions of other *Node classes such as MethodNode and FieldNode.
- *
- * NOTE: If you are upgrading from org.ow2.asm:asm / org.ow2.asm:asm-tree make sure to double
- * check that this class hasn't changed between versions.
+ * <p>
+ * NOTE: If you are upgrading from org.ow2.asm:asm / org.ow2.asm:asm-tree make sure to double-check that this class hasn't changed between versions.
  */
 public class SynchronizedClassNode extends ClassNode {
 
