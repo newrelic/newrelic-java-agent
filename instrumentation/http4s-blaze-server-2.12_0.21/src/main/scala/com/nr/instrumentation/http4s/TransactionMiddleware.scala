@@ -6,6 +6,8 @@ import cats.implicits._
 import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction, TransactionNamePriority}
 import com.newrelic.api.agent.Token
 import org.http4s.{Request, Response}
+import cats.implicits._
+import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction, TransactionNamePriority}
 
 object TransactionMiddleware {
   def genHttpApp[F[_] : Sync](httpApp: Kleisli[F, Request[F], Response[F]]): Kleisli[F, Request[F], Response[F]] =
@@ -25,14 +27,14 @@ object TransactionMiddleware {
   private def setupTxn[F[_]:Sync](txn: Transaction, request: Request[F]): F[Token] = construct {
     val t = txn.asInstanceOf[com.newrelic.api.agent.Transaction]
     val token = t.getToken
-    txn.setTransactionName(TransactionNamePriority.SERVLET_NAME, true, "HTTP4s", "BlazeServerHandler")
+    txn.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "HTTP4s", "BlazeServerHandler")
     txn.getTracedMethod.setMetricName("HTTP4s", "RequestHandler")
     t.setWebRequest(RequestWrapper(request))
     token
   }
 
   private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {
-    token.expire()
+    expireTokenIfNecessary(token)
     tracer.finish(176, null)
   }.handleErrorWith(_ => Sync[F].unit)
 
@@ -40,10 +42,14 @@ object TransactionMiddleware {
 
   private def attachErrorEvent[S, F[_]: Sync](body: F[S], tracer: ExitTracer, token: Token) =
     body.handleErrorWith(throwable => {
-      token.expire()
+      expireTokenIfNecessary(token)
       tracer.finish(throwable)
       Sync[F].raiseError(throwable)
     })
+
+  private def expireTokenIfNecessary(token: Token): Unit =
+    if(AgentBridge.activeToken.get() == null && token.isActive)
+      token.expire()
 
 }
 

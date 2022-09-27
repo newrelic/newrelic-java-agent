@@ -205,41 +205,6 @@ class CatsEffectIOTest3 {
     introspector.clear()
   }
 
-  /**
-    * parallelTraverse: test to check a transaction with 6 segments
-    * created inside a for comprehension.
-    * Segments 2-5 are created in parallel, the final segment is executed after
-    * the others complete summing the results of Ints returned from each segment
-    * The test asserts that both sequential and parrallel segments are captured
-    */
-  @Test
-  def parallelTraverse(): Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-    val txnBlock: IO[Int] = txn(implicit txnInfo =>
-      for {
-        one <- IO(trace("segment 1")(1))
-        rest <- List(2, 3, 4, 5).parTraverse(i => asyncTrace(s"segment $i")(IO(i)))
-        sum <- asyncTrace("sum segments")(IO(rest.sum + one))
-      } yield sum
-    )
-
-    val result = txnBlock.evalOn(executorService(2)).unsafeRunTimed(2.seconds)
-
-    val txnCount = introspector.getFinishedTransactionCount()
-    val traces = getTraces(introspector)
-    val segments = getSegments(traces)
-
-    Assert.assertEquals("Result correct", Some(15), result)
-    Assert.assertTrue("Transaction finished", txnCount >= 1)
-    Assert.assertTrue("Trace present", traces.nonEmpty)
-    List(1, 2, 3, 4, 5).foreach(i =>
-      Assert.assertTrue(s"$i segment exists: ${segments.map(_.getName)}", segments.exists(_.getName == s"Custom/segment $i"))
-    )
-    Assert.assertTrue(s"sum segments exists", segments.exists(_.getName == s"Custom/sum segments"))
-    introspector.clear()
-  }
-
   private def getTraces(introspector: Introspector): Iterable[TransactionTrace] =
     introspector.getTransactionNames.asScala.flatMap(transactionName => introspector.getTransactionTracesForTransaction(transactionName).asScala)
 
