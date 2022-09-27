@@ -12,7 +12,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import play.Logger;
 import play.libs.concurrent.Futures;
@@ -23,7 +22,6 @@ import play.mvc.Results;
 
 import static play.mvc.Http.Status.GATEWAY_TIMEOUT;
 
-@Singleton
 public class SimpleJavaAction extends play.mvc.Action.Simple {
     private final Logger.ALogger logger = play.Logger.of("application.SimpleJavaAction");
 
