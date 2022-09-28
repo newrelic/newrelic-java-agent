@@ -1,26 +1,17 @@
 #!/bin/sh
 
 # Verify the commit message contains a Jira id
-
+#
+# Previous versions of this also checked that the branch name contained the Jira number but we've removed that
 msg=$(<$1)
-branch=$(git rev-parse --abbrev-ref HEAD)
 
 shopt -s nocasematch
 
-# If our message is going to fail...
-if [[ ! "$msg" =~ ^(JAVA-[0-9]+|merge) ]]; then
-	# Get the JAVA-XXXX jira ticket from the branch name
-	jnum=$(echo ${branch} | sed -E -e "s/^(JAVA-[0-9]+).*$/\1/")
-	# If we like the format of the jnum, then swizzle commit message
-	if [[  "$jnum" =~ ^(JAVA-[0-9]+$) ]]; then
-		newmsg="${jnum} ⭑ ${msg}"
-		echo "${newmsg}" > $1
-		echo "Fixed commit message to: ${newmsg}"
-		msg="${newmsg}"
-	fi
-fi
-
-if [[ ! "$msg" =~ ^(JAVA-[0-9]+|merge) ]]; then
-  echo "Aborting commit. Your commit message is missing either a JIRA Issue ('JAVA-1111') or 'Merge'"
+# Commit message will be OK if it contains a ref to the Jira number using the Smart Commit syntax
+# or...if it starts with "Merge". Kept that last bit from the past impl
+#
+# Note that since our new Jira instances supports both the internal (NR) naming and the public (NEWRELIC), we test for both
+if [[ ! "$msg" =~ ^(NR-[0-9]+[ ]+\#comment|merge) ]] && [[ ! "$msg" =~ ^(NEWRELIC-[0-9]+[ ]+\#comment|merge) ]]; then
+  echo "Aborting commit. Your commit message must be a Jira Smart Commit, starting with ('NR-xxx #comment' or 'NEWRELIC-xxx #comment') or 'Merge'"
   exit 1
 fi
