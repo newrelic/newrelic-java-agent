@@ -23,6 +23,7 @@ import com.newrelic.test.marker.Java15IncompatibleTest;
 import com.newrelic.test.marker.Java16IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java18IncompatibleTest;
+import com.newrelic.test.marker.Java19IncompatibleTest;
 import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.cassandraunit.CassandraCQLUnit;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
@@ -39,8 +40,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 // Issue when running cassandra unit on Java 9+ - https://github.com/jsevellec/cassandra-unit/issues/249
-@Category({Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
-        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class, Java18IncompatibleTest.class})
+@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
+        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class, Java18IncompatibleTest.class, Java19IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.datastax.oss.driver" })
 public class CassandraInstrumented {

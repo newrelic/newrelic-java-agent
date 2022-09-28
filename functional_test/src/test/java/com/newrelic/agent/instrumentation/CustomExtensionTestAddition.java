@@ -18,6 +18,7 @@ import com.newrelic.test.marker.Java15IncompatibleTest;
 import com.newrelic.test.marker.Java16IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java18IncompatibleTest;
+import com.newrelic.test.marker.Java19IncompatibleTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
@@ -26,7 +27,7 @@ import javax.activation.MimeType;
 
 @Category({ Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class,
         Java14IncompatibleTest.class, Java15IncompatibleTest.class, Java16IncompatibleTest.class,
-        Java17IncompatibleTest.class, Java18IncompatibleTest.class })
+        Java17IncompatibleTest.class, Java18IncompatibleTest.class, Java19IncompatibleTest.class })
 public class CustomExtensionTestAddition {
 
     @Test

@@ -29,8 +29,8 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 // Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
-@Category({Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
-        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class, Java18IncompatibleTest.class})
+@Category({ Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
+        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class, Java18IncompatibleTest.class, Java19IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"akka.actor", "akka.dispatch", "akka.pattern", "akka.routing"})
 public class AkkaTest {
