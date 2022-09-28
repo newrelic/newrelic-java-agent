@@ -1,9 +1,10 @@
 apply plugin: 'scala'
-scala.zincVersion = "1.2.5"
+
+scala.zincVersion = "1.7.1"
 
 isScalaProjectEnabled(project, "scala-2.11")
 
-compileJava.options.bootstrapClasspath = null
+
 
 dependencies {
     implementation(project(":agent-bridge"))

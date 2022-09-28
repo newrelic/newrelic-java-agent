@@ -7,6 +7,9 @@
 
 package com.newrelic.agent.introspec;
 
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Utility class to help make metric assertions in JUnit test cases run with an InstrumentationTestRunner.
  */
@@ -25,6 +28,19 @@ public class MetricsHelper {
         TracedMetricData data = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(
                 transactionName).get(metricName);
         return data == null ? 0 : data.getCallCount();
+    }
+
+    /**
+     * Check for the existence of a metric matching a partial metric name.
+     *
+     * @param transactionName transaction name
+     * @param partialMetricName partial metric name to search for
+     * @return true if a metric was found that matches the provided partialMetricName, else false
+     */
+    public static boolean matchingMetricExists(String transactionName, String partialMetricName) {
+        Map<String, TracedMetricData> metricsForTransaction = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(transactionName);
+        Set<String> metricNamesSet = metricsForTransaction.keySet();
+        return metricNamesSet.stream().anyMatch(metric -> metric.contains(partialMetricName));
     }
 
     /**

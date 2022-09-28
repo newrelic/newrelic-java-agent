@@ -228,7 +228,8 @@ common: &default_settings
     # by providing a comma separated list of full class names.
     # The default is to exclude akka.actor.ActorKilledException. If you want to override
     # this, you must provide any new value as an empty list is ignored.
-    ignore_errors: akka.actor.ActorKilledException
+    ignore_classes:
+      - "akka.actor.ActorKilledException"
 
     # Use this property to exclude specific http status codes from being reported as errors
     # by providing a comma separated list of status codes.

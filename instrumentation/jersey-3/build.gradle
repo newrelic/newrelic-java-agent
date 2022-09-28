@@ -1,0 +1,31 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-api"))
+    implementation('org.glassfish.jersey.core:jersey-server:3.0.6')
+
+    testImplementation('org.glassfish.jersey.test-framework:jersey-test-framework-core:3.0.5')
+    testImplementation('org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:3.0.5')
+    testImplementation('org.glassfish.jersey.inject:jersey-hk2:3.0.5')
+    testImplementation('jakarta.xml.bind:jakarta.xml.bind-api:4.0.0')
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jersey-3' }
+}
+
+verifyInstrumentation {
+    passes 'org.glassfish.jersey.core:jersey-server:[3.0,3.1)'
+    excludeRegex '.*-M[0-9]*'
+}
+
+// cannot run tests in Java 8 cause newer Jersey implementation requires Java 11 to run
+test {
+    onlyIf {
+        !project.hasProperty('test8')
+    }
+}
+
+site {
+    title 'Jersey'
+    type 'Framework'
+}

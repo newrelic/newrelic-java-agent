@@ -1,0 +1,22 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.0")
+    implementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jsp-3' }
+}
+
+verifyInstrumentation {
+    passesOnly('jakarta.servlet.jsp:jakarta.servlet.jsp-api:[3.0.0-M1,)') {
+        implementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
+    }
+}
+
+site {
+    title 'JSP'
+    type 'Other'
+    versionOverride '[3.0,)'
+}

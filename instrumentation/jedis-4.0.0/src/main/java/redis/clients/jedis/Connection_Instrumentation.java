@@ -38,16 +38,17 @@ public abstract class Connection_Instrumentation {
     @Trace
     public void sendCommand(final ProtocolCommand cmd, final byte[]... args) {
         Weaver.callOriginal();
-
-        updateDbIndex(cmd, new String(args[0], StandardCharsets.UTF_8));
-
+        if (args != null && args.length > 0) {
+            updateDbIndex(cmd, new String(args[0], StandardCharsets.UTF_8));
+        }
     }
 
     @Trace
     public void sendCommand(final ProtocolCommand cmd, final String... args) {
         Weaver.callOriginal();
-
-        updateDbIndex(cmd, args[0]);
+        if (args != null && args.length > 0) {
+            updateDbIndex(cmd, args[0]);
+        }
     }
 
     @Trace(leaf = true)

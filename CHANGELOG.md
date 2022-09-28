@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.10.0 (2022-09-13)
+
+## New Features and Improvements
+
+### Added the following Jakarta EE 9/9.1 compatible instrumentation:
+
+Jetty 11
+Tomcat 10
+Enterprise Java Beans 4.0
+Jakarta RS/WS
+Jersey 3+
+Jersey Client 3
+JSP 3
+Servlet 5 & 6
+Jakarata.xml
+JMS 3
+Glassfish 6.0
+Open Liberty 21.0.0.12+
+
+### Code level metrics
+
+For traced methods in automatic instrumentation or from @Trace annotations, the agent is now capable of reporting metrics with method-level granularity. When the new functionality is enabled, the agent will associate source-code-related metadata with some metrics. Then, when the corresponding Java class file that defines the methods is loaded up in a [New Relic CodeStream](https://www.codestream.com/)-powered IDE, [the four golden signals](https://sre.google/sre-book/monitoring-distributed-systems/) for each method will be presented to the developer directly.
+
+### Agent log forwarding now adds the following attributes to log events for the log4j2 and logback1.2 frameworks:
+
+thread.name
+thread.id
+logger.name
+logger.fqcn
+error.class
+error.stack
+error.message
+
+## Fixes
+Fixed an issue with Distributed Tracing headers not being added on external requests made with the HttpUrlConnection client
+
+## Support statement
+New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v7.9.0...v7.10.0
+
 ## Version 7.9.0 (2022-08-28)
 
 ### New features and improvements

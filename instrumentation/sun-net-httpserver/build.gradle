@@ -1,0 +1,10 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+
+}
+
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.sun-net-httpserver' }
+}

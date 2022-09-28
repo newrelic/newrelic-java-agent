@@ -1,0 +1,19 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("jakarta.platform:jakarta.jakartaee-api:9.1.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.ejb-4.0' }
+}
+
+verifyInstrumentation {
+    excludeRegex '.*-RC[0-9]+$'
+    passesOnly 'jakarta.platform:jakarta.jakartaee-api:[9.0.0,)'
+}
+
+site {
+    title 'EJB'
+    type 'Framework'
+}
