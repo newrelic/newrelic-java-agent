@@ -11,7 +11,11 @@ shopt -s nocasematch
 # or...if it starts with "Merge". Kept that last bit from the past impl
 #
 # Note that since our new Jira instances supports both the internal (NR) naming and the public (NEWRELIC), we test for both
-if [[ ! "$msg" =~ ^(NR-[0-9]+[ ]+\#comment|merge) ]] && [[ ! "$msg" =~ ^(NEWRELIC-[0-9]+[ ]+\#comment|merge) ]]; then
-  echo "Aborting commit. Your commit message must be a Jira Smart Commit, starting with ('NR-xxx #comment' or 'NEWRELIC-xxx #comment') or 'Merge'"
+if [[ ! "$msg" =~ ^(NR-[0-9]+[ ]+\#comment|NEWRELIC-[0-9]+[ ]+\#comment|merge) ]] ; then
+  echo "Aborting commit. Your commit message must be either be a Jira Smart Commit or a defined exception starting with : \n"
+  echo "                  'NR-xxxx #comment' <COMMENT>"
+  echo "                  'NEWRELIC-xxxx' #comment <COMMENT>"
+  echo "                  'NR-0' <COMMENT>"
+  echo "                  'Merge' <COMMENT>\n"
   exit 1
 fi
