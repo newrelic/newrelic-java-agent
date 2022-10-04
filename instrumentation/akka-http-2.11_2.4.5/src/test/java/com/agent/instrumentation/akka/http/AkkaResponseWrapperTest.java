@@ -11,7 +11,9 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.test.marker.*;
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java17IncompatibleTest;
+import com.newrelic.test.marker.Java19IncompatibleTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -21,11 +23,13 @@ import java.util.Collection;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 // Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
-@Category({ Java11IncompatibleTest.class, Java12IncompatibleTest.class, Java13IncompatibleTest.class, Java14IncompatibleTest.class,
-        Java15IncompatibleTest.class, Java16IncompatibleTest.class, Java17IncompatibleTest.class, Java18IncompatibleTest.class, Java19IncompatibleTest.class })
+@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java19IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"akka", "scala"})
 public class AkkaResponseWrapperTest {
