@@ -42,10 +42,12 @@ JDK 8 is required to build the agent:
 jdk8=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
 ```
 
-Additionally, the `-PtestN` Gradle property can be used to run tests on a specific JDK version which may require further JDK configuration. For example to run tests with Java 9, the `-Ptest9` Gradle property would cause the test to use `jdk9` as configured below:
+Additionally, the `-PtestN` Gradle property can be used to run tests on a specific JDK version which may require further JDK configuration.
+To keep test times reasonable the project only allows testing against supported LTS Java releases as well as the latest non-LTS release of Java.
+For example to run tests with Java 17, the `-Ptest17` Gradle property would cause the test to use `jdk17` as configured below:
 
 ```
-jdk9=/Library/Java/JavaVirtualMachines/adoptopenjdk-9.jdk/Contents/Home
+jdk17=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
 ```
 
 #### Gradle build
@@ -100,7 +102,7 @@ Run an individual unit test:
 Run an individual unit test on a specific version of Java:
 
 ```
-./gradlew -Ptest16 -PnoInstrumentation clean newrelic-weaver:test --tests "com.newrelic.weave.LineNumberWeaveTest.testRemoveWeaveLineNumbers" --parallel
+./gradlew -Ptest17 -PnoInstrumentation clean newrelic-weaver:test --tests "com.newrelic.weave.LineNumberWeaveTest.testRemoveWeaveLineNumbers" --parallel
 ```
 
 #### Functional tests
