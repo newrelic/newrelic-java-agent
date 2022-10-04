@@ -30,7 +30,7 @@ public abstract class RedisClient_Instrumentation extends AbstractRedisClient {
     public abstract StatefulRedisConnection<String, String> connect();
 
     protected <K, V> StatefulRedisConnectionImpl_Instrumentation<K, V> newStatefulRedisConnection(RedisChannelWriter channelWriter,
-            RedisCodec<K, V> codec, Duration timeout) {
+                                                                                                  RedisCodec<K, V> codec, Duration timeout) {
         StatefulRedisConnectionImpl_Instrumentation<K, V> connection = Weaver.callOriginal();
         connection.redisURI = redisURI;
         return connection;

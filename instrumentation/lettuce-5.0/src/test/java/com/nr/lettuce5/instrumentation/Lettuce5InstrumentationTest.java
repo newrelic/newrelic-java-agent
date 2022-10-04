@@ -25,12 +25,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "io.lettuce.core", "io.lettuce.core.protocol", "io.netty.channel" })
+@InstrumentationTestConfig(includePrefixes = {"io.lettuce.core", "io.lettuce.core.protocol", "io.netty.channel"})
 public class Lettuce5InstrumentationTest {
 
     @Rule
@@ -139,14 +137,14 @@ public class Lettuce5InstrumentationTest {
 
         // then all 'OK'
         assertArrayEquals("All responses should be 'OK'",
-                new String[] { "OK", "OK", "OK" }, ids.toArray());
+                new String[]{"OK", "OK", "OK"}, ids.toArray());
 
         // when reactive 'get' called
         List<String> values = redisDataService
                 .reactiveGet(Flux.just(data1.key, data2.key, data3.key));
 
         // then 3 values returned
-        String[] expectedValues = new String[] { data1.value, data2.value, data3.value };
+        String[] expectedValues = new String[]{data1.value, data2.value, data3.value};
         assertEquals("Get values size did not math the amount set", 3, values.size());
         assertArrayEquals("Values returned should equal sent", expectedValues, values.toArray());
 

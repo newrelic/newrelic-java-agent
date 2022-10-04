@@ -17,6 +17,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.lettuce43.instrumentation.NRBiConsumer;
+import com.nr.lettuce43.instrumentation.RedisDatastoreParameters;
 
 @Weave(originalName = "com.lambdaworks.redis.AbstractRedisAsyncCommands")
 public abstract class AbstractRedisAsyncCommands_Instrumentation<K, V> {
@@ -42,15 +43,7 @@ public abstract class AbstractRedisAsyncCommands_Instrumentation<K, V> {
         if (t != null && t.name() != null && !t.name().isEmpty()) {
             operation = t.name();
         }
-        DatastoreParameters params = null;
-        if (uri != null) {
-
-            params = DatastoreParameters.product("Redis").collection(collName).operation(operation)
-                    .instance(uri.getHost(), uri.getPort()).noDatabaseName().build();
-        } else {
-            params = DatastoreParameters.product("Redis").collection(collName).operation("").noInstance()
-                    .noDatabaseName().noSlowQuery().build();
-        }
+        DatastoreParameters params = RedisDatastoreParameters.from(uri, operation);
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("Lettuce", operation);
 
         NRBiConsumer<T> nrBiConsumer = new NRBiConsumer<T>(segment, params);
