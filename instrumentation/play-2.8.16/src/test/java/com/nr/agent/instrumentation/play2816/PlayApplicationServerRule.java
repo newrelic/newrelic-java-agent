@@ -7,22 +7,11 @@
 
 package com.nr.agent.instrumentation.play2816;
 
-import com.google.common.collect.ImmutableMap;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.junit.rules.ExternalResource;
-
 import play.Application;
-import play.Mode;
-import play.core.server.ServerConfig;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.test.Helpers;
 import play.test.TestServer;
-import scala.Option;
-import scala.compat.java8.OptionConverters;
-
-import java.io.File;
-import java.util.Optional;
 
 import static play.inject.Bindings.bind;
 

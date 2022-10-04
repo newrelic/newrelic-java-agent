@@ -7,7 +7,6 @@ configurations {
 
 dependencies {
     configurations.implementation.extendsFrom(configurations.includeInJar)
-
 }
 
 jar {
@@ -87,6 +86,22 @@ compileJava.options.bootstrapClasspath = files("${jdkPath}/jre/lib/rt.jar", "${j
 // their own build.gradle to force the use of a specific version of Java (e.g. instrumentation/async-http-client-2.0.0).
 // This could lead to an "Unrecognized option" with the failure "Could not create the Java Virtual Machine".
 test {
+    // To keep test times reasonable we only test against supported LTS Java releases as well as the latest non-LTS release of Java.
+    // This method determines if we should run tests with the Java version configured by the -PtestN gradle property.
+    ext.configuredWithValidTestJDK = {
+        if (project.hasProperty("test9") || project.hasProperty("test10") || project.hasProperty("test12") || project.hasProperty("test13") ||
+                project.hasProperty("test14") || project.hasProperty("test15") || project.hasProperty("test16") || project.hasProperty("test18")) {
+            logger.lifecycle("The newrelic-java-agent project does not support testing with the Java version configured by the -PtestN gradle property.")
+            return false
+        }
+        // The -PtestN gradle property was configured with a valid test JDK or not provided at all.
+        return true
+    }
+
+    onlyIf {
+        configuredWithValidTestJDK()
+    }
+
     ext.configureTest = { String jdkName, Closure configuration ->
         // Add an input property so that we differentiate between JDKs with the same version
         inputs.property("test.jdk", jdkName)
@@ -95,6 +110,7 @@ test {
         executable = project.property(jdkName) + '/bin/java'
         configuration.call()
     }
+
     if (project.hasProperty("test19")) {
         configureTest("jdk19") {
             jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
@@ -106,20 +122,6 @@ test {
                     '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
             useJUnit {
                 excludeCategories 'com.newrelic.test.marker.Java19IncompatibleTest'
-            }
-        }
-    }
-    if (project.hasProperty("test18")) {
-        configureTest("jdk18") {
-            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
-                    '--add-opens=java.base/java.util=ALL-UNNAMED',
-                    '--add-opens=java.base/java.net=ALL-UNNAMED',
-                    '--add-opens=java.base/java.io=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
-                    '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
-                    '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java18IncompatibleTest'
             }
         }
     }
@@ -137,45 +139,40 @@ test {
             }
         }
     }
-    if (project.hasProperty("test16")) {
-        configureTest("jdk16") {
-            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
-                '--add-opens=java.base/java.util=ALL-UNNAMED',
-                '--add-opens=java.base/java.net=ALL-UNNAMED',
-                '--add-opens=java.base/java.io=ALL-UNNAMED',
-                '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
-                '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
-                '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
+    if (project.hasProperty("test11")) {
+        configureTest("jdk11") {
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java16IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
             }
         }
     }
-    if (project.hasProperty("test15")) {
-        configureTest("jdk15") {
+    if (project.hasProperty("test8")) {
+        configureTest("jdk8") {
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java15IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
             }
         }
     }
-    if (project.hasProperty("test14")) {
-        configureTest("jdk14") {
+
+    // Alternate JDK distributions that we test against
+    if (project.hasProperty("testZulu11")) {
+        configureTest("zulu11") {
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java14IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
             }
         }
     }
-    if (project.hasProperty("test13")) {
-        configureTest("jdk13") {
+    if (project.hasProperty("testZing11")) {
+        configureTest("zing11") {
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java13IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
             }
         }
     }
-    if (project.hasProperty("test12")) {
-        configureTest("jdk12") {
+    if (project.hasProperty("testZing8")) {
+        configureTest("zing8") {
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java12IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
             }
         }
     }
@@ -193,62 +190,13 @@ test {
             }
         }
     }
-    if (project.hasProperty("testZulu11")) {
-        configureTest("zulu11") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
-            }
-        }
-    }
-    if (project.hasProperty("testZing8")) {
-        configureTest("zing8") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
-            }
-        }
-    }
-    if (project.hasProperty("testZing11")) {
-        configureTest("zing11") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
-            }
-        }
-    }
-    if (project.hasProperty("test11")) {
-        configureTest("jdk11") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java11IncompatibleTest'
-            }
-        }
-    }
-    if (project.hasProperty("test10")) {
-        configureTest("jdk10") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java10IncompatibleTest'
-            }
-        }
-    }
-    if (project.hasProperty("test9")) {
-        configureTest("jdk9") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java9IncompatibleTest'
-            }
-        }
-    }
-    if (project.hasProperty("test8")) {
-        configureTest("jdk8") {
-            useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java8IncompatibleTest'
-            }
-        }
-    }
 
     if (project.hasProperty("development")) {
         environment "ENVIRONMENT", "development"
     }
 
     testLogging {
-        events "failed"
+        events "FAILED" // additional events for more verbose logging: "PASSED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR", "STARTED"
         exceptionFormat "short"
     }
 }

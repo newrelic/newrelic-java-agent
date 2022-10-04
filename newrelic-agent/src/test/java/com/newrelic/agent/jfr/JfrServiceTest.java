@@ -10,20 +10,26 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
-import com.newrelic.test.marker.Java10IncompatibleTest;
-import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_EVENT_INGEST_URI;
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_METRIC_INGEST_URI;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class })
 public class JfrServiceTest {
 
     @Mock

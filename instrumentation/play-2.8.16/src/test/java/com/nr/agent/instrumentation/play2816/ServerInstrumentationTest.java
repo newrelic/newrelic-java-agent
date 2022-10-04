@@ -7,27 +7,25 @@
 
 package com.nr.agent.instrumentation.play2816;
 
-import java.util.Map;
-
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
-
 import com.newrelic.test.marker.Java17IncompatibleTest;
-import com.newrelic.test.marker.Java18IncompatibleTest;
 import com.newrelic.test.marker.Java19IncompatibleTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import java.util.Map;
+
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java17IncompatibleTest.class, Java18IncompatibleTest.class, Java19IncompatibleTest.class })
+@Category({ Java17IncompatibleTest.class, Java19IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.play2816", "play" })
 public class ServerInstrumentationTest {

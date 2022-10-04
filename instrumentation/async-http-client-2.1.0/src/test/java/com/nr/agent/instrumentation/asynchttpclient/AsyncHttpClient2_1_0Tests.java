@@ -26,9 +26,7 @@ import java.util.concurrent.Future;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class, Java12IncompatibleTest.class,
-        Java13IncompatibleTest.class, Java14IncompatibleTest.class, Java15IncompatibleTest.class, Java16IncompatibleTest.class,
-        Java17IncompatibleTest.class, Java18IncompatibleTest.class, Java19IncompatibleTest.class })
+@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java19IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"com.nr.agent.instrumentation.asynchttpclient", "org.asynchttpclient"})
 public class AsyncHttpClient2_1_0Tests {
