@@ -306,7 +306,7 @@ public class ExpectedErrorsTest {
             assertEquals(0, statsEngine.getStats("Errors/all").getCallCount());
             assertEquals(1, statsEngine.getStats("ErrorsExpected/all").getCallCount());
 
-            verifyExpectedErrorSupportabilityApiCalls(statsEngine, 0, 0, 1, 0);
+            verifyExpectedErrorSupportabilityApiCalls(statsEngine, 0, 1, 1, 0);
             verifyIgnoreErrorSupportabilityApiCalls(statsEngine, 0, 0, 0);
         } finally {
             holder.close();
