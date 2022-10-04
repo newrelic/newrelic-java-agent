@@ -58,22 +58,6 @@ tasks {
         dependsOn("jar")
         setForkEvery(1)
         maxParallelForks = Runtime.getRuntime().availableProcessors()
-
-        val jdk15: String by project
-        val jdk14: String by project
-        val jdk13: String by project
-        val jdk12: String by project
-        val jdk11: String by project
-        val jdk10: String by project
-        val jdk9: String by project
-        val jdk8: String by project
-
-        if (project.hasProperty("test10")) {
-            jvmArgs("--add-modules", "java.xml.bind")
-        } else if (project.hasProperty("test9")) {
-            jvmArgs("--add-modules", "java.xml.bind")
-        }
-
         minHeapSize = "256m"
         maxHeapSize = "768m"
         val functionalTestArgs = listOf(
