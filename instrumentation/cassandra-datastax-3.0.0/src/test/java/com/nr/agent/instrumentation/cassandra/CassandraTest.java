@@ -28,9 +28,7 @@ import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionTrace;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java10IncompatibleTest;
 import com.newrelic.test.marker.Java11IncompatibleTest;
-import com.newrelic.test.marker.Java9IncompatibleTest;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;
 import org.junit.Assert;
@@ -54,7 +52,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.datastax.driver.core")
-@Category({ Java9IncompatibleTest.class, Java10IncompatibleTest.class, Java11IncompatibleTest.class })
+@Category({ Java11IncompatibleTest.class })
 public class CassandraTest {
 
     private static final String CASSANDRA_PRODUCT = DatastoreVendor.Cassandra.toString();

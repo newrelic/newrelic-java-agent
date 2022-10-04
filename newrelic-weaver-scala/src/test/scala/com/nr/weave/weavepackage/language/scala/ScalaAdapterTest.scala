@@ -7,18 +7,16 @@
 
 package com.nr.weave.weavepackage.language.scala;
 
-import org.junit.experimental.categories.Category
 import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner}
+import com.newrelic.test.marker.Java17IncompatibleTest
 import com.nr.weave.weavepackage.language.scala.testclasses._
-import org.junit.{Assert, Test}
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
-import com.newrelic.test.marker.{Java11IncompatibleTest, Java12IncompatibleTest, Java13IncompatibleTest, Java14IncompatibleTest, Java15IncompatibleTest, Java16IncompatibleTest, Java17IncompatibleTest, Java18IncompatibleTest}
+import org.junit.{Assert, Test}
 
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("com.nr.weave.weavepackage.language.scala.weaveclasses."))
-@Category(Array(classOf[Java12IncompatibleTest],classOf[Java13IncompatibleTest],
-  classOf[Java14IncompatibleTest],classOf[Java15IncompatibleTest],classOf[Java16IncompatibleTest], classOf[Java17IncompatibleTest],
-  classOf[Java18IncompatibleTest]))
+@Category(Array(classOf[Java17IncompatibleTest]))
 class ScalaAdapterTest {
 
   @Test
@@ -111,8 +109,8 @@ package testclasses {
 
 package weaveclasses {
 
-  import com.newrelic.api.agent.weaver.scala.{ ScalaMatchType, ScalaWeave }
-  import com.newrelic.api.agent.weaver.{ Weaver }
+  import com.newrelic.api.agent.weaver.Weaver
+  import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
 
 
   @ScalaWeave(originalName="com.nr.weave.weavepackage.language.scala.testclasses.OriginalClass")

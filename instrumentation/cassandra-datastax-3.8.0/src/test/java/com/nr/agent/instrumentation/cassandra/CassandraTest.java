@@ -28,7 +28,6 @@ import com.newrelic.agent.introspec.MetricsHelper;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionTrace;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.test.marker.Java16IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;
@@ -53,12 +52,10 @@ import static org.junit.Assert.assertTrue;
 
 /*
  * Gradle hangs indefinitely when these tests run on Java 16
- *
- * FIXME capture jmap/jstack thread dumps?
  */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.datastax.driver.core")
-@Category({  Java16IncompatibleTest.class, Java17IncompatibleTest.class})
+@Category({ Java17IncompatibleTest.class })
 public class CassandraTest {
 
     private static final String CASSANDRA_PRODUCT = DatastoreVendor.Cassandra.toString();

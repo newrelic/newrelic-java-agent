@@ -29,8 +29,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 //// Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
-@Category(Array(classOf[Java11IncompatibleTest], classOf[Java12IncompatibleTest], classOf[Java13IncompatibleTest], classOf[Java14IncompatibleTest],
-  classOf[Java15IncompatibleTest], classOf[Java16IncompatibleTest], classOf[Java17IncompatibleTest] ))
+@Category( Array(classOf[Java11IncompatibleTest], classOf[Java17IncompatibleTest] ))
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("spray.", "akka.", "scala.", "com.nr.agent.instrumentation."))
 class SprayCanClientTest extends ConnectionLevelApiDemo {
