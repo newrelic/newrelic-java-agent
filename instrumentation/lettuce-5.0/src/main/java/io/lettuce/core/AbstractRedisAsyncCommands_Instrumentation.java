@@ -13,6 +13,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.lettuce5.instrumentation.NRBiConsumer;
+import com.nr.lettuce5.instrumentation.RedisDatastoreParameters;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.ProtocolKeyword;
@@ -44,15 +45,7 @@ public abstract class AbstractRedisAsyncCommands_Instrumentation<K, V> {
         if (operation.equalsIgnoreCase("expire")) {
             return acmd;
         }
-        DatastoreParameters params;
-        if (uri != null) {
-
-            params = DatastoreParameters.product("Redis").collection(null).operation(operation)
-                    .instance(uri.getHost(), uri.getPort()).noDatabaseName().build();
-        } else {
-            params = DatastoreParameters.product("Redis").collection(null).operation("").noInstance()
-                    .noDatabaseName().noSlowQuery().build();
-        }
+        DatastoreParameters params = RedisDatastoreParameters.from(uri, operation);
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("Redis", operation);
 
         NRBiConsumer<T> nrBiConsumer = new NRBiConsumer<T>(segment, params);

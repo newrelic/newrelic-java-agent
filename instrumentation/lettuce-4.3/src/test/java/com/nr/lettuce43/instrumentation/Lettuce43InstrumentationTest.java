@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.lambdaworks.redis" })
+@InstrumentationTestConfig(includePrefixes = {"com.lambdaworks.redis"})
 public class Lettuce43InstrumentationTest {
 
     @Rule

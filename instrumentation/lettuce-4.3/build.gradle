@@ -2,9 +2,14 @@ dependencies {
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":agent-bridge"))
     implementation 'biz.paluch.redis:lettuce:4.4.1.Final'
-    testImplementation('org.testcontainers:testcontainers:1.17.1')
-    testImplementation('junit:junit:4.13.1')
 
+    testImplementation('org.testcontainers:testcontainers:1.17.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+
+    testCompileOnly 'junit:junit:4.13.1'
+
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
 jar {

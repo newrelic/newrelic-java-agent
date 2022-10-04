@@ -9,10 +9,7 @@ package io.lettuce.core;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.lettuce5.instrumentation.NRErrorConsumer;
-import com.nr.lettuce5.instrumentation.NRHolder;
-import com.nr.lettuce5.instrumentation.NRSignalTypeConsumer;
-import com.nr.lettuce5.instrumentation.NRSubscribeConsumer;
+import com.nr.lettuce5.instrumentation.*;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.protocol.ProtocolKeyword;
 import io.lettuce.core.protocol.RedisCommand;
@@ -47,17 +44,7 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
             if ((t != null) && (t.name() != null) && (!t.name().isEmpty())) {
                 operation = t.name();
             }
-            DatastoreParameters params = null;
-            if (uri != null) {
-                params = DatastoreParameters.product("Redis")
-                        .collection(collName)
-                        .operation(operation)
-                        .instance(uri.getHost(), Integer.valueOf(uri.getPort()))
-                        .noDatabaseName()
-                        .build();
-            } else {
-                params = DatastoreParameters.product("Redis").collection(collName).operation(operation).noInstance().noDatabaseName().noSlowQuery().build();
-            }
+            DatastoreParameters params = RedisDatastoreParameters.from(uri, operation);
             NRHolder holder = new NRHolder(name, params);
             NRSubscribeConsumer subscriberConsumer = new NRSubscribeConsumer(holder);
 

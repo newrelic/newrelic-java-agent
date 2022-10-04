@@ -20,7 +20,7 @@ public abstract class StatefulRedisConnectionImpl_Instrumentation<K, V> implemen
     public RedisURI redisURI = null;
 
     public StatefulRedisConnectionImpl_Instrumentation(RedisChannelWriter<K, V> writer, RedisCodec<K, V> codec, long timeout,
-            TimeUnit unit) {
+                                                       TimeUnit unit) {
 
     }
 }
