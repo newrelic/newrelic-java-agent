@@ -14,12 +14,6 @@ jar {
     'Implementation-Title-Alias': 'rest_annotations'}
 }
 
-test {
-    if (project.hasProperty("test9") || project.hasProperty("test10")) {
-        jvmArgs "--add-modules=java.activation"
-    }
-}
-
 verifyInstrumentation {
     passesOnly 'jakarta.ws.rs:jakarta.ws.rs-api:[1.0,3.0)'
     exclude 'jakarta.ws.rs:jakarta.ws.rs-api:[3.0.0-M1]'
