@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class InsightsConfigImpl extends BaseConfig implements InsightsConfig {
     public static final String MAX_SAMPLES_STORED_PROP = "max_samples_stored";
-    public static final int DEFAULT_MAX_SAMPLES_STORED = 10000;
+    public static final int DEFAULT_MAX_SAMPLES_STORED = 30000;
     public static final String ENABLED_PROP = "enabled";
     public static final boolean DEFAULT_ENABLED = true;
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.custom_insights_events.";
