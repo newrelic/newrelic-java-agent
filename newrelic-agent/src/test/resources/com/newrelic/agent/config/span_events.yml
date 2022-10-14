@@ -96,6 +96,8 @@ common: &default_settings
       - !exception_handler [ "test/newrelic/test/agent/ExceptionHandlerTest$ExceptionHandler", "handleSpecialException", "(Ljava/lang/RuntimeException;Ljava/lang/String;)V" ]
       - test/newrelic/test/agent/ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
 
+  code_level_metrics:
+    enabled: false
   class_transformer:
     includes: com/newrelic/.*Test, java.util.TreeMap, javax/activation/MimeType, com/newrelic/.*Object, java/awt/Shape, java/awt/geom/Line2D*, java/awt/geom/Path2D*, com/sun/grizzly/tcp/Request, com/sun/grizzly/util/http/Cookies, org/objectweb/asm/ClassWriter
     excludes: org/junit/.*
