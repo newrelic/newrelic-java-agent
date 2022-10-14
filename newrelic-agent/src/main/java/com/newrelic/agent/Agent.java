@@ -9,11 +9,7 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.config.AgentJarHelper;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.ConfigServiceFactory;
-import com.newrelic.agent.config.JarResource;
-import com.newrelic.agent.config.JavaVersionUtils;
+import com.newrelic.agent.config.*;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -27,6 +23,7 @@ import com.newrelic.agent.util.asm.ClassStructure;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.weave.utils.Streams;
 import org.objectweb.asm.ClassReader;
+import sun.reflect.com.k2cybersecurity.instrumentator.K2Instrumentator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -204,7 +201,19 @@ public final class Agent {
         lifecycleObserver.agentStarted();
         try {
             LOG.log(Level.INFO, "Invoking K2 security module");
+            ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
+                @Override
+                public void connected(IRPMService rpmService, AgentConfig agentConfig) {
+                    K2Instrumentator.refresh();
+                }
+
+                @Override
+                public void disconnected(IRPMService rpmService) {
+                    K2Instrumentator.agentInactive();
+                }
+            });
         } catch (Throwable t2) {
+            LOG.error("license_key is empty in the config. Not starting New Relic Agent.");
         }
     }
 
