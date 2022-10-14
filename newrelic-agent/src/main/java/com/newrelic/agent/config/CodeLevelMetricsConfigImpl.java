@@ -12,7 +12,7 @@ import java.util.Map;
 public class CodeLevelMetricsConfigImpl extends BaseConfig implements CodeLevelMetricsConfig {
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config." + AgentConfigImpl.CODE_LEVEL_METRICS + ".";
 
-    public static final boolean DEFAULT_ENABLED = false;
+    public static final boolean DEFAULT_ENABLED = true;
     public static final String ENABLED = "enabled";
 
     private final boolean clmEnabled;

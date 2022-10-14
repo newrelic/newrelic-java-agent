@@ -26,14 +26,21 @@ public class CodeLevelMetricsConfigImplTest {
     }
 
     @Test
-    public void disabledByDefault() {
+    public void enabledByDefault() {
         CodeLevelMetricsConfigImpl config = new CodeLevelMetricsConfigImpl(localProps);
-        assertFalse(config.isEnabled());
+        assertTrue(config.isEnabled());
     }
 
     @Test
     public void enabled() {
-        localProps.put("code_level_metrics.enabled", true);
+        localProps.put("enabled", true);
+        CodeLevelMetricsConfigImpl config = new CodeLevelMetricsConfigImpl(localProps);
+        assertTrue(config.isEnabled());
+    }
+
+    @Test
+    public void disabled() {
+        localProps.put("enabled", false);
         CodeLevelMetricsConfigImpl config = new CodeLevelMetricsConfigImpl(localProps);
         assertFalse(config.isEnabled());
     }
@@ -41,8 +48,8 @@ public class CodeLevelMetricsConfigImplTest {
     @Test
     public void canConfigureViaSystemProperty() {
         Properties properties = new Properties();
-        //default CLM is false
-        properties.put("newrelic.config.code_level_metrics.enabled", "true");
+        //default CLM is true
+        properties.put("newrelic.config.code_level_metrics.enabled", "false");
 
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(properties),
@@ -51,22 +58,22 @@ public class CodeLevelMetricsConfigImplTest {
         ));
 
         CodeLevelMetricsConfigImpl config = new CodeLevelMetricsConfigImpl(Collections.emptyMap());
-        assertTrue(config.isEnabled());
+        assertFalse(config.isEnabled());
 
     }
 
     @Test
     public void canConfigureViaEnvironmentVariables() {
 
-        //default CLM is false
+        //default CLM is true
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(), //use default configs except for CLM
-                new SaveSystemPropertyProviderRule.TestEnvironmentFacade(Collections.singletonMap("NEW_RELIC_CODE_LEVEL_METRICS_ENABLED", "true"))
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade(Collections.singletonMap("NEW_RELIC_CODE_LEVEL_METRICS_ENABLED", "false"))
         ));
 
         CodeLevelMetricsConfigImpl config = new CodeLevelMetricsConfigImpl(Collections.emptyMap());
 
-        assertTrue(config.isEnabled());
+        assertFalse(config.isEnabled());
 
     }
 }
