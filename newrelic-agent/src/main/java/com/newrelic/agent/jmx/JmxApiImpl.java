@@ -10,6 +10,8 @@ package com.newrelic.agent.jmx;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.JmxApi;
 import com.newrelic.agent.jmx.metrics.JmxFrameworkValues;
+import com.newrelic.agent.jmx.values.EmbeddedTomcatDataSourceJmxValues;
+import com.newrelic.agent.jmx.values.EmbeddedTomcatJmxValues;
 import com.newrelic.agent.jmx.values.GlassfishJmxValues;
 import com.newrelic.agent.jmx.values.Jboss7UpJmxValues;
 import com.newrelic.agent.jmx.values.JettyJmxMetrics;
@@ -71,6 +73,10 @@ public class JmxApiImpl implements JmxApi {
                     return new WebsphereLibertyJmxValues();
                 case TomcatJmxValues.PREFIX:
                     return new TomcatJmxValues();
+                case EmbeddedTomcatJmxValues.PREFIX:
+                    return new EmbeddedTomcatJmxValues();
+                case EmbeddedTomcatDataSourceJmxValues.PREFIX:
+                    return new EmbeddedTomcatDataSourceJmxValues();
                 case JettyJmxMetrics.PREFIX:
                     return new JettyJmxMetrics();
                 case Jboss7UpJmxValues.PREFIX:
