@@ -16,7 +16,7 @@ For full details see:
 
 ## Getting started
 
-See the [getting started guide](https://docs.newrelic.com/docs/agents/java-agent/getting-started) as well as the [compatibility and requirements documentation](https://docs.newrelic.com/docs/agents/java-agent/getting-started/compatibility-requirements-java-agent) for an overview of what is supported by the Java agent.
+See the [getting started guide](https://docs.newrelic.com/install/java) as well as the [compatibility and requirements documentation](https://docs.newrelic.com/docs/agents/java-agent/getting-started/compatibility-requirements-java-agent) for an overview of what is supported by the Java agent.
 
 ## Usage
 
@@ -24,9 +24,10 @@ See the following documentation for specific use cases of the Java agent:
 - [General agent configuration](https://docs.newrelic.com/docs/agents/java-agent/configuration)
 - [Collecting default/custom Java agent attributes](https://docs.newrelic.com/docs/agents/java-agent/attributes/java-agent-attributes)
 - [Adding custom instrumentation to your application](https://docs.newrelic.com/docs/agents/java-agent/custom-instrumentation)
-- [Java agent API guides](https://docs.newrelic.com/docs/agents/java-agent/api-guides)
-- [Java agent async instrumentation API guides](https://docs.newrelic.com/docs/agents/java-agent/async-instrumentation)
+- [Java agent API guides](https://docs.newrelic.com/docs/apm/agents/java-agent/api-guides/guide-using-java-agent-api)
+- [Java agent async instrumentation API guides](https://docs.newrelic.com/docs/apm/agents/java-agent/async-instrumentation/introduction-java-async-instrumentation)
 - [Troubleshooting](https://docs.newrelic.com/docs/agents/java-agent/troubleshooting)
+- [Java agent Javadocs](http://newrelic.github.io/java-agent-api/javadoc/index.html?com/newrelic/api/agent/package-summary.html)
 
 ## Building
 
