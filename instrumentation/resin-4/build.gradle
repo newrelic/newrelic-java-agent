@@ -1,25 +1,16 @@
 dependencies {
     implementation(project(":agent-bridge"))
     implementation("javax.servlet:javax.servlet-api:3.0.1")
-
-    implementation(fileTree(include: ["*.jar"], dir: "lib"))
+    implementation("com.caucho:resin:4.0.66")
 }
-
-def shouldBuild = fileTree(include: ["*.jar"], dir: "lib").size() > 0
-
-compileJava {
-    enabled(shouldBuild)
-}
-
-compileTestJava {
-    enabled(shouldBuild)
-}
-
-tasks.getByName("writeCachedWeaveAttributes").enabled(shouldBuild)
 
 jar {
-    enabled(shouldBuild)
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.resin-4' }
+}
+
+verifyInstrumentation {
+    passes 'com.caucho:resin:[4.0.52,)'
+    verifyClasspath = false
 }
 
 site {
