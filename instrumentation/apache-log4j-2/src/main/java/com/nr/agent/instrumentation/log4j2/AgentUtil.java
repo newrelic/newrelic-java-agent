@@ -19,9 +19,20 @@ import org.apache.logging.log4j.util.ReadOnlyStringMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_FQCN;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.MESSAGE;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_ID;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_NAME;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
+
 public class AgentUtil {
-    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 10;
-    // Log message attributes
     /**
      * Record a LogEvent to be sent to New Relic.
      *
@@ -33,14 +44,14 @@ public class AgentUtil {
             Throwable throwable = event.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(event.getContextData()));
                 if (message != null) {
                     String formattedMessage = message.getFormattedMessage();
                     if (formattedMessage != null && !formattedMessage.isEmpty()) {
-                        logEventMap.put(AppLoggingUtils.MESSAGE, formattedMessage);
+                        logEventMap.put(MESSAGE, formattedMessage);
                     }
                 }
-                logEventMap.put(AppLoggingUtils.TIMESTAMP, event.getTimeMillis());
+                logEventMap.put(TIMESTAMP, event.getTimeMillis());
 
                 if (AppLoggingUtils.isAppLoggingContextDataEnabled() && event.getContextData() != null) {
                     event.getContextData().forEach((key, value) -> {
@@ -53,42 +64,42 @@ public class AgentUtil {
                 if (level != null) {
                     String levelName = level.name();
                     if (levelName.isEmpty()) {
-                        logEventMap.put(AppLoggingUtils.LEVEL, AppLoggingUtils.UNKNOWN);
+                        logEventMap.put(LEVEL, UNKNOWN);
                     } else {
-                        logEventMap.put(AppLoggingUtils.LEVEL, levelName);
+                        logEventMap.put(LEVEL, levelName);
                     }
                 }
 
                 String errorStack = ExceptionUtil.getErrorStack(throwable);
                 if (errorStack != null) {
-                    logEventMap.put(AppLoggingUtils.ERROR_STACK, errorStack);
+                    logEventMap.put(ERROR_STACK, errorStack);
                 }
 
                 String errorMessage = ExceptionUtil.getErrorMessage(throwable);
                 if (errorMessage != null) {
-                    logEventMap.put(AppLoggingUtils.ERROR_MESSAGE, errorMessage);
+                    logEventMap.put(ERROR_MESSAGE, errorMessage);
                 }
 
                 String errorClass = ExceptionUtil.getErrorClass(throwable);
                 if (errorClass != null) {
-                    logEventMap.put(AppLoggingUtils.ERROR_CLASS, errorClass);
+                    logEventMap.put(ERROR_CLASS, errorClass);
                 }
 
                 String threadName = event.getThreadName();
                 if (threadName != null) {
-                    logEventMap.put(AppLoggingUtils.THREAD_NAME, threadName);
+                    logEventMap.put(THREAD_NAME, threadName);
                 }
 
-                logEventMap.put(AppLoggingUtils.THREAD_ID, event.getThreadId());
+                logEventMap.put(THREAD_ID, event.getThreadId());
 
                 String loggerName = event.getLoggerName();
                 if (loggerName != null) {
-                    logEventMap.put(AppLoggingUtils.LOGGER_NAME, loggerName);
+                    logEventMap.put(LOGGER_NAME, loggerName);
                 }
 
                 String loggerFqcn = event.getLoggerFqcn();
                 if (loggerFqcn != null) {
-                    logEventMap.put(AppLoggingUtils.LOGGER_FQCN, loggerFqcn);
+                    logEventMap.put(LOGGER_FQCN, loggerFqcn);
                 }
 
                 AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);

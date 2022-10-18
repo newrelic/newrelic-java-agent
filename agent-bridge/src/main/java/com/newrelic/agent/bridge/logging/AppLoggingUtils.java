@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class AppLoggingUtils {
-    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 3;
+    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 10;
     // Log message attributes
     public static final LogAttributeKey MESSAGE = new LogAttributeKey("message", LogAttributeType.AGENT);
     public static final LogAttributeKey TIMESTAMP = new LogAttributeKey("timestamp", LogAttributeType.AGENT);
