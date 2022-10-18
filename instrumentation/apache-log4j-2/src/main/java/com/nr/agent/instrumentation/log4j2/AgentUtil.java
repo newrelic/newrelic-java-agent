@@ -44,7 +44,8 @@ public class AgentUtil {
             Throwable throwable = event.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(event.getContextData()));
+                ReadOnlyStringMap contextData = event.getContextData();
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData));
                 if (message != null) {
                     String formattedMessage = message.getFormattedMessage();
                     if (formattedMessage != null && !formattedMessage.isEmpty()) {
@@ -53,11 +54,13 @@ public class AgentUtil {
                 }
                 logEventMap.put(TIMESTAMP, event.getTimeMillis());
 
-                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && event.getContextData() != null) {
-                    event.getContextData().forEach((key, value) -> {
+                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && contextData != null) {
+                    for (Map.Entry<String, String> entry : contextData.toMap().entrySet()) {
+                        String key = entry.getKey();
+                        String value = entry.getValue();
                         LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
                         logEventMap.put(logAttrKey, value);
-                    });
+                    }
                 }
 
                 Level level = event.getLevel();
