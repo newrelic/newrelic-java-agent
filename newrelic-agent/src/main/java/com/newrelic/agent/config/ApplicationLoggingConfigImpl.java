@@ -8,6 +8,7 @@
 package com.newrelic.agent.config;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
@@ -15,10 +16,15 @@ import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
 /* Default config should look like:
  *
  * application_logging:
+
  *   enabled: true
  *   forwarding:
  *     enabled: true
  *     max_samples_stored: 10000
+ *     context_data:
+ *       enabled: false
+ *       include:
+ *       exclude:
  *   metrics:
  *     enabled: true
  *   local_decorating:
@@ -92,5 +98,20 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     @Override
     public int getMaxSamplesStored() {
         return applicationLoggingForwardingConfig.getMaxSamplesStored();
+    }
+
+    @Override
+    public boolean isForwardingContextDataEnabled() {
+        return applicationLoggingEnabled && applicationLoggingForwardingConfig.isContextDataEnabled();
+    }
+
+    @Override
+    public List<String> getForwardingContextDataInclude() {
+        return applicationLoggingForwardingConfig.contextDataInclude();
+    }
+
+    @Override
+    public List<String> getForwardingContextDataExclude() {
+        return applicationLoggingForwardingConfig.contextDataExclude();
     }
 }

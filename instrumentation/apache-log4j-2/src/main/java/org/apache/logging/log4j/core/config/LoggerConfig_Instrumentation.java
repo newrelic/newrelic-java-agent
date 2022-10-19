@@ -17,9 +17,9 @@ import org.apache.logging.log4j.core.LogEvent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingEnabled;
-import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingForwardingEnabled;
-import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingMetricsEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingForwardingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingMetricsEnabled;
 import static com.nr.agent.instrumentation.log4j2.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "org.apache.logging.log4j.core.config.LoggerConfig", type = MatchType.ExactClass)

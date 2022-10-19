@@ -11,9 +11,9 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import static com.nr.agent.instrumentation.log4j2.AgentUtil.getLinkingMetadataBlob;
-import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingEnabled;
-import static com.nr.agent.instrumentation.log4j2.AgentUtil.isApplicationLoggingLocalDecoratingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.getLinkingMetadataBlob;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingLocalDecoratingEnabled;
 
 @Weave(originalName = "org.apache.logging.log4j.core.layout.StringBuilderEncoder", type = MatchType.BaseClass)
 public class StringBuilderEncoder_Instrumentation {

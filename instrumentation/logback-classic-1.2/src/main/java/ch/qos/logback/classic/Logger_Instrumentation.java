@@ -7,13 +7,13 @@
 
 package ch.qos.logback.classic;
 
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.logbackclassic12.AgentUtil;
 import org.slf4j.Marker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,8 +34,8 @@ public abstract class Logger_Instrumentation {
     private void buildLoggingEventAndAppend(final String localFQCN, final Marker marker, final Level level, final String msg, final Object[] params,
             final Throwable t) {
         // Do nothing if application_logging.enabled: false
-        if (AgentUtil.isApplicationLoggingEnabled()) {
-            if (AgentUtil.isApplicationLoggingMetricsEnabled()) {
+        if (AppLoggingUtils.isApplicationLoggingEnabled()) {
+            if (AppLoggingUtils.isApplicationLoggingMetricsEnabled()) {
                 // Generate log level metrics
                 NewRelic.incrementCounter("Logging/lines");
                 NewRelic.incrementCounter("Logging/lines/" + level);

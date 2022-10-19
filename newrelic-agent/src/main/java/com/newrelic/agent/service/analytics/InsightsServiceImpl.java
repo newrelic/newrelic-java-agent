@@ -377,8 +377,8 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         AttributeSender sender = new CustomEventAttributeSender(userAttributes);
         final String method = "add custom event attribute";
 
-        for (Map.Entry entry : attributes.entrySet()) {
-            String key = (String) entry.getKey();
+        for (Map.Entry<String, ?> entry : attributes.entrySet()) {
+            String key = entry.getKey();
             Object value = entry.getValue();
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()

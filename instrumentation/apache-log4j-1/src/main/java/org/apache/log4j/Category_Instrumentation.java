@@ -11,8 +11,8 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import static com.nr.agent.instrumentation.log4j1.AgentUtil.isApplicationLoggingEnabled;
-import static com.nr.agent.instrumentation.log4j1.AgentUtil.isApplicationLoggingMetricsEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingMetricsEnabled;
 
 @Weave(originalName = "org.apache.log4j.Category")
 public class Category_Instrumentation {

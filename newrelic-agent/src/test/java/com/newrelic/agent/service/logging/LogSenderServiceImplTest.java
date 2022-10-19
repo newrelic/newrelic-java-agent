@@ -8,6 +8,10 @@ import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.attributes.ExcludeIncludeFilter;
+import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
+import com.newrelic.agent.bridge.logging.LogAttributeKey;
+import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ApplicationLoggingConfigImpl;
 import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
@@ -85,14 +89,14 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                AgentConfigImpl.createAgentConfig(Collections.emptyMap()));
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
 
-        logSenderService.recordLogEvent(ImmutableMap.of("field", "value"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field2", "value2"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field3", "value3"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field2", "value2"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field3", "value3"));
 
         MockRPMService analyticsData = new MockRPMService();
         when(ServiceFactory.getServiceManager().getRPMServiceManager().getRPMService(appName)).thenReturn(
@@ -106,7 +110,7 @@ public class LogSenderServiceImplTest {
         logSenderService.harvestHarvestables();
 
         assertEquals(0, analyticsData.getEvents().size());
-        assertEquals(0, logs.events.size());
+        assertEquals(0, logs.getEventsForTesting().size());
     }
 
     @Test
@@ -117,9 +121,9 @@ public class LogSenderServiceImplTest {
 
         verify(txService, times(1)).addTransactionListener(logSenderService.transactionListener);
 
-        logSenderService.recordLogEvent(ImmutableMap.of("field", "value"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field2", "value2"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field3", "value3"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field2", "value2"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field3", "value3"));
 
         MockRPMService analyticsData = new MockRPMService();
         when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
@@ -141,14 +145,14 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                AgentConfigImpl.createAgentConfig(Collections.emptyMap()));
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
 
-        logSenderService.recordLogEvent(ImmutableMap.of("field", "value"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field2", "value2"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field3", "value3"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field2", "value2"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field3", "value3"));
 
         MockRPMService analyticsData = new MockRPMService();
         when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
@@ -157,7 +161,7 @@ public class LogSenderServiceImplTest {
         logSenderService.harvestHarvestables();
 
         assertEquals(0, analyticsData.getEvents().size());
-        assertEquals(3, logs.events.size());
+        assertEquals(3, logs.getEventsForTesting().size());
     }
 
     @Test
@@ -169,14 +173,14 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                AgentConfigImpl.createAgentConfig(Collections.emptyMap()));
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
 
-        logSenderService.recordLogEvent(ImmutableMap.of("field", "value"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field2", "value2"));
-        logSenderService.recordLogEvent(ImmutableMap.of("field3", "value3"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field2", "value2"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field3", "value3"));
 
         // these should be filtered out
         logSenderService.recordLogEvent(null);
@@ -233,5 +237,14 @@ public class LogSenderServiceImplTest {
         }
         config.put(AgentConfigImpl.APP_NAME, appName);
         return config;
+    }
+
+    private static Map<LogAttributeKey, Object> createAgentLogAttrs(String key, String value) {
+        LogAttributeKey logKey = new LogAttributeKey(key, LogAttributeType.AGENT);
+        return ImmutableMap.of(logKey, value);
+    }
+
+    private ExcludeIncludeFilter allowAllFilter() {
+        return new ExcludeIncludeFilterImpl("allowAll", Collections.emptySet(), Collections.emptySet());
     }
 }
