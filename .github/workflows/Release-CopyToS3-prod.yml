@@ -1,0 +1,17 @@
+name: Release - Copy to S3 (Prod)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_number:
+        required: true
+        type: string
+        description: 'The version being released. Eg. 7.11.0'
+
+jobs:
+  copy-to-s3:
+    name: Copy files to S3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello world
+        run: echo '### Hello world! :rocket:' >> $GITHUB_STEP_SUMMARY
