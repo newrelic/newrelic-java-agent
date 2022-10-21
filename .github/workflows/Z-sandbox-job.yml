@@ -1,0 +1,25 @@
+name: Z - Sandbox job
+
+on:
+  workflow_dispatch:
+    inputs:
+      param1:
+        required: true
+        type: string
+        description: 'Some param for your action'
+      param2:
+        required: true
+        type: string
+        description: 'A second param for your action'
+      param3:
+        required: true
+        type: string
+        description: 'If you need 3 params, here you go'
+
+jobs:
+  test:
+    name: Sandbox
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello world
+        run: echo "Hello world" >> $GITHUB_STEP_SUMMARY
