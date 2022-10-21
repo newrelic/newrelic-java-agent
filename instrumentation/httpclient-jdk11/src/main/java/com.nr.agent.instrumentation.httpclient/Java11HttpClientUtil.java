@@ -68,6 +68,7 @@ public class Java11HttpClientUtil {
                 reportUnknownHostExternal(segment);
             } else {
                 NewRelic.noticeError(e);
+                segment.end();
             }
         }
     }
