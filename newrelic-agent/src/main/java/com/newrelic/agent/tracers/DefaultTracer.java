@@ -290,7 +290,7 @@ public class DefaultTracer extends AbstractTracer {
             }
 
             try {
-                if (classMethodSignature != null &&
+                if (classMethodSignature != null && getTransaction() != null &&
                         ServiceFactory.getConfigService().getDefaultAgentConfig().getCodeLevelMetricsConfig().isEnabled()) {
                     String className = classMethodSignature.getClassName();
                     String methodName = classMethodSignature.getMethodName();
