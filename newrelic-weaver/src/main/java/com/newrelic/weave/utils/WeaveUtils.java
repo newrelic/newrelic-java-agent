@@ -184,7 +184,7 @@ public final class WeaveUtils {
             double jvmSpecVersion = Double.valueOf(System.getProperty("java.specification.version"));
             if (jvmSpecVersion >= 17) {
                 return 61;
-            else if (jvmSpecVersion >= 11) {
+            } else if (jvmSpecVersion >= 11) {
                 return 55;
             } else if (jvmSpecVersion >= 1.8) {
                 return 52;
