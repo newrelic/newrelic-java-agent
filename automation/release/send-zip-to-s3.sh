@@ -62,6 +62,8 @@ cp ${API_POM} ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.pom
 
 EXITSTATUS=0
 
+# when running on GHA, we cannot specify the profile, like we do on our managed machines.
+# Auth is done thru the aws-actions/configure-aws-credentials action.
 if [ -z ${RUNNING_ON_GHA} ];
 then
   echo "Running locally"
@@ -81,7 +83,7 @@ else
   echo ":x: Failed to upload agent." >> $OUTPUT
 fi
 
-
+# Sync api's $TEMPDIR to s3
 aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${TARGET_API_DIR}
 if [ $? ]
 then
@@ -133,9 +135,8 @@ then
    aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_API_DIR}/newrelic-java.zip
    echo ":white_check_mark: Current directory updated." >> $OUTPUT
 else
-   echo ":x: Looks like you uploaded an update to an older version." >> $OUTPUT
-   echo ":x: In other words, it was not meant to replace the current directory." >> $OUTPUT
-   echo ":x: If it was, something went wrong." >> $OUTPUT
+   echo ":x: Looks like you uploaded an update to an older version, so the current directory was not updated." >> $OUTPUT
+   echo ":x: If this release was supposed to update the current directory, something went wrong." >> $OUTPUT
 fi
 
 exit ${EXITSTATUS}

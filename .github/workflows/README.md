@@ -14,13 +14,13 @@ This command creates custom jars that we can share with customers.
 
 ### Z - Sandbox job
 
-This is a hello world workflow to allow development of new workflows without commiting a new blank workflow to `main`. 
+This is a hello world workflow to allow development of new workflows without pushing a new blank workflow to `main`.
 
 To use it, just develop it in your branch and when running the workflow, select to run your branch's version.
 
 This workflow has 3 params. While developing, your new workflow gotta keep those 3 params. You can change it before saving your real workflow.
 
-Lastly, please do not commit changes to this workflow, so the next person can use it without having to clean it up.
+Lastly, do not commit changes to this workflow in the main branch, so the next person can use it without having to clean it up.
 
 ## Release workflows
 
