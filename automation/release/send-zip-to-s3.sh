@@ -62,42 +62,81 @@ cp ${API_POM} ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.pom
 
 EXITSTATUS=0
 
+# when running on GHA, we cannot specify the profile, like we do on our managed machines.
+# Auth is done thru the aws-actions/configure-aws-credentials action.
+if [ -z ${RUNNING_ON_GHA} ];
+then
+  echo "Running locally"
+  PROFILE="--profile ${S3_PROFILE}"
+  OUTPUT=/dev/stdout
+else
+  echo "Running on Gha"
+  OUTPUT=$GITHUB_STEP_SUMMARY
+fi
 
+# Sync agent's $TEMPDIR to s3
+aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${TARGET_AGENT_DIR}
+if [ $? ]
+then
+  echo ":white_check_mark: Agent uploaded successfully." >> $OUTPUT
+else
+  echo ":x: Failed to upload agent." >> $OUTPUT
+fi
 
-# Sync $TEMPDIR to s3
-aws s3 --profile ${S3_PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${TARGET_AGENT_DIR}
-aws s3 --profile ${S3_PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${TARGET_API_DIR}
+# Sync api's $TEMPDIR to s3
+aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${TARGET_API_DIR}
+if [ $? ]
+then
+  echo ":white_check_mark: API uploaded successfully." >> $OUTPUT
+else
+  echo ":x: Failed to upload API." >> $OUTPUT
+fi
 
-# Add unversioned zip file 
-aws s3 --profile ${S3_PROFILE} cp ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-java-${VERSION}.zip s3://${TARGET_AGENT_DIR}/newrelic-java.zip
-aws s3 --profile ${S3_PROFILE} cp ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-java-${VERSION}.zip s3://${TARGET_API_DIR}/newrelic-java.zip
+# Add unversioned agent zip file
+aws s3 ${PROFILE} cp ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-java-${VERSION}.zip s3://${TARGET_AGENT_DIR}/newrelic-java.zip
+if [ $? ]
+then
+  echo ":white_check_mark: Unversioned agent uploaded successfully." >> $OUTPUT
+else
+  echo ":x: Failed to upload unversioned agent." >> $OUTPUT
+fi
+
+# Add unversioned api zip file
+aws s3 ${PROFILE} cp ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-java-${VERSION}.zip s3://${TARGET_API_DIR}/newrelic-java.zip
+if [ $? ]
+then
+  echo ":white_check_mark: Unversioned API uploaded successfully." >> $OUTPUT
+else
+  echo ":x: Failed to upload unversioned API." >> $OUTPUT
+fi
 
 # This is to compare/sync this release version to s3://{BASE_S3_URL}/newrelic-agent/current.
 # Otherwise, 2.21.x and possibly other maintenance branches will override it
-CURRENT=$(aws s3 --profile $S3_PROFILE ls s3://$BASE_S3_URL/newrelic-agent/ |
+CURRENT=$(aws s3 ${PROFILE} ls s3://$BASE_S3_URL/newrelic-agent/ |
                  grep PRE |
                  awk '{print $2}' |
                  sort -t '.' -k 1,1 -k 2,2 -k 3,3 -k 4,4 -g |
                  sed 's/\///g' |
                  tail -1)
 
-if [ ${CURRENT} = ${VERSION} ]
+if [ ${CURRENT} = ${VERSION} ];
 then
-    aws s3 --profile ${S3_PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${CURRENT_AGENT_DIR} --delete
-    aws s3 --profile ${S3_PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${CURRENT_API_DIR} --delete
+    aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${CURRENT_AGENT_DIR} --delete
+    aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${CURRENT_API_DIR} --delete
 
    # Some customers depend on unversioned jar files in the current directory for automation. See https://newrelic.atlassian.net/browse/JAVA-2715
-   aws s3 --profile ${S3_PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic-agent.jar
-   aws s3 --profile ${S3_PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic.jar
-   aws s3 --profile ${S3_PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.pom s3://${CURRENT_AGENT_DIR}/newrelic-agent.pom
-   aws s3 --profile ${S3_PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_AGENT_DIR}/newrelic-java.zip
+   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic-agent.jar
+   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic.jar
+   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.pom s3://${CURRENT_AGENT_DIR}/newrelic-agent.pom
+   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_AGENT_DIR}/newrelic-java.zip
 
-   aws s3 --profile ${S3_PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.jar s3://${CURRENT_API_DIR}/newrelic-api.jar
-   aws s3 --profile ${S3_PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.pom s3://${CURRENT_API_DIR}/newrelic-api.pom
-   aws s3 --profile ${S3_PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_API_DIR}/newrelic-java.zip
+   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.jar s3://${CURRENT_API_DIR}/newrelic-api.jar
+   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.pom s3://${CURRENT_API_DIR}/newrelic-api.pom
+   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_API_DIR}/newrelic-java.zip
+   echo ":white_check_mark: Current directory updated." >> $OUTPUT
 else
-    echo "This shouldn't happen!"
-    echo "Is this a 2.21.x Release?"
+   echo ":x: Looks like you uploaded an update to an older version, so the current directory was not updated." >> $OUTPUT
+   echo ":x: If this release was supposed to update the current directory, something went wrong." >> $OUTPUT
 fi
 
 exit ${EXITSTATUS}
