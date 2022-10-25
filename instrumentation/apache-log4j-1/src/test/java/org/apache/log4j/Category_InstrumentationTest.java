@@ -1,16 +1,21 @@
-package com.nr.agent.instrumentation.log4j1;
+/*
+ *
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package org.apache.log4j;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.MetricsHelper;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "org.apache.log4j" }, configName = "application_logging_enabled.yml")
+@InstrumentationTestConfig(includePrefixes = {"org.apache.log4j"}, configName = "application_logging_enabled.yml")
 public class Category_InstrumentationTest {
 
     private static final String CAPTURED = "This log message should be captured";
