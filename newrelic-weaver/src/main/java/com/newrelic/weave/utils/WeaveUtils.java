@@ -57,6 +57,7 @@ public final class WeaveUtils {
      * Version of ASM API used in the weaver.
      */
     public static final int ASM_API_LEVEL = Opcodes.ASM9;
+    public static final int CLASS_FILE_VERSION_OFFSET = 44;
 
     /**
      * No op remapper used when inlining methods.
@@ -182,10 +183,8 @@ public final class WeaveUtils {
     private static int getRuntimeMaxSupportedClassVersion() {
         try {
             double jvmSpecVersion = Double.valueOf(System.getProperty("java.specification.version"));
-            if (jvmSpecVersion >= 17) {
-                return 61;
-            } else if (jvmSpecVersion >= 11) {
-                return 55;
+            if (jvmSpecVersion >= 11) {
+                return (int) jvmSpecVersion + CLASS_FILE_VERSION_OFFSET;
             } else if (jvmSpecVersion >= 1.8) {
                 return 52;
             } else if (jvmSpecVersion == 1.7) {
