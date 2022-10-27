@@ -7,11 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 7.11.0 (2022-10-27)
+
+### New features and improvements
+
+* Support Java 19 [1022](https://github.com/newrelic/newrelic-java-agent/pull/1022)
+* Support Play 2.8.16+ [981](https://github.com/newrelic/newrelic-java-agent/pull/981)
+* Support ojdbc8 v21.1.0.0+ [1042](https://github.com/newrelic/newrelic-java-agent/pull/1042)
+* Support Semeru/OpenJ9 JVMs [993](https://github.com/newrelic/newrelic-java-agent/pull/993)
+* Support log forwarding for java.util.logging (JUL) [1049](https://github.com/newrelic/newrelic-java-agent/pull/1049)
+
+#### Support forwarding log context data [866](https://github.com/newrelic/newrelic-java-agent/pull/866)
+The agent can now forward data in Mapped Diagnostic Context (MDC, logback/slf4j) and ThreadContext (log4j2) as attributes when forwarding log records. When the feature is enabled, these attributes will be added to the log records with a `context.` prefix. For details on how to enable this feature see the documentation for [context_data](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#logging-context-data).
+
+#### Custom Event Limit Increase  [1036](https://github.com/newrelic/newrelic-java-agent/pull/1036)
+  This version increases the default limit of custom events from 10,000 events per minute to 30,000 events per minute. In the scenario that custom events were being limited, this change will allow more custom events to be sent to New Relic. There is also a new configurable maximum limit of 100,000 events per minute. To change the limits, see the documentation for [max_samples_stored](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#Custom_Events). To learn more about the change and how to determine if custom events are being dropped, see our Explorers Hub post.
+
+#### Code-level metrics on by default [1037](https://github.com/newrelic/newrelic-java-agent/pull/1037)
+  The code-level metrics functionality introduced with agent 7.10 is now enabled by default. This feature will cause an increase in the consumption of data. The amount depends on the application. To disable code-level metrics, see instructions on our [code-level metrics documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file#code-level-metrics).
+
+### Fixes
+* Prevent an exception from being thrown in the Jedis instrumentation [1011](https://github.com/newrelic/newrelic-java-agent/pull/1011)
+* Improvement on Http4s transactions [1006](https://github.com/newrelic/newrelic-java-agent/pull/1006)
+* Fix noticeError API not verifying whether errors were expected [1014](https://github.com/newrelic/newrelic-java-agent/pull/1014)
+* Add operation for Lettuce queries to clusters [1031](https://github.com/newrelic/newrelic-java-agent/pull/1031)
+* Fix exception when building up the agent jar from a clean repo [1048](https://github.com/newrelic/newrelic-java-agent/pull/1048)
+* Better error handling for code-level metrics [1021](https://github.com/newrelic/newrelic-java-agent/pull/1021) [1051](https://github.com/newrelic/newrelic-java-agent/pull/1051)
+* Fix HttpUrlConnection spans not terminating on exception [1053](https://github.com/newrelic/newrelic-java-agent/pull/1053)
+
+### Deprecation notice
+The following instrumentation modules are being deprecated for removal:
+* cassandra-datastax-2.1.2
+* httpclient-3.0
+* jdbc-embedded-derby-10.10.1.1
+* jetty-7
+* jetty-7.6
+* jetty-9
+* jetty-9.0.4
+* jetty-9.1
+* mongodb-2.12
+* mongodb-2.14
+* mongodb-3.0
+* okhttp-3.0.0
+* okhttp-3.4.0
+* okhttp-3.5.0
+
+The http.responseCode, response.status and response.statusMessage transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by http.statusCode and http.statusText 513
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v7.10.0...v7.11.0
+
+
 ## Version 7.10.0 (2022-09-13)
 
-## New Features and Improvements
+### New Features and Improvements
 
-### Added the following Jakarta EE 9/9.1 compatible instrumentation:
+#### Added the following Jakarta EE 9/9.1 compatible instrumentation:
 
 Jetty 11
 Tomcat 10
@@ -26,11 +76,11 @@ JMS 3
 Glassfish 6.0
 Open Liberty 21.0.0.12+
 
-### Code level metrics
+#### Code level metrics
 
 For traced methods in automatic instrumentation or from @Trace annotations, the agent is now capable of reporting metrics with method-level granularity. When the new functionality is enabled, the agent will associate source-code-related metadata with some metrics. Then, when the corresponding Java class file that defines the methods is loaded up in a [New Relic CodeStream](https://www.codestream.com/)-powered IDE, [the four golden signals](https://sre.google/sre-book/monitoring-distributed-systems/) for each method will be presented to the developer directly.
 
-### Agent log forwarding now adds the following attributes to log events for the log4j2 and logback1.2 frameworks:
+#### Agent log forwarding now adds the following attributes to log events for the log4j2 and logback1.2 frameworks:
 
 thread.name
 thread.id
@@ -40,10 +90,10 @@ error.class
 error.stack
 error.message
 
-## Fixes
+### Fixes
 Fixed an issue with Distributed Tracing headers not being added on external requests made with the HttpUrlConnection client
 
-## Support statement
+### Support statement
 New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
 
 **Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v7.9.0...v7.10.0
@@ -51,15 +101,15 @@ New Relic recommends that you upgrade the agent regularly to ensure that you're 
 ## Version 7.9.0 (2022-08-28)
 
 ### New features and improvements
-* Where applicable, existing instrumentation has been tested and verified as compatible with Jakarta EE 8. https://github.com/newrelic/newrelic-java-agent/pull/900
-* Add new instrumentation to support Jetty 10. https://github.com/newrelic/newrelic-java-agent/pull/936
-* Update to jfr-daemon 1.9.0 to address [CVE-2020-29582](https://github.com/advisories/GHSA-cqj8-47ch-rvvq) and improve CPU overhead. https://github.com/newrelic/newrelic-java-agent/pull/937
-* Add support to pass a boolean environment variable `NEWRELIC_DEBUG` where setting it to `true` activates the debug configuration. https://github.com/newrelic/newrelic-java-agent/pull/890
-* Improved performance by internally replacing regex replace with iterative char replace (thanks to @zowens for this contribution) https://github.com/newrelic/newrelic-java-agent/pull/933
+* Where applicable, existing instrumentation has been tested and verified as compatible with Jakarta EE 8. [900](https://github.com/newrelic/newrelic-java-agent/pull/900)
+* Add new instrumentation to support Jetty 10. [936](https://github.com/newrelic/newrelic-java-agent/pull/936)
+* Update to jfr-daemon 1.9.0 to address [CVE-2020-29582](https://github.com/advisories/GHSA-cqj8-47ch-rvvq) and improve CPU overhead. [937](https://github.com/newrelic/newrelic-java-agent/pull/937)
+* Add support to pass a boolean environment variable `NEWRELIC_DEBUG` where setting it to `true` activates the debug configuration. [890](https://github.com/newrelic/newrelic-java-agent/pull/890)
+* Improved performance by internally replacing regex replace with iterative char replace (thanks to @zowens for this contribution) [933](https://github.com/newrelic/newrelic-java-agent/pull/933)
 
 ### Fixes
-* Update the `httpurlconnection` instrumentation to use newer distributed tracing APIs so that spans are correctly marked as external calls in distributed traces and contain the expected `http.*` attributes. https://github.com/newrelic/newrelic-java-agent/pull/885
-* Illegal Access Exception is no longer thrown from apps using NR agent with scala 2.12 and Java 11. https://github.com/newrelic/newrelic-java-agent/pull/876
+* Update the `httpurlconnection` instrumentation to use newer distributed tracing APIs so that spans are correctly marked as external calls in distributed traces and contain the expected `http.*` attributes. [885](https://github.com/newrelic/newrelic-java-agent/pull/885)
+* Illegal Access Exception is no longer thrown from apps using NR agent with scala 2.12 and Java 11. [876](https://github.com/newrelic/newrelic-java-agent/pull/876)
 
 ### Support statement
 New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and performance benefits. Additionally, older releases will no longer be supported when they reach [end-of-life](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/notification-changes-new-relic-saas-features-distributed-software/).
