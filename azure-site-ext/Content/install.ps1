@@ -25,7 +25,7 @@ try {
 		$agentVersion = $env:NEWRELIC_AGENT_VERSION_OVERRIDE.ToString()
 	}
 	Invoke-WebRequest -Uri "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/$agentVersion/newrelic-java.zip" -OutFile newrelic-java.zip
-	$newRelicFolder="%HOME%\NewRelicJavaAgent"
+	$newRelicFolder="$HOME\NewRelicJavaAgent"
 	Expand-Archive -Path newrelic-java.zip -DestinationPath "$newRelicFolder"
 	if ($env:NEWRELIC_AGENT_VERSION_OVERRIDE -ne $null)
 	{
