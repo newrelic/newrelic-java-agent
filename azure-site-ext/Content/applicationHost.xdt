@@ -3,7 +3,7 @@
   <system.webServer>
     <runtime xdt:Transform="InsertIfMissing" >
       <environmentVariables xdt:Transform="InsertIfMissing">
-        <add name="JAVA_TOOL_OPTIONS" value="-javaagent:%XDT_EXTENSIONPATH%\{FOLDER}\NewRelic\newrelic-agent-{VERSION}.jar xdt:Locator="Match(name)" xdt:Transform="Insert"/>
+        <add name="JAVA_TOOL_OPTIONS" value="-javaagent:%HOME%\NewRelicJavaAgent\newrelic-agent.jar xdt:Locator="Match(name)" xdt:Transform="Insert"/>
       </environmentVariables>
     </runtime>
   </system.webServer>
