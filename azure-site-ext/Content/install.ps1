@@ -27,10 +27,6 @@ try {
 	Invoke-WebRequest -Uri "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/$agentVersion/newrelic-java.zip" -OutFile newrelic-java.zip
 	$newRelicFolder="$HOME\NewRelicJavaAgent"
 	Expand-Archive -Path newrelic-java.zip -DestinationPath "$newRelicFolder"
-	if ($env:NEWRELIC_AGENT_VERSION_OVERRIDE -ne $null)
-	{
-		cp "$newRelicFolder/newrelic-$agentVersion.jar" "$newRelicFolder/newrelic.jar"
-	}
 	WriteToInstallLog "End executing install.ps1."
 	WriteToInstallLog "-----------------------------"
 	exit $LASTEXITCODE
