@@ -121,18 +121,18 @@ CURRENT=$(aws s3 ${PROFILE} ls s3://$BASE_S3_URL/newrelic-agent/ |
 
 if [ ${CURRENT} = ${VERSION} ];
 then
-    aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${CURRENT_AGENT_DIR} --delete
-    aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${CURRENT_API_DIR} --delete
-
    # Some customers depend on unversioned jar files in the current directory for automation. See https://newrelic.atlassian.net/browse/JAVA-2715
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic-agent.jar
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic.jar
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.pom s3://${CURRENT_AGENT_DIR}/newrelic-agent.pom
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_AGENT_DIR}/newrelic-java.zip
+   cp ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent-${VERSION}.jar ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent.jar
+   cp ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent-${VERSION}.jar ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic.jar
+   cp ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent-${VERSION}.pom ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent.pom
+   cp ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-java-${VERSION}.zip ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-java.zip
 
-   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.jar s3://${CURRENT_API_DIR}/newrelic-api.jar
-   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.pom s3://${CURRENT_API_DIR}/newrelic-api.pom
-   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_API_DIR}/newrelic-java.zip
+   cp ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.jar ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api.jar
+   cp ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.pom ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api.pom
+   cp ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-java-${VERSION}.zip ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-java.zip
+
+   aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${CURRENT_AGENT_DIR} --delete
+   aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${CURRENT_API_DIR} --delete
    echo ":white_check_mark: Current directory updated." >> $OUTPUT
 else
    echo ":x: Looks like you uploaded an update to an older version, so the current directory was not updated." >> $OUTPUT
