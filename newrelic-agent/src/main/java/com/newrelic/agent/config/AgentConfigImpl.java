@@ -54,6 +54,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ENABLE_CUSTOM_TRACING = "enable_custom_tracing";
     public static final String EXPERIMENTAL_RUNTIME = "experimental_runtime";
     public static final String EXT_CONFIG_DIR = "extensions.dir";
+    public static final String FORWARD_AGENT_LOGS = "forward_agent_logs";
     public static final String HIGH_SECURITY = "high_security";
     public static final String HOST = "host";
     public static final String IGNORE_JARS = "ignore_jars";
@@ -153,6 +154,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_JDBC_SUPPORT = GENERIC_JDBC_SUPPORT;
     public static final String DEFAULT_LANGUAGE = "java";
     public static final boolean DEFAULT_LOG_DAILY = false;
+    public static final boolean DEFAULT_FORWARD_AGENT_LOGS = false;
     public static final int DEFAULT_LOG_FILE_COUNT = 1;
     public static final String DEFAULT_LOG_FILE_NAME = "newrelic_agent.log";
     public static final String DEFAULT_LOG_LEVEL = "info";
@@ -203,6 +205,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean metricDebug;
     private final boolean enabled;
     private final boolean experimentalRuntime;
+    private final boolean forwardAgentLogs;
     private final boolean genericJdbcSupportEnabled;
     private final boolean highSecurity;
     private final String host;
@@ -297,6 +300,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
         experimentalRuntime = allowExperimentalRuntimeVersions();
+        forwardAgentLogs = initForwardAgentLogs();
         licenseKey = getProperty(LICENSE_KEY);
         String region = parseRegion(licenseKey);
         host = parseHost(region);
@@ -1140,6 +1144,20 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public int getLogLimit() {
         return getIntProperty(LOG_LIMIT, DEFAULT_LOG_LIMIT);
     }
+
+    @Override
+    public boolean getForwardAgentLogs() {
+        return forwardAgentLogs;
+    }
+
+    private boolean initForwardAgentLogs() {
+        Boolean val = getProperty(FORWARD_AGENT_LOGS, DEFAULT_FORWARD_AGENT_LOGS);
+        if (val != null && val) {
+            Agent.LOG.log(Level.INFO, "forward_agent_logs is enabled");
+        }
+        return Boolean.TRUE.equals(val);
+    }
+
 
     @Override
     public TransactionTracerConfig getTransactionTracerConfig() {

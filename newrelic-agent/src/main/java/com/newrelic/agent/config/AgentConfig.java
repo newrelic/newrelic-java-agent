@@ -251,6 +251,12 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     boolean isLogDaily();
 
     /**
+     *
+     * @return
+     */
+    boolean getForwardAgentLogs();
+
+    /**
      * If true send data to the server on exit.
      */
     boolean isSendDataOnExit();
