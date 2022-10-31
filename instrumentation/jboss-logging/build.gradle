@@ -1,0 +1,25 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    // TODO figure out the right artifacts to compile against. Ideally should work for JBoss EAP and Wildfly.
+    implementation 'org.jboss.logmanager:jboss-logmanager:2.1.18.Final'
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jboss.logging' }
+}
+
+verifyInstrumentation {
+//    verifyClasspath = false // We don't want to verify classpath since these are JDK classes
+    // TODO add verifier
+}
+
+site {
+    title 'JBoss Logging'
+    type 'Other'
+    versionOverride '[8,)' // fixme
+}
+
+compileJava {
+    options.fork = true
+    options.bootstrapClasspath = null
+}
