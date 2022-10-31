@@ -8,6 +8,9 @@
 package com.newrelic.agent.logging;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
+import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.Appender;
@@ -24,10 +27,19 @@ import org.apache.logging.log4j.message.ParameterizedMessage;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.MESSAGE;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
 import static com.newrelic.agent.logging.FileAppenderFactory.FILE_APPENDER_NAME;
 
 class Log4jLogger implements IAgentLogger {
@@ -46,6 +58,12 @@ class Log4jLogger implements IAgentLogger {
      * The logger for this Log4jLogger.
      */
     private final Logger logger;
+
+    /**
+     * Agent logger name
+     */
+    private static final String AGENT_LOGGER_NAME = "agent_logger";
+
     private final Map<String, IAgentLogger> childLoggers = new ConcurrentHashMap<>();
 
     /**
@@ -69,51 +87,61 @@ class Log4jLogger implements IAgentLogger {
     @Override
     public void severe(String pMessage) {
         logger.error(Log4jMarkers.ERROR_MARKER, pMessage);
+        forwardMessage(Log4jLevel.ERROR, pMessage);
     }
 
     @Override
     public void error(String pMessage) {
         logger.error(Log4jMarkers.ERROR_MARKER, pMessage);
+        forwardMessage(Log4jLevel.ERROR, pMessage);
     }
 
     @Override
     public void warning(String pMessage) {
         logger.warn(Log4jMarkers.WARN_MARKER, pMessage);
+        forwardMessage(Log4jLevel.WARN, pMessage);
     }
 
     @Override
     public void info(String pMessage) {
         logger.info(Log4jMarkers.INFO_MARKER, pMessage);
+        forwardMessage(Log4jLevel.INFO, pMessage);
     }
 
     @Override
     public void config(String pMessage) {
         logger.info(Log4jMarkers.INFO_MARKER, pMessage);
+        forwardMessage(Log4jLevel.INFO, pMessage);
     }
 
     @Override
     public void fine(String pMessage) {
         logger.debug(Log4jMarkers.FINE_MARKER, pMessage);
+        forwardMessage(Log4jLevel.FINE, pMessage);
     }
 
     @Override
     public void finer(String pMessage) {
         logger.debug(Log4jMarkers.FINER_MARKER, pMessage);
+        forwardMessage(Log4jLevel.FINER, pMessage);
     }
 
     @Override
     public void finest(String pMessage) {
         logger.trace(Log4jMarkers.FINEST_MARKER, pMessage);
+        forwardMessage(Log4jLevel.FINEST, pMessage);
     }
 
     @Override
     public void debug(String pMessage) {
         logger.debug(Log4jMarkers.DEBUG_MARKER, pMessage);
+        forwardMessage(Log4jLevel.DEBUG, pMessage);
     }
 
     @Override
     public void trace(String pMessage) {
         logger.trace(Log4jMarkers.TRACE_MARKER, pMessage);
+        forwardMessage(Log4jLevel.TRACE, pMessage);
     }
 
     @Override
@@ -155,6 +183,7 @@ class Log4jLogger implements IAgentLogger {
                 @Override
                 public Void run() {
                     logger.log(level.getLog4jLevel(), level.getMarker(), pMessage, pThrowable);
+                    forwardMessage(level, pMessage, pThrowable);
                     return null;
                 }
             });
@@ -165,6 +194,7 @@ class Log4jLogger implements IAgentLogger {
     public void log(Level pLevel, String pMessage) {
         Log4jLevel level = Log4jLevel.getLevel(pLevel);
         logger.log(level.getLog4jLevel(), level.getMarker(), pMessage);
+        forwardMessage(level, pMessage);
     }
 
     @Override
@@ -172,6 +202,7 @@ class Log4jLogger implements IAgentLogger {
         Log4jLevel level = Log4jLevel.getLevel(pLevel);
         Message message = new ParameterizedMessage(pMessage, pArgs);
         logger.log(level.getLog4jLevel(), level.getMarker(), message, pThrowable);
+        forwardMessage(level, pMessage, pThrowable);
     }
 
     @Override
@@ -465,6 +496,53 @@ class Log4jLogger implements IAgentLogger {
         }
 
         return mergedArray;
+    }
+
+    private void forwardMessage(Log4jLevel level, String message) {
+        forwardMessage(level, message, null);
+    }
+
+    private void forwardMessage(Log4jLevel level, String message, Throwable throwable) {
+        if (level == null) {
+            level = Log4jLevel.ALL;
+        }
+        forwardMessage(level.getJavaLevel().getName(), message, throwable);
+    }
+
+    private void forwardMessage(String level, String message, Throwable throwable) {
+        // Todo: require agent log forwarding is enabled
+        if (AgentBridge.getAgent().getLogSender() != null) {
+            Map<LogAttributeKey, Object> logEventMap = new HashMap<>(7);
+
+            if (level == null || level.isEmpty()) {
+                logEventMap.put(LEVEL, UNKNOWN);
+            } else {
+                logEventMap.put(LEVEL, level);
+            }
+
+            logEventMap.put(MESSAGE, message);
+            logEventMap.put(TIMESTAMP, java.time.Instant.now().toEpochMilli());
+
+            logEventMap.put(LOGGER_NAME, AGENT_LOGGER_NAME);
+
+            String errorStack = ExceptionUtil.getErrorStack(throwable);
+            if (errorStack != null) {
+                logEventMap.put(ERROR_STACK, errorStack);
+            }
+
+            String errorMessage = ExceptionUtil.getErrorMessage(throwable);
+            if (errorMessage != null) {
+                logEventMap.put(ERROR_MESSAGE, errorMessage);
+            }
+
+            String errorClass = ExceptionUtil.getErrorClass(throwable);
+            if (errorClass != null) {
+                logEventMap.put(ERROR_CLASS, errorClass);
+            }
+
+            // Todo: make sure the log sender used does not log any data to prevent infinite recursion.
+//            AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
+        }
     }
 
     @Override
