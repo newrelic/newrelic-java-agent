@@ -14,7 +14,7 @@ on:
 
 jobs:
   copy-to-s3:
-    name: Copy files to S3
+    name: Copy ${{ inputs.version_number }} to S3 (Staging)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Self
