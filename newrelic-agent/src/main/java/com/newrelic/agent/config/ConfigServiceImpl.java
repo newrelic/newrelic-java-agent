@@ -229,7 +229,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         }
 
         settings.put(AgentConfigImpl.LOG_LEVEL, localAgentConfig.getLogLevel());
-
+        settings.put(AgentConfigImpl.FORWARD_AGENT_LOGS, localAgentConfig.getForwardAgentLogs());
         updateDebugFlag(localAgentConfig);
         AgentLogManager.setLogLevel(localAgentConfig.getLogLevel());
     }

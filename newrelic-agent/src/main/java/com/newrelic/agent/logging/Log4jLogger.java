@@ -11,6 +11,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
+import com.newrelic.agent.service.ServiceFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.Appender;
@@ -510,8 +511,14 @@ class Log4jLogger implements IAgentLogger {
     }
 
     private void forwardMessage(String level, String message, Throwable throwable) {
-        // Todo: require agent log forwarding is enabled
-        if (AgentBridge.getAgent().getLogSender() != null) {
+        boolean forwardAgentLogsEnabled = false;
+        try {
+            forwardAgentLogsEnabled = ServiceFactory.getConfigService().getDefaultAgentConfig().getForwardAgentLogs();
+        } catch (Exception ignored) {
+            // ServiceFactory.getConfigService() can cause an NPE when called before the ServiceManager has been initialized
+        }
+
+        if (forwardAgentLogsEnabled && AgentBridge.getAgent().getLogSender() != null) {
             Map<LogAttributeKey, Object> logEventMap = new HashMap<>(7);
 
             if (level == null || level.isEmpty()) {
