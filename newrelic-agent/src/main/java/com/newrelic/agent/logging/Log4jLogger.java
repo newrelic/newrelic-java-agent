@@ -9,7 +9,6 @@ package com.newrelic.agent.logging;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.service.ServiceFactory;
 import org.apache.logging.log4j.LogManager;
@@ -87,62 +86,114 @@ class Log4jLogger implements IAgentLogger {
 
     @Override
     public void severe(String pMessage) {
-        logger.error(Log4jMarkers.ERROR_MARKER, pMessage);
-        forwardMessage(Log4jLevel.ERROR, pMessage);
+        severe(true, pMessage);
     }
 
     @Override
     public void error(String pMessage) {
-        logger.error(Log4jMarkers.ERROR_MARKER, pMessage);
-        forwardMessage(Log4jLevel.ERROR, pMessage);
+        error(true, pMessage);
     }
 
     @Override
     public void warning(String pMessage) {
-        logger.warn(Log4jMarkers.WARN_MARKER, pMessage);
-        forwardMessage(Log4jLevel.WARN, pMessage);
+        warning(true, pMessage);
+
     }
 
     @Override
     public void info(String pMessage) {
-        logger.info(Log4jMarkers.INFO_MARKER, pMessage);
-        forwardMessage(Log4jLevel.INFO, pMessage);
+        info(true, pMessage);
+
     }
 
     @Override
     public void config(String pMessage) {
-        logger.info(Log4jMarkers.INFO_MARKER, pMessage);
-        forwardMessage(Log4jLevel.INFO, pMessage);
+        config(true, pMessage);
     }
 
     @Override
     public void fine(String pMessage) {
-        logger.debug(Log4jMarkers.FINE_MARKER, pMessage);
-        forwardMessage(Log4jLevel.FINE, pMessage);
+        fine(true, pMessage);
     }
 
     @Override
     public void finer(String pMessage) {
-        logger.debug(Log4jMarkers.FINER_MARKER, pMessage);
-        forwardMessage(Log4jLevel.FINER, pMessage);
+        finer(true, pMessage);
     }
 
     @Override
     public void finest(String pMessage) {
-        logger.trace(Log4jMarkers.FINEST_MARKER, pMessage);
-        forwardMessage(Log4jLevel.FINEST, pMessage);
+        finest(true, pMessage);
     }
 
     @Override
     public void debug(String pMessage) {
-        logger.debug(Log4jMarkers.DEBUG_MARKER, pMessage);
-        forwardMessage(Log4jLevel.DEBUG, pMessage);
+        debug(true, pMessage);
     }
 
     @Override
     public void trace(String pMessage) {
-        logger.trace(Log4jMarkers.TRACE_MARKER, pMessage);
-        forwardMessage(Log4jLevel.TRACE, pMessage);
+        trace(true, pMessage);
+    }
+
+    @Override
+    public void severe(boolean allowForwarding, String pMessage) {
+        logger.error(Log4jMarkers.ERROR_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.ERROR, pMessage);
+    }
+
+    @Override
+    public void error(boolean allowForwarding, String pMessage) {
+        logger.error(Log4jMarkers.ERROR_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.ERROR, pMessage);
+    }
+
+    @Override
+    public void warning(boolean allowForwarding, String pMessage) {
+        logger.warn(Log4jMarkers.WARN_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.WARN, pMessage);
+    }
+
+    @Override
+    public void info(boolean allowForwarding, String pMessage) {
+        logger.info(Log4jMarkers.INFO_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.INFO, pMessage);
+    }
+
+    @Override
+    public void config(boolean allowForwarding, String pMessage) {
+        logger.info(Log4jMarkers.INFO_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.INFO, pMessage);
+    }
+
+    @Override
+    public void fine(boolean allowForwarding, String pMessage) {
+        logger.debug(Log4jMarkers.FINE_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.FINE, pMessage);
+    }
+
+    @Override
+    public void finer(boolean allowForwarding, String pMessage) {
+        logger.debug(Log4jMarkers.FINER_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.FINER, pMessage);
+    }
+
+    @Override
+    public void finest(boolean allowForwarding, String pMessage) {
+        logger.debug(Log4jMarkers.FINEST_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.FINEST, pMessage);
+    }
+
+    @Override
+    public void debug(boolean allowForwarding, String pMessage) {
+        logger.debug(Log4jMarkers.DEBUG_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.DEBUG, pMessage);
+    }
+
+    @Override
+    public void trace(boolean allowForwarding, String pMessage) {
+        logger.debug(Log4jMarkers.TRACE_MARKER, pMessage);
+        forward(allowForwarding, Log4jLevel.TRACE, pMessage);
     }
 
     @Override
@@ -178,13 +229,28 @@ class Log4jLogger implements IAgentLogger {
 
     @Override
     public void log(Level pLevel, final String pMessage, final Throwable pThrowable) {
+        log(pLevel, true, pMessage, pThrowable);
+    }
+
+    @Override
+    public void log(Level pLevel, String pMessage) {
+        log(pLevel, true, pMessage);
+    }
+
+    @Override
+    public void log(Level pLevel, String pMessage, Object[] pArgs, Throwable pThrowable) {
+        log(pLevel, true, pMessage, pArgs, pThrowable);
+    }
+
+    @Override
+    public void log(Level pLevel, boolean allowForwarding, final String pMessage, final Throwable pThrowable) {
         if (isLoggable(pLevel)) {
             final Log4jLevel level = Log4jLevel.getLevel(pLevel);
             AccessController.doPrivileged(new PrivilegedAction<Void>() {
                 @Override
                 public Void run() {
                     logger.log(level.getLog4jLevel(), level.getMarker(), pMessage, pThrowable);
-                    forwardMessage(level, pMessage, pThrowable);
+                    forward(allowForwarding, level, pMessage, pThrowable);
                     return null;
                 }
             });
@@ -192,18 +258,18 @@ class Log4jLogger implements IAgentLogger {
     }
 
     @Override
-    public void log(Level pLevel, String pMessage) {
+    public void log(Level pLevel, boolean allowForwarding, String pMessage) {
         Log4jLevel level = Log4jLevel.getLevel(pLevel);
         logger.log(level.getLog4jLevel(), level.getMarker(), pMessage);
-        forwardMessage(level, pMessage);
+        forward(allowForwarding, level, pMessage);
     }
 
     @Override
-    public void log(Level pLevel, String pMessage, Object[] pArgs, Throwable pThrowable) {
+    public void log(Level pLevel, boolean allowForwarding, String pMessage, Object[] pArgs, Throwable pThrowable) {
         Log4jLevel level = Log4jLevel.getLevel(pLevel);
         Message message = new ParameterizedMessage(pMessage, pArgs);
         logger.log(level.getLog4jLevel(), level.getMarker(), message, pThrowable);
-        forwardMessage(level, pMessage, pThrowable);
+        forward(allowForwarding, level, pMessage, pThrowable);
     }
 
     @Override
@@ -323,143 +389,258 @@ class Log4jLogger implements IAgentLogger {
 
     @Override
     public void log(Level level, String pattern, Object[] msg) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, msg));
-        }
+        log(level, true, pattern, msg);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1));
-        }
+        log(level, true, pattern, part1);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1, Object part2) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2));
-        }
+        log(level, true, pattern, part1, part2);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1, Object part2, Object part3) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3));
-        }
+        log(level, true, pattern, part1, part2, part3);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1, Object part2, Object part3, Object part4) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4));
-        }
+        log(level, true, pattern, part1, part2, part3, part4);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4, part5));
-        }
+        log(level, true, pattern, part1, part2, part3, part4, part5);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5,
             Object part6) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4, part5, part6));
-        }
+        log(level, true, pattern, part1, part2, part3, part4, part5, part6);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5,
             Object part6, Object part7) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4, part5, part6, part7));
-        }
+        log(level, true, pattern, part1, part2, part3, part4, part5, part6, part7);
     }
 
     @Override
     public void log(Level level, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5,
             Object part6, Object part7, Object... otherParts) {
-        if (isLoggable(level)) {
-            Object[] parts = merge(otherParts, part1, part2, part3, part4, part5, part6, part7);
-            log(level, getMessage(pattern, parts));
-        }
+        log(level, true, pattern, part1, part2, part3, part4, part5, part6, part7, otherParts);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object[] msg) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, msg), t);
-        }
+        log(level, true, t, pattern, msg);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern), t);
-        }
+        log(level, true, t, pattern);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1), t);
-        }
+        log(level, true, t, pattern, part1);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1, Object part2) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2), t);
-        }
+        log(level, true, t, pattern, part1, part2);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1, Object part2, Object part3) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3), t);
-        }
+        log(level, true, t, pattern, part1, part2, part3);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4), t);
-        }
+        log(level, true, t, pattern, part1, part2, part3, part4);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4,
             Object part5) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4, part5), t);
-        }
+        log(level, true, t, pattern, part1, part2, part3, part4, part5);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4,
             Object part5, Object part6) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4, part5, part6), t);
-        }
+        log(level, true, t, pattern, part1, part2, part3, part4, part5, part6);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4,
             Object part5, Object part6, Object part7) {
-        if (isLoggable(level)) {
-            log(level, getMessage(pattern, part1, part2, part3, part4, part5, part6, part7), t);
-        }
+        log(level, true, t, pattern, part1, part2, part3, part4, part5, part6, part7);
     }
 
     @Override
     public void log(Level level, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4,
             Object part5, Object part6, Object part7, Object... otherParts) {
+        log(level, true, t, pattern, part1, part2, part3, part4, part5, part6, part7, otherParts);
+    }
+
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object[] msg) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, msg));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1, Object part2) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1, Object part2, Object part3) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1, Object part2, Object part3, Object part4) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4, part5));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5, Object part6) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4, part5, part6));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5, Object part6,
+            Object part7) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4, part5, part6, part7));
+        }
+
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5, Object part6,
+            Object part7, Object... otherParts) {
         if (isLoggable(level)) {
             Object[] parts = merge(otherParts, part1, part2, part3, part4, part5, part6, part7);
-            log(level, getMessage(pattern, parts), t);
+            log(level, allowForwarding, getMessage(pattern, parts));
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object[] msg) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, msg), t);
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern), t);
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1), t);
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1, Object part2) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2), t);
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1, Object part2, Object part3) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3), t);
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4), t);
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4, part5), t);
+        }
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5,
+            Object part6) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4, part5, part6), t);
+        }
+
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5,
+            Object part6, Object part7) {
+        if (isLoggable(level)) {
+            log(level, allowForwarding, getMessage(pattern, part1, part2, part3, part4, part5, part6, part7), t);
+        }
+
+    }
+
+    @Override
+    public void log(Level level, boolean allowForwarding, Throwable t, String pattern, Object part1, Object part2, Object part3, Object part4, Object part5,
+            Object part6, Object part7, Object... otherParts) {
+        if (isLoggable(level)) {
+            Object[] parts = merge(otherParts, part1, part2, part3, part4, part5, part6, part7);
+            log(level, allowForwarding, getMessage(pattern, parts), t);
+        }
+    }
+
+    @Override
+    public void logToChild(String childName, Level level, boolean allowForwarding, String pattern, Object part1, Object part2, Object part3, Object part4) {
+        if (isLoggable(level)) {
+            IAgentLogger logger = childLoggers.get(childName);
+            if (logger == null) {
+                logger = Agent.LOG;
+            }
+            logger.log(level, allowForwarding, pattern, part1, part2, part3, part4);
         }
     }
 
@@ -499,18 +680,21 @@ class Log4jLogger implements IAgentLogger {
         return mergedArray;
     }
 
-    private void forwardMessage(Log4jLevel level, String message) {
-        forwardMessage(level, message, null);
+    private void forward(boolean allowForwarding, Log4jLevel level, String message) {
+        forward(allowForwarding, level, message, null);
     }
 
-    private void forwardMessage(Log4jLevel level, String message, Throwable throwable) {
+    private void forward(boolean allowForwarding, Log4jLevel level, String message, Throwable throwable) {
         if (level == null) {
             level = Log4jLevel.ALL;
         }
-        forwardMessage(level.getJavaLevel().getName(), message, throwable);
+        forward(allowForwarding, level.getJavaLevel().getName(), message, throwable);
     }
 
-    private void forwardMessage(String level, String message, Throwable throwable) {
+    private void forward(boolean allowForwarding, String level, String message, Throwable throwable) {
+        if (!allowForwarding) {
+            return;
+        }
         long timestamp = java.time.Instant.now().toEpochMilli();
         boolean forwardAgentLogsEnabled = false;
         try {
@@ -556,13 +740,7 @@ class Log4jLogger implements IAgentLogger {
     @Override
     public void logToChild(String childName, Level level, String pattern, Object part1, Object part2, Object part3,
             Object part4) {
-        if (isLoggable(level)) {
-            IAgentLogger logger = childLoggers.get(childName);
-            if (logger == null) {
-                logger = Agent.LOG;
-            }
-            logger.log(level, pattern, part1, part2, part3, part4);
-        }
+        logToChild(childName, level, true, pattern, part1, part2, part3, part4);
     }
 
 }
