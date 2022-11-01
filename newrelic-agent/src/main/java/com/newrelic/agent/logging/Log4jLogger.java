@@ -511,6 +511,7 @@ class Log4jLogger implements IAgentLogger {
     }
 
     private void forwardMessage(String level, String message, Throwable throwable) {
+        long timestamp = java.time.Instant.now().toEpochMilli();
         boolean forwardAgentLogsEnabled = false;
         try {
             forwardAgentLogsEnabled = ServiceFactory.getConfigService().getDefaultAgentConfig().getForwardAgentLogs();
@@ -528,7 +529,7 @@ class Log4jLogger implements IAgentLogger {
             }
 
             logEventMap.put(MESSAGE, message);
-            logEventMap.put(TIMESTAMP, java.time.Instant.now().toEpochMilli());
+            logEventMap.put(TIMESTAMP, timestamp);
 
             logEventMap.put(LOGGER_NAME, AGENT_LOGGER_NAME);
 
