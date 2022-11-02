@@ -741,8 +741,7 @@ class Log4jLogger implements IAgentLogger {
             }
             logEventMap.put(THREAD_ID, thread.getId());
 
-            // Todo: make sure the log sender used does not log any data to prevent infinite recursion.
-//            AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
+            AgentBridge.getAgent().getLogSender().recordAgentLogEvent(logEventMap);
         }
     }
 
