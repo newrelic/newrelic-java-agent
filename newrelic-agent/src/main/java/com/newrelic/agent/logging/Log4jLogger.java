@@ -38,6 +38,8 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.MESSAGE;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_ID;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_NAME;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
 import static com.newrelic.agent.logging.FileAppenderFactory.FILE_APPENDER_NAME;
@@ -731,6 +733,13 @@ class Log4jLogger implements IAgentLogger {
             if (errorClass != null) {
                 logEventMap.put(ERROR_CLASS, errorClass);
             }
+
+            Thread thread = Thread.currentThread();
+            String threadName = thread.getName();
+            if (threadName != null) {
+                logEventMap.put(THREAD_NAME, threadName);
+            }
+            logEventMap.put(THREAD_ID, thread.getId());
 
             // Todo: make sure the log sender used does not log any data to prevent infinite recursion.
 //            AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
