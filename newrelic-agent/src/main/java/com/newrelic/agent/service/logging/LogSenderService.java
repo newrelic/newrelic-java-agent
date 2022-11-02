@@ -15,7 +15,7 @@ import com.newrelic.api.agent.Logs;
 
 /**
  * LogSenderService interface
- *
+ * <p>
  * Extending Logs makes the recordLogEvent(...) API available to implementing classes
  */
 public interface LogSenderService extends EventService, Logs {
@@ -33,6 +33,14 @@ public interface LogSenderService extends EventService, Logs {
      * @param event log event
      */
     void storeEvent(String appName, LogEvent event);
+
+    /**
+     * Store an agent log event into Reservoir following usual sampling using the given appName. Preference should be given to
+     * storing the event in TransactionInsights instead of this.
+     * @param appName application name
+     * @param event log event
+     */
+    void storeAgentEvent(String appName, LogEvent event);
 
     /**
      * Register LogSenderHarvestable

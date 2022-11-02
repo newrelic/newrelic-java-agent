@@ -22,4 +22,9 @@ class NoOpLogs implements Logs {
     public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
 
     }
+
+    @Override
+    public void recordAgentLogEvent(Map<LogAttributeKey, ?> attributes) {
+
+    }
 }

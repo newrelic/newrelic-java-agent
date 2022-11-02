@@ -32,6 +32,7 @@ class IntrospectorLogSenderService implements LogSenderService {
 
     private static String SERVICE_NAME = "LogSenderService";
     private ListMultimap<String, LogEvent> events = Multimaps.synchronizedListMultimap(LinkedListMultimap.<String, LogEvent>create());
+    private ListMultimap<String, LogEvent> agentEvents = Multimaps.synchronizedListMultimap(LinkedListMultimap.<String, LogEvent>create());
 
     @Override
     public String getName() {
@@ -85,6 +86,15 @@ class IntrospectorLogSenderService implements LogSenderService {
             storeEvent("TestApp", event);
         }
     }
+    @Override
+    public void recordAgentLogEvent(Map<LogAttributeKey, ?> attributes) {
+        if (AnalyticsEvent.isValidType(LOG_EVENT_TYPE)) {
+            Map<String, Object> atts = attributes.entrySet().stream()
+                    .collect(Collectors.toMap(entry -> entry.getKey().getPrefixedKey(), Map.Entry::getValue));
+            LogEvent event = new LogEvent(atts, DistributedTraceServiceImpl.nextTruncatedFloat());
+            storeEvent("TestApp", event);
+        }
+    }
 
     @Override
     public Logs getTransactionLogs(AgentConfig config) {
@@ -97,6 +107,11 @@ class IntrospectorLogSenderService implements LogSenderService {
     }
 
     @Override
+    public void storeAgentEvent(String appName, LogEvent event) {
+        agentEvents.put(event.getType(), event);
+    }
+
+    @Override
     public void addHarvestableToService(String s) {
     }
 
@@ -104,8 +119,13 @@ class IntrospectorLogSenderService implements LogSenderService {
         return Collections.unmodifiableCollection(events.values());
     }
 
+    public Collection<LogEvent> getAgentLogEvents() {
+        return Collections.unmodifiableCollection(agentEvents.values());
+    }
+
     public void clear() {
         events.clear();
+        agentEvents.clear();
     }
 
     @Override
@@ -139,5 +159,6 @@ class IntrospectorLogSenderService implements LogSenderService {
     @Override
     public void clearReservoir() {
         events.clear();
+        agentEvents.clear();
     }
 }

@@ -25,4 +25,14 @@ public interface Logs {
      * @since 7.6.0
      */
     void recordLogEvent(Map<LogAttributeKey, ?> attributes);
+
+    /**
+     * Sends an agent LogEvent for the current application.
+     *
+     * @param attributes A map of log event data (e.g. log message, log timestamp, log level)
+     *                   Each key should be a String and each value should be a String, Number, or Boolean.
+     *                   For map values that are not String, Number, or Boolean object types the toString value will be used.
+     * @since 7.11.0
+     */
+    void recordAgentLogEvent(Map<LogAttributeKey, ?> attributes);
 }
