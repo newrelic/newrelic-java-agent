@@ -65,7 +65,16 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     private final ConcurrentMap<String, Boolean> isForwardingAgentLogsEnabledForApp = new ConcurrentHashMap<>();
     // Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
     private volatile int maxSamplesStored;
-    private volatile int maxSamplesStoredAgentLogs = 100_000_000;
+    /*
+     * Capturing any more than 500 agent log events when using the most verbose log settings
+     * (finest logs, debug logs, and audit logs) causes the payloads sent to the log_event_data
+     * agent endpoint to get rejected with a MaxPayloadException. This is largely due to the
+     * extremely large size of the JSON payloads that get logged when audit_mode is enabled.
+     *
+     * The agent is capable of logging much more than 500 logs per minute so this means that
+     * with such a low max_samples_stored value the agent logs will be heavily sampled. Not ideal.
+     */
+    private volatile int maxSamplesStoredAgentLogs = 500;
     // Key is app name, value is collection of per-transaction log events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<LogEvent>> reservoirForApp = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<LogEvent>> agentLogReservoirForApp = new ConcurrentHashMap<>();
@@ -795,8 +804,16 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         TransactionLogs(AgentConfig config, ExcludeIncludeFilter contextDataKeyFilter) {
             int maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
-            // TODO should there be a separate max value for agent logs???
-            int maxSamplesStoredAgentLogs = 100_000_000;
+            /*
+             * Capturing any more than 500 agent log events when using the most verbose log settings
+             * (finest logs, debug logs, and audit logs) causes the payloads sent to the log_event_data
+             * agent endpoint to get rejected with a MaxPayloadException. This is largely due to the
+             * extremely large size of the JSON payloads that get logged when audit_mode is enabled.
+             *
+             * The agent is capable of logging much more than 500 logs per minute so this means that
+             * with such a low max_samples_stored value the agent logs will be heavily sampled. Not ideal.
+             */
+            int maxSamplesStoredAgentLogs = 500;
             events = new LinkedBlockingQueue<>(maxSamplesStored);
             agentEvents = new LinkedBlockingQueue<>(maxSamplesStoredAgentLogs);
             this.contextDataKeyFilter = contextDataKeyFilter;
