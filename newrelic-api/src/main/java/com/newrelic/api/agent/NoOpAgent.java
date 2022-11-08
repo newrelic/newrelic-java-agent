@@ -176,11 +176,6 @@ class NoOpAgent implements Agent {
         @Override
         public void acceptDistributedTraceHeaders(TransportType transportType, Headers headers) {
         }
-
-        @Override
-        public String getGuid() {
-            return null;
-        }
     };
 
     private static final Token TOKEN = new Token() {

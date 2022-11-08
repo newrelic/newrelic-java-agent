@@ -524,12 +524,6 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     }
 
     @Override
-    public String getGuid() {
-        Transaction tx = getTransactionIfExists();
-        return (tx == null) ? null : tx.getGuid();
-    }
-
-    @Override
     public void setTransportType(TransportType transportType) {
         Transaction tx = getTransactionIfExists();
         if (tx != null) {

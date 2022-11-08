@@ -355,11 +355,4 @@ public interface Transaction {
      */
     void acceptDistributedTraceHeaders(TransportType transportType, Headers headers);
 
-
-    /**
-     * Return the GUID for this transaction.
-     *
-     * @return the GUID for this transaction.
-     */
-    String getGuid();
 }
