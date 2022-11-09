@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Checkout Self
         uses: actions/checkout@v2
+        # This always checkouts main. So the script will be run from main.
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
