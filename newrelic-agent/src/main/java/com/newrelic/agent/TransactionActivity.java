@@ -359,7 +359,7 @@ public class TransactionActivity {
     public void tracerFinished(Tracer tracer, int opcode) {
         if (tracer instanceof SkipTracer) {
             if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
-                Agent.LOG.log(Level.INFO, "Tracer Debug: SkipTracer tracer = {0}", tracer);
+                Agent.LOG.log(Level.FINEST, "Tracer Debug: SkipTracer tracer = {0}", tracer);
             }
             return;
         }
@@ -370,7 +370,7 @@ public class TransactionActivity {
         } else {
             lastTracer = tracer.getParentTracer();
             if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
-                Agent.LOG.log(Level.INFO, "Tracer Debug: lastTracer set to {0}, tracer = {1}", lastTracer, tracer);
+                Agent.LOG.log(Level.FINEST, "Tracer Debug: lastTracer set to {0}, tracer = {1}", lastTracer, tracer);
             }
         }
     }
@@ -472,7 +472,7 @@ public class TransactionActivity {
         rootTracer = tracer;
         lastTracer = tracer;
         if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
-            Agent.LOG.log(Level.INFO, "Tracer Debug: lastTracer and rootTracer set to {0}", tracer);
+            Agent.LOG.log(Level.FINEST, "Tracer Debug: lastTracer and rootTracer set to {0}", tracer);
         }
 
         if (tracer instanceof DefaultTracer) {
