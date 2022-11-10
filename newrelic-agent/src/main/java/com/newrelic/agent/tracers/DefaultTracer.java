@@ -313,7 +313,7 @@ public class DefaultTracer extends AbstractTracer {
                 }
             } catch (Throwable t) {
                 String msg = MessageFormat.format(
-                        "An error occurred calling Transaction.tracerFinished() for class {0} : {1} : this Tracer = {2}",
+                        "Tracer Debug: An error occurred calling Transaction.tracerFinished() for class {0} : {1} : this Tracer = {2}",
                         classMethodSignature.getClassName(), t.toString(), this);
 
                 Agent.LOG.severe(msg);
