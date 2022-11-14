@@ -14,9 +14,7 @@ import com.newrelic.agent.RPMService;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.CommandParserConfig;
-import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.core.CoreService;
-import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -150,7 +148,7 @@ public class CommandParser extends AbstractService implements HarvestListener, A
                         Map<?, ?> commandMap = (Map<?, ?>) agentCommand.get(1);
 
                         String name = commandMap.get("name").equals("stop_profiler") ?
-                                        DisableJfrCommand.COMMAND_NAME : EnableJfrCommand.COMMAND_NAME;
+                                        StopJfrCommand.COMMAND_NAME : StartJfrCommand.COMMAND_NAME;
 
                         //String name = (String) commandMap.get("name");
                         Map<?, ?> args = (Map<?, ?>) commandMap.get("arguments");
@@ -206,10 +204,7 @@ public class CommandParser extends AbstractService implements HarvestListener, A
     protected void doStart() {
         AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
         CoreService coreService = ServiceFactory.getCoreService();
-        JfrService jfrService = ServiceFactory.getJfrService();
-        JfrConfig jfrConfig = config.getJfrConfig();
-        addCommands(new ShutdownCommand(coreService), new RestartCommand(), new EnableJfrCommand(jfrService, jfrConfig),
-                new DisableJfrCommand(jfrService, jfrConfig));
+        addCommands(new ShutdownCommand(coreService), new RestartCommand());
         updateCommandParserConfig(config);
         if (isEnabled()) {
             ServiceFactory.getHarvestService().addHarvestListener(this);

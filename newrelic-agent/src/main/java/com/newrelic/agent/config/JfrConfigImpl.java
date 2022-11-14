@@ -38,10 +38,6 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
         return isEnabled;
     }
 
-    public void setEnabled(boolean isEnabled) {
-        this.isEnabled = isEnabled;
-    }
-
     @Override
     public boolean auditLoggingEnabled() {
         return getProperty(AUDIT_LOGGING, AUDIT_LOGGING_DEFAULT);
@@ -51,5 +47,4 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     public boolean useLicenseKey() {
         return USE_LICENSE_KEY_DEFAULT;
     }
-
 }

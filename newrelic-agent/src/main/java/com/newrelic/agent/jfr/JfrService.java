@@ -11,10 +11,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.ThreadService;
+import com.newrelic.agent.commands.StopJfrCommand;
+import com.newrelic.agent.commands.StartJfrCommand;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.Toggleable;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.*;
@@ -29,11 +32,13 @@ import static com.newrelic.jfr.daemon.AttributeNames.ENTITY_GUID;
 import static com.newrelic.jfr.daemon.SetupUtils.buildCommonAttributes;
 import static com.newrelic.jfr.daemon.SetupUtils.buildUploader;
 
-public class JfrService extends AbstractService {
+public class JfrService extends AbstractService implements Toggleable {
 
     private final JfrConfig jfrConfig;
     private final AgentConfig defaultAgentConfig;
     private JfrController jfrController;
+
+    private boolean isRunning = false;
 
     public JfrService(JfrConfig jfrConfig, AgentConfig defaultAgentConfig) {
         super(JfrService.class.getSimpleName());
@@ -43,7 +48,15 @@ public class JfrService extends AbstractService {
 
     @Override
     protected void doStart() {
-        if (coreApisExist() && isEnabled()) {
+        addJfrServiceCommands();
+    }
+
+    /**
+     * Toggle the service on.
+     */
+    @Override
+    public void toggleOn() {
+        if (coreApisExist() && isEnabled() && !isRunning()) {
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
@@ -67,15 +80,26 @@ public class JfrService extends AbstractService {
                                 startJfrLoop();
                             } catch (JfrRecorderException e) {
                                 Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
-                                jfrController.shutdown();
+                                toggleOff();
                             }
                         });
+
+                isRunning = true;
+                Agent.LOG.log(Level.INFO, "JFR Monitor started; isRunning flag set to true");
             } catch (Throwable t) {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
             }
-        } else {
-            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL);
         }
+    }
+
+    /**
+     * Toggle the service off
+     */
+    @Override
+    public void toggleOff() {
+        doStop();
+        isRunning = false;
+        Agent.LOG.log(Level.INFO, "JFR Monitor stopped; isRunning flag set to false");
     }
 
     // Using Mockito spy, verify execution of this method as start of jfr.
@@ -92,10 +116,22 @@ public class JfrService extends AbstractService {
         return enabled;
     }
 
+    public boolean isRunning() {
+        return this.isRunning;
+    }
+
     @Override
     protected void doStop() {
         if (jfrController != null) {
             jfrController.shutdown();
+        }
+    }
+
+    private void addJfrServiceCommands() {
+        if (jfrConfig.isEnabled()) {
+            Agent.LOG.log(Level.FINEST, "Adding JFR specific commands to CommandParser");
+            ServiceFactory.getCommandParser().addCommands(
+                    new StartJfrCommand(this), new StopJfrCommand(this));
         }
     }
 
