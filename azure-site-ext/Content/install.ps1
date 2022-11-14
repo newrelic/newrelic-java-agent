@@ -24,8 +24,15 @@ try {
 	{
 		$agentVersion = $env:NEWRELIC_AGENT_VERSION_OVERRIDE.ToString()
 	}
-	Invoke-WebRequest -Uri "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/$agentVersion/newrelic-java.zip" -OutFile newrelic-java.zip
-	$newRelicFolder="$HOME\NewRelicJavaAgent"
+
+	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+	# Prevent the progress meter from trying to access the console mode
+	$ProgressPreference = "SilentlyContinue"
+
+	# Set the input and output streams to $null
+	$null | Invoke-WebRequest -Uri "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/$agentVersion/newrelic-java.zip" -OutFile newrelic-java.zip > $null
+	$newRelicFolder = "$env:HOME\NewRelicJavaAgent"
+	WriteToInstallLog "Wrote to $newRelicFolder"
 	Expand-Archive -Path newrelic-java.zip -DestinationPath "$newRelicFolder"
 	WriteToInstallLog "End executing install.ps1."
 	WriteToInstallLog "-----------------------------"
