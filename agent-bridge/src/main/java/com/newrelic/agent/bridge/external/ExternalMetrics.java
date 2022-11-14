@@ -7,12 +7,14 @@
 
 package com.newrelic.agent.bridge.external;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.logging.Level;
 
 /**
  * Utility class for sending External metrics.
@@ -105,6 +107,9 @@ public class ExternalMetrics {
         }
 
         // create a roll up of external calls by host
+        if ("Unknown".equals(host)) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, new Exception(), "Adding /External/Unknown/all rollup metric.");
+        }
         method.addExclusiveRollupMetricName(MessageFormat.format(ALL_HOST, hostName));
     }
 

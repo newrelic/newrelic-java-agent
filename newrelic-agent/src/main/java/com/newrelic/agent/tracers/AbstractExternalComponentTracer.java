@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.tracers;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.stats.TransactionStats;
@@ -15,6 +16,7 @@ import com.newrelic.agent.util.Strings;
 
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public abstract class AbstractExternalComponentTracer extends DefaultTracer implements IgnoreChildSocketCalls {
 
@@ -74,6 +76,10 @@ public abstract class AbstractExternalComponentTracer extends DefaultTracer impl
                         : MetricNames.OTHER_TRANSACTION_EXTERNAL_ALL)).recordResponseTime(getExclusiveDuration(),
                 TimeUnit.NANOSECONDS);
         // create a roll up of external calls by host
+        if (Agent.LOG.isFinestEnabled() && "Unknown".equals(host)) {
+            Agent.LOG.log(Level.FINEST, new Exception(), "Adding /External/Unknown/all rollup metric.");
+        }
+
         String hostRollupMetricName = Strings.join('/', MetricNames.EXTERNAL_PATH, getHost(), "all");
         transactionStats.getUnscopedStats().getOrCreateResponseTimeStats(hostRollupMetricName).recordResponseTime(
                 getExclusiveDuration(), TimeUnit.NANOSECONDS);

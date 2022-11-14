@@ -193,6 +193,10 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
         if (rollupMetricNames == null) {
             rollupMetricNames = new HashSet<>();
         }
+        if (metricNameParts != null && Arrays.asList(metricNameParts).contains("Unknown")) {
+            Agent.LOG.log(Level.FINEST, new Exception(), "Adding rollup metric name containing Unknown: {0}",
+                    Strings.join(MetricNames.SEGMENT_DELIMITER, metricNameParts));
+        }
         rollupMetricNames.add(Strings.join(MetricNames.SEGMENT_DELIMITER, metricNameParts));
     }
 

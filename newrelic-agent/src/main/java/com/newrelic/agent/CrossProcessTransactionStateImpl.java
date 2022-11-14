@@ -301,6 +301,9 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
     }
 
     private void recordExternalMetrics(TracedMethod tracer, String host) {
+        if (Agent.LOG.isFinestEnabled() && "Unknown".equals(host)) {
+            Agent.LOG.log(Level.FINEST, new Exception(), "Adding /External/Unknown/all rollup metric.");
+        }
         tracer.addRollupMetricName(MetricNames.EXTERNAL_PATH, host, "all");
         tracer.addRollupMetricName(MetricNames.EXTERNAL_ALL);
         if (tx != null) {
@@ -572,7 +575,15 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
 
               See {@link com.newrelic.api.agent.Transaction#processResponseMetadata(String)}
              */
-            String host = (uri == null || uri.getHost() == null) ? UNKNOWN_HOST : uri.getHost();
+            String host;
+            if (uri == null || uri.getHost() == null) {
+                host = UNKNOWN_HOST;
+                if (Agent.LOG.isFinestEnabled()) {
+                    Agent.LOG.finest("CrossProcessTransactionStateImpl.processResponseMetadata: using Unknown as host.");
+                }
+            } else {
+                host = uri.getHost();
+            }
             String uriString = (uri == null) ? null : uri.toString();
 
             String decodedAppData = HeadersUtil.getAppDataHeader(NRHeaders);
