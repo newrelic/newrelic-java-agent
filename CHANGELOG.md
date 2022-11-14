@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 
 ### Fixes
-* Updated the Java agent’s snakeyaml dependency to 1.33.
+* Updated the Java agent’s snakeyaml dependency to 1.33. [1077](https://github.com/newrelic/newrelic-java-agent/pull/1077)
 
 ## Version 7.11.0 (2022-10-27)
 
