@@ -11,21 +11,34 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.PrivateApi;
 import com.nr.instrumentation.graphql.helper.GraphQLTestHelper;
 import com.nr.instrumentation.graphql.helper.PrivateApiStub;
+import graphql.execution.ExecutionStepInfo;
+import graphql.execution.ExecutionStrategyParameters;
+import graphql.execution.MergedField;
+import graphql.execution.ResultPath;
 import graphql.language.Definition;
 import graphql.language.Document;
+import graphql.schema.GraphQLNonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class GraphQLSpanUtilTest {
 
     private static final List<Definition> NO_DEFINITIONS = Collections.emptyList();
@@ -79,5 +92,43 @@ public class GraphQLSpanUtilTest {
         assertEquals(expectedType, privateApiStub.getTracerParameterFor("graphql.operation.type"));
         assertEquals(expectedName, privateApiStub.getTracerParameterFor("graphql.operation.name"));
         assertEquals(expectedQuery, privateApiStub.getTracerParameterFor("graphql.operation.query"));
+    }
+
+    // This test verifies https://issues.newrelic.com/browse/NEWRELIC-4936 no longer exists
+    @Test
+    public void testInvalidClassExceptionFix() {
+        // given execution parameters with execution step info type that is NOT GraphQLNamedSchemaElement
+        String expectedFieldPath = "fieldPath";
+        String expectedFieldName = "fieldName";
+        ExecutionStrategyParameters parameters =
+                mockExecutionStrategyParametersForInvalidClassCastExceptionTest(expectedFieldPath, expectedFieldName);
+
+        // when (this had ClassCastException)
+        GraphQLSpanUtil.setResolverAttributes(parameters);
+
+        // then tracer parameters set correctly without exception
+        assertEquals(expectedFieldPath, privateApiStub.getTracerParameterFor("graphql.field.path"));
+        assertEquals(expectedFieldName, privateApiStub.getTracerParameterFor("graphql.field.name"));
+
+        // and 'graphql.field.parentType' is not set
+        assertNull(privateApiStub.getTracerParameterFor("graphql.field.parentType"),
+                "'graphql.field.parentType' is not required and should be null here");
+    }
+
+    private static ExecutionStrategyParameters mockExecutionStrategyParametersForInvalidClassCastExceptionTest(String graphqlFieldPath, String graphqlFieldName) {
+        ExecutionStrategyParameters parameters = mock(ExecutionStrategyParameters.class);
+        ResultPath resultPath = mock(ResultPath.class);
+        MergedField mergedField = mock(MergedField.class);
+        ExecutionStepInfo executionStepInfo = mock(ExecutionStepInfo.class);
+        GraphQLNonNull notGraphQLNamedSchemaElement = mock(GraphQLNonNull.class);
+
+        when(resultPath.getSegmentName()).thenReturn(graphqlFieldPath);
+        when(mergedField.getName()).thenReturn(graphqlFieldName);
+        when(parameters.getPath()).thenReturn(resultPath);
+        when(parameters.getField()).thenReturn(mergedField);
+        when(parameters.getExecutionStepInfo()).thenReturn(executionStepInfo);
+        when(executionStepInfo.getType()).thenReturn(notGraphQLNamedSchemaElement);
+
+        return parameters;
     }
 }

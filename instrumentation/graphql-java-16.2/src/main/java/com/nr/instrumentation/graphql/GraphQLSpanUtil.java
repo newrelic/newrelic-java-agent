@@ -11,7 +11,8 @@ import com.newrelic.agent.bridge.AgentBridge;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
-import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLNamedSchemaElement;
+import graphql.schema.GraphQLOutputType;
 
 import static com.nr.instrumentation.graphql.GraphQLObfuscator.obfuscate;
 import static com.nr.instrumentation.graphql.GraphQLOperationDefinition.getOperationTypeFrom;
@@ -38,9 +39,18 @@ public class GraphQLSpanUtil {
 
     public static void setResolverAttributes(ExecutionStrategyParameters parameters) {
         AgentBridge.privateApi.addTracerParameter("graphql.field.path", parameters.getPath().getSegmentName());
-        GraphQLObjectType type = (GraphQLObjectType) parameters.getExecutionStepInfo().getType();
-        AgentBridge.privateApi.addTracerParameter("graphql.field.parentType", type.getName());
         AgentBridge.privateApi.addTracerParameter("graphql.field.name", parameters.getField().getName());
+        // ExecutionStepInfo is not nullable according to documentation
+        GraphQLOutputType graphQLOutputType = parameters.getExecutionStepInfo().getType();
+        setGraphQLFieldParentTypeIfPossible(graphQLOutputType);
+    }
+
+    private static void setGraphQLFieldParentTypeIfPossible(GraphQLOutputType graphQLOutputType) {
+        // graphql.field.parentType is NOT required according to the Agent Spec
+        if (graphQLOutputType instanceof GraphQLNamedSchemaElement) {
+            GraphQLNamedSchemaElement named = (GraphQLNamedSchemaElement) graphQLOutputType;
+            AgentBridge.privateApi.addTracerParameter("graphql.field.parentType", named.getName());
+        }
     }
 
     private static void setOperationAttributes(String type, String name, String query) {
