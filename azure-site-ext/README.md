@@ -32,3 +32,9 @@ https://learn.microsoft.com/en-au/nuget/install-nuget-client-tools#nugetexe-cli
 
 #### Testing with Non-public NuGet Repository
 
+The testing Nuget repository is: https://www.myget.org/
+
+Upload the nuget package then set up an app config variable in Azure:
+- `SCM_SITEEXTENSIONS_FEED_URL`: The URL to the private Nuget repository created when registering your myget.org account. For example: https://www.myget.org/F/username-nuget-test/api/v3/index.json
+
+In Azure, when you browse to `Development Tools` > `Extensions`, you will see a list of Nuget packages in your private repository.
