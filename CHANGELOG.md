@@ -5,9 +5,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Coming soon
+* TBD
 
-### Fixes
-* Updated the Java agent’s snakeyaml dependency to 1.33. [1077](https://github.com/newrelic/newrelic-java-agent/pull/1077)
+## Version 7.11.1 (2022-11-15)
+
+## New features and improvements
+
+## Fixes
+* Fix bug with log4j2 metrics https://github.com/newrelic/newrelic-java-agent/pull/1068
+* Adds a previously missing delimiter in POSTGRES_DIALECT_PATTERN "|" https://github.com/newrelic/newrelic-java-agent/pull/1050
+* Update snakeyaml lib to v1.33 security patch https://github.com/newrelic/newrelic-java-agent/pull/1077
+
+
+## Deprecation notice
+The following instrumentation modules have been deprecated for removal:
+- cassandra-datastax-2.1.2
+- httpclient-3.0
+- jdbc-embedded-derby-10.10.1.1
+- jetty-7
+- jetty-7.6
+- jetty-9
+- jetty-9.0.4
+- jetty-9.1
+- mongodb-2.12
+- mongodb-2.14
+- mongodb-3.0
+- okhttp-3.0.0
+- okhttp-3.4.0
+- okhttp-3.5.0
+
+The http.responseCode, response.status and response.statusMessage transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by http.statusCode and http.statusText.
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v7.11.0...v7.11.1
 
 ## Version 7.11.0 (2022-10-27)
 
