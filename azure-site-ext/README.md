@@ -24,6 +24,14 @@ Once the Java Agent is installed, you'll need to manually enter two configuratio
 	
 You can also add any additional [app settings](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#Environment_Variables) to configure the agent as needed.
 
+### Extension Details
+
+Once installed, the extension creates the following artifacts:
+- Folder: `C:\home\NewRelicAgent\newrelic` - Contains the Java agent artifacts (jars, sources, etc)
+- XDT: `applicationHost.xdt` that will add the necessary `JAVA_TOOL_OPTIONS` environment variable on application startup
+
+If the extension fails to install, a log file is created at `C:\home\SiteExtensions\NewRelic.Azure.WebSites.Extension.JavaAgent\install.log`.
+
 ### Creating the NuGet Package on OS X
 
 #### Tooling Install
@@ -43,8 +51,8 @@ https://learn.microsoft.com/en-au/nuget/install-nuget-client-tools#nugetexe-cli
 ##### Manually Creating the Package
 
 - Change into the folder where the `.nuget` file exists
-- Execute: `nuget pack NewRelic.Java.Azure.WebSites.Extension.nuspec`
-- This will create a package with the name: `NewRelic.Java.Azure.WebSites.Extension.VERSION.nupkg`
+- Execute: `nuget pack NewRelic.Azure.WebSites.Extension.JavaAgent.nuspec`
+- This will create a package with the name: `NewRelic.Azure.WebSites.Extension.JavaAgent.VERSION.nupkg`
 - Execute: `dotnet nuget push NewRelic.Java.Azure.WebSites.Extension.nupkg --api-key NUGET_API_KEY --source NUGET_SOURCE` where `NUGET_API_KEY` is your NuGet API key and `NUGET_SOURCE` is the URL of the target NuGet site (https://api.nuget.org/v3/index.json is the main, public URL)
 
 ##### Create the Package with the Script
@@ -68,6 +76,11 @@ In Azure, when you browse to `Development Tools` > `Extensions`, you will see a 
 Below is a description of the files that make up the extension. This can be helpful for future maintenance on the extension or for the creation of another Site Extension.
 
 - `README.md` - This file
-- `NewRelic.Java.Azure.WebSites.Extension.nuspec` - Contains the metadata about the target extension: Name, authors, copyright, etc. [Nuspec Format](https://learn.microsoft.com/en-us/nuget/reference/nuspec)
+- `NewRelic.Azure.WebSites.Extension.JavaAgent.nuspec` - Contains the metadata about the target extension: Name, authors, copyright, etc. [Nuspec Format](https://learn.microsoft.com/en-us/nuget/reference/nuspec)
 - `publish.sh` - Simple script to package the script and upload to the Nuget repository
+- `Content/applicationHost.xdt` - XDT transformation to add the necessary agent startup environment variable to the app config when the app starts up
+- `Content/install.cmd` - Simple batch file that wraps a call to the Powershell `install.ps1` script
+- `Content/install.ps1` - Powershell script that downloads the agent bundle and installs it to the proper location on the host
+- `Content/uninstall.cmd` - Simple batch file that will remove the Java installtion artifacts when the extension is removed
+
 
