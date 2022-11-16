@@ -1,5 +1,29 @@
 # Azure Java Agent Site Extension
 
+### Installation of the Site Extension
+
+This extension is designed for Java applications running on Azure Windows compute resources.
+
+**Note:** Make sure that the target application is stopped prior to installing the extension.
+
+From the Azure Home page, do the following:
+- Click the App Services tile
+- Click the name of the target application in the displayed list
+- On the options listed on the left, scroll down to "Extensions" located under the `Development Tools` category
+- Click on `+ Add` at the top of the page
+- From the extension drop down, select `New Relic Java Agent`
+- Click on the `Accept Legal Terms` link
+- Click `OK` on the bottom left of the page
+- Again, click `OK` on the bottom left of the page. This will begin installation of the extension
+
+Once the Java Agent is installed, you'll need to manually enter two configuration items before restarting your application:
+- On the options listed on the left, scroll down to "Configuration" located under the `Settings` category
+- On the configuration page, add the following two app settings:
+    - `NEW_RELIC_LICENSE_KEY` - Your New Relic license key value
+	- `NEW_RELIC_APP_NAME` - The name you wish your application to show up as in the New Relic Platform
+	
+You can also add any additional [app settings](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#Environment_Variables) to configure the agent as needed.
+
 ### Creating the NuGet Package on OS X
 
 #### Tooling Install
@@ -38,3 +62,12 @@ Upload the nuget package then set up an app config variable in Azure:
 - `SCM_SITEEXTENSIONS_FEED_URL`: The URL to the private Nuget repository created when registering your myget.org account. For example: https://www.myget.org/F/username-nuget-test/api/v3/index.json
 
 In Azure, when you browse to `Development Tools` > `Extensions`, you will see a list of Nuget packages in your private repository.
+
+### Extension Source Files
+
+Below is a description of the files that make up the extension. This can be helpful for future maintenance on the extension or for the creation of another Site Extension.
+
+- `README.md` - This file
+- `NewRelic.Java.Azure.WebSites.Extension.nuspec` - Contains the metadata about the target extension: Name, authors, copyright, etc. [Nuspec Format](https://learn.microsoft.com/en-us/nuget/reference/nuspec)
+- `publish.sh` - Simple script to package the script and upload to the Nuget repository
+
