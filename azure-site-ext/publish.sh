@@ -7,6 +7,6 @@ NUGET_API_KEY=$1
 NUGET_SOURCE=$2
 VERSION=1.0.0
 NUSPEC_GENERATED="NewRelic.Azure.WebSites.Extension.JavaAgent.${VERSION}.nuspec"
-sed "s/{VERSION}/${VERSION}/g" NewRelic.Java.Azure.WebSites.Extension.nuspec > "${NUSPEC_GENERATED}"
+sed "s/{VERSION}/${VERSION}/g" NewRelic.Azure.WebSites.Extension.JavaAgent.nuspec > "${NUSPEC_GENERATED}"
 nuget pack "${NUSPEC_GENERATED}"
-dotnet nuget push "NewRelic.Java.Azure.WebSites.Extension.${VERSION}.nupkg" --api-key ${NUGET_API_KEY} --source ${NUGET_SOURCE}
+dotnet nuget push "NewRelic.Azure.WebSites.Extension.JavaAgent.${VERSION}.nupkg" --api-key ${NUGET_API_KEY} --source ${NUGET_SOURCE}

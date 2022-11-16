@@ -7,8 +7,6 @@
 #
 # Retrieves the latest NuGet package for the Java Agent for
 # Azure Web Sites and runs it with default parameters.
-# If the agent configuration file is found, only an upgrade
-# is performed.
 
 function WriteToInstallLog($output)
 {
@@ -19,21 +17,34 @@ function WriteToInstallLog($output)
 try {
 	WriteToInstallLog "Start executing install.ps1"
 
+	# Selects the agent version
 	$agentVersion = "current"
-	if ($env:NEWRELIC_AGENT_VERSION_OVERRIDE -ne $null)
-	{
+	if ($env:NEWRELIC_AGENT_VERSION_OVERRIDE -ne $null) {
 		$agentVersion = $env:NEWRELIC_AGENT_VERSION_OVERRIDE.ToString()
+		WriteToInstallLog "Installing java agent version $agentVersion"
+	} else {
+		WriteToInstallLog "Installing the latest java agent"
 	}
 
+	# Downloads the java agent zip file
+	WriteToInstallLog "Begin downloading newrelic-java.zip"
+
+	# Makes sure web requests use TLS 1.2 protocol
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 	# Prevent the progress meter from trying to access the console mode
 	$ProgressPreference = "SilentlyContinue"
 
-	# Set the input and output streams to $null
+	# Downloading the new relic zip file
 	$null | Invoke-WebRequest -Uri "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/$agentVersion/newrelic-java.zip" -OutFile newrelic-java.zip > $null
-	$newRelicFolder = "$env:HOME\NewRelicJavaAgent"
-	WriteToInstallLog "Wrote to $newRelicFolder"
-	Expand-Archive -Path newrelic-java.zip -DestinationPath "$newRelicFolder"
+
+	WriteToInstallLog "Finish downloading newrelic-java.zip"
+
+	# Expands the java agent zip file and copies it to the java agent folder
+	$NewRelicJavaAgentPath = "$env:HOME\NewRelic\JavaAgent"
+	WriteToInstallLog "Expanding newrelic-java.zip"
+	Expand-Archive -Path newrelic-java.zip -DestinationPath "$NewRelicJavaAgentPath"
+	WriteToInstallLog "Wrote the java agent to $NewRelicJavaAgentPath"
+
 	WriteToInstallLog "End executing install.ps1."
 	WriteToInstallLog "-----------------------------"
 	exit $LASTEXITCODE
@@ -41,6 +52,7 @@ try {
 catch
 {
 	$errorMessage = $_.Exception.Message
-	WriteToInstallLog $errorMessage
+	$errorLine = $_.InvocationInfo.ScriptLineNumber
+	WriteToInstallLog "Error at line $errorLine : $errorMessage"
 	exit 1
 }

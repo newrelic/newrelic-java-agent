@@ -27,7 +27,7 @@ You can also add any additional [app settings](https://docs.newrelic.com/docs/ap
 ### Extension Details
 
 Once installed, the extension creates the following artifacts:
-- Folder: `C:\home\NewRelicAgent\newrelic` - Contains the Java agent artifacts (jars, sources, etc)
+- Folder: `C:\home\NewRelic\JavaAgent\newrelic` - Contains the Java agent artifacts (jars, sources, etc)
 - XDT: `applicationHost.xdt` that will add the necessary `JAVA_TOOL_OPTIONS` environment variable on application startup
 
 If the extension fails to install, a log file is created at `C:\home\SiteExtensions\NewRelic.Azure.WebSites.Extension.JavaAgent\install.log`.
@@ -56,11 +56,10 @@ https://learn.microsoft.com/en-au/nuget/install-nuget-client-tools#nugetexe-cli
 - Execute: `dotnet nuget push NewRelic.Java.Azure.WebSites.Extension.nupkg --api-key NUGET_API_KEY --source NUGET_SOURCE` where `NUGET_API_KEY` is your NuGet API key and `NUGET_SOURCE` is the URL of the target NuGet site (https://api.nuget.org/v3/index.json is the main, public URL)
 
 ##### Create the Package with the Script
-- Export the following environment variables in your shell/environment:
-    - `VERSION` - Version of extension
+- Run `./publish.sh <NUGET_API_KEY> <NUGET_SOURCE>`: this will create the NuGet package and upload to the target repository
+- The parameters for `publish.sh` are the following:
 	- `NUGET_API_KEY` - API key for uploading artifacts to the target NuGet repository
 	- `NUGET_SOURCE` - Target NuGet repository (https://api.nuget.org/v3/index.json is the main, public URL)
-- Run `./publish.sh`: this will create the NuGet package and upload to the target repository
 
 #### Testing with Non-public NuGet Repository
 
