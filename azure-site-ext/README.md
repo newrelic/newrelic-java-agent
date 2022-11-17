@@ -46,16 +46,18 @@ References:
 https://www.wiliam.com.au/wiliam-blog/creating-a-nuget-package
 https://learn.microsoft.com/en-au/nuget/install-nuget-client-tools#nugetexe-cli
 
-#### Creating the Package
+#### Publishing the Package
 
-##### Manually Creating the Package
+##### Manually publishing the Package
 
 - Change into the folder where the `.nuget` file exists
+- Replace `{VERSION}` in `NewRelic.Azure.WebSites.Extension.JavaAgent.nuspec` with a version number you want to push. (DO NOT COMMIT THIS CHANGE)
 - Execute: `nuget pack NewRelic.Azure.WebSites.Extension.JavaAgent.nuspec`
 - This will create a package with the name: `NewRelic.Azure.WebSites.Extension.JavaAgent.VERSION.nupkg`
 - Execute: `dotnet nuget push NewRelic.Java.Azure.WebSites.Extension.nupkg --api-key NUGET_API_KEY --source NUGET_SOURCE` where `NUGET_API_KEY` is your NuGet API key and `NUGET_SOURCE` is the URL of the target NuGet site (https://api.nuget.org/v3/index.json is the main, public URL)
 
-##### Create the Package with the Script
+##### Publishing the Package with the Script
+- Your nuget package version is hardcoded in `version.txt`, update the file to change the version number.
 - Run `./publish.sh <NUGET_API_KEY> <NUGET_SOURCE>`: this will create the NuGet package and upload to the target repository
 - The parameters for `publish.sh` are the following:
 	- `NUGET_API_KEY` - API key for uploading artifacts to the target NuGet repository

@@ -5,7 +5,7 @@
 # Dependencies: .Net 5 and up or .Net Core, Mono, and the Nuget CLI.
 NUGET_API_KEY=$1
 NUGET_SOURCE=$2
-VERSION=1.0.0
+VERSION=$(cat version.txt)
 NUSPEC_GENERATED="NewRelic.Azure.WebSites.Extension.JavaAgent.${VERSION}.nuspec"
 sed "s/{VERSION}/${VERSION}/g" NewRelic.Azure.WebSites.Extension.JavaAgent.nuspec > "${NUSPEC_GENERATED}"
 nuget pack "${NUSPEC_GENERATED}"
