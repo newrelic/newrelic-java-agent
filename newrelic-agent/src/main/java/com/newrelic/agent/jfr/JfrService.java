@@ -38,8 +38,6 @@ public class JfrService extends AbstractService implements Toggleable {
     private final AgentConfig defaultAgentConfig;
     private JfrController jfrController;
 
-    private boolean isRunning = false;
-
     public JfrService(JfrConfig jfrConfig, AgentConfig defaultAgentConfig) {
         super(JfrService.class.getSimpleName());
         this.jfrConfig = jfrConfig;
@@ -49,6 +47,10 @@ public class JfrService extends AbstractService implements Toggleable {
     @Override
     protected void doStart() {
         addJfrServiceCommands();
+
+        if (isEnabled()) {
+            toggleOn();
+        }
     }
 
     /**
@@ -56,7 +58,7 @@ public class JfrService extends AbstractService implements Toggleable {
      */
     @Override
     public void toggleOn() {
-        if (coreApisExist() && isEnabled() && !isRunning()) {
+        if (coreApisExist() && !isEnabled()) {
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
@@ -84,11 +86,12 @@ public class JfrService extends AbstractService implements Toggleable {
                             }
                         });
 
-                isRunning = true;
-                Agent.LOG.log(Level.INFO, "JFR Monitor started; isRunning flag set to true");
+                Agent.LOG.log(Level.INFO, "JFR Monitor started");
             } catch (Throwable t) {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
             }
+        } else {
+            Agent.LOG.log(Level.INFO, "A request was made to start the JFR Monitor but the monitor is already running");
         }
     }
 
@@ -97,9 +100,10 @@ public class JfrService extends AbstractService implements Toggleable {
      */
     @Override
     public void toggleOff() {
-        doStop();
-        isRunning = false;
-        Agent.LOG.log(Level.INFO, "JFR Monitor stopped; isRunning flag set to false");
+        if (isEnabled()) {
+            doStop();
+            Agent.LOG.log(Level.INFO, "JFR Monitor stopped");
+        }
     }
 
     // Using Mockito spy, verify execution of this method as start of jfr.
@@ -114,10 +118,6 @@ public class JfrService extends AbstractService implements Toggleable {
             Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.");
         }
         return enabled;
-    }
-
-    public boolean isRunning() {
-        return this.isRunning;
     }
 
     @Override

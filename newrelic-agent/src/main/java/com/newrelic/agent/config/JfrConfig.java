@@ -7,14 +7,7 @@
 
 package com.newrelic.agent.config;
 
-public interface JfrConfig {
-
-    /**
-     * Check if the JFR service is enabled.
-     *
-     * @return <code>true</code> if the JFR service is enabled, else <code>false</code>.
-     */
-    boolean isEnabled();
+public interface JfrConfig extends EnableToggle {
 
     /**
      * Check if audit_logging is enabled for the JFR service.
@@ -29,11 +22,4 @@ public interface JfrConfig {
      * @return <code>true</code> is use_license_key is enabled for the JFR service is enabled, else <code>false</code>.
      */
     boolean useLicenseKey();
-
-    /**
-     * Check if profiling_active is enabled for the JFR service.
-     *
-     * @return <code>true</code> is run_at_startup is enabled for the JFR service, else <code>false</code>.
-     */
-    boolean profilingActive();
 }
