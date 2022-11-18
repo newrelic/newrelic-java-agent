@@ -16,8 +16,10 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     public static final String ENABLED = "enabled";
     public static final Boolean ENABLED_DEFAULT = Boolean.FALSE;
     public static final String AUDIT_LOGGING = "audit_logging";
+    public static final String PROFILING_ACTIVE = "profiling_active";
     public static final Boolean AUDIT_LOGGING_DEFAULT = Boolean.FALSE;
     public static final Boolean USE_LICENSE_KEY_DEFAULT = Boolean.TRUE;
+    public static final Boolean PROFILING_ON_STARTUP_DEFAULT = Boolean.FALSE;
 
     private boolean isEnabled;
 
@@ -46,5 +48,10 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     @Override
     public boolean useLicenseKey() {
         return USE_LICENSE_KEY_DEFAULT;
+    }
+
+    @Override
+    public boolean profilingActive() {
+        return getProperty(PROFILING_ACTIVE, PROFILING_ON_STARTUP_DEFAULT);
     }
 }

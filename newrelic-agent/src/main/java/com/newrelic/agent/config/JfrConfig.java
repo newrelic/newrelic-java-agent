@@ -29,4 +29,11 @@ public interface JfrConfig {
      * @return <code>true</code> is use_license_key is enabled for the JFR service is enabled, else <code>false</code>.
      */
     boolean useLicenseKey();
+
+    /**
+     * Check if profiling_active is enabled for the JFR service.
+     *
+     * @return <code>true</code> is run_at_startup is enabled for the JFR service, else <code>false</code>.
+     */
+    boolean profilingActive();
 }
