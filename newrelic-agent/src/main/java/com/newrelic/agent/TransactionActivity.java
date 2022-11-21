@@ -338,6 +338,9 @@ public class TransactionActivity {
         } else {
             if (tracer.getParentTracer() != null) {
                 lastTracer = tracer;
+                if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
+                    Agent.LOG.log(Level.FINEST, "Tracer Debug: called addTracerToStack, lastTracer (pointer to top of stack) set to {0}", tracer);
+                }
                 addTracer(tracer);
             } else {
                 if (Agent.LOG.isFinestEnabled()) {
@@ -355,6 +358,9 @@ public class TransactionActivity {
      */
     public void tracerFinished(Tracer tracer, int opcode) {
         if (tracer instanceof SkipTracer) {
+            if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
+                Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, ignoring SkipTracer tracer = {0}", tracer);
+            }
             return;
         }
         if (tracer != lastTracer) {
@@ -363,6 +369,9 @@ public class TransactionActivity {
             finished(rootTracer, opcode);
         } else {
             lastTracer = tracer.getParentTracer();
+            if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
+                Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, lastTracer (pointer to top of stack) set to {0}, tracer (actual tracer popped off stack) = {1}", lastTracer, tracer);
+            }
         }
     }
 
@@ -373,7 +382,7 @@ public class TransactionActivity {
      * @param opcode
      */
     private void failedDueToInconsistentTracerState(Tracer tracer, int opcode) {
-        Agent.LOG.log(Level.SEVERE, "Inconsistent state!  tracer != last tracer for {0} ({1} != {2})", this, tracer,
+        Agent.LOG.log(Level.SEVERE, "Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for {0} ({1} != {2})", this, tracer,
                 lastTracer);
         try {
             transaction.activityFailedOrIgnored(this, opcode);
@@ -462,6 +471,9 @@ public class TransactionActivity {
     private void setRootTracer(Tracer tracer) {
         rootTracer = tracer;
         lastTracer = tracer;
+        if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
+            Agent.LOG.log(Level.FINEST, "Tracer Debug: called setRootTracer, lastTracer (pointer to top of stack) and rootTracer set to {0}", tracer);
+        }
 
         if (tracer instanceof DefaultTracer) {
             DefaultTracer dt = (DefaultTracer) tracer;
