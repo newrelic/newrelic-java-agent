@@ -12,7 +12,7 @@ jar {
 }
 
 verifyInstrumentation {
-  passesOnly('org.springframework.ws:spring-ws-core:[1.5.7,)'){
+  passesOnly('org.springframework.ws:spring-ws-core:[1.5.7,4.0.0)'){
     implementation("org.apache.ws.commons.axiom:axiom-api:1.4.0")
   }
   // version 3.1.0 fails but then 3.1.1 passes again
