@@ -383,8 +383,9 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
             if (key == null || value == null) {
-                Agent.LOG.log(Level.WARNING, "Custom event with invalid attributes key or value of null was reported for a transaction but ignored."
-                        + " Each key should be a String and each value should be a String, Number, or Boolean.");
+                Agent.LOG.log(Level.WARNING, "Custom event [{0}] with invalid attributes key or value of null was reported for a transaction but ignored."
+                        + " Each key should be a String and each value should be a String, Number, or Boolean. Key: {1} / Value: {2}",
+                        eventType, (key == null ? "[null]" : key), (value == null ? "[null]" : value.toString()));
                 continue;
             }
 
