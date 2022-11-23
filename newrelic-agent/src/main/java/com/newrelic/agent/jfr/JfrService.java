@@ -58,7 +58,7 @@ public class JfrService extends AbstractService implements Toggleable {
      */
     @Override
     public void toggleOn() {
-        if (coreApisExist() && !isEnabled()) {
+        if (coreApisExist() && isEnabled()) {
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
@@ -91,7 +91,8 @@ public class JfrService extends AbstractService implements Toggleable {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
             }
         } else {
-            Agent.LOG.log(Level.INFO, "A request was made to start the JFR Monitor but the monitor is already running");
+            Agent.LOG.log(Level.INFO, "A request was made to start the JFR Monitor but the enabled flag is false or " +
+                    "necessary APIs do not exist");
         }
     }
 
@@ -100,7 +101,7 @@ public class JfrService extends AbstractService implements Toggleable {
      */
     @Override
     public void toggleOff() {
-        if (isEnabled()) {
+        if (!isEnabled()) {
             doStop();
             Agent.LOG.log(Level.INFO, "JFR Monitor stopped");
         }
@@ -114,9 +115,7 @@ public class JfrService extends AbstractService implements Toggleable {
     @Override
     public final boolean isEnabled() {
         final boolean enabled = jfrConfig.isEnabled();
-        if (!enabled) {
-            Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.");
-        }
+        Agent.LOG.log(Level.INFO, "New Relic JFR Monitor enabled flag: {0}", enabled);
         return enabled;
     }
 
@@ -128,11 +127,9 @@ public class JfrService extends AbstractService implements Toggleable {
     }
 
     private void addJfrServiceCommands() {
-        if (jfrConfig.isEnabled()) {
-            Agent.LOG.log(Level.FINEST, "Adding JFR specific commands to CommandParser");
-            ServiceFactory.getCommandParser().addCommands(
-                    new StartJfrCommand(this), new StopJfrCommand(this));
-        }
+        Agent.LOG.log(Level.FINEST, "Adding JFR specific commands to CommandParser");
+        ServiceFactory.getCommandParser().addCommands(
+                new StartJfrCommand(this, jfrConfig), new StopJfrCommand(this, jfrConfig));
     }
 
     @VisibleForTesting
