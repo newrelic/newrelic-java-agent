@@ -11,7 +11,6 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import java.io.InputStream;
 import java.net.URL;
 
 import static com.nr.agent.instrumentation.log4j1.Log4j1Util.setLog4j1Enabled;
@@ -20,10 +19,10 @@ import static com.nr.agent.instrumentation.log4j1.Log4j1Util.setLog4j1Enabled;
 public class Configurator_Instrumentation {
 
 
-    public void doConfigure(InputStream inputStream, LoggerRepository repository) {
-        setLog4j1Enabled();
-        Weaver.callOriginal();
-    }
+//    public void doConfigure(InputStream inputStream, LoggerRepository repository) {
+//        setLog4j1Enabled();
+//        Weaver.callOriginal();
+//    }
 
     public void doConfigure(URL url, LoggerRepository repository) {
         setLog4j1Enabled();

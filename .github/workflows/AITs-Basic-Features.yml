@@ -22,7 +22,7 @@ jobs:
     name: Basic Features
     # needs: install-all-java
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     # Determine if easier to make the env strings below part of the matrix
     env:
       java_func_path: "tests/java/functionality"
@@ -281,10 +281,6 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
           echo "still complains of file not found"
           ls -la ${GITHUB_WORKSPACE}
-          sudo apt update
-          sudo apt install software-properties-common
-          sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt install python3.8
           sudo apt-get install virtualenv
           virtualenv -p /usr/bin/python3.8 .
           echo "What version of maven are we using?"
