@@ -270,6 +270,11 @@ jobs:
           cd agent-integration-tests/
           ls -la
 
+      - name: Setup Python 3.9
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run AITs - ${{ matrix.func_tests}}
@@ -282,7 +287,7 @@ jobs:
           echo "still complains of file not found"
           ls -la ${GITHUB_WORKSPACE}
           sudo apt-get install virtualenv
-          virtualenv -p /usr/bin/python3.10 .
+          virtualenv -p /usr/bin/python3 .
           echo "What version of maven are we using?"
           mvn --version
           echo "are the files created?"
