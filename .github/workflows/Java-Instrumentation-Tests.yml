@@ -21,7 +21,7 @@ jobs:
     name: Java ${{ matrix.jre }} Instrumentation Tests
     timeout-minutes: 60
     # needs: install-all-java
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       default-branch: "main"
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
