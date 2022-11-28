@@ -270,10 +270,10 @@ jobs:
           cd agent-integration-tests/
           ls -la
 
-      - name: Setup Python 3.9
+      - name: Setup Python 3.8
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.8'
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
