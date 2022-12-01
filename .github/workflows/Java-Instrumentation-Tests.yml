@@ -148,7 +148,7 @@ jobs:
       # Capture HTML build result in artifacts
       - name: Capture build reports
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: instrumentation-tests-results-java-${{ matrix.jre }}
           path: |

@@ -271,7 +271,7 @@ jobs:
       # Capture Testing Artifacts temp for development
       - name: Capture testing artifacts
         if: ${{ failure() || success() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.workflow }}-${{ github.job }}-${{ env.Matrix }}
           path: |
