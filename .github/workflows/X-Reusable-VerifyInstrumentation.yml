@@ -29,7 +29,7 @@ jobs:
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ inputs.ref }}
 
@@ -48,7 +48,7 @@ jobs:
             echo " }"
           ) | jq -c .)
           # save the output of the job
-          echo "::set-output name=modules::$modules"
+          echo "modules=$modules" >> $GITHUB_OUTPUT
 
   # build the agent and saves Gradle's cache so all modules can use the cache
   # At first, the agent jar was being cached, but this caused a problem with the caching mechanism and some
@@ -56,12 +56,12 @@ jobs:
   build-agent:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ inputs.ref }}
 
       - name: Set up Java 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 11
@@ -71,7 +71,7 @@ jobs:
           echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
 
       - name: Set up Java 8
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 8
@@ -127,12 +127,12 @@ jobs:
       # GHA's IDE think the line below is broken. It is not.
       matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ inputs.ref }}
 
       - name: Set up Java 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 11
@@ -142,7 +142,7 @@ jobs:
           echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
 
       - name: Set up Java 8
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 8
@@ -194,7 +194,7 @@ jobs:
 
       # Setting up 11 again so tests are run with it. This is so libraries build with 11 can pass.
       - name: Set up Java 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 11

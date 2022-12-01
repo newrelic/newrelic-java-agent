@@ -22,12 +22,12 @@ jobs:
       MODULE: ${{ github.event.inputs.module || inputs.module }}
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ inputs.ref }}
 
       - name: Set up Java 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 11
@@ -37,7 +37,7 @@ jobs:
           echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
 
       - name: Set up Java 8
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 8
