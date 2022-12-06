@@ -83,6 +83,7 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
+import com.newrelic.api.agent.security.schema.SecurityMetaData;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -241,6 +242,8 @@ public class Transaction {
 
     // count of active tokens and tracers
     private final AtomicInteger activeCount;
+
+    private final SecurityMetaData securityMetaData;
 
     private final MetricAggregator metricAggregator = new AbstractMetricAggregator() {
         @Override
@@ -456,6 +459,7 @@ public class Transaction {
         runningChildren = new LazyMapImpl<>(factory);
         activeTokensCache = new AtomicReference<>();
         activeCount = new AtomicInteger(0);
+        securityMetaData = new SecurityMetaData();
     }
 
     // This method must be called after construction. This is ugly, but avoids
@@ -2559,5 +2563,9 @@ public class Transaction {
         synchronized (lock) {
             return runningChildren.size() + finishedChildren.size();
         }
+    }
+
+    public SecurityMetaData getSecurityMetaData() {
+        return securityMetaData;
     }
 }

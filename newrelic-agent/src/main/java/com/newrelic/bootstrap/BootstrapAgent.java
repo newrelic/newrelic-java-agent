@@ -113,26 +113,6 @@ public class BootstrapAgent {
 
         checkAndApplyIBMLibertyProfileLogManagerWorkaround();
         startAgent(agentArgs, inst);
-        attachK2Agent(agentArgs, inst);
-    }
-
-    private static void attachK2Agent(String agentArgs, Instrumentation inst) {
-        try {
-            // Locate K2 JC jar
-            JarFile jarFileInAgent = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.K2_JAVA_AGENT));
-
-            // Append K2 JC jar to bootclass path
-            inst.appendToBootstrapClassLoaderSearch(jarFileInAgent);
-            inst.appendToSystemClassLoaderSearch(jarFileInAgent);
-
-            // Load in bootstrap classloader
-            Class agentNew = Class.forName("sun.reflect.com.k2cybersecurity.instrumentator.AgentNew", true, null);
-            Method premain = agentNew.getMethod("premain", String.class, Instrumentation.class);
-            premain.setAccessible(true);
-            premain.invoke(null, agentArgs, inst);
-        } catch (Throwable throwable){
-            throwable.printStackTrace();
-        }
     }
 
     private static void checkAndApplyIBMLibertyProfileLogManagerWorkaround() {

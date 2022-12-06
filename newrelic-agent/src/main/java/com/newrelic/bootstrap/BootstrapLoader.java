@@ -50,7 +50,9 @@ public class BootstrapLoader {
 
     public static final String WEAVER_API_JAR_NAME = "newrelic-weaver-api";
 
-    public static final String K2_JAVA_AGENT = "k2-java-agent-1.0.0";
+    public static final String NEWRELIC_SECURITY_AGENT = "newrelic-security-agent";
+
+    public static final String NEWRELIC_SECURITY_API = "newrelic-security-api";
 
     static final class ApiClassTransformer implements ClassFileTransformer {
         private final byte[] bytes;
@@ -113,7 +115,7 @@ public class BootstrapLoader {
     public static Collection<URL> getJarURLs() throws ClassNotFoundException, IOException {
         List<URL> urls = new ArrayList<>();
         for (String name : new String[] { AGENT_BRIDGE_JAR_NAME, AGENT_BRIDGE_DATASTORE_JAR_NAME,
-                API_JAR_NAME, WEAVER_API_JAR_NAME }) {
+                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API}) {
             File jarFileInAgent = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(name);
             urls.add(jarFileInAgent.toURI().toURL());
         }
@@ -137,6 +139,8 @@ public class BootstrapLoader {
             addBridgeJarToClassPath(inst, AGENT_BRIDGE_JAR_NAME);
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(API_JAR_NAME)));
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(WEAVER_API_JAR_NAME)));
+            addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_API)));
+            addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

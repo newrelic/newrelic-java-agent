@@ -7,16 +7,9 @@
 
 package com.newrelic.agent.bridge;
 
-import com.newrelic.api.agent.ApplicationNamePriority;
+import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.DistributedTracePayload;
-import com.newrelic.api.agent.ExtendedRequest;
-import com.newrelic.api.agent.Headers;
-import com.newrelic.api.agent.InboundHeaders;
-import com.newrelic.api.agent.Request;
-import com.newrelic.api.agent.Response;
-import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.TransactionNamePriority;
-import com.newrelic.api.agent.TransportType;
 
 import java.net.URI;
 import java.util.Collection;
@@ -316,6 +309,11 @@ public class NoOpTransaction implements Transaction {
 
     @Override
     public void acceptDistributedTraceHeaders(TransportType transportType, Headers headers) {
+    }
+
+    @Override
+    public Object getSecurityMetaData() {
+        return new Object();
     }
 
     @Override

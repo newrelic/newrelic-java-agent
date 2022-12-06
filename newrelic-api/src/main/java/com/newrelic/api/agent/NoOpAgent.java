@@ -176,6 +176,11 @@ class NoOpAgent implements Agent {
         @Override
         public void acceptDistributedTraceHeaders(TransportType transportType, Headers headers) {
         }
+
+        @Override
+        public Object getSecurityMetaData() {
+            return new Object();
+        }
     };
 
     private static final Token TOKEN = new Token() {

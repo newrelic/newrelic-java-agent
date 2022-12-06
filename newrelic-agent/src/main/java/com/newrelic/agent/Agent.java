@@ -20,10 +20,12 @@ import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.ClassStructure;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.security.NewRelicSecurity;
+import com.newrelic.api.agent.security.SecurityAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.weave.utils.Streams;
 import org.objectweb.asm.ClassReader;
-import sun.reflect.com.k2cybersecurity.instrumentator.K2Instrumentator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -149,6 +151,7 @@ public final class Agent {
             return;
         }
 
+        SecurityAgent securityAgent = com.newrelic.agent.security.Agent.getInstance();
         try {
             ServiceManager serviceManager = ServiceFactory.getServiceManager();
 
@@ -199,21 +202,33 @@ public final class Agent {
             System.exit(1);
         }
         lifecycleObserver.agentStarted();
-        try {
-            LOG.log(Level.INFO, "Invoking K2 security module");
-            ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
-                @Override
-                public void connected(IRPMService rpmService, AgentConfig agentConfig) {
-                    K2Instrumentator.refresh();
-                }
+        InitialiseNewRelicSecurityIfAllowed(securityAgent);
+    }
 
-                @Override
-                public void disconnected(IRPMService rpmService) {
-                    K2Instrumentator.agentInactive();
-                }
-            });
-        } catch (Throwable t2) {
-            LOG.error("license_key is empty in the config. Not starting New Relic Agent.");
+    private static void InitialiseNewRelicSecurityIfAllowed(SecurityAgent securityAgent) {
+        // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
+        if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false)) {
+            try {
+                LOG.log(Level.INFO, "Invoking K2 security module");
+                NewRelicSecurity.initialise(securityAgent);
+                ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
+                    @Override
+                    public void connected(IRPMService rpmService, AgentConfig agentConfig) {
+                        NewRelicSecurity.getAgent().refreshState();
+                    }
+
+                    @Override
+                    public void disconnected(IRPMService rpmService) {
+                        NewRelicSecurity.getAgent().deactivateSecurity();
+                    }
+                });
+            } catch (Throwable t2) {
+                // TODO : Give a generic error here.
+                LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
+            }
+        } else {
+            LOG.warning("New Relic Security is completely disabled forcefully by user provided config `security.force_complete_disable`. " +
+                    "Not loading security capabilities.");
         }
     }
 
