@@ -76,7 +76,30 @@ public class BootstrapLoader {
         }
     }
 
+    static final class SecurityApiClassTransformer implements ClassFileTransformer {
+        private final byte[] bytes;
+
+        SecurityApiClassTransformer(byte[] bytes) {
+            this.bytes = bytes;
+        }
+
+        @Override
+        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                                ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+
+            if (className == null) {
+                return null;
+            }
+
+            if (NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME.equals(className)) {
+                return bytes;
+            }
+            return null;
+        }
+    }
+
     private static final String NEWRELIC_API_INTERNAL_CLASS_NAME = "com/newrelic/api/agent/NewRelic";
+    private static final String NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME = "com/newrelic/api/agent/security/NewRelicSecurity";
 
     private static void addBridgeJarToClassPath(Instrumentation instrProxy, String jar) throws ClassNotFoundException, IOException {
         JarFile jarFileInAgent = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(jar));
@@ -92,6 +115,17 @@ public class BootstrapLoader {
         JarEntry jarEntry = bridgeJarFile.getJarEntry(NEWRELIC_API_INTERNAL_CLASS_NAME + ".class");
         final byte[] bytes = read(bridgeJarFile.getInputStream(jarEntry), true);
         instrProxy.addTransformer(new ApiClassTransformer(bytes), true);
+    }
+
+    /**
+     * This forces the correct NewRelic Security api implementation to load by getting the implementation class bytes out of the
+     * security agent jar and hooking up a class transformer to always load those bytes for our api class.
+     */
+    public static void forceCorrectNewRelicSecurityApi(Instrumentation instrProxy) throws IOException {
+        JarFile securityAgentJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT));
+        JarEntry jarEntry = securityAgentJarFile.getJarEntry(NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME + ".class");
+        final byte[] bytes = read(securityAgentJarFile.getInputStream(jarEntry), true);
+        instrProxy.addTransformer(new SecurityApiClassTransformer(bytes), true);
     }
 
     private static void addJarToClassPath(Instrumentation instrProxy, JarFile jarfile) {

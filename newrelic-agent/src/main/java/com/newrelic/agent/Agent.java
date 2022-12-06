@@ -24,6 +24,7 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.security.NewRelicSecurity;
 import com.newrelic.api.agent.security.SecurityAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
+import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
 import org.objectweb.asm.ClassReader;
 
@@ -151,7 +152,6 @@ public final class Agent {
             return;
         }
 
-        SecurityAgent securityAgent = com.newrelic.agent.security.Agent.getInstance();
         try {
             ServiceManager serviceManager = ServiceFactory.getServiceManager();
 
@@ -202,19 +202,24 @@ public final class Agent {
             System.exit(1);
         }
         lifecycleObserver.agentStarted();
-        InitialiseNewRelicSecurityIfAllowed(securityAgent);
+        InitialiseNewRelicSecurityIfAllowed();
     }
 
-    private static void InitialiseNewRelicSecurityIfAllowed(SecurityAgent securityAgent) {
+    private static void InitialiseNewRelicSecurityIfAllowed() {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
         if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false)) {
             try {
                 LOG.log(Level.INFO, "Invoking K2 security module");
-                NewRelicSecurity.initialise(securityAgent);
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
                     @Override
                     public void connected(IRPMService rpmService, AgentConfig agentConfig) {
-                        NewRelicSecurity.getAgent().refreshState();
+                        try {
+                            URL securityJarURL = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
+                            NewRelicSecurity.getAgent().refreshState(securityJarURL);
+                            NewRelicSecurity.markAgentAsInitialised();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
 
                     @Override
@@ -251,6 +256,7 @@ public final class Agent {
 
             // Now that we know the agent is enabled, add the ApiClassTransformer
             BootstrapLoader.forceCorrectNewRelicApi(inst);
+            BootstrapLoader.forceCorrectNewRelicSecurityApi(inst);
 
             // init problem classes before class transformer service is active
             InitProblemClasses.loadInitialClasses();
