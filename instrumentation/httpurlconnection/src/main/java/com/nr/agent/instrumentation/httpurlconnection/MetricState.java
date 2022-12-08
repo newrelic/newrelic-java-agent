@@ -171,7 +171,6 @@ public class MetricState {
                  * nothing and method.reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
                  */
                 segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
-                segment.ignore();
             }
         }
     }
@@ -230,7 +229,7 @@ public class MetricState {
         String uri = URISupport.getURI(connection.getURL());
         InboundWrapper inboundWrapper = new InboundWrapper(connection);
 
-        // This will result in External rollup metrics being generated
+        // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
         // Calling reportAsExternal is what causes an HTTP span to be created
         segment.reportAsExternal(HttpParameters
                 .library(LIBRARY)
@@ -239,6 +238,7 @@ public class MetricState {
                 .inboundHeaders(inboundWrapper)
                 .status(responseCode, responseMessage)
                 .build());
+
         segment.end();
     }
 
