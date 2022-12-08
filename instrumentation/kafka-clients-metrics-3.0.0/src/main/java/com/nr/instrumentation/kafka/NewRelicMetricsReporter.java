@@ -9,6 +9,7 @@ package com.nr.instrumentation.kafka;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,16 @@ public class NewRelicMetricsReporter implements MetricsReporter {
 
     private final Map<String, KafkaMetric> metrics = new ConcurrentHashMap<>();
 
+    private final List<String> nodes;
+
+    public NewRelicMetricsReporter() {
+        this.nodes = Collections.emptyList();
+    }
+
+    public NewRelicMetricsReporter(List<String> nodes) {
+        this.nodes = nodes;
+    }
+
     @Override
     public void init(final List<KafkaMetric> initMetrics) {
         for (KafkaMetric kafkaMetric : initMetrics) {
@@ -45,6 +56,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
         }
 
         final String metricPrefix = "MessageBroker/Kafka/Internal/";
+        final String nodePrefix = "MessageBroker/Kafka/Nodes/";
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -66,7 +78,14 @@ public class NewRelicMetricsReporter implements MetricsReporter {
                             }
                         }
                     }
-
+                    for (String node : nodes) {
+                        String metricName = nodePrefix + node;
+                        if (metricsAsEvents) {
+                            eventData.put(metricName.replace('/', '.'), 1f);
+                        } else {
+                            NewRelic.recordMetric(metricName, 1f);
+                        }
+                    }
                     if (metricsAsEvents) {
                         NewRelic.getAgent().getInsights().recordCustomEvent("KafkaMetrics", eventData);
                     }
