@@ -23,8 +23,8 @@ public class MetricState {
     private static final String LIBRARY = "HttpURLConnection";
     private static final String CATEGORY = "Java";
     public static final String CONNECT_OP = "connect";
-    public static final String GET_INPUT_STREAM_OP = "getInputStream";
     public static final String GET_OUTPUT_STREAM_OP = "getOutputStream";
+    public static final String GET_INPUT_STREAM_OP = "getInputStream";
     public static final String GET_RESPONSE_CODE_OP = "getResponseCode";
 
     private boolean metricsRecorded;
@@ -97,21 +97,26 @@ public class MetricState {
         timer.schedule(task, segmentExpirationDelayInMillis);
     }
 
+    /**
+     * This method is called when a TimerTask completes if connect and/or getOutputStream were the only HttpURLConnection APIs called.
+     * If only connect is called, the segment is ignored as no external call has been made.
+     * If only getOutputStream is called, or any combination of connect and getOutputStream, then an external call is reported and
+     * the timing of the segment is ended.
+     *
+     * @param connection HttpURLConnection
+     */
     private void endSegmentForNonNetworkCall(HttpURLConnection connection) {
         if (firstMethodCalled != null && segment != null) {
             if (!networkRequestMethodCalled) {
+                // If connect was the first and only method called when the TimerTask completes then simply ignore the segment as no external call was made.
                 if (firstMethodCalled.equals(CONNECT_OP)) {
                     segment.ignore();
-                    System.out.println(Thread.currentThread().getName() + ": segment expired: " + firstMethodCalled);
                 } else if (firstMethodCalled.equals(GET_OUTPUT_STREAM_OP)) {
-                    // call reportAsExternal before ending segment when getOutputStream is called as it can be used in a fire
-                    // and forget manner to write data to the connection without getting any data from the response, in which
-                    // case the response code and message will both be unavailable.
+                    // If firstMethodCalled is set to getOutputStream when the TimerTask completes then we invoke reportExternalCall which
+                    // will also end the segment timing. In this scenario getOutputStream was called in a fire and forget manner without ever
+                    // inspecting the response, which means that the response code and message will both be unavailable on the reported external.
                     reportExternalCall(connection, firstMethodCalled, 0, null);
-                    System.out.println(Thread.currentThread().getName() + ": segment expired: " + firstMethodCalled);
                 }
-            } else {
-                System.out.println(Thread.currentThread().getName() + ": segment not expired");
             }
         }
     }
@@ -126,16 +131,13 @@ public class MetricState {
      * @param operation   HttpURLConnection method being invoked
      */
     public void nonNetworkPreamble(boolean isConnected, HttpURLConnection connection, String operation) {
+        handleSegmentsForNonNetworkMethods(connection, operation);
+
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
 
-        handleSegmentsForNonNetworkMethods(connection, operation);
-
         if (!isConnected && method.isMetricProducer() && tx != null) {
             startSegmentIfNull(tx, operation);
-
-            // This method doesn't have any network I/O so we are explicitly not recording external rollup metrics
-//            makeNonRollupExternalMetric(connection, method, operation);
 
             /*
              * Add CAT/Distributed tracing headers to this outbound request.
@@ -148,21 +150,27 @@ public class MetricState {
         }
     }
 
+    /**
+     * Called when getInputStream is invoked.
+     * This code path guarantees that getInboundPostamble will ultimately be called and an external call will be reported.
+     *
+     * @param isConnected true if a connection has already been made, else false
+     * @param connection  HttpURLConnection
+     * @param method      traced method that will be the parent of the segment
+     */
     public void getInputStreamPreamble(boolean isConnected, HttpURLConnection connection, TracedMethod method) {
-        final String operation = GET_INPUT_STREAM_OP;
-
         networkRequestMethodCalled = true;
-        handleSegmentsForNonNetworkMethods(connection, operation);
+        handleSegmentsForNonNetworkMethods(connection, GET_INPUT_STREAM_OP);
 
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && tx != null) {
-            startSegmentIfNull(tx, operation);
+            startSegmentIfNull(tx, GET_INPUT_STREAM_OP);
             if (!recordedANetworkCall) {
                 this.recordedANetworkCall = true;
-//                makeNonRollupExternalMetric(connection, method, operation);
             }
 
             if (!isConnected) {
+
                 /*
                  * Add CAT/Distributed tracing headers to this outbound request.
                  *
@@ -175,20 +183,34 @@ public class MetricState {
         }
     }
 
+    /**
+     * Called when getResponseCode is invoked.
+     * This code path guarantees that getInboundPostamble will ultimately be called and an external call will be reported.
+     *
+     * @param connection HttpURLConnection
+     * @param method     traced method that will be the parent of the segment
+     */
     public void getResponseCodePreamble(HttpURLConnection connection, TracedMethod method) {
         networkRequestMethodCalled = true;
+        handleSegmentsForNonNetworkMethods(connection, GET_RESPONSE_CODE_OP);
+
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && tx != null && !recordedANetworkCall) {
             this.recordedANetworkCall = true;
-            String operation = GET_RESPONSE_CODE_OP;
-
-            handleSegmentsForNonNetworkMethods(connection, operation);
-
-            startSegmentIfNull(tx, operation);
-//            makeNonRollupExternalMetric(connection, method, operation);
+            startSegmentIfNull(tx, GET_RESPONSE_CODE_OP);
         }
     }
 
+    /**
+     * Called when either getInputStream or getResponseCode is invoked.
+     * This code path is what ultimately calls reportExternalCall to create an External HTTP span.
+     *
+     * @param connection      HttpURLConnection
+     * @param responseCode    HttpURLConnection response code
+     * @param responseMessage HttpURLConnection response message
+     * @param operation       HttpURLConnection method being invoked
+     * @param method          traced method that will be the parent of the segment
+     */
     public void getInboundPostamble(HttpURLConnection connection, int responseCode, String responseMessage, String operation, TracedMethod method) {
         networkRequestMethodCalled = true;
         handleSegmentsForNonNetworkMethods(connection, operation);
@@ -241,24 +263,4 @@ public class MetricState {
 
         segment.end();
     }
-
-//    /**
-//     * Sets external metric name (i.e. External/{HOST}/HttpURLConnection).
-//     * This does not create rollup metrics such as External/all, External/allWeb, External/allOther, External/{HOST}/all
-//     *
-//     * @param connection HttpURLConnection instance
-//     * @param method     TracedMethod instance
-//     * @param operation  String representation of operation
-//     */
-//    private void makeNonRollupExternalMetric(HttpURLConnection connection, TracedMethod method, String operation) {
-//        URL url = connection.getURL();
-//        String uri = URISupport.getURI(url);
-//        ExternalMetrics.makeExternalComponentMetric(
-//                method,
-//                url.getHost(),
-//                LIBRARY,
-//                false,
-//                uri,
-//                operation);
-//    }
 }
