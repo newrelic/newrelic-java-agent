@@ -17,6 +17,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.grpc.GrpcConfig;
 import com.nr.agent.instrumentation.grpc.GrpcResponse;
+import com.nr.agent.instrumentation.grpc.GrpcUtil;
 import io.grpc.Metadata;
 import io.grpc.Status;
 
@@ -28,56 +29,24 @@ public abstract class ServerStream_Instrumentation {
     public Token token;
 
     @Trace(async = true)
-    public void close(Status status, Metadata trailers) {
-        if (token != null) {
-            token.link();
-            Transaction transaction = NewRelic.getAgent().getTransaction();
-            transaction.setWebResponse(new GrpcResponse(status, trailers));
-            transaction.addOutboundResponseHeaders();
-            transaction.markResponseSent();
-        }
-
-        if (status != null) {
-            NewRelic.addCustomParameter("response.status", status.getCode().value());
-            if (GrpcConfig.errorsEnabled && status.getCause() != null) {
-                // If an error occurred during the close of this server call we should record it
-                NewRelic.noticeError(status.getCause());
-            }
-        }
+    public void close(Status status, Metadata metadata) {
+        GrpcUtil.finalizeTransaction(token, status, metadata);
+        GrpcUtil.setServerStreamResponseStatus(status);
 
         Weaver.callOriginal();
 
-        if (token != null) {
-            token.expire();
-            token = null;
-        }
+        GrpcUtil.expireToken(token);
     }
 
     // server had an internal error
     @Trace(async = true)
     public void cancel(Status status) {
-        if (token != null) {
-            token.link();
-            Transaction transaction = token.getTransaction();
-            transaction.setWebResponse(new GrpcResponse(status, new Metadata()));
-            transaction.addOutboundResponseHeaders();
-            transaction.markResponseSent();
-        }
-
-        if (status != null) {
-            NewRelic.addCustomParameter("response.status", status.getCode().value());
-            if (GrpcConfig.errorsEnabled && status.getCause() != null) {
-                // If an error occurred during the close of this server call we should record it
-                NewRelic.noticeError(status.getCause());
-            }
-        }
+        GrpcUtil.finalizeTransaction(token, status, new Metadata());
+        GrpcUtil.setServerStreamResponseStatus(status);
 
         Weaver.callOriginal();
 
-        if (token != null) {
-            token.expire();
-            token = null;
-        }
+        GrpcUtil.expireToken(token);
     }
 
     public abstract String getAuthority();
