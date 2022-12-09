@@ -72,7 +72,7 @@ public class MetricStateResponseCodeTest {
         assertEquals(nCalls, callGetResponseCodeSegment.getChildren().size());
 
         // Only the first call is named External/.../getResponseCode
-        TraceSegment renamedSegment = callGetResponseCodeSegment.getChildren().get(0);
+        TraceSegment renamedSegment = callGetResponseCodeSegment.getChildren().get(0).getChildren().get(0);
         assertEquals(1, renamedSegment.getCallCount());
         assertEquals("External/localhost/HttpURLConnection/getResponseCode", renamedSegment.getName());
         return callGetResponseCodeSegment;
@@ -98,8 +98,8 @@ public class MetricStateResponseCodeTest {
         TraceSegment traceSegment = trace.getInitialTraceSegment();
         assertEquals(2, traceSegment.getChildren().size());
 
-        // The first segment is external.
-        TraceSegment renamedSegment = traceSegment.getChildren().get(0);
+        // The child of the first segment is external.
+        TraceSegment renamedSegment = traceSegment.getChildren().get(0).getChildren().get(0);
         assertEquals(1, renamedSegment.getCallCount());
         assertEquals("External/localhost/HttpURLConnection/getResponseCode", renamedSegment.getName());
 
@@ -130,7 +130,7 @@ public class MetricStateResponseCodeTest {
         assertEquals(2, traceSegment.getChildren().size());
 
         // The first segment is external.
-        TraceSegment renamedSegment = traceSegment.getChildren().get(0);
+        TraceSegment renamedSegment = traceSegment.getChildren().get(0).getChildren().get(0);
         assertEquals(1, renamedSegment.getCallCount());
         assertEquals("External/localhost/HttpURLConnection/getInputStream", renamedSegment.getName());
 
@@ -197,13 +197,13 @@ public class MetricStateResponseCodeTest {
      * code. Since we can't weave JRE classes in these tests, we can't use the "real" code.
      * This is the best approximation.
      */
-    @Trace(leaf = true)
+    @Trace
     private void simulatedInstrumentedGetResponseCodeMethod(HttpURLConnection conn, MetricState target) {
         target.getResponseCodePreamble(conn, AgentBridge.getAgent().getTracedMethod());
         target.getInboundPostamble(conn, 0, null, "getResponseCode", AgentBridge.getAgent().getTracedMethod());
     }
 
-    @Trace(leaf = true)
+    @Trace
     private void simulatedInstrumentedGetInputStreamMethod(boolean isConnected, HttpURLConnection conn, MetricState target) {
         target.getInputStreamPreamble(isConnected, conn, AgentBridge.getAgent().getTracedMethod());
         target.getInboundPostamble(conn, 0, null, "getInputStream", AgentBridge.getAgent().getTracedMethod());
