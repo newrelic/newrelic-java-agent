@@ -45,6 +45,7 @@ public class HttpURLConnectionTest {
     private static final String UNKNOWN_HOST = "UnknownHost";
     private static final String POST_DATA = "post_data";
     private static final String TEST_CLASS = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
+    private static final int TEST_SLEEP_TIME_MILLIS = 5000;
 
     @BeforeClass
     public static void beforeClass() {
@@ -75,7 +76,7 @@ public class HttpURLConnectionTest {
             connection.connect(); // No network I/O
             connection.connect(); // should be no-op
             // Wait long enough for the TimerTask in the HttpURLConnection instrumentation to end the segment timing when only connect is called
-            Thread.sleep(1500);
+            Thread.sleep(TEST_SLEEP_TIME_MILLIS);
         } catch (Throwable e) {
             e.printStackTrace();
         } finally {
@@ -106,7 +107,7 @@ public class HttpURLConnectionTest {
             connection.getOutputStream();
             connection.connect();// should be no-op
             // Wait long enough for the TimerTask in the HttpURLConnection instrumentation to end the segment timing when only connect/getOutputStream are called
-            Thread.sleep(1500);
+            Thread.sleep(TEST_SLEEP_TIME_MILLIS);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -144,7 +145,7 @@ public class HttpURLConnectionTest {
             connection.getOutputStream();
             connection.connect();// should be no-op
             // Wait long enough for the TimerTask in the HttpURLConnection instrumentation to end the segment timing when only connect/getOutputStream are called
-            Thread.sleep(1500);
+            Thread.sleep(TEST_SLEEP_TIME_MILLIS);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -217,7 +218,7 @@ public class HttpURLConnectionTest {
             connection = getHttpsExampleComConnection();
             connection.connect(); // No network I/O
             // Wait long enough for the TimerTask in the HttpURLConnection instrumentation to end the segment timing when only connect is called
-            Thread.sleep(1500);
+            Thread.sleep(TEST_SLEEP_TIME_MILLIS);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -344,7 +345,7 @@ public class HttpURLConnectionTest {
             connection.setDoOutput(true);
             write(connection.getOutputStream(), POST_DATA);
             // Wait long enough for the TimerTask in the HttpURLConnection instrumentation to end the segment timing when only getOutputStream is called
-            Thread.sleep(1500);
+            Thread.sleep(TEST_SLEEP_TIME_MILLIS);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
