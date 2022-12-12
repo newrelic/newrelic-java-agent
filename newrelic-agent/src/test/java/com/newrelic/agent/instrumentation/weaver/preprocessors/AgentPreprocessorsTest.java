@@ -22,6 +22,7 @@ import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.SkipIfPresent;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.weave.UtilityClass;
+import com.newrelic.weave.WeaveTestUtils;
 import com.newrelic.weave.utils.Streams;
 import com.newrelic.weave.utils.WeaveUtils;
 import org.junit.Assert;
@@ -86,7 +87,8 @@ public class AgentPreprocessorsTest {
 
         Class<?> clazz = addToClassLoader(classname, writer.toByteArray(), classloader);
         Assert.assertNotNull(clazz);
-        // WeaveTestUtils.byteArrayToFile(WeaveUtils.convertToClassBytes(result), "/tmp/result.class");
+        // WeaveTestUtils.byteArrayToFile(bytes, "/tmp/orig.class");
+        // WeaveTestUtils.byteArrayToFile(writer.toByteArray(), "/tmp/result.class");
         clazz.newInstance();
     }
 
