@@ -79,7 +79,7 @@ class NewRelicExecutionContext(delegatee :ExecutionContext) extends ExecutionCon
   }
 }
 
-class NewRelicRunnable(runnable :Runnable) extends Runnable {
+class NewRelicRunnable(var runnable :Runnable) extends Runnable {
   @Trace(async = true)
   override def run() {
     try {
