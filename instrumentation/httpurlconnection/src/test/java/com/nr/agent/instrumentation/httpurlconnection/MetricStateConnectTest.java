@@ -31,6 +31,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "leave-me-alone" }, configName = "distributed_tracing.yml")
 public class MetricStateConnectTest {
+    private static final int TEST_SLEEP_TIME_MILLIS = 20000;
 
     @Rule
     public HttpServerRule server = new HttpServerRule();
@@ -92,6 +93,6 @@ public class MetricStateConnectTest {
 
         target.nonNetworkPreamble(pretendToBeConnected, conn, "connect");
         // sleep long enough for the connect TimerTask to complete
-        Thread.sleep(1500);
+        Thread.sleep(TEST_SLEEP_TIME_MILLIS);
     }
 }

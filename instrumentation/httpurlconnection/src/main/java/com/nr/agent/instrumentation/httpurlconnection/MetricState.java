@@ -97,7 +97,7 @@ public class MetricState {
          * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
          * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
          */
-        long segmentExpirationDelayInMillis = 1000L;
+        long segmentExpirationDelayInMillis = 10000L;
         timer.schedule(task, segmentExpirationDelayInMillis);
     }
 

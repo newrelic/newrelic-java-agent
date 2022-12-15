@@ -45,7 +45,7 @@ public class HttpURLConnectionTest {
     private static final String UNKNOWN_HOST = "UnknownHost";
     private static final String POST_DATA = "post_data";
     private static final String TEST_CLASS = "com.newrelic.agent.instrumentation.pointcuts.net.HttpURLConnectionTest";
-    private static final int TEST_SLEEP_TIME_MILLIS = 5000;
+    private static final int TEST_SLEEP_TIME_MILLIS = 20000;
 
     @BeforeClass
     public static void beforeClass() {
