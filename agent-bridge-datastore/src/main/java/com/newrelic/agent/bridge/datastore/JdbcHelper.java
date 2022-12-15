@@ -12,6 +12,8 @@ import com.newrelic.agent.bridge.AgentBridge;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,11 +40,20 @@ public class JdbcHelper {
         }
     };
 
+    /**
+     * Any values in the urlToFactory or urlToDatabaseName Maps older than this value will
+     * be evicted from the Map when the {@link ExpiringValueConcurrentHashMap} timer fires.
+     */
+    private static final long MAP_EXPIRATION_AGE_MILLI = Duration.ofHours(6).toMillis();
+
+    private static final ExpiringValueConcurrentHashMap.ExpiringValueLogicFunction<String> EXPIRE_FUNC =
+            (val) -> val.lastAccessedPriorTo(Instant.now().minusMillis(MAP_EXPIRATION_AGE_MILLI));
 
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
     private static final Map<Class<?>, DatabaseVendor> classToVendorLookup = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
-    private static final Map<String, ConnectionFactory> urlToFactory = new ConcurrentHashMap<>(5);
+    private static final Map<String, ConnectionFactory> urlToFactory =
+            new ExpiringValueConcurrentHashMap<>("urlToFactory_timer", MAP_EXPIRATION_AGE_MILLI, EXPIRE_FUNC);
     private static final Map<String, String> urlToDatabaseName = new ConcurrentHashMap<>(5);
     private static final Map<Statement, String> statementToSql = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToIdentifier = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
