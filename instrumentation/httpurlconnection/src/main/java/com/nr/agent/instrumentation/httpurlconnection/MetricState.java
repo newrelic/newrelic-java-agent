@@ -73,14 +73,13 @@ public class MetricState {
     }
 
     /**
-     * If connect was the first and only method invoked from the HttpURLConnection API
-     * within a defined time period then we assume that no request has taken place and
-     * quickly end the segment timing to avoid hitting the default segment timeout of 10 minutes.
-     * This should be a rare case as there is really no good reason to only call connect and not
-     * follow it up with any additional HttpURLConnection API calls, but technically it is possible.
+     * If connect, or some combination of connect and getOutputStream, were the first
+     * and only method(s) invoked from the HttpURLConnection API within a defined
+     * time period then the timer task will the end the segment timing to
+     * avoid hitting the default segment timeout of 10 minutes.
      * <p>
      * If the segment_timeout is manually configured to be lower than the timer delay set here
-     * then the segment timing will already have been ended and calling endAsync() again here
+     * then the segment timing will already have been ended and calling end again here
      * will have no effect.
      *
      * @param connection HttpURLConnection
@@ -93,6 +92,11 @@ public class MetricState {
             }
         };
 
+        /*
+         * The following tests do a Thread.sleep to account for this delay. If this value is changed then the tests will also need to be updated.
+         * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
+         * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
+         */
         long segmentExpirationDelayInMillis = 1000L;
         timer.schedule(task, segmentExpirationDelayInMillis);
     }
