@@ -56,7 +56,6 @@ dependencies {
 
     jarIntoJar project(":newrelic-api")
     jarIntoJar project(":agent-bridge")
-    jarIntoJar project(":agent-bridge-datastore")
     jarIntoJar project(":newrelic-weaver-api")
     jarIntoJar project(":newrelic-weaver-scala-api")
 
@@ -67,6 +66,7 @@ dependencies {
     shadowIntoJar(project(":discovery")) {
         transitive = false
     }
+    shadowIntoJar project(":agent-bridge-datastore")
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
     shadowIntoJar("com.newrelic:jfr-daemon:1.9.0")
     shadowIntoJar "org.ow2.asm:asm:$asmVersion"
