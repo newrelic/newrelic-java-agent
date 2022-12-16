@@ -3,5 +3,7 @@ dependencies {
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":agent-bridge"))
 
+    implementation('com.github.ben-manes.caffeine:caffeine:2.9.3')
+
     testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
 }

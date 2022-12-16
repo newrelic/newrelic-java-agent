@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.bridge.datastore;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.newrelic.agent.bridge.AgentBridge;
 
 import java.sql.Connection;
@@ -17,6 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,12 +41,17 @@ public class JdbcHelper {
         }
     };
 
+    private static final long URL_CACHE_EXPIRE_AFTER_SECONDS = 43200;
 
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
     private static final Map<Class<?>, DatabaseVendor> classToVendorLookup = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
-    private static final Map<String, ConnectionFactory> urlToFactory = new ConcurrentHashMap<>(5);
-    private static final Map<String, String> urlToDatabaseName = new ConcurrentHashMap<>(5);
+    private static final Cache<String, ConnectionFactory> urlToFactory = Caffeine.newBuilder()
+            .expireAfterAccess(URL_CACHE_EXPIRE_AFTER_SECONDS, TimeUnit.SECONDS)
+            .build();
+    private static final Cache<String, String> urlToDatabaseName = Caffeine.newBuilder()
+            .expireAfterAccess(URL_CACHE_EXPIRE_AFTER_SECONDS, TimeUnit.SECONDS)
+            .build();
     private static final Map<Statement, String> statementToSql = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToIdentifier = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToURL = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
@@ -88,7 +96,7 @@ public class JdbcHelper {
         if (connection != null) {
             String url = getConnectionURL(connection);
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "Found connection: {0}, url: {1}", connection, url);
-            return url != null && urlToFactory.containsKey(url);
+            return url != null && urlToFactory.getIfPresent(url) != null;
         }
 
         AgentBridge.getAgent().getLogger().log(Level.FINEST, "Connection was null");
@@ -109,7 +117,7 @@ public class JdbcHelper {
         String url = getConnectionURL(connection);
         if (url != null) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting connection factory for url: {0}, connection: {1}", url, connection);
-            return urlToFactory.get(url);
+            return urlToFactory.getIfPresent(url);
         }
 
         AgentBridge.getAgent().getLogger().log(Level.FINEST, "Connection factory url was null for connection: {0}", connection);
@@ -119,7 +127,7 @@ public class JdbcHelper {
     public static boolean databaseNameExists(Connection connection) {
         if (connection != null) {
             String url = getConnectionURL(connection);
-            return url != null && urlToDatabaseName.containsKey(url);
+            return url != null && urlToDatabaseName.getIfPresent(url) != null;
         }
         return false;
     }
@@ -136,7 +144,7 @@ public class JdbcHelper {
     public static String getCachedDatabaseName(Connection connection) {
         String url = getConnectionURL(connection);
         if (url != null) {
-            return urlToDatabaseName.get(url);
+            return urlToDatabaseName.getIfPresent(url);
         }
         return null;
     }
@@ -296,5 +304,19 @@ public class JdbcHelper {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, t, "Unable to get database name for connection: {0}", connection);
             return UNKNOWN;
         }
+    }
+
+    //For testing only - cleanUp() performs expire logic which is normally
+    //executed during the normal get()/put() methods
+    protected static long getUrlToDatabaseNameEstimatedSize() {
+        urlToDatabaseName.cleanUp();
+        return urlToDatabaseName.estimatedSize();
+    }
+
+    //For testing only - cleanUp() performs expire logic which is normally
+    //executed during the normal get()/put() methods
+    protected static long getUrlToFactoryEstimatedSize() {
+        urlToFactory.cleanUp();
+        return urlToFactory.estimatedSize();
     }
 }

@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge.datastore;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -132,4 +133,61 @@ public class JdbcHelperTest {
         Assert.assertEquals("connectionString", JdbcHelper.getConnectionURL(connection));
     }
 
+    @Test
+    public void testUrlToDatabaseNameCache() throws SQLException {
+        final Connection connection = Mockito.mock(Connection.class);
+        final DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
+        Mockito.when(connection.getMetaData()).thenReturn(metaData);
+        Mockito.when(metaData.getURL()).thenReturn("url1");
+
+        JdbcHelper.putDatabaseName("url1", "dbName1");
+        JdbcHelper.putDatabaseName("url2", "dbName2");
+        JdbcHelper.putDatabaseName("url3", "dbName3");
+
+        Assert.assertTrue(JdbcHelper.databaseNameExists(connection));
+        Assert.assertEquals("dbName1", JdbcHelper.getCachedDatabaseName(connection));
+    }
+
+    @Test
+    public void testUrlToFactoryNameCache() throws SQLException {
+        final Connection connection = Mockito.mock(Connection.class);
+        final ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
+        final DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
+        Mockito.when(connection.getMetaData()).thenReturn(metaData);
+        Mockito.when(metaData.getURL()).thenReturn("url1");
+
+        JdbcHelper.putConnectionFactory("url1", connectionFactory);
+
+        Assert.assertTrue(JdbcHelper.connectionFactoryExists(connection));
+        Assert.assertEquals(connectionFactory, JdbcHelper.getConnectionFactory(connection));
+    }
+
+    /**
+     * To test the eviction logic, change the JdbcHelper.URL_CACHE_EXPIRE_AFTER_SECONDS value to
+     * 2. Comment out the @Ignore annotation.
+     * This test basically tests the underlying Caffeine cache eviction logic so
+     * it's not technically needed.
+     */
+    @Test
+    @Ignore
+    public void testExpireLogic() throws InterruptedException {
+        final Connection connection = Mockito.mock(Connection.class);
+        final ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
+
+        for (int i = 0; i < 10000; i++ ) {
+            JdbcHelper.putDatabaseName(Integer.toString(i), "value-" + i);
+            JdbcHelper.putConnectionFactory(Integer.toString(i), connectionFactory);
+        }
+
+        //Wait > 2 seconds, which should allow the stale entries to be evicted.
+        //Add a new entry to each and then assert that each cache only contains
+        //a single entry.
+        Thread.sleep((2001));
+        JdbcHelper.putDatabaseName("key", "value");
+        JdbcHelper.putConnectionFactory("key", connectionFactory);
+
+        JdbcHelper.databaseNameExists(connection);
+        Assert.assertEquals(1, JdbcHelper.getUrlToDatabaseNameEstimatedSize());
+        Assert.assertEquals(1, JdbcHelper.getUrlToFactoryEstimatedSize());
+    }
 }
