@@ -88,7 +88,7 @@ public abstract class HttpURLConnection extends URLConnection {
     public int getResponseCode() throws Exception {
         MetricState metricState = lazyGetMetricState();
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
-        metricState.getResponseCodePreamble(this, method);
+        metricState.getResponseCodePreamble(method);
 
         int responseCodeValue;
         try {

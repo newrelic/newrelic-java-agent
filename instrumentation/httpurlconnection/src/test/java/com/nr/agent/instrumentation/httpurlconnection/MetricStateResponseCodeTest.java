@@ -199,7 +199,7 @@ public class MetricStateResponseCodeTest {
      */
     @Trace
     private void simulatedInstrumentedGetResponseCodeMethod(HttpURLConnection conn, MetricState target) {
-        target.getResponseCodePreamble(conn, AgentBridge.getAgent().getTracedMethod());
+        target.getResponseCodePreamble(AgentBridge.getAgent().getTracedMethod());
         target.getInboundPostamble(conn, 0, null, "getResponseCode", AgentBridge.getAgent().getTracedMethod());
     }
 

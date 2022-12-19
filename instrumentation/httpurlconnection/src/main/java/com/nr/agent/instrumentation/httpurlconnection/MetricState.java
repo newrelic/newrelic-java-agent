@@ -12,6 +12,7 @@ import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.external.URISupport;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 
 import java.net.HttpURLConnection;
@@ -30,16 +31,16 @@ public class MetricState {
     private boolean metricsRecorded;
     private boolean recordedANetworkCall;
 
-    // records the name of the first method called
-    private String firstMethodCalled = null;
+    // records the last HttpURLConnection operation
+    private String lastOperation = null;
     // records true if any methods that cause a network request were called
     private boolean networkRequestMethodCalled;
     // segment used to track timing of external request, add addOutboundRequestHeaders, and reportAsExternal
     private Segment segment;
 
     /**
-     * Start a Segment to capture timing when the first HttpURLConnection method is invoked.
-     * The Segment timing should end when a request has taken place and an external call is recorded.
+     * Start Segment timing when the first HttpURLConnection API method is invoked.
+     * The Segment timing should end when a request has taken place and an external call has been recorded.
      *
      * @param tx        current Transaction
      * @param operation HttpURLConnection method being invoked
@@ -52,43 +53,37 @@ public class MetricState {
     }
 
     /**
-     * Track which HttpURLConnection method is called first.
-     * If it is one of the methods calling nonNetworkPreamble (i.e. connect or getOutputStream), then start a
-     * TimerTask to potentially end the timing of the Segment that was started when either of these methods were called.
+     * Keep track of which HttpURLConnection API method was most recently called.
+     * If connect was called first, then start a TimerTask to potentially ignore the segment
+     * if it is determined that no other method was called after it.
      *
-     * @param connection HttpURLConnection
-     * @param operation  HttpURLConnection method being invoked
+     * @param operation HttpURLConnection method being invoked
      */
-    private void handleSegmentsForNonNetworkMethods(HttpURLConnection connection, String operation) {
-        /*
-         * It's possible to call connect and then getOutputStream, in which case we reset firstMethodCalled
-         * to getOutputStream so that the timer task properly ends the segment and calls reportAsExternal.
-         */
-        if (firstMethodCalled == null || (firstMethodCalled.equals(CONNECT_OP) && operation.equals(GET_OUTPUT_STREAM_OP))) {
-            firstMethodCalled = operation;
-            if (operation.equals(CONNECT_OP) || operation.equals(GET_OUTPUT_STREAM_OP)) {
-                startSegmentExpirationTimerTask(connection);
+    private void handleSegmentsForNonNetworkMethods(String operation) {
+        if (operation.equals(CONNECT_OP)) {
+            // Only ever start the TimerTask if connect is the first method called
+            if (lastOperation == null) {
+                lastOperation = operation;
+                startSegmentExpirationTimerTask();
             }
+        } else {
+            networkRequestMethodCalled = true;
+            lastOperation = operation;
         }
     }
 
     /**
-     * If connect, or some combination of connect and getOutputStream, were the first
-     * and only method(s) invoked from the HttpURLConnection API within a defined
-     * time period then the timer task will the end the segment timing to
-     * avoid hitting the default segment timeout of 10 minutes.
+     * If connect was the first method invoked from the HttpURLConnection APIs then a
+     * TimerTask will be started which will determine if the segment should be ignored or not.
      * <p>
-     * If the segment_timeout is manually configured to be lower than the timer delay set here
-     * then the segment timing will already have been ended and calling end again here
-     * will have no effect.
-     *
-     * @param connection HttpURLConnection
+     * Note: If the user configurable segment_timeout is explicitly configured to be lower than the timer delay set
+     * here then the segment timing will already have been ended and trying to end/ignore it again will have no effect.
      */
-    private void startSegmentExpirationTimerTask(HttpURLConnection connection) {
+    private void startSegmentExpirationTimerTask() {
         Timer timer = new Timer("HttpURLConnection Segment Expiration Timer");
         TimerTask task = new TimerTask() {
             public void run() {
-                endSegmentForNonNetworkCall(connection);
+                ignoreSegmentForNonNetworkCall();
             }
         };
 
@@ -97,29 +92,21 @@ public class MetricState {
          * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
          * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
          */
-        long segmentExpirationDelayInMillis = 10000L;
+        long segmentExpirationDelayInMillis = 60_000L;
         timer.schedule(task, segmentExpirationDelayInMillis);
     }
 
     /**
-     * This method is called when a TimerTask completes if connect and/or getOutputStream were the only HttpURLConnection APIs called.
-     * If only connect is called, the segment is ignored as no external call has been made.
-     * If only getOutputStream is called, or any combination of connect and getOutputStream, then an external call is reported and
-     * the timing of the segment is ended.
-     *
-     * @param connection HttpURLConnection
+     * This method executes when a TimerTask completes. If it is determined that connect was the first and only HttpURLConnection API called
+     * then it will have the effect of ignoring the segment, as no external call has been made. A supportability metric will also be recorded.
+     * The purpose of this is to avoid hitting the default segment timeout of 10 minutes and to also prevent the segment from showing in traces.
      */
-    private void endSegmentForNonNetworkCall(HttpURLConnection connection) {
-        if (firstMethodCalled != null && segment != null) {
+    private void ignoreSegmentForNonNetworkCall() {
+        if (lastOperation != null && segment != null) {
             if (!networkRequestMethodCalled) {
-                // If connect was the first and only method called when the TimerTask completes then simply ignore the segment as no external call was made.
-                if (firstMethodCalled.equals(CONNECT_OP)) {
+                if (lastOperation.equals(CONNECT_OP)) {
                     segment.ignore();
-                } else if (firstMethodCalled.equals(GET_OUTPUT_STREAM_OP)) {
-                    // If firstMethodCalled is set to getOutputStream when the TimerTask completes then we invoke reportExternalCall which
-                    // will also end the segment timing. In this scenario getOutputStream was called in a fire and forget manner without ever
-                    // inspecting the response, which means that the response code and message will both be unavailable on the reported external.
-                    reportExternalCall(connection, firstMethodCalled, 0, null);
+                    NewRelic.incrementCounter("Supportability/HttpURLConnection/SegmentEnd/" + CONNECT_OP);
                 }
             }
         }
@@ -135,7 +122,7 @@ public class MetricState {
      * @param operation   HttpURLConnection method being invoked
      */
     public void nonNetworkPreamble(boolean isConnected, HttpURLConnection connection, String operation) {
-        handleSegmentsForNonNetworkMethods(connection, operation);
+        handleSegmentsForNonNetworkMethods(operation);
 
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
@@ -152,6 +139,10 @@ public class MetricState {
              */
             segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
         }
+        // Report an external call for getOutputStream whether it was called first or after connect
+        if (operation.equals(GET_OUTPUT_STREAM_OP)) {
+            reportExternalCall(connection, lastOperation, 0, null);
+        }
     }
 
     /**
@@ -163,8 +154,7 @@ public class MetricState {
      * @param method      traced method that will be the parent of the segment
      */
     public void getInputStreamPreamble(boolean isConnected, HttpURLConnection connection, TracedMethod method) {
-        networkRequestMethodCalled = true;
-        handleSegmentsForNonNetworkMethods(connection, GET_INPUT_STREAM_OP);
+        handleSegmentsForNonNetworkMethods(GET_INPUT_STREAM_OP);
 
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && tx != null) {
@@ -191,12 +181,10 @@ public class MetricState {
      * Called when getResponseCode is invoked.
      * This code path guarantees that getInboundPostamble will ultimately be called and an external call will be reported.
      *
-     * @param connection HttpURLConnection
-     * @param method     traced method that will be the parent of the segment
+     * @param method traced method that will be the parent of the segment
      */
-    public void getResponseCodePreamble(HttpURLConnection connection, TracedMethod method) {
-        networkRequestMethodCalled = true;
-        handleSegmentsForNonNetworkMethods(connection, GET_RESPONSE_CODE_OP);
+    public void getResponseCodePreamble(TracedMethod method) {
+        handleSegmentsForNonNetworkMethods(GET_RESPONSE_CODE_OP);
 
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && tx != null && !recordedANetworkCall) {
@@ -216,8 +204,7 @@ public class MetricState {
      * @param method          traced method that will be the parent of the segment
      */
     public void getInboundPostamble(HttpURLConnection connection, int responseCode, String responseMessage, String operation, TracedMethod method) {
-        networkRequestMethodCalled = true;
-        handleSegmentsForNonNetworkMethods(connection, operation);
+        handleSegmentsForNonNetworkMethods(operation);
 
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (method.isMetricProducer() && !metricsRecorded && tx != null) {

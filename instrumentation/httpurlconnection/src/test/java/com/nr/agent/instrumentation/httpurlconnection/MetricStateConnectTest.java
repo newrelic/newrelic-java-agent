@@ -31,7 +31,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "leave-me-alone" }, configName = "distributed_tracing.yml")
 public class MetricStateConnectTest {
-    private static final int TEST_SLEEP_TIME_MILLIS = 20000;
+    private static final int TEST_SLEEP_TIME_MILLIS = 70_000;
 
     @Rule
     public HttpServerRule server = new HttpServerRule();
