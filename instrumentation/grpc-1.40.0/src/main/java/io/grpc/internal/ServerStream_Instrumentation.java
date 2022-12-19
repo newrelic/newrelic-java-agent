@@ -35,7 +35,10 @@ public abstract class ServerStream_Instrumentation {
 
         Weaver.callOriginal();
 
-        GrpcUtil.expireToken(token);
+        if (token != null) {
+            token.expire();
+            token = null;
+        }
     }
 
     // server had an internal error
@@ -46,7 +49,10 @@ public abstract class ServerStream_Instrumentation {
 
         Weaver.callOriginal();
 
-        GrpcUtil.expireToken(token);
+        if (token != null) {
+            token.expire();
+            token = null;
+        }
     }
 
     public abstract String getAuthority();

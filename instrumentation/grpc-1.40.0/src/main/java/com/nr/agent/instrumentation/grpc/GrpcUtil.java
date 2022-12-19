@@ -48,16 +48,4 @@ public class GrpcUtil {
             }
         }
     }
-
-    /**
-     * Expire the supplied {@link Token} instance if it's non-null.
-     *
-     * @param token The {@link Token} to expire
-     */
-    public static void expireToken(Token token) {
-        if (token != null) {
-            token.expire();
-            token = null;
-        }
-    }
 }
