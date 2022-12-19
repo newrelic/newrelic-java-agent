@@ -1,3 +1,43 @@
+import com.nr.builder.publish.PublishConfig
+
+plugins {
+    id("maven-publish")
+    id("signing")
+}
+
+jar {
+    from("$rootDir/LICENSE")
+    manifest {
+        attributes 'Implementation-Title': 'New Relic Bridge DataStore', 'Implementation-Version': project.version
+    }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+tasks.withType(GenerateModuleMetadata.class) {
+    enabled = false
+}
+
+
+tasks.withType(Javadoc).configureEach {
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+
+    options.addBooleanOption("-frames", true)
+    options.addBooleanOption("-no-module-directories", true)
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java Bridge",
+        "Bridge DataStore") { it ->
+    it.from(components.java)
+}
+
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":newrelic-weaver-api"))
