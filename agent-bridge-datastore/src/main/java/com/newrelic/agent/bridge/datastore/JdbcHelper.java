@@ -42,19 +42,22 @@ public class JdbcHelper {
 
     /**
      * Any values in the urlToFactory or urlToDatabaseName Maps older than this value will
-     * be evicted from the Map when the {@link ExpiringValueConcurrentHashMap} timer fires.
+     * be evicted from the cache when the {@link ExpiringValueCache} timer fires. This
+     * will also be used as the timer interval value.
      */
-    private static final long MAP_EXPIRATION_AGE_MILLI = Duration.ofHours(6).toMillis();
+    private static final long CACHE_EXPIRATION_AGE_MILLI = Duration.ofHours(8).toMillis();
 
-    private static final ExpiringValueConcurrentHashMap.ExpiringValueLogicFunction<String> EXPIRE_FUNC =
-            (val) -> val.lastAccessedPriorTo(Instant.now().minusMillis(MAP_EXPIRATION_AGE_MILLI));
+    private static final ExpiringValueCache.ExpiringValueLogicFunction EXPIRE_FUNC =
+            (timeCreated, timeLastAccessed) -> timeLastAccessed.isBefore(Instant.now().minusMillis(CACHE_EXPIRATION_AGE_MILLI));
 
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
     private static final Map<Class<?>, DatabaseVendor> classToVendorLookup = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
-    private static final Map<String, ConnectionFactory> urlToFactory =
-            new ExpiringValueConcurrentHashMap<>("urlToFactory_timer", MAP_EXPIRATION_AGE_MILLI, EXPIRE_FUNC);
-    private static final Map<String, String> urlToDatabaseName = new ConcurrentHashMap<>(5);
+    private static final ExpiringValueCache<String, ConnectionFactory> urlToFactory =
+            new ExpiringValueCache<>("urlToFactoryCache", CACHE_EXPIRATION_AGE_MILLI, EXPIRE_FUNC);
+
+    private static final ExpiringValueCache<String, String> urlToDatabaseName =
+            new ExpiringValueCache<>("urlToDatabaseNameCache", CACHE_EXPIRATION_AGE_MILLI, EXPIRE_FUNC);
     private static final Map<Statement, String> statementToSql = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToIdentifier = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToURL = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();

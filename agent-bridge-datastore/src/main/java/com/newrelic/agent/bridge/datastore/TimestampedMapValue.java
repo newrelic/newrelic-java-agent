@@ -4,8 +4,8 @@ import java.time.Instant;
 
 /**
  * A class designed to wrap a map value in a facade that contains the creation time
- * and the time the value was last accessed. This wrapper object can then be placed in
- * a concrete {@link java.util.Map} class that can utilize these timestamps for specific
+ * and the time the value was last accessed. This wrapper object can then be used in
+ * other Map/cache classes that can utilize these timestamps for specific
  * use cases (expiring map entries based on value age, for example).
  *
  * @param <V> the class type of the underlying value
