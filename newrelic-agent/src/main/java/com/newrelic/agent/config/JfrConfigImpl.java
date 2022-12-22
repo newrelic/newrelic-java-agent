@@ -19,7 +19,7 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     public static final Boolean AUDIT_LOGGING_DEFAULT = Boolean.FALSE;
     public static final Boolean USE_LICENSE_KEY_DEFAULT = Boolean.TRUE;
 
-    private final boolean isEnabled;
+    private boolean isEnabled;
 
     public JfrConfigImpl(Map<String, Object> pProps) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
@@ -36,6 +36,11 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     @Override
     public boolean isEnabled() {
         return isEnabled;
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.isEnabled = enabled;
     }
 
     @Override
