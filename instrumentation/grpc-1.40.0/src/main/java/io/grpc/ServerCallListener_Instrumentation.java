@@ -22,9 +22,10 @@ public abstract class ServerCallListener_Instrumentation {
 
     @Trace(async = true)
     public void onHalfClose() {
-        // onHalfClose gets executed right before we enter customer code. This helps ensure that they will have a transaction available on the thread
+        // onHalfClose gets executed right before we enter customer code.
+        // This helps ensure that they will have a transaction available on the thread
         if (token != null) {
-            token.linkAndExpire();
+            token.link();
             this.token = null;
         }
         Weaver.callOriginal();

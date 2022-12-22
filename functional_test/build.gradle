@@ -24,16 +24,16 @@ dependencies {
     // this also drags in all the `api` dependencies in instrumentation-test
     testImplementation(project(":instrumentation-test"))
 
-    testImplementation("commons-httpclient:commons-httpclient:3.0.1")
-    testImplementation("org.hibernate:hibernate-jmx:3.3.0.SP1") {
+    testImplementation("commons-httpclient:commons-httpclient:3.1")
+    testImplementation("org.hibernate:hibernate-jmx:3.3.2.GA") {
         exclude group: 'log4j'
         exclude group: 'org.slf4j'
     }
-    testImplementation("org.hibernate:hibernate-core:3.3.0.SP1")
+    testImplementation("org.hibernate:hibernate-core:3.3.2.GA")
     testImplementation("org.hibernate:hibernate-annotations:3.4.0.GA")
     testImplementation("org.slf4j:slf4j-nop:1.7.25")
 
-    testImplementation("org.apache.tomcat.embed:tomcat-embed-core:7.0.16")
+    testImplementation("org.apache.tomcat.embed:tomcat-embed-core:8.5.32")
 
     testImplementation("javax.servlet.jsp:javax.servlet.jsp-api:2.3.1")
     testImplementation("javax.servlet:javax.servlet-api:3.1.0")
@@ -45,9 +45,9 @@ dependencies {
     testImplementation("commons-dbcp:commons-dbcp:1.2.2")
     testImplementation("com.sun.grizzly:grizzly-utils:1.9.3")
 
-    testImplementation("org.apache.myfaces.core:myfaces-impl:2.0.2")
-    testImplementation("org.apache.myfaces.core:myfaces-api:2.0.2")
-    testImplementation("com.sun.faces:jsf-impl:2.0.2")
+    testImplementation("org.apache.myfaces.core:myfaces-impl:2.3.10")
+    testImplementation("org.apache.myfaces.core:myfaces-api:2.3.10")
+    testImplementation("com.sun.faces:jsf-impl:2.2.20")
     testImplementation("com.sun.faces.extensions:jsf-extensions-test-time:2.0")
 
     testImplementation("org.ow2.asm:asm-commons:$asmVersion")
@@ -70,10 +70,12 @@ dependencies {
 
     testImplementation("info.batey.kafka:kafka-unit:1.0")
     testImplementation("com.googlecode.json-simple:json-simple:1.1")
-    testImplementation("org.springframework.cloud:spring-cloud-starter-eureka:1.3.0.RELEASE") {
+
+    testImplementation("org.springframework.cloud:spring-cloud-starter-eureka:1.3.6.RELEASE") {
         exclude module: 'spring-boot-starter-logging'
         exclude module: 'logback-classic'
         exclude module: 'joda-time'
+
     }
     testImplementation("com.ning:async-http-client:1.9.40")
     testImplementation("javax.ws.rs:javax.ws.rs-api:2.1")

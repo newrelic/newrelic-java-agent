@@ -7,26 +7,17 @@
 
 package org.apache.log4j;
 
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import org.apache.log4j.spi.LoggingEvent;
 
-import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
-import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingMetricsEnabled;
+import static com.nr.agent.instrumentation.log4j1.Log4j1Util.generateMetricsAndOrLogEventIfEnabled;
 
 @Weave(originalName = "org.apache.log4j.Category")
 public class Category_Instrumentation {
 
-    protected void forcedLog(String fqcn, Priority level, Object message, Throwable t) {
-        // Do nothing if application_logging.enabled: false
-        if (isApplicationLoggingEnabled()) {
-            if (isApplicationLoggingMetricsEnabled()) {
-                // Generate log level metrics
-                NewRelic.incrementCounter("Logging/lines");
-                NewRelic.incrementCounter("Logging/lines/" + level.toString());
-            }
-        }
+    public void callAppenders(LoggingEvent event) {
+        generateMetricsAndOrLogEventIfEnabled(event);
         Weaver.callOriginal();
     }
-
 }

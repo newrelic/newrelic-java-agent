@@ -93,18 +93,18 @@ public class ExternalMetrics {
             return; // NR doesn't add rollup metrics for "UnknownHost"
         }
 
-        // create a single roll up metric of all external calls
+        // create a single roll up metric of all external calls (i.e. External/all)
         method.addExclusiveRollupMetricName(ALL);
 
         // create a roll up metric for either all external calls from web transactions, or all external calls
         // from other (background) transactions
         if (isWebTransaction) {
-            method.addExclusiveRollupMetricName(ALL_WEB);
+            method.addExclusiveRollupMetricName(ALL_WEB); // (i.e. External/allWeb)
         } else {
-            method.addExclusiveRollupMetricName(ALL_OTHER);
+            method.addExclusiveRollupMetricName(ALL_OTHER); // (i.e. External/allOther)
         }
 
-        // create a roll up of external calls by host
+        // create a roll up of external calls by host (i.e. External/hostName/all)
         method.addExclusiveRollupMetricName(MessageFormat.format(ALL_HOST, hostName));
     }
 

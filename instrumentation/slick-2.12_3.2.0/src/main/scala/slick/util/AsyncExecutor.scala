@@ -26,8 +26,8 @@ import slick.util.AsyncExecutor
 
 @ScalaWeave(`type` = ScalaMatchType.Object, originalName="slick.util.AsyncExecutor")
 class WeavedAsyncExecutor {
-  def apply(name: String, minThreads: Int, maxThreads: Int, queueSize: Int, maxConnections: Int = Integer.MAX_VALUE, keepAliveTime: Duration = 1.minute,
-registerMbeans: Boolean = false): AsyncExecutor = {
+  def apply(name: String, minThreads: Int, maxThreads: Int, queueSize: Int, maxConnections: Int, keepAliveTime: Duration,
+            registerMbeans: Boolean): AsyncExecutor = {
     val original :AsyncExecutor = Weaver.callOriginal()
     new NewRelicAsyncExecutor(original)
   }
@@ -79,7 +79,7 @@ class NewRelicExecutionContext(delegatee :ExecutionContext) extends ExecutionCon
   }
 }
 
-class NewRelicRunnable(runnable :Runnable) extends Runnable {
+class NewRelicRunnable(var runnable :Runnable) extends Runnable {
   @Trace(async = true)
   override def run() {
     try {

@@ -27,7 +27,7 @@ public class TomcatJmxValues extends JmxFrameworkValues {
      */
     public static final String PREFIX = "Catalina";
 
-    private static final int METRIC_COUNT = 3;
+    private static final int METRIC_COUNT = 5;
 
     // SESSION METRICS
     private static final JmxMetric ACTIVE_SESSIONS = ServerJmxMetricGenerator.SESSION_ACTIVE_COUNT.createMetric("activeSessions");

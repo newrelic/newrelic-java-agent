@@ -10,7 +10,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.springframework:spring-jms:[0,)'
+    passesOnly 'org.springframework:spring-jms:[0,6.0.0)'
     exclude 'org.springframework:spring-jms:3.2.0.BUILD'
     // This is a bad artifact on artifactory
     excludeRegex 'org.springframework:spring-jms:5.0.0.(RC)[0-9]*$'

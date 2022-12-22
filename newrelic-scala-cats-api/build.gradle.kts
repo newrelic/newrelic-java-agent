@@ -8,7 +8,7 @@ plugins {
 evaluationDependsOn(":newrelic-api")
 
 crossBuild {
-    scalaVersionsCatalog = mapOf("2.12" to "2.12.13", "2.13" to "2.13.5")
+    scalaVersionsCatalog = mapOf("2.12" to "2.12.13", "2.13" to "2.13.10")
     builds {
         register("scala") {
             scalaVersions = setOf("2.12", "2.13")
@@ -22,7 +22,7 @@ java {
 }
 
 dependencies {
-    implementation("org.scala-lang:scala-library:2.13.5")
+    implementation("org.scala-lang:scala-library:2.13.10")
     implementation("org.typelevel:cats-effect_2.13:2.5.1")
     implementation(project(":newrelic-api"))
     testImplementation(project(":instrumentation-test"))

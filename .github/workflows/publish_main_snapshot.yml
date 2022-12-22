@@ -6,9 +6,9 @@ on:
 
 jobs:
   publish_snapshot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: gradle/wrapper-validation-action@v1
       # The first JDK set up gets to be "primary".
       - name: Set up JDK 1.8

@@ -9,7 +9,7 @@ plugins {
 evaluationDependsOn(":newrelic-api")
 
 crossBuild {
-    scalaVersionsCatalog = mapOf("2.11" to "2.11.12", "2.12" to "2.12.13", "2.13" to "2.13.5")
+    scalaVersionsCatalog = mapOf("2.11" to "2.11.12", "2.12" to "2.12.13", "2.13" to "2.13.10")
     builds {
         register("scala") {
             scalaVersions = setOf("2.11", "2.12", "2.13")
@@ -24,7 +24,7 @@ java {
 
 dependencies {
     zinc("org.scala-sbt:zinc_2.13:1.7.1")
-    implementation("org.scala-lang:scala-library:2.13.5")
+    implementation("org.scala-lang:scala-library:2.13.10")
     implementation("dev.zio:zio_2.13:1.0.9")
     implementation(project(":newrelic-api"))
     testImplementation(project(":instrumentation-test"))

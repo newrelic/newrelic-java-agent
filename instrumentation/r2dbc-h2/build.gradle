@@ -10,7 +10,10 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.r2dbc:r2dbc-h2:[0,1.0.0.RC1)'
+    passesOnly 'io.r2dbc:r2dbc-h2:[0,)'
+
+    // this version has a dependency to a reactor milestone that does not work well with us
+    exclude 'io.r2dbc:r2dbc-h2:1.0.0.RC1'
 }
 
 site {

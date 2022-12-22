@@ -9,7 +9,6 @@ package java.net;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
-import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
@@ -19,6 +18,11 @@ import com.nr.agent.instrumentation.httpurlconnection.MetricState;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import static com.nr.agent.instrumentation.httpurlconnection.MetricState.CONNECT_OP;
+import static com.nr.agent.instrumentation.httpurlconnection.MetricState.GET_INPUT_STREAM_OP;
+import static com.nr.agent.instrumentation.httpurlconnection.MetricState.GET_OUTPUT_STREAM_OP;
+import static com.nr.agent.instrumentation.httpurlconnection.MetricState.GET_RESPONSE_CODE_OP;
 
 @Weave(type = MatchType.BaseClass)
 public abstract class HttpURLConnection extends URLConnection {
@@ -39,19 +43,24 @@ public abstract class HttpURLConnection extends URLConnection {
 
     public abstract URL getURL();
 
-    @Trace(leaf = true)
+    // connect can be called explicitly, but it doesn't need to be as it will implicitly be called by other
+    // methods that read or write over the connection such as getInputStream, getResponseCode, and getOutputStream.
+    // Calling connect directly doesn't cause a request to happen over the wire.
     public void connect() throws IOException {
-        lazyGetMetricState().nonNetworkPreamble(connected, this, "connect");
+        lazyGetMetricState().nonNetworkPreamble(connected, this, CONNECT_OP);
         Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    // This can be called to write data over the wire in a fire and forget manner without inspecting the response. There's
+    // no guarantee or requirement that another method (e.g. getInputStream) will be called to get the results or response code.
+    // Calling this alone should be considered as a valid external call.
     public synchronized OutputStream getOutputStream() throws IOException {
-        lazyGetMetricState().nonNetworkPreamble(connected, this, "getOutputStream");
+        lazyGetMetricState().nonNetworkPreamble(connected, this, GET_OUTPUT_STREAM_OP);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    // getInputStream opens a stream with the intention of reading response data from the server.
+    // Calling getInputStream causes a request to happen over the wire.
     public synchronized InputStream getInputStream() throws IOException {
         MetricState metricState = lazyGetMetricState();
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
@@ -69,17 +78,17 @@ public abstract class HttpURLConnection extends URLConnection {
             throw e;
         }
 
-        metricState.getInboundPostamble(this, 0, null, "getInputStream", method);
+        metricState.getInboundPostamble(this, 0, null, GET_INPUT_STREAM_OP, method);
         return inputStream;
     }
 
-    // this method is no longer a leaf because it prevented the DT headers from being added to the request.
-    // See https://github.com/newrelic/newrelic-java-agent/pull/959
-    @Trace
+    // getResponseCode gets the status code from an HTTP response message.
+    // If the request was already made (e.g. because getInputStream was called before it) it will simply return the status code from the response.
+    // Otherwise, it will initiate the request itself by calling getInputStream which calls connect (or potentially getOutputStream if streaming).
     public int getResponseCode() throws Exception {
         MetricState metricState = lazyGetMetricState();
         TracedMethod method = AgentBridge.getAgent().getTracedMethod();
-        metricState.getResponseCodePreamble(this, method);
+        metricState.getResponseCodePreamble(method);
 
         int responseCodeValue;
         try {
@@ -93,7 +102,7 @@ public abstract class HttpURLConnection extends URLConnection {
             throw e;
         }
 
-        metricState.getInboundPostamble(this, responseCodeValue, null, "getResponseCode", method);
+        metricState.getInboundPostamble(this, responseCodeValue, null, GET_RESPONSE_CODE_OP, method);
         return responseCodeValue;
     }
 

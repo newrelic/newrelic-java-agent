@@ -74,41 +74,29 @@ else
   OUTPUT=$GITHUB_STEP_SUMMARY
 fi
 
+log_message () {
+  if [ "$?" -eq "0" ]; then
+    echo ":white_check_mark: Success: $1" >> $OUTPUT
+  else
+    echo ":x: Failure: $1" >> $OUTPUT
+  fi
+}
+
 # Sync agent's $TEMPDIR to s3
 aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${TARGET_AGENT_DIR}
-if [ $? ]
-then
-  echo ":white_check_mark: Agent uploaded successfully." >> $OUTPUT
-else
-  echo ":x: Failed to upload agent." >> $OUTPUT
-fi
+log_message 'agent upload'
 
 # Sync api's $TEMPDIR to s3
 aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${TARGET_API_DIR}
-if [ $? ]
-then
-  echo ":white_check_mark: API uploaded successfully." >> $OUTPUT
-else
-  echo ":x: Failed to upload API." >> $OUTPUT
-fi
+log_message 'api upload'
 
 # Add unversioned agent zip file
 aws s3 ${PROFILE} cp ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-java-${VERSION}.zip s3://${TARGET_AGENT_DIR}/newrelic-java.zip
-if [ $? ]
-then
-  echo ":white_check_mark: Unversioned agent uploaded successfully." >> $OUTPUT
-else
-  echo ":x: Failed to upload unversioned agent." >> $OUTPUT
-fi
+log_message 'copying unversioned zip in S3'
 
 # Add unversioned api zip file
 aws s3 ${PROFILE} cp ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-java-${VERSION}.zip s3://${TARGET_API_DIR}/newrelic-java.zip
-if [ $? ]
-then
-  echo ":white_check_mark: Unversioned API uploaded successfully." >> $OUTPUT
-else
-  echo ":x: Failed to upload unversioned API." >> $OUTPUT
-fi
+log_message 'copying unversioned api in S3'
 
 # This is to compare/sync this release version to s3://{BASE_S3_URL}/newrelic-agent/current.
 # Otherwise, 2.21.x and possibly other maintenance branches will override it
@@ -121,21 +109,31 @@ CURRENT=$(aws s3 ${PROFILE} ls s3://$BASE_S3_URL/newrelic-agent/ |
 
 if [ ${CURRENT} = ${VERSION} ];
 then
-    aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-agent/${VERSION} s3://${CURRENT_AGENT_DIR} --delete
-    aws s3 ${PROFILE} sync ${TEMPDIR}/newrelic-api/${VERSION} s3://${CURRENT_API_DIR} --delete
-
    # Some customers depend on unversioned jar files in the current directory for automation. See https://newrelic.atlassian.net/browse/JAVA-2715
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic-agent.jar
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.jar s3://${CURRENT_AGENT_DIR}/newrelic.jar
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-agent-${VERSION}.pom s3://${CURRENT_AGENT_DIR}/newrelic-agent.pom
-   aws s3 ${PROFILE} cp s3://${CURRENT_AGENT_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_AGENT_DIR}/newrelic-java.zip
+   AGENT_VERSION_DIR=${TEMPDIR}/newrelic-agent/${VERSION}
+   cp ${AGENT_VERSION_DIR}/newrelic-agent-${VERSION}.jar /${AGENT_VERSION_DIR}/newrelic-agent.jar
+   log_message "copying agent's newrelic-agent.jar locally"
+   cp ${AGENT_VERSION_DIR}/newrelic-agent-${VERSION}.jar /${AGENT_VERSION_DIR}/newrelic.jar
+   log_message "copying agent's newrelic.jar locally"
+   cp ${AGENT_VERSION_DIR}/newrelic-agent-${VERSION}.pom /${AGENT_VERSION_DIR}/newrelic-agent.pom
+   log_message "copying agent's newrelic-agent.pom locally"
+   cp ${AGENT_VERSION_DIR}/newrelic-java-${VERSION}.zip /${AGENT_VERSION_DIR}/newrelic-java.zip
+   log_message "copying agent's newrelic-java.zip locally"
 
-   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.jar s3://${CURRENT_API_DIR}/newrelic-api.jar
-   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-api-${VERSION}.pom s3://${CURRENT_API_DIR}/newrelic-api.pom
-   aws s3 ${PROFILE} cp s3://${CURRENT_API_DIR}/newrelic-java-${VERSION}.zip s3://${CURRENT_API_DIR}/newrelic-java.zip
-   echo ":white_check_mark: Current directory updated." >> $OUTPUT
+   API_VERSION_DIR=${TEMPDIR}/newrelic-api/${VERSION}
+   cp ${API_VERSION_DIR}/newrelic-api-${VERSION}.jar ${API_VERSION_DIR}/newrelic-api.jar
+   log_message "copying api's newrelic-api.jar locally"
+   cp ${API_VERSION_DIR}/newrelic-api-${VERSION}.pom ${API_VERSION_DIR}/newrelic-api.pom
+   log_message "copying api's newrelic-api.pom locally"
+   cp ${API_VERSION_DIR}/newrelic-java-${VERSION}.zip ${API_VERSION_DIR}/newrelic-java.zip
+   log_message "copying api's newrelic-java.zip locally"
+
+   aws s3 ${PROFILE} sync ${AGENT_VERSION_DIR} s3://${CURRENT_AGENT_DIR} --delete
+   log_message "agent version dir sync to current dir"
+   aws s3 ${PROFILE} sync ${API_VERSION_DIR} s3://${CURRENT_API_DIR} --delete
+   log_message "api version dir sync to current dir"
 else
-   echo ":x: Looks like you uploaded an update to an older version, so the current directory was not updated." >> $OUTPUT
+   echo "Looks like you uploaded a point, so the current directory was not updated." >> $OUTPUT
    echo ":x: If this release was supposed to update the current directory, something went wrong." >> $OUTPUT
 fi
 

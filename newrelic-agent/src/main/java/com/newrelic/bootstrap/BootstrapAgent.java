@@ -37,6 +37,8 @@ public class BootstrapAgent {
     private static final String JAVA_LOG_MANAGER = "java.util.logging.manager";
     private static final String WS_SERVER_JAR = "ws-server.jar";
     private static final String WS_LOG_MANAGER = "com.ibm.ws.kernel.boot.logging.WsLogManager";
+    private static final String AGENT_ENABLED_ENV_VAR = "NEW_RELIC_AGENT_ENABLED";
+    private static final String AGENT_ENABLED_SYS_PROP = "newrelic.config.agent_enabled";
 
     public static URL getAgentJarUrl() {
         return BootstrapAgent.class.getProtectionDomain().getCodeSource().getLocation();
@@ -92,37 +94,17 @@ public class BootstrapAgent {
      * Thanks Mr. Cobb! ;)
      */
     public static void premain(String agentArgs, Instrumentation inst) {
+
         String javaSpecVersion = JavaVersionUtils.getJavaSpecificationVersion();
-        String sysExperimentalRuntime = System.getProperty("newrelic.config.experimental_runtime");
-        String envExperimentalRuntime = System.getenv("NEW_RELIC_EXPERIMENTAL_RUNTIME");
-        boolean useExperimentalRuntime = (Boolean.parseBoolean(sysExperimentalRuntime)
-                || ((Boolean.parseBoolean(envExperimentalRuntime))));
-
-        if (useExperimentalRuntime) {
-            System.out.println("----------");
-            System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
-            System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
-                    " or upcoming Java releases or at your own risk.");
-            System.out.println("----------");
+        if (useExperimentalRuntime()) {
+            printExperimentalRuntimeModeInUseMessage(javaSpecVersion);
         }
-        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion) && !useExperimentalRuntime) {
-            System.err.println("----------");
-            System.err.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
-            System.err.println("----------");
+        if (!JavaVersionUtils.isAgentSupportedJavaSpecVersion(javaSpecVersion) && !useExperimentalRuntime()) {
+            printUnsupportedJavaVersionMessage(javaSpecVersion);
             return;
         }
-
-        String sysPropEnabled = System.getProperty("newrelic.config.agent_enabled");
-        String envVarEnabled = System.getenv("NEW_RELIC_AGENT_ENABLED");
-        if (sysPropEnabled != null && !Boolean.parseBoolean(sysPropEnabled)) {
-            System.err.println("----------");
-            System.err.println("New Relic Agent is disabled by -Dnewrelic.config.agent_enabled system property.");
-            System.err.println("----------");
-            return;
-        } else if (envVarEnabled != null && !Boolean.parseBoolean(envVarEnabled)) {
-            System.err.println("----------");
-            System.err.println("New Relic Agent is disabled by NEW_RELIC_AGENT_ENABLED environment variable.");
-            System.err.println("----------");
+        if (agentIsDisabledBySystemPropertyOrEnvVar()) {
+            printAgentIsDisabledBySysPropOrEnvVar();
             return;
         }
 
@@ -166,18 +148,18 @@ public class BootstrapAgent {
             // on the System ClassLoader (aka and now called Application ClassLoader)
             URL[] codeSource;
             if (isJavaSqlLoadedOnPlatformClassLoader(javaVersion)) {
-                //Java 9+ we haven't added the agent-bridge-datastore.jar to the classpath yet
-                //because java.sql is loaded by the platform loader, so we skipped loading agent-bridge-datastore for Java 9+ versions.
-                //We now need to give the agent-bridge-datastore url and the platform classloader (as the parent classloader).
+                // Java 9+ we haven't added the agent-bridge-datastore.jar to the classpath yet
+                // because java.sql is loaded by the platform loader, so we skipped loading agent-bridge-datastore for Java 9+ versions.
+                // We now need to give the agent-bridge-datastore url and the platform classloader (as the parent classloader).
                 URL url = BootstrapLoader.getDatastoreJarURL();
                 codeSource = new URL[] { getAgentJarUrl(), url };
             } else {
-                //agent-bridge-datastore.jar was already added to the classpath by the BootstrapLoader
+                // agent-bridge-datastore.jar was already added to the classpath by the System/App classloader via BootstrapLoader
                 codeSource = new URL[] { getAgentJarUrl() };
             }
             // When we have come through the above 'else' path (java versions < 9) the agentClassLoaderParent will be null. This is okay
             // because the url provides the jar and all the agent classes. The weaver, agent-api, agent-bridge, and agent-datastore
-            //jars have already been added to the classpath and loaded by the com.newrelic.BootstrapLoader (which is loaded by AppClassLoader) for this case.
+            // jars have already been added to the classpath and loaded by the com.newrelic.BootstrapLoader (which is loaded by AppClassLoader) for this case.
             ClassLoader classLoader = new JVMAgentClassLoader(codeSource, agentClassLoaderParent);
 
             redefineJavaBaseModule(inst, classLoader);
@@ -270,6 +252,42 @@ public class BootstrapAgent {
         public JVMAgentClassLoader(URL[] urls, ClassLoader parent) {
             super(urls, parent);
         }
+    }
+
+    private static boolean agentIsDisabledBySystemPropertyOrEnvVar() {
+        String sysVal = System.getProperty(AGENT_ENABLED_SYS_PROP);
+        String envVal = System.getenv(AGENT_ENABLED_ENV_VAR);
+        // We also check for null here because we only want to know if
+        // if false is explicitly set for either value. Otherwise, null from getProperty would cause
+        // parseBoolean to return a false negative.
+        return (sysVal != null && !Boolean.parseBoolean(sysVal)) ||
+                (envVal != null && !Boolean.parseBoolean(envVal));
+    }
+
+    private static void printAgentIsDisabledBySysPropOrEnvVar() {
+        System.err.println("----------");
+        System.err.println(MessageFormat.format("New Relic Agent is disabled by {0} system property" +
+                " or {1} environment variable.", AGENT_ENABLED_SYS_PROP, AGENT_ENABLED_ENV_VAR));
+        System.err.println("----------");
+    }
+
+    private static boolean useExperimentalRuntime() {
+        return Boolean.parseBoolean(System.getProperty("newrelic.config.experimental_runtime"))
+                || Boolean.parseBoolean(System.getenv("NEW_RELIC_EXPERIMENTAL_RUNTIME"));
+    }
+
+    private static void printExperimentalRuntimeModeInUseMessage(String javaSpecVersion) {
+        System.out.println("----------");
+        System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
+        System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
+                " or upcoming Java releases or at your own risk.");
+        System.out.println("----------");
+    }
+
+    private static void printUnsupportedJavaVersionMessage(String javaSpecVersion) {
+        System.err.println("----------");
+        System.err.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
+        System.err.println("----------");
     }
 
 }
