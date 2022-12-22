@@ -8,7 +8,9 @@
 package com.nr.instrumentation.jboss;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
+import com.newrelic.agent.bridge.logging.LogAttributeType;
 import org.jboss.logmanager.ExtLogRecord;
 
 import java.util.HashMap;
@@ -29,7 +31,6 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
 
 public class AgentUtil {
-
     /**
      * Record a LogEvent to be sent to New Relic.
      *
@@ -41,10 +42,19 @@ public class AgentUtil {
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {
-                // JUL does not directly support MDC, so we only initialize the map size based on standard attributes
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
+                Map<String, String> mdcCopy = record.getMdcCopy();
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
+
+                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
+                    for (Map.Entry<String, String> entry : mdcCopy.entrySet()) {
+                        String key = entry.getKey();
+                        String value = entry.getValue();
+                        LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
+                        logEventMap.put(logAttrKey, value);
+                    }
+                }
 
                 Level level = record.getLevel();
                 if (level != null) {
@@ -102,5 +112,11 @@ public class AgentUtil {
      */
     private static boolean shouldCreateLogEvent(String message, Throwable throwable) {
         return (message != null) || !ExceptionUtil.isThrowableNull(throwable);
+    }
+
+    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
+        return AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
+                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 }

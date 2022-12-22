@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.instrumentation.jul;
+package com.nr.instrumentation.jboss;
 
 import com.nr.instrumentation.jboss.ExceptionUtil;
 import org.junit.Test;
