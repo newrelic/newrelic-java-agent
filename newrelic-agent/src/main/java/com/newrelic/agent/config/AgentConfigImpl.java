@@ -551,7 +551,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      */
     private void checkHighSecurityPropsInFlattened(Map<String, Object> flattenedProps) {
         if (highSecurity && !flattenedProps.isEmpty()) {
-            flattenedProps.put("transaction_tracer.record_sql", transactionTracerConfig.getRecordSql());
+            flattenedProps.put("transaction_tracer.record_sql", new ParsedConfigValue(transactionTracerConfig.getRecordSql()));
         }
     }
 
@@ -587,7 +587,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             } else {
                 Object destinationValue = dest.get(prefix + e.getKey());
                 if (!(destinationValue instanceof ServerProp)) {
-                    dest.put(prefix + e.getKey(), e.getValue());
+                    dest.put(prefix + e.getKey(), new ParsedConfigValue(e.getValue()));
                 }
             }
         }
@@ -605,23 +605,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         if (value == null) {
             value = flattenedProperties.get(path);
         }
-
         if (value == null) {
             return defaultValue;
         } else if (value instanceof ServerProp) {
             value = ((ServerProp) value).getValue();
             return castValue(path, value, defaultValue);
-        } else if (value instanceof String && defaultValue instanceof Boolean) {
-            // As noted below, the YAML parser interprets "on" as true and "off" as false.
-            // It's unclear whether we should accept the strings "on" and "off" here.
-            value = Boolean.valueOf((String) value);
-            return (T) value;
-        } else if (value instanceof String && defaultValue instanceof Integer) {
-            value = Integer.valueOf((String) value);
-            return (T) value;
         } else {
             try {
-                return (T) value;
+                return ((ParsedConfigValue)value).getParsedValue(defaultValue);
             } catch (ClassCastException ccx) {
                 Agent.LOG.log(Level.FINE, "Using default value \"{0}\" for \"{1}\"", defaultValue, path);
                 return defaultValue;
