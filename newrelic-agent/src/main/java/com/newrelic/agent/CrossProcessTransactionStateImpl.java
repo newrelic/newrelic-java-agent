@@ -220,8 +220,8 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
                     outboundHeaders.setHeader(entry.getKey(), entry.getValue());
                 }
             } else {
-                // If we got in here, old CAT is disabled but better CAT might be
-                // enabled so we should try to set those unobfuscated headers
+                // If we got in here, old CAT is disabled but DT might be
+                // enabled, so we should try to set those unobfuscated headers
                 for (Entry<String, String> entry : metadata.entrySet()) {
                     if (UNOBFUSCATED_HEADERS.contains(entry.getKey())) {
                         outboundHeaders.setHeader(entry.getKey(), entry.getValue());

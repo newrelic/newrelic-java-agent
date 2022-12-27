@@ -31,6 +31,8 @@ import static org.junit.Assert.assertTrue;
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "leave-me-alone" }, configName = "distributed_tracing.yml")
 public class MetricStateConnectTest {
+    // This timeout is required if connect is the only HttpURLConnection API called
+    private static final int TEST_SLEEP_TIME_MILLIS = 70_000;
 
     @Rule
     public HttpServerRule server = new HttpServerRule();
@@ -40,18 +42,18 @@ public class MetricStateConnectTest {
     }
 
     @Test
-    public void shouldSetMetricOnFirstConnect() throws Exception {
+    public void shouldNotSetMetricIfOnlyConnectIsCalled() throws Exception {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         String transactionName = runTransactionAndIntrospect(introspector, false);
 
         TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
 
-        assertEquals("External/localhost/HttpURLConnection/connect", trace.getInitialTraceSegment().getName());
-        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection"));
+        assertEquals("Java/com.nr.agent.instrumentation.httpurlconnection.MetricStateConnectTest/callConnect", trace.getInitialTraceSegment().getName());
+        assertFalse(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection/connect"));
 
         String defaultMetricName = transactionName.replace("OtherTransaction/Custom", "Java");
-        assertNotEquals(defaultMetricName, trace.getInitialTraceSegment().getName());
-        assertFalse(introspector.getMetricsForTransaction(transactionName).containsKey(defaultMetricName));
+        assertEquals(defaultMetricName, trace.getInitialTraceSegment().getName());
+        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey(defaultMetricName));
     }
 
     @Test
@@ -62,13 +64,12 @@ public class MetricStateConnectTest {
         TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
 
         assertNotEquals("External/localhost/HttpURLConnection/connect", trace.getInitialTraceSegment().getName());
-        assertFalse(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection"));
+        assertFalse(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection/connect"));
 
         String defaultMetricName = transactionName.replace("OtherTransaction/Custom", "Java");
         assertEquals(defaultMetricName, trace.getInitialTraceSegment().getName());
         assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey(defaultMetricName));
     }
-
 
     private String runTransactionAndIntrospect(Introspector introspector, boolean pretendToBeConnected) throws Exception {
         MetricState target = new MetricState();
@@ -92,5 +93,7 @@ public class MetricStateConnectTest {
         HttpURLConnection conn = (HttpURLConnection) connection;
 
         target.nonNetworkPreamble(pretendToBeConnected, conn, "connect");
+        // sleep long enough for the connect TimerTask to complete
+        Thread.sleep(TEST_SLEEP_TIME_MILLIS);
     }
 }

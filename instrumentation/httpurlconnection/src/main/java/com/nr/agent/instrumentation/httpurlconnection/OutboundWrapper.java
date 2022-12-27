@@ -25,6 +25,8 @@ public class OutboundWrapper implements OutboundHeaders {
     @Override
     public void setHeader(String name, String value) {
         try {
+            // If a connection has already been established then we cannot modify the HttpURLConnection header map as it becomes immutable.
+            // Trying to do so will cause the HttpURLConnection to internally throw/catch "java.lang.IllegalStateException: Already connected"
             connection.setRequestProperty(name, value);
         } catch (IllegalStateException e) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, "Failed to set request property. Cause: {0}. " 
