@@ -5,8 +5,11 @@ import com.newrelic.agent.RPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
@@ -15,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_EVENT_INGEST_URI;
@@ -26,6 +30,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -43,6 +48,10 @@ public class JfrServiceTest {
     @Before
     public void before() {
         MockitoAnnotations.openMocks(this);
+
+        MockServiceManager manager = new MockServiceManager();
+        ServiceFactory.setServiceManager(manager);
+
         when(jfrConfig.useLicenseKey()).thenReturn(true);
         when(agentConfig.getApplicationName()).thenReturn("test_app_name");
         when(agentConfig.getMetricIngestUri()).thenReturn(DEFAULT_METRIC_INGEST_URI);
@@ -51,7 +60,6 @@ public class JfrServiceTest {
         when(agentConfig.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
                 .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
     }
-
 
     @Test
     public void daemonConfigBuiltCorrect() {
@@ -121,5 +129,20 @@ public class JfrServiceTest {
         } catch (JfrRecorderException e) {
             fail("Should not have thrown any exception");
         }
+    }
+
+    @Test
+    public void configChanged_RespectsChangedSetting() {
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+        AgentConfig newAgentConfig = mock(AgentConfig.class);
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+
+        when(jfrConfig.isEnabled()).thenReturn(true);
+        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
+        when(newJfrConfig.isEnabled()).thenReturn(false);
+
+        spyJfr.configChanged("my-app", newAgentConfig);
+        verify(spyJfr).doStop();
     }
 }
