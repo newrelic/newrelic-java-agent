@@ -25,7 +25,8 @@ final class HttpClientConnect_Instrumentation {
 
         @Trace(async = true, excludeFromTransactionTrace = true)
         public void onUncaughtException(Connection connection, Throwable error) {
-            Token token = currentContext().getOrDefault("newrelic-token", null);
+            Context ctx = currentContext();
+            Token token = ctx != null ? ctx.getOrDefault("newrelic-token", null) : null;
             if (token != null && token.isActive()) {
                 token.link();
             }
