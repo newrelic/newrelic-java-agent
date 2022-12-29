@@ -121,7 +121,7 @@ jobs:
       - name: Cache agent
         uses: actions/cache@v3
         with:
-          path: ~/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          path: ~/work/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
 
   verify-module:
@@ -165,11 +165,8 @@ jobs:
           s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
-      # The verify task should not save to the cache. It will only use the cache from the build-agent job.
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-        with:
-          cache-read-only: true
 
       - name: Setup Gradle options
         run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
@@ -200,7 +197,7 @@ jobs:
         id: retrieve-agent
         uses: actions/cache@v3
         with:
-          path: ~/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          path: ~/work/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
 
       - if: ${{ steps.retrieve-agent.outputs.cache-hit != 'true' }}
