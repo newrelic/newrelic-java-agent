@@ -15,51 +15,42 @@ jobs:
   # build the agent and saves Gradle's cache so all modules can use the cache
   build-agent:
     runs-on: ubuntu-20.04
+    env:
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
     steps:
       - uses: actions/checkout@v3
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Set up Java 11
+      - name: Set up Javas
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 11
-
-      - name: Save JAVA_HOME as JDK11 for later usage
-        run: |
-          echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
-
-      - name: Set up Java 8
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 8
-
-      - name: Save JAVA_HOME as JDK8 for later usage
-        run: |
-          echo "JDK8=$JAVA_HOME" >> $GITHUB_ENV
+          java-version: |
+            11
+            8
 
       # Rewrite gradle.properties
       - name: set gradle.properties
         run: |
-          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
-          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
+          sed -i -e "s|jdk8=8|jdk8=${JAVA_HOME_8_x64}|
+          s|jdk11=11|jdk11=${JAVA_HOME_11_x64}|" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
       - name: Setup Gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_11_x64" >> $GITHUB_ENV
 
       ## AWS jars - plan to cache
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
       - name: Download S3 instrumentation jar zip
@@ -93,19 +84,15 @@ jobs:
     needs: build-agent
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
-      page: 1/2
+      page: 1/10
       ref: ${{ github.event.inputs.ref || 'main' }}
-    secrets:
-      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    secrets: inherit
 
   verify-instrumentation-2:
     name: Page 2/2
     needs: build-agent
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
-      page: 2/2
+      page: 2/10
       ref: ${{ github.event.inputs.ref || 'main' }}
-    secrets:
-      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    secrets: inherit

@@ -52,9 +52,11 @@ jobs:
     name: ${{ matrix.modules }}
     runs-on: ubuntu-20.04
     needs: read-modules
+    env:
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
     strategy:
       fail-fast: false
-      max-parallel: 15
       # GHA's IDE think the line below is broken. It is not.
       matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
     steps:
@@ -62,46 +64,39 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Set up Java 11
+      - name: Set up Javas
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 11
-
-      - name: Save JAVA_HOME as JDK11 for later usage
-        run: |
-          echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
-
-      - name: Set up Java 8
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 8
-
-      - name: Save JAVA_HOME as JDK8 for later usage
-        run: |
-          echo "JDK8=$JAVA_HOME" >> $GITHUB_ENV
+          java-version: |
+            11
+            8
 
       # Rewrite gradle.properties
       - name: set gradle.properties
         run: |
-          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
-          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
+          sed -i -e "s|jdk8=8|jdk8=${JAVA_HOME_8_x64}|
+          s|jdk11=11|jdk11=${JAVA_HOME_11_x64}|" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+        with:
+          gradle-home-cache-excludes: |
+            caches
+            notifications
+            jdks
 
       - name: Setup Gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_11_x64,JAVA_HOME_8_x64" >> $GITHUB_ENV
 
       ## AWS jars - plan to cache
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
       - name: Download S3 instrumentation jar zip
@@ -111,10 +106,6 @@ jobs:
       - name: Unzip the instrumentation jars
         if: ${{ env.AWS_KEY != '' }}
         run: unzip proprietary-jars.zip
-
-      - name: Log jars are in target libs
-        if: ${{ env.AWS_KEY != '' }}
-        run: find instrumentation -name "*.jar"
       ## End AWS jars - plan to cache (check for cache, restore if required)
 
       - name: Retrieve agent from cache
