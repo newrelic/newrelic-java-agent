@@ -11,7 +11,9 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.glassfish.main.web:web-core:[6.0.0-RC1,7.0.0-M3)'
+    passesOnly 'org.glassfish.main.web:web-core:[6.0.0-RC1,)'
+    exclude 'org.glassfish.main.web:web-core:7.0.0-M3'
+    exclude 'org.glassfish.main.web:web-core:7.0.0-M4'
     exclude 'org.glassfish.main.web:web-core:7.0.0-M10'
 }
 
