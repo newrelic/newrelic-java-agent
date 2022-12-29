@@ -118,10 +118,14 @@ jobs:
       - name: Build agent
         run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
 
+      - run: |
+          pwd
+          find . -iname "newrelic.jar"
+
       - name: Cache agent
         uses: actions/cache@v3
         with:
-          path: ~/work/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          path: /home/runner/work/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
 
   verify-module:
@@ -197,7 +201,7 @@ jobs:
         id: retrieve-agent
         uses: actions/cache@v3
         with:
-          path: ~/work/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          path: /home/runner/work/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
 
       - if: ${{ steps.retrieve-agent.outputs.cache-hit != 'true' }}
