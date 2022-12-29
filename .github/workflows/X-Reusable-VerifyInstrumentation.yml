@@ -17,11 +17,6 @@ on:
         default: main
         type: string
         description: 'The ref (branch, SHA, tag?) to run the tests on'
-    secrets:
-      aws-access-key-id:
-        required: false
-      aws-secret-access-key:
-        required: false
 
 jobs:
   # this job reads the directories in newrelic-java-agent/instrumentation and creates a JSON with the list of the modules
@@ -88,7 +83,7 @@ jobs:
       ## AWS jars - plan to cache
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
