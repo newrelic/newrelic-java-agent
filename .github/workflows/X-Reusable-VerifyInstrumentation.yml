@@ -121,7 +121,7 @@ jobs:
       - name: Cache agent
         uses: actions/cache@v3
         with:
-          path: newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          path: ~/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
 
   verify-module:
@@ -130,7 +130,7 @@ jobs:
     needs: [read-modules, build-agent]
     strategy:
       fail-fast: false
-      max-parallel: 10
+      max-parallel: 5
       # GHA's IDE think the line below is broken. It is not.
       matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
     steps:
@@ -200,7 +200,7 @@ jobs:
         id: retrieve-agent
         uses: actions/cache@v3
         with:
-          path: newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          path: ~/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
 
       - if: ${{ steps.retrieve-agent.outputs.cache-hit != 'true' }}
