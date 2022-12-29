@@ -1,6 +1,9 @@
 # Reusable workflow to run Verify Instrumentation on modules.
 # Only processes a fraction of the modules so the they fit into a GHA matrix (which is limited to 255 jobs).
 
+# This workflow does not use the setup-gradle action on purpose. That action retrieves over 1GB from the cache
+# and when many runners do that at the same time, the cache server returns 429s (Too many requests).
+
 name: X - Reusable Verify Instrumentation
 on:
   workflow_call:
