@@ -120,8 +120,9 @@ jobs:
 
       - name: Cache agent
         uses: actions/cache@v3
-        path: newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
-        key: ${{ github.run_id }}
+        with:
+          path: newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          key: ${{ github.run_id }}
 
   verify-module:
     name: ${{ matrix.modules }}
@@ -198,8 +199,9 @@ jobs:
       - name: Retrieve agent from cache
         id: retrieve-agent
         uses: actions/cache@v3
-        path: newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
-        key: ${{ github.run_id }}
+        with:
+          path: newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          key: ${{ github.run_id }}
 
       - if: ${{ steps.retrieve-agent.outputs.cache-hit != 'true' }}
         name: Build agent
