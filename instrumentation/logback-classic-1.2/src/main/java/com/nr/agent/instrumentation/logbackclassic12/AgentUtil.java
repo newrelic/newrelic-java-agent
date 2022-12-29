@@ -50,11 +50,15 @@ public class AgentUtil {
             logEventMap.put(TIMESTAMP, timeStampMillis);
 
             if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
-                for (Map.Entry<String, String> mdcEntry : mdcPropertyMap.entrySet()) {
-                    LogAttributeKey logAttrKey = new LogAttributeKey(mdcEntry.getKey(), LogAttributeType.CONTEXT);
-                    logEventMap.put(logAttrKey, mdcEntry.getValue());
-                }
+                mdcPropertyMap.forEach((key, value) -> {
+                    LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
+                    logEventMap.put(logAttrKey, value);
+                });
             }
+            AppLoggingUtils.getTags().forEach((key, value) -> {
+                LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.TAG);
+                logEventMap.put(logAttrKey, value);
+            });
 
             if (level.toString().isEmpty()) {
                 logEventMap.put(LEVEL, UNKNOWN);
@@ -107,8 +111,9 @@ public class AgentUtil {
     }
 
     private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
-        return AppLoggingUtils.isAppLoggingContextDataEnabled()
+        return (AppLoggingUtils.isAppLoggingContextDataEnabled()
                 ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES)
+                + AppLoggingUtils.getTags().size();
     }
 }

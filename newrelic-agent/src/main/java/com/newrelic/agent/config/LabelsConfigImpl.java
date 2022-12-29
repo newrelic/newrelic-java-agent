@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.config;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Agent;
 import org.json.simple.JSONArray;
@@ -48,40 +47,25 @@ public class LabelsConfigImpl implements LabelsConfig, JSONStreamAware {
             if (labelsObj instanceof Map) {
                 parseLabelsMap((Map) labelsObj);
             } else if (labelsObj instanceof String) {
-                parseLabelsString((String) labelsObj);
+                BaseConfig.parseMapEntriesFromString((String) labelsObj, this::addLabelPart);
             }
-        } catch (LabelParseException lpe) {
-            Agent.LOG.log(Level.WARNING, "Error parsing labels - {0}", lpe.getMessage());
+        } catch (ParseException pe) {
+            Agent.LOG.log(Level.WARNING, "Error parsing labels - {0}", pe.getMessage());
             Agent.LOG.log(Level.WARNING, "Labels will not be sent to New Relic");
             labels.clear();
         }
     }
 
-    private void parseLabelsString(String labelsString) throws LabelParseException {
-        labelsString = CharMatcher.is(';').trimFrom(labelsString); // allow leading/trailing semicolons
-
-        String[] labelsArray = labelsString.split(";");
-        for (String labelArray : labelsArray) {
-            String[] labelKeyAndValue = labelArray.split(":");
-
-            if (labelKeyAndValue.length != 2) {
-                throw new LabelParseException("invalid syntax");
-            }
-
-            addLabelPart(labelKeyAndValue[0], labelKeyAndValue[1]);
-        }
-    }
-
-    private void parseLabelsMap(Map<String, Object> labelsMap) throws LabelParseException {
+    private void parseLabelsMap(Map<String, Object> labelsMap) throws ParseException {
         for (Map.Entry<String, Object> entry : labelsMap.entrySet()) {
             if (entry.getValue() == null) {
-                throw new LabelParseException("empty value");
+                throw new ParseException("empty value");
             }
             addLabelPart(entry.getKey(), entry.getValue().toString());
         }
     }
 
-    private void addLabelPart(String key, String value) throws LabelParseException {
+    private void addLabelPart(String key, String value) throws ParseException {
         key = validateLabelPart(key);
         value = validateLabelPart(value);
 
@@ -93,13 +77,13 @@ public class LabelsConfigImpl implements LabelsConfig, JSONStreamAware {
         labels.put(key, value);
     }
 
-    private static String validateLabelPart(String keyOrValue) throws LabelParseException {
+    private static String validateLabelPart(String keyOrValue) throws ParseException {
         if (keyOrValue == null || keyOrValue.equals("")) {
-            throw new LabelParseException("empty name or value");
+            throw new ParseException("empty name or value");
         }
 
         if (keyOrValue.contains(":") || keyOrValue.contains(";")) {
-            throw new LabelParseException("illegal character ':' or ';' in name or value '" + keyOrValue + "'");
+            throw new ParseException("illegal character ':' or ';' in name or value '" + keyOrValue + "'");
         }
 
         if (keyOrValue.length() > 255) {
@@ -107,13 +91,7 @@ public class LabelsConfigImpl implements LabelsConfig, JSONStreamAware {
             Agent.LOG.log(Level.WARNING, "Label name or value over 255 characters.  Truncated to ''{0}''.", keyOrValue);
         }
 
-        return keyOrValue.trim();
-    }
-
-    private static class LabelParseException extends Exception {
-        public LabelParseException(String message) {
-            super(message);
-        }
+        return keyOrValue;
     }
 
     @Override

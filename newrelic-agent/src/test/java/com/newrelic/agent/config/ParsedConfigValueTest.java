@@ -1,10 +1,7 @@
 package com.newrelic.agent.config;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +14,6 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class ParsedConfigValueTest {
 
@@ -52,14 +48,14 @@ public class ParsedConfigValueTest {
     public void stringConfigRetrievedAsInteger() {
         ParsedConfigValue configValue = new ParsedConfigValue("123");
         Integer retrieved = configValue.getParsedValue(-1);
-        assertEquals(new Integer(123), retrieved);
+        assertEquals(Integer.valueOf(123), retrieved);
     }
 
     @Test
     public void stringConfigUnparseableAsInteger() {
         ParsedConfigValue configValue = new ParsedConfigValue("configured_value");
         Integer retrieved = configValue.getParsedValue(-1);
-        assertEquals(new Integer(-1), retrieved);
+        assertEquals(Integer.valueOf(-1), retrieved);
     }
 
     @Test
@@ -99,6 +95,12 @@ public class ParsedConfigValueTest {
         Map<String, String> defaultValue = singletonMap("key1", "default_value1");
         Map<String, String> retrieved = configValue.getParsedValue(defaultValue);
         assertEquals(defaultValue, retrieved);
+    }
+
+    @Test (expected = ClassCastException.class)
+    public void stringConfigMiscast() {
+        ParsedConfigValue configValue = new ParsedConfigValue("key1");
+        Integer retrieved = configValue.getParsedValue();
     }
 
     @Test
@@ -145,16 +147,22 @@ public class ParsedConfigValueTest {
         assertEquals(defaultValue, retrieved);
     }
 
+    @Test (expected = ClassCastException.class)
+    public void booleanConfigMiscast() {
+        ParsedConfigValue configValue = new ParsedConfigValue(TRUE);
+        Integer retrieved = configValue.getParsedValue();
+    }
+
     @Test
     public void integerConfigRetrievedWithoutDefault() {
         ParsedConfigValue configValue = new ParsedConfigValue(123);
-        assertEquals(new Integer(123), configValue.getParsedValue());
+        assertEquals(Integer.valueOf(123), configValue.getParsedValue());
     }
 
     @Test
     public void integerConfigRetrievedAsInteger() {
         ParsedConfigValue configValue = new ParsedConfigValue(123);
-        assertEquals(new Integer(123), configValue.getParsedValue(-1));
+        assertEquals(Integer.valueOf(123), configValue.getParsedValue(-1));
     }
 
     @Test
@@ -189,11 +197,17 @@ public class ParsedConfigValueTest {
         assertEquals(defaultValue, retrieved);
     }
 
+    @Test
+    public void integerConfigRetrievedAsLong() {
+        ParsedConfigValue configValue = new ParsedConfigValue(123);
+        long retrieved = configValue.getParsedValue(-1);
+        assertEquals(123L, retrieved);
+    }
+
     @Test(expected = ClassCastException.class)
-    public void invalidCastAttemptWithoutDefault() {
+    public void integerConfigMiscast() {
         ParsedConfigValue configValue = new ParsedConfigValue(123);
         String retrieved = configValue.getParsedValue();
-        fail("Should cause ClassCastException");
     }
 
     @Test(expected = ClassCastException.class)
@@ -202,7 +216,6 @@ public class ParsedConfigValueTest {
         List<Integer> retrieved = configValue.getParsedValue(emptyList());
         assertEquals(singletonList("configured_value"), retrieved);
         Integer accessAttempt = retrieved.get(0);
-        fail("Should cause ClassCastException");
     }
 
 }

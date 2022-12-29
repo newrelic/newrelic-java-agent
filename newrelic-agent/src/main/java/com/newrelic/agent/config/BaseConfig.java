@@ -7,14 +7,23 @@
 
 package com.newrelic.agent.config;
 
+import com.google.common.base.CharMatcher;
 import com.newrelic.agent.Agent;
 import com.newrelic.api.agent.Logger;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableMap;
 
 public class BaseConfig implements Config {
 
@@ -53,7 +62,7 @@ public class BaseConfig implements Config {
             throw new IllegalArgumentException("prefix must be null or non-empty");
         }
 
-        this.props = props == null ? Collections.<String, Object>emptyMap() : Collections.unmodifiableMap(props);
+        this.props = props == null ? emptyMap() : unmodifiableMap(props);
         this.systemPropertyPrefix = systemPropertyPrefix;
     }
 
@@ -110,7 +119,7 @@ public class BaseConfig implements Config {
         }
         try {
             return new JSONParser().parse(val);
-        } catch (ParseException e) {
+        } catch (org.json.simple.parser.ParseException e) {
             return val;
         }
     }
@@ -239,6 +248,20 @@ public class BaseConfig implements Config {
         return result;
     }
 
+    public static void parseMapEntriesFromString(String mapAsString, MapParsingBiConsumer<String, String> parsedEntryHandler) throws
+            ParseException {
+        mapAsString = CharMatcher.is(';').trimFrom(mapAsString); // allow leading/trailing semicolons
+
+        String[] mapEntries = mapAsString.split(";");
+        for (String mapEntry : mapEntries) {
+            String[] keyAndValue = mapEntry.split(":");
+
+            if (keyAndValue.length != 2) {
+                throw new ParseException("invalid syntax");
+            }
+            parsedEntryHandler.accept(keyAndValue[0].trim(), keyAndValue[1].trim());
+        }
+    }
 
     protected int getIntProperty(String key, int defaultVal) {
         Number val = getProperty(key);
@@ -303,4 +326,13 @@ public class BaseConfig implements Config {
     }
 
     protected static final Map<String[], DeprecatedProperty> deprecatedProperties = new ConcurrentHashMap<>();
+
+    /**
+     * Extension of BiConsumer that can throw a checked {@link ParseException} when accepting input.
+     */
+    @FunctionalInterface
+    protected interface MapParsingBiConsumer<T, U> {
+        void accept(T t, U u) throws ParseException;
+    }
+
 }

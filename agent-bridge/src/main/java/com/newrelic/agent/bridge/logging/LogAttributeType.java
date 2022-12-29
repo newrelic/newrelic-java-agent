@@ -14,7 +14,8 @@ public enum LogAttributeType {
             return key;
         }
     },
-    CONTEXT(AppLoggingUtils.CONTEXT_DATA_ATTRIBUTE_PREFIX);
+    CONTEXT(AppLoggingUtils.CONTEXT_DATA_ATTRIBUTE_PREFIX),
+    TAG(AppLoggingUtils.TAGS_ATTRIBUTE_PREFIX);
 
     private final String prefix;
 

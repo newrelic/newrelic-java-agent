@@ -1,7 +1,11 @@
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.Agent;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.newrelic.agent.config.BaseConfig.COMMA_SEPARATOR;
@@ -19,8 +23,9 @@ import static com.newrelic.agent.config.BaseConfig.COMMA_SEPARATOR;
  * Parsing is carried out when config is loaded rather than at the time of access
  * to avoid parsing more than once.
  * <p>
- * Retrieving a value with a null default value will return the original data type of
- * the config.
+ * Retrieving a value with a null default value or without a default will return the original data type of
+ * the config - this will cause a {@link ClassCastException} if you attempt to retrieve to an incompatible
+ * type.
  * <p>
  * Retrieving a value with a default will attempt to return the config value coerced
  * into the type of the default, if possible. If the defined value cannot be coerced
@@ -33,8 +38,7 @@ import static com.newrelic.agent.config.BaseConfig.COMMA_SEPARATOR;
 public class ParsedConfigValue {
 
     private static final Pattern MAP_TYPE_VALUE = Pattern.compile(".+:.+");
-
-    private Object originalValue;
+    private final Object originalValue;
     private List<String> valueAsList;
     private Map<String, String> valueAsMap;
     private Boolean valueAsBoolean;
@@ -65,6 +69,7 @@ public class ParsedConfigValue {
         return getParsedValue(null);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getParsedValue(T defaultValue) {
         Object value = null;
         if (defaultValue == null || defaultValue.getClass().equals(originalValue.getClass())) {
@@ -86,7 +91,15 @@ public class ParsedConfigValue {
     }
 
     private Map<String, String> parseMapValue(String originalValue) {
-        return new LabelsConfigImpl(originalValue).getLabels();
+        Map<String, String> parsed = new HashMap<>();
+        try {
+             BaseConfig.parseMapEntriesFromString(originalValue, parsed::put);
+        } catch (ParseException pe) {
+            Agent.LOG.log(Level.WARNING, "Error attempting to parse {0} to a map - {1}", originalValue, pe.getMessage());
+            Agent.LOG.log(Level.WARNING, "This value will only be available as a String or a List");
+            parsed.clear();
+        }
+        return parsed;
     }
 
 }

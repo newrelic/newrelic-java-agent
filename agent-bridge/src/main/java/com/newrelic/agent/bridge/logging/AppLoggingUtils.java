@@ -6,14 +6,14 @@
  */
 package com.newrelic.agent.bridge.logging;
 
-import com.newrelic.agent.bridge.logging.LogAttributeKey;
-import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.api.agent.NewRelic;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 public class AppLoggingUtils {
     public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 10;
@@ -39,6 +39,7 @@ public class AppLoggingUtils {
     public static final String SPAN_ID = "span.id";
     // Log attribute prefixes
     public static final String CONTEXT_DATA_ATTRIBUTE_PREFIX = "context.";
+    public static final String TAGS_ATTRIBUTE_PREFIX = "tags.";
     // Enabled defaults
     private static final boolean APP_LOGGING_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = true;
@@ -137,5 +138,9 @@ public class AppLoggingUtils {
     public static boolean isAppLoggingContextDataEnabled() {
         return NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.context_data.enabled",
                 APP_LOGGING_FORWARDING_INCLUDE_CONTEXT_DATA_DEFAULT_ENABLED);
+    }
+
+    public static Map<String, String> getTags() {
+        return NewRelic.getAgent().getConfig().getValue("labels", emptyMap());
     }
 }

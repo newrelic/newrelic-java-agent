@@ -473,7 +473,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * license key. If the license key doesn't conform to protocol 15+, then return the default event ingest URI, otherwise construct the
      * new event ingest URI using the region section of the license key.
      * <p>
-     * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+     * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events<br>
      * EU Prod event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
      */
     private String parseEventIngestUri(String region) {
@@ -599,7 +599,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T getValue(String path, T defaultValue) {
         Object value = flattenedProperties.get(Strings.replaceDotHyphenWithUnderscore(path));
         if (value == null) {
