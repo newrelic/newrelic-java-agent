@@ -79,14 +79,6 @@ jobs:
           s|jdk11=11|jdk11=${JAVA_HOME_11_x64}|" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-home-cache-excludes: |
-            caches
-            notifications
-            jdks
-
       - name: Setup Gradle options
         run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_11_x64,JAVA_HOME_8_x64" >> $GITHUB_ENV
 
