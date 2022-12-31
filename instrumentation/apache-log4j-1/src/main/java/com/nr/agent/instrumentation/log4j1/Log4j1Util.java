@@ -59,7 +59,8 @@ public class Log4j1Util {
     private static void recordNewRelicLogEvent(LoggingEvent event) {
         if (shouldCreateNewRelicLogEventFor(event)) {
             boolean isAppLoggingContextDataEnabled = AppLoggingUtils.isAppLoggingContextDataEnabled();
-            Map<LogAttributeKey, Object> logEventMap = LoggingEventMap.from(event, isAppLoggingContextDataEnabled);
+            Map<String, String> tags = AppLoggingUtils.getTags();
+            Map<LogAttributeKey, Object> logEventMap = LoggingEventMap.from(event, isAppLoggingContextDataEnabled, tags);
             AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
         }
     }

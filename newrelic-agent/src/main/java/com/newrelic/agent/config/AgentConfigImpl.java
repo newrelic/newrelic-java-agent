@@ -302,7 +302,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         host = parseHost(region);
         metricIngestUri = parseMetricIngestUri(region);
         eventIngestUri = parseEventIngestUri(region);
-        ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
+        ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, LIST_ITEM_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
         logDaily = getProperty(LOG_DAILY, DEFAULT_LOG_DAILY);
@@ -312,7 +312,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         proxyScheme = getProperty(PROXY_SCHEME, DEFAULT_PROXY_SCHEME);
         proxyUser = getStringPropertyOrNull(PROXY_USER);
         proxyPass = getStringPropertyOrNull(PROXY_PASS);
-        appNames = new ArrayList<>(getUniqueStrings(APP_NAME, SEMI_COLON_SEPARATOR));
+        appNames = new ArrayList<>(getUniqueStrings(APP_NAME, MAP_ENTRY_SEPARATOR));
         appName = getPrimaryAppName();
         cpuSamplingEnabled = getProperty(CPU_SAMPLING_ENABLED, DEFAULT_CPU_SAMPLING_ENABLED);
         autoAppNamingEnabled = getProperty(ENABLE_AUTO_APP_NAMING, DEFAULT_ENABLE_AUTO_APP_NAMING);
@@ -634,7 +634,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private String getPrimaryAppName() {
         Object val = getProperty(APP_NAME);
         if (val instanceof String) {
-            String[] values = ((String) val).split(SEMI_COLON_SEPARATOR);
+            String[] values = ((String) val).split(MAP_ENTRY_SEPARATOR);
             if (values.length == 0) {
                 return null;
             }

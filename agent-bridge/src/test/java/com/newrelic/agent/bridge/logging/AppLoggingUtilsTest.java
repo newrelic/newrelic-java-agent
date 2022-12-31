@@ -6,12 +6,8 @@
  */
 package com.newrelic.agent.bridge.logging;
 
-import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 
 public class AppLoggingUtilsTest {
 

@@ -33,7 +33,7 @@ public class PriorityApplicationName {
             names = null;
         } else {
             names = Collections.unmodifiableList(BaseConfig.getUniqueStringsFromString(name,
-                    BaseConfig.SEMI_COLON_SEPARATOR));
+                    BaseConfig.MAP_ENTRY_SEPARATOR));
             this.name = names.get(0);
         }
     }

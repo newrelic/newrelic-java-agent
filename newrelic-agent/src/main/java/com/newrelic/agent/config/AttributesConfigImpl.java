@@ -77,11 +77,11 @@ public class AttributesConfigImpl extends BaseConfig implements AttributesConfig
     }
 
     private List<String> initAttributesInclude() {
-        return new ArrayList<>(getUniqueStrings(INCLUDE, COMMA_SEPARATOR));
+        return new ArrayList<>(getUniqueStrings(INCLUDE, LIST_ITEM_SEPARATOR));
     }
 
     private List<String> initAttributesExclude() {
-        return new ArrayList<>(getUniqueStrings(EXCLUDE, COMMA_SEPARATOR));
+        return new ArrayList<>(getUniqueStrings(EXCLUDE, LIST_ITEM_SEPARATOR));
     }
 
     @Override

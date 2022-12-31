@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import static com.newrelic.agent.config.BaseConfig.COMMA_SEPARATOR;
+import static com.newrelic.agent.config.BaseConfig.LIST_ITEM_SEPARATOR;
 
 /**
  * Any text config value has the potential to be interpreted as more than
@@ -87,7 +87,7 @@ public class ParsedConfigValue {
     }
 
     private List<String> parseListValue(String originalValue) {
-        return BaseConfig.getUniqueStringsFromString(originalValue, COMMA_SEPARATOR);
+        return BaseConfig.getUniqueStringsFromString(originalValue, LIST_ITEM_SEPARATOR);
     }
 
     private Map<String, String> parseMapValue(String originalValue) {

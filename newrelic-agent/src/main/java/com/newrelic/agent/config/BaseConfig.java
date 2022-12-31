@@ -27,8 +27,8 @@ import static java.util.Collections.unmodifiableMap;
 
 public class BaseConfig implements Config {
 
-    public static final String COMMA_SEPARATOR = ",";
-    public static final String SEMI_COLON_SEPARATOR = ";";
+    public static final String LIST_ITEM_SEPARATOR = ",";
+    public static final String MAP_ENTRY_SEPARATOR = ";";
 
     protected static boolean addDeprecatedProperties = true;
     private static final Logger logger = Agent.LOG.getChildLogger(BaseConfig.class);
@@ -190,7 +190,7 @@ public class BaseConfig implements Config {
      * @see BaseConfig#getUniqueStrings(String, String)
      */
     protected List<String> getUniqueStrings(String key) {
-        return getUniqueStrings(key, COMMA_SEPARATOR);
+        return getUniqueStrings(key, LIST_ITEM_SEPARATOR);
     }
 
     /**
@@ -248,6 +248,16 @@ public class BaseConfig implements Config {
         return result;
     }
 
+    /**
+     * Interprets a {@link String} as a {@link Map} using a format of 'key1:value1;key2:value2', with
+     * resulting String keys and values trimmed of whitespace.
+     * <p>
+     * Each parsed Map entry is passed to the consumer function, which may for example add the entry to
+     * a Map, or carry out validation.
+     * <p>
+     * If the String format cannot be parsed as a sequence of Map entries, or if the consumer throws a
+     * {@link ParseException} then a {@link ParseException} will be thrown.
+     */
     public static void parseMapEntriesFromString(String mapAsString, MapParsingBiConsumer<String, String> parsedEntryHandler) throws
             ParseException {
         mapAsString = CharMatcher.is(';').trimFrom(mapAsString); // allow leading/trailing semicolons
@@ -298,7 +308,7 @@ public class BaseConfig implements Config {
     }
 
     private Set<Integer> getIntegerSetFromString(String valuesString) {
-        String[] valuesArray = valuesString.split(COMMA_SEPARATOR);
+        String[] valuesArray = valuesString.split(LIST_ITEM_SEPARATOR);
         Set<Integer> result = new HashSet<>(valuesArray.length);
         for (String value : valuesArray) {
             value = value.trim();

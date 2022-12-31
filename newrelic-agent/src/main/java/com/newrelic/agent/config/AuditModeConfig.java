@@ -38,7 +38,7 @@ public class AuditModeConfig extends BaseConfig {
     public AuditModeConfig(Map<String, Object> pProps) {
         super(pProps, NESTED_PROPERTY_ROOT);
         this.isEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
-        this.endpoints = new HashSet<>((getUniqueStrings(ENDPOINTS, COMMA_SEPARATOR)));
+        this.endpoints = new HashSet<>((getUniqueStrings(ENDPOINTS, LIST_ITEM_SEPARATOR)));
     }
 
     public boolean isEnabled() {

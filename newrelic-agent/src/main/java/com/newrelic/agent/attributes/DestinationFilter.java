@@ -85,7 +85,7 @@ public class DestinationFilter {
     protected static List<String> getBaseList(AgentConfig config, String key) {
         Object val = config.getValue(key);
         if (val instanceof String) {
-            return BaseConfig.getUniqueStringsFromString((String) val, BaseConfig.COMMA_SEPARATOR);
+            return BaseConfig.getUniqueStringsFromString((String) val, BaseConfig.LIST_ITEM_SEPARATOR);
         }
         if (val instanceof Collection<?>) {
             return BaseConfig.getUniqueStringsFromCollection((Collection<?>) val, null);

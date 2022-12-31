@@ -30,6 +30,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
 
 public class AgentUtil {
+
     /**
      * Record a LogEvent to be sent to New Relic.
      *
@@ -37,54 +38,20 @@ public class AgentUtil {
      * @param timeStampMillis log timestamp
      * @param level           log level
      */
-    public static void recordNewRelicLogEvent(String message, Map<String, String> mdcPropertyMap, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
+    public static void recordNewRelicLogEvent(String message, Map<String, String> mdcPropertyMap, long timeStampMillis, Level level, Throwable thrown, String threadName, long threadId,
             String loggerName, String fqcnLoggerName) {
         boolean messageEmpty = message.isEmpty();
 
-        if (shouldCreateLogEvent(messageEmpty, throwable)) {
+        if (shouldCreateLogEvent(messageEmpty, thrown)) {
             Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap));
 
             if (!messageEmpty) {
                 logEventMap.put(MESSAGE, message);
             }
             logEventMap.put(TIMESTAMP, timeStampMillis);
-
-            if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
-                mdcPropertyMap.forEach((key, value) -> {
-                    LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
-                    logEventMap.put(logAttrKey, value);
-                });
-            }
-            AppLoggingUtils.getTags().forEach((key, value) -> {
-                LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.TAG);
-                logEventMap.put(logAttrKey, value);
-            });
-
-            if (level.toString().isEmpty()) {
-                logEventMap.put(LEVEL, UNKNOWN);
-            } else {
-                logEventMap.put(LEVEL, level);
-            }
-
-            String errorStack = ExceptionUtil.getErrorStack(throwable);
-            if (errorStack != null) {
-                logEventMap.put(ERROR_STACK, errorStack);
-            }
-
-            String errorMessage = ExceptionUtil.getErrorMessage(throwable);
-            if (errorMessage != null) {
-                logEventMap.put(ERROR_MESSAGE, errorMessage);
-            }
-
-            String errorClass = ExceptionUtil.getErrorClass(throwable);
-            if (errorClass != null) {
-                logEventMap.put(ERROR_CLASS, errorClass);
-            }
-
             if (threadName != null) {
                 logEventMap.put(THREAD_NAME, threadName);
             }
-
             logEventMap.put(THREAD_ID, threadId);
 
             if (loggerName != null) {
@@ -94,6 +61,11 @@ public class AgentUtil {
             if (fqcnLoggerName != null) {
                 logEventMap.put(LOGGER_FQCN, fqcnLoggerName);
             }
+
+            addMdc(mdcPropertyMap, logEventMap);
+            addTags(logEventMap);
+            addLevel(level, logEventMap);
+            addErrorInfo(thrown, logEventMap);
 
             AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
         }
@@ -116,4 +88,46 @@ public class AgentUtil {
                 : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES)
                 + AppLoggingUtils.getTags().size();
     }
+
+    private static void addMdc(Map<String, String> mdcPropertyMap, Map<LogAttributeKey, Object> logEventMap) {
+        if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
+            mdcPropertyMap.forEach((key, value) -> {
+                LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
+                logEventMap.put(logAttrKey, value);
+            });
+        }
+    }
+
+    private static void addTags(Map<LogAttributeKey, Object> logEventMap) {
+        AppLoggingUtils.getTags().forEach((key, value) -> {
+            LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.TAG);
+            logEventMap.put(logAttrKey, value);
+        });
+    }
+
+    private static void addLevel(Level level, Map<LogAttributeKey, Object> logEventMap) {
+        if (level.toString().isEmpty()) {
+            logEventMap.put(LEVEL, UNKNOWN);
+        } else {
+            logEventMap.put(LEVEL, level);
+        }
+    }
+
+    private static void addErrorInfo(Throwable thrown, Map<LogAttributeKey, Object> logEventMap) {
+        String errorStack = ExceptionUtil.getErrorStack(thrown);
+        if (errorStack != null) {
+            logEventMap.put(ERROR_STACK, errorStack);
+        }
+
+        String errorMessage = ExceptionUtil.getErrorMessage(thrown);
+        if (errorMessage != null) {
+            logEventMap.put(ERROR_MESSAGE, errorMessage);
+        }
+
+        String errorClass = ExceptionUtil.getErrorClass(thrown);
+        if (errorClass != null) {
+            logEventMap.put(ERROR_CLASS, errorClass);
+        }
+    }
+
 }

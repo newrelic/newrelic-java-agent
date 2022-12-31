@@ -17,101 +17,122 @@ import org.apache.log4j.spi.ThrowableInformation;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_FQCN;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.MESSAGE;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_ID;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_NAME;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
+
 class LoggingEventMap {
-    static Map<LogAttributeKey, Object> from(LoggingEvent event, boolean appLoggingContextDataEnabled) {
-        Map<LogAttributeKey, Object> logEventMap = initialMapWithMdcIfEnabled(event, appLoggingContextDataEnabled);
+
+    static Map<LogAttributeKey, Object> from(LoggingEvent event, boolean appLoggingContextDataEnabled, Map<String, String> tags) {
+        Map<LogAttributeKey, Object> logEventMap = initialMapWithMdcIfEnabled(event, appLoggingContextDataEnabled, tags);
+        addTags(tags, logEventMap);
         addLoggerInfo(event, logEventMap);
-        addMessageAndTs(event, logEventMap);
+        addMessageAndTimestamp(event, logEventMap);
         addLevel(event, logEventMap);
         addThreadInfo(event, logEventMap);
         addErrorInfo(event, logEventMap);
         return logEventMap;
     }
 
-    private static Map<LogAttributeKey, Object> initialMapWithMdcIfEnabled(LoggingEvent event, boolean isAppLoggingContextDataEnabled) {
+    private static Map<LogAttributeKey, Object> initialMapWithMdcIfEnabled(LoggingEvent event, boolean isAppLoggingContextDataEnabled, Map<String, String> tags) {
         Map<LogAttributeKey, Object> loggingEventMap = null;
+        int potentialMapEntries = DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES + tags.size();
         if (isAppLoggingContextDataEnabled) {
             Map<?, ?> mdc = event.getProperties();
             if (mdc != null && !mdc.isEmpty()) {
-                loggingEventMap = new HashMap<>(AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES + mdc.size());
+                loggingEventMap = new HashMap<>(potentialMapEntries + mdc.size());
                 addMdc(mdc, loggingEventMap);
             }
         }
         if (loggingEventMap == null) {
-            loggingEventMap = new HashMap<>(AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
+            loggingEventMap = new HashMap<>(potentialMapEntries);
         }
         return loggingEventMap;
     }
 
-    private static void addMdc(Map<?, ?> mdc, Map<LogAttributeKey, Object> map) {
-        for (Map.Entry<?, ?> entry : mdc.entrySet()) {
-            Object key = entry.getKey();
-            Object value = entry.getValue();
+    private static void addMdc(Map<?, ?> mdc, Map<LogAttributeKey, Object> logEventMap) {
+        mdc.forEach((key, value) -> {
             LogAttributeKey logAttrKey = new LogAttributeKey(key.toString(), LogAttributeType.CONTEXT);
-            map.put(logAttrKey, value);
-        }
+            logEventMap.put(logAttrKey, value);
+        });
     }
 
-    private static void addMessageAndTs(LoggingEvent event, Map<LogAttributeKey, Object> map) {
+    private static void addMessageAndTimestamp(LoggingEvent event, Map<LogAttributeKey, Object> logEventMap) {
         String message = event.getRenderedMessage();
         if (message != null && !message.isEmpty()) {
-            map.put(AppLoggingUtils.MESSAGE, message);
+            logEventMap.put(MESSAGE, message);
         }
-        map.put(AppLoggingUtils.TIMESTAMP, event.getTimeStamp());
+        logEventMap.put(TIMESTAMP, event.getTimeStamp());
     }
 
-    private static void addErrorInfo(LoggingEvent event, Map<LogAttributeKey, Object> map) {
-        Throwable throwable = null;
+    private static void addErrorInfo(LoggingEvent event, Map<LogAttributeKey, Object> logEventMap) {
+        Throwable thrown = null;
         ThrowableInformation throwableInformation = event.getThrowableInformation();
         if (throwableInformation != null) {
-            throwable = throwableInformation.getThrowable();
+            thrown = throwableInformation.getThrowable();
         }
 
-        String errorMessage = Log4j1ExceptionUtil.getErrorMessage(throwable);
+        String errorMessage = Log4j1ExceptionUtil.getErrorMessage(thrown);
         if (errorMessage != null) {
-            map.put(AppLoggingUtils.ERROR_MESSAGE, errorMessage);
+            logEventMap.put(ERROR_MESSAGE, errorMessage);
         }
 
-        String errorStack = Log4j1ExceptionUtil.getErrorStack(throwable);
+        String errorStack = Log4j1ExceptionUtil.getErrorStack(thrown);
         if (errorStack != null) {
-            map.put(AppLoggingUtils.ERROR_STACK, errorStack);
+            logEventMap.put(ERROR_STACK, errorStack);
         }
 
-        String errorClass = Log4j1ExceptionUtil.getErrorClass(throwable);
+        String errorClass = Log4j1ExceptionUtil.getErrorClass(thrown);
         if (errorClass != null) {
-            map.put(AppLoggingUtils.ERROR_CLASS, errorClass);
+            logEventMap.put(ERROR_CLASS, errorClass);
         }
     }
 
-    private static void addLevel(LoggingEvent event, Map<LogAttributeKey, Object> map) {
+    private static void addLevel(LoggingEvent event, Map<LogAttributeKey, Object> logEventMap) {
         Level level = event.getLevel();
         if (level != null) {
             String levelName = level.toString();
             if (levelName.isEmpty()) {
-                map.put(AppLoggingUtils.LEVEL, AppLoggingUtils.UNKNOWN);
+                logEventMap.put(LEVEL, UNKNOWN);
             } else {
-                map.put(AppLoggingUtils.LEVEL, levelName);
+                logEventMap.put(LEVEL, levelName);
             }
         }
     }
 
-    private static void addThreadInfo(LoggingEvent event, Map<LogAttributeKey, Object> map) {
+    private static void addThreadInfo(LoggingEvent event, Map<LogAttributeKey, Object> logEventMap) {
         String threadName = event.getThreadName();
         if (threadName != null) {
-            map.put(AppLoggingUtils.THREAD_NAME, threadName);
+            logEventMap.put(THREAD_NAME, threadName);
         }
-        map.put(AppLoggingUtils.THREAD_ID, Thread.currentThread().getId());
+        logEventMap.put(THREAD_ID, Thread.currentThread().getId());
     }
 
-    private static void addLoggerInfo(LoggingEvent event, Map<LogAttributeKey, Object> map) {
+    private static void addLoggerInfo(LoggingEvent event, Map<LogAttributeKey, Object> logEventMap) {
         String loggerName = event.getLoggerName();
         if (loggerName != null) {
-            map.put(AppLoggingUtils.LOGGER_NAME, loggerName);
+            logEventMap.put(LOGGER_NAME, loggerName);
         }
 
         String loggerFqcn = event.getFQNOfLoggerClass();
         if (loggerFqcn != null) {
-            map.put(AppLoggingUtils.LOGGER_FQCN, loggerFqcn);
+            logEventMap.put(LOGGER_FQCN, loggerFqcn);
         }
+    }
+
+    private static void addTags(Map<String, String> tags, Map<LogAttributeKey, Object> logEventMap) {
+        tags.forEach((key, value) -> {
+            LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.TAG);
+            logEventMap.put(logAttrKey, value);
+        });
     }
 }

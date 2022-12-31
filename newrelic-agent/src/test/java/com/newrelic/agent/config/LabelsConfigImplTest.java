@@ -140,6 +140,9 @@ public class LabelsConfigImplTest {
 
         config = new LabelsConfigImpl("foo:bar;;many:delimiters");
         assertTrue(config.getLabels().isEmpty());
+
+        config = new LabelsConfigImpl("foo:bar;empty:    ");
+        assertTrue(config.getLabels().isEmpty());
     }
 
     private static String stringOfLength(int length) {
