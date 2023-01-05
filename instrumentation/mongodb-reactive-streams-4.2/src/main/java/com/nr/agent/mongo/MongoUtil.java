@@ -61,7 +61,9 @@ public class MongoUtil {
     public static final String OP_GROUP = "group";
     public static final String UNKNOWN = "Unknown";
 
-    // "delete" commands are different from DBCollection.remove
+    /**
+    * "delete" commands are different from {@link DBCollection#remove}.
+    */
     public static final String OP_DELETE = "delete";
     public static final String OP_DELETE_ONE = "deleteOne";
     public static final String OP_DELETE_MANY = "deleteMany";

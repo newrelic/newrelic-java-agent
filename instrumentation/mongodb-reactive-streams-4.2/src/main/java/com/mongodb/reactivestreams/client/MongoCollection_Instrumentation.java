@@ -211,7 +211,6 @@ public abstract class MongoCollection_Instrumentation<TDocument> {
 
     @Trace(leaf = true)
     public Publisher<UpdateResult> updateOne(final Bson filter, final Bson update, final UpdateOptions options) {
-
         reportAsExternal(OP_UPDATE_ONE);
         return Weaver.callOriginal();
     }
@@ -229,7 +228,6 @@ public abstract class MongoCollection_Instrumentation<TDocument> {
             final UpdateOptions options) {
         reportAsExternal(OP_UPDATE_ONE);
         return Weaver.callOriginal();
-
     }
 
     @Trace(leaf = true)
