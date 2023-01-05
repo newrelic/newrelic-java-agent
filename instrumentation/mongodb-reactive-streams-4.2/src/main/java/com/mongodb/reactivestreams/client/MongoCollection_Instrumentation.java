@@ -204,7 +204,6 @@ public abstract class MongoCollection_Instrumentation<TDocument> {
     public Publisher<UpdateResult> replaceOne(final ClientSession clientSession, final Bson filter,
             final TDocument replacement,
             final ReplaceOptions options) {
-
         reportAsExternal(OP_REPLACE_ONE);
         return Weaver.callOriginal();
     }
