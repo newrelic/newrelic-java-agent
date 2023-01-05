@@ -13,15 +13,14 @@ dependencies {
     implementation 'io.projectreactor:reactor-core:3.2.22.RELEASE'
     implementation 'org.mongodb:mongodb-driver-reactivestreams:4.2.0'
 
-
     testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.2.2")
     testImplementation('org.mongodb:mongodb-driver-reactivestreams:4.2.0')
 }
 
 
 verifyInstrumentation {
-	passesOnly 'org.mongodb:mongodb-driver-core:[4.2.0)'
-	excludeRegex 'org.mongodb:mongodb-driver-core:.*(alpha|beta|rc|SNAPSHOT).*'
+	passesOnly 'org.mongodb:mongodb-driver-reactivestreams:[4.0.0,)'
+	excludeRegex 'org.mongodb:mongodb-driver-reactivestreams:.*(alpha|beta|rc|SNAPSHOT).*'
 }
 
 site {
