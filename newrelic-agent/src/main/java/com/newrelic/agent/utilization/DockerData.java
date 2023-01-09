@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  *
  *   +4:cpu:/docker/3ccfa00432798ff38f85839de1e396f771b4acbe9f4ddea0a761c39b9790a782
  *
- *   We should grab the "cpu" line. It should only be used if /docker is present. The long id number is the number we want.
+ *   We should grab the "cpu" line. The long id number is the number we want.
  *   This is the full docker id, not the short id that appears when you run a "docker ps".
  */
 public class DockerData {
@@ -35,6 +35,7 @@ public class DockerData {
     private static final Pattern DOCKER_NATIVE_DRIVER_WOUT_SYSTEMD = Pattern.compile("^/.*/([0-9a-f]+)$");
     private static final Pattern DOCKER_GENERIC_DRIVER = Pattern.compile("^/([0-9a-f]+)$");
     private static final Pattern DOCKER_NATIVE_DRIVER_W_SYSTEMD = Pattern.compile("^/.*/\\w+-([0-9a-f]+)\\.scope$");
+    private static final Pattern VALID_CONTAINER_ID = Pattern.compile("^[0-9a-f]{64}$");
 
     public String getDockerContainerId(boolean isLinux) {
         if (isLinux) {
@@ -87,31 +88,7 @@ public class DockerData {
          *
          * Value is expected to include only [0-9a-f]
          */
-
-        if (value == null) {
-            return true;
-        }
-
-        if (value.length() != 64) {
-            return true;
-        }
-
-        for (int i = 0; i < value.length(); i++) {
-            char c = value.charAt(i);
-
-            if (c >= '0' && c <= '9') {
-                continue;
-            }
-
-            if (c >= 'a' && c <= 'f') {
-                continue;
-            }
-
-            // Invalid character
-            return true;
-        }
-
-        return false;
+        return (value == null) || (!VALID_CONTAINER_ID.matcher(value).matches());
     }
 
     // protected for testing
@@ -152,5 +129,4 @@ public class DockerData {
         }
         return false;
     }
-
 }

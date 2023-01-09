@@ -31,7 +31,7 @@ public abstract class Cache<K, V> {
     private static final String GET_AND_REPLACE = "getAndReplace";
 
     @NewField
-    private static final String METRIC_NAME = "/Java/JCACHE";
+    private static final String METRIC_NAME = "Java/JCACHE";
 
     @Trace(excludeFromTransactionTrace = true, metricName = METRIC_NAME + "/" + GET, leaf = true)
     public abstract V get(K key);

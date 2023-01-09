@@ -94,11 +94,11 @@ public class ClassNoticingFactoryTest {
         ClassNoticingFactory target = new ClassNoticingFactory(factory, executorService, new TestLogger());
 
         target.addURL(new URL(
-                "file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.0.1.jar!/org/apache/commons/httpclient/HttpVersion.class"));
+                "file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.1.jar!/org/apache/commons/httpclient/HttpVersion.class"));
         target.addURL(new URL(
-                "file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.0.1.jar!/org/apache/commons/httpclient/Dude.class"));
+                "file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.1.jar!/org/apache/commons/httpclient/Dude.class"));
 
-        verify(factory, times(1)).createURLAnalyzer(new URL("file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.0.1.jar"));
+        verify(factory, times(1)).createURLAnalyzer(new URL("file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.1.jar"));
         verify(executorService, times(1)).submit(any(Runnable.class));
     }
 
