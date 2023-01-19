@@ -96,6 +96,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
 
     @Override
     protected void doStop() {
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS);
+
         if (jfrController != null) {
             jfrController.shutdown();
         }
