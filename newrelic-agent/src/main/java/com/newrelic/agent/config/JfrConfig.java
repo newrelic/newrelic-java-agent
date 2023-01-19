@@ -17,6 +17,13 @@ public interface JfrConfig {
     boolean isEnabled();
 
     /**
+     * Set the JFR service enabled flag
+     *
+     * @param enabled the desired enabled flag value
+     */
+    void setEnabled(boolean enabled);
+
+    /**
      * Check if audit_logging is enabled for the JFR service.
      *
      * @return <code>true</code> is audit_logging is enabled for the JFR service is enabled, else <code>false</code>.

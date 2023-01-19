@@ -12,6 +12,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -29,7 +30,7 @@ import static com.newrelic.jfr.daemon.AttributeNames.ENTITY_GUID;
 import static com.newrelic.jfr.daemon.SetupUtils.buildCommonAttributes;
 import static com.newrelic.jfr.daemon.SetupUtils.buildUploader;
 
-public class JfrService extends AbstractService {
+public class JfrService extends AbstractService implements AgentConfigListener {
 
     private final JfrConfig jfrConfig;
     private final AgentConfig defaultAgentConfig;
@@ -39,6 +40,7 @@ public class JfrService extends AbstractService {
         super(JfrService.class.getSimpleName());
         this.jfrConfig = jfrConfig;
         this.defaultAgentConfig = defaultAgentConfig;
+        ServiceFactory.getConfigService().addIAgentConfigListener(this);
     }
 
     @Override
@@ -94,6 +96,8 @@ public class JfrService extends AbstractService {
 
     @Override
     protected void doStop() {
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS);
+
         if (jfrController != null) {
             jfrController.shutdown();
         }
@@ -127,5 +131,21 @@ public class JfrService extends AbstractService {
                 .proxyUser(defaultAgentConfig.getProxyUser())
                 .proxyPassword(defaultAgentConfig.getProxyPassword());
         return builder.build();
+    }
+
+    @Override
+    public void configChanged(String appName, AgentConfig agentConfig) {
+        boolean newJfrEnabledVal = agentConfig.getJfrConfig().isEnabled();
+
+        if (newJfrEnabledVal != jfrConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "JFR enabled flag changed to {0}", newJfrEnabledVal);
+            jfrConfig.setEnabled(newJfrEnabledVal);
+
+            if (newJfrEnabledVal) {
+                doStart();
+            } else {
+                doStop();
+            }
+        }
     }
 }

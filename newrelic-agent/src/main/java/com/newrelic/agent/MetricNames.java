@@ -485,6 +485,7 @@ public class MetricNames {
 
     // JFR Service
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS = "Supportability/JfrService/Started/Success";
+    public static final String SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS = "Supportability/JfrService/Stopped/Success";
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
 
     /**
