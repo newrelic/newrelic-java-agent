@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -38,7 +38,6 @@ public class Logger_Instrumentation {
         Weaver.callOriginal();
 
         if (isApplicationLoggingEnabled()) {
-//            boolean shouldLog = isLoggable(record.getLevel()) && getFilter() == null || getFilter().isLoggable(record);
             if (isApplicationLoggingMetricsEnabled()) {
                 // Generate log level metrics
                 NewRelic.incrementCounter("Logging/lines");

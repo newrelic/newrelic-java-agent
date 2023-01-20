@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -21,6 +21,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_L
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.INSTRUMENTATION;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_FQCN;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
@@ -44,6 +45,7 @@ public class AgentUtil {
             if (shouldCreateLogEvent(message, throwable)) {
                 Map<String, String> mdcCopy = record.getMdcCopy();
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
+                logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
 
