@@ -1,13 +1,12 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
 package com.nr.instrumentation.jboss;
 
-import com.nr.instrumentation.jboss.ExceptionUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
