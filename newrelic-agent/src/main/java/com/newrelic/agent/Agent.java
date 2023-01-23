@@ -209,12 +209,13 @@ public final class Agent {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
         if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false)) {
             try {
-                LOG.log(Level.INFO, "Invoking K2 security module");
+                LOG.log(Level.INFO, "Invoking New Relic Security module");
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
                     @Override
                     public void connected(IRPMService rpmService, AgentConfig agentConfig) {
                         try {
                             URL securityJarURL = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
+                            LOG.log(Level.INFO, "Connected to New Relic cloud. Starting New Relic Security module");
                             NewRelicSecurity.getAgent().refreshState(securityJarURL);
                             NewRelicSecurity.markAgentAsInitialised();
                         } catch (IOException e) {

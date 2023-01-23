@@ -7,6 +7,7 @@
 
 package com.newrelic.bootstrap;
 
+import com.newrelic.api.agent.security.NewRelicSecurity;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.io.OutputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -121,11 +123,12 @@ public class BootstrapLoader {
      * This forces the correct NewRelic Security api implementation to load by getting the implementation class bytes out of the
      * security agent jar and hooking up a class transformer to always load those bytes for our api class.
      */
-    public static void forceCorrectNewRelicSecurityApi(Instrumentation instrProxy) throws IOException {
+    public static void forceCorrectNewRelicSecurityApi(Instrumentation instrProxy) throws IOException, UnmodifiableClassException {
         JarFile securityAgentJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT));
         JarEntry jarEntry = securityAgentJarFile.getJarEntry(NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME + ".class");
         final byte[] bytes = read(securityAgentJarFile.getInputStream(jarEntry), true);
         instrProxy.addTransformer(new SecurityApiClassTransformer(bytes), true);
+        instrProxy.retransformClasses(NewRelicSecurity.class);
     }
 
     private static void addJarToClassPath(Instrumentation instrProxy, JarFile jarfile) {
