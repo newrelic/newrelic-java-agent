@@ -28,10 +28,6 @@ public final class AttributeNames {
     public static final String TIMEOUT_CAUSE = "nr.timeoutCause";
     public static final String ERROR_EXPECTED = "error.expected";
 
-    // transaction attributes - modifiable by agent
-    public static final String HTTP_STATUS = "httpResponseCode";
-    public static final String HTTP_STATUS_MESSAGE = "httpResponseMessage";
-
     public static final String HTTP_STATUS_CODE = "http.statusCode";
     public static final String HTTP_STATUS_TEXT = "http.statusText";
 

@@ -208,9 +208,6 @@ public class SpanEventFactory {
         if (filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_CODE)) {
             builder.putAgentAttribute(AttributeNames.HTTP_STATUS_CODE, statusCode);
         }
-        if (filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS)) {
-            builder.putAgentAttribute(AttributeNames.HTTP_STATUS, statusCode);
-        }
         return this;
     }
 
