@@ -1,19 +1,21 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
-package com.nr.instrumentation.jul;
+package com.nr.instrumentation.jboss;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
+import com.newrelic.agent.bridge.logging.LogAttributeType;
+import org.jboss.logmanager.ExtLogRecord;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
@@ -30,23 +32,31 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
 
 public class AgentUtil {
-
     /**
      * Record a LogEvent to be sent to New Relic.
      *
      * @param record to parse
      */
-    public static void recordNewRelicLogEvent(LogRecord record) {
+    public static void recordNewRelicLogEvent(ExtLogRecord record) {
         if (record != null) {
             String message = record.getMessage();
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {
-                // JUL does not directly support MDC, so we only initialize the map size based on standard attributes
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
-                logEventMap.put(INSTRUMENTATION, "java.logging-jdk8");
+                Map<String, String> mdcCopy = record.getMdcCopy();
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
+                logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
+
+                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
+                    for (Map.Entry<String, String> entry : mdcCopy.entrySet()) {
+                        String key = entry.getKey();
+                        String value = entry.getValue();
+                        LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
+                        logEventMap.put(logAttrKey, value);
+                    }
+                }
 
                 Level level = record.getLevel();
                 if (level != null) {
@@ -104,5 +114,11 @@ public class AgentUtil {
      */
     private static boolean shouldCreateLogEvent(String message, Throwable throwable) {
         return (message != null) || !ExceptionUtil.isThrowableNull(throwable);
+    }
+
+    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
+        return AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
+                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 }

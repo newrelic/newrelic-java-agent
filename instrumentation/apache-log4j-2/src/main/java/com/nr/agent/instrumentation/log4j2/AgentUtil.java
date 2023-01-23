@@ -23,6 +23,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_L
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.INSTRUMENTATION;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_FQCN;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
@@ -46,6 +47,7 @@ public class AgentUtil {
             if (shouldCreateLogEvent(message, throwable)) {
                 Map<String, String> contextData = event.getContextMap();
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData));
+                logEventMap.put(INSTRUMENTATION, "apache-log4j-2");
                 if (message != null) {
                     String formattedMessage = message.getFormattedMessage();
                     if (formattedMessage != null && !formattedMessage.isEmpty()) {

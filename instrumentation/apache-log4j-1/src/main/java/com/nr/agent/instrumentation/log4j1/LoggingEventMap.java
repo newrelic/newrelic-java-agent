@@ -17,9 +17,12 @@ import org.apache.log4j.spi.ThrowableInformation;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.INSTRUMENTATION;
+
 class LoggingEventMap {
     static Map<LogAttributeKey, Object> from(LoggingEvent event, boolean appLoggingContextDataEnabled) {
         Map<LogAttributeKey, Object> logEventMap = initialMapWithMdcIfEnabled(event, appLoggingContextDataEnabled);
+        logEventMap.put(INSTRUMENTATION, "apache-log4j-1");
         addLoggerInfo(event, logEventMap);
         addMessageAndTs(event, logEventMap);
         addLevel(event, logEventMap);
