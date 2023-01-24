@@ -1,0 +1,20 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-streams-0.11.0',
+                'Implementation-Title-Alias': 'kafka-streams_instrumentation'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.kafka:kafka-streams:0.11.0.0")
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.kafka:kafka-streams:[0.11.0.0,1.0.0)'
+}
+
+site {
+    title 'Kafka-streams'
+    type 'Messaging'
+}
