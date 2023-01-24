@@ -20,6 +20,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_L
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.INSTRUMENTATION;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_FQCN;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
@@ -43,7 +44,7 @@ public class AgentUtil {
 
         if (shouldCreateLogEvent(messageEmpty, throwable)) {
             Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap));
-
+            logEventMap.put(INSTRUMENTATION, "logback-classic-1.2");
             if (!messageEmpty) {
                 logEventMap.put(MESSAGE, message);
             }
