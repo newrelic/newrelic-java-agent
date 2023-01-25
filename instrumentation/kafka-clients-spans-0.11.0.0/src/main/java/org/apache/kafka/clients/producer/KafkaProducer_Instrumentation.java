@@ -31,7 +31,7 @@ public class KafkaProducer_Instrumentation<K, V> {
 //                record.headers().add("newrelic", payload.text().getBytes(StandardCharsets.UTF_8));
 //            }
 //        }
-//        Utils.setDistributedTraceHeaders(record);
+        Utils.setDistributedTraceHeaders(record);
         return Weaver.callOriginal();
     }
 }
