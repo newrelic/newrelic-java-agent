@@ -12,13 +12,13 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.streams.StateHolder;
-import com.nr.instrumentation.kafka.streams.Util;
+import com.nr.instrumentation.kafka.streams.Utils;
 
 @Weave(originalName = "org.apache.kafka.streams.processor.internals.PartitionGroup")
 public class PartitionGroup_Instrumentation {
 
     @Trace // Called from the StreamTask.process() method. Gets the next record to process in a task.
-    StampedRecord nextRecord(final PartitionGroup.RecordInfo info) {
+    StampedRecord nextRecord(final PartitionGroup.RecordInfo info, final long wallClockTime) {
         StampedRecord record = Weaver.callOriginal();
         StateHolder holder = StateHolder.HOLDER.get();
         if (AgentBridge.getAgent().getTransaction(false) != null
@@ -26,7 +26,7 @@ public class PartitionGroup_Instrumentation {
                 && record != null) {
 
             holder.setRecordRetrieved(true);
-            Util.updateTransaction(record);
+            Utils.updateTransaction(record);
         }
         return record;
     }

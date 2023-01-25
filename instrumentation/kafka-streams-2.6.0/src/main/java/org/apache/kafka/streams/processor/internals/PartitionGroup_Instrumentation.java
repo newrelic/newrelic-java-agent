@@ -12,7 +12,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.streams.StateHolder;
-import com.nr.instrumentation.kafka.streams.Util;
+import com.nr.instrumentation.kafka.streams.Utils;
 
 @Weave(originalName = "org.apache.kafka.streams.processor.internals.PartitionGroup")
 public class PartitionGroup_Instrumentation {
@@ -26,7 +26,7 @@ public class PartitionGroup_Instrumentation {
                 && record != null) {
 
             holder.setRecordRetrieved(true);
-            Util.updateTransaction(record);
+            Utils.updateTransaction(record);
         }
         return record;
     }
