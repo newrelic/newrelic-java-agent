@@ -7,11 +7,16 @@
 
 package org.apache.kafka.clients.producer;
 
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
+import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.DistributedTracePayload;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.spans.Utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Future;
 
 @Weave(originalName = "org.apache.kafka.clients.producer.KafkaProducer")
@@ -26,7 +31,7 @@ public class KafkaProducer_Instrumentation<K, V> {
 //                record.headers().add("newrelic", payload.text().getBytes(StandardCharsets.UTF_8));
 //            }
 //        }
-        Utils.setDistributedTraceHeaders(record);
+//        Utils.setDistributedTraceHeaders(record);
         return Weaver.callOriginal();
     }
 }
