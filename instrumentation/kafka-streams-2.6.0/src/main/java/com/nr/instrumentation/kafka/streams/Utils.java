@@ -7,58 +7,45 @@
 
 package com.nr.instrumentation.kafka.streams;
 
-import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.ConcurrentHashMapHeaders;
 import com.newrelic.api.agent.DestinationType;
-import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
 import com.newrelic.api.agent.TransportType;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.streams.processor.internals.StampedRecord;
 
-import java.util.logging.Level;
+import java.nio.charset.StandardCharsets;
 
 public class Utils {
 
     private Utils() {}
 
     public static void updateTransaction(StampedRecord record) {
-        if (record.topic() != null) {
-            MessageConsumeParameters params = MessageConsumeParameters.library("Kafka")
-                    .destinationType(DestinationType.NAMED_TOPIC)
-                    .destinationName(record.topic())
-                    .inboundHeaders(null)
-                    .build();
-            NewRelic.getAgent().getTransaction().getTracedMethod().reportAsExternal(params);
-            nameTransaction("MessageBroker/Kafka/Topic/Consume/Named", record.topic(), "Streams/Task");
-        } else {
-            nameTransaction("MessageBroker/Kafka/Streams/Task");
-        }
+        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "KafkaStreams",
+                "MessageBroker/Kafka/Topic/Consume/Named", record.topic(), "Streams/Task");
 
-        try {
-            ConsumerRecord<?, ?> consumerRecord = (ConsumerRecord<?, ?>)record.value();
-            if (consumerRecord != null) {
-                acceptDistributedTraceHeader(consumerRecord);
-            }
+        ConcurrentHashMapHeaders dtHeaders = buildDtHeaders(record);
+        NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(TransportType.Kafka, dtHeaders);
 
-        } catch (ClassCastException ignored) {
-            if (AgentBridge.getAgent().getLogger().isLoggable(Level.FINE)) {
-                Logger logger = AgentBridge.getAgent().getLogger();
-                logger.log(Level.FINE,
-                        "Failed to get ConsumerRecord from StampedRecord in kafka streams transaction: {0}",
-                        NewRelic.getAgent().getTransaction());
+        MessageConsumeParameters consumeParams = MessageConsumeParameters.library("Kafka")
+                .destinationType(DestinationType.NAMED_TOPIC)
+                .destinationName(record.topic())
+                .inboundHeaders(null)
+                .build();
+        NewRelic.getAgent().getTransaction().getTracedMethod().reportAsExternal(consumeParams);
+    }
+
+    private static ConcurrentHashMapHeaders buildDtHeaders(StampedRecord record) {
+        ConcurrentHashMapHeaders dtHeaders = ConcurrentHashMapHeaders.build(HeaderType.MESSAGE);
+        for (Header header: record.headers()) {
+            if (header.value() != null) {
+                dtHeaders.addHeader(header.key(), new String(header.value(), StandardCharsets.UTF_8));
             }
         }
-
+        return dtHeaders;
     }
 
-    private static void acceptDistributedTraceHeader(ConsumerRecord<?, ?> consumerRecord) {
-        ConsumerRecordWrapper wrapper = new ConsumerRecordWrapper(consumerRecord);
-        NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(TransportType.Kafka, wrapper);
-    }
-
-    private static void nameTransaction(String ...parts) {
-        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "KafkaStreams", parts);
-    }
 }
