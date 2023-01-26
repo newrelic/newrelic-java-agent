@@ -37,11 +37,11 @@ public class TomcatUtils {
                         AgentBridge.jmxApi.addJmxMBeanGroup(JMX_EMBEDDED_PREFIX);
                         NewRelic.getAgent().getLogger().log(Level.FINER, "Added JMX for Tomcat");
 
-                    }
-                    if(server.queryNames(new ObjectName("org.apache.tomcat.jdbc.pool.jmx:name=dataSourceMBean,type=ConnectionPool"), null)
-                            .size() == 1){
-                        AgentBridge.jmxApi.addJmxMBeanGroup(JMX_EMBEDDED_DATASOURCE_PREFIX);
-                        NewRelic.getAgent().getLogger().log(Level.FINER, "Added JMX for Tomcat dataSourceMbean ConnectionPool");
+                        if (server.queryNames(new ObjectName("org.apache.tomcat.jdbc.pool.jmx:name=dataSourceMBean,type=ConnectionPool"), null)
+                                .size() == 1) {
+                            AgentBridge.jmxApi.addJmxMBeanGroup(JMX_EMBEDDED_DATASOURCE_PREFIX);
+                            NewRelic.getAgent().getLogger().log(Level.FINER, "Added JMX for Tomcat dataSourceMbean ConnectionPool");
+                        }
 
                     } else {
                         // It is safe to assume we are in a non embedded Tomcat (Catalina) which uses Catalina for the ObjectName, no need to query.
