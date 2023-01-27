@@ -1,4 +1,9 @@
 /*
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
  * This script generates the supportability metric names for instrumentation modules.
  * It lists both loaded and skipped metrics and outputs them in order.
  * Its output can replace the metric names in angler, so you don't have to:
