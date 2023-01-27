@@ -23,19 +23,19 @@ public class Util {
             transaction.insertDistributedTraceHeaders(dtHeaders);
 
             // Clean headers to prevent duplicate records and maintain a consistent state
-            record.headers().remove(W3C_TRACE_PARENT);
-            record.headers().remove(W3C_TRACE_STATE);
-            record.headers().remove(NR_HEADER_NAME);
 
             if (dtHeaders.containsHeader(W3C_TRACE_PARENT)) {
+                record.headers().remove(W3C_TRACE_PARENT);
                 record.headers().add(W3C_TRACE_PARENT, dtHeaders.getHeader(W3C_TRACE_PARENT).getBytes(StandardCharsets.UTF_8));
             }
 
             if (dtHeaders.containsHeader(W3C_TRACE_STATE)) {
+                record.headers().remove(W3C_TRACE_STATE);
                 record.headers().add(W3C_TRACE_STATE, dtHeaders.getHeader(W3C_TRACE_STATE).getBytes(StandardCharsets.UTF_8));
             }
 
             if (dtHeaders.containsHeader(NR_HEADER_NAME)) {
+                record.headers().remove(NR_HEADER_NAME);
                 record.headers().add(NR_HEADER_NAME, dtHeaders.getHeader(NR_HEADER_NAME).getBytes(StandardCharsets.UTF_8));
             }
 
