@@ -52,7 +52,10 @@ import java.io.Closeable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.Transaction.SCALA_API_TRACER_FLAGS;
@@ -585,10 +588,32 @@ public class InstrumentationImpl implements Instrumentation {
                 PeriodicRetransformer.INSTANCE.queueRetransform(ImmutableSet.of(ClassLoader.getSystemClassLoader().loadClass(stackTraceElement.getClassName())));
                 logger.log(Level.FINE, "Retransformed {0}", stackTraceElement.getClassName());
             } catch (ClassNotFoundException e) {
-                // FIXME - we can find the class through loaded classes.  This will happen when the system classloader
-                // does not have visibility to all classes
+                // the system classloader may not be able to see the class - try to find the class in loaded classes
+                queueRetransform(stackTraceElement.getClassName());
             }
         }
+    }
+
+    private static void queueRetransform(String... classNames) {
+        final Set<Class<?>> classesToRetransform = findClasses(false, classNames);
+        if (!classesToRetransform.isEmpty()) {
+            PeriodicRetransformer.INSTANCE.queueRetransform(classesToRetransform);
+        }
+    }
+
+    static Set<Class<?>> findClasses(boolean findAll, String... classNames) {
+        final Set<String> nameSet = new HashSet<>(Arrays.asList(classNames));
+        final Set<Class<?>> found = new HashSet<>();
+        final Predicate<String> match = findAll ? nameSet::contains : nameSet::remove;
+        for (Class clazz : ServiceFactory.getCoreService().getInstrumentation().getAllLoadedClasses()) {
+            if (match.test(clazz.getName())) {
+                found.add(clazz);
+            }
+            if (!findAll && nameSet.isEmpty()) {
+                return found;
+            }
+        }
+        return found;
     }
 
     @Override

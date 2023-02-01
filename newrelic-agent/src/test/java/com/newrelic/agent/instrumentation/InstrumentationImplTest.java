@@ -16,6 +16,7 @@ import com.newrelic.agent.config.ClassTransformerConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.instrumentation.classmatchers.ClassAndMethodMatcher;
+import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.After;
@@ -26,9 +27,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 public class InstrumentationImplTest {
@@ -76,6 +80,26 @@ public class InstrumentationImplTest {
     }
 
     @Test
+    public void findClasses() {
+        when(instrumentation.getAllLoadedClasses()).thenReturn(
+                new Class[] { InstrumentationImplTest.class });
+        Set<Class<?>> classes = InstrumentationImpl.findClasses(true, InstrumentationImplTest.class.getName());
+        assertEquals(1, classes.size());
+        Mockito.verify(mockCoreService, times(1)).getInstrumentation();
+        Mockito.verify(instrumentation, times(1)).getAllLoadedClasses();
+    }
+
+    @Test
+    public void findClassesFirstMatch() {
+        when(instrumentation.getAllLoadedClasses()).thenReturn(
+                new Class[] { InstrumentationImplTest.class });
+        Set<Class<?>> classes = InstrumentationImpl.findClasses(false, InstrumentationImplTest.class.getName());
+        assertEquals(1, classes.size());
+        Mockito.verify(mockCoreService, times(1)).getInstrumentation();
+        Mockito.verify(instrumentation, times(1)).getAllLoadedClasses();
+    }
+
+    @Test
     public void testInstrument() {
         api.instrument("com.newrelic.TestClass", "TEST");
         Mockito.verify(classTransformerService).addTraceMatcher(Mockito.any(ClassAndMethodMatcher.class),
@@ -85,11 +109,13 @@ public class InstrumentationImplTest {
     @Test
     public void testInstrumentClass() throws Exception {
         Mockito.when(
-                classTransformerService.addTraceMatcher(Mockito.any(ClassAndMethodMatcher.class), Mockito.eq("TEST"))).thenReturn(
-                true);
+                classTransformerService.addTraceMatcher(Mockito.any(ClassAndMethodMatcher.class),
+                        Mockito.any(TraceDetails.class))).thenReturn(true);
         api.instrument(TestClass.class.getMethod("regularMethod"), "TEST");
+        ArgumentCaptor<TraceDetails> traceDetailsCapture = ArgumentCaptor.forClass(TraceDetails.class);
         Mockito.verify(classTransformerService).addTraceMatcher(Mockito.any(ClassAndMethodMatcher.class),
-                Mockito.eq("TEST"));
+                traceDetailsCapture.capture());
+        assertEquals("TEST", traceDetailsCapture.getValue().metricPrefix());
         ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
         Mockito.verify(samplerService).addSampler(captor.capture(), Mockito.anyLong(), Mockito.any(TimeUnit.class));
         Runnable runnable = captor.getValue();
@@ -120,7 +146,7 @@ public class InstrumentationImplTest {
     public void testInstrumentClassNoRetransform() throws Exception {
         api.instrument(TestClass.class.getMethod("regularMethod"), "TEST");
         Mockito.verify(classTransformerService).addTraceMatcher(Mockito.any(ClassAndMethodMatcher.class),
-                Mockito.eq("TEST"));
+                Mockito.any(TraceDetails.class));
     }
 
     @Test
