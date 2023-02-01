@@ -14,6 +14,7 @@ import com.newrelic.agent.instrumentation.classmatchers.ClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
 import com.newrelic.agent.instrumentation.custom.ClassRetransformer;
+import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.logging.IAgentLogger;
 
 import java.lang.instrument.Instrumentation;
@@ -102,6 +103,11 @@ class NoOpClassTransformerService implements ClassTransformerService {
 
     @Override
     public boolean addTraceMatcher(ClassAndMethodMatcher matcher, String metricPrefix) {
+        return false;
+    }
+
+    @Override
+    public boolean addTraceMatcher(ClassAndMethodMatcher matcher, TraceDetails traceDetails) {
         return false;
     }
 }

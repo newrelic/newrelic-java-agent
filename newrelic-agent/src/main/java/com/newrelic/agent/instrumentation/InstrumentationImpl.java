@@ -7,7 +7,9 @@
 
 package com.newrelic.agent.instrumentation;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.RateLimiter;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
@@ -24,7 +26,10 @@ import com.newrelic.agent.instrumentation.methodmatchers.AccessMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.AndMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.ExactMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.GetterSetterMethodMatcher;
+import com.newrelic.agent.instrumentation.methodmatchers.NameMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.NotMethodMatcher;
+import com.newrelic.agent.instrumentation.tracing.TraceDetails;
+import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
 import com.newrelic.agent.profile.v2.TransactionProfileSession;
 import com.newrelic.agent.reinstrument.PeriodicRetransformer;
 import com.newrelic.agent.service.ServiceFactory;
@@ -47,6 +52,7 @@ import java.io.Closeable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Set;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.Transaction.SCALA_API_TRACER_FLAGS;
@@ -56,6 +62,8 @@ public class InstrumentationImpl implements Instrumentation {
 
     private final com.newrelic.api.agent.Logger logger;
     private final InsertOnlyArray<Object> objectCache = new InsertOnlyArray<>(16);
+    private final Set<StackTraceElement> instrumentedStackTraceElements = Sets.newConcurrentHashSet();
+    private final RateLimiter instrumentRateLimiter = RateLimiter.create(1.0);
 
     public InstrumentationImpl(com.newrelic.api.agent.Logger logger) {
         this.logger = logger;
@@ -541,7 +549,54 @@ public class InstrumentationImpl implements Instrumentation {
     }
 
     @Override
+    public void instrument() {
+        if (instrumentRateLimiter.tryAcquire()) {
+            final StackTraceElement stackTraceElement = getApplicationStackTraceElement(
+                    new Exception().fillInStackTrace().getStackTrace());
+            if (stackTraceElement != null) {
+                instrument(stackTraceElement, TraceDetailsBuilder.newBuilder().setDispatcher(true).build());
+            }
+        }
+    }
+
+    private static StackTraceElement getApplicationStackTraceElement(StackTraceElement[] stackTraces) {
+        for (StackTraceElement element : stackTraces) {
+            if (!element.getClassName().contains("newrelic")) {
+                return element;
+            }
+        }
+        // right here, if we wanted to support this feature for New Relic services, we could try to identify a stack
+        // element that does not belong to the agent
+        return null;
+    }
+
+    private void instrument(StackTraceElement stackTraceElement, TraceDetails traceDetails) {
+        if (instrumentedStackTraceElements.contains(stackTraceElement)) {
+            return;
+        }
+        instrumentedStackTraceElements.add(stackTraceElement);
+        final DefaultClassAndMethodMatcher matcher = new HashSafeClassAndMethodMatcher(
+                new ExactClassMatcher(stackTraceElement.getClassName().replace('.', '/')),
+                new NameMethodMatcher(stackTraceElement.getMethodName()));
+        boolean shouldRetransform = ServiceFactory.getClassTransformerService().addTraceMatcher(matcher, traceDetails);
+        if (shouldRetransform) {
+            logger.log(Level.FINE, "Retransforming {0}.{1} for instrumentation.", stackTraceElement.getClassName(), stackTraceElement.getMethodName());
+            try {
+                PeriodicRetransformer.INSTANCE.queueRetransform(ImmutableSet.of(ClassLoader.getSystemClassLoader().loadClass(stackTraceElement.getClassName())));
+                logger.log(Level.FINE, "Retransformed {0}", stackTraceElement.getClassName());
+            } catch (ClassNotFoundException e) {
+                // FIXME - we can find the class through loaded classes.  This will happen when the system classloader
+                // does not have visibility to all classes
+            }
+        }
+    }
+
+    @Override
     public void instrument(Method methodToInstrument, String metricPrefix) {
+        instrument(methodToInstrument, TraceDetailsBuilder.newBuilder().setMetricPrefix(metricPrefix).build());
+    }
+
+    private void instrument(Method methodToInstrument, TraceDetails traceDetails) {
         if (methodToInstrument.isAnnotationPresent(InstrumentedMethod.class)) {
             return;
         }
@@ -557,7 +612,7 @@ public class InstrumentationImpl implements Instrumentation {
         DefaultClassAndMethodMatcher matcher = new HashSafeClassAndMethodMatcher(new ExactClassMatcher(
                 declaringClass.getName()), new ExactMethodMatcher(methodToInstrument.getName(),
                 Type.getMethodDescriptor(methodToInstrument)));
-        boolean shouldRetransform = ServiceFactory.getClassTransformerService().addTraceMatcher(matcher, metricPrefix);
+        boolean shouldRetransform = ServiceFactory.getClassTransformerService().addTraceMatcher(matcher, traceDetails);
         if (shouldRetransform) {
             logger.log(Level.FINE, "Retransforming {0} for instrumentation.", methodToInstrument);
             PeriodicRetransformer.INSTANCE.queueRetransform(Sets.<Class<?>>newHashSet(declaringClass));
