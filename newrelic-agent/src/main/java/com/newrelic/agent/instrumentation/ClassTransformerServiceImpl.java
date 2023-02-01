@@ -20,6 +20,7 @@ import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherBui
 import com.newrelic.agent.instrumentation.context.*;
 import com.newrelic.agent.instrumentation.custom.ClassRetransformer;
 import com.newrelic.agent.instrumentation.methodmatchers.MethodMatcher;
+import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
 import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
 import com.newrelic.agent.service.AbstractService;
@@ -274,7 +275,12 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
 
     @Override
     public boolean addTraceMatcher(ClassAndMethodMatcher matcher, String metricPrefix) {
-        return traceMatchTransformer.addTraceMatcher(matcher, metricPrefix);
+        return this.addTraceMatcher(matcher, TraceDetailsBuilder.newBuilder().setMetricPrefix(metricPrefix).build());
+    }
+
+    @Override
+    public boolean addTraceMatcher(ClassAndMethodMatcher matcher, TraceDetails traceDetails) {
+        return traceMatchTransformer.addTraceMatcher(matcher, traceDetails);
     }
 
     @Override
@@ -284,7 +290,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
 
     private static class TraceMatchTransformer implements ContextClassTransformer {
 
-        private final Map<ClassAndMethodMatcher, String> matchersPrefix = new ConcurrentHashMap<>();
+        private final Map<ClassAndMethodMatcher, TraceDetails> matchersToTraceDetails = new ConcurrentHashMap<>();
         private final Set<ClassMatchVisitorFactory> matchVisitors = Sets.newConcurrentHashSet();
         private final InstrumentationContextManager contextManager;
 
@@ -301,8 +307,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
                 for (ClassAndMethodMatcher matcher : match.getClassMatches().keySet()) {
                     if (matcher.getMethodMatcher().matches(MethodMatcher.UNSPECIFIED_ACCESS, method.getName(),
                             method.getDescriptor(), match.getMethodAnnotations(method))) {
-                        context.putTraceAnnotation(method, TraceDetailsBuilder.newBuilder().setMetricPrefix(
-                                matchersPrefix.get(matcher)).build());
+                        context.putTraceAnnotation(method, matchersToTraceDetails.get(matcher));
                     }
                 }
             }
@@ -310,16 +315,16 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
             return null;
         }
 
-        public boolean addTraceMatcher(ClassAndMethodMatcher matcher, String metricPrefix) {
-            if (!matchersPrefix.containsKey(matcher)) {
-                return addMatchVisitor(matcher, metricPrefix);
+        public boolean addTraceMatcher(ClassAndMethodMatcher matcher, TraceDetails traceDetails) {
+            if (!matchersToTraceDetails.containsKey(matcher)) {
+                return addMatchVisitor(matcher, traceDetails);
             }
             return false;
         }
 
-        private synchronized boolean addMatchVisitor(ClassAndMethodMatcher matcher, String metricPrefix) {
-            if (!matchersPrefix.containsKey(matcher)) {
-                matchersPrefix.put(matcher, metricPrefix);
+        private synchronized boolean addMatchVisitor(ClassAndMethodMatcher matcher, TraceDetails traceDetails) {
+            if (!matchersToTraceDetails.containsKey(matcher)) {
+                matchersToTraceDetails.put(matcher, traceDetails);
 
                 OptimizedClassMatcherBuilder builder = OptimizedClassMatcherBuilder.newBuilder();
                 builder.addClassMethodMatcher(matcher);
