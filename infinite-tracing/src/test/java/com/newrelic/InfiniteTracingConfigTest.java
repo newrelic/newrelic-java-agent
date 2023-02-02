@@ -2,7 +2,10 @@ package com.newrelic;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InfiniteTracingConfigTest {
 
@@ -26,4 +29,35 @@ class InfiniteTracingConfigTest {
         assertFalse(config.getUsePlaintext());
     }
 
+    @Test
+    void testGzipCompression() {
+        InfiniteTracingConfig config = InfiniteTracingConfig.builder()
+                .compression("gzip")
+                .build();
+        assertEquals("gzip", config.getCompression());
+    }
+
+    @Test
+    void testDisableCompression() {
+        InfiniteTracingConfig config = InfiniteTracingConfig.builder()
+                .compression(null)
+                .build();
+        assertNull(config.getCompression());
+    }
+
+    @Test
+    void testEnableBatching() {
+        InfiniteTracingConfig config = InfiniteTracingConfig.builder()
+                .useBatching(true)
+                .build();
+        assertTrue(config.getUseBatching());
+    }
+
+    @Test
+    void testLingerMs() {
+        InfiniteTracingConfig config = InfiniteTracingConfig.builder()
+                .lingerMs(100)
+                .build();
+        assertEquals(100, config.getLingerMs());
+    }
 }

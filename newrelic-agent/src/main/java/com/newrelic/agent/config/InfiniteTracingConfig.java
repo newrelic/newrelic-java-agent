@@ -20,6 +20,14 @@ public interface InfiniteTracingConfig {
 
     boolean getUsePlaintext();
 
+    String getCompression();
+
+    boolean getUseBatching();
+
+    int getMaxBatchSize();
+
+    int getLingerMs();
+
     boolean isEnabled();
 
 }
