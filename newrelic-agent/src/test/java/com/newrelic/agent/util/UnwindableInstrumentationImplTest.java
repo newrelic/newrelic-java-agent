@@ -5,10 +5,13 @@ import org.mockito.Mockito;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -23,7 +26,11 @@ public class UnwindableInstrumentationImplTest {
     @Test
     public void getMissingInterfaceMethods() {
         List<UnwindableInstrumentationImpl.MethodDesc> missingInterfaceMethods = UnwindableInstrumentationImpl.getMissingInterfaceMethods();
-        assertEquals(0, missingInterfaceMethods.size());
+        Optional<Method> redefineModule = Arrays.asList(Instrumentation.class.getDeclaredMethods()).stream()
+                .filter(method -> "redefineModule".equals(method.getName()))
+                .findFirst();
+        // if we find the redefineModule method, we're running in java9+ and missing methods should contain it
+        assertEquals(redefineModule.isPresent(), !missingInterfaceMethods.isEmpty());
     }
 
     @Test
