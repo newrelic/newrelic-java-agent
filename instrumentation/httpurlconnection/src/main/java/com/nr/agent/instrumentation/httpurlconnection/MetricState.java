@@ -17,8 +17,10 @@ import com.newrelic.api.agent.Segment;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MetricState {
     private static final String LIBRARY = "HttpURLConnection";
@@ -38,6 +40,9 @@ public class MetricState {
     // segment used to track timing of external request, add addOutboundRequestHeaders, and reportAsExternal
     private Segment segment;
 
+    private static final ScheduledThreadPoolExecutor threadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(5);
+    private ScheduledFuture<?> segmentCleanupTaskFuture;
+
     /**
      * Start Segment timing when the first HttpURLConnection API method is invoked.
      * The Segment timing should end when a request has taken place and an external call has been recorded.
@@ -54,50 +59,65 @@ public class MetricState {
 
     /**
      * Keep track of which HttpURLConnection API method was most recently called.
-     * If connect was called first, then start a TimerTask to potentially ignore the segment
+     * If connect was called first, then start a cleanup task to potentially ignore the segment
      * if it is determined that no other method was called after it.
      *
      * @param operation HttpURLConnection method being invoked
      */
     private void handleSegmentsForNonNetworkMethods(String operation) {
         if (operation.equals(CONNECT_OP)) {
-            // Only ever start the TimerTask if connect is the first method called
+            // Only ever start the cleanup task if connect is the first method called
             if (lastOperation == null) {
                 lastOperation = operation;
-                startSegmentExpirationTimerTask();
+                startSegmentCleanupTask();
             }
         } else {
             networkRequestMethodCalled = true;
+            // Cancel the SegmentCleanupTask before it runs if possible
+            if (segmentCleanupTaskFuture != null && !segmentCleanupTaskFuture.isCancelled()) {
+                segmentCleanupTaskFuture.cancel(false);
+            }
             lastOperation = operation;
         }
     }
 
     /**
      * If connect was the first method invoked from the HttpURLConnection APIs then a
-     * TimerTask will be started which will determine if the segment should be ignored or not.
+     * cleanup task will be started which will determine if the segment should be ignored or not.
      * <p>
      * Note: If the user configurable segment_timeout is explicitly configured to be lower than the timer delay set
      * here then the segment timing will already have been ended and trying to end/ignore it again will have no effect.
      */
-    private void startSegmentExpirationTimerTask() {
-        Timer timer = new Timer("HttpURLConnection Segment Expiration Timer");
-        TimerTask task = new TimerTask() {
-            public void run() {
-                ignoreSegmentForNonNetworkCall();
-            }
-        };
-
+    private void startSegmentCleanupTask() {
         /*
          * The following tests do a Thread.sleep to account for this delay. If this value is changed then the tests will also need to be updated.
          * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
          * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
          */
-        long segmentExpirationDelayInMillis = 60_000L;
-        timer.schedule(task, segmentExpirationDelayInMillis);
+        long segmentExpirationDelayInMillis = 60L;
+        // Submit a SegmentCleanupTask to a ScheduledThreadPoolExecutor to be run after a configured delay
+        SegmentCleanupTask segmentCleanupTask = new SegmentCleanupTask("New Relic HttpURLConnection Segment Cleanup Task");
+        segmentCleanupTaskFuture = threadPool.schedule(segmentCleanupTask, segmentExpirationDelayInMillis, TimeUnit.MILLISECONDS);
     }
 
     /**
-     * This method executes when a TimerTask completes. If it is determined that connect was the first and only HttpURLConnection API called
+     * A Runnable task that can be scheduled to run to determine if a segment should be ignored or not
+     */
+    private class SegmentCleanupTask implements Runnable {
+        String taskName;
+
+        public SegmentCleanupTask(String taskName) {
+            this.taskName = taskName;
+        }
+
+        public void run() {
+            Thread.currentThread().setName(taskName);
+            ignoreSegmentForNonNetworkCall();
+        }
+    }
+
+    /**
+     * This method executes when a cleanup task completes. If it is determined that connect was the first and only HttpURLConnection API called
      * then it will have the effect of ignoring the segment, as no external call has been made. A supportability metric will also be recorded.
      * The purpose of this is to avoid hitting the default segment timeout of 10 minutes and to also prevent the segment from showing in traces.
      */
