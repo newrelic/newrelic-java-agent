@@ -13,6 +13,10 @@ public class InfiniteTracingConfig {
     private final Double flakyPercentage;
     private final Long flakyCode;
     private final boolean usePlaintext;
+    private final String compression;
+    private final boolean useBatching;
+    private final int maxBatchSize;
+    private final int lingerMs;
 
     public InfiniteTracingConfig(Builder builder) {
         this.licenseKey = builder.licenseKey;
@@ -23,6 +27,10 @@ public class InfiniteTracingConfig {
         this.flakyPercentage = builder.flakyPercentage;
         this.flakyCode = builder.flakyCode;
         this.usePlaintext = builder.usePlaintext;
+        this.compression = builder.compression;
+        this.useBatching = builder.useBatching;
+        this.maxBatchSize = builder.maxBatchSize;
+        this.lingerMs = builder.lingerMs;
     }
 
     public static Builder builder() {
@@ -61,6 +69,22 @@ public class InfiniteTracingConfig {
         return usePlaintext;
     }
 
+    public String getCompression() {
+        return compression;
+    }
+
+    public boolean getUseBatching() {
+        return useBatching;
+    }
+
+    public int getMaxBatchSize() {
+        return maxBatchSize;
+    }
+
+    public int getLingerMs() {
+        return lingerMs;
+    }
+
     public static class Builder {
         public int maxQueueSize;
         public Logger logger;
@@ -70,6 +94,10 @@ public class InfiniteTracingConfig {
         private Double flakyPercentage;
         private Long flakyCode;
         private boolean usePlaintext;
+        private String compression;
+        private boolean useBatching;
+        private int maxBatchSize;
+        private int lingerMs;
 
         /**
          * The New Relic APM license key configured for the application.
@@ -137,10 +165,47 @@ public class InfiniteTracingConfig {
         /**
          * The optional boolean connect using plaintext
          *
-         * @param usePlaintext
+         * @param usePlaintext true to use plaintext, false otherwise
          */
         public Builder usePlaintext(boolean usePlaintext) {
             this.usePlaintext = usePlaintext;
+            return this;
+        }
+
+        /**
+         * The optional compression type to use when sending to the Trace Observer.
+         *
+         * @param compression The compression type to use. Available options are "gzip" or "none".
+         */
+        public Builder compression(String compression) {
+            this.compression = compression;
+            return this;
+        }
+
+        /**
+         * The optional boolean to use batching when sending to the Trace Observer.
+         *
+         * @param useBatching true to use batching, false otherwise
+         */
+        public Builder useBatching(boolean useBatching) {
+            this.useBatching = useBatching;
+            return this;
+        }
+
+        /**
+         * Sets the maximum batch size when batching is enabled.
+         */
+        public Builder maxBatchSize(int maxBatchSize) {
+            this.maxBatchSize = maxBatchSize;
+            return this;
+        }
+
+        /**
+         * Sets the maximum amount of time to wait for a span batch
+         * to fill before sending if below the {@link #maxBatchSize}
+         */
+        public Builder lingerMs(int lingerMs) {
+            this.lingerMs = lingerMs;
             return this;
         }
 

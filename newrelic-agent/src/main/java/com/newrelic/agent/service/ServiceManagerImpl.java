@@ -332,6 +332,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
                 .flakyPercentage(config.getFlakyPercentage())
                 .flakyCode(config.getFlakyCode())
                 .usePlaintext(config.getUsePlaintext())
+                .compression(config.getCompression())
+                .useBatching(config.getUseBatching())
+                .maxBatchSize(config.getMaxBatchSize())
+                .lingerMs(config.getLingerMs())
                 .build();
 
         return InfiniteTracing.initialize(infiniteTracingConfig, NewRelic.getAgent().getMetricAggregator());
