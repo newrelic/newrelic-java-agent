@@ -94,7 +94,7 @@ public class MetricState {
          * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
          * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
          */
-        long segmentExpirationDelayInMillis = 60L;
+        long segmentExpirationDelayInMillis = 60_000L;
         // Submit a SegmentCleanupTask to a ScheduledThreadPoolExecutor to be run after a configured delay
         SegmentCleanupTask segmentCleanupTask = new SegmentCleanupTask("New Relic HttpURLConnection Segment Cleanup Task");
         segmentCleanupTaskFuture = threadPool.schedule(segmentCleanupTask, segmentExpirationDelayInMillis, TimeUnit.MILLISECONDS);
