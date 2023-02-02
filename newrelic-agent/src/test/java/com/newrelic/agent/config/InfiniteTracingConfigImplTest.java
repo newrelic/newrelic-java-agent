@@ -8,7 +8,6 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.SaveSystemPropertyProviderRule;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -60,6 +59,30 @@ public class InfiniteTracingConfigImplTest {
         localProps.put(FLAKY_PERCENTAGE, 50.0);
         InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
         assertEquals(50.0, config.getFlakyPercentage(), 0.0);
+    }
+
+    @Test
+    public void testUseBatchingByDefault() {
+        InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
+        assertTrue(config.getUseBatching());
+    }
+
+    @Test
+    public void testGzipCompressionByDefault() {
+        InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
+        assertEquals("gzip", config.getCompression());
+    }
+
+    @Test
+    public void testMaxBatchSizeDefault() {
+        InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
+        assertEquals(100, config.getMaxBatchSize());
+    }
+
+    @Test
+    public void testLingerMsDefault() {
+        InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
+        assertEquals(10, config.getLingerMs());
     }
 
     @Test
