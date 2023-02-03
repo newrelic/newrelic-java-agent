@@ -9,9 +9,9 @@ import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,7 +26,7 @@ public class UnwindableInstrumentationImplTest {
     @Test
     public void getMissingInterfaceMethods() {
         List<UnwindableInstrumentationImpl.MethodDesc> missingInterfaceMethods = UnwindableInstrumentationImpl.getMissingInterfaceMethods();
-        Optional<Method> redefineModule = Arrays.asList(Instrumentation.class.getDeclaredMethods()).stream()
+        Optional<Method> redefineModule = Arrays.stream(Instrumentation.class.getDeclaredMethods())
                 .filter(method -> "redefineModule".equals(method.getName()))
                 .findFirst();
         // if we find the redefineModule method, we're running in java9+ and missing methods should contain it
@@ -38,7 +38,7 @@ public class UnwindableInstrumentationImplTest {
         Instrumentation inst = Mockito.mock(Instrumentation.class);
         UnwindableInstrumentationImpl unwindableInstrumentation = Mockito.mock(UnwindableInstrumentationImpl.class);
         Instrumentation proxy = UnwindableInstrumentationImpl.createProxyInstance(unwindableInstrumentation, inst,
-                Arrays.asList(new UnwindableInstrumentationImpl.MethodDesc("isRetransformClassesSupported", "()Z")));
+                Collections.singletonList(new UnwindableInstrumentationImpl.MethodDesc("isRetransformClassesSupported", "()Z")));
         assertTrue(proxy instanceof UnwindableInstrumentation);
 
         ClassFileTransformer transformer = Mockito.mock(ClassFileTransformer.class);
