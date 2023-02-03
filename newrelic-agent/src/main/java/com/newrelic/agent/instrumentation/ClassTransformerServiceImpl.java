@@ -25,6 +25,8 @@ import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.DefaultThreadFactory;
+import com.newrelic.agent.util.asm.Utils;
+import com.newrelic.api.agent.Trace;
 import org.objectweb.asm.commons.Method;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -36,7 +38,9 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class ClassTransformerServiceImpl extends AbstractService implements ClassTransformerService {
 
@@ -280,6 +284,22 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
     @Override
     public Instrumentation getExtensionInstrumentation() {
         return extensionInstrumentation;
+    }
+
+    @Override
+    public void retransformForAttach() {
+        final Predicate<Class> traceMatcher = Utils.getAnnotationsMatcher(Trace.class);
+        final List<Class> classesToRejit = Arrays.asList(getExtensionInstrumentation().getAllLoadedClasses())
+                .stream().filter(traceMatcher)
+                .collect(Collectors.toList());
+
+        if (!classesToRejit.isEmpty()) {
+            try {
+                getExtensionInstrumentation().retransformClasses(classesToRejit.toArray(new Class[0]));
+            } catch (UnmodifiableClassException e) {
+                Agent.LOG.log(Level.SEVERE, e.getMessage(), e);
+            }
+        }
     }
 
     private static class TraceMatchTransformer implements ContextClassTransformer {
