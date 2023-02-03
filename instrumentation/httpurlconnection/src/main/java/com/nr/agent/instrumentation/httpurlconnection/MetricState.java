@@ -43,6 +43,7 @@ public class MetricState {
     private static final ScheduledThreadPoolExecutor threadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(5);
 
     static {
+        // This forces cancelled tasks to be immediately removed from the thread pool
         threadPool.setRemoveOnCancelPolicy(true);
     }
 
