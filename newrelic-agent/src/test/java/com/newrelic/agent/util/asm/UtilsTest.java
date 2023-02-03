@@ -17,16 +17,29 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
 
 import javax.sql.PooledConnection;
 import javax.swing.ListCellRenderer;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import org.junit.Assert;
 import org.junit.Test;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class UtilsTest {
+
+    @Test
+    public void getAnnotationsMatcher() {
+        Predicate<Class> annotationsMatcher = Utils.getAnnotationsMatcher(Test.class);
+        assertTrue(annotationsMatcher.test(UtilsTest.class));
+        assertFalse(annotationsMatcher.test(AgentBridge.class));
+        assertFalse(annotationsMatcher.test(Runnable.class));
+    }
 
     @Test
     public void readClassThroughLoader() throws IOException {
@@ -63,8 +76,8 @@ public class UtilsTest {
     }
 
     private void assertClass(ClassReader classReader) {
-        Assert.assertTrue(Arrays.asList(classReader.getInterfaces()).contains(Type.getInternalName(Map.class)));
-        Assert.assertTrue(Arrays.asList(classReader.getInterfaces()).contains(
+        assertTrue(Arrays.asList(classReader.getInterfaces()).contains(Type.getInternalName(Map.class)));
+        assertTrue(Arrays.asList(classReader.getInterfaces()).contains(
                 Type.getInternalName(ListCellRenderer.class)));
         Assert.assertEquals(Type.getInternalName(LinkedHashMap.class), classReader.getSuperName());
     }
