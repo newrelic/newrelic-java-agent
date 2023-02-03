@@ -14,6 +14,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ClassTransformerConfig;
+import com.newrelic.agent.instrumentation.annotationmatchers.AnnotationMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.ClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher.Match;
 import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherBuilder;
@@ -26,7 +27,6 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.util.asm.Utils;
-import com.newrelic.api.agent.Trace;
 import org.objectweb.asm.commons.Method;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -288,7 +288,9 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
 
     @Override
     public void retransformForAttach() {
-        final Predicate<Class> traceMatcher = Utils.getAnnotationsMatcher(Trace.class);
+        final AnnotationMatcher traceAnnotationMatcher = ServiceFactory.getConfigService().getDefaultAgentConfig()
+                .getClassTransformerConfig().getTraceAnnotationMatcher();
+        final Predicate<Class> traceMatcher = Utils.getAnnotationsMatcher(traceAnnotationMatcher);
         final List<Class> classesToRejit = Arrays.asList(getExtensionInstrumentation().getAllLoadedClasses())
                 .stream().filter(traceMatcher)
                 .collect(Collectors.toList());
