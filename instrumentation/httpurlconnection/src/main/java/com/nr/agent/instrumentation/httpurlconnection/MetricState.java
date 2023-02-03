@@ -41,6 +41,11 @@ public class MetricState {
     private Segment segment;
 
     private static final ScheduledThreadPoolExecutor threadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(5);
+
+    static {
+        threadPool.setRemoveOnCancelPolicy(true);
+    }
+
     private ScheduledFuture<?> segmentCleanupTaskFuture;
 
     /**
