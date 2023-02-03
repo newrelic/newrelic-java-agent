@@ -11,6 +11,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.instrumentation.annotationmatchers.AnnotationMatcher;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.WeaveUtils;
 import org.objectweb.asm.AnnotationVisitor;
@@ -30,12 +31,10 @@ import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -195,14 +194,12 @@ public class Utils {
         return nextLocal;
     }
 
-    public static Predicate<Class> getAnnotationsMatcher(Class<?>... annotationClasses) {
+    public static Predicate<Class> getAnnotationsMatcher(AnnotationMatcher annotationMatcher) {
         return clazz -> {
             if (clazz.getClassLoader() == null || clazz.isArray() || clazz.isAnnotation() || clazz.isEnum() ||
                     clazz.isInterface() || Proxy.isProxyClass(clazz)) {
                 return false;
             }
-            Set<String> annotationDescriptors = Arrays.stream(annotationClasses)
-                    .map(Type::getDescriptor).collect(Collectors.toSet());
             final AtomicBoolean containsTracer = new AtomicBoolean(false);
             final String classResource = clazz.getName().replace('.', '/') + ".class";
             try (InputStream in = clazz.getClassLoader().getResourceAsStream(classResource)) {
@@ -216,7 +213,7 @@ public class Utils {
                         return new MethodVisitor(WeaveUtils.ASM_API_LEVEL) {
                             @Override
                             public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-                                if (!containsTracer.get() && annotationDescriptors.contains(descriptor)) {
+                                if (!containsTracer.get() && annotationMatcher.matches(descriptor)) {
                                     containsTracer.set(true);
                                 }
                                 return null;

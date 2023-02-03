@@ -35,7 +35,7 @@ public class UtilsTest {
 
     @Test
     public void getAnnotationsMatcher() {
-        Predicate<Class> annotationsMatcher = Utils.getAnnotationsMatcher(Test.class);
+        Predicate<Class> annotationsMatcher = Utils.getAnnotationsMatcher(Type.getDescriptor(Test.class)::equals);
         assertTrue(annotationsMatcher.test(UtilsTest.class));
         assertFalse(annotationsMatcher.test(AgentBridge.class));
         assertFalse(annotationsMatcher.test(Runnable.class));
