@@ -118,8 +118,8 @@ public final class AgentBridge {
         public AtomicInteger refCount;
 
         public TokenAndRefCount(com.newrelic.agent.bridge.Token token, TracedMethod tracedMethod, AtomicInteger refCount) {
-            this.token = token;
-            this.tracedMethod = new AtomicReference<Object>(tracedMethod);
+            this.token = token == null ? NoOpToken.INSTANCE : token;
+            this.tracedMethod = new AtomicReference<>(tracedMethod);
             this.refCount = refCount;
         }
 
