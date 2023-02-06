@@ -8,6 +8,7 @@
 package com.nr.agent.mongo;
 
 import com.mongodb.internal.async.SingleResultCallback;
+import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
@@ -83,6 +84,25 @@ public class MongoUtil {
 
     public static final String OP_DEFAULT = "other";
 
+    public static <T> SingleResultCallback<T> instrumentSingleResultCallback(SingleResultCallback<T> callback, String collectionName,
+            String operationName, String databaseName) {
+        if (callback instanceof NRCallbackWrapper) {
+            return callback;
+        }
+
+        NRCallbackWrapper<T> wrapper = new NRCallbackWrapper<T>(callback);
+        wrapper.params = DatastoreParameters
+                .product(DatastoreVendor.MongoDB.name())
+                .collection(collectionName)
+                .operation(operationName)
+                .noInstance()
+                .databaseName(databaseName)
+                .build();
+
+        wrapper.token = NewRelic.getAgent().getTransaction().getToken();
+        wrapper.segment = NewRelic.getAgent().getTransaction().startSegment(operationName);
+        return wrapper;
+    }
 
     public static String getOperation(String classname) {
         if (classname.equalsIgnoreCase("MixedBulkWriteOperation")) {
