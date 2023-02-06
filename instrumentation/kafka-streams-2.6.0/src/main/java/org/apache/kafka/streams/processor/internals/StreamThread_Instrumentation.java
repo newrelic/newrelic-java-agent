@@ -18,6 +18,7 @@ public class StreamThread_Instrumentation {
             Weaver.callOriginal();
         } catch (Throwable t) {
             NewRelic.noticeError(t);
+            throw t;
         }
 
     }
