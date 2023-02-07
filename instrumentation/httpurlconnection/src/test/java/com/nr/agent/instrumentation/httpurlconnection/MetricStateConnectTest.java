@@ -32,7 +32,7 @@ import static org.junit.Assert.assertTrue;
 @InstrumentationTestConfig(includePrefixes = { "leave-me-alone" }, configName = "distributed_tracing.yml")
 public class MetricStateConnectTest {
     // This timeout is required if connect is the only HttpURLConnection API called
-    private static final int TEST_SLEEP_TIME_MILLIS = 70_000;
+    private static final int TEST_SLEEP_TIME_MILLIS = 7_000;
 
     @Rule
     public HttpServerRule server = new HttpServerRule();

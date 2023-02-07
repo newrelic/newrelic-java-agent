@@ -21,13 +21,13 @@ import java.util.logging.Level;
  */
 public class HttpURLConnectionConfig {
     private static final String configPrefix = "class_transformer.com.newrelic.instrumentation.httpurlconnection.segment_cleanup_task.";
-    private static final int DEFAULT_THREAD_POOL_SIZE = 5;
     /*
      * The following tests do a Thread.sleep to account for this delay. If this value is changed then the tests will also need to be updated.
      * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
      * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
      */
-    private static final int DEFAULT_TASK_DELAY_MS = 60_000;
+    private static final int DEFAULT_TASK_DELAY_MS = 5_000;
+    private static final int DEFAULT_THREAD_POOL_SIZE = 5;
 
     private HttpURLConnectionConfig() {
     }
