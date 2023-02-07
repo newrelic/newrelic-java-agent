@@ -18,6 +18,42 @@ Behavior expected when `HttpURLConnection` APIs are called in different combos a
 * If only `connect` is called, then NO request is made over the wire and NO external call is reported. The instrumentation starts a `SegmentCleanupTask` if `connect` is called first, waits for a set period of time to determine if any further `HttpURLConnection` APIs are called before deciding how to proceed. If no other API is called, then the segment is just ignored and no external is reported. If any other method is called an external call will be recorded.
 * Calling any of `getOutputStream`, `getInputStream`, `getResponseCode`, or `getHeaderFields` all result in an external call being recorded.
 
+# SegmentCleanupTask and ScheduledThreadPoolExecutor tuning
+
+For each external request where `connect` is called first a `SegmentCleanupTask` `Runnable` gets scheduled to execute on a `ScheduledThreadPoolExecutor`. The
+`SegmentCleanupTask` waits for a configurable period of time (default is 1 minute) to determine if any other `HttpURLConnection` APIs are called that result in
+a network request being issued. In most cases, another method will be called within this time period which will result in the scheduled task being cancelled and
+removed from the executor's scheduled queue. In cases where no method is called that issues a network request, the `SegmentCleanupTask` `Runnable` will execute
+and mark the Segment started when connect was called as ignored so that it doesn't appear as an external call in the related distributed trace.
+
+The `ScheduledThreadPoolExecutor` is shared amongst all `HttpURLConnection` instances making external requests and the size of its managed threadpool can be
+configured via `thread_pool_size`. The delay after which each `SegmentCleanupTask` queued up with the `ScheduledThreadPoolExecutor` will be executed can be
+configured with `delay_ms`.
+
+Config examples:
+
+Yaml
+```yaml
+  class_transformer:
+    com.newrelic.instrumentation.httpurlconnection:
+      enabled: true
+      segment_cleanup_task:
+        thread_pool_size: 5
+        delay_ms: 60000
+```
+
+System property
+```
+-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.segment_cleanup_task.thread_pool_size=5
+-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.segment_cleanup_task.delay_ms=60000
+```
+
+Environment variable
+```
+NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_HTTPURLCONNECTION_SEGMENT_CLEANUP_TASK_THREAD_POOL_SIZE=5
+NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_HTTPURLCONNECTION_SEGMENT_CLEANUP_TASK_DELAY_MS=60000
+```
+
 ## Example HttpURLConnection usage
 
 The example Spring controller code below shows common use cases of `HttpURLConnection`.  

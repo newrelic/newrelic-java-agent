@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class MetricState {
     private static final String LIBRARY = "HttpURLConnection";
@@ -40,7 +41,8 @@ public class MetricState {
     // segment used to track timing of external request, add addOutboundRequestHeaders, and reportAsExternal
     private Segment segment;
 
-    private static final ScheduledThreadPoolExecutor threadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(5);
+    private static final ScheduledThreadPoolExecutor threadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(
+            HttpURLConnectionConfig.getThreadPoolSize());
 
     static {
         // This forces cancelled tasks to be immediately removed from the thread pool
@@ -95,15 +97,10 @@ public class MetricState {
      * here then the segment timing will already have been ended and trying to end/ignore it again will have no effect.
      */
     private void startSegmentCleanupTask() {
-        /*
-         * The following tests do a Thread.sleep to account for this delay. If this value is changed then the tests will also need to be updated.
-         * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
-         * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
-         */
-        long segmentExpirationDelayInMillis = 60_000L;
         // Submit a SegmentCleanupTask to a ScheduledThreadPoolExecutor to be run after a configured delay
         SegmentCleanupTask segmentCleanupTask = new SegmentCleanupTask("New Relic HttpURLConnection Segment Cleanup Task");
-        segmentCleanupTaskFuture = threadPool.schedule(segmentCleanupTask, segmentExpirationDelayInMillis, TimeUnit.MILLISECONDS);
+        segmentCleanupTaskFuture = threadPool.schedule(segmentCleanupTask, HttpURLConnectionConfig.getDelayMs(), TimeUnit.MILLISECONDS);
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "HttpURLConnection - number of queued cleanup tasks: " + threadPool.getQueue().size());
     }
 
     /**
