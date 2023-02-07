@@ -30,7 +30,7 @@ Behavior expected when `HttpURLConnection` APIs are called in different combos a
 * If only `connect` is called, then NO request is made over the wire and NO external call is reported. The instrumentation starts a `SegmentCleanupTask` if`connect` is called first, waits for a set period of time to determine if any further `HttpURLConnection` APIs are called before deciding how to proceed. If no other API is called, then the segment is just ignored and no external is reported. If any other method is called an external call will be recorded.
 * Calling any of `getOutputStream`, `getInputStream`, `getResponseCode`, or `getHeaderFields` all result in an external call being recorded.
 
-# SegmentCleanupTask and ScheduledThreadPoolExecutor tuning
+## SegmentCleanupTask and ScheduledThreadPoolExecutor tuning
 
 For each external request where `connect` is called first a `SegmentCleanupTask` `Runnable` gets scheduled to execute on a `ScheduledThreadPoolExecutor`. The
 `SegmentCleanupTask` waits for a configurable period of time (default is 5 seconds) to determine if any other `HttpURLConnection` APIs are called that result in
@@ -65,6 +65,21 @@ Environment variable
 NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_HTTPURLCONNECTION_SEGMENT_CLEANUP_TASK_THREAD_POOL_SIZE=5
 NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_HTTPURLCONNECTION_SEGMENT_CLEANUP_TASK_DELAY_MS=5000
 ```
+
+## Troubleshooting
+
+Whenever a `SegmentCleanupTask` runs and marks the external `Segment` as ignored it means that no external call will be recorded for the `Segment`. 
+When this happens it will generate a supportability metric named `Supportability/HttpURLConnection/SegmentEnd/connect`. This means that either one of two
+things:
+1. There is a scenario where `connect` is called and never followed by any other `HttpURLConnection` APIs that issue a network request. In this case, it is correct that the `Segment` was ignored and no external call was recorded.
+2. There is a scenario where `connect` is called and any other `HttpURLConnection` APIs that issue a network request did not occur before the `SegmentCleanupTask` ran. In this case, you can increase the `delay_ms` so that the `SegmentCleanupTask` is delayed long enough for the external call to successfully take place.
+
+At `FINEST` level agent logs the number of queued tasks in the executor at the time of each external request will be logged. You can find these logs by
+searching for the string `HttpURLConnection - number of queued cleanup tasks`. This can be useful to see if there are too many runnable tasks queued up at once
+that could lead to memory pressure. Setting the `delay_ms` to a lower value will have the biggest impact on lowering the number of tasks that can be queued at
+a given time, while increasing `thread_pool_size` can help remove queued tasks quicker.
+
+Threads in the threadpool managed by the executor will be named `New Relic HttpURLConnection Segment Cleanup Task`.
 
 ## Example HttpURLConnection usage
 
