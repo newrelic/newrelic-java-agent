@@ -1,22 +1,26 @@
 /*
  *
- *  * Copyright 2021 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
 package com.nr.agent.mongo;
 
+import com.mongodb.connection.ServerDescription;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Segment;
-import com.newrelic.api.agent.Token;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class MongoUtil {
+
+    private static ConcurrentHashMap<String, String> mongoDatabaseToHostMap = new ConcurrentHashMap<>(3);
 
     public static final String OP_FIND = "find";
     public static final String OP_INSERT = "insert";
@@ -58,18 +62,9 @@ public class MongoUtil {
     public static final String OP_UPDATE_MANY = "updateMany";
     public static final String OP_UPDATE_ONE = "updateOne";
 
-    public static final String OP_GET_MORE = "getMore";
-    public static final String OP_GROUP = "group";
-    public static final String UNKNOWN = "Unknown";
-
-    /**
-    * "delete" commands are different from {@link DBCollection#remove}.
-    */
     public static final String OP_DELETE = "delete";
     public static final String OP_DELETE_ONE = "deleteOne";
     public static final String OP_DELETE_MANY = "deleteMany";
-
-    public static final String REACTIVE_MONGO_COLLECTION = "MongoCollection";
     public static final String CUSTOM = "Custom";
 
     /**
@@ -84,8 +79,38 @@ public class MongoUtil {
 
     public static final String OP_DEFAULT = "other";
 
+    /**
+     * Host value assigned to a database until we resolve the host properly
+     */
+    public static final String UNKNOWN_HOST = "unknown";
+
+    public static void addDatabaseAndHostToMap(final String databaseName, final String host) {
+        NewRelic.getAgent().getLogger().log(Level.FINE, "Adding mongo DB with with host to map: {0} --> {1}", databaseName, host);
+        if (databaseName != null && host != null) {
+            if (mongoDatabaseToHostMap.containsKey(databaseName)) {
+                mongoDatabaseToHostMap.replace(databaseName, host);
+            } else {
+                mongoDatabaseToHostMap.put(databaseName, host);
+            }
+        }
+    }
+
+    public static String getHostBasedOnDatabaseName(String databaseName) {
+        return mongoDatabaseToHostMap.getOrDefault(databaseName, UNKNOWN_HOST);
+    }
+
+
+    public static String concatHostsFromServerDescriptionList(List<ServerDescription> serverDescriptions) {
+        List<String> allHosts = new ArrayList<>();
+        for (ServerDescription desc : serverDescriptions) {
+            allHosts.add(desc.getAddress().toString());
+        }
+
+        return String.join(";", allHosts);
+    }
+
     public static <T> SingleResultCallback<T> instrumentSingleResultCallback(SingleResultCallback<T> callback, String collectionName,
-            String operationName, String databaseName) {
+            String operationName, String databaseName, String host) {
         if (callback instanceof NRCallbackWrapper) {
             return callback;
         }
@@ -95,7 +120,7 @@ public class MongoUtil {
                 .product(DatastoreVendor.MongoDB.name())
                 .collection(collectionName)
                 .operation(operationName)
-                .noInstance()
+                .instance(host, 1)
                 .databaseName(databaseName)
                 .build();
 
@@ -103,28 +128,4 @@ public class MongoUtil {
         wrapper.segment = NewRelic.getAgent().getTransaction().startSegment(operationName);
         return wrapper;
     }
-
-    public static String getOperation(String classname) {
-        if (classname.equalsIgnoreCase("MixedBulkWriteOperation")) {
-            return OP_INSERT;
-        }
-        if (classname.equalsIgnoreCase("FindOperation")) {
-            return OP_FIND;
-        }
-        if (classname.equalsIgnoreCase("DeleteOperation")) {
-            return OP_DELETE;
-        }
-        if (classname.equalsIgnoreCase("UpdateOperation")) {
-            return OP_UPDATE;
-        }
-        if (classname.equalsIgnoreCase("AggregateOperation")) {
-            return OP_AGGREGATE;
-        }
-        if (classname.equalsIgnoreCase("CountOperation")) {
-            return OP_COUNT;
-        }
-        NewRelic.getAgent().getLogger().log(Level.FINE, "Did not find operation name for {0}", classname);
-        return DEFAULT_OPERATION;
-    }
-
 }

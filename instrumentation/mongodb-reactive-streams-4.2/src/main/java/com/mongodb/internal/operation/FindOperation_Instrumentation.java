@@ -1,11 +1,14 @@
+/*
+ *
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.mongodb.internal.operation;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.mongodb.internal.binding.AsyncReadBinding;
-import com.newrelic.agent.bridge.datastore.DatastoreVendor;
-import com.newrelic.api.agent.DatastoreParameters;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
@@ -33,7 +36,8 @@ public class FindOperation_Instrumentation<T> implements AsyncReadOperation<T> {
 
     @Override
     public void executeAsync(AsyncReadBinding binding, SingleResultCallback<T> callback) {
-        callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName);
+        callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
+                MongoUtil.getHostBasedOnDatabaseName(databaseName));
         Weaver.callOriginal();
     }
 }
