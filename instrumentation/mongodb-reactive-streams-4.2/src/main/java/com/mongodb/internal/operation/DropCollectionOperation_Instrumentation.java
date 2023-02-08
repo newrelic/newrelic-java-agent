@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.mongodb.internal.operation;
 
 import com.mongodb.MongoNamespace;
@@ -32,7 +38,8 @@ public class DropCollectionOperation_Instrumentation<T> implements AsyncWriteOpe
 
     @Override
     public void executeAsync(AsyncWriteBinding binding, SingleResultCallback<T> callback) {
-        callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName);
+        callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
+                MongoUtil.getHostBasedOnDatabaseName(databaseName));
         Weaver.callOriginal();
     }
 
