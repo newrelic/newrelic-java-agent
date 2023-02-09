@@ -135,10 +135,18 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
      */
     public void registerInstrumentation() {
         loadInternalWeavePackages();
-        if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false)) {
+        loadExternalWeavePackages(ServiceFactory.getExtensionService().getWeaveExtensions());
+    }
+
+    /**
+     * Registers the security weave instrumentation jars that are packaged into the csec agent jar's instrumentation directory.
+     */
+    public void registerSecurityInstrumentation(AgentConfig agentConfig) {
+        if(!agentConfig.getValue("security.force_complete_disable", false) &&
+            agentConfig.getValue("security.enable") != null
+        ) {
             loadInternalSecurityWeavePackages();
         }
-        loadExternalWeavePackages(ServiceFactory.getExtensionService().getWeaveExtensions());
     }
 
     public Runnable createRetransformRunnable(Class<?>[] loadedClasses) {
@@ -214,6 +222,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
      * Load all the security weave packages embedded in the agent jar.
      */
     private Collection<ClassMatchVisitorFactory> loadInternalSecurityWeavePackages() {
+        LOG.log(Level.FINE, "Starting security instrumentation load");
         final Collection<ClassMatchVisitorFactory> matchers = Sets.newConcurrentHashSet();
         URL securityAgentUrl = null;
         try {
