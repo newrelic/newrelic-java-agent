@@ -18,15 +18,15 @@ public class LoopState {
         return recordsPolled;
     }
 
-    public void setRecordsPolled(int recordsPolled) {
-        this.recordsPolled = recordsPolled;
+    public void incRecordsPolled(int recordsPolled) {
+        this.recordsPolled += recordsPolled;
     }
 
     public double getTotalProcessed() {
         return totalProcessed;
     }
 
-    public void setTotalProcessed(double totalProcessed) {
-        this.totalProcessed = totalProcessed;
+    public void incTotalProcessed(double totalProcessed) {
+        this.totalProcessed += totalProcessed;
     }
 }
