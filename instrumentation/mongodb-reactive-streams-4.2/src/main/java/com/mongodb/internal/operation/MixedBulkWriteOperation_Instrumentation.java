@@ -32,15 +32,8 @@ public class MixedBulkWriteOperation_Instrumentation implements AsyncWriteOperat
             final boolean ordered, final WriteConcern writeConcern, final boolean retryWrites) {
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
-        this.operationName = MongoUtil.OP_FIND;
     }
 
-    /**
-     * General execute which can return anything of type T
-     *
-     * @param binding  the binding to execute in the context of
-     * @param callback the callback to be called when the operation has been executed
-     */
     @Override
     public void executeAsync(AsyncWriteBinding binding, SingleResultCallback<BulkWriteResult> callback) {
         NewRelic.getAgent().getLogger().log(Level.INFO, "----- MixedBulkWriteOperation_Instrumentation executeAsync");

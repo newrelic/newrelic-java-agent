@@ -6,11 +6,7 @@ import com.mongodb.connection.ServerDescription;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -18,7 +14,7 @@ public class MongoUtilTest {
 
     @Test
     public void addDatabaseAndHostToMap_withValidKeyValue_addsSuccessfully() {
-        assertEquals(MongoUtil.UNKNOWN_HOST, MongoUtil.getHostBasedOnDatabaseName("dbname"));
+        assertEquals(MongoUtil.UNKNOWN, MongoUtil.getHostBasedOnDatabaseName("dbname"));
         MongoUtil.addDatabaseAndHostToMap("dbname", "myhost");
         assertEquals("myhost", MongoUtil.getHostBasedOnDatabaseName("dbname"));
     }
