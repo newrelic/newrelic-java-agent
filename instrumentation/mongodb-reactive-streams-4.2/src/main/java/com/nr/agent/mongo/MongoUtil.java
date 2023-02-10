@@ -7,6 +7,7 @@
 
 package com.nr.agent.mongo;
 
+import com.mongodb.client.model.WriteModel;
 import com.mongodb.connection.ServerDescription;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
@@ -79,10 +80,7 @@ public class MongoUtil {
 
     public static final String OP_DEFAULT = "other";
 
-    /**
-     * Host value assigned to a database until we resolve the host properly
-     */
-    public static final String UNKNOWN_HOST = "unknown";
+    public static final String UNKNOWN = "unknown";
 
     public static void addDatabaseAndHostToMap(final String databaseName, final String host) {
         NewRelic.getAgent().getLogger().log(Level.FINE, "Adding mongo DB with with host to map: {0} --> {1}", databaseName, host);
@@ -96,7 +94,7 @@ public class MongoUtil {
     }
 
     public static String getHostBasedOnDatabaseName(String databaseName) {
-        return mongoDatabaseToHostMap.getOrDefault(databaseName, UNKNOWN_HOST);
+        return mongoDatabaseToHostMap.getOrDefault(databaseName, UNKNOWN);
     }
 
 
@@ -127,5 +125,36 @@ public class MongoUtil {
         wrapper.token = NewRelic.getAgent().getTransaction().getToken();
         wrapper.segment = NewRelic.getAgent().getTransaction().startSegment(operationName);
         return wrapper;
+    }
+
+    public static String determineBulkWriteOperation(WriteModel writeModel) {
+        String operationName = UNKNOWN;
+
+        if (writeModel != null) {
+            String [] tokens = writeModel.getClass().toString().split("\\.");
+            String classNameOnly = tokens[tokens.length - 1];
+            switch (classNameOnly) {
+                case "DeleteManyModel":
+                    operationName = OP_DELETE_MANY;
+                    break;
+                case "DeleteOneModel":
+                    operationName = OP_DELETE_ONE;
+                    break;
+                case "InsertOneModel":
+                    operationName = OP_INSERT_ONE;
+                    break;
+                case "ReplaceOneModel":
+                    operationName = OP_REPLACE_ONE;
+                    break;
+                case "UpdateManyModel":
+                    operationName = OP_UPDATE_MANY;
+                    break;
+                case "UpdateOneModel":
+                    operationName = OP_UPDATE_ONE;
+                    break;
+            }
+        }
+
+        return operationName;
     }
 }

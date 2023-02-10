@@ -9,6 +9,7 @@ package com.mongodb.reactivestreams.client;
 import com.mongodb.MongoNamespace;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.DropIndexOptions;
@@ -27,6 +28,7 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.internal.operation.MapReduceWithInlineResultsOperation;
 import com.mongodb.reactivestreams.client.internal.MongoOperationPublisher;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
@@ -60,7 +62,7 @@ import static com.nr.agent.mongo.MongoUtil.OP_REPLACE_ONE;
 import static com.nr.agent.mongo.MongoUtil.OP_UPDATE_MANY;
 import static com.nr.agent.mongo.MongoUtil.OP_UPDATE_ONE;
 
-@Weave(type = MatchType.ExactClass, originalName = "com.mongodb.reactivestreams.client.internal.MongoCollectionImpl")
+//@Weave(type = MatchType.ExactClass, originalName = "com.mongodb.reactivestreams.client.internal.MongoCollectionImpl")
 class MongoCollectionImpl_Instrumentation<T> {
 
     /**
@@ -120,7 +122,16 @@ class MongoCollectionImpl_Instrumentation<T> {
             final BulkWriteOptions options) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "AsyncMongoCollection", OP_BULK_WRITE);
         return Weaver.callOriginal();
+    }
 
+    public <TResult> MapReduceWithInlineResultsOperation<TResult> mapReduce(final String mapFunction, final String reduceFunction,
+            final String finalizeFunction, final Class<TResult> resultClass,
+            final Bson filter, final int limit,
+            final long maxTimeMS, final boolean jsMode, final Bson scope,
+            final Bson sort, final boolean verbose,
+            final Collation collation) {
+        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "AsyncMongoCollection", OP_MAP_REDUCE);
+        return Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
