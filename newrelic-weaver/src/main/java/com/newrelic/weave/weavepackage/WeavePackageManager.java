@@ -507,11 +507,6 @@ public class WeavePackageManager {
                     packageListener.validated(verificationResult, classloader);
                 }
 
-                // TODO : Temporary print any violations.
-                if(weavePackage.getName().contains(".security.") && !verificationResult.succeeded()){
-                    System.out.println(weavePackage.getName() + " :: " + className + " instrumentation violations : " + verificationResult.getViolations());
-                }
-
                 if ((classloader == BootstrapLoader.PLACEHOLDER && !this.canWeaveBootstrapClassLoader())
                         || (!verificationResult.succeeded())) {
                     ConcurrentMap<WeavePackage, PackageValidationResult> result = invalidPackages.asMap().putIfAbsent(
