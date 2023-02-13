@@ -7,17 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 8.0.0 (2023-01-26)
+
+### Important
+This release includes a change to the `HttpURLConnection` instrumentation that creates a `TimerTask` to help ensure complete externals reporting. Under some circumstances this may result in a large number of threads being created, which may exhaust the maximum allocated to the JVM, causing it to stop. We are working on a fix to this issue and will publish an updated release promptly.
+
+### New features and improvements
+- Added support for Slick 3.4.0 on Scala 2.13 https://github.com/newrelic/newrelic-java-agent/pull/1072
+- Added support for Embedded Tomcat JMX https://github.com/newrelic/newrelic-java-agent/pull/1039
+- Updated the Java agent’s `snakeyaml` dependency to 1.33 https://github.com/newrelic/newrelic-java-agent/pull/1077
+- Added tracer debug logging, which will appear when `-Dnewrelic.config.log_level=finest`
+  and `-Dnewrelic.debug=true` are set https://github.com/newrelic/newrelic-java-agent/pull/1066
+- Improved logging when using the `recordCustomEvent` API now includes event type, key and value https://github.com/newrelic/newrelic-java-agent/pull/1083
+- Added Log4j1 instrumentation to support auto log forwarding https://github.com/newrelic/newrelic-java-agent/pull/1097
+- Added JBoss Logging instrumentation to support auto log forwarding https://github.com/newrelic/newrelic-java-agent/pull/1126
+- [Real-time profiling for Java using JFR metrics](https://docs.newrelic.com/docs/apm/agents/java-agent/features/real-time-profiling-java-using-jfr-metrics/) can now be dynamically enabled/disabled via agent configuration https://github.com/newrelic/newrelic-java-agent/pull/1124
+
+### Fixes
+- Removed leading slash in JCache metric names https://github.com/newrelic/newrelic-java-agent/pull/1112
+- Fixed a bug that was preventing Log4j2 metrics from getting disabled properly https://github.com/newrelic/newrelic-java-agent/pull/1068
+- Added a missing delimiter in `POSTGRES_DIALECT_PATTERN` https://github.com/newrelic/newrelic-java-agent/pull/1050
+- Fixed a `ClassCastException` in GraphQL 16/17 https://github.com/newrelic/newrelic-java-agent/pull/1082
+- Refactored `HttpURLConnection` instrumentation to fix several bugs that were affecting external calls and distributed traces https://github.com/newrelic/newrelic-java-agent/pull/1102
+- Refactored `grpc-1.40.0` instrumentation to ensure that tokens were properly being linked across threads https://github.com/newrelic/newrelic-java-agent/pull/1105
+- Fixed a bug that was causing transactions to fail to link when the Spring Webclient would timeout and emit a `ReadTimeoutException` https://github.com/newrelic/newrelic-java-agent/pull/1109
+
+### Removals
+The following previously deprecated instrumentation modules were removed:
+- `cassandra-datastax-2.1.2`
+- `httpclient-3.0`
+- `jdbc-embedded-derby-10.2.1.6`
+- `jdbc-embedded-derby-10.10.1.1`
+- `jetty-7`
+- `jetty-7.6`
+- `jetty-9`
+- `jetty-9.0.4`
+- `jetty-9.1`
+- `mongodb-2.12`
+- `mongodb-2.14`
+- `mongodb-3.0`
+- `okhttp-3.0.0`
+- `okhttp-3.4.0`
+- `okhttp-3.5.0`
+
+The previously deprecated `http.responseCode`, `response.status` and `response.statusMessage` transaction/span attributes were removed. These have been replaced by `http.statusCode` and `http.statusText`. If you have any custom dashboards or alerts that query the `http.responseCode`, `response.status`, and `response.statusMessage` attributes then they will need to be updated to instead use `http.statusCode` and `http.statusText`.
+
 ## Version 7.11.1 (2022-11-15)
 
-## New features and improvements
+### New features and improvements
 
-## Fixes
+### Fixes
 * Fix bug with log4j2 metrics https://github.com/newrelic/newrelic-java-agent/pull/1068
 * Adds a previously missing delimiter in POSTGRES_DIALECT_PATTERN "|" https://github.com/newrelic/newrelic-java-agent/pull/1050
 * Update snakeyaml lib to v1.33 security patch https://github.com/newrelic/newrelic-java-agent/pull/1077
 
-
-## Deprecation notice
+### Deprecation notice
 The following instrumentation modules have been deprecated for removal:
 - cassandra-datastax-2.1.2
 - httpclient-3.0
