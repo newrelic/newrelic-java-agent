@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
+import com.newrelic.agent.security.intcodeagent.websocket.JsonConverter;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
@@ -782,6 +783,22 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private ClassTransformerConfig initClassTransformerConfig(boolean liteMode) {
         boolean customTracingEnabled = getProperty(ENABLE_CUSTOM_TRACING, DEFAULT_ENABLE_CUSTOM_TRACING);
         Map<String, Object> props = nestedProps(CLASS_TRANSFORMER);
+
+        // CSEC specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
+        if(getProperty("security") != null) {
+            if(props == null) {
+                props = new HashMap<>();
+            } else {
+                props = new HashMap<>(props);
+            }
+            Set<String> securityExcludes = (Set<String>) props.getOrDefault(ClassTransformerConfigImpl.EXCLUDES, new HashSet<>());
+            securityExcludes.add("java/util/zip/InflaterInputStream");
+            securityExcludes.add("java/util/zip/ZipFile$ZipFileInputStream");
+            securityExcludes.add("java/util/zip/ZipFile$ZipFileInflaterInputStream");
+            securityExcludes.add("com/newrelic/.*");
+            securityExcludes.add("com/nr/.*");
+            props.put(ClassTransformerConfigImpl.EXCLUDES, securityExcludes);
+        }
         return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode);
     }
 
