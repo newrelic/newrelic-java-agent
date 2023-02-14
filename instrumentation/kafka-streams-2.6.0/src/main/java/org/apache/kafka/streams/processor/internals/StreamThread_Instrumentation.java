@@ -22,15 +22,12 @@ public class StreamThread_Instrumentation {
             NewRelic.noticeError(t);
             throw t;
         } finally {
-            StreamsUtil.finalizeLoopState();
+            StreamsUtil.endTransaction();
         }
-
     }
 
     @Trace
     private ConsumerRecords<byte[], byte[]> pollRequests(final Duration pollTime) {
-        ConsumerRecords<byte[], byte[]> records = Weaver.callOriginal();
-        StreamsUtil.handlePolledRecords(records);
-        return records;
+        return Weaver.callOriginal();
     }
 }
