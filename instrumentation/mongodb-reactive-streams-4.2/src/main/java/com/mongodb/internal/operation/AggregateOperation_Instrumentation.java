@@ -7,17 +7,21 @@
 package com.mongodb.internal.operation;
 
 import com.mongodb.MongoNamespace;
-import com.mongodb.WriteConcern;
 import com.mongodb.internal.async.SingleResultCallback;
-import com.mongodb.internal.binding.AsyncWriteBinding;
+import com.mongodb.internal.binding.AsyncReadBinding;
+import com.mongodb.internal.client.model.AggregationLevel;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
+import org.bson.BsonDocument;
+import org.bson.codecs.Decoder;
 
-@Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.DropCollectionOperation")
-public class DropCollectionOperation_Instrumentation<T> implements AsyncWriteOperation<T> {
+import java.util.List;
+
+@Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.AggregateOperation")
+public class AggregateOperation_Instrumentation<T> implements AsyncReadOperation<T> {
 
     @NewField
     protected String collectionName;
@@ -28,16 +32,17 @@ public class DropCollectionOperation_Instrumentation<T> implements AsyncWriteOpe
     @NewField
     protected String operationName;
 
-    public DropCollectionOperation_Instrumentation(final MongoNamespace namespace) {
+    public AggregateOperation_Instrumentation(final MongoNamespace namespace, final List<BsonDocument> pipeline, final Decoder<T> decoder) {
         assignMetadataFields(namespace);
     }
 
-    public DropCollectionOperation_Instrumentation(final MongoNamespace namespace, final WriteConcern writeConcern) {
+    public AggregateOperation_Instrumentation(final MongoNamespace namespace, final List<BsonDocument> pipeline, final Decoder<T> decoder,
+            final AggregationLevel aggregationLevel) {
         assignMetadataFields(namespace);
     }
 
     @Override
-    public void executeAsync(AsyncWriteBinding binding, SingleResultCallback<T> callback) {
+    public void executeAsync(AsyncReadBinding binding, SingleResultCallback<T> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
                 MongoUtil.getHostBasedOnDatabaseName(databaseName));
         Weaver.callOriginal();
@@ -46,6 +51,6 @@ public class DropCollectionOperation_Instrumentation<T> implements AsyncWriteOpe
     private void assignMetadataFields(MongoNamespace namespace) {
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
-        this.operationName = MongoUtil.OP_DROP_COLLECTION;
+        this.operationName = MongoUtil.OP_AGGREGATE;
     }
 }

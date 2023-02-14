@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -15,7 +15,6 @@ import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
 
 public class NRCallbackWrapper<T> implements SingleResultCallback<T> {
 
@@ -36,28 +35,20 @@ public class NRCallbackWrapper<T> implements SingleResultCallback<T> {
     @Override
     @Trace(async = true)
     public void onResult(T result, Throwable t) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "----- onResult");
-
         // could be NoOpToken if a txn wasn't started
         if (token != null) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "----- token link/expire");
             token.linkAndExpire();
             token = null;
         }
         // could be NoOpSegment if a txn wasn't started
         if (segment != null) {
             if (params != null) {
-                NewRelic.getAgent().getLogger().log(Level.INFO, "----- report external");
-
                 segment.reportAsExternal(params);
             }
             segment.end();
         } else if (params != null) {
             NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
-            NewRelic.getAgent().getLogger().log(Level.INFO, "----- token link/expire 2");
-
         }
         delegate.onResult(result, t);
     }
-
 }

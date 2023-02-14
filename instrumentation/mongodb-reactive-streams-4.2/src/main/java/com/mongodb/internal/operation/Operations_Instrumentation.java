@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.mongodb.internal.operation;
 
 import com.mongodb.MongoNamespace;
@@ -5,14 +11,10 @@ import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.CreateIndexOptions;
-import com.mongodb.client.model.DeleteOptions;
 import com.mongodb.client.model.DropIndexOptions;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.InsertManyOptions;
-import com.mongodb.client.model.InsertOneOptions;
 import com.mongodb.client.model.RenameCollectionOptions;
-import com.mongodb.client.model.ReplaceOptions;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.internal.client.model.AggregationLevel;
 import com.mongodb.internal.client.model.CountStrategy;
@@ -48,14 +50,14 @@ public class Operations_Instrumentation<TDocument> {
     /**
      * This covers all variations of the "find" methods in the original class
      */
-    @Trace(leaf = true)
+    @Trace
     private <TResult> FindOperation<TResult> createFindOperation(final MongoNamespace findNamespace, final Bson filter,
             final Class<TResult> resultClass, final FindOptions options) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_FIND);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public <TResult> DistinctOperation<TResult> distinct(final String fieldName, final Bson filter,
             final Class<TResult> resultClass, final long maxTimeMS,
             final Collation collation) {
@@ -63,7 +65,7 @@ public class Operations_Instrumentation<TDocument> {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public <TResult> AggregateOperation<TResult> aggregate(final List<? extends Bson> pipeline, final Class<TResult> resultClass,
             final long maxTimeMS, final long maxAwaitTimeMS, final Integer batchSize,
             final Collation collation, final Bson hint, final String comment,
@@ -72,7 +74,7 @@ public class Operations_Instrumentation<TDocument> {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public MixedBulkWriteOperation_Instrumentation insertMany(final List<? extends TDocument> documents, final InsertManyOptions options) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_INSERT_MANY);
         MixedBulkWriteOperation_Instrumentation op = Weaver.callOriginal();
@@ -80,43 +82,43 @@ public class Operations_Instrumentation<TDocument> {
         return op;
     }
 
-    @Trace(leaf = true)
+    @Trace
     public CountOperation count(final Bson filter, final CountOptions options, final CountStrategy countStrategy) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_COUNT);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public DropCollectionOperation dropCollection() {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_DROP_COLLECTION);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public RenameCollectionOperation renameCollection(final MongoNamespace newCollectionNamespace, final RenameCollectionOptions renameCollectionOptions) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_RENAME_COLLECTION);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public CreateIndexesOperation createIndexes(final List<IndexModel> indexes, final CreateIndexOptions createIndexOptions) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_CREATE_INDEXES);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public DropIndexOperation dropIndex(final String indexName, final DropIndexOptions dropIndexOptions) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_DROP_INDEX);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public DropIndexOperation dropIndex(final Bson keys, final DropIndexOptions dropIndexOptions) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_DROP_INDEX);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public <TResult> ListCollectionsOperation<TResult> listCollections(final String databaseName, final Class<TResult> resultClass,
             final Bson filter, final boolean collectionNamesOnly,
             final Integer batchSize, final long maxTimeMS) {
@@ -124,7 +126,7 @@ public class Operations_Instrumentation<TDocument> {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public <TResult> ListDatabasesOperation<TResult> listDatabases(final Class<TResult> resultClass, final Bson filter,
             final Boolean nameOnly, final long maxTimeMS,
             final Boolean authorizedDatabasesOnly) {
@@ -132,7 +134,7 @@ public class Operations_Instrumentation<TDocument> {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public <TResult> ListIndexesOperation<TResult> listIndexes(final Class<TResult> resultClass, final Integer batchSize, final long maxTimeMS) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", OP_LIST_INDEXES);
         return Weaver.callOriginal();
@@ -146,7 +148,7 @@ public class Operations_Instrumentation<TDocument> {
      *     <li>if the list has more than one entry, the operation name will be <code>OP_BULK_WRITE</code></li>
      * </ul>
      */
-    @Trace(leaf = true)
+    @Trace
     public MixedBulkWriteOperation_Instrumentation bulkWrite(final List<? extends WriteModel<? extends TDocument>> requests, final BulkWriteOptions options) {
         String operationName  = requests.size() > 1 ? OP_BULK_WRITE : MongoUtil.determineBulkWriteOperation(requests.get(0));
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", operationName);
