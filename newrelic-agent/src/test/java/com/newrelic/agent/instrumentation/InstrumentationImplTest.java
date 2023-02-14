@@ -19,6 +19,7 @@ import com.newrelic.agent.instrumentation.classmatchers.ClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.samplers.SamplerService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.api.agent.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -31,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -97,6 +99,21 @@ public class InstrumentationImplTest {
         assertEquals(1, classes.size());
         Mockito.verify(mockCoreService, times(1)).getInstrumentation();
         Mockito.verify(instrumentation, times(1)).getAllLoadedClasses();
+    }
+
+    @Test
+    public void testDisableAuto() {
+        ClassTransformerConfig config = mock(ClassTransformerConfig.class);
+        when(config.getAutoAsyncLinkRateLimit()).thenReturn(0L);
+        InstrumentationImpl instrumentation = new InstrumentationImpl(mock(Logger.class), config);
+        assertFalse(instrumentation.autoInstrumentCheck.get());
+    }
+
+    @Test
+    public void getAutoAsyncLinkRateLimitInSeconds() {
+        ClassTransformerConfig config = mock(ClassTransformerConfig.class);
+        when(config.getAutoAsyncLinkRateLimit()).thenReturn(500L);
+        assertEquals(0.5f, InstrumentationImpl.getAutoAsyncLinkRateLimitInSeconds(config), 0.001);
     }
 
     @Test

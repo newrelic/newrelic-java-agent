@@ -18,6 +18,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.Instrumentation;
 import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.agent.config.ClassTransformerConfig;
 import com.newrelic.agent.instrumentation.classmatchers.DefaultClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.ExactClassMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.HashSafeClassAndMethodMatcher;
@@ -45,6 +46,7 @@ import com.newrelic.agent.tracers.UltraLightTracer;
 import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.MetricNameFormats;
 import com.newrelic.agent.util.InsertOnlyArray;
+import com.newrelic.api.agent.NewRelic;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
@@ -55,7 +57,9 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.Transaction.SCALA_API_TRACER_FLAGS;
@@ -66,10 +70,27 @@ public class InstrumentationImpl implements Instrumentation {
     private final com.newrelic.api.agent.Logger logger;
     private final InsertOnlyArray<Object> objectCache = new InsertOnlyArray<>(16);
     private final Set<StackTraceElement> instrumentedStackTraceElements = Sets.newConcurrentHashSet();
-    private final RateLimiter instrumentRateLimiter = RateLimiter.create(1.0);
+    final Supplier<Boolean> autoInstrumentCheck;
 
     public InstrumentationImpl(com.newrelic.api.agent.Logger logger) {
+        this(logger, ServiceFactory.getConfigService().getDefaultAgentConfig()
+                .getClassTransformerConfig());
+    }
+
+    public InstrumentationImpl(com.newrelic.api.agent.Logger logger, ClassTransformerConfig classTransformerConfig) {
         this.logger = logger;
+        double rateLimitInSeconds = getAutoAsyncLinkRateLimitInSeconds(classTransformerConfig);
+        if (rateLimitInSeconds <= 0) {
+            autoInstrumentCheck = () -> false;
+        } else {
+            final RateLimiter rateLimiter = RateLimiter.create(rateLimitInSeconds);
+            autoInstrumentCheck = rateLimiter::tryAcquire;
+        }
+    }
+
+    static double getAutoAsyncLinkRateLimitInSeconds(ClassTransformerConfig classTransformerConfig) {
+        long rateLimitInMillis = classTransformerConfig.getAutoAsyncLinkRateLimit();
+        return (double)rateLimitInMillis / (double) TimeUnit.SECONDS.toMillis(1);
     }
 
     /**
@@ -553,13 +574,15 @@ public class InstrumentationImpl implements Instrumentation {
 
     @Override
     public void instrument() {
-        if (instrumentRateLimiter.tryAcquire()) {
+        final boolean check = autoInstrumentCheck.get();
+        if (check) {
             final StackTraceElement stackTraceElement = getApplicationStackTraceElement(
                     new Exception().fillInStackTrace().getStackTrace());
             if (stackTraceElement != null) {
-                instrument(stackTraceElement, TraceDetailsBuilder.newBuilder().setDispatcher(true).build());
+                instrument(stackTraceElement, TraceDetailsBuilder.newBuilder().setAsync(true).build());
             }
         }
+        NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument", check ? 1f : 0f);
     }
 
     private static StackTraceElement getApplicationStackTraceElement(StackTraceElement[] stackTraces) {
