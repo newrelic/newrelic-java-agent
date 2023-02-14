@@ -791,12 +791,19 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             } else {
                 props = new HashMap<>(props);
             }
-            Set<String> securityExcludes = (Set<String>) props.getOrDefault(ClassTransformerConfigImpl.EXCLUDES, new HashSet<>());
+            Set<String> securityExcludes = new HashSet<>() ;
             securityExcludes.add("java/util/zip/InflaterInputStream");
             securityExcludes.add("java/util/zip/ZipFile$ZipFileInputStream");
             securityExcludes.add("java/util/zip/ZipFile$ZipFileInflaterInputStream");
             securityExcludes.add("com/newrelic/.*");
             securityExcludes.add("com/nr/.*");
+
+            Object userProvidedExcludes = props.get(ClassTransformerConfigImpl.EXCLUDES);
+            if(userProvidedExcludes instanceof String) {
+                securityExcludes.add((String) userProvidedExcludes);
+            } else if(userProvidedExcludes instanceof Set){
+                securityExcludes.addAll((Collection<? extends String>) userProvidedExcludes);
+            }
             props.put(ClassTransformerConfigImpl.EXCLUDES, securityExcludes);
         }
         return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode);
