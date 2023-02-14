@@ -783,8 +783,14 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private ClassTransformerConfig initClassTransformerConfig(boolean liteMode) {
         boolean customTracingEnabled = getProperty(ENABLE_CUSTOM_TRACING, DEFAULT_ENABLE_CUSTOM_TRACING);
         Map<String, Object> props = nestedProps(CLASS_TRANSFORMER);
+        props = placeSecurityCollectorRelatedModification(props);
+        return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode);
+    }
 
-        // CSEC specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
+    /**
+     * CSEC specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
+     */
+    private Map<String, Object> placeSecurityCollectorRelatedModification(Map<String, Object> props) {
         if(getProperty("security") != null) {
             if(props == null) {
                 props = new HashMap<>();
@@ -806,7 +812,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             }
             props.put(ClassTransformerConfigImpl.EXCLUDES, securityExcludes);
         }
-        return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode);
+        return props;
     }
 
     private CircuitBreakerConfig initCircuitBreakerConfig() {
