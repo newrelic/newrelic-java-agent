@@ -75,7 +75,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
         // pick up
         extensionInstrumentation = new ExtensionInstrumentation(instrumentationProxy);
 
-        instrumentation = new InstrumentationImpl(logger);
+        instrumentation = new InstrumentationImpl(logger, classTransformerConfig);
         AgentBridge.instrumentation = instrumentation;
 
         ThreadFactory factory = new DefaultThreadFactory("New Relic Retransformer", true);

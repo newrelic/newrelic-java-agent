@@ -103,11 +103,12 @@ public interface Instrumentation {
     void instrument(Method methodToInstrument, String metricPrefix);
 
     /**
-     * Trace with transactions enabled (dispatcher=true) the first non-New Relic stack element on the current stack.
+     * Trace with transaction activity enabled (async=true) the first non-New Relic stack element on the current stack.
      * Often customers will call APIs like {@link Token#link()}, which need to be called within a transaction,
      * without having instrumented code to start a transaction.  We can detect that case and instrument the calling
      * method.
-     * This will be rate limited to reduce the overhead.
+     * This will be rate limited to reduce the overhead, controlled by
+     * the config class_transformer:auto_async_link_rate_limit
      */
     void instrument();
 
