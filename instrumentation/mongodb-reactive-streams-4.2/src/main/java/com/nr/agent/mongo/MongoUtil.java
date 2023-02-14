@@ -118,7 +118,7 @@ public class MongoUtil {
                 .product(DatastoreVendor.MongoDB.name())
                 .collection(collectionName)
                 .operation(operationName)
-                .instance(host, 1)
+                .instance(host, 0)
                 .databaseName(databaseName)
                 .build();
 
