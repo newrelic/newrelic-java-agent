@@ -40,48 +40,13 @@ public class AgentUtil {
     public static void recordNewRelicLogEvent(ExtLogRecord record) {
         if (record != null) {
             String message = record.getMessage();
-            Throwable throwable = record.getThrown();
+            Throwable thrown = record.getThrown();
 
-            if (shouldCreateLogEvent(message, throwable)) {
-                Map<String, String> mdcCopy = record.getMdcCopy();
+            if (shouldCreateLogEvent(message, thrown)) {
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
                 logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
-
-                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
-                    for (Map.Entry<String, String> entry : mdcCopy.entrySet()) {
-                        String key = entry.getKey();
-                        String value = entry.getValue();
-                        LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
-                        logEventMap.put(logAttrKey, value);
-                    }
-                }
-
-                Level level = record.getLevel();
-                if (level != null) {
-                    String levelName = level.getName();
-                    if (levelName.isEmpty()) {
-                        logEventMap.put(LEVEL, UNKNOWN);
-                    } else {
-                        logEventMap.put(LEVEL, levelName);
-                    }
-                }
-
-                String errorStack = ExceptionUtil.getErrorStack(throwable);
-                if (errorStack != null) {
-                    logEventMap.put(ERROR_STACK, errorStack);
-                }
-
-                String errorMessage = ExceptionUtil.getErrorMessage(throwable);
-                if (errorMessage != null) {
-                    logEventMap.put(ERROR_MESSAGE, errorMessage);
-                }
-
-                String errorClass = ExceptionUtil.getErrorClass(throwable);
-                if (errorClass != null) {
-                    logEventMap.put(ERROR_CLASS, errorClass);
-                }
 
                 String threadName = Thread.currentThread().getName();
                 if (threadName != null) {
@@ -100,6 +65,15 @@ public class AgentUtil {
                     logEventMap.put(LOGGER_FQCN, loggerFqcn);
                 }
 
+                Map<String, String> mdcCopy = record.getMdcCopy();
+                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
+                    addMdc(mdcCopy, logEventMap);
+                }
+                addTags(logEventMap);
+                Level level = record.getLevel();
+                addLevel(level, logEventMap);
+                addErrorInfo(thrown, logEventMap);
+
                 AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
             }
         }
@@ -117,8 +91,51 @@ public class AgentUtil {
     }
 
     private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
-        return AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
+        return (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
                 ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES)
+                + AppLoggingUtils.getTags().size();
+    }
+
+    private static void addMdc(Map<String, String> mdcPropertyMap, Map<LogAttributeKey, Object> logEventMap) {
+        if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
+            mdcPropertyMap.forEach((key, value) -> {
+                LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
+                logEventMap.put(logAttrKey, value);
+            });
+        }
+    }
+
+    private static void addTags(Map<LogAttributeKey, Object> logEventMap) {
+        AppLoggingUtils.getTags().forEach((key, value) -> {
+            LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.TAG);
+            logEventMap.put(logAttrKey, value);
+        });
+    }
+
+    private static void addLevel(Level level, Map<LogAttributeKey, Object> logEventMap) {
+        String levelName = level.getName();
+        if (levelName.isEmpty()) {
+            logEventMap.put(LEVEL, UNKNOWN);
+        } else {
+            logEventMap.put(LEVEL, levelName);
+        }
+    }
+
+    private static void addErrorInfo(Throwable thrown, Map<LogAttributeKey, Object> logEventMap) {
+        String errorStack = ExceptionUtil.getErrorStack(thrown);
+        if (errorStack != null) {
+            logEventMap.put(ERROR_STACK, errorStack);
+        }
+
+        String errorMessage = ExceptionUtil.getErrorMessage(thrown);
+        if (errorMessage != null) {
+            logEventMap.put(ERROR_MESSAGE, errorMessage);
+        }
+
+        String errorClass = ExceptionUtil.getErrorClass(thrown);
+        if (errorClass != null) {
+            logEventMap.put(ERROR_CLASS, errorClass);
+        }
     }
 }
