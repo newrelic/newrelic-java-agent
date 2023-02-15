@@ -11,7 +11,7 @@ import org.apache.kafka.common.TopicPartition;
 @Weave(type = MatchType.Interface, originalName = "org.apache.kafka.streams.processor.internals.Task")
 public abstract class Task_Instrumentation {
 
-    @Trace(excludeFromTransactionTrace = true)
+    @Trace
     public void addRecords(TopicPartition partition, Iterable<ConsumerRecord<byte[], byte[]>> records) {
         NewRelic.getAgent().getTransaction().getTracedMethod()
                 .setMetricName("Java/KafkaStreams/Topic/Named/" + partition.topic() + "/Task/addRecords");
