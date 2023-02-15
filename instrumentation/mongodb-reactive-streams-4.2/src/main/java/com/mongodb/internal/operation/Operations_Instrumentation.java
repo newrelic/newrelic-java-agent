@@ -44,7 +44,7 @@ import static com.nr.agent.mongo.MongoUtil.OP_LIST_DATABASES;
 import static com.nr.agent.mongo.MongoUtil.OP_LIST_INDEXES;
 import static com.nr.agent.mongo.MongoUtil.OP_RENAME_COLLECTION;
 
-@Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.Operations")
+//@Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.Operations")
 public class Operations_Instrumentation<TDocument> {
 
     /**
