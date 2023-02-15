@@ -9,7 +9,6 @@ package com.mongodb.internal.operation;
 import com.mongodb.MongoNamespace;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.mongodb.internal.binding.AsyncReadBinding;
-import com.mongodb.internal.client.model.CountStrategy;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
@@ -28,7 +27,7 @@ public class CountOperation_Instrumentation<T> implements AsyncReadOperation<T> 
     @NewField
     protected String operationName;
 
-    public CountOperation_Instrumentation(final MongoNamespace namespace, final CountStrategy countStrategy) {
+    public CountOperation_Instrumentation(final MongoNamespace namespace) {
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
         this.operationName = MongoUtil.OP_COUNT;
