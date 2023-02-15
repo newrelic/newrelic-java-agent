@@ -7,7 +7,6 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.time.Instant;
 
 public class ExpiringValueCacheTest {
 
@@ -28,7 +27,7 @@ public class ExpiringValueCacheTest {
     @Test
     public void timer_WithValidLambda_ExpiresTargetRecords() {
         ExpiringValueCache.ExpiringValueLogicFunction func =
-                (createdTime, timeLastAccessed) -> timeLastAccessed.isBefore(Instant.now().plusMillis(10000));;
+                (createdTime, timeLastAccessed) -> timeLastAccessed < System.currentTimeMillis() + 10000;
 
         ExpiringValueCache<String, String> testMap = generateNewHashMap(1000, func);
 
@@ -40,7 +39,7 @@ public class ExpiringValueCacheTest {
     @Test
     public void timer_WithValidLambda_LeavesMapUnmodified() {
         ExpiringValueCache.ExpiringValueLogicFunction func =
-                (createdTime, timeLastAccessed) -> timeLastAccessed.isBefore(Instant.now().minusMillis(10000));;
+                (createdTime, timeLastAccessed) -> timeLastAccessed < System.currentTimeMillis() - 10000;
         ExpiringValueCache<String, String> testMap = generateNewHashMap(1000, func);
         int mapSize = testMap.size();
 

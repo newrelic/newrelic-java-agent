@@ -2,11 +2,9 @@ package com.newrelic.agent.bridge.datastore;
 
 import static org.junit.Assert.*;
 
-import com.newrelic.agent.bridge.datastore.TimestampedMapValue;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 public class TimestampedMapValueTest {
@@ -20,10 +18,10 @@ public class TimestampedMapValueTest {
 
     @Test
     public void constructor_ShouldInitializeTimeCreatedAndTimeLastAccessed() {
-        Instant testTs = Instant.now();
+        long testTs = System.currentTimeMillis();
 
-        assertTrue(mapValue.getTimeCreated().compareTo(testTs) <= 0);
-        assertTrue(mapValue.getTimeLastAccessed().compareTo(testTs) <= 0);
+        assertTrue(mapValue.getTimeCreated() - testTs <= 0);
+        assertTrue(mapValue.getTimeLastAccessed() - testTs <= 0);
     }
 
     @Test
@@ -33,18 +31,18 @@ public class TimestampedMapValueTest {
 
     @Test
     public void getValue_ShouldUpdateLastAccessedTime() throws InterruptedException {
-        Instant originalLastAccessedTs = mapValue.getTimeLastAccessed();
+        long originalLastAccessedTs = mapValue.getTimeLastAccessed();
 
         TimeUnit.MILLISECONDS.sleep(10);
         mapValue.getValue();
 
-        assertTrue(originalLastAccessedTs.compareTo(mapValue.getTimeLastAccessed()) < 0);
+        assertTrue((originalLastAccessedTs - mapValue.getTimeLastAccessed()) < 0);
     }
 
     @Test
     public void lastAccessedAfter_ShouldRespondProperlyBasedOnSuppliedInstant() {
-        assertTrue(mapValue.lastAccessedAfter(Instant.now().minusMillis(1000)));
-        assertFalse(mapValue.lastAccessedAfter(Instant.now().plusMillis(1000)));
+        assertTrue(mapValue.lastAccessedAfter(System.currentTimeMillis() - 1000));
+        assertFalse(mapValue.lastAccessedAfter(System.currentTimeMillis() + 1000));
 
         // Per the underlying API, equal values will return false
         assertFalse(mapValue.lastAccessedAfter(mapValue.getTimeLastAccessed()));
@@ -52,8 +50,8 @@ public class TimestampedMapValueTest {
 
     @Test
     public void lastAccessedPriorTo_ShouldRespondProperlyBasedOnSuppliedInstant() {
-        assertFalse(mapValue.lastAccessedPriorTo(Instant.now().minusMillis(1000)));
-        assertTrue(mapValue.lastAccessedPriorTo(Instant.now().plusMillis(1000)));
+        assertFalse(mapValue.lastAccessedPriorTo(System.currentTimeMillis() -1000));
+        assertTrue(mapValue.lastAccessedPriorTo(System.currentTimeMillis() + 1000));
 
         // Per the underlying API, equal values will return false
         assertFalse(mapValue.lastAccessedPriorTo(mapValue.getTimeLastAccessed()));

@@ -48,7 +48,7 @@ public class JdbcHelper {
     private static final long CACHE_EXPIRATION_AGE_MILLI = Duration.ofHours(8).toMillis();
 
     private static final ExpiringValueCache.ExpiringValueLogicFunction EXPIRE_FUNC =
-            (timeCreated, timeLastAccessed) -> timeLastAccessed.isBefore(Instant.now().minusMillis(CACHE_EXPIRATION_AGE_MILLI));
+            (timeCreated, timeLastAccessed) -> timeLastAccessed < (System.currentTimeMillis() - CACHE_EXPIRATION_AGE_MILLI);
 
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
