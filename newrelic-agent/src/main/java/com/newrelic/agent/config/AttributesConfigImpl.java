@@ -22,8 +22,6 @@ public class AttributesConfigImpl extends BaseConfig implements AttributesConfig
     public static final String[] DEFAULT_BROWSER_EXCLUDES = new String[] {
             AttributeNames.DISPLAY_HOST,
             AttributeNames.HTTP_REQUEST_STAR,
-            AttributeNames.HTTP_STATUS_MESSAGE,
-            AttributeNames.HTTP_STATUS,
             AttributeNames.INSTANCE_NAME,
             AttributeNames.JVM_STAR,
             AttributeNames.MESSAGE_REQUEST_STAR,
@@ -39,7 +37,6 @@ public class AttributesConfigImpl extends BaseConfig implements AttributesConfig
 
     public static final String[] DEFAULT_TRANSACTION_EVENTS_EXCLUDES = new String[] {
             AttributeNames.HTTP_REQUEST_STAR,
-            AttributeNames.HTTP_STATUS_MESSAGE,
             AttributeNames.JVM_STAR,
             AttributeNames.MESSAGE_REQUEST_STAR,
             AttributeNames.SOLR_STAR

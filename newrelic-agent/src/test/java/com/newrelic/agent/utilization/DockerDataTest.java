@@ -83,6 +83,12 @@ public class DockerDataTest {
         line = "1:cpu:/system.slice/crio-67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f.scope";
         Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
         Assert.assertEquals("67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f", sb.toString());
+
+        //Azure docker container example
+        sb = new StringBuilder();
+        line = "2:cpu:/containers/f142db3a4219409af324d5481e297545aa33425fb7dc837e68cee93c36062ca8";
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertEquals("f142db3a4219409af324d5481e297545aa33425fb7dc837e68cee93c36062ca8", sb.toString());
     }
 
     @Test

@@ -19,6 +19,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_L
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.INSTRUMENTATION;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_FQCN;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
@@ -43,6 +44,7 @@ public class AgentUtil {
             if (shouldCreateLogEvent(message, throwable)) {
                 // JUL does not directly support MDC, so we only initialize the map size based on standard attributes
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
+                logEventMap.put(INSTRUMENTATION, "java.logging-jdk8");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
 

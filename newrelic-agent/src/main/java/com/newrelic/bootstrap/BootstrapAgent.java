@@ -72,6 +72,8 @@ public class BootstrapAgent {
             throw new IllegalArgumentException("Unable to attach. The license key was not specified");
         }
         System.out.println("Attaching the New Relic java agent");
+        // force this formatter to load early to avoid a java.lang.ClassCircularityError
+        MessageFormat.format("{0}", 1.0);
         try {
             agentArgs = decodeAndDecompressAgentArguments(agentArgs);
         } catch (IOException e) {

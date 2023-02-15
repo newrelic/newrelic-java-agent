@@ -43,12 +43,12 @@ public class LoggingEventMapTest {
 
     private static Stream<Arguments> providerParamsForLoggingEventMapTest() {
         return Stream.of(
-                argumentsOf("Minimal case", null, null, null, null, null, false, emptyMap(), 3),
+                argumentsOf("Minimal case", null, null, null, null, null, false, emptyMap(), 4),
                 argumentsOf("Base case with all data MDC disabled", "com.newrelic.SomeClass", "SomeClasLogger",
-                        Priority.ERROR, "Hello", new RuntimeException("SIMULATED"), false, singletonMap("tagKey", "tagValue"), 11),
-                argumentsOf("Minimal case with MDC enabled", null, null, null, null, null, true, emptyMap(), 4),
+                        Priority.ERROR, "Hello", new RuntimeException("SIMULATED"), false, singletonMap("tagKey", "tagValue"), 12),
+                argumentsOf("Minimal case with MDC enabled", null, null, null, null, null, true, emptyMap(), 6),
                 argumentsOf("Base case with all data and MDC enabled", "com.newrelic.OtherClass", "OtherClasLogger",
-                        Priority.ERROR, "Hello", new RuntimeException("SIMULATED"), true, singletonMap("tagKey", "tagValue"), 12)
+                        Priority.ERROR, "Hello", new RuntimeException("SIMULATED"), true, singletonMap("tagKey", "tagValue"), 13)
         );
     }
 

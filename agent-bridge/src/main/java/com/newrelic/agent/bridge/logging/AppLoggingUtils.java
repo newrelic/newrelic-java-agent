@@ -16,8 +16,9 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 
 public class AppLoggingUtils {
-    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 10;
+    public static final int DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES = 11;
     // Log message attributes
+    public static final LogAttributeKey INSTRUMENTATION = new LogAttributeKey("instrumentation", LogAttributeType.AGENT);
     public static final LogAttributeKey MESSAGE = new LogAttributeKey("message", LogAttributeType.AGENT);
     public static final LogAttributeKey TIMESTAMP = new LogAttributeKey("timestamp", LogAttributeType.AGENT);
     public static final LogAttributeKey LEVEL = new LogAttributeKey("level", LogAttributeType.AGENT);

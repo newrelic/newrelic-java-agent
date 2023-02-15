@@ -17,6 +17,7 @@ import org.apache.log4j.spi.ThrowableInformation;
 import java.util.HashMap;
 import java.util.Map;
 
+<<<<<<< HEAD
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
@@ -29,11 +30,13 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_ID;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_NAME;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.INSTRUMENTATION;
 
 class LoggingEventMap {
 
     static Map<LogAttributeKey, Object> from(LoggingEvent event, boolean appLoggingContextDataEnabled, Map<String, String> tags) {
         Map<LogAttributeKey, Object> logEventMap = initialMapWithMdcIfEnabled(event, appLoggingContextDataEnabled, tags);
+        logEventMap.put(INSTRUMENTATION, "apache-log4j-1");
         addTags(tags, logEventMap);
         addLoggerInfo(event, logEventMap);
         addMessageAndTimestamp(event, logEventMap);

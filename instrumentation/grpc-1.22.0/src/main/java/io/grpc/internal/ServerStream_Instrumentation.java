@@ -39,7 +39,6 @@ public abstract class ServerStream_Instrumentation {
 
         if (status != null) {
             int statusCode = status.getCode().value();
-            NewRelic.addCustomParameter("response.status", statusCode);
             NewRelic.addCustomParameter("http.statusCode", statusCode);
             NewRelic.addCustomParameter("http.statusText", status.getDescription());
 
@@ -70,7 +69,6 @@ public abstract class ServerStream_Instrumentation {
 
         if (status != null) {
             int statusCode = status.getCode().value();
-            NewRelic.addCustomParameter("response.status", statusCode);
             NewRelic.addCustomParameter("http.statusCode", statusCode);
             NewRelic.addCustomParameter("http.statusText", status.getDescription());
             if (GrpcConfig.errorsEnabled && status.getCause() != null) {
