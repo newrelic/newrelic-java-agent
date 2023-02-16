@@ -10,11 +10,14 @@ import com.mongodb.MongoNamespace;
 import com.mongodb.WriteConcern;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.mongodb.internal.binding.AsyncWriteBinding;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
+
+import static com.nr.agent.mongo.MongoUtil.CUSTOM;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.DropCollectionOperation")
 public class DropCollectionOperation_Instrumentation<T> implements AsyncWriteOperation<T> {
@@ -47,5 +50,6 @@ public class DropCollectionOperation_Instrumentation<T> implements AsyncWriteOpe
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
         this.operationName = MongoUtil.OP_DROP_COLLECTION;
+        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", this.operationName);
     }
 }
