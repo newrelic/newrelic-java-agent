@@ -19,6 +19,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
 
 import java.util.List;
+import java.util.logging.Level;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.MixedBulkWriteOperation")
 public class MixedBulkWriteOperation_Instrumentation implements AsyncWriteOperation<BulkWriteResult> {
