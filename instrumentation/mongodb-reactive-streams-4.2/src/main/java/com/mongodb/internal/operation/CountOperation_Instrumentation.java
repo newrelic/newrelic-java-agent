@@ -9,14 +9,11 @@ package com.mongodb.internal.operation;
 import com.mongodb.MongoNamespace;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.mongodb.internal.binding.AsyncReadBinding;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
-
-import static com.nr.agent.mongo.MongoUtil.CUSTOM;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.CountOperation")
 public class CountOperation_Instrumentation<T> implements AsyncReadOperation<T> {
@@ -34,7 +31,6 @@ public class CountOperation_Instrumentation<T> implements AsyncReadOperation<T> 
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
         this.operationName = MongoUtil.OP_COUNT;
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", this.operationName);
     }
 
     @Override

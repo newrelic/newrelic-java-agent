@@ -37,7 +37,6 @@ public class FindOperation_Instrumentation<T> implements AsyncReadOperation<T> {
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
         this.operationName = MongoUtil.OP_FIND;
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", this.operationName);
     }
 
     @Override

@@ -5,15 +5,12 @@ import com.mongodb.internal.async.AsyncBatchCursor;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.mongodb.internal.binding.AsyncReadBinding;
 import com.mongodb.internal.binding.ReadBinding;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
 import org.bson.codecs.Decoder;
-
-import static com.nr.agent.mongo.MongoUtil.CUSTOM;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.DistinctOperation")
 public class DistinctOperation_Instrumentation<T> implements AsyncReadOperation<AsyncBatchCursor<T>>, ReadOperation<BatchCursor<T>> {
@@ -31,7 +28,6 @@ public class DistinctOperation_Instrumentation<T> implements AsyncReadOperation<
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
         this.operationName = MongoUtil.OP_DISTINCT;
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", this.operationName);
     }
 
     @Override
