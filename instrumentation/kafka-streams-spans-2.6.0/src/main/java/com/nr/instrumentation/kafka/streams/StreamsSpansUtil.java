@@ -1,11 +1,17 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.nr.instrumentation.kafka.streams;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
-public class StreamsUtil {
-    private StreamsUtil() {}
+public class StreamsSpansUtil {
+    private StreamsSpansUtil() {}
 
     public static void initTransaction() {
         LoopState.LOCAL.set(new LoopState());

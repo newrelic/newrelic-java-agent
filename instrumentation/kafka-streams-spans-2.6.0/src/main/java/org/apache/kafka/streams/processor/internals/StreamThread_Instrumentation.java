@@ -1,10 +1,16 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package org.apache.kafka.streams.processor.internals;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.instrumentation.kafka.streams.StreamsUtil;
+import com.nr.instrumentation.kafka.streams.StreamsSpansUtil;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
 import java.time.Duration;
@@ -15,14 +21,14 @@ public class StreamThread_Instrumentation {
     // This method runs once per each event loop iteration
     @Trace(dispatcher = true)
     void runOnce() {
-        StreamsUtil.initTransaction();
+        StreamsSpansUtil.initTransaction();
         try {
             Weaver.callOriginal();
         } catch (Throwable t) {
             NewRelic.noticeError(t);
             throw t;
         } finally {
-            StreamsUtil.endTransaction();
+            StreamsSpansUtil.endTransaction();
         }
     }
 

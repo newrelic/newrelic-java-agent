@@ -1,10 +1,9 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-
 package com.nr.instrumentation.kafka.streams;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -31,7 +30,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
 
     private static final long reportingIntervalInSeconds = NewRelic.getAgent().getConfig().getValue("kafka.metrics.interval", 30);
 
-    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, buildThreadFactory("NewRelicMetricsReporter-%d"));
+    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, buildThreadFactory("com.nr.instrumentation.kafka.streams.NewRelicMetricsReporter-%d"));
 
     private final Map<String, KafkaMetric> metrics = new ConcurrentHashMap<>();
 
