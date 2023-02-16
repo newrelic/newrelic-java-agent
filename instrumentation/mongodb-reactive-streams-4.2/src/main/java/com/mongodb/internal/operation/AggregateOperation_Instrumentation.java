@@ -10,7 +10,6 @@ import com.mongodb.MongoNamespace;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.mongodb.internal.binding.AsyncReadBinding;
 import com.mongodb.internal.client.model.AggregationLevel;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
@@ -20,8 +19,6 @@ import org.bson.BsonDocument;
 import org.bson.codecs.Decoder;
 
 import java.util.List;
-
-import static com.nr.agent.mongo.MongoUtil.CUSTOM;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.AggregateOperation")
 public class AggregateOperation_Instrumentation<T> implements AsyncReadOperation<T> {
@@ -55,6 +52,5 @@ public class AggregateOperation_Instrumentation<T> implements AsyncReadOperation
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
         this.operationName = MongoUtil.OP_AGGREGATE;
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoOperation", this.operationName);
     }
 }
