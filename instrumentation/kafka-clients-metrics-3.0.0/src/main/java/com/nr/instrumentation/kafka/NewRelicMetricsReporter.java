@@ -9,6 +9,7 @@ package com.nr.instrumentation.kafka;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +57,16 @@ public class NewRelicMetricsReporter implements MetricsReporter {
         }
 
         final String metricPrefix = "MessageBroker/Kafka/Internal/";
+
         final String nodePrefix = "MessageBroker/Kafka/Nodes/";
+        final List<String> nodeMetricNames = new ArrayList<String>(nodes.size());
+        final List<String> nodeMetricAsEventsNames = new ArrayList<String>(nodes.size());
+        for (String node : nodes) {
+            String metricName = nodePrefix + node;
+            nodeMetricNames.add(metricName);
+            nodeMetricAsEventsNames.add(metricName.replace('/', '.'));
+        }
+
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -78,12 +88,13 @@ public class NewRelicMetricsReporter implements MetricsReporter {
                             }
                         }
                     }
-                    for (String node : nodes) {
-                        String metricName = nodePrefix + node;
-                        if (metricsAsEvents) {
-                            eventData.put(metricName.replace('/', '.'), 1f);
-                        } else {
-                            NewRelic.recordMetric(metricName, 1f);
+                    if (metricsAsEvents) {
+                        for (String nodeMetric : nodeMetricAsEventsNames) {
+                            eventData.put(nodeMetric, 1f);
+                        }
+                    } else {
+                        for (String nodeMetric : nodeMetricNames) {
+                            NewRelic.recordMetric(nodeMetric, 1f);
                         }
                     }
                     if (metricsAsEvents) {
