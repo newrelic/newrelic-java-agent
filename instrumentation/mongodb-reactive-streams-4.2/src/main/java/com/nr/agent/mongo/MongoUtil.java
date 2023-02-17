@@ -24,16 +24,9 @@ public class MongoUtil {
     private static ConcurrentHashMap<String, String> mongoDatabaseToHostMap = new ConcurrentHashMap<>(3);
 
     public static final String OP_FIND = "find";
-    public static final String OP_INSERT = "insert";
-    public static final String OP_UPDATE = "update";
     public static final String OP_AGGREGATE = "aggregate";
-    public static final String OP_REMOVE = "remove";
-    public static final String OP_PARALLEL_SCAN = "parallelCollectionScan";
     public static final String OP_CREATE_INDEX = "createIndex";
     public static final String OP_CREATE_INDEXES = "createIndexes";
-    public static final String OP_CREATE_LIST_INDEXES = "createListIndexes";
-    public static final String OP_CREATE_VIEW = "createView";
-    public static final String OP_CREATE_COLLECTION = "createCollection";
 
     public static final String OP_RENAME_COLLECTION = "renameCollection";
     public static final String OP_FIND_AND_UPDATE = "findAndUpdate";
@@ -52,31 +45,17 @@ public class MongoUtil {
     public static final String OP_DISTINCT = "distinct";
     public static final String OP_COUNT = "count";
     public static final String OP_MAP_REDUCE = "mapReduce";
-    public static final String OP_REPLACE = "replace";
     public static final String OP_REPLACE_ONE = "replaceOne";
     public static final String OP_LIST_INDEXES = "listIndexes";
-    public static final String OP_LIST_DATABASES = "listDatabases";
-    public static final String OP_LIST_COLLECTIONS = "listCollections";
     public static final String OP_BULK_WRITE = "bulkWrite";
     public static final String OP_INSERT_ONE = "insertOne";
     public static final String OP_INSERT_MANY = "insertMany";
     public static final String OP_UPDATE_MANY = "updateMany";
     public static final String OP_UPDATE_ONE = "updateOne";
 
-    public static final String OP_DELETE = "delete";
     public static final String OP_DELETE_ONE = "deleteOne";
     public static final String OP_DELETE_MANY = "deleteMany";
     public static final String CUSTOM = "Custom";
-
-    /**
-     * What to use when you can't get the operation.
-     */
-    public static final String DEFAULT_OPERATION = "other";
-
-    /**
-     * What to use when you can't get the collection name.
-     */
-    public static final String DEFAULT_COLLECTION = "other";
 
     public static final String OP_DEFAULT = "other";
 
@@ -128,7 +107,7 @@ public class MongoUtil {
     }
 
     public static String determineBulkWriteOperation(WriteModel writeModel) {
-        String operationName = UNKNOWN;
+        String operationName = OP_DEFAULT;
 
         if (writeModel != null) {
             String [] tokens = writeModel.getClass().toString().split("\\.");
