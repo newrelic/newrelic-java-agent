@@ -68,21 +68,9 @@ public class InfiniteTracingConfigImplTest {
     }
 
     @Test
-    public void testGzipCompressionByDefault() {
+    public void testUseCompressionByDefault() {
         InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
-        assertEquals("gzip", config.getCompression());
-    }
-
-    @Test
-    public void testMaxBatchSizeDefault() {
-        InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
-        assertEquals(100, config.getMaxBatchSize());
-    }
-
-    @Test
-    public void testLingerMsDefault() {
-        InfiniteTracingConfigImpl config = new InfiniteTracingConfigImpl(localProps);
-        assertEquals(10, config.getLingerMs());
+        assertTrue(config.getUseCompression());
     }
 
     @Test

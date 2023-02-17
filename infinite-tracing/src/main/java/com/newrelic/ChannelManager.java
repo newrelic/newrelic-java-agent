@@ -119,8 +119,8 @@ class ChannelManager {
     @VisibleForTesting
     IngestServiceStub buildStub(ManagedChannel managedChannel) {
         IngestServiceStub ingestServiceStub = IngestServiceGrpc.newStub(managedChannel);
-        if (config.getCompression() != null) {
-            ingestServiceStub = ingestServiceStub.withCompression(config.getCompression());
+        if (config.getUseCompression()) {
+            ingestServiceStub = ingestServiceStub.withCompression("gzip");
         }
         return ingestServiceStub;
     }
