@@ -22,14 +22,10 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
     public static final String FLAKY_CODE = "_flakyCode";
     public static final String USE_PLAINTEXT = "plaintext";
     public static final boolean DEFAULT_USE_PLAINTEXT = false;
-    public static final String COMPRESSION = "compression";
-    public static final String DEFAULT_COMPRESSION = "gzip";
+    public static final String USE_COMPRESSION = "compression";
+    public static final boolean DEFAULT_USE_COMPRESSION = true;
     public static final String USE_BATCHING = "batching";
     public static final boolean DEFAULT_USE_BATCHING = true;
-    public static final String MAX_BATCH_SIZE = "max_batch_size";
-    public static final int DEFAULT_MAX_BATCH_SIZE = 100;
-    public static final String LINGER_MS = "linger_ms";
-    public static final int DEFAULT_LINGER_MS = 10;
 
     static final String SYSTEM_PROPERTY_ROOT = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + ROOT + ".";
 
@@ -92,23 +88,13 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
     }
 
     @Override
-    public String getCompression() {
-        return getProperty(COMPRESSION, DEFAULT_COMPRESSION);
+    public boolean getUseCompression() {
+        return getProperty(USE_COMPRESSION, DEFAULT_USE_COMPRESSION);
     }
 
     @Override
     public boolean getUseBatching() {
         return getProperty(USE_BATCHING, DEFAULT_USE_BATCHING);
-    }
-
-    @Override
-    public int getMaxBatchSize() {
-        return getProperty(MAX_BATCH_SIZE, DEFAULT_MAX_BATCH_SIZE);
-    }
-
-    @Override
-    public int getLingerMs() {
-        return getProperty(LINGER_MS, DEFAULT_LINGER_MS);
     }
 
     @Override

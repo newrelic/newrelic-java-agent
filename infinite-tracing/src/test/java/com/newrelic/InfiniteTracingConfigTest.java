@@ -30,19 +30,19 @@ class InfiniteTracingConfigTest {
     }
 
     @Test
-    void testGzipCompression() {
+    void testEnableCompression() {
         InfiniteTracingConfig config = InfiniteTracingConfig.builder()
-                .compression("gzip")
+                .useCompression(true)
                 .build();
-        assertEquals("gzip", config.getCompression());
+        assertTrue(config.getUseCompression());
     }
 
     @Test
     void testDisableCompression() {
         InfiniteTracingConfig config = InfiniteTracingConfig.builder()
-                .compression(null)
+                .useCompression(false)
                 .build();
-        assertNull(config.getCompression());
+        assertFalse(config.getUseCompression());
     }
 
     @Test
@@ -51,13 +51,5 @@ class InfiniteTracingConfigTest {
                 .useBatching(true)
                 .build();
         assertTrue(config.getUseBatching());
-    }
-
-    @Test
-    void testLingerMs() {
-        InfiniteTracingConfig config = InfiniteTracingConfig.builder()
-                .lingerMs(100)
-                .build();
-        assertEquals(100, config.getLingerMs());
     }
 }

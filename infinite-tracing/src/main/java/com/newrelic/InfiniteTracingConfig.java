@@ -13,10 +13,8 @@ public class InfiniteTracingConfig {
     private final Double flakyPercentage;
     private final Long flakyCode;
     private final boolean usePlaintext;
-    private final String compression;
+    private final boolean useCompression;
     private final boolean useBatching;
-    private final int maxBatchSize;
-    private final int lingerMs;
 
     public InfiniteTracingConfig(Builder builder) {
         this.licenseKey = builder.licenseKey;
@@ -27,10 +25,8 @@ public class InfiniteTracingConfig {
         this.flakyPercentage = builder.flakyPercentage;
         this.flakyCode = builder.flakyCode;
         this.usePlaintext = builder.usePlaintext;
-        this.compression = builder.compression;
+        this.useCompression = builder.useCompression;
         this.useBatching = builder.useBatching;
-        this.maxBatchSize = builder.maxBatchSize;
-        this.lingerMs = builder.lingerMs;
     }
 
     public static Builder builder() {
@@ -69,20 +65,12 @@ public class InfiniteTracingConfig {
         return usePlaintext;
     }
 
-    public String getCompression() {
-        return compression;
+    public boolean getUseCompression() {
+        return useCompression;
     }
 
     public boolean getUseBatching() {
         return useBatching;
-    }
-
-    public int getMaxBatchSize() {
-        return maxBatchSize;
-    }
-
-    public int getLingerMs() {
-        return lingerMs;
     }
 
     public static class Builder {
@@ -94,10 +82,8 @@ public class InfiniteTracingConfig {
         private Double flakyPercentage;
         private Long flakyCode;
         private boolean usePlaintext;
-        private String compression;
+        private boolean useCompression;
         private boolean useBatching;
-        private int maxBatchSize;
-        private int lingerMs;
 
         /**
          * The New Relic APM license key configured for the application.
@@ -173,12 +159,12 @@ public class InfiniteTracingConfig {
         }
 
         /**
-         * The optional compression type to use when sending to the Trace Observer.
+         * The optional boolean to use compression when sending to the Trace Observer.
          *
-         * @param compression The compression type to use. Available options are "gzip" or "none".
+         * @param useCompression true to use compression, false otherwise
          */
-        public Builder compression(String compression) {
-            this.compression = compression;
+        public Builder useCompression(boolean useCompression) {
+            this.useCompression = useCompression;
             return this;
         }
 
@@ -189,23 +175,6 @@ public class InfiniteTracingConfig {
          */
         public Builder useBatching(boolean useBatching) {
             this.useBatching = useBatching;
-            return this;
-        }
-
-        /**
-         * Sets the maximum batch size when batching is enabled.
-         */
-        public Builder maxBatchSize(int maxBatchSize) {
-            this.maxBatchSize = maxBatchSize;
-            return this;
-        }
-
-        /**
-         * Sets the maximum amount of time to wait for a span batch
-         * to fill before sending if below the {@link #maxBatchSize}
-         */
-        public Builder lingerMs(int lingerMs) {
-            this.lingerMs = lingerMs;
             return this;
         }
 

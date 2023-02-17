@@ -21,6 +21,10 @@ class SpanEventSender implements Runnable {
     private final ChannelManager channelManager;
     // Destination for agent data
     private static final String INFINITE_TRACING = "InfiniteTracing";
+    // Wait for up to 5 seconds for data when batching
+    private static final long LINGER_MS = 5000;
+    // Allow a maximum batch size of up to 100 items
+    private static final int MAX_BATCH_SIZE = 100;
 
     SpanEventSender(InfiniteTracingConfig config, BlockingQueue<SpanEvent> queue, MetricAggregator aggregator, ChannelManager channelManager) {
         this.logger = config.getLogger();
@@ -84,13 +88,13 @@ class SpanEventSender implements Runnable {
     void drainAndSendBatchWhenReady(Observer observer) {
         // If our queue is larger than our max batch size we will send the batch right away,
         // otherwise we will pause for the linger time to wait for the batch to fill first.
-        if (queue.size() < config.getMaxBatchSize()) {
+        if (queue.size() < MAX_BATCH_SIZE) {
             try {
                 if (queue.isEmpty()) {
                     // Prevent a busy-wait loop when we have no data flowing through
                     Thread.sleep(250);
                 } else {
-                    Thread.sleep(config.getLingerMs());
+                    Thread.sleep(LINGER_MS);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -112,7 +116,7 @@ class SpanEventSender implements Runnable {
     Collection<SpanEvent> drainSpanBatch() {
         // Drain up to the max batch size
         Collection<SpanEvent> spanEvents = new LinkedList<>();
-        queue.drainTo(spanEvents, config.getMaxBatchSize());
+        queue.drainTo(spanEvents, MAX_BATCH_SIZE);
         return spanEvents;
     }
 

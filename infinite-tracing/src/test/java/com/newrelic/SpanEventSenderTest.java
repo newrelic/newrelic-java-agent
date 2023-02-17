@@ -97,7 +97,6 @@ class SpanEventSenderTest {
 
     @Test
     void pollAndWrite_EmptyQueueDoesNotWriteBatch() {
-        doReturn(10).when(config).getMaxBatchSize();
         doReturn(true).when(config).getUseBatching();
         doReturn(true).when(queue).isEmpty();
         doReturn(true).when(target).awaitReadyObserver(observer);
@@ -122,7 +121,6 @@ class SpanEventSenderTest {
     @Test
     void pollAndWrite_ObserverReadySpanBatchAvailableWrites() {
         Collection<SpanEvent> spanEvents = IntStream.range(0, 5).mapToObj(i -> buildSpanEvent()).collect(Collectors.toList());
-        doReturn(10).when(config).getMaxBatchSize();
         doReturn(true).when(config).getUseBatching();
         doReturn(true).when(target).awaitReadyObserver(observer);
         doReturn(spanEvents).when(target).drainSpanBatch();
@@ -172,8 +170,7 @@ class SpanEventSenderTest {
 
     @Test
     void drainSpanBatch_DrainsUpToMaxBatchSize() {
-        int maxBatchSize = 3;
-        doReturn(maxBatchSize).when(config).getMaxBatchSize();
+        int maxBatchSize = 100;
         doReturn(true).when(config).getUseBatching();
 
         target.drainSpanBatch();
