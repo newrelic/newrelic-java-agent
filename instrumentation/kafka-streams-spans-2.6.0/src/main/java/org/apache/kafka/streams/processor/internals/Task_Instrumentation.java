@@ -19,9 +19,8 @@ public abstract class Task_Instrumentation {
 
     @Trace
     public void addRecords(TopicPartition partition, Iterable<ConsumerRecord<byte[], byte[]>> records) {
-        NewRelic.getAgent().getTransaction().getTracedMethod()
-                .setMetricName("MessageBroker/Kafka/Streams/Task/AddRecords/Topic/Named/"
-                        + partition.topic() + "/Partition/" + partition.partition());
+        NewRelic.getAgent().getTransaction().getTracedMethod().setMetricName(
+                "MessageBroker/Kafka/Streams/Task/AddRecords/ByPartition/Topic/Named/" + partition.topic());
         Weaver.callOriginal();
     }
 }

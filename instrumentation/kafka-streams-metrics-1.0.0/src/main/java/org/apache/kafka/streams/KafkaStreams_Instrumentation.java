@@ -18,13 +18,13 @@ public class KafkaStreams_Instrumentation {
     private final Metrics metrics = Weaver.callOriginal();
 
     @NewField
-    private boolean initialized;
+    private boolean nrMetricsInitialized;
 
     @WeaveAllConstructors
     public KafkaStreams_Instrumentation() {
-        if (!initialized) {
+        if (!nrMetricsInitialized) {
             metrics.addReporter(new NewRelicMetricsReporter());
-            initialized = true;
+            nrMetricsInitialized = true;
         }
     }
 }

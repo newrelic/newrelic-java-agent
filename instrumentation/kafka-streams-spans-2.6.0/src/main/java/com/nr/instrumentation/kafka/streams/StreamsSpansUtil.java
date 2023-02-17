@@ -15,8 +15,8 @@ public class StreamsSpansUtil {
 
     public static void initTransaction() {
         LoopState.LOCAL.set(new LoopState());
-        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, "KafkaStreams",
-                "StreamsThread/Loop");
+        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false,
+                "Message", "MessageBroker/Kafka/Streams/PollAndProcess");
     }
 
     // Records number of records poll to loop state
