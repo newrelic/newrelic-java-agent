@@ -29,7 +29,7 @@ public class Operations_Instrumentation<TDocument> {
     }
 
     /**
-     * Because all the write operations proxy to this method, we can instrument a single method and assign
+     * Because all the write operations proxy to this method (except insertMany), we can instrument a single method and assign
      * the operation name passed on the length of the <code>requests</code> {@link java.util.List List}.
      * <ul>
      *     <li>if the list has a single entry, interrogate its type and assign the operation name accordingly</li>

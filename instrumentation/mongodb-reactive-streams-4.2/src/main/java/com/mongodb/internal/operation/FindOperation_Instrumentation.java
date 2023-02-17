@@ -9,16 +9,12 @@ package com.mongodb.internal.operation;
 import com.mongodb.MongoNamespace;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.mongodb.internal.binding.AsyncReadBinding;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
 import org.bson.codecs.Decoder;
-
-import static com.nr.agent.mongo.MongoUtil.CUSTOM;
-import static com.nr.agent.mongo.MongoUtil.OP_FIND;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.FindOperation")
 public class FindOperation_Instrumentation<T> implements AsyncReadOperation<T> {
@@ -33,7 +29,6 @@ public class FindOperation_Instrumentation<T> implements AsyncReadOperation<T> {
     protected String operationName;
 
     public FindOperation_Instrumentation(final MongoNamespace namespace, final Decoder<T> decoder) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_FIND);
         this.collectionName = namespace.getCollectionName();
         this.databaseName = namespace.getDatabaseName();
         this.operationName = MongoUtil.OP_FIND;
