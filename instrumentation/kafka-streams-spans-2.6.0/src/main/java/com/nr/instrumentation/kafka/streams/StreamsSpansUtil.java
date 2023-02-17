@@ -16,7 +16,8 @@ public class StreamsSpansUtil {
     public static void initTransaction() {
         LoopState.LOCAL.set(new LoopState());
         NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false,
-                "Message", "MessageBroker/Kafka/Streams/PollAndProcess");
+                "Message", "Kafka/Streams/{Application Id}");
+        // Todo: parse the application id from the thread name
     }
 
     // Records number of records poll to loop state

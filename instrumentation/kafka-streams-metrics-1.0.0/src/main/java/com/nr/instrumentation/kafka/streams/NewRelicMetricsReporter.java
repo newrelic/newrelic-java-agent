@@ -44,7 +44,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
             metrics.put(metricGroupAndName, kafkaMetric);
         }
 
-        final String metricPrefix = "MessageBroker/Kafka/Internal/Streams/";
+        final String metricPrefix = "KafkaStreams/";
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
