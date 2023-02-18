@@ -28,6 +28,7 @@ public class HttpURLConnectionConfig {
      */
     private static final int DEFAULT_TASK_DELAY_MS = 5_000;
     private static final int DEFAULT_THREAD_POOL_SIZE = 5;
+    private static final boolean DEFAULT_DISTRIBUTED_TRACING_ENABLED = true;
 
     private HttpURLConnectionConfig() {
     }
@@ -36,7 +37,7 @@ public class HttpURLConnectionConfig {
         int threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
         try {
             threadPoolSize = NewRelic.getAgent().getConfig().getValue(configPrefix + "thread_pool_size", DEFAULT_THREAD_POOL_SIZE);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "HttpURLConnection - using default thread_pool_size: " + threadPoolSize);
         }
         return threadPoolSize;
@@ -46,9 +47,19 @@ public class HttpURLConnectionConfig {
         int delayMs = DEFAULT_TASK_DELAY_MS;
         try {
             delayMs = NewRelic.getAgent().getConfig().getValue(configPrefix + "delay_ms", DEFAULT_TASK_DELAY_MS);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "HttpURLConnection - using default task delay_ms: " + delayMs);
         }
         return delayMs;
+    }
+
+    public static boolean distributedTracingEnabled() {
+        boolean dtEnabled = DEFAULT_DISTRIBUTED_TRACING_ENABLED;
+        try {
+            dtEnabled = NewRelic.getAgent().getConfig().getValue("distributed_tracing.enabled", DEFAULT_DISTRIBUTED_TRACING_ENABLED);
+        } catch (Exception ignored) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, "HttpURLConnection - using default distributed tracing enabled: " + dtEnabled);
+        }
+        return dtEnabled;
     }
 }
