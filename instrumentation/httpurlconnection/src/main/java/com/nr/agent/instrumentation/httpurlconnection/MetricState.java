@@ -177,7 +177,7 @@ public class MetricState {
              * external request to another APM entity. However, if the external request isn't to another APM entity then this does
              * nothing and reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
              */
-            if (!addedOutboundRequestHeaders) {
+            if (!addedOutboundRequestHeaders && segment != null) {
                 segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
                 this.addedOutboundRequestHeaders = true;
             }
@@ -191,7 +191,7 @@ public class MetricState {
          * "ProtocolException: Cannot write output after reading input" and "IOException: Stream is closed" exceptions when attempting to write
          * to the output stream.
          */
-        if (lastOperation.equals(GET_OUTPUT_STREAM_OP)) {
+        if (lastOperation.equals(GET_OUTPUT_STREAM_OP) && tx != null) {
             if (HttpURLConnectionConfig.distributedTracingEnabled()) {
                 networkRequestMethodCalled = true;
                 reportExternalCall(connection, lastOperation, 0, null);
@@ -225,7 +225,7 @@ public class MetricState {
                  * external request to another APM entity. However, if the external request isn't to another APM entity then this does
                  * nothing and reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
                  */
-                if (!addedOutboundRequestHeaders) {
+                if (!addedOutboundRequestHeaders && segment != null) {
                     segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
                     this.addedOutboundRequestHeaders = true;
                 }
@@ -276,7 +276,7 @@ public class MetricState {
              *
              * If already connected then we cannot modify the HttpURLConnection header map and this will fail to add outbound request headers
              */
-            if (!addedOutboundRequestHeaders) {
+            if (!addedOutboundRequestHeaders && segment != null) {
                 segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
                 this.addedOutboundRequestHeaders = true;
             }
@@ -297,20 +297,22 @@ public class MetricState {
      * @param responseMessage response message from HttpURLConnection
      */
     void reportExternalCall(HttpURLConnection connection, String operation, int responseCode, String responseMessage) {
-        // This conversion is necessary as it strips query parameters from the URI
-        String uri = URISupport.getURI(connection.getURL());
-        InboundWrapper inboundWrapper = new InboundWrapper(connection);
+        if (connection != null && segment != null) {
+            // This conversion is necessary as it strips query parameters from the URI
+            String uri = URISupport.getURI(connection.getURL());
+            InboundWrapper inboundWrapper = new InboundWrapper(connection);
 
-        // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
-        // Calling reportAsExternal is what causes an HTTP span to be created
-        segment.reportAsExternal(HttpParameters
-                .library(LIBRARY)
-                .uri(URI.create(uri))
-                .procedure(operation)
-                .inboundHeaders(inboundWrapper)
-                .status(responseCode, responseMessage)
-                .build());
+            // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
+            // Calling reportAsExternal is what causes an HTTP span to be created
+            segment.reportAsExternal(HttpParameters
+                    .library(LIBRARY)
+                    .uri(URI.create(uri))
+                    .procedure(operation)
+                    .inboundHeaders(inboundWrapper)
+                    .status(responseCode, responseMessage)
+                    .build());
 
-        segment.end();
+            segment.end();
+        }
     }
 }
