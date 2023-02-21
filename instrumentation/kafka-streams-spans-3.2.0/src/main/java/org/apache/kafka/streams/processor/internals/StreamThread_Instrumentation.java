@@ -48,4 +48,5 @@ public abstract class StreamThread_Instrumentation extends Thread {
     public StreamThread_Instrumentation() {
         this.nrApplicationId = null;
     }
+
 }
