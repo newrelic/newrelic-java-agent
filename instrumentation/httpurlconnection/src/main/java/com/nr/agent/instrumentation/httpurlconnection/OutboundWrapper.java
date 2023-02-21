@@ -29,9 +29,8 @@ public class OutboundWrapper implements OutboundHeaders {
             // Trying to do so will cause the HttpURLConnection to internally throw/catch "java.lang.IllegalStateException: Already connected"
             connection.setRequestProperty(name, value);
         } catch (IllegalStateException e) {
-            AgentBridge.getAgent().getLogger().log(Level.FINER, "Failed to set request property. Cause: {0}. " 
-                    + "(an IllegalStateException can be expected for certain usages of HttpURLConnection).",
-                    e.getMessage());
+            AgentBridge.getAgent().getLogger().log(Level.FINER, "Failed to set request property: key={0}, value={1}. Cause: {2}. "
+                    + "(an IllegalStateException can be expected for certain usages of HttpURLConnection).", name, value, e.getMessage());
         }
     }
 
