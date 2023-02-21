@@ -207,7 +207,8 @@ public final class Agent {
 
     private static void InitialiseNewRelicSecurityIfAllowed() {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
-        if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false)) {
+        if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false) &&
+                NewRelic.getAgent().getConfig().getValue("security.enable") != null) {
             try {
                 LOG.log(Level.INFO, "Invoking New Relic Security module");
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
