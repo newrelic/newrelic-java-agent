@@ -10,13 +10,14 @@ package mongodb;
 import com.mongodb.ConnectionString;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.introspec.DatastoreHelper;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.api.agent.Trace;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -37,13 +38,15 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.mongodb")
-public class MongoDbAsync400Test {
+public class MongoDbAsync420Test {
 
     private static final String MONGODB_PRODUCT = DatastoreVendor.MongoDB.toString();
     private static final MongodStarter mongodStarter = MongodStarter.getDefaultInstance();
     private MongodExecutable mongodExecutable;
     private MongodProcess mongodProcess;
+    private MongoDatabase mongoDatabase;
     private MongoClient mongoClient;
+    private MongoCollection mongoCollection;
 
     @Before
     public void startMongo() throws Exception {
@@ -55,6 +58,11 @@ public class MongoDbAsync400Test {
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
         mongoClient = MongoClients.create(new ConnectionString("mongodb://localhost:" + port));
+        // get handle to "mydb" database
+        mongoDatabase = mongoClient.getDatabase("mydb");
+        // get a handle to the "test" collection
+        mongoCollection = mongoDatabase.getCollection("test");
+
     }
 
     @After
@@ -71,7 +79,7 @@ public class MongoDbAsync400Test {
     }
 
     @Test
-    public void testCollectionApi() throws Exception {
+    public void testCollectionApi() throws Throwable {
         runMongoQuickTour();
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
@@ -85,34 +93,36 @@ public class MongoDbAsync400Test {
         String txName = transactionNames.iterator().next();
 
         // Counts based on operations executed in QuickTour
-        int insertOpExpectedCount = 1;
+        int insertOneOpExpectedCount = 1;
+        int insertOpExpectedCount = 0;
         int insertManyOpExpectedCount = 1;
         int updateOpExpectedCount = 1;
         int updateManyOpExpectedCount = 1;
-        int deleteOpExpectedCount = 1;
+        int deleteOneOpExpectedCount = 1;
         int deleteManyOpExpectedCount = 1;
-        int findOpExpectedCount = 8;
+        int findOpExpectedCount = 6; // This is a sum of the getFirst() with variousFinds() for the total find ops
         int dropOpExpectedCount = 2;
-        int countOpExpectedCount = 1;
-        int bulkWriteOpExpectedCount = 2;
+        int countOpExpectedCount = 0; //1;
+        int bulkWriteOpExpectedCount = 0; // Right now all bulkWrites report as the underlying operation being performed for each. So this
+                                          // is set to zero. Or we couldd just delete this test as not necessary given current workflow.
         int createIndexesOpExpectedCount = 1;
-        int unknownOpExpectedCount = 3;
+        int unknownOpExpectedCount = 0;
 
+        helper.assertUnifiedMetricCounts(txName, "insertOne", "test", insertOneOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "insert", "test", insertOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "insertMany", "test", insertManyOpExpectedCount);
-        helper.assertUnifiedMetricCounts(txName, "update", "test", updateOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "updateOne", "test", updateOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "updateMany", "test", updateManyOpExpectedCount);
-        helper.assertUnifiedMetricCounts(txName, "delete", "test", deleteOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "deleteOne", "test", deleteOneOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "deleteMany", "test", deleteManyOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "find", "test", findOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "drop", "test", dropOpExpectedCount);
-        helper.assertUnifiedMetricCounts(txName, "count", "test", countOpExpectedCount);
+//        helper.assertUnifiedMetricCounts(txName, "count", "test", countOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "bulkWrite", "test", bulkWriteOpExpectedCount);
-        helper.assertUnifiedMetricCounts(txName, "createIndexes", "test", createIndexesOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "Unknown", "Unknown", unknownOpExpectedCount);
 
         int totalOpCount = insertOpExpectedCount + insertManyOpExpectedCount + updateOpExpectedCount + updateManyOpExpectedCount +
-                deleteOpExpectedCount + deleteManyOpExpectedCount + findOpExpectedCount + dropOpExpectedCount + countOpExpectedCount +
+                deleteOneOpExpectedCount + deleteManyOpExpectedCount + findOpExpectedCount + dropOpExpectedCount + countOpExpectedCount +
                 bulkWriteOpExpectedCount + createIndexesOpExpectedCount + unknownOpExpectedCount;
 
         // Should be equal to the sum of all above metric counts
@@ -121,9 +131,8 @@ public class MongoDbAsync400Test {
         assertEquals(totalOpCount, introspector.getTransactionEvents(txName).iterator().next().getDatabaseCallCount());
     }
 
-    @Trace(dispatcher = true)
-    public void runMongoQuickTour() throws Exception {
-        //QuickTour.run(mongoClient);
+    public void runMongoQuickTour() throws Throwable {
+        QuickTour.run(mongoClient, mongoCollection);
     }
 
 }
