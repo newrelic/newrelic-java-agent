@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 8.0.1 (2023-02-23)
+
+### Fixes
+- Various fixes to the HttpUrlConnection instrumentation. See the [README](instrumentation/httpurlconnection/README.md) for full details https://github.com/newrelic/newrelic-java-agent/pull/1145
+- Ensure that `TokenAndRefCount.token` is never null https://github.com/newrelic/newrelic-java-agent/pull/1148
+- Correct a possible NullPointerException being thrown when calling addCustomAttributes https://github.com/newrelic/newrelic-java-agent/pull/1141
+- Fix ClassCircularityError when agent attaches https://github.com/newrelic/newrelic-java-agent/pull/1139
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.0.0...v8.0.1
+
 ## Version 8.0.0 (2023-01-26)
 
 ### Important
