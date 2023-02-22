@@ -20,15 +20,15 @@ import java.time.Duration;
 @Weave(originalName = "org.apache.kafka.streams.processor.internals.StreamThread")
 public abstract class StreamThread_Instrumentation extends Thread {
     @NewField
-    private String nrApplicationId;
+    private String nrApplicationIdWithSuffix;
 
     // This method runs once per each event loop iteration
     @Trace(dispatcher = true)
     void runOnce() {
-        if (this.nrApplicationId == null) {
-            this.nrApplicationId = StreamsSpansUtil.getApplicationId(this.getName());
+        if (this.nrApplicationIdWithSuffix == null) {
+            this.nrApplicationIdWithSuffix = StreamsSpansUtil.getApplicationIdWithSuffix(this.getName());
         }
-        StreamsSpansUtil.initTransaction(this.nrApplicationId);
+        StreamsSpansUtil.initTransaction(this.nrApplicationIdWithSuffix);
         try {
             Weaver.callOriginal();
         } catch (Throwable t) {
@@ -46,7 +46,7 @@ public abstract class StreamThread_Instrumentation extends Thread {
 
     @WeaveAllConstructors
     public StreamThread_Instrumentation() {
-        this.nrApplicationId = null;
+        this.nrApplicationIdWithSuffix = null;
     }
 
 }

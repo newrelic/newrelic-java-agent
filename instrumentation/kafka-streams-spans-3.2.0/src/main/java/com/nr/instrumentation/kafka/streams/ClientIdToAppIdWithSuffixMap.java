@@ -2,10 +2,10 @@ package com.nr.instrumentation.kafka.streams;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ClientIdToAppIdMap {
+public class ClientIdToAppIdWithSuffixMap {
     private static final ConcurrentHashMap<String, String> applicationIdMap = new ConcurrentHashMap<>();
 
-    public ClientIdToAppIdMap() {}
+    public ClientIdToAppIdWithSuffixMap() {}
 
     public static ConcurrentHashMap<String, String> get() {
         return applicationIdMap;

@@ -9,17 +9,28 @@ package com.nr.instrumentation.kafka.streams;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.streams.StreamsConfig;
 
 public class StreamsSpansUtil {
     private StreamsSpansUtil() {}
 
-    public static String getApplicationId(String threadName) {
+    // Returns application id and if client.id is set, is added as a suffix seperated by /
+    public static String getAppIdWithClientIdSuffix(StreamsConfig streamsConfig) {
+        String applicationId = streamsConfig.getString(StreamsConfig.APPLICATION_ID_CONFIG);
+        String clientId = streamsConfig.getString(StreamsConfig.CLIENT_ID_CONFIG);
+        if (clientId == null || clientId.length() <= 0) {
+            return applicationId;
+        }
+        return applicationId + "/" + clientId;
+    }
+
+    public static String getApplicationIdWithSuffix(String threadName) {
         final String defaultAppId = "APPLICATION_ID_UNKNOWN";
         String nrClientId = StreamsSpansUtil.getClientId(threadName);
         if (nrClientId == null) {
             return defaultAppId;
         }
-        return ClientIdToAppIdMap.getAppIdOrDefault(nrClientId, defaultAppId);
+        return ClientIdToAppIdWithSuffixMap.getAppIdOrDefault(nrClientId, defaultAppId);
 
     }
 
@@ -31,10 +42,10 @@ public class StreamsSpansUtil {
         return threadName.substring(0, idx);
     }
 
-    public static void initTransaction(String applicationId) {
+    public static void initTransaction(String applicationIdWithSuffix) {
         LoopState.LOCAL.set(new LoopState());
         NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false,
-                "Message", "Kafka/Streams/" + applicationId);
+                "Message", "Kafka/Streams/" + applicationIdWithSuffix);
     }
 
     // Records number of records poll to loop state
