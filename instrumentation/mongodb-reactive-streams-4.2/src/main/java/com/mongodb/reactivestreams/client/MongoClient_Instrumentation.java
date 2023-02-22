@@ -19,7 +19,7 @@ public class MongoClient_Instrumentation {
      * This is weaved so that we can capture the database name and map it to a host
      */
     public MongoDatabase getDatabase(String dbName) {
-        String hosts = MongoUtil.concatHostsFromServerDescriptionList(getClusterDescription().getServerDescriptions());
+        String hosts = MongoUtil.determineHostDisplayValueFromCluster(getClusterDescription());
         MongoUtil.addDatabaseAndHostToMap(dbName, hosts);
 
         return Weaver.callOriginal();

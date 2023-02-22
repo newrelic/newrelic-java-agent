@@ -7,7 +7,10 @@
 
 package com.nr.agent.mongo;
 
+import com.mongodb.ServerAddress;
 import com.mongodb.client.model.WriteModel;
+import com.mongodb.connection.ClusterDescription;
+import com.mongodb.connection.ClusterType;
 import com.mongodb.connection.ServerDescription;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
@@ -60,6 +63,8 @@ public class MongoUtil {
     public static final String OP_DEFAULT = "other";
 
     public static final String UNKNOWN = "unknown";
+    public static final String CLUSTER = "Cluster";
+    public static final int DEFAULT_PORT = 27017;
 
     public static void addDatabaseAndHostToMap(final String databaseName, final String host) {
         NewRelic.getAgent().getLogger().log(Level.FINE, "Adding mongo DB with with host to map: {0} --> {1}", databaseName, host);
@@ -77,13 +82,16 @@ public class MongoUtil {
     }
 
 
-    public static String concatHostsFromServerDescriptionList(List<ServerDescription> serverDescriptions) {
-        List<String> allHosts = new ArrayList<>();
-        for (ServerDescription desc : serverDescriptions) {
-            allHosts.add(desc.getAddress().toString());
+    public static String determineHostDisplayValueFromCluster(ClusterDescription clusterDescription) {
+        String hostDescription = UNKNOWN;
+        List<ServerDescription> serverDescriptions = clusterDescription.getServerDescriptions();
+
+        if (serverDescriptions != null) {
+            ServerAddress serverAddress = serverDescriptions.get(0).getAddress();
+            hostDescription = serverDescriptions.size() == 1 ?  serverAddress.getHost() + ":" + serverAddress.getPort() : CLUSTER;
         }
 
-        return String.join(";", allHosts);
+        return hostDescription;
     }
 
     public static <T> SingleResultCallback<T> instrumentSingleResultCallback(SingleResultCallback<T> callback, String collectionName,
@@ -92,12 +100,24 @@ public class MongoUtil {
             return callback;
         }
 
+        String hostname = null;
+        int port = DEFAULT_PORT;
+        String [] hostAndPort = host.split(":");
+        try {
+            hostname = hostAndPort[0];
+            if (hostAndPort.length == 2) {
+                port = Integer.parseInt(hostAndPort[1]);
+            }
+        } catch (NumberFormatException ignored) {
+            //Guard rail for parse exception
+        }
+
         NRCallbackWrapper<T> wrapper = new NRCallbackWrapper<T>(callback);
         wrapper.params = DatastoreParameters
                 .product(DatastoreVendor.MongoDB.name())
                 .collection(collectionName)
                 .operation(operationName)
-                .instance(host, 0)
+                .instance(hostname, port)
                 .databaseName(databaseName)
                 .build();
 
