@@ -105,7 +105,6 @@ public class MongoDbAsync420Test {
         int countOpExpectedCount = 0; //1;
         int bulkWriteOpExpectedCount = 0; // Right now all bulkWrites report as the underlying operation being performed for each. So this
                                           // is set to zero. Or we couldd just delete this test as not necessary given current workflow.
-        int createIndexesOpExpectedCount = 1;
         int unknownOpExpectedCount = 0;
 
         helper.assertUnifiedMetricCounts(txName, "insertOne", "test", insertOneOpExpectedCount);
@@ -121,9 +120,9 @@ public class MongoDbAsync420Test {
         helper.assertUnifiedMetricCounts(txName, "bulkWrite", "test", bulkWriteOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "Unknown", "Unknown", unknownOpExpectedCount);
 
-        int totalOpCount = insertOpExpectedCount + insertManyOpExpectedCount + updateOpExpectedCount + updateManyOpExpectedCount +
+        int totalOpCount = insertOpExpectedCount + insertOneOpExpectedCount + insertManyOpExpectedCount + updateOpExpectedCount + updateManyOpExpectedCount +
                 deleteOneOpExpectedCount + deleteManyOpExpectedCount + findOpExpectedCount + dropOpExpectedCount + countOpExpectedCount +
-                bulkWriteOpExpectedCount + createIndexesOpExpectedCount + unknownOpExpectedCount;
+                bulkWriteOpExpectedCount + unknownOpExpectedCount;
 
         // Should be equal to the sum of all above metric counts
         assertEquals(totalOpCount, MetricsHelper.getUnscopedMetricCount("Datastore/all"));
