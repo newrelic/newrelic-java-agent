@@ -36,12 +36,12 @@ import org.junit.runner.RunWith;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@Ignore("This test is flaky on GHA")
+//@Ignore("This test is flaky on GHA")
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
 public class Kafka3MessageTest {
     @Rule
-    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.0.0"));
+    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"));
 
     private final String TOPIC = "life-universe-everything";
     private final String ANOTHER_TOPIC = "vogon-poetry";

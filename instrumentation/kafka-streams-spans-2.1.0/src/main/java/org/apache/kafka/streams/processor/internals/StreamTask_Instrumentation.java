@@ -1,0 +1,27 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+package org.apache.kafka.streams.processor.internals;
+
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.weaver.MatchType;
+import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.Weaver;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
+
+@Weave(type = MatchType.ExactClass, originalName = "org.apache.kafka.streams.processor.internals.StreamTask")
+public class StreamTask_Instrumentation {
+
+    @Trace
+    public void addRecords(final TopicPartition partition, final Iterable<ConsumerRecord<byte[], byte[]>> records) {
+        NewRelic.getAgent().getTransaction().getTracedMethod().setMetricName(
+                "MessageBroker/Kafka/Streams/Task/AddRecords/ByPartition/Topic/Named/" + partition.topic());
+        Weaver.callOriginal();
+    }
+
+}

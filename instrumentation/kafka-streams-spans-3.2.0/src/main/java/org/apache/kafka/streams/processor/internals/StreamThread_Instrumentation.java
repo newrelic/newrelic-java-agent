@@ -41,7 +41,9 @@ public abstract class StreamThread_Instrumentation extends Thread {
 
     @Trace
     private ConsumerRecords<byte[], byte[]> pollRequests(final Duration pollTime) {
-        return Weaver.callOriginal();
+        ConsumerRecords<byte[], byte[]> records = Weaver.callOriginal();
+        StreamsSpansUtil.recordPolledToLoopState(records);
+        return records;
     }
 
     @WeaveAllConstructors

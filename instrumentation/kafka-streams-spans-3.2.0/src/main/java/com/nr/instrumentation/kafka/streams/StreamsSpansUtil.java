@@ -57,7 +57,7 @@ public class StreamsSpansUtil {
         }
     }
 
-    public static void updateTotalProcessedToLoopState(double processed) {
+    public static void incTotalProcessedToLoopState(double processed) {
         LoopState state = LoopState.LOCAL.get();
         if (state != null) {
             state.incTotalProcessed(processed);

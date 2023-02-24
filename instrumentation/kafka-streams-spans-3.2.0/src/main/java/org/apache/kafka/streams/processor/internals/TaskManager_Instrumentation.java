@@ -18,7 +18,7 @@ public class TaskManager_Instrumentation {
     int process(final int maxNumRecords, final Time time) {
         int processed = Weaver.callOriginal();
         if (AgentBridge.getAgent().getTransaction(false) != null) {
-            StreamsSpansUtil.updateTotalProcessedToLoopState(processed);
+            StreamsSpansUtil.incTotalProcessedToLoopState(processed);
         }
         return processed;
     }
