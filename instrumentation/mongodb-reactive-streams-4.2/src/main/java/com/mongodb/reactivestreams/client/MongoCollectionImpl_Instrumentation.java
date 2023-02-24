@@ -6,20 +6,15 @@
  */
 package com.mongodb.reactivestreams.client;
 
-import com.mongodb.MongoNamespace;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.model.BulkWriteOptions;
-import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.DeleteOptions;
-import com.mongodb.client.model.DropIndexOptions;
 import com.mongodb.client.model.FindOneAndDeleteOptions;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.InsertOneOptions;
-import com.mongodb.client.model.RenameCollectionOptions;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
@@ -41,21 +36,17 @@ import java.util.List;
 import static com.nr.agent.mongo.MongoUtil.CUSTOM;
 import static com.nr.agent.mongo.MongoUtil.OP_AGGREGATE;
 import static com.nr.agent.mongo.MongoUtil.OP_BULK_WRITE;
-import static com.nr.agent.mongo.MongoUtil.OP_CREATE_INDEX;
-import static com.nr.agent.mongo.MongoUtil.OP_CREATE_INDEXES;
+import static com.nr.agent.mongo.MongoUtil.OP_COUNT;
 import static com.nr.agent.mongo.MongoUtil.OP_DELETE_MANY;
 import static com.nr.agent.mongo.MongoUtil.OP_DELETE_ONE;
 import static com.nr.agent.mongo.MongoUtil.OP_DROP_COLLECTION;
-import static com.nr.agent.mongo.MongoUtil.OP_DROP_INDEX;
 import static com.nr.agent.mongo.MongoUtil.OP_FIND;
 import static com.nr.agent.mongo.MongoUtil.OP_FIND_ONE_AND_DELETE;
 import static com.nr.agent.mongo.MongoUtil.OP_FIND_ONE_AND_REPLACE;
 import static com.nr.agent.mongo.MongoUtil.OP_FIND_ONE_AND_UPDATE;
 import static com.nr.agent.mongo.MongoUtil.OP_INSERT_MANY;
 import static com.nr.agent.mongo.MongoUtil.OP_INSERT_ONE;
-import static com.nr.agent.mongo.MongoUtil.OP_LIST_INDEXES;
 import static com.nr.agent.mongo.MongoUtil.OP_MAP_REDUCE;
-import static com.nr.agent.mongo.MongoUtil.OP_RENAME_COLLECTION;
 import static com.nr.agent.mongo.MongoUtil.OP_REPLACE_ONE;
 import static com.nr.agent.mongo.MongoUtil.OP_UPDATE_MANY;
 import static com.nr.agent.mongo.MongoUtil.OP_UPDATE_ONE;
@@ -156,6 +147,18 @@ class MongoCollectionImpl_Instrumentation<T> {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_INSERT_MANY);
         return Weaver.callOriginal();
 
+    }
+
+    @Trace(leaf = true)
+    public Publisher<Long> countDocuments(final ClientSession clientSession, final Bson filter, final CountOptions options) {
+        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_COUNT);
+        return Weaver.callOriginal();
+    }
+
+    @Trace(leaf = true)
+    public Publisher<Long> countDocuments(final Bson filter, final CountOptions options) {
+        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_COUNT);
+        return Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
@@ -317,79 +320,4 @@ class MongoCollectionImpl_Instrumentation<T> {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
-    public Publisher<String> createIndex(final Bson key, final IndexOptions options) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_CREATE_INDEX);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<String> createIndex(final ClientSession clientSession, final Bson key, final IndexOptions options) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_CREATE_INDEX);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<String> createIndexes(final List<IndexModel> indexes, final CreateIndexOptions createIndexOptions) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_CREATE_INDEXES);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<String> createIndexes(final ClientSession clientSession, final List<IndexModel> indexes,
-            final CreateIndexOptions createIndexOptions) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_CREATE_INDEXES);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public <T> ListIndexesPublisher<T> listIndexes(final Class<T> clazz) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_LIST_INDEXES);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public <T> ListIndexesPublisher<T> listIndexes(final ClientSession clientSession, final Class<T> clazz) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_LIST_INDEXES);
-        return Weaver.callOriginal();
-
-    }
-
-    @Trace(leaf = true)
-    public Publisher<Void> dropIndex(final String indexName, final DropIndexOptions dropIndexOptions) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_DROP_INDEX);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<Void> dropIndex(final Bson keys, final DropIndexOptions dropIndexOptions) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_DROP_INDEX);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<Void> dropIndex(final ClientSession clientSession, final String indexName,
-            final DropIndexOptions dropIndexOptions) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_DROP_INDEX);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<Void> dropIndex(final ClientSession clientSession, final Bson keys, final DropIndexOptions dropIndexOptions) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_DROP_INDEX);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<Void> renameCollection(final MongoNamespace newCollectionNamespace, final RenameCollectionOptions options) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_RENAME_COLLECTION);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<Void> renameCollection(final ClientSession clientSession, final MongoNamespace newCollectionNamespace,
-            final RenameCollectionOptions options) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_RENAME_COLLECTION);
-        return Weaver.callOriginal();
-    }
 }

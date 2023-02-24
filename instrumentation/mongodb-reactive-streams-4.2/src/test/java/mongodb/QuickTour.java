@@ -43,7 +43,7 @@ public final class QuickTour {
         variousFinds(collection); // five calls to find here for total of 6 with getFirst()
         insertMany(collection);
         updateMany(collection);
-        count(collection);
+//        count(collection);  Disabled until we figure out why CountOperation_Instrumentation doesn't record Datastore metrics
         updateOne(collection);
         deleteOne(collection);
         deleteMany(collection);
@@ -121,7 +121,6 @@ public final class QuickTour {
         // Projection
         collection.find().projection(excludeId()).first().subscribe(new SubscriberHelpers.PrintDocumentSubscriber());
     }
-
     private QuickTour() {
     }
 }

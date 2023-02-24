@@ -102,9 +102,9 @@ public class MongoDbAsync420Test {
         int deleteManyOpExpectedCount = 1;
         int findOpExpectedCount = 6; // This is a sum of the getFirst() with variousFinds() for the total find ops
         int dropOpExpectedCount = 2;
-        int countOpExpectedCount = 0; //1;
+        int countOpExpectedCount = 0; // for a future test; CountOperation not implemented as of the commit for this entry.
         int bulkWriteOpExpectedCount = 0; // Right now all bulkWrites report as the underlying operation being performed for each. So this
-                                          // is set to zero. Or we couldd just delete this test as not necessary given current workflow.
+                                          // is set to zero. Or we could just delete this test as not necessary given current workflow.
         int unknownOpExpectedCount = 0;
 
         helper.assertUnifiedMetricCounts(txName, "insertOne", "test", insertOneOpExpectedCount);
@@ -116,7 +116,7 @@ public class MongoDbAsync420Test {
         helper.assertUnifiedMetricCounts(txName, "deleteMany", "test", deleteManyOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "find", "test", findOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "drop", "test", dropOpExpectedCount);
-//        helper.assertUnifiedMetricCounts(txName, "count", "test", countOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "count", "test", countOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "bulkWrite", "test", bulkWriteOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "Unknown", "Unknown", unknownOpExpectedCount);
 
