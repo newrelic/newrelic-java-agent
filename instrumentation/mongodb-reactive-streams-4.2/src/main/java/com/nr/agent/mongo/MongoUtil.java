@@ -10,14 +10,12 @@ package com.nr.agent.mongo;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.connection.ClusterDescription;
-import com.mongodb.connection.ClusterType;
 import com.mongodb.connection.ServerDescription;
 import com.mongodb.internal.async.SingleResultCallback;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
