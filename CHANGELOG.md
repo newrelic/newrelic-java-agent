@@ -7,10 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Coming soon
 * TBD
 
+## Version 8.0.1 (2023-02-23)
+
+### Fixes
+- Various fixes to the HttpUrlConnection instrumentation. See the [README](https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation/httpurlconnection#readme) for full details https://github.com/newrelic/newrelic-java-agent/pull/1145
+- Ensure that `TokenAndRefCount.token` is never null https://github.com/newrelic/newrelic-java-agent/pull/1148
+- Correct a possible NullPointerException being thrown when calling addCustomAttributes https://github.com/newrelic/newrelic-java-agent/pull/1141
+- Fix ClassCircularityError when agent attaches https://github.com/newrelic/newrelic-java-agent/pull/1139
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.0.0...v8.0.1
+
 ## Version 8.0.0 (2023-01-26)
 
 ### Important
-This release includes a change to the `HttpURLConnection` instrumentation that creates a `TimerTask` to help ensure complete externals reporting. Under some circumstances this may result in a large number of threads being created, which may exhaust the maximum allocated to the JVM, causing it to stop. We are working on a fix to this issue and will publish an updated release promptly.
+This release includes a change to the `HttpURLConnection` instrumentation that creates a `TimerTask` to help ensure complete externals reporting. Under some circumstances this may result in a large number of threads being created, which may exhaust the maximum allocated to the JVM, causing it to stop. This issue has been fixed in the 8.0.1 release and it is highly recommended that you update to this version of the Java agent.
 
 ### New features and improvements
 - Added support for Slick 3.4.0 on Scala 2.13 https://github.com/newrelic/newrelic-java-agent/pull/1072

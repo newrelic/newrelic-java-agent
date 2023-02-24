@@ -14,6 +14,7 @@ import com.newrelic.agent.instrumentation.classmatchers.ClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
 import com.newrelic.agent.instrumentation.custom.ClassRetransformer;
+import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.service.Service;
 
 public interface ClassTransformerService extends Service {
@@ -34,6 +35,13 @@ public interface ClassTransformerService extends Service {
      * @return true if the matcher was not previously added
      */
     boolean addTraceMatcher(ClassAndMethodMatcher matcher, String metricPrefix);
+
+    /**
+     * Add a matcher that will match class/methods which should be traced.
+     *
+     * @return true if the matcher was not previously added
+     */
+    boolean addTraceMatcher(ClassAndMethodMatcher matcher, TraceDetails traceDetails);
 
     /**
      * Queues the retransformation of loaded classes that match the given class matchers.

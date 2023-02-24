@@ -11,6 +11,8 @@ import java.io.Closeable;
 import java.lang.reflect.Method;
 
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Token;
+import com.newrelic.api.agent.Trace;
 
 public interface Instrumentation {
 
@@ -95,10 +97,20 @@ public interface Instrumentation {
      * Add instrumentation for a given method of a given class only if no @InstrumentedMethod annotation is present.
      * Does not instrument native, abstract, or interface methods. Calls retransform if necessary.
      * 
-     * @param methodToInstrument - exact method name along with it's associated declared class to instrument.
+     * @param methodToInstrument - exact method name along with its associated declared class to instrument.
      * @param metricPrefix
      */
     void instrument(Method methodToInstrument, String metricPrefix);
+
+    /**
+     * Trace with transaction activity enabled (async=true) the first non-New Relic stack element on the current stack.
+     * Often customers will call APIs like {@link Token#link()}, which need to be called within a transaction,
+     * without having instrumented code to start a transaction.  We can detect that case and instrument the calling
+     * method.
+     * This will be rate limited to reduce the overhead, controlled by
+     * the config class_transformer:auto_async_link_rate_limit
+     */
+    void instrument();
 
     /**
      * Re-transform a class if it hasn't already been instrumented (Annotated with @InstrumentedClass). Classes that
