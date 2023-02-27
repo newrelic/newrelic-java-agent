@@ -1,5 +1,6 @@
 package mongodb;
 
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.reactivestreams.client.MongoClient;
@@ -36,14 +37,15 @@ public final class QuickTour {
 
     @Trace(dispatcher = true)
     public static void run(MongoClient mongoClient, MongoCollection collection) throws Throwable {
-        //doTxn(args);
+
         dropEverything(collection);
         insertOne(collection);
+        createIndex(collection);
         getFirst(collection); // This will count as a find transaction
         variousFinds(collection); // five calls to find here for total of 6 with getFirst()
         insertMany(collection);
         updateMany(collection);
-        count(collection); // Disabled until we figure out why CountOperation_Instrumentation doesn't record Datastore metrics
+        count(collection);
         updateOne(collection);
         deleteOne(collection);
         deleteMany(collection);
@@ -65,6 +67,11 @@ public final class QuickTour {
         collection.insertOne(doc).subscribe(new SubscriberHelpers.OperationSubscriber<>());
     }
 
+    public static void createIndex(MongoCollection collection) throws Throwable {
+        SubscriberHelpers.ObservableSubscriber subscriber = new SubscriberHelpers.ObservableSubscriber<Success>();
+        collection.createIndex(Indexes.ascending("count")).subscribe(subscriber);
+        subscriber.await();
+    }
     public static void getFirst(MongoCollection<Document> collection) {
         collection.find().first().subscribe(new SubscriberHelpers.PrintDocumentSubscriber());
     }
