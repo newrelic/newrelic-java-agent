@@ -43,7 +43,7 @@ public final class QuickTour {
         variousFinds(collection); // five calls to find here for total of 6 with getFirst()
         insertMany(collection);
         updateMany(collection);
-//        count(collection);  Disabled until we figure out why CountOperation_Instrumentation doesn't record Datastore metrics
+        count(collection); // Disabled until we figure out why CountOperation_Instrumentation doesn't record Datastore metrics
         updateOne(collection);
         deleteOne(collection);
         deleteMany(collection);
