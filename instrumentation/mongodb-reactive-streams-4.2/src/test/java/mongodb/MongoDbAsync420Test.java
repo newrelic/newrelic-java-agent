@@ -102,7 +102,7 @@ public class MongoDbAsync420Test {
         int deleteManyOpExpectedCount = 1;
         int findOpExpectedCount = 6; // This is a sum of the getFirst() with variousFinds() for the total find ops
         int dropOpExpectedCount = 2;
-        int countOpExpectedCount = 0; // for a future test; CountOperation not implemented as of the commit for this entry.
+        int countOpExpectedCount = 1; // for a future test; CountOperation not implemented as of the commit for this entry.
         int bulkWriteOpExpectedCount = 0; // Right now all bulkWrites report as the underlying operation being performed for each. So this
                                           // is set to zero. Or we could just delete this test as not necessary given current workflow.
         int unknownOpExpectedCount = 0;
