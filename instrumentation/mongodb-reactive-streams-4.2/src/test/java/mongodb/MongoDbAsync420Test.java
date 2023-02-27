@@ -96,6 +96,7 @@ public class MongoDbAsync420Test {
         int insertOneOpExpectedCount = 1;
         int insertOpExpectedCount = 0;
         int insertManyOpExpectedCount = 1;
+        int createIndexesOpExpectedCount = 1;
         int updateOpExpectedCount = 1;
         int updateManyOpExpectedCount = 1;
         int deleteOneOpExpectedCount = 1;
@@ -110,6 +111,7 @@ public class MongoDbAsync420Test {
 
         helper.assertUnifiedMetricCounts(txName, "insertOne", "test", insertOneOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "insert", "test", insertOpExpectedCount);
+        helper.assertUnifiedMetricCounts(txName, "createIndexes", "test", createIndexesOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "insertMany", "test", insertManyOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "updateOne", "test", updateOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "updateMany", "test", updateManyOpExpectedCount);
@@ -122,7 +124,7 @@ public class MongoDbAsync420Test {
         helper.assertUnifiedMetricCounts(txName, "bulkWrite", "test", bulkWriteOpExpectedCount);
         helper.assertUnifiedMetricCounts(txName, "Unknown", "Unknown", unknownOpExpectedCount);
 
-        int totalOpCount = insertOpExpectedCount + insertOneOpExpectedCount + insertManyOpExpectedCount + updateOpExpectedCount + updateManyOpExpectedCount +
+        int totalOpCount = insertOpExpectedCount + insertOneOpExpectedCount + insertManyOpExpectedCount + createIndexesOpExpectedCount + updateOpExpectedCount + updateManyOpExpectedCount +
                 deleteOneOpExpectedCount + deleteManyOpExpectedCount + findOpExpectedCount + dropOpExpectedCount + countOpExpectedCount +
                 bulkWriteOpExpectedCount + unknownOpExpectedCount + aggregateOpExpectedCount;
 
