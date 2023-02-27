@@ -8,6 +8,8 @@ jar {
 dependencies {
     implementation(project(":agent-bridge"))
     implementation("org.apache.kafka:kafka-streams:2.1.0")
+
+    testImplementation("org.testcontainers:kafka:1.16.3")
 }
 
 verifyInstrumentation {

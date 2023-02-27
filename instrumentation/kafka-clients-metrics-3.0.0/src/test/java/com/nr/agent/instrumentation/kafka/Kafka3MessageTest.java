@@ -84,7 +84,7 @@ public class Kafka3MessageTest {
             consumer.subscribe(Collections.singleton(TOPIC));
 
             // setting a timeout so this does not drag forever if something goes wrong.
-            long waitUntil = System.currentTimeMillis() + 5000L;
+            long waitUntil = System.currentTimeMillis() + 15000L;
             while (waitUntil > System.currentTimeMillis()) {
                 ConsumerRecords<String, String> records = consumer.poll(1000);
                 messagesRead += records.count();
