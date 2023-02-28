@@ -1,6 +1,11 @@
 package mongodb;
 
+import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.reactivestreams.client.MongoClient;
@@ -9,6 +14,7 @@ import com.newrelic.api.agent.Trace;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.and;
@@ -50,6 +56,7 @@ public final class QuickTour {
         deleteOne(collection);
         deleteMany(collection);
         dropEverything(collection);
+        bulkWrite(collection);
     }
 
     public static void dropEverything(MongoCollection<Document> collection) throws Throwable {
@@ -85,6 +92,26 @@ public final class QuickTour {
         SubscriberHelpers.ObservableSubscriber subscriber = new SubscriberHelpers.ObservableSubscriber<Success>();
         collection.insertMany(documents).subscribe(subscriber);
         subscriber.await();
+    }
+
+    public static void bulkWrite(MongoCollection<Document> collection ) throws Throwable {
+        SubscriberHelpers.ObservableSubscriber subscriber = new SubscriberHelpers.ObservableSubscriber<Success>();
+
+        collection.bulkWrite(
+                Arrays.asList(
+                        new InsertOneModel<>(new Document("name", "Doc 1")),
+                        new InsertOneModel<>(new Document("name", "Doc 2")),
+                        new InsertOneModel<>(new Document("name", "Doc 3")),
+                        new UpdateOneModel<>(new Document("name", "Doc 1"),
+                                new Document("$set", new Document("name", "Doc 4")),
+                                new UpdateOptions().upsert(true)),
+                        new DeleteOneModel<>(new Document("name", "Doc 3")),
+                        new ReplaceOneModel<>(new Document("name", "Doc 3"),
+                                new Document("name", "Doc 5").append("runtime",  "65"))
+                )).subscribe(subscriber);
+        subscriber.await();
+
+
     }
 
     public static void count(MongoCollection<Document> collection) throws Throwable {
