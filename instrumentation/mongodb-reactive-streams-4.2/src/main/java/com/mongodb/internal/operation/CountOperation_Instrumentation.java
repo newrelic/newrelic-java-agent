@@ -15,7 +15,6 @@ import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongo.MongoUtil;
-import org.bson.codecs.Decoder;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.mongodb.internal.operation.CountOperation")
 public class CountOperation_Instrumentation<T> implements AsyncReadOperation<T> {

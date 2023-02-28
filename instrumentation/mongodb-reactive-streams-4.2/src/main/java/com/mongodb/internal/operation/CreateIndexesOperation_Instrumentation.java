@@ -1,9 +1,14 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.mongodb.internal.operation;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.WriteConcern;
 import com.mongodb.internal.async.SingleResultCallback;
-import com.mongodb.internal.binding.AsyncReadBinding;
 import com.mongodb.internal.binding.AsyncWriteBinding;
 import com.mongodb.internal.bulk.IndexRequest;
 import com.newrelic.api.agent.weaver.MatchType;
