@@ -103,7 +103,7 @@ public class MongoDbAsync420Test {
         int deleteManyOpExpectedCount = 1;
         int findOpExpectedCount = 6; // This is a sum of the getFirst() with variousFinds() for the total find ops
         int dropOpExpectedCount = 2;
-        int countOpExpectedCount = 1; // countDocuments will also create an aggregate operation
+        int countOpExpectedCount = 0; // countDocuments will also create an aggregate operation
         int aggregateOpExpectedCount = 1; //  created from countDocuments
         int bulkWriteOpExpectedCount = 1; // bulkWrite op code is used only when mongoCollection.bulkWrite() is used
         int unknownOpExpectedCount = 0;
