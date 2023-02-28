@@ -154,18 +154,6 @@ class MongoCollectionImpl_Instrumentation<T> {
     }
 
     @Trace(leaf = true)
-    public Publisher<Long> countDocuments(final ClientSession clientSession, final Bson filter, final CountOptions options) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_COUNT);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
-    public Publisher<Long> countDocuments(final Bson filter, final CountOptions options) {
-        NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_COUNT);
-        return Weaver.callOriginal();
-    }
-
-    @Trace(leaf = true)
     public Publisher<DeleteResult> deleteOne(final Bson filter, final DeleteOptions options) {
         NewRelic.getAgent().getTracedMethod().setMetricName(CUSTOM, "ReactiveMongoCollection", OP_DELETE_ONE);
         return Weaver.callOriginal();
