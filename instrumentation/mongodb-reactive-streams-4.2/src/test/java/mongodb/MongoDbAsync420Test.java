@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2021 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -105,8 +105,7 @@ public class MongoDbAsync420Test {
         int dropOpExpectedCount = 2;
         int countOpExpectedCount = 1; // countDocuments will also create an aggregate operation
         int aggregateOpExpectedCount = 1; //  created from countDocuments
-        int bulkWriteOpExpectedCount = 0; // Right now all bulkWrites report as the underlying operation being performed for each. So this
-                                          // is set to zero. Or we could just delete this test as not necessary given current workflow.
+        int bulkWriteOpExpectedCount = 1; // bulkWrite op code is used only when mongoCollection.bulkWrite() is used
         int unknownOpExpectedCount = 0;
 
         helper.assertUnifiedMetricCounts(txName, "insertOne", "test", insertOneOpExpectedCount);
