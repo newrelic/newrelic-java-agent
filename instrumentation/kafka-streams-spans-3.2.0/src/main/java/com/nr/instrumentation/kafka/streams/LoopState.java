@@ -6,6 +6,7 @@
  */
 package com.nr.instrumentation.kafka.streams;
 
+// Represents a thread-local state for a transaction
 public class LoopState {
     public final static ThreadLocal<LoopState> LOCAL = new ThreadLocal<>();
     private int recordsPolled;

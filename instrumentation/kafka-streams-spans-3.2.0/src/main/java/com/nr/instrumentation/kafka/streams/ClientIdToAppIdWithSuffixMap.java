@@ -2,6 +2,7 @@ package com.nr.instrumentation.kafka.streams;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+// A global concurrent hashmap that maps client ids to application id with a possible suffix containing a configured client id.
 public class ClientIdToAppIdWithSuffixMap {
     private static final ConcurrentHashMap<String, String> applicationIdMap = new ConcurrentHashMap<>();
 

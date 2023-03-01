@@ -26,15 +26,17 @@ public class StreamsSpansUtil {
 
     public static String getApplicationIdWithSuffix(String threadName) {
         final String defaultAppId = "APPLICATION_ID_UNKNOWN";
-        String nrClientId = StreamsSpansUtil.getClientId(threadName);
+        String nrClientId = StreamsSpansUtil.parseClientId(threadName);
         if (nrClientId == null) {
             return defaultAppId;
         }
+        // Gets the application id with a possible suffix using a global hashmap.
         return ClientIdToAppIdWithSuffixMap.getAppIdOrDefault(nrClientId, defaultAppId);
 
     }
 
-    private static String getClientId(String threadName) {
+    // Parses the client id out of the thread name. Could potentially cause a silent failure.
+    private static String parseClientId(String threadName) {
         int idx = threadName.lastIndexOf("-StreamThread-");
         if (idx < 0) {
             return null;
