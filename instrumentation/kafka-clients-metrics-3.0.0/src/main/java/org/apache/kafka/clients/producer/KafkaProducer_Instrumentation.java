@@ -7,6 +7,10 @@
 
 package org.apache.kafka.clients.producer;
 
+import org.apache.kafka.clients.producer.internals.ProducerMetadata;
+import org.apache.kafka.common.metrics.Metrics;
+import org.apache.kafka.common.Node;
+
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageProduceParameters;
@@ -18,16 +22,19 @@ import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.CallbackWrapper;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
-import org.apache.kafka.common.metrics.Metrics;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.List;
+import java.util.ArrayList;
 
 @Weave(originalName = "org.apache.kafka.clients.producer.KafkaProducer")
 public class KafkaProducer_Instrumentation<K, V> {
 
     private final Metrics metrics = Weaver.callOriginal();
+
+    private final ProducerMetadata metadata = Weaver.callOriginal();
 
     @NewField
     private boolean initialized;
@@ -35,7 +42,12 @@ public class KafkaProducer_Instrumentation<K, V> {
     @WeaveAllConstructors
     public KafkaProducer_Instrumentation() {
         if (!initialized) {
-            metrics.addReporter(new NewRelicMetricsReporter());
+            List<Node> nodes = metadata.fetch().nodes();
+            List<String> nodeNames = new ArrayList<>(nodes.size());
+            for (Node node : nodes) {
+                nodeNames.add(node.host() + ":" + node.port());
+            }
+            metrics.addReporter(new NewRelicMetricsReporter(nodeNames));
             initialized = true;
         }
     }

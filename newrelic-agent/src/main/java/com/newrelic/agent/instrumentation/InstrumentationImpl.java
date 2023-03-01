@@ -579,10 +579,12 @@ public class InstrumentationImpl implements Instrumentation {
             final StackTraceElement stackTraceElement = getApplicationStackTraceElement(
                     new Exception().fillInStackTrace().getStackTrace());
             if (stackTraceElement != null) {
-                instrument(stackTraceElement, TraceDetailsBuilder.newBuilder().setAsync(true).build());
+                final boolean instrumented = instrument(stackTraceElement, TraceDetailsBuilder.newBuilder().setAsync(true).build());
+                NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument", instrumented ? 1f : 0f);
             }
+        } else {
+            NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument",0f);
         }
-        NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument", check ? 1f : 0f);
     }
 
     private static StackTraceElement getApplicationStackTraceElement(StackTraceElement[] stackTraces) {
@@ -596,9 +598,9 @@ public class InstrumentationImpl implements Instrumentation {
         return null;
     }
 
-    private void instrument(StackTraceElement stackTraceElement, TraceDetails traceDetails) {
+    private boolean instrument(StackTraceElement stackTraceElement, TraceDetails traceDetails) {
         if (instrumentedStackTraceElements.contains(stackTraceElement)) {
-            return;
+            return false;
         }
         instrumentedStackTraceElements.add(stackTraceElement);
         final DefaultClassAndMethodMatcher matcher = new HashSafeClassAndMethodMatcher(
@@ -615,6 +617,7 @@ public class InstrumentationImpl implements Instrumentation {
                 queueRetransform(stackTraceElement.getClassName());
             }
         }
+        return shouldRetransform;
     }
 
     private static void queueRetransform(String... classNames) {
