@@ -29,7 +29,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"org.apache.kafka.streams"})
-public class KafkaStreamsSpans2Test {
+public class KafkaStreams2SpansTest {
     @Rule
     public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"));
 

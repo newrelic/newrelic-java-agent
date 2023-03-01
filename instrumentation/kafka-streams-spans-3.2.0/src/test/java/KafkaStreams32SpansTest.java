@@ -29,7 +29,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"org.apache.kafka.streams"})
-public class KafkaStreamsSpans21Test {
+public class KafkaStreams32SpansTest {
     @Rule
     public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"));
 
@@ -71,12 +71,9 @@ public class KafkaStreamsSpans21Test {
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, String> stream = builder.stream(TOPIC, Consumed.with(Serdes.String(), Serdes.String()));
         stream.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
-        KafkaStreams kafkaStreams = KafkaStreamsHelper.newKafkaStreams(builder.build(), kafkaContainer);
-        try {
+        try(KafkaStreams kafkaStreams = KafkaStreamsHelper.newKafkaStreams(builder.build(), kafkaContainer)) {
             kafkaStreams.start();
             Thread.sleep(20000);
-        } finally {
-            kafkaStreams.close();
         }
     }
 
