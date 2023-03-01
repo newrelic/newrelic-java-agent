@@ -25,8 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 public class RequestWrapper extends ExtendedRequest {
+    private static final Pattern URL_REPLACEMENT_PATTERN = Pattern.compile("(?i)%(?![\\da-f]{2})");
     private static CookieDecoder cookieDecoder = new CookieDecoder();
     private final HttpRequest request;
     private final Set<Cookie> cookies;
@@ -51,7 +53,7 @@ public class RequestWrapper extends ExtendedRequest {
         Map<String, List<String>> params;
         try {
             String uri = request.getUri();
-            uri = uri.replaceAll("(?i)%(?![\\da-f]{2})", "%25"); // Escape any percent signs in the URI
+            uri = URL_REPLACEMENT_PATTERN.matcher(uri).replaceAll("%25"); // Escape any percent signs in the URI
             QueryStringDecoder decoderQuery = new QueryStringDecoder(uri);
             params = decoderQuery.getParameters();
         } catch (Exception e) {
