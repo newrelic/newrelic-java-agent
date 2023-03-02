@@ -8,13 +8,13 @@ import org.junit.Test;
 
 import java.time.Duration;
 
-public class ExpiringValueCacheTest {
+public class ExpiringValueMapTest {
 
     private static final String VALUE_PREFIX = "val";
 
     @Test
     public void constructor_WithNoOpLambda_RemovesNoItems() {
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
         int mapSize = testMap.size();
 
         //Let the timer fire a few times and make sure the map doesn't change during that time
@@ -26,10 +26,10 @@ public class ExpiringValueCacheTest {
 
     @Test
     public void timer_WithValidLambda_ExpiresTargetRecords() {
-        ExpiringValueCache.ExpiringValueLogicFunction func =
+        ExpiringValueMap.ExpiringValueLogicFunction func =
                 (createdTime, timeLastAccessed) -> timeLastAccessed < System.currentTimeMillis() + 10000;
 
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(1000, func);
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(1000, func);
 
         await()
                 .atMost(3, SECONDS)
@@ -38,9 +38,9 @@ public class ExpiringValueCacheTest {
 
     @Test
     public void timer_WithValidLambda_LeavesMapUnmodified() {
-        ExpiringValueCache.ExpiringValueLogicFunction func =
+        ExpiringValueMap.ExpiringValueLogicFunction func =
                 (createdTime, timeLastAccessed) -> timeLastAccessed < System.currentTimeMillis() - 10000;
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(1000, func);
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(1000, func);
         int mapSize = testMap.size();
 
         await()
@@ -51,13 +51,13 @@ public class ExpiringValueCacheTest {
 
     @Test
     public void containsKey_WithValidKey_ReturnsTrue() {
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
         assertTrue(testMap.containsKey("1"));
     }
 
     @Test
     public void size_ReturnsProperValue() {
-        ExpiringValueCache<String, String> testMap = new ExpiringValueCache<>("testTimer", 1000, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = new ExpiringValueMap<>("testTimer", 1000, noOpLogicFunction());
         assertEquals(0, testMap.size());
 
         testMap.put("1", "Borderlands");
@@ -67,19 +67,19 @@ public class ExpiringValueCacheTest {
 
     @Test
     public void getValue_WithValidKey_ReturnsProperValue() {
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
         assertEquals(VALUE_PREFIX + "1", testMap.get("1"));
     }
 
     @Test
     public void getValue_WithInvalidKey_ReturnsNull() {
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
         assertNull(testMap.get("zzzzzzz"));
     }
 
     @Test
     public void putValue_WithValidKeyAndValue_AddsSuccessfully() {
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
         int beforeMapSize = testMap.size();
         testMap.put("222", "Borderlands");
 
@@ -88,20 +88,20 @@ public class ExpiringValueCacheTest {
 
     @Test(expected = NullPointerException.class)
     public void putValue_WithNullKey_ThrowsException() {
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
         testMap.put(null, "Borderlands");
     }
 
     @Test(expected = NullPointerException.class)
     public void putValue_WithNullValue_ThrowsException() {
-        ExpiringValueCache<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
+        ExpiringValueMap<String, String> testMap = generateNewHashMap(500, noOpLogicFunction());
         testMap.put("222", null);
     }
 
-    private ExpiringValueCache<String, String> generateNewHashMap(
-            long timerInterval, ExpiringValueCache.ExpiringValueLogicFunction func) {
+    private ExpiringValueMap<String, String> generateNewHashMap(
+            long timerInterval, ExpiringValueMap.ExpiringValueLogicFunction func) {
 
-        ExpiringValueCache<String, String> testMap = new ExpiringValueCache<>("testTimer", timerInterval, func);
+        ExpiringValueMap<String, String> testMap = new ExpiringValueMap<>("testTimer", timerInterval, func);
         for(int i=0; i< 20; i++) {
             testMap.put(Integer.toString(i), VALUE_PREFIX + i);
         }
@@ -109,7 +109,7 @@ public class ExpiringValueCacheTest {
         return testMap;
     }
 
-    private ExpiringValueCache.ExpiringValueLogicFunction noOpLogicFunction() {
+    private ExpiringValueMap.ExpiringValueLogicFunction noOpLogicFunction() {
         return (created, accessed) -> false;
     }
 

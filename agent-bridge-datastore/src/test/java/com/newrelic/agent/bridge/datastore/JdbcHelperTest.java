@@ -132,4 +132,57 @@ public class JdbcHelperTest {
         Assert.assertEquals("connectionString", JdbcHelper.getConnectionURL(connection));
     }
 
+    @Test
+    public void putAndGetConnectionFactory_withValidFactory_isSuccessful() throws SQLException {
+        final Connection connection = Mockito.mock(Connection.class);
+        final DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
+        Mockito.when(connection.getMetaData()).thenReturn(metaData);
+        Mockito.when(metaData.getURL()).thenReturn("connUrl1");
+        final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
+
+        Assert.assertNull(JdbcHelper.getConnectionFactory(connection));
+        JdbcHelper.putConnectionFactory("connUrl1", factory);
+        Assert.assertEquals(factory, JdbcHelper.getConnectionFactory(connection));
+    }
+
+    @Test
+    public void putAndGetDatabaseName_withValidName_isSuccessful() throws SQLException {
+        final Connection connection = Mockito.mock(Connection.class);
+        final DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
+        Mockito.when(connection.getMetaData()).thenReturn(metaData);
+        Mockito.when(metaData.getURL()).thenReturn("connUrl3");
+        final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
+
+        Assert.assertNull(JdbcHelper.getCachedDatabaseName(connection));
+        JdbcHelper.putDatabaseName("connUrl3", "dbName1");
+        Assert.assertEquals("dbName1", JdbcHelper.getCachedDatabaseName(connection));
+    }
+
+    @Test
+    public void vanillaMap_putAndGetConnectionFactory_withValidFactory_isSuccessful() throws SQLException {
+        System.setProperty("newrelic.jdbchelper.vanilla_map", "true");
+        final Connection connection = Mockito.mock(Connection.class);
+        final DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
+        Mockito.when(connection.getMetaData()).thenReturn(metaData);
+        Mockito.when(metaData.getURL()).thenReturn("connUrl3");
+        final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
+
+        Assert.assertNull(JdbcHelper.getConnectionFactory(connection));
+        JdbcHelper.putConnectionFactory("connUrl3", factory);
+        Assert.assertEquals(factory, JdbcHelper.getConnectionFactory(connection));
+        System.setProperty("newrelic.jdbchelper.vanilla_map", "false");
+    }
+
+    @Test
+    public void vanillaMap_putAndGetDatabaseName_withValidName_isSuccessful() throws SQLException {
+        final Connection connection = Mockito.mock(Connection.class);
+        final DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
+        Mockito.when(connection.getMetaData()).thenReturn(metaData);
+        Mockito.when(metaData.getURL()).thenReturn("connUrl4");
+        final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
+
+        Assert.assertNull(JdbcHelper.getCachedDatabaseName(connection));
+        JdbcHelper.putDatabaseName("connUrl4", "dbName2");
+        Assert.assertEquals("dbName2", JdbcHelper.getCachedDatabaseName(connection));
+    }
 }
