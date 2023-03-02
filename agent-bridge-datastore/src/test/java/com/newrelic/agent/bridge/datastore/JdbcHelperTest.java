@@ -175,6 +175,7 @@ public class JdbcHelperTest {
 
     @Test
     public void vanillaMap_putAndGetDatabaseName_withValidName_isSuccessful() throws SQLException {
+        System.setProperty("newrelic.jdbchelper.vanilla_map", "true");
         final Connection connection = Mockito.mock(Connection.class);
         final DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
         Mockito.when(connection.getMetaData()).thenReturn(metaData);
@@ -184,5 +185,6 @@ public class JdbcHelperTest {
         Assert.assertNull(JdbcHelper.getCachedDatabaseName(connection));
         JdbcHelper.putDatabaseName("connUrl4", "dbName2");
         Assert.assertEquals("dbName2", JdbcHelper.getCachedDatabaseName(connection));
+        System.setProperty("newrelic.jdbchelper.vanilla_map", "false");
     }
 }
