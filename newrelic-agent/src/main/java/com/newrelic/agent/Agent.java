@@ -22,7 +22,6 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.ClassStructure;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.security.NewRelicSecurity;
-import com.newrelic.api.agent.security.SecurityAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
@@ -202,10 +201,10 @@ public final class Agent {
             System.exit(1);
         }
         lifecycleObserver.agentStarted();
-        InitialiseNewRelicSecurityIfAllowed();
+        InitialiseNewRelicSecurityIfAllowed(inst);
     }
 
-    private static void InitialiseNewRelicSecurityIfAllowed() {
+    private static void InitialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
         if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false) &&
                 NewRelic.getAgent().getConfig().getValue("security.enable") != null) {
@@ -217,7 +216,7 @@ public final class Agent {
                         try {
                             URL securityJarURL = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
                             LOG.log(Level.INFO, "Connected to New Relic cloud. Starting New Relic Security module");
-                            NewRelicSecurity.getAgent().refreshState(securityJarURL);
+                            NewRelicSecurity.getAgent().refreshState(securityJarURL, inst);
                             NewRelicSecurity.markAgentAsInitialised();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
