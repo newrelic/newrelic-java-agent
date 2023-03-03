@@ -23,9 +23,6 @@ import java.util.function.Function;
 
 public class Util {
 
-    public static void foo() {
-        System.out.println("------");
-    }
     public static final String NR_TXN_NAME = "newrelic-transaction-name";
     public static final String NR_TOKEN = "newrelic-token";
 
