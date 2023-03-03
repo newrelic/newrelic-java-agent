@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 /**
  * Marks an instrumented method.
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface InstrumentedMethod {
 
