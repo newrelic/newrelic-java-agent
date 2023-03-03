@@ -9,6 +9,8 @@ jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jetty-10' }
 }
 
+// Note: To run the verifyInstrumentation task on this module, you should set your current JDK
+// to v17, run the verify and then switch back to JDK 8.
 verifyInstrumentation {
     passesOnly 'org.eclipse.jetty:jetty-server:[10.0.0-alpha1,11.0.0-alpha0)'
 }

@@ -1,13 +1,12 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
 package org.springframework.web.server;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -16,7 +15,6 @@ import org.springframework.http.ReactiveHttpOutputMessage_Instrumentation;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 
 import java.util.Map;
-import java.util.logging.Level;
 
 @Weave(originalName = "org.springframework.web.server.ServerWebExchange", type = MatchType.Interface)
 public class ServerWebExchange_Instrumentation {

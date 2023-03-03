@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -16,8 +16,6 @@ import com.nr.agent.instrumentation.spring.reactive.Util;
 import org.springframework.http.ReactiveHttpOutputMessage_Instrumentation;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-
-import java.util.logging.Level;
 
 @Weave(type = MatchType.ExactClass, originalName = "org.springframework.web.server.adapter.HttpWebHandlerAdapter")
 public class HttpWebHandlerAdapter_Instrumentation {
