@@ -19,7 +19,7 @@ public Mono<String> submit(@RequestBody String body) {
 }
 ```
 
-When the `@RequestBody` is past as a parameter in this manner, the transaction
+When the `@RequestBody` is passed as a parameter in this manner, the transaction
 naming might show up as `NettyDispatcher`.  If so, newer versions of this module
 have a workaround.  Please upgrade your version of Spring Webflux to 5.1.0+ and
 follow workaround instructions in the README.md for that module.
