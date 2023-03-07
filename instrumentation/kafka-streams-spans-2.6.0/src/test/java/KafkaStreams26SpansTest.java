@@ -91,11 +91,9 @@ public class KafkaStreams26SpansTest {
     }
 
     private void assertUnscopedMetricExists(String ... metricNames) {
-        int notFoundMetricCount = 0;
         Set<String> existingMetrics= InstrumentationTestRunner.getIntrospector().getUnscopedMetrics().keySet();
         for (String metricName : metricNames) {
             Assert.assertTrue("metric not found: " + metricName, existingMetrics.contains(metricName));
         }
-        System.out.println(notFoundMetricCount + " metrics not found");
     }
 }

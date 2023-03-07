@@ -26,7 +26,7 @@ public abstract class StreamThread_Instrumentation extends Thread {
     @Trace(dispatcher = true)
     void runOnce() {
         if (this.nrApplicationIdWithSuffix == null) {
-            this.nrApplicationIdWithSuffix = StreamsSpansUtil.getApplicationIdWithSuffix(this.getName());
+            this.nrApplicationIdWithSuffix = StreamsSpansUtil.getAppIdWithSuffix(this.getName());
         }
         StreamsSpansUtil.initTransaction(this.nrApplicationIdWithSuffix);
         try {

@@ -24,7 +24,7 @@ public class StreamsSpansUtil {
         return applicationId + "/" + clientId;
     }
 
-    public static String getApplicationIdWithSuffix(String threadName) {
+    public static String getAppIdWithSuffix(String threadName) {
         final String defaultAppId = "APPLICATION_ID_UNKNOWN";
         String nrClientId = StreamsSpansUtil.parseClientId(threadName);
         if (nrClientId == null) {
