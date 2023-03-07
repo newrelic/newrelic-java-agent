@@ -60,16 +60,11 @@ public class JdbcHelper {
 
     // Config to toggle the use of the ExpiringValueCache Map implementation or vanilla ConcurrentHashMap implementation
     // for the urlToFactory and urlToDatabaseName maps. The default is to use the ExpiringValueCache. Set a config
-    // property of use_jdbchelper.vanilla_map=true to revert to the ConcurrentHashMap implementation.
+    // property of use_jdbchelper_vanilla_map=true to revert to the ConcurrentHashMap implementation.
     private static final Map<String, ConnectionFactory> urlToFactory;
     private static final Map<String, String> urlToDatabaseName;
     static {
-        boolean useVanillaMap = false;
-        try {
-            useVanillaMap = NewRelic.getAgent().getConfig().getValue("use_jdbchelper_vanilla_map");
-        } catch (Exception ignored) {
-            // Just in case the getValue call throws an NPE
-        }
+        boolean useVanillaMap = NewRelic.getAgent().getConfig().getValue("use_jdbchelper_vanilla_map", false);
         if (useVanillaMap) {
             urlToFactory = new ConcurrentHashMap<>(10);
             urlToDatabaseName = new ConcurrentHashMap<>(10);
