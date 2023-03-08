@@ -2,11 +2,8 @@ package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
 
-import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -21,7 +18,7 @@ import java.util.logging.Level;
  * @param <K> the class type of the cache key
  * @param <V> the class type of the value object
  */
-public class ExpiringValueCache<K, V> {
+public class ExpiringValueMap<K, V> extends AbstractMap<K, V>{
 
     private final ConcurrentHashMap<K, TimestampedMapValue<V>> wrappedMap;
 
@@ -49,7 +46,7 @@ public class ExpiringValueCache<K, V> {
      * @param expireLogicFunction the {@link ExpiringValueLogicFunction} lambda that contains the
      *                            logic to determine if an entry should be removed from the map
      */
-    public ExpiringValueCache(String taskName, long timerIntervalMilli, ExpiringValueLogicFunction expireLogicFunction) {
+    public ExpiringValueMap(String taskName, long timerIntervalMilli, ExpiringValueLogicFunction expireLogicFunction) {
         wrappedMap = new ConcurrentHashMap<>();
 
         Runnable task = () -> {
@@ -76,7 +73,7 @@ public class ExpiringValueCache<K, V> {
      * @param key the key for the target value
      * @return the target value
      */
-    public V get(K key) {
+    public V get(Object key) {
         TimestampedMapValue<V> testValue = wrappedMap.get(key);
         return testValue == null ? null : testValue.getValue();
     }
@@ -95,7 +92,12 @@ public class ExpiringValueCache<K, V> {
         return value;
     }
 
-    public boolean containsKey(K key) {
+    @Override
+    public Set<Entry<K, V>> entrySet() {
+        throw new UnsupportedOperationException("entrySet not supported");
+    }
+
+    public boolean containsKey(Object key) {
         return wrappedMap.containsKey(key);
     }
 
