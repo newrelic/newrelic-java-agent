@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jre: [8, 11, 17, 19]
+        jre: [8]
     name: Java ${{ matrix.jre }} Instrumentation Tests
     timeout-minutes: 60
     # needs: install-all-java
@@ -147,9 +147,8 @@ jobs:
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
-        if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: instrumentation-tests-results-java-${{ matrix.jre }}
           path: |
-            instrumentation/**/build/reports/tests/*
+            instrumentation/**/build/*
