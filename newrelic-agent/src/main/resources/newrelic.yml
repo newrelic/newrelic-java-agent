@@ -379,6 +379,74 @@ common: &default_settings
     # An example label
     #label_name: label_value
 
+  security:
+    # Default is false
+    enable: true
+
+    # Home directory, if not present, is created
+    # This property is read only at
+    # the application start.
+    # csec_home_path: {nr-home-path}
+    # Log directory is created under the security
+    # home path directory provided
+    # in csec_home_path.
+
+    # The levels in increasing
+    # order of verboseness are:
+    # OFF, FATAL, ERROR, WARN,
+    # INFO, DEBUG, ALL
+    # log_level: INFO
+
+    # NR security provides two modes IAST and RASP
+    # Default is IAST
+    # mode: IAST
+
+    # New Relic’s SaaS connection URLs
+    # validator_service_endpoint_url: wss://csec.nr-data.net
+
+    # To completely disable security
+    # set force_complete_disable flag to true
+    # If the flag is set to true,
+    # the security module is not loaded
+    # This property is read only once at
+    # application start.
+    # force_complete_disable: false
+
+    # Following category of security events
+    # can be disabled from generating.
+    # detection:
+    #   disable_rci: false
+    #   disable_rxss: false
+    #   disable_deserialization: false
+
+    # Following is the policy override for above
+    # mentioned mode.
+    # Please uncomment entire 'policy' section
+    # and then further uncomment the desired
+    # parameter to override.
+    # policy enforce will override the
+    # detection flags
+
+    #policy:
+    # enforce: false
+    # vulnerabilityScan:
+    #   enabled: true
+    #   iastScan:
+    #     enabled: true
+    #     probing:
+    #       interval: 1
+    #       batchSize: 5
+    # protectionMode:
+    #   enabled: false
+    #   ipBlocking:
+    #     enabled: false
+    #     attackerIpBlocking: false
+    #     ipDetectViaXFF: false
+    #   apiBlocking:
+    #     enabled: false
+    #     protectAllApis: false
+    #     protectKnownVulnerableApis: false
+    #     protectAttackedApis: false
 
 # Application Environments
 # ------------------------------------------
