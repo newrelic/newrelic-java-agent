@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.tomcat7;
+package com.nr.agent.instrumentation.tomcat10;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
@@ -21,7 +21,7 @@ import java.util.logging.Level;
 
 public final class TomcatServletRequestListener implements ServletRequestListener {
 
-    private static final String EXCEPTION_ATTRIBUTE_NAME = "javax.servlet.error.exception";
+    private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
     private static final String REQUEST_FIELD = "request";
 
     private final Field requestField;

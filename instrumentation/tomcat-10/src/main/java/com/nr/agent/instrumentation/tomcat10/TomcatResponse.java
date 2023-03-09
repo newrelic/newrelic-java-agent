@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.tomcat7;
+package com.nr.agent.instrumentation.tomcat10;
 
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.Response;

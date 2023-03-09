@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.tomcat7;
+package com.nr.agent.instrumentation.tomcat10;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.CatchAndLog;
