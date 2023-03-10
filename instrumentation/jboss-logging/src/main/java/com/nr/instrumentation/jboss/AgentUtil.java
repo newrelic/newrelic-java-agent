@@ -43,10 +43,19 @@ public class AgentUtil {
             Throwable thrown = record.getThrown();
 
             if (shouldCreateLogEvent(message, thrown)) {
+                Map<String, String> mdcCopy = record.getMdcCopy();
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
                 logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
+
+                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
+                    addMdc(mdcCopy, logEventMap);
+                }
+                addTags(logEventMap);
+                Level level = record.getLevel();
+                addLevel(level, logEventMap);
+                addErrorInfo(thrown, logEventMap);
 
                 String threadName = Thread.currentThread().getName();
                 if (threadName != null) {
@@ -64,15 +73,6 @@ public class AgentUtil {
                 if (loggerFqcn != null) {
                     logEventMap.put(LOGGER_FQCN, loggerFqcn);
                 }
-
-                Map<String, String> mdcCopy = record.getMdcCopy();
-                if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
-                    addMdc(mdcCopy, logEventMap);
-                }
-                addTags(logEventMap);
-                Level level = record.getLevel();
-                addLevel(level, logEventMap);
-                addErrorInfo(thrown, logEventMap);
 
                 AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
             }

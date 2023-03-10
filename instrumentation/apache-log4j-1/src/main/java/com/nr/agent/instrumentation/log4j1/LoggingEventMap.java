@@ -17,7 +17,6 @@ import org.apache.log4j.spi.ThrowableInformation;
 import java.util.HashMap;
 import java.util.Map;
 
-<<<<<<< HEAD
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
