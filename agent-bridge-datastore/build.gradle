@@ -3,5 +3,6 @@ dependencies {
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":agent-bridge"))
 
+    testImplementation('org.awaitility:awaitility:4.2.0')
     testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
 }

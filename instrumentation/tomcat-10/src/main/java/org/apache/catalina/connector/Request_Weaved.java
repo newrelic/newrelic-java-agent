@@ -10,7 +10,7 @@ package org.apache.catalina.connector;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.tomcat7.AsyncListenerFactory;
+import com.nr.agent.instrumentation.tomcat10.AsyncListenerFactory;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;

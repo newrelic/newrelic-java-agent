@@ -30,6 +30,10 @@ public class NoOpInstrumentation implements Instrumentation {
     }
 
     @Override
+    public void instrument() {
+    }
+
+    @Override
     public void retransformUninstrumentedClass(Class<?> classToRetransform) {
     }
 

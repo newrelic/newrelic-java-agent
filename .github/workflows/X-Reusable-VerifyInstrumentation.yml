@@ -50,9 +50,6 @@ jobs:
     name: ${{ matrix.modules }}
     runs-on: ubuntu-20.04
     needs: read-modules
-    env:
-      # we use this in env var for conditionals (secrets can't be used in conditionals)
-      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
     strategy:
       fail-fast: false
       # GHA's IDE think the line below is broken. It is not.
@@ -66,9 +63,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: |
-            11
-            8
+          java-version: 11
 
       # Rewrite gradle.properties
       - name: set gradle.properties
@@ -80,41 +75,12 @@ jobs:
       - name: Setup Gradle options
         run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_11_x64,JAVA_HOME_8_x64" >> $GITHUB_ENV
 
-      ## AWS jars - plan to cache
-      - name: Configure AWS Credentials
-        if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: Download S3 instrumentation jar zip
-        if: ${{ env.AWS_KEY != '' }}
-        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip  ## Updated 2022
-
-      - name: Unzip the instrumentation jars
-        if: ${{ env.AWS_KEY != '' }}
-        run: unzip proprietary-jars.zip
-      ## End AWS jars - plan to cache (check for cache, restore if required)
-
       - name: Retrieve agent from cache
         id: retrieve-agent
         uses: actions/cache@v3
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
-
-      - if: ${{ steps.retrieve-agent.outputs.cache-hit != 'true' }}
-        name: Build agent
-        run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
-
-      # Setting up 11 again so tests are run with it. This is so libraries build with 11 can pass.
-      - name: Set up Java 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 11
 
       - name: Running verifyInstrumentation on (${{ matrix.modules }})
         run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation

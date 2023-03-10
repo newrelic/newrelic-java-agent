@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 /**
  * Marks a weaved method.
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WeavedMethod {
     /**

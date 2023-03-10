@@ -17,8 +17,11 @@ import com.newrelic.api.agent.Segment;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class MetricState {
     private static final String LIBRARY = "HttpURLConnection";
@@ -30,6 +33,7 @@ public class MetricState {
 
     private boolean metricsRecorded;
     private boolean recordedANetworkCall;
+    private boolean addedOutboundRequestHeaders;
 
     // records the last HttpURLConnection operation
     private String lastOperation = null;
@@ -37,6 +41,16 @@ public class MetricState {
     private boolean networkRequestMethodCalled;
     // segment used to track timing of external request, add addOutboundRequestHeaders, and reportAsExternal
     private Segment segment;
+
+    private static final ScheduledThreadPoolExecutor threadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(
+            HttpURLConnectionConfig.getThreadPoolSize());
+
+    static {
+        // This forces cancelled tasks to be immediately removed from the thread pool
+        threadPool.setRemoveOnCancelPolicy(true);
+    }
+
+    private ScheduledFuture<?> segmentCleanupTaskFuture;
 
     /**
      * Start Segment timing when the first HttpURLConnection API method is invoked.
@@ -54,59 +68,85 @@ public class MetricState {
 
     /**
      * Keep track of which HttpURLConnection API method was most recently called.
-     * If connect was called first, then start a TimerTask to potentially ignore the segment
-     * if it is determined that no other method was called after it.
+     * If connect or getOutputStream was called first, then start a cleanup task to potentially ignore the segment
+     * if it is determined that no network call actually took place.
      *
      * @param operation HttpURLConnection method being invoked
      */
     private void handleSegmentsForNonNetworkMethods(String operation) {
-        if (operation.equals(CONNECT_OP)) {
-            // Only ever start the TimerTask if connect is the first method called
+        if (operation.equals(CONNECT_OP) || operation.equals(GET_OUTPUT_STREAM_OP)) {
+            // Potentially start a cleanup task if either connect or getOutputStream is the first method called
             if (lastOperation == null) {
                 lastOperation = operation;
-                startSegmentExpirationTimerTask();
+                /*
+                 * Don't start task if operation is getOutputStream and DT is enabled. This is only a necessary precaution when using CAT
+                 * as it can't call reportAsExternal (which calls segment.end) in certain conditions when the stream hasn't been read from yet.
+                 * When using DT, it will always call reportAsExternal and end the segment properly.
+                 */
+                if (!(lastOperation.equals(GET_OUTPUT_STREAM_OP) && HttpURLConnectionConfig.distributedTracingEnabled())) {
+                    startSegmentCleanupTask();
+                }
+            }
+            if (operation.equals(GET_OUTPUT_STREAM_OP)) {
+                // Cancel the SegmentCleanupTask before it runs if possible when DT is enabled and getOutputStream was the last method called
+                if (HttpURLConnectionConfig.distributedTracingEnabled()) {
+                    if (segmentCleanupTaskFuture != null && !segmentCleanupTaskFuture.isCancelled()) {
+                        segmentCleanupTaskFuture.cancel(false);
+                    }
+                }
+                lastOperation = operation;
             }
         } else {
             networkRequestMethodCalled = true;
+            // Cancel the SegmentCleanupTask before it runs if possible
+            if (segmentCleanupTaskFuture != null && !segmentCleanupTaskFuture.isCancelled()) {
+                segmentCleanupTaskFuture.cancel(false);
+            }
             lastOperation = operation;
         }
     }
 
     /**
-     * If connect was the first method invoked from the HttpURLConnection APIs then a
-     * TimerTask will be started which will determine if the segment should be ignored or not.
+     * If connect (or getOutputStream with CAT) was the first method invoked from the HttpURLConnection APIs then a
+     * cleanup task will be started which will determine if the segment should be ignored or not.
      * <p>
      * Note: If the user configurable segment_timeout is explicitly configured to be lower than the timer delay set
      * here then the segment timing will already have been ended and trying to end/ignore it again will have no effect.
      */
-    private void startSegmentExpirationTimerTask() {
-        Timer timer = new Timer("HttpURLConnection Segment Expiration Timer");
-        TimerTask task = new TimerTask() {
-            public void run() {
-                ignoreSegmentForNonNetworkCall();
-            }
-        };
-
-        /*
-         * The following tests do a Thread.sleep to account for this delay. If this value is changed then the tests will also need to be updated.
-         * functional_test/src/test/java/com/newrelic/agent/instrumentation/pointcuts/net/HttpURLConnectionTest
-         * instrumentation/httpurlconnection/src/test/java/com/nr/agent/instrumentation/httpurlconnection/MetricStateConnectTest
-         */
-        long segmentExpirationDelayInMillis = 60_000L;
-        timer.schedule(task, segmentExpirationDelayInMillis);
+    private void startSegmentCleanupTask() {
+        // Submit a SegmentCleanupTask to a ScheduledThreadPoolExecutor to be run after a configured delay
+        SegmentCleanupTask segmentCleanupTask = new SegmentCleanupTask("New Relic HttpURLConnection Segment Cleanup Task");
+        segmentCleanupTaskFuture = threadPool.schedule(segmentCleanupTask, HttpURLConnectionConfig.getDelayMs(), TimeUnit.MILLISECONDS);
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "HttpURLConnection - number of queued cleanup tasks: " + threadPool.getQueue().size());
     }
 
     /**
-     * This method executes when a TimerTask completes. If it is determined that connect was the first and only HttpURLConnection API called
-     * then it will have the effect of ignoring the segment, as no external call has been made. A supportability metric will also be recorded.
+     * A Runnable task that can be scheduled to run to determine if a segment should be ignored or not
+     */
+    private class SegmentCleanupTask implements Runnable {
+        String taskName;
+
+        public SegmentCleanupTask(String taskName) {
+            this.taskName = taskName;
+        }
+
+        public void run() {
+            Thread.currentThread().setName(taskName);
+            ignoreNonNetworkSegment();
+        }
+    }
+
+    /**
+     * This method executes when a cleanup task completes. If it is determined that connect (or getOutputStream with CAT) was the first and only HttpURLConnection
+     * API called then it will have the effect of ignoring the segment, and no external call will be reported. A supportability metric will also be recorded.
      * The purpose of this is to avoid hitting the default segment timeout of 10 minutes and to also prevent the segment from showing in traces.
      */
-    private void ignoreSegmentForNonNetworkCall() {
+    private void ignoreNonNetworkSegment() {
         if (lastOperation != null && segment != null) {
             if (!networkRequestMethodCalled) {
-                if (lastOperation.equals(CONNECT_OP)) {
+                if (lastOperation.equals(CONNECT_OP) || lastOperation.equals(GET_OUTPUT_STREAM_OP)) {
                     segment.ignore();
-                    NewRelic.incrementCounter("Supportability/HttpURLConnection/SegmentEnd/" + CONNECT_OP);
+                    NewRelic.incrementCounter("Supportability/HttpURLConnection/SegmentIgnore/" + lastOperation);
                 }
             }
         }
@@ -114,8 +154,8 @@ public class MetricState {
 
     /**
      * This can be called when either connect or getOutputStream are invoked.
-     * If only connect was called then no external call should be recorded. If getOutputStream was
-     * call alone, or in any combination with connect, then an external call should be recorded.
+     * If only connect was called then no external call should be recorded. If getOutputStream was call alone, or in
+     * any combination with connect, then an external call should be recorded (except for some scenarios involving CAT).
      *
      * @param isConnected true if a connection has already been made, else false
      * @param connection  HttpURLConnection
@@ -135,13 +175,27 @@ public class MetricState {
              *
              * Whichever TracedMethod/Segment calls addOutboundRequestHeaders first will be the method that is associated with making the
              * external request to another APM entity. However, if the external request isn't to another APM entity then this does
-             * nothing and method.reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
+             * nothing and reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
              */
-            segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
+            if (!addedOutboundRequestHeaders && segment != null) {
+                segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
+                this.addedOutboundRequestHeaders = true;
+            }
         }
-        // Report an external call for getOutputStream whether it was called first or after connect
-        if (operation.equals(GET_OUTPUT_STREAM_OP)) {
-            reportExternalCall(connection, lastOperation, 0, null);
+
+        /*
+         * Report an external call for getOutputStream only if distributed tracing is being used instead of CAT.
+         * If the input stream hasn't been read from already and CAT is being used instead of DT, then calling reportAsExternal will trigger a call to
+         * getHeaderField on the HttpURLConnection instance which forces it to connect and read the input stream. Unfortunately, for users of
+         * HttpURLConnection this has the unexpected effect of rendering the HttpURLConnection header map immutable as well as causing
+         * "ProtocolException: Cannot write output after reading input" and "IOException: Stream is closed" exceptions when attempting to write
+         * to the output stream.
+         */
+        if (lastOperation.equals(GET_OUTPUT_STREAM_OP) && tx != null) {
+            if (HttpURLConnectionConfig.distributedTracingEnabled()) {
+                networkRequestMethodCalled = true;
+                reportExternalCall(connection, lastOperation, 0, null);
+            }
         }
     }
 
@@ -164,15 +218,17 @@ public class MetricState {
             }
 
             if (!isConnected) {
-
                 /*
                  * Add CAT/Distributed tracing headers to this outbound request.
                  *
                  * Whichever TracedMethod/Segment calls addOutboundRequestHeaders first will be the method that is associated with making the
                  * external request to another APM entity. However, if the external request isn't to another APM entity then this does
-                 * nothing and method.reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
+                 * nothing and reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
                  */
-                segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
+                if (!addedOutboundRequestHeaders && segment != null) {
+                    segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
+                    this.addedOutboundRequestHeaders = true;
+                }
             }
         }
     }
@@ -216,11 +272,14 @@ public class MetricState {
              *
              * Whichever TracedMethod/Segment calls addOutboundRequestHeaders first will be the method that is associated with making the
              * external request to another APM entity. However, if the external request isn't to another APM entity then this does
-             * nothing and method.reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
+             * nothing and reportAsExternal must be called to establish the link between the TracedMethod/Segment and external host.
              *
              * If already connected then we cannot modify the HttpURLConnection header map and this will fail to add outbound request headers
              */
-            segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
+            if (!addedOutboundRequestHeaders && segment != null) {
+                segment.addOutboundRequestHeaders(new OutboundWrapper(connection));
+                this.addedOutboundRequestHeaders = true;
+            }
 
             // This will result in External rollup metrics being generated
             reportExternalCall(connection, operation, responseCode, responseMessage);
@@ -238,20 +297,22 @@ public class MetricState {
      * @param responseMessage response message from HttpURLConnection
      */
     void reportExternalCall(HttpURLConnection connection, String operation, int responseCode, String responseMessage) {
-        // This conversion is necessary as it strips query parameters from the URI
-        String uri = URISupport.getURI(connection.getURL());
-        InboundWrapper inboundWrapper = new InboundWrapper(connection);
+        if (connection != null && segment != null) {
+            // This conversion is necessary as it strips query parameters from the URI
+            String uri = URISupport.getURI(connection.getURL());
+            InboundWrapper inboundWrapper = new InboundWrapper(connection);
 
-        // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
-        // Calling reportAsExternal is what causes an HTTP span to be created
-        segment.reportAsExternal(HttpParameters
-                .library(LIBRARY)
-                .uri(URI.create(uri))
-                .procedure(operation)
-                .inboundHeaders(inboundWrapper)
-                .status(responseCode, responseMessage)
-                .build());
+            // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
+            // Calling reportAsExternal is what causes an HTTP span to be created
+            segment.reportAsExternal(HttpParameters
+                    .library(LIBRARY)
+                    .uri(URI.create(uri))
+                    .procedure(operation)
+                    .inboundHeaders(inboundWrapper)
+                    .status(responseCode, responseMessage)
+                    .build());
 
-        segment.end();
+            segment.end();
+        }
     }
 }
