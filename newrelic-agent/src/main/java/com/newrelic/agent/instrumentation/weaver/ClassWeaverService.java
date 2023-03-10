@@ -142,8 +142,8 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
      * Registers the security weave instrumentation jars that are packaged into the csec agent jar's instrumentation directory.
      */
     public void registerSecurityInstrumentation(AgentConfig agentConfig) {
-        if(!agentConfig.getValue("security.force_complete_disable", false) &&
-            agentConfig.getValue("security.enable") != null
+        if(agentConfig.getValue("security.agent.enabled", true) &&
+            agentConfig.getValue("security.enabled") != null
         ) {
             loadInternalSecurityWeavePackages();
         }

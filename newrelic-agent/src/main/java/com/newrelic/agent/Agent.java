@@ -206,8 +206,8 @@ public final class Agent {
 
     private static void InitialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
-        if(!NewRelic.getAgent().getConfig().getValue("security.force_complete_disable", false) &&
-                NewRelic.getAgent().getConfig().getValue("security.enable") != null) {
+        if(NewRelic.getAgent().getConfig().getValue("security.agent.enabled", true) &&
+                NewRelic.getAgent().getConfig().getValue("security.enabled") != null) {
             try {
                 LOG.log(Level.INFO, "Invoking New Relic Security module");
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
@@ -233,7 +233,7 @@ public final class Agent {
                 LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
             }
         } else {
-            LOG.warning("New Relic Security is completely disabled forcefully by user provided config `security.force_complete_disable`. " +
+            LOG.warning("New Relic Security is completely disabled forcefully by user provided config `security.agent.enabled`. " +
                     "Not loading security capabilities.");
         }
     }
