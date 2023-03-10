@@ -1,3 +1,10 @@
+import com.nr.builder.publish.PublishConfig
+
+plugins{
+    id("maven-publish")
+    id("signing")
+}
+
 evaluationDependsOn(":newrelic-agent") // This is important because we need newrelic-agent to be configured before this project so the correct ("unversioned") jar name gets used
 
 apply plugin: 'scala'
@@ -33,4 +40,11 @@ jar {
     manifest {
         attributes 'Implementation-Title': 'New Relic Scala Weaver', 'Implementation-Version': project.version
     }
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java Weaver for Scala",
+        "New Relic Java agent Weaver for Scala module") { it ->
+    it.from(components.java)
 }
