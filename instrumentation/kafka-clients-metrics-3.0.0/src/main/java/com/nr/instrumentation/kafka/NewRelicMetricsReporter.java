@@ -8,109 +8,61 @@
 package com.nr.instrumentation.kafka;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.NewRelic;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+
+import static com.nr.instrumentation.kafka.MetricsConstants.KAFKA_METRICS_DEBUG;
+import static com.nr.instrumentation.kafka.MetricsConstants.NODE_PREFIX;
+
 public class NewRelicMetricsReporter implements MetricsReporter {
 
-    private static final boolean kafkaMetricsDebug = NewRelic.getAgent().getConfig().getValue("kafka.metrics.debug.enabled", false);
-
-    private static final boolean metricsAsEvents = NewRelic.getAgent().getConfig().getValue("kafka.metrics.as_events.enabled", false);
-
-    private static final long reportingIntervalInSeconds = NewRelic.getAgent().getConfig().getValue("kafka.metrics.interval", 30);
-
-    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, buildThreadFactory("NewRelicMetricsReporter-%d"));
 
     private final Map<String, KafkaMetric> metrics = new ConcurrentHashMap<>();
 
-    private final List<String> nodes;
+    private final Map<String, NodeMetricName> nodes;
+
 
     public NewRelicMetricsReporter() {
-        this.nodes = Collections.emptyList();
+        this.nodes = Collections.emptyMap();
     }
 
     public NewRelicMetricsReporter(List<String> nodes) {
-        this.nodes = nodes;
+        this.nodes = new ConcurrentHashMap<>(nodes.size());
+        for(String node: nodes) {
+            this.nodes.put(node, new NodeMetricName(node));
+        }
+    }
+
+    public Map<String, KafkaMetric> getMetrics() {
+        return this.metrics;
+    }
+
+    public Map<String, NodeMetricName> getNodes() {
+        return nodes;
     }
 
     @Override
     public void init(final List<KafkaMetric> initMetrics) {
         for (KafkaMetric kafkaMetric : initMetrics) {
             String metricGroupAndName = getMetricGroupAndName(kafkaMetric);
-            if (kafkaMetricsDebug) {
+            if (KAFKA_METRICS_DEBUG) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "init(): {0} = {1}", metricGroupAndName, kafkaMetric.metricName());
             }
             metrics.put(metricGroupAndName, kafkaMetric);
         }
-
-        final String metricPrefix = "MessageBroker/Kafka/Internal/";
-
-        final String nodePrefix = "MessageBroker/Kafka/Nodes/";
-        final List<String> nodeMetricNames = new ArrayList<String>(nodes.size());
-        final List<String> nodeMetricAsEventsNames = new ArrayList<String>(nodes.size());
-        for (String node : nodes) {
-            String metricName = nodePrefix + node;
-            nodeMetricNames.add(metricName);
-            nodeMetricAsEventsNames.add(metricName.replace('/', '.'));
-        }
-
-        executor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Map<String, Object> eventData = new HashMap<>();
-                    for (final Map.Entry<String, KafkaMetric> metric : metrics.entrySet()) {
-                        Object metricValue = metric.getValue().metricValue();
-                        if (metricValue instanceof Double) {
-                            final float value = ((Double) metricValue).floatValue();
-                            if (kafkaMetricsDebug) {
-                                AgentBridge.getAgent().getLogger().log(Level.FINEST, "getMetric: {0} = {1}", metric.getKey(), value);
-                            }
-                            if (!Float.isNaN(value) && !Float.isInfinite(value)) {
-                                if (metricsAsEvents) {
-                                    eventData.put(metric.getKey().replace('/', '.'), value);
-                                } else {
-                                    NewRelic.recordMetric(metricPrefix + metric.getKey(), value);
-                                }
-                            }
-                        }
-                    }
-                    if (metricsAsEvents) {
-                        for (String nodeMetric : nodeMetricAsEventsNames) {
-                            eventData.put(nodeMetric, 1f);
-                        }
-                    } else {
-                        for (String nodeMetric : nodeMetricNames) {
-                            NewRelic.recordMetric(nodeMetric, 1f);
-                        }
-                    }
-                    if (metricsAsEvents) {
-                        NewRelic.getAgent().getInsights().recordCustomEvent("KafkaMetrics", eventData);
-                    }
-                } catch (Exception e) {
-                    AgentBridge.getAgent().getLogger().log(Level.FINE, e, "Unable to record kafka metrics");
-                }
-            }
-        }, 0L, reportingIntervalInSeconds, TimeUnit.SECONDS);
+        MetricsScheduler.addMetricsReporter(this);
     }
 
     @Override
     public void metricChange(final KafkaMetric metric) {
         String metricGroupAndName = getMetricGroupAndName(metric);
-        if (kafkaMetricsDebug) {
+        if (KAFKA_METRICS_DEBUG) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "metricChange(): {0} = {1}", metricGroupAndName, metric.metricName());
         }
         metrics.put(metricGroupAndName, metric);
@@ -119,7 +71,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
     @Override
     public void metricRemoval(final KafkaMetric metric) {
         String metricGroupAndName = getMetricGroupAndName(metric);
-        if (kafkaMetricsDebug) {
+        if (KAFKA_METRICS_DEBUG) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "metricRemoval(): {0} = {1}", metricGroupAndName, metric.metricName());
         }
         metrics.remove(metricGroupAndName);
@@ -135,7 +87,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
 
     @Override
     public void close() {
-        executor.shutdown();
+        MetricsScheduler.removeMetricsReporter(this);
         metrics.clear();
     }
 
@@ -143,22 +95,22 @@ public class NewRelicMetricsReporter implements MetricsReporter {
     public void configure(final Map<String, ?> configs) {
     }
 
-    private static ThreadFactory buildThreadFactory(final String nameFormat) {
-        // fail fast if the format is invalid
-        String.format(nameFormat, 0);
+    public static class NodeMetricName {
+        private final String metricName;
+        private final String eventName;
+        public NodeMetricName(String node) {
+            String metricName = NODE_PREFIX + node;
+            this.metricName = metricName;
+            this.eventName = metricName.replace('/', '.');
+        }
 
-        final ThreadFactory factory = Executors.defaultThreadFactory();
-        final AtomicInteger count = new AtomicInteger();
+        public String getMetricName() {
+            return metricName;
+        }
 
-        return new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable runnable) {
-                final Thread thread = factory.newThread(runnable);
-                thread.setName(String.format(nameFormat, count.incrementAndGet()));
-                thread.setDaemon(true);
-                return thread;
-            }
-        };
+        public String asEventName() {
+            return eventName;
+        }
     }
 
 }
