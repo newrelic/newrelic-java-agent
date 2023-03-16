@@ -11,8 +11,10 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -30,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.springframework" })
+@Category({ Java8IncompatibleTest.class })
 public class SpringRouterEdgeCaseTest {
 
     private static WebClient webClient;
