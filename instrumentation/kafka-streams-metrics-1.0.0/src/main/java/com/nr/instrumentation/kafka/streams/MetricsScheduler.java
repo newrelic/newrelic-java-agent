@@ -5,10 +5,10 @@ import com.newrelic.api.agent.NewRelic;
 import org.apache.kafka.common.metrics.KafkaMetric;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -23,26 +23,30 @@ import static com.nr.instrumentation.kafka.streams.MetricsConstants.REPORTING_IN
 
 public class MetricsScheduler {
     private static ScheduledThreadPoolExecutor executor = null;
-    private static final Set<NewRelicMetricsReporter> metricReporters = new HashSet<>();
+    private static final Map<NewRelicMetricsReporter, ScheduledFuture<?>> metricReporterTasks = new ConcurrentHashMap<>();
     private static final Object lock = new Object();
 
     private MetricsScheduler() {}
 
     public static void addMetricsReporter(NewRelicMetricsReporter metricsReporter) {
         synchronized (lock) {
-            metricReporters.add(metricsReporter);
-            if (executor != null) {
-                return;
+            if (executor == null) {
+                executor = createScheduledExecutor();
             }
-            executor = createScheduledExecutor();
-            executor.scheduleAtFixedRate(new MetricsSendRunnable(), 0L, REPORTING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
+            ScheduledFuture<?> task = executor.scheduleAtFixedRate(
+                    new MetricsSendRunnable(metricsReporter),
+                    0L,
+                    REPORTING_INTERVAL_IN_SECONDS,
+                    TimeUnit.SECONDS);
+            metricReporterTasks.put(metricsReporter, task);
         }
     }
 
     public static void removeMetricsReporter(NewRelicMetricsReporter metricsReporter) {
         synchronized (lock) {
-            metricReporters.remove(metricsReporter);
-            if (metricReporters.isEmpty()) {
+            ScheduledFuture<?> task = metricReporterTasks.remove(metricsReporter);
+            task.cancel(false);
+            if (metricReporterTasks.isEmpty()) {
                 executor.shutdown();
                 executor = null;
             }
@@ -72,15 +76,14 @@ public class MetricsScheduler {
     }
 
     private static class MetricsSendRunnable implements Runnable {
+        private final NewRelicMetricsReporter nrMetricsReporter;
+
+        private MetricsSendRunnable(NewRelicMetricsReporter nrMetricsReporter) {
+            this.nrMetricsReporter = nrMetricsReporter;
+        }
+
         @Override
         public void run() {
-            synchronized (lock) {
-                for (NewRelicMetricsReporter nrMetricsReporter: metricReporters) {
-                    sendMetrics(nrMetricsReporter);
-                }
-            }
-        }
-        private void sendMetrics(NewRelicMetricsReporter nrMetricsReporter) {
             try {
                 Map<String, Object> eventData = new HashMap<>();
                 for (final Map.Entry<String, KafkaMetric> metric : nrMetricsReporter.getMetrics().entrySet()) {
