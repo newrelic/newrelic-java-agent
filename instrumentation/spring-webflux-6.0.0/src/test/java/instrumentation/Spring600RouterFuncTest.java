@@ -12,6 +12,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java11IncompatibleTest;
 import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -36,7 +37,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.springframework" })
-@Category({ Java8IncompatibleTest.class })
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class Spring600RouterFuncTest {
     @ClassRule
     public static HttpServerRule server = new HttpServerRule();

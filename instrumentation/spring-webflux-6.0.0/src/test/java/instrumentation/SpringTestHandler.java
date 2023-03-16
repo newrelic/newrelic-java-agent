@@ -8,6 +8,9 @@
 package instrumentation;
 
 import com.newrelic.agent.introspec.HttpTestServer;
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
+import org.junit.experimental.categories.Category;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -37,6 +40,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import static org.springframework.web.reactive.function.server.RouterFunctions.toHttpHandler;
 
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 class SpringTestHandler {
     static HttpHandler httpHandler(URI endPoint) {
         final SpringTestHandler handlers = new SpringTestHandler();
