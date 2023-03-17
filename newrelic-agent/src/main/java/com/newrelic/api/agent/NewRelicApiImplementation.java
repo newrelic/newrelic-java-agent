@@ -286,6 +286,16 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     /**
+     * Add the userId parameter to the current transaction. It is reported in errors and transaction traces.
+     *
+     * @param userId The user ID to report.
+     */
+    @Override
+    public void setUserIdParam(String userId) {
+        attributeSender.addAttribute(Transaction.USER_ID_ATTRIBUTE, userId, "setReportedUserIdParameter");
+    }
+
+    /**
      * Set the name of the current transaction.
      *
      * @param category
