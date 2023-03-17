@@ -265,6 +265,14 @@ public final class NewRelic {
     }
 
     /**
+     * Add the userId parameter to the current transaction. It is reported in errors and transaction traces.
+     *
+     * @param userId The user ID to report.
+     */
+    public static void setUserIdParam(String userId) {
+    }
+
+    /**
      * Set the name of the current transaction.
      *
      * @param category Metric category. If the input is null, then the default will be used.
