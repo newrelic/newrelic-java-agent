@@ -2,11 +2,6 @@ package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
 
-import java.time.Instant;
-import java.util.AbstractMap;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,7 +25,15 @@ public class ExpiringValueCache<K, V> {
      * A single thread executor is adequate since the jobs run very infrequently and are
      * quick executing.
      */
-    private static ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private static final String THREAD_NAME = "New Relic ExpiringValueCache Cleanup";
+    private final static ScheduledExecutorService executorService =
+            Executors.newSingleThreadScheduledExecutor(runnable -> {
+                final Thread thread = new Thread(runnable);
+                thread.setDaemon(true);
+                thread.setName(THREAD_NAME);
+                return thread;
+            }
+    );
 
     /**
      * Create a new ExpiringValueCache with the specified timer interval and expiration
