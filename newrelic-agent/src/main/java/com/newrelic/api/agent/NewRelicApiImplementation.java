@@ -292,7 +292,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void setUserIdParam(String userId) {
-        attributeSender.addAttribute(Transaction.USER_ID_ATTRIBUTE, userId, "setReportedUserIdParameter");
+        attributeSender.addAttribute(Transaction.USER_ID_ATTRIBUTE, userId, "setUserIdParam");
     }
 
     /**
