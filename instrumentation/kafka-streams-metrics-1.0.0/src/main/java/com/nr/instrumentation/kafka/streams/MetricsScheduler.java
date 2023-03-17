@@ -10,9 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import static com.nr.instrumentation.kafka.streams.MetricsConstants.KAFKA_METRICS_DEBUG;
@@ -22,57 +20,34 @@ import static com.nr.instrumentation.kafka.streams.MetricsConstants.METRIC_PREFI
 import static com.nr.instrumentation.kafka.streams.MetricsConstants.REPORTING_INTERVAL_IN_SECONDS;
 
 public class MetricsScheduler {
-    private static ScheduledThreadPoolExecutor executor = null;
+    private static final ScheduledThreadPoolExecutor executor = createScheduledExecutor();
     private static final Map<NewRelicMetricsReporter, ScheduledFuture<?>> metricReporterTasks = new ConcurrentHashMap<>();
     private static final Object lock = new Object();
 
     private MetricsScheduler() {}
 
     public static void addMetricsReporter(NewRelicMetricsReporter metricsReporter) {
+        ScheduledFuture<?> task;
         synchronized (lock) {
-            if (executor == null) {
-                executor = createScheduledExecutor();
-            }
-            ScheduledFuture<?> task = executor.scheduleAtFixedRate(
+            task = executor.scheduleAtFixedRate(
                     new MetricsSendRunnable(metricsReporter),
                     0L,
                     REPORTING_INTERVAL_IN_SECONDS,
                     TimeUnit.SECONDS);
-            metricReporterTasks.put(metricsReporter, task);
         }
+        metricReporterTasks.put(metricsReporter, task);
     }
 
     public static void removeMetricsReporter(NewRelicMetricsReporter metricsReporter) {
+        ScheduledFuture<?> task = metricReporterTasks.remove(metricsReporter);
         synchronized (lock) {
-            ScheduledFuture<?> task = metricReporterTasks.remove(metricsReporter);
             task.cancel(false);
-            if (metricReporterTasks.isEmpty()) {
-                executor.shutdown();
-                executor = null;
-            }
         }
     }
 
     private static ScheduledThreadPoolExecutor createScheduledExecutor() {
-        return new ScheduledThreadPoolExecutor(1, buildThreadFactory("NewRelicMetricsReporter-KafkaStreams-%d"));
-    }
-
-    private static ThreadFactory buildThreadFactory(final String nameFormat) {
-        // fail fast if the format is invalid
-        String.format(nameFormat, 0);
-
-        final ThreadFactory factory = Executors.defaultThreadFactory();
-        final AtomicInteger count = new AtomicInteger();
-
-        return new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable runnable) {
-                final Thread thread = factory.newThread(runnable);
-                thread.setName(String.format(nameFormat, count.incrementAndGet()));
-                thread.setDaemon(true);
-                return thread;
-            }
-        };
+        return (ScheduledThreadPoolExecutor)Executors.newScheduledThreadPool(
+                1, new DefaultThreadFactory("NewRelicMetricsReporter-KafkaStreams", true));
     }
 
     private static class MetricsSendRunnable implements Runnable {
