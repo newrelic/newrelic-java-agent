@@ -776,11 +776,28 @@ public class ApiTest implements TransactionListener {
             Transaction.clearTransaction();
         }
     }
-
     @Trace(dispatcher = true)
     private void runTestAddCustomBoolParameter() {
         NewRelic.addCustomParameter("bool", true);
         Assert.assertEquals(true, Transaction.getTransaction().getUserAttributes().get("bool"));
+    }
+
+
+    @Test
+    public void testSetUserIdParam() throws Exception {
+        try {
+            runTestSetUserIdParam();
+        } finally {
+            Transaction.clearTransaction();
+        }
+        ErrorService errorService = ServiceFactory.getRPMService().getErrorService();
+    }
+
+
+    @Trace(dispatcher = true)
+    private void runTestSetUserIdParam() throws Exception {
+        NewRelic.setUserIdParam("hello");
+        Assert.assertEquals("hello", Transaction.getTransaction().getUserAttributes().get("userId"));
     }
 
     @Test
