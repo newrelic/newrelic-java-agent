@@ -10,7 +10,7 @@ package org.apache.catalina.core;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.tomcat7.TomcatServletRequestListener;
+import com.nr.agent.instrumentation.tomcat10.TomcatServletRequestListener;
 import jakarta.servlet.ServletRequestListener;
 
 import java.util.logging.Level;

@@ -89,6 +89,12 @@ public class DockerDataTest {
         line = "2:cpu:/containers/f142db3a4219409af324d5481e297545aa33425fb7dc837e68cee93c36062ca8";
         Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
         Assert.assertEquals("f142db3a4219409af324d5481e297545aa33425fb7dc837e68cee93c36062ca8", sb.toString());
+
+        //Azure docker container example
+        sb = new StringBuilder();
+        line = "11:cpu,cpuacct:/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod4b42abd9_149e_4db2_82f9_d52edd985efe.slice/cri-containerd-d340a98bd7761414d6b3b8fabd2917c74d85155af1477b584bcc4adf4b94eaf1.scope";
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertEquals("d340a98bd7761414d6b3b8fabd2917c74d85155af1477b584bcc4adf4b94eaf1", sb.toString());
     }
 
     @Test
@@ -104,11 +110,6 @@ public class DockerDataTest {
         sb = new StringBuilder();
         // it should be cpu not cpuacct
         line = "3:cpuacct:/cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
-
-        sb = new StringBuilder();
-        // no .scope
-        line = "3:cpuacct,cpu:/system.slice/docker-67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f";
         Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
 
         sb = new StringBuilder();

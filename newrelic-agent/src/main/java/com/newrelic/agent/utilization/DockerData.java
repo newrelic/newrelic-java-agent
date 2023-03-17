@@ -32,10 +32,8 @@ public class DockerData {
     private static final String FILE_WITH_CONTAINER_ID = "/proc/self/cgroup";
     private static final String CPU = "cpu";
 
-    private static final Pattern DOCKER_NATIVE_DRIVER_WOUT_SYSTEMD = Pattern.compile("^/.*/([0-9a-f]+)$");
-    private static final Pattern DOCKER_GENERIC_DRIVER = Pattern.compile("^/([0-9a-f]+)$");
-    private static final Pattern DOCKER_NATIVE_DRIVER_W_SYSTEMD = Pattern.compile("^/.*/\\w+-([0-9a-f]+)\\.scope$");
     private static final Pattern VALID_CONTAINER_ID = Pattern.compile("^[0-9a-f]{64}$");
+    private static final Pattern DOCKER_CONTAINER_STRING = Pattern.compile("^.*[^0-9a-f]+([0-9a-f]{64,}).*");
 
     public String getDockerContainerId(boolean isLinux) {
         if (isLinux) {
@@ -96,11 +94,7 @@ public class DockerData {
         String[] parts = line.split(":");
         if (parts.length == 3 && validCpuLine(parts[1])) {
             String mayContainId = parts[2];
-            if (checkAndGetMatch(DOCKER_NATIVE_DRIVER_W_SYSTEMD, resultGoesHere, mayContainId)) {
-                return true;
-            } else if (checkAndGetMatch(DOCKER_NATIVE_DRIVER_WOUT_SYSTEMD, resultGoesHere, mayContainId)) {
-                return true;
-            } else if (checkAndGetMatch(DOCKER_GENERIC_DRIVER, resultGoesHere, mayContainId)) {
+            if (checkAndGetMatch(DOCKER_CONTAINER_STRING, resultGoesHere, mayContainId)) {
                 return true;
             } else if (!mayContainId.equals("/")) {
                 Agent.LOG.log(Level.FINE, "Docker Data: Ignoring unrecognized cgroup ID format: {0}", mayContainId);

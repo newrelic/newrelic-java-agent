@@ -41,7 +41,7 @@ import org.testcontainers.utility.DockerImageName;
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
 public class Kafka3MessageTest {
     @Rule
-    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.0.0"));
+    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"));
 
     private final String TOPIC = "life-universe-everything";
     private final String ANOTHER_TOPIC = "vogon-poetry";
@@ -84,7 +84,7 @@ public class Kafka3MessageTest {
             consumer.subscribe(Collections.singleton(TOPIC));
 
             // setting a timeout so this does not drag forever if something goes wrong.
-            long waitUntil = System.currentTimeMillis() + 5000L;
+            long waitUntil = System.currentTimeMillis() + 15000L;
             while (waitUntil > System.currentTimeMillis()) {
                 ConsumerRecords<String, String> records = consumer.poll(1000);
                 messagesRead += records.count();

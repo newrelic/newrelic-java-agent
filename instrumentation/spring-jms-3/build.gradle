@@ -1,0 +1,29 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("jakarta.jms:jakarta.jms-api:3.1.0")
+    implementation("org.springframework:spring-jms:6.0.6")
+
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-jms-3' }
+}
+verifyInstrumentation {
+    passesOnly ('org.springframework:spring-jms:[6.0.0,)'){
+        implementation('jakarta.jms:jakarta.jms-api:3.1.0')
+    }
+
+    excludeRegex 'org.springframework:spring-jms:6.0.0.(RC)[0-9]*$'
+
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+site {
+    title 'Spring JMS'
+    type 'Messaging'
+}
