@@ -21,6 +21,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.http.server.HttpServerRequest;
@@ -44,7 +45,7 @@ public class SpringRouterEdgeCaseTest {
         System.setProperty("reactor.logging.fallback", "JDK");
 
         final String host = "localhost";
-        final int port = 8080;
+        final int port = TestSocketUtils.findAvailableTcpPort();
         final HttpHandler httpHandler = SpringTestHandler.httpHandlerNested();
 
         webClient = WebClient.builder().baseUrl(String.format("http://%s:%d", host, port))

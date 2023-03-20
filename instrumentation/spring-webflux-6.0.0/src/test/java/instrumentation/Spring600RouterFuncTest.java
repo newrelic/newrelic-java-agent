@@ -27,6 +27,7 @@ import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
@@ -52,8 +53,7 @@ public class Spring600RouterFuncTest {
         // This is here to prevent reactor.util.ConsoleLogger output from taking over your screen
         System.setProperty("reactor.logging.fallback", "JDK");
 
-        //final int port = SocketUtils.findAvailableTcpPort();
-        final int port = 8080;
+        final int port = TestSocketUtils.findAvailableTcpPort();
         final String host = "localhost";
 
         final HttpHandler httpHandler = SpringTestHandler.httpHandler(server.getEndPoint());
