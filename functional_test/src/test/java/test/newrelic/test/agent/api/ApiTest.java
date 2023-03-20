@@ -790,14 +790,13 @@ public class ApiTest implements TransactionListener {
         } finally {
             Transaction.clearTransaction();
         }
-        ErrorService errorService = ServiceFactory.getRPMService().getErrorService();
     }
 
 
     @Trace(dispatcher = true)
     private void runTestSetUserIdParam() throws Exception {
         NewRelic.setUserIdParam("hello");
-        Assert.assertEquals("hello", Transaction.getTransaction().getUserAttributes().get("userId"));
+        Assert.assertEquals("hello", Transaction.getTransaction().getAgentAttributes().get("userId"));
     }
 
     @Test
