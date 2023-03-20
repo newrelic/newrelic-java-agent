@@ -28,27 +28,18 @@ import static com.nr.instrumentation.kafka.streams.MetricsConstants.REPORTING_IN
 public class MetricsScheduler {
     private static final ScheduledThreadPoolExecutor executor = createScheduledExecutor();
     private static final Map<NewRelicMetricsReporter, ScheduledFuture<?>> metricReporterTasks = new ConcurrentHashMap<>();
-    private static final Object lock = new Object();
 
     private MetricsScheduler() {}
 
     public static void addMetricsReporter(NewRelicMetricsReporter metricsReporter) {
-        ScheduledFuture<?> task;
-        synchronized (lock) {
-            task = executor.scheduleAtFixedRate(
-                    new MetricsSendRunnable(metricsReporter),
-                    0L,
-                    REPORTING_INTERVAL_IN_SECONDS,
-                    TimeUnit.SECONDS);
-        }
+        ScheduledFuture<?> task = executor.scheduleAtFixedRate(new MetricsSendRunnable(metricsReporter),
+                0L, REPORTING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         metricReporterTasks.put(metricsReporter, task);
     }
 
     public static void removeMetricsReporter(NewRelicMetricsReporter metricsReporter) {
         ScheduledFuture<?> task = metricReporterTasks.remove(metricsReporter);
-        synchronized (lock) {
-            task.cancel(false);
-        }
+        task.cancel(false);
     }
 
     private static ScheduledThreadPoolExecutor createScheduledExecutor() {
