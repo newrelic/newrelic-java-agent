@@ -9,6 +9,7 @@ package jakarta.servlet;
 
 import java.security.Principal;
 
+import com.newrelic.api.agent.NewRelic;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -26,7 +27,9 @@ public abstract class Servlet {
         if (request instanceof HttpServletRequest) {
             Principal principal = ((HttpServletRequest) request).getUserPrincipal();
             if (principal != null) {
+                // The user attribute is deprecated, the userId is going to be used instead
                 AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
+                NewRelic.setUserIdParam(principal.getName());
             }
         }
 
