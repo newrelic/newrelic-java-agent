@@ -47,7 +47,7 @@ public class MetricsScheduler {
 
     private static ScheduledThreadPoolExecutor createScheduledExecutor() {
         return (ScheduledThreadPoolExecutor)Executors.newScheduledThreadPool(
-                1, new DefaultThreadFactory("NewRelicMetricsReporter-KafkaStreams", true));
+                1, new DefaultThreadFactory("NewRelicMetricsReporter-Kafka", true));
     }
 
     private static class MetricsSendRunnable implements Runnable {
