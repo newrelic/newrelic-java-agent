@@ -27,9 +27,9 @@ java {
 }
 
 test {
-    // These instrumentation tests only run on Java 17 regardless of the -PtestN gradle property that is set.
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
     onlyIf {
-        project.hasProperty('test17')
+        !project.hasProperty('test8') && !project.hasProperty('test11')
     }
 }
 
