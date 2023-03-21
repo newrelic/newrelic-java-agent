@@ -296,7 +296,14 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void setUserId(String userId) {
-        agentAttributeSender.addAttribute(Transaction.USER_ID_ATTRIBUTE, userId, "setUserId");
+        final String attributeKey = "enduser.id";
+        final String methodCalled = "setUserId";
+        // Ignore null and empty strings
+        if (userId == null || userId.trim().isEmpty()) {
+            Agent.LOG.log(Level.FINER, "Unable to add {0} attribute because {1} was invoked with a null or blank value", attributeKey, methodCalled);
+            return;
+        }
+        agentAttributeSender.addAttribute(attributeKey, userId, methodCalled);
     }
 
     /**
