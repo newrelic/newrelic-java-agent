@@ -776,6 +776,7 @@ public class ApiTest implements TransactionListener {
             Transaction.clearTransaction();
         }
     }
+
     @Trace(dispatcher = true)
     private void runTestAddCustomBoolParameter() {
         NewRelic.addCustomParameter("bool", true);
