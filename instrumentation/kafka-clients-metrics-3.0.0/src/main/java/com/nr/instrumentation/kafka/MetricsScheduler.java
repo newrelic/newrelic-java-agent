@@ -14,8 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -26,7 +26,7 @@ import static com.nr.instrumentation.kafka.MetricsConstants.METRIC_PREFIX;
 import static com.nr.instrumentation.kafka.MetricsConstants.REPORTING_INTERVAL_IN_SECONDS;
 
 public class MetricsScheduler {
-    private static final ScheduledThreadPoolExecutor executor = createScheduledExecutor();
+    private static final ScheduledExecutorService executor = createScheduledExecutor();
     private static final Map<NewRelicMetricsReporter, ScheduledFuture<?>> metricReporterTasks = new ConcurrentHashMap<>();
 
     private MetricsScheduler() {}
@@ -42,9 +42,13 @@ public class MetricsScheduler {
         task.cancel(false);
     }
 
-    private static ScheduledThreadPoolExecutor createScheduledExecutor() {
-        return (ScheduledThreadPoolExecutor)Executors.newScheduledThreadPool(
-                1, new DefaultThreadFactory("NewRelicMetricsReporter-Kafka", true));
+    private static ScheduledExecutorService createScheduledExecutor() {
+        return Executors.newSingleThreadScheduledExecutor(runnable -> {
+            final Thread thread = new Thread(runnable);
+            thread.setDaemon(true);
+            thread.setName("NewRelicMetricsReporter-Kafka");
+            return thread;
+        });
     }
 
     private static class MetricsSendRunnable implements Runnable {
