@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.ErrorGrouper;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 
@@ -258,5 +259,13 @@ public interface PublicApi {
      * @param instanceName the instance name to set in the environment
      */
     void setInstanceName(String instanceName);
+
+
+    /**
+     * some things will go here
+     */
+
+    void setErrorGroupCallback(ErrorGrouper errorGroupCallback);
+
 
 }

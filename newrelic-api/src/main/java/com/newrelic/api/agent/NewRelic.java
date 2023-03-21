@@ -418,4 +418,13 @@ public final class NewRelic {
     public static void setInstanceName(String instanceName) {
     }
 
+
+    /**
+     * some things will go here
+     */
+
+    void setErrorGroupCallback(ErrorGrouper errorGroupCallback){
+
+    }
+
 }

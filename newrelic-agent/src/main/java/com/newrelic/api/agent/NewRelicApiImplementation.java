@@ -601,6 +601,11 @@ public class NewRelicApiImplementation implements PublicApi {
         MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_INSTANCE_NAME);
     }
 
+    @Override
+    public void setErrorGroupCallback(ErrorGrouper errorGroupCallback) {
+
+    }
+
     private static void logException(String msg, Throwable t) {
         if (Agent.LOG.isLoggable(Level.FINEST)) {
             Agent.LOG.log(Level.FINEST, msg, t);
