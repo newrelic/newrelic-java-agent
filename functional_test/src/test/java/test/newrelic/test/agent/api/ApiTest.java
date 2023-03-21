@@ -784,9 +784,9 @@ public class ApiTest implements TransactionListener {
 
 
     @Test
-    public void testSetUserIdParam() throws Exception {
+    public void testSetUserId() throws Exception {
         try {
-            runTestSetUserIdParam();
+            runTestSetUserId();
         } finally {
             Transaction.clearTransaction();
         }
@@ -794,9 +794,9 @@ public class ApiTest implements TransactionListener {
 
 
     @Trace(dispatcher = true)
-    private void runTestSetUserIdParam() throws Exception {
-        NewRelic.setUserIdParam("hello");
-        Assert.assertEquals("hello", Transaction.getTransaction().getAgentAttributes().get("userId"));
+    private void runTestSetUserId() throws Exception {
+        NewRelic.setUserId("hello");
+        Assert.assertEquals("hello", Transaction.getTransaction().getAgentAttributes().get("enduser.id"));
     }
 
     @Test

@@ -75,7 +75,7 @@ class NoOpPublicApi implements PublicApi {
     }
 
     @Override
-    public void setUserIdParam(String userId) {
+    public void setUserId(String userId) {
 
     }
 

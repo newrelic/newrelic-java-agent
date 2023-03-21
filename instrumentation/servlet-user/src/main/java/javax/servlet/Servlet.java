@@ -36,10 +36,10 @@ public abstract class Servlet {
                 // The user attribute is deprecated, the userId is going to be used instead
                 AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
                 if (logNrUserDeprecation.get()) {
-                    NewRelic.getAgent().getLogger().log(Level.INFO, "The 'user' attribute for transactions is deprecated, use the 'userId' attribute instead.");
+                    NewRelic.getAgent().getLogger().log(Level.INFO, "The 'user' attribute for transactions is deprecated, use the 'enduser.id' attribute instead.");
                     logNrUserDeprecation.set(false);
                 }
-                NewRelic.setUserIdParam(principal.getName());
+                NewRelic.setUserId(principal.getName());
             }
         }
 

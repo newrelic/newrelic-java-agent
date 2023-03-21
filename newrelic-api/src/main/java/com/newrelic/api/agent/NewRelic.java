@@ -265,11 +265,11 @@ public final class NewRelic {
     }
 
     /**
-     * Add the userId parameter to the current transaction. It is reported in errors and transaction traces.
+     * Sets the user ID for the current transaction by adding the "enduser.id" attribute. It is reported in errors and transaction traces.
      *
      * @param userId The user ID to report.
      */
-    public static void setUserIdParam(String userId) {
+    public static void setUserId(String userId) {
     }
 
     /**
