@@ -9,6 +9,7 @@ package jakarta.servlet;
 
 import java.security.Principal;
 
+import com.newrelic.api.agent.NewRelic;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -27,6 +28,7 @@ public abstract class Filter {
             Principal principal = ((HttpServletRequest) request).getUserPrincipal();
             if (principal != null) {
                 AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
+                NewRelic.setUserId(principal.getName());
             }
         }
 
