@@ -41,9 +41,10 @@ public class MetricState {
     private boolean networkRequestMethodCalled;
     // segment used to track timing of external request, add addOutboundRequestHeaders, and reportAsExternal
     private Segment segment;
+    private static final String NEW_RELIC_HTTPURLCONNECTION_SEGMENT_CLEANUP = "New Relic HttpURLConnection Segment Cleanup";
 
     private static final ScheduledThreadPoolExecutor threadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(
-            HttpURLConnectionConfig.getThreadPoolSize());
+            HttpURLConnectionConfig.getThreadPoolSize(), new DefaultThreadFactory(NEW_RELIC_HTTPURLCONNECTION_SEGMENT_CLEANUP, true));
 
     static {
         // This forces cancelled tasks to be immediately removed from the thread pool
@@ -115,7 +116,7 @@ public class MetricState {
      */
     private void startSegmentCleanupTask() {
         // Submit a SegmentCleanupTask to a ScheduledThreadPoolExecutor to be run after a configured delay
-        SegmentCleanupTask segmentCleanupTask = new SegmentCleanupTask("New Relic HttpURLConnection Segment Cleanup Task");
+        SegmentCleanupTask segmentCleanupTask = new SegmentCleanupTask(NEW_RELIC_HTTPURLCONNECTION_SEGMENT_CLEANUP);
         segmentCleanupTaskFuture = threadPool.schedule(segmentCleanupTask, HttpURLConnectionConfig.getDelayMs(), TimeUnit.MILLISECONDS);
         AgentBridge.getAgent().getLogger().log(Level.FINEST, "HttpURLConnection - number of queued cleanup tasks: " + threadPool.getQueue().size());
     }
@@ -131,7 +132,6 @@ public class MetricState {
         }
 
         public void run() {
-            Thread.currentThread().setName(taskName);
             ignoreNonNetworkSegment();
         }
     }
