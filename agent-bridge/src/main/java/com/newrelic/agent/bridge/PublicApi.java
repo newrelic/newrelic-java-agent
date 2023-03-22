@@ -7,7 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
-import com.newrelic.api.agent.ErrorGrouper;
+import com.newrelic.api.agent.ErrorGroupCallback;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 
@@ -265,7 +265,7 @@ public interface PublicApi {
      * some things will go here
      */
 
-    void setErrorGroupCallback(ErrorGrouper errorGroupCallback);
+    void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback);
 
 
 }

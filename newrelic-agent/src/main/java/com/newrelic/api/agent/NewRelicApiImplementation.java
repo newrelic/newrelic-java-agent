@@ -602,7 +602,7 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     @Override
-    public void setErrorGroupCallback(ErrorGrouper errorGroupCallback) {
+    public void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
 
     }
 

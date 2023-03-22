@@ -11,6 +11,11 @@ public class ErrorDataImpl implements ErrorData {
     private TracedError tracedError;
     private Transaction tx;
 
+    public ErrorDataImpl(TracedError tracedError, Transaction tx) {
+        this.tracedError = tracedError;
+        this.tx = tx;
+    }
+
     @Override
     public Exception getException() {
         return null;
