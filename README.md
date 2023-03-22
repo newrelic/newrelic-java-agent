@@ -36,7 +36,8 @@ See the following documentation for specific use cases of the Java agent:
 
 The Java agent uses a variety of JDK versions when building and running tests. These need to be installed and configured for your environment.
 
-Edit or create the `~/.gradle/gradle.properties` file and add the following JDKs, ensuring that the vendors/versions match what is installed in your environment (Mac OS X examples shown).
+Edit or create the `~/.gradle/gradle.properties` file and add the following JDKs, ensuring that the vendors/versions match what is installed in your 
+environment (Mac OS X examples shown).
 
 JDK 8 is required to build the agent:
 
