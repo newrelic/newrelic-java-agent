@@ -1,7 +1,5 @@
 package com.newrelic.api.agent;
 
-import jdk.jfr.StackTrace;
-
 import java.util.Map;
 
 public interface ErrorData {
@@ -13,7 +11,7 @@ public interface ErrorData {
 
     String getErrorMessage();
 
-    StackTrace getStackTrace();
+    StackTraceElement[] getStackTrace();
 
     Map<String, ?> getCustomAttributes();
 

@@ -350,4 +350,9 @@ public final class NewRelic {
         AgentBridge.publicApi.setInstanceName(instanceName);
     }
 
+    // TODO comments
+    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
+        AgentBridge.publicApi.setErrorGroupCallback(errorGroupCallback);
+    }
+
 }

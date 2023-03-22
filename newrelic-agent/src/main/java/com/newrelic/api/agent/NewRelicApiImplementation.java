@@ -17,6 +17,7 @@ import com.newrelic.agent.bridge.PublicApi;
 import com.newrelic.agent.config.ConfigConstant;
 import com.newrelic.agent.config.ExpectedErrorConfig;
 import com.newrelic.agent.dispatchers.Dispatcher;
+import com.newrelic.agent.errors.ErrorGroupCallbackHolder;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transaction.TransactionNamingPolicy;
 import org.apache.commons.lang3.StringUtils;
@@ -603,7 +604,7 @@ public class NewRelicApiImplementation implements PublicApi {
 
     @Override
     public void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
-
+        ErrorGroupCallbackHolder.setErrorGroupCallback((errorGroupCallback));
     }
 
     private static void logException(String msg, Throwable t) {

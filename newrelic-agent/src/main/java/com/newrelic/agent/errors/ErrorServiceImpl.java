@@ -38,6 +38,7 @@ import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
+import com.newrelic.api.agent.ErrorData;
 
 import java.net.HttpURLConnection;
 import java.text.MessageFormat;
@@ -58,6 +59,8 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
 
     @VisibleForTesting
     static final int ERROR_LIMIT_PER_REPORTING_PERIOD = 20;
+
+    private static final String ERROR_GROUP_NAME_ATTR = "error.group.name";
 
     @VisibleForTesting
     final AtomicInteger errorCountThisHarvest = new AtomicInteger();
@@ -558,6 +561,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
             if (params != null) {
                 tx.getErrorAttributes().putAll(params);
             }
+            //TODO String errorGroupId = invokeErrorGroupCallback()
             synchronized (tx) {
                 tx.setThrowable(throwable, TransactionErrorPriority.API, expected);
             }
@@ -570,6 +574,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .expected(expected)
                     .build();
 
+            //TODO String errorGroupId = invokeErrorGroupCallback()
             reportError(error);
         }
     }
@@ -585,6 +590,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
             if (params != null) {
                 tx.getErrorAttributes().putAll(params);
             }
+            //TODO String errorGroupId = invokeErrorGroupCallback()
             synchronized (tx) {
                 tx.setThrowable(new ReportableError(message), TransactionErrorPriority.API, expected);
             }
@@ -597,6 +603,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .expected(expected)
                     .build();
 
+            //TODO String errorGroupId = invokeErrorGroupCallback()
             reportError(error);
         }
     }
@@ -677,10 +684,42 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .statusCodeAndMessage(statusCode, message)
                     .requestUri(uri)
                     .build();
+            //TODO String errorGroupId = invokeErrorGroupCallback()
             reportError(error);
             Agent.LOG.finer(MessageFormat.format("Reported HTTP error {0} with status code {1} URI {2}", message, statusCode, uri));
         } else {
             Agent.LOG.finer(MessageFormat.format("Ignoring HTTP error {0} with status code {1} URI {2}", message, statusCode, uri));
+        }
+    }
+
+    private String invokeErrorGroupCallback(TracedError tracedError, Transaction txn) {
+        String groupId = null;
+        if (ErrorGroupCallbackHolder.getErrorGroupCallback() != null) {
+            ErrorData errorData = new ErrorDataImpl(tracedError, txn);
+            try {
+                long start = System.currentTimeMillis();
+                groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
+                long duration = System.currentTimeMillis() - start;
+                //TODO Time the method execution and report as a metric (responseTimeMetric?)
+
+                Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{1}] in {2}ms", groupId, duration));
+             } catch (Exception e) {
+                Agent.LOG.warning(MessageFormat.format("Customer errorGroupCallback implementation threw an exception: {1}", e.getMessage()));
+            }
+        }
+
+        return groupId;
+    }
+
+    private void addErrorGroupAttributeForTransaction(Transaction txn, String groupId) {
+        if (groupId != null) {
+            txn.getErrorAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
+        }
+    }
+
+    private void addErrorGroupAttributeForTracedError(TracedError tracedError, String groupId) {
+        if (groupId != null) {
+            //tracedError.getErrorAtts().put(ERROR_GROUP_NAME_ATTR, groupId);
         }
     }
 }
