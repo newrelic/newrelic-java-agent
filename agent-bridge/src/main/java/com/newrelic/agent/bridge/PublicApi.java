@@ -266,6 +266,4 @@ public interface PublicApi {
      */
 
     void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback);
-
-
 }

@@ -561,7 +561,8 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
             if (params != null) {
                 tx.getErrorAttributes().putAll(params);
             }
-            //TODO String errorGroupId = invokeErrorGroupCallback()
+            String errorGroupId = invokeErrorGroupCallback(null, tx);
+            addErrorGroupAttributeForTransaction(tx, errorGroupId);
             synchronized (tx) {
                 tx.setThrowable(throwable, TransactionErrorPriority.API, expected);
             }
@@ -574,7 +575,9 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .expected(expected)
                     .build();
 
-            //TODO String errorGroupId = invokeErrorGroupCallback()
+            params.put("fff", "fff");
+            String errorGroupId = invokeErrorGroupCallback(error, null);
+            addErrorGroupAttributeForTracedError(error.getErrorAtts(), errorGroupId);
             reportError(error);
         }
     }
@@ -692,34 +695,49 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         }
     }
 
+    /**
+     *
+     * @param tracedError
+     * @param txn
+     * @return
+     */
     private String invokeErrorGroupCallback(TracedError tracedError, Transaction txn) {
         String groupId = null;
-        if (ErrorGroupCallbackHolder.getErrorGroupCallback() != null) {
-            ErrorData errorData = new ErrorDataImpl(tracedError, txn);
-            try {
-                long start = System.currentTimeMillis();
-                groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
-                long duration = System.currentTimeMillis() - start;
-                //TODO Time the method execution and report as a metric (responseTimeMetric?)
+        ErrorData errorData = new ErrorDataImpl(tracedError, txn);
 
-                Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{1}] in {2}ms", groupId, duration));
-             } catch (Exception e) {
-                Agent.LOG.warning(MessageFormat.format("Customer errorGroupCallback implementation threw an exception: {1}", e.getMessage()));
-            }
+        try {
+            long start = System.currentTimeMillis();
+            groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
+            long duration = System.currentTimeMillis() - start;
+            //TODO Time the method execution and report as a metric (responseTimeMetric?)
+
+            Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{1}] in {2}ms", groupId, duration));
+        } catch (Exception e) {
+            Agent.LOG.warning(MessageFormat.format("Customer errorGroupCallback implementation threw an exception: {1}", e.getMessage()));
         }
 
         return groupId;
     }
 
+    /**
+     *
+     * @param txn
+     * @param groupId
+     */
     private void addErrorGroupAttributeForTransaction(Transaction txn, String groupId) {
         if (groupId != null) {
             txn.getErrorAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
         }
     }
 
-    private void addErrorGroupAttributeForTracedError(TracedError tracedError, String groupId) {
+    /**
+     *
+     * @param tracedError
+     * @param groupId
+     */
+    private void addErrorGroupAttributeForTracedError(Map<String, ?> errorAttrs, String groupId) {
         if (groupId != null) {
-            //tracedError.getErrorAtts().put(ERROR_GROUP_NAME_ATTR, groupId);
+            Map<String, String> m = new HashMap<>();
         }
     }
 }
