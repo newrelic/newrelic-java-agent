@@ -157,9 +157,9 @@ public interface PublicApi {
     void addCustomParameters(Map<String, Object> params);
 
     /**
-     * Sets the user ID for the current transaction by adding the "enduser.id" attribute. It is reported in errors and transaction traces.
+     * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
      *
-     * @param userId The user ID to report.
+     * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
      */
     void setUserId(String userId);
 

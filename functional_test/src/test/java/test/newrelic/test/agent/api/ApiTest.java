@@ -796,12 +796,12 @@ public class ApiTest implements TransactionListener {
 
     @Trace(dispatcher = true)
     private void runTestSetUserId() {
+        NewRelic.setUserId("hello");
+        Assert.assertEquals("hello", Transaction.getTransaction().getAgentAttributes().get("enduser.id"));
         NewRelic.setUserId("");
         Assert.assertFalse(Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
         NewRelic.setUserId(null);
         Assert.assertFalse(Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
-        NewRelic.setUserId("hello");
-        Assert.assertEquals("hello", Transaction.getTransaction().getAgentAttributes().get("enduser.id"));
     }
 
     @Test

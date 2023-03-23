@@ -39,9 +39,9 @@ import java.util.logging.Level;
 public class NewRelicApiImplementation implements PublicApi {
     private final AttributeSender customAttributeSender;
 
-    private final AttributeSender agentAttributeSender;
+    private final AgentAttributeSender agentAttributeSender;
 
-    public NewRelicApiImplementation(AttributeSender customSender, AttributeSender agentSender) {
+    public NewRelicApiImplementation(AttributeSender customSender, AgentAttributeSender agentSender) {
         customAttributeSender = customSender;
         agentAttributeSender = agentSender;
     }
@@ -290,9 +290,9 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     /**
-     * Sets the user ID for the current transaction by adding the "enduser.id" attribute. It is reported in errors and transaction traces.
+     * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
      *
-     * @param userId The user ID to report.
+     * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
      */
     @Override
     public void setUserId(String userId) {
@@ -300,7 +300,8 @@ public class NewRelicApiImplementation implements PublicApi {
         final String methodCalled = "setUserId";
         // Ignore null and empty strings
         if (userId == null || userId.trim().isEmpty()) {
-            Agent.LOG.log(Level.FINER, "Unable to add {0} attribute because {1} was invoked with a null or blank value", attributeKey, methodCalled);
+            Agent.LOG.log(Level.FINER, "Will not include the {0} attribute because {1} was invoked with a null or blank value", attributeKey, methodCalled);
+            agentAttributeSender.removeAttribute(attributeKey);
             return;
         }
         agentAttributeSender.addAttribute(attributeKey, userId, methodCalled);
