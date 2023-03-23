@@ -333,6 +333,16 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         DistributedSamplingPriorityQueue<ErrorEvent> eventList = getReservoir(appName);
 
         ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
+
+        //Create ErrorData instance with the errorEvent, TracedError
+        //  -- errorEvent - Captured most attributes
+        //  -- TracedError - instanceof ThrowableError will contain stacktrace
+        //  -- Where do we get getCustomAttributes????? - Probably TracedError
+        //Invoke callback, capture groupId
+        //Add groupId to agent attributes:
+        //  -- errorEvent.getAgentAttributes().put("ffff", groupId);
+        //PROFIT
+
         eventList.add(errorEvent);
 
         if (errorCount.get() >= ERROR_LIMIT_PER_REPORTING_PERIOD) {
@@ -561,8 +571,6 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
             if (params != null) {
                 tx.getErrorAttributes().putAll(params);
             }
-            String errorGroupId = invokeErrorGroupCallback(null, tx);
-            addErrorGroupAttributeForTransaction(tx, errorGroupId);
             synchronized (tx) {
                 tx.setThrowable(throwable, TransactionErrorPriority.API, expected);
             }
@@ -575,9 +583,6 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .expected(expected)
                     .build();
 
-            params.put("fff", "fff");
-            String errorGroupId = invokeErrorGroupCallback(error, null);
-            addErrorGroupAttributeForTracedError(error.getErrorAtts(), errorGroupId);
             reportError(error);
         }
     }
@@ -593,7 +598,6 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
             if (params != null) {
                 tx.getErrorAttributes().putAll(params);
             }
-            //TODO String errorGroupId = invokeErrorGroupCallback()
             synchronized (tx) {
                 tx.setThrowable(new ReportableError(message), TransactionErrorPriority.API, expected);
             }
@@ -606,7 +610,6 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .expected(expected)
                     .build();
 
-            //TODO String errorGroupId = invokeErrorGroupCallback()
             reportError(error);
         }
     }
@@ -687,7 +690,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .statusCodeAndMessage(statusCode, message)
                     .requestUri(uri)
                     .build();
-            //TODO String errorGroupId = invokeErrorGroupCallback()
+
             reportError(error);
             Agent.LOG.finer(MessageFormat.format("Reported HTTP error {0} with status code {1} URI {2}", message, statusCode, uri));
         } else {
@@ -697,13 +700,11 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
 
     /**
      *
-     * @param tracedError
-     * @param txn
-     * @return
+     *
      */
-    private String invokeErrorGroupCallback(TracedError tracedError, Transaction txn) {
+    private String invokeErrorGroupCallback(ErrorEvent errorEvent) {
         String groupId = null;
-        ErrorData errorData = new ErrorDataImpl(tracedError, txn);
+        ErrorData errorData = new ErrorDataImpl(errorEvent);
 
         try {
             long start = System.currentTimeMillis();
@@ -717,27 +718,5 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         }
 
         return groupId;
-    }
-
-    /**
-     *
-     * @param txn
-     * @param groupId
-     */
-    private void addErrorGroupAttributeForTransaction(Transaction txn, String groupId) {
-        if (groupId != null) {
-            txn.getErrorAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
-        }
-    }
-
-    /**
-     *
-     * @param tracedError
-     * @param groupId
-     */
-    private void addErrorGroupAttributeForTracedError(Map<String, ?> errorAttrs, String groupId) {
-        if (groupId != null) {
-            Map<String, String> m = new HashMap<>();
-        }
     }
 }

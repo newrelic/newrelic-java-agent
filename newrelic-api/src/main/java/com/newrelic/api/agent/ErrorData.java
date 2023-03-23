@@ -11,7 +11,8 @@ public interface ErrorData {
 
     String getErrorMessage();
 
-    StackTraceElement[] getStackTrace();
+    //TODO FIX StackTrace
+    //StackTraceElement[] getStackTrace();
 
     Map<String, ?> getCustomAttributes();
 
