@@ -51,6 +51,7 @@ public abstract class TracedError implements Comparable<TracedError>, JSONStream
         protected Map<String, Object> agentAttributes = Collections.emptyMap();
         protected Map<String, ?> errorAttributes = Collections.emptyMap();
         protected Map<String, Object> intrinsicAttributes = Collections.emptyMap();
+
         protected boolean expected;
 
         Builder(ErrorCollectorConfig errorCollectorConfig, String appName, String frontendMetricName, long timestampInMillis) {
@@ -233,5 +234,9 @@ public abstract class TracedError implements Comparable<TracedError>, JSONStream
     }
 
     public abstract boolean incrementsErrorMetric();
+
+    public boolean isExpected() {
+        return expected;
+    }
 
 }

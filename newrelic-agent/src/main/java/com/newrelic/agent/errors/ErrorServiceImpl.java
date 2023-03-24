@@ -334,14 +334,10 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
 
         ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
 
-        //Create ErrorData instance with the errorEvent, TracedError
-        //  -- errorEvent - Captured most attributes
-        //  -- TracedError - instanceof ThrowableError will contain stacktrace
-        //  -- Where do we get getCustomAttributes????? - Probably TracedError
-        //Invoke callback, capture groupId
-        //Add groupId to agent attributes:
-        //  -- errorEvent.getAgentAttributes().put("ffff", groupId);
-        //PROFIT
+        String groupId = invokeErrorGroupCallback(new ErrorDataImpl(errorEvent, error));
+
+        // TODO is appnName the right thing here?
+        errorEvent.getAgentAttributes().put(appName, groupId);
 
         eventList.add(errorEvent);
 
@@ -700,11 +696,9 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
 
     /**
      *
-     *
      */
-    private String invokeErrorGroupCallback(ErrorEvent errorEvent) {
+    private String invokeErrorGroupCallback(ErrorData errorData) {
         String groupId = null;
-        ErrorData errorData = new ErrorDataImpl(errorEvent);
 
         try {
             long start = System.currentTimeMillis();

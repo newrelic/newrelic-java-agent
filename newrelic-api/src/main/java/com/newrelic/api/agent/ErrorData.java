@@ -5,14 +5,14 @@ import java.util.Map;
 public interface ErrorData {
 
 
-    Exception getException();
+    Throwable getException();
 
-    Class<?> getErrorClass();
+    String getErrorClass();
 
     String getErrorMessage();
 
     //TODO FIX StackTrace
-    //StackTraceElement[] getStackTrace();
+    StackTraceElement[] getStackTraceElement();
 
     Map<String, ?> getCustomAttributes();
 
@@ -26,6 +26,6 @@ public interface ErrorData {
 
     String getHttpMethod();
 
-    String isErrorExpected();
+    boolean isErrorExpected();
 
 }
