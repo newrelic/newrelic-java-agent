@@ -39,6 +39,7 @@ import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.api.agent.ErrorData;
+import com.newrelic.api.agent.NewRelic;
 
 import java.net.HttpURLConnection;
 import java.text.MessageFormat;
@@ -335,9 +336,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
 
         String groupId = invokeErrorGroupCallback(new ErrorDataImpl(errorEvent, error));
-
-        // TODO is appnName the right thing here?
-        errorEvent.getAgentAttributes().put(appName, groupId);
+        errorEvent.getAgentAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
 
         eventList.add(errorEvent);
 
@@ -702,11 +701,12 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
 
         try {
             long start = System.currentTimeMillis();
-            groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
-            long duration = System.currentTimeMillis() - start;
-            //TODO Time the method execution and report as a metric (responseTimeMetric?)
-
-            Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{1}] in {2}ms", groupId, duration));
+            if (ErrorGroupCallbackHolder.getErrorGroupCallback() != null) {
+                groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
+                long duration = System.currentTimeMillis() - start;
+                NewRelic.getAgent().getMetricAggregator().recordResponseTimeMetric(MetricNames.SUPPORTABILITY_ERROR_GROUPING_CALLBACK_EXECUTION_TIME, duration);
+                Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{1}] in {2}ms", groupId, duration));
+            }
         } catch (Exception e) {
             Agent.LOG.warning(MessageFormat.format("Customer errorGroupCallback implementation threw an exception: {1}", e.getMessage()));
         }

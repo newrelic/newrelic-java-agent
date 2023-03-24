@@ -6,26 +6,22 @@
  */
 package com.newrelic.agent.errors;
 
-import com.newrelic.api.agent.ErrorData;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.api.agent.ErrorGroupCallback;
+import com.newrelic.api.agent.NewRelic;
 
 public class ErrorGroupCallbackHolder {
 
-    private static ErrorGroupCallback NO_OP_INSTANCE = new NoOpErrorGroupCallback();
-    private static ErrorGroupCallback errorGroupCallback = NO_OP_INSTANCE;
+    private static ErrorGroupCallback errorGroupCallback = null;
 
-    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
-        errorGroupCallback = errorGroupCallback == null ? NO_OP_INSTANCE : errorGroupCallback;
+    public static void setErrorGroupCallback(ErrorGroupCallback newErrorGroupCallback) {
+        errorGroupCallback = newErrorGroupCallback;
+        if (newErrorGroupCallback != null) {
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_ERROR_GROUPING_CALLBACK_ENABLED);
+        }
     }
 
     public static ErrorGroupCallback getErrorGroupCallback() {
         return errorGroupCallback;
-    }
-
-    private static class NoOpErrorGroupCallback implements ErrorGroupCallback {
-        @Override
-        public String generateGroupingString(ErrorData errorData) {
-            return null;
-        }
     }
 }

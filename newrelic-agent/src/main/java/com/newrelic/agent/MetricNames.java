@@ -488,6 +488,10 @@ public class MetricNames {
     public static final String SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS = "Supportability/JfrService/Stopped/Success";
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
 
+    // Error Grouping
+    public static final String SUPPORTABILITY_ERROR_GROUPING_CALLBACK_ENABLED = "Supportability/ErrorGrouping/Callback/enabled";
+    public static final String SUPPORTABILITY_ERROR_GROUPING_CALLBACK_EXECUTION_TIME = "Supportability/ErrorGrouping/Callback/ExecutionTime";
+
     /**
      * Utility method for adding supportability metrics to APIs
      *
