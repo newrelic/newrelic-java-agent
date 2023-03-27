@@ -336,7 +336,9 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
 
         String groupId = invokeErrorGroupCallback(new ErrorDataImpl(errorEvent, error));
-        errorEvent.getAgentAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
+        if (groupId != null && errorEvent.getAgentAttributes() != null) {
+            errorEvent.getAgentAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
+        }
 
         eventList.add(errorEvent);
 
@@ -700,8 +702,8 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         String groupId = null;
 
         try {
-            long start = System.currentTimeMillis();
             if (ErrorGroupCallbackHolder.getErrorGroupCallback() != null) {
+                long start = System.currentTimeMillis();
                 groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
                 long duration = System.currentTimeMillis() - start;
                 NewRelic.getAgent().getMetricAggregator().recordResponseTimeMetric(MetricNames.SUPPORTABILITY_ERROR_GROUPING_CALLBACK_EXECUTION_TIME, duration);

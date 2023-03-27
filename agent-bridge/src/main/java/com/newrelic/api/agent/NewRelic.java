@@ -350,7 +350,12 @@ public final class NewRelic {
         AgentBridge.publicApi.setInstanceName(instanceName);
     }
 
-    // TODO comments
+    /**
+     * Register a callback to be used for assigning an id to transaction errors. This id will be
+     * used to group errors on the Errors Inbox UI.
+     *
+     * @param errorGroupCallback an instance of ErrorGroupCallback that will generate an error id
+     */
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
         AgentBridge.publicApi.setErrorGroupCallback(errorGroupCallback);
     }
