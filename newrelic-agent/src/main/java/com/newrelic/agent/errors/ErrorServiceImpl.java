@@ -333,12 +333,12 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         // Siphon off errors to send up as error events
         DistributedSamplingPriorityQueue<ErrorEvent> eventList = getReservoir(appName);
 
-        ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
-
-        String groupId = invokeErrorGroupCallback(new ErrorDataImpl(errorEvent, error));
-        if (groupId != null && errorEvent.getAgentAttributes() != null) {
-            errorEvent.getAgentAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
+        String groupId = invokeErrorGroupCallback(new ErrorDataImpl(transactionData, error));
+        if (groupId != null && transactionData.getAgentAttributes() != null) {
+            transactionData.getAgentAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
         }
+
+        ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
 
         eventList.add(errorEvent);
 

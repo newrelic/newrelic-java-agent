@@ -422,7 +422,7 @@ public final class NewRelic {
     /**
      * some things will go here
      */
-    void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
+    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
 
     }
 
