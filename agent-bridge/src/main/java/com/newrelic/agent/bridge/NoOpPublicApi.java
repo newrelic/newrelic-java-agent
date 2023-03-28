@@ -75,6 +75,11 @@ class NoOpPublicApi implements PublicApi {
     }
 
     @Override
+    public void setUserId(String userId) {
+
+    }
+
+    @Override
     public void setTransactionName(String category, String name) {
 
     }

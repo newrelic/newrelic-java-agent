@@ -10,6 +10,7 @@ package com.newrelic.api.agent;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
+import com.newrelic.agent.attributes.AgentAttributeSender;
 import com.newrelic.agent.attributes.AttributeSender;
 import com.newrelic.agent.attributes.CustomAttributeSender;
 import com.newrelic.agent.bridge.AgentBridge;
@@ -36,14 +37,17 @@ import java.util.logging.Level;
  * DO NOT INVOKE THIS CLASS DIRECTLY. Use {@link com.newrelic.api.agent.NewRelic}.
  */
 public class NewRelicApiImplementation implements PublicApi {
-    private final AttributeSender attributeSender;
+    private final AttributeSender customAttributeSender;
 
-    public NewRelicApiImplementation(AttributeSender sender) {
-        attributeSender = sender;
+    private final AgentAttributeSender agentAttributeSender;
+
+    public NewRelicApiImplementation(AttributeSender customSender, AgentAttributeSender agentSender) {
+        customAttributeSender = customSender;
+        agentAttributeSender = agentSender;
     }
 
     public NewRelicApiImplementation() {
-        this(new CustomAttributeSender());
+        this(new CustomAttributeSender(), new AgentAttributeSender());
     }
 
     // ************************** Error collector ***********************************//
@@ -109,7 +113,7 @@ public class NewRelicApiImplementation implements PublicApi {
 
     public void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
         try {
-            ServiceFactory.getRPMService().getErrorService().reportException(throwable, filterErrorAtts(params, attributeSender), expected);
+            ServiceFactory.getRPMService().getErrorService().reportException(throwable, filterErrorAtts(params, customAttributeSender), expected);
 
             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_NOTICE_ERROR);
             //SUPPORTABILITY_API_EXPECTED_ERROR_API_THROWABLE metric is intended to be recorded independent of whether
@@ -132,7 +136,7 @@ public class NewRelicApiImplementation implements PublicApi {
     @Override
     public void noticeError(String message, Map<String, ?> params, boolean expected) {
         try {
-            ServiceFactory.getRPMService().getErrorService().reportError(message, filterErrorAtts(params, attributeSender), expected);
+            ServiceFactory.getRPMService().getErrorService().reportError(message, filterErrorAtts(params, customAttributeSender), expected);
 
             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_NOTICE_ERROR);
             if (expected) {
@@ -250,7 +254,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void addCustomParameter(String key, String value) {
-        attributeSender.addAttribute(key, value, "addCustomParameter");
+        customAttributeSender.addAttribute(key, value, "addCustomParameter");
     }
 
     /**
@@ -261,7 +265,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void addCustomParameter(String key, Number value) {
-        attributeSender.addAttribute(key, value, "addCustomParameter");
+        customAttributeSender.addAttribute(key, value, "addCustomParameter");
     }
 
     /**
@@ -272,7 +276,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void addCustomParameter(String key, boolean value) {
-        attributeSender.addAttribute(key, value, "addCustomParameter");
+        customAttributeSender.addAttribute(key, value, "addCustomParameter");
     }
 
     /**
@@ -282,7 +286,25 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void addCustomParameters(Map<String, Object> params) {
-        attributeSender.addAttributes(params, "addCustomParameters");
+        customAttributeSender.addAttributes(params, "addCustomParameters");
+    }
+
+    /**
+     * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
+     *
+     * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
+     */
+    @Override
+    public void setUserId(String userId) {
+        final String attributeKey = "enduser.id";
+        final String methodCalled = "setUserId";
+        // Ignore null and empty strings
+        if (userId == null || userId.trim().isEmpty()) {
+            Agent.LOG.log(Level.FINER, "Will not include the {0} attribute because {1} was invoked with a null or blank value", attributeKey, methodCalled);
+            agentAttributeSender.removeAttribute(attributeKey);
+            return;
+        }
+        agentAttributeSender.addAttribute(attributeKey, userId, methodCalled);
     }
 
     /**
@@ -530,7 +552,7 @@ public class NewRelicApiImplementation implements PublicApi {
             Agent.LOG.finer(msg);
         }
         MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_USER_NAME);
-        attributeSender.addAttribute("user", name, "setUserName");
+        customAttributeSender.addAttribute("user", name, "setUserName");
     }
 
     /**
@@ -553,7 +575,7 @@ public class NewRelicApiImplementation implements PublicApi {
                 String msg = MessageFormat.format("Attempting to set account name to \"{0}\" in NewRelic API", name);
                 Agent.LOG.finer(msg);
             }
-            attributeSender.addAttribute("account", name, "setAccountName");
+            customAttributeSender.addAttribute("account", name, "setAccountName");
             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_ACCOUNT_NAME);
         }
     }
@@ -579,7 +601,7 @@ public class NewRelicApiImplementation implements PublicApi {
                 Agent.LOG.finer(msg);
             }
             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_PRODUCT_NAME);
-            attributeSender.addAttribute("product", name, "setProductName");
+            customAttributeSender.addAttribute("product", name, "setProductName");
         }
     }
 

@@ -12,6 +12,7 @@ import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -27,6 +28,7 @@ public abstract class Filter {
             Principal principal = ((HttpServletRequest) request).getUserPrincipal();
             if (principal != null) {
                 AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
+                NewRelic.setUserId(principal.getName());
             }
         }
 
