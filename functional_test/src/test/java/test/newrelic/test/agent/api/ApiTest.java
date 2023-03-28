@@ -799,9 +799,9 @@ public class ApiTest implements TransactionListener {
         NewRelic.setUserId("hello");
         Assert.assertEquals("hello", Transaction.getTransaction().getAgentAttributes().get("enduser.id"));
         NewRelic.setUserId("");
-        Assert.assertFalse("Agent attributes shouldn't have enduser.id", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
+        Assert.assertFalse("Agent attributes shouldn't have user ID", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
         NewRelic.setUserId(null);
-        Assert.assertFalse("Agent attributes shouldn't have enduser.id", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
+        Assert.assertFalse("Agent attributes shouldn't have user ID", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
     }
 
     @Test
