@@ -1,8 +1,10 @@
 package com.newrelic.agent.errors;
 
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.api.agent.ErrorData;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ErrorDataImpl implements ErrorData {
@@ -10,20 +12,15 @@ public class ErrorDataImpl implements ErrorData {
     private final TransactionData transactionData;
     private final TracedError tracedError;
 
-    //TODO FIX
     public ErrorDataImpl(TransactionData txData, TracedError tracedError) {
         this.transactionData = txData;
         this.tracedError = tracedError;
     }
-
-
-    //TODO is this return type change ok?
     @Override
     public Throwable getException() {
         return tracedError instanceof ThrowableError ? ((ThrowableError) tracedError).getThrowable() : null;
     }
 
-    //TODO any issue with changing to a String instead of Class<?>
     @Override
     public String getErrorClass() {
         return transactionData != null ? transactionData.getThrowable().getClass().toString() : null;
@@ -31,20 +28,42 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public String getErrorMessage() {
-        return transactionData != null ? transactionData.getThrowable().throwable.getMessage() : null;
+        if (transactionData != null && transactionData.getThrowable() != null && transactionData.getThrowable().throwable.getMessage() != null) {
+            return transactionData.getThrowable().throwable.getMessage();
+        } else if (tracedError != null && tracedError instanceof ThrowableError && ((ThrowableError) tracedError).getThrowable() != null) {
+            return ((ThrowableError) tracedError).getThrowable().getMessage();
+        }
+        return null;
     }
 
     @Override
     public StackTraceElement[] getStackTraceElement() {
-        return tracedError instanceof ThrowableError ? ((ThrowableError) tracedError).getThrowable().getStackTrace() : null;
-        // TODO should we get this from TransactionData if not on TracedError?
+        if (transactionData != null && transactionData.getThrowable() != null && transactionData.getThrowable().throwable != null) {
+            return transactionData.getThrowable().throwable.getStackTrace();
+
+        } else if (tracedError != null && tracedError instanceof ThrowableError && ((ThrowableError) tracedError).getThrowable() != null) {
+            return ((ThrowableError) tracedError).getThrowable().getStackTrace();
+
+        }
+        return null;
     }
 
-    //TODO we also need the other User Attributes here according to the spec, so we may need to merge a map, but there might be some issues getting
-    // i.e merging a map and high security mode?
     @Override
     public Map<String, ?> getCustomAttributes() {
-        return tracedError.getErrorAtts();
+        Map<String, ? super Object> combinedUserAttMap = new HashMap<>();
+        if (transactionData != null) {
+            if (transactionData.getUserAttributes() != null) {
+                combinedUserAttMap.putAll(transactionData.getUserAttributes());
+            }
+            if (transactionData.getErrorAttributes() != null) {
+                combinedUserAttMap.putAll(transactionData.getErrorAttributes());
+            }
+        }
+        if (tracedError != null && tracedError.getErrorAtts() != null) {
+            combinedUserAttMap.putAll(tracedError.getErrorAtts());
+        }
+
+        return combinedUserAttMap;
     }
 
     @Override
@@ -56,25 +75,24 @@ public class ErrorDataImpl implements ErrorData {
     public String getTransactionUiName() {
         return getTransactionName();
     }
-
-    //TODO questions on how to handle Object
     @Override
     public String getRequestUri() {
-        return null;
+        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_URI).toString() : null;
+
     }
 
     @Override
     public String getHttpStatusCode() {
-        return null;
+        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.HTTP_STATUS_CODE).toString() : null;
     }
 
     @Override
     public String getHttpMethod() {
-        return null;
+        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_METHOD_PARAMETER_NAME).toString() : null;
     }
 
     @Override
     public boolean isErrorExpected() {
-        return tracedError.isExpected();
+        return tracedError != null && tracedError.isExpected();
     }
 }
