@@ -23,7 +23,7 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public String getErrorClass() {
-        return transactionData != null ? transactionData.getThrowable().getClass().toString() : null;
+        return transactionData != null && transactionData.getThrowable() != null ? transactionData.getThrowable().getClass().toString() : null;
     }
 
     @Override
