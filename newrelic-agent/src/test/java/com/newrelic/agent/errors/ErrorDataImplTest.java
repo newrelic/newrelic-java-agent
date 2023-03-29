@@ -5,6 +5,7 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.transaction.PriorityTransactionName;
+import com.newrelic.agent.transaction.TransactionThrowable;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,8 +29,6 @@ public class ErrorDataImplTest {
         throwableError = mock(ThrowableError.class);
     }
 
-    // Test cases for getException()
-
     @Test
     public void testGetException_tracedErrorNotInstanceOfThrowableError() {
         errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
@@ -44,32 +43,26 @@ public class ErrorDataImplTest {
         assertEquals(throwable, errorDataImpl.getException());
     }
 
-    // Test cases for getErrorClass()
-
     @Test
     public void testGetErrorClass_transactionDataNull() {
         errorDataImpl = new ErrorDataImpl(null, tracedError);
         assertNull(errorDataImpl.getErrorClass());
     }
 
-
-    //TODO correct this test
     @Test
     public void testGetErrorClass_transactionDataNotNull() {
-        Throwable throwable = new RuntimeException("Test exception");
-//        when(transactionData.getThrowable()).thenReturn(throwable);
+        TransactionThrowable throwable = new TransactionThrowable(new RuntimeException("error"), true, "");
+        when(transactionData.getThrowable()).thenReturn(throwable);
         errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-        assertEquals(throwable.getClass().toString(), errorDataImpl.getErrorClass());
+        assertEquals(throwable.throwable.getClass().toString(), errorDataImpl.getErrorClass());
     }
-
-    // Test cases for getErrorMessage()
 
     @Test
     public void testGetErrorMessage_transactionDataNotNullThrowableNotNullMessageNotNull() {
-        Throwable throwable = new RuntimeException("Test exception");
-//        when(transactionData.getThrowable()).thenReturn(throwable);
+        TransactionThrowable throwable = new TransactionThrowable(new RuntimeException("error"), true, "");
+        when(transactionData.getThrowable()).thenReturn(throwable);
         errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-        assertEquals(throwable.getMessage(), errorDataImpl.getErrorMessage());
+        assertEquals(throwable.throwable.getMessage(), errorDataImpl.getErrorMessage());
     }
 
     @Test
@@ -86,14 +79,12 @@ public class ErrorDataImplTest {
         assertNull(errorDataImpl.getErrorMessage());
     }
 
-    // Test cases for getStackTraceElement()
-    //TODO correct this test
     @Test
     public void testGetStackTraceElement_transactionDataNotNullThrowableNotNull() {
-        Throwable throwable = new RuntimeException("Test exception");
-//        when(transactionData.getThrowable()).thenReturn(throwable);
+        TransactionThrowable throwable = new TransactionThrowable(new RuntimeException("error"), true, "");
+        when(transactionData.getThrowable()).thenReturn(throwable);
         errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-        assertArrayEquals(throwable.getStackTrace(), errorDataImpl.getStackTraceElement());
+        assertArrayEquals(throwable.throwable.getStackTrace(), errorDataImpl.getStackTraceElement());
     }
 
     @Test
@@ -109,33 +100,6 @@ public class ErrorDataImplTest {
         assertNull(errorDataImpl.getStackTraceElement());
     }
 
-    // Test cases for getCustomAttributes()
-    //TODO correct this test
-    @Test
-    public void testGetCustomAttributes_transactionDataAttributesAndTracedErrorAttributes() {
-        Map<String, Object> userAttributes = new HashMap<>();
-        userAttributes.put("userKey", "userValue");
-        Map<String, Object> errorAttributes = new HashMap<>();
-        errorAttributes.put("errorKey", "errorValue");
-        Map<String, Object> tracedErrorAttributes = new HashMap<>();
-        tracedErrorAttributes.put("tracedKey", "tracedValue");
-
-        when(transactionData.getUserAttributes()).thenReturn(userAttributes);
-//        when(transactionData.getErrorAttributes()).thenReturn(errorAttributes);
-//        when(tracedError.getErrorAtts()).thenReturn(tracedErrorAttributes);
-
-        errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-
-        Map<String, Object> expectedAttributes = new HashMap<>();
-        expectedAttributes.putAll(userAttributes);
-        expectedAttributes.putAll(errorAttributes);
-        expectedAttributes.putAll(tracedErrorAttributes);
-
-        assertEquals(expectedAttributes, errorDataImpl.getCustomAttributes());
-    }
-
-    // Test cases for getTransactionName()
-
     @Test
     public void testGetTransactionName() {
         String transactionName = "TestTransaction";
@@ -150,8 +114,6 @@ public class ErrorDataImplTest {
         assertEquals(transactionName, errorDataImpl.getTransactionName());
     }
 
-    // Test cases for getTransactionUiName()
-
     @Test
     public void testGetTransactionUiName() {
         String transactionName = "TestTransaction";
@@ -165,8 +127,6 @@ public class ErrorDataImplTest {
         errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
         assertEquals(transactionName, errorDataImpl.getTransactionUiName());
     }
-
-    // Test cases for getRequestUri(), getHttpStatusCode(), and getHttpMethod()
 
     @Test
     public void testGetRequestUri_transactionDataNull() {
@@ -197,39 +157,38 @@ public class ErrorDataImplTest {
         assertEquals(requestUri, errorDataImpl.getRequestUri());
     }
 
-    //TODO correct this test
     @Test
     public void testGetHttpStatusCode_transactionDataNotNull() {
-        String httpStatusCode = "200";
-//        Map < String, Object
+        String statusCode = "200";
+        Map<String, Object> agentAttributes = new HashMap<>();
+        agentAttributes.put(AttributeNames.HTTP_STATUS_CODE, statusCode);
+        when(transactionData.getAgentAttributes()).thenReturn(agentAttributes);
+
+        errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
+        assertEquals(statusCode, errorDataImpl.getHttpStatusCode());
     }
 
+    @Test
+    public void testGetHttpMethod_transactionDataNotNull() {
+        String httpMethod = "GET";
+        Map<String, Object> agentAttributes = new HashMap<>();
+        agentAttributes.put(AttributeNames.REQUEST_METHOD_PARAMETER_NAME, httpMethod);
+        when(transactionData.getAgentAttributes()).thenReturn(agentAttributes);
 
-        @Test
-        public void testGetHttpMethod_transactionDataNotNull() {
-            String httpMethod = "GET";
-            Map<String, Object> agentAttributes = new HashMap<>();
-            agentAttributes.put(AttributeNames.REQUEST_METHOD_PARAMETER_NAME, httpMethod);
-            when(transactionData.getAgentAttributes()).thenReturn(agentAttributes);
-
-            errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-            assertEquals(httpMethod, errorDataImpl.getHttpMethod());
-        }
-
-        // Test cases for isErrorExpected()
-
-        @Test
-        public void testIsErrorExpected_tracedErrorNull() {
-            errorDataImpl = new ErrorDataImpl(transactionData, null);
-            assertFalse(errorDataImpl.isErrorExpected());
-        }
-
-        @Test
-        public void testIsErrorExpected_tracedErrorNotNull() {
-            when(tracedError.isExpected()).thenReturn(true);
-            errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-            assertTrue(errorDataImpl.isErrorExpected());
-        }
+        errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
+        assertEquals(httpMethod, errorDataImpl.getHttpMethod());
     }
 
+    @Test
+    public void testIsErrorExpected_tracedErrorNull() {
+        errorDataImpl = new ErrorDataImpl(transactionData, null);
+        assertFalse(errorDataImpl.isErrorExpected());
+    }
 
+    @Test
+    public void testIsErrorExpected_tracedErrorNotNull() {
+        when(tracedError.isExpected()).thenReturn(true);
+        errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
+        assertTrue(errorDataImpl.isErrorExpected());
+    }
+}

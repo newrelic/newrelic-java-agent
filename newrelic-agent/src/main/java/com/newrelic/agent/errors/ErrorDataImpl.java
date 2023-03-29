@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.errors;
 
 import com.newrelic.agent.TransactionData;
@@ -16,6 +22,7 @@ public class ErrorDataImpl implements ErrorData {
         this.transactionData = txData;
         this.tracedError = tracedError;
     }
+
     @Override
     public Throwable getException() {
         if (transactionData != null && transactionData.getThrowable() != null) {
@@ -23,13 +30,14 @@ public class ErrorDataImpl implements ErrorData {
         } else if (tracedError != null && tracedError instanceof ThrowableError) {
             return ((ThrowableError) tracedError).getThrowable();
         }
+
         return null;
     }
 
     @Override
     public String getErrorClass() {
-        if (transactionData != null&& transactionData.getThrowable() != null) {
-            return transactionData.getThrowable().getClass().toString();
+        if (transactionData != null&& transactionData.getThrowable() != null && transactionData.getThrowable().throwable != null) {
+            return transactionData.getThrowable().throwable.getClass().toString();
         } else if (tracedError != null && tracedError instanceof ThrowableError) {
             return ((ThrowableError) tracedError).getThrowable().getClass().toString();
         }
@@ -86,6 +94,7 @@ public class ErrorDataImpl implements ErrorData {
     public String getTransactionUiName() {
         return getTransactionName();
     }
+
     @Override
     public String getRequestUri() {
         return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_URI).toString() : null;
