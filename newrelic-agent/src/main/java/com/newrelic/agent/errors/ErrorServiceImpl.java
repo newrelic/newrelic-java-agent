@@ -61,8 +61,6 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
     @VisibleForTesting
     static final int ERROR_LIMIT_PER_REPORTING_PERIOD = 20;
 
-    private static final String ERROR_GROUP_NAME_ATTR = "error.group.name";
-
     @VisibleForTesting
     final AtomicInteger errorCountThisHarvest = new AtomicInteger();
     final AtomicInteger expectedErrorCountThisHarvest = new AtomicInteger();
@@ -332,11 +330,6 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
 
         // Siphon off errors to send up as error events
         DistributedSamplingPriorityQueue<ErrorEvent> eventList = getReservoir(appName);
-
-        String groupId = invokeErrorGroupCallback(new ErrorDataImpl(transactionData, error));
-        if (groupId != null && transactionData.getAgentAttributes() != null) {
-            transactionData.getAgentAttributes().put(ERROR_GROUP_NAME_ATTR, groupId);
-        }
 
         ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
 
@@ -693,26 +686,5 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         } else {
             Agent.LOG.finer(MessageFormat.format("Ignoring HTTP error {0} with status code {1} URI {2}", message, statusCode, uri));
         }
-    }
-
-    /**
-     *
-     */
-    private String invokeErrorGroupCallback(ErrorData errorData) {
-        String groupId = null;
-
-        try {
-            if (ErrorGroupCallbackHolder.getErrorGroupCallback() != null) {
-                long start = System.currentTimeMillis();
-                groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
-                long duration = System.currentTimeMillis() - start;
-                NewRelic.getAgent().getMetricAggregator().recordResponseTimeMetric(MetricNames.SUPPORTABILITY_ERROR_GROUPING_CALLBACK_EXECUTION_TIME, duration);
-                Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{1}] in {2}ms", groupId, duration));
-            }
-        } catch (Exception e) {
-            Agent.LOG.warning(MessageFormat.format("Customer errorGroupCallback implementation threw an exception: {1}", e.getMessage()));
-        }
-
-        return groupId;
     }
 }

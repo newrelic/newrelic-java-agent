@@ -168,7 +168,7 @@ public abstract class TracedError implements Comparable<TracedError>, JSONStream
         return atts;
     }
 
-    private Map<String, Object> getAgentAtts() {
+    public Map<String, Object> getAgentAtts() {
         Map<String, Object> atts = new HashMap<>();
         atts.putAll(agentAtts);
         if (prefixAtts != null && !prefixAtts.isEmpty()) {

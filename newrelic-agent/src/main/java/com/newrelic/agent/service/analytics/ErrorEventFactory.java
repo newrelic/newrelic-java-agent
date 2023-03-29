@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.service.analytics;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeValidator;
@@ -18,6 +19,8 @@ import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.errors.DeadlockTraceError;
+import com.newrelic.agent.errors.ErrorDataImpl;
+import com.newrelic.agent.errors.ErrorGroupCallbackHolder;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.ErrorEvent;
 import com.newrelic.agent.service.ServiceFactory;
@@ -26,8 +29,11 @@ import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.util.TimeConversion;
+import com.newrelic.api.agent.ErrorData;
+import com.newrelic.api.agent.NewRelic;
 
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,12 +43,14 @@ import static com.newrelic.agent.model.ErrorEvent.*;
 
 public class ErrorEventFactory {
 
+    private static final String ERROR_GROUP_NAME_ATTR = "error.group.name";
+
     public static ErrorEvent create(String appName, TracedError tracedError, float priority) {
         return new ErrorEvent(appName, tracedError.getTimestampInMillis(), priority, new HashMap<>(tracedError.getErrorAtts()),
                 tracedError.getExceptionClass(), truncateIfNecessary(tracedError.getMessage()), isErrorExpected(tracedError),
                 UNKNOWN, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, null,
                 null, null, null, null, getPortUsingServiceManagerIfPossible(), null, null, Collections.<String, Object>emptyMap(),
-                null, ERROR_EVENTS_ATTRIBUTE_FILTER);
+                buildAgentAttributes(null, null, tracedError), ERROR_EVENTS_ATTRIBUTE_FILTER);
     }
 
     public static ErrorEvent create(String appName, TracedError tracedError, TransactionData transactionData,
@@ -61,7 +69,7 @@ public class ErrorEventFactory {
                 transactionData.getGuid(), transactionData.getReferrerGuid(), transactionData.getSyntheticsResourceId(),
                 transactionData.getSyntheticsMonitorId(), transactionData.getSyntheticsJobId(), getPortUsingServiceManagerIfPossible(),
                 transactionData.getTimeoutCause() == null ? null : transactionData.getTimeoutCause().cause, getTripId(transactionData),
-                getDistributedTraceIntrinsics(transactionData), buildAgentAttributes(appName, transactionData), ERROR_EVENTS_ATTRIBUTE_FILTER);
+                getDistributedTraceIntrinsics(transactionData), buildAgentAttributes(appName, transactionData, tracedError), ERROR_EVENTS_ATTRIBUTE_FILTER);
     }
 
     private static float getMetricTotal(TransactionStats transactionStats, String metricName) {
@@ -140,20 +148,33 @@ public class ErrorEventFactory {
                 transactionData.getPriority());
     }
 
-    private static Map<String, Object> buildAgentAttributes(String appName, TransactionData transactionData) {
+    private static Map<String, Object> buildAgentAttributes(String appName, TransactionData transactionData, TracedError tracedError) {
         if (!ServiceFactory.getAttributesService().isAttributesEnabledForErrorEvents(appName)) {
             return null;
         }
-        Map<String, Object> agentAttrs = new HashMap<>(transactionData.getAgentAttributes());
-        // request/message parameters are sent up in the same bucket as agent attributes
-        agentAttrs.putAll(AttributesUtils.appendAttributePrefixes(transactionData.getPrefixedAttributes()));
+        Map<String, Object> agentAttrs = new HashMap<>();
+        if (transactionData != null) {
+            agentAttrs.putAll(transactionData.getAgentAttributes());
+            // request/message parameters are sent up in the same bucket as agent attributes
+            agentAttrs.putAll(AttributesUtils.appendAttributePrefixes(transactionData.getPrefixedAttributes()));
+        }
 
-        if (transactionData.getThrowable() != null) {
+        if (tracedError != null && tracedError.getAgentAtts() != null) {
+            agentAttrs.putAll(tracedError.getAgentAtts());
+        }
+
+        if (transactionData != null && transactionData.getThrowable() != null) {
             String spanId = transactionData.getThrowable().spanId;
             if (spanId != null) {
                 agentAttrs.put("spanId", spanId);
             }
         }
+
+        String groupId = invokeErrorGroupCallback(new ErrorDataImpl(transactionData, tracedError));
+        if (groupId != null && !"".equals(groupId)) {
+            agentAttrs.put(ERROR_GROUP_NAME_ATTR, groupId);
+        }
+
         return agentAttrs;
     }
 
@@ -165,5 +186,23 @@ public class ErrorEventFactory {
             userAttributes.putAll(transactionData.getErrorAttributes());
         }
         return userAttributes;
+    }
+
+    private static String invokeErrorGroupCallback(ErrorData errorData) {
+        String groupId = null;
+
+        try {
+            if (ErrorGroupCallbackHolder.getErrorGroupCallback() != null) {
+                long start = System.currentTimeMillis();
+                groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
+                long duration = System.currentTimeMillis() - start;
+                NewRelic.getAgent().getMetricAggregator().recordResponseTimeMetric(MetricNames.SUPPORTABILITY_ERROR_GROUPING_CALLBACK_EXECUTION_TIME, duration);
+                Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{0}] in {1}ms", groupId, duration));
+            }
+        } catch (Exception e) {
+            Agent.LOG.warning(MessageFormat.format("Customer errorGroupCallback implementation threw an exception: {0}", e.getMessage()));
+        }
+
+        return groupId;
     }
 }
