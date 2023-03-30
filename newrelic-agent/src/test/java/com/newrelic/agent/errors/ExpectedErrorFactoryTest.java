@@ -18,6 +18,8 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.analytics.ErrorEventFactory;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.api.agent.ErrorData;
+import com.newrelic.api.agent.ErrorGroupCallback;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.AfterClass;
@@ -344,5 +346,64 @@ public class ExpectedErrorFactoryTest {
         assertEquals("HttpClientError 403", jsonObject.get("error.class"));
         assertEquals(MAX_ERROR_MESSAGE_SIZE, jsonObject.get("error.message").toString().length());
         assertEquals(MAX_ERROR_MESSAGE_SIZE, event.getErrorMessage().length());
+    }
+
+    @Test
+    public void testErrorGroupCallback() {
+        Map<String, Object> configuration = buildConfigMap(new HashMap<>());
+        ErrorCollectorConfig errorCollectorConfig = setupServices(configuration);
+
+        TracedError error = HttpTracedError
+                .builder(errorCollectorConfig, appName, "group", System.currentTimeMillis())
+                .statusCodeAndMessage(403, "Nope!")
+                .requestUri("/group")
+                .build();
+
+        ErrorGroupCallbackHolder.setErrorGroupCallback(errorData -> "myGroupId");
+
+        ErrorEvent event = ErrorEventFactory.create(appName, error, DistributedTraceServiceImpl.nextTruncatedFloat());
+
+        Assert.assertEquals("myGroupId", event.getAgentAttributes().get("error.group.name"));
+    }
+
+    @Test
+    public void testErrorGroupCallbackThrowsException() {
+        Map<String, Object> configuration = buildConfigMap(new HashMap<>());
+        ErrorCollectorConfig errorCollectorConfig = setupServices(configuration);
+
+        TracedError error = HttpTracedError
+                .builder(errorCollectorConfig, appName, "group", System.currentTimeMillis())
+                .statusCodeAndMessage(403, "Nope!")
+                .requestUri("/group")
+                .build();
+
+        ErrorGroupCallbackHolder.setErrorGroupCallback(new ErrorGroupCallback() {
+            @Override
+            public String generateGroupingString(ErrorData errorData) {
+                throw new RuntimeException("Failed to get group id");
+            }
+        });
+
+        ErrorEvent event = ErrorEventFactory.create(appName, error, DistributedTraceServiceImpl.nextTruncatedFloat());
+
+        Assert.assertEquals(null, event.getAgentAttributes().get("error.group.name"));
+    }
+
+    @Test
+    public void testErrorGroupCallbackTReturnsEmptyString() {
+        Map<String, Object> configuration = buildConfigMap(new HashMap<>());
+        ErrorCollectorConfig errorCollectorConfig = setupServices(configuration);
+
+        TracedError error = HttpTracedError
+                .builder(errorCollectorConfig, appName, "group", System.currentTimeMillis())
+                .statusCodeAndMessage(403, "Nope!")
+                .requestUri("/group")
+                .build();
+
+        ErrorGroupCallbackHolder.setErrorGroupCallback(errorData -> "");
+
+        ErrorEvent event = ErrorEventFactory.create(appName, error, DistributedTraceServiceImpl.nextTruncatedFloat());
+
+        Assert.assertEquals(null, event.getAgentAttributes().get("error.group.name"));
     }
 }
