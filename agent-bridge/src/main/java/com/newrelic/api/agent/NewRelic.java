@@ -351,10 +351,11 @@ public final class NewRelic {
     }
 
     /**
-     * Register a callback to be used for assigning an id to transaction errors. This id will be
-     * used to group errors on the Errors Inbox UI.
+     * Registers an {@link ErrorGroupCallback} that's used to generate a grouping key for the supplied
+     * error. This key will be used to group similar error messages on the Errors Inbox UI. If the
+     * errorGroupCallback instance is null no grouping key will be generated.
      *
-     * @param errorGroupCallback an instance of ErrorGroupCallback that will generate an error id
+     * @param errorGroupCallback the ErrorGroupCallback used to generate grouping keys for errors
      */
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
         AgentBridge.publicApi.setErrorGroupCallback(errorGroupCallback);
