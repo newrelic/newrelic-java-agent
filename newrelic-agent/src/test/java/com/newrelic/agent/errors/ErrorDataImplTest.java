@@ -46,7 +46,7 @@ public class ErrorDataImplTest {
     @Test
     public void testGetErrorClass_transactionDataNull() {
         errorDataImpl = new ErrorDataImpl(null, tracedError);
-        assertNull(errorDataImpl.getErrorClass());
+        assertEquals("", errorDataImpl.getErrorClass());
     }
 
     @Test
@@ -76,7 +76,7 @@ public class ErrorDataImplTest {
     @Test
     public void testGetErrorMessage_noMessageAvailable() {
         errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-        assertNull(errorDataImpl.getErrorMessage());
+        assertEquals("", errorDataImpl.getErrorMessage());
     }
 
     @Test
@@ -97,7 +97,7 @@ public class ErrorDataImplTest {
     @Test
     public void testGetStackTraceElement_noStackTraceAvailable() {
         errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
-        assertNull(errorDataImpl.getStackTraceElement());
+        assertEquals(0, errorDataImpl.getStackTraceElement().length);
     }
 
     @Test
@@ -131,19 +131,19 @@ public class ErrorDataImplTest {
     @Test
     public void testGetRequestUri_transactionDataNull() {
         errorDataImpl = new ErrorDataImpl(null, tracedError);
-        assertNull(errorDataImpl.getRequestUri());
+        assertEquals("", errorDataImpl.getRequestUri());
     }
 
     @Test
     public void testGetHttpStatusCode_transactionDataNull() {
         errorDataImpl = new ErrorDataImpl(null, tracedError);
-        assertNull(errorDataImpl.getHttpStatusCode());
+        assertEquals("", errorDataImpl.getHttpStatusCode());
     }
 
     @Test
     public void testGetHttpMethod_transactionDataNull() {
         errorDataImpl = new ErrorDataImpl(null, tracedError);
-        assertNull(errorDataImpl.getHttpMethod());
+        assertEquals("", errorDataImpl.getHttpMethod());
     }
 
     @Test

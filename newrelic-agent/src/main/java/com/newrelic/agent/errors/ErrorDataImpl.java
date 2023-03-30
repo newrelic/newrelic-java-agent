@@ -42,7 +42,7 @@ public class ErrorDataImpl implements ErrorData {
             return ((ThrowableError) tracedError).getThrowable().getClass().toString();
         }
 
-        return null;
+        return "";
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ErrorDataImpl implements ErrorData {
         } else if (tracedError != null && tracedError instanceof ThrowableError && ((ThrowableError) tracedError).getThrowable() != null) {
             return ((ThrowableError) tracedError).getThrowable().getMessage();
         }
-        return null;
+        return "";
     }
 
     @Override
@@ -64,7 +64,7 @@ public class ErrorDataImpl implements ErrorData {
             return ((ThrowableError) tracedError).getThrowable().getStackTrace();
 
         }
-        return null;
+        return new StackTraceElement[] {};
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public String getTransactionName() {
-        return transactionData != null ? transactionData.getTransaction().getPriorityTransactionName().getName() : null;
+        return transactionData != null ? transactionData.getTransaction().getPriorityTransactionName().getName() : "";
     }
 
     @Override
@@ -97,18 +97,18 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public String getRequestUri() {
-        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_URI).toString() : null;
+        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_URI).toString() : "";
 
     }
 
     @Override
     public String getHttpStatusCode() {
-        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.HTTP_STATUS_CODE).toString() : null;
+        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.HTTP_STATUS_CODE).toString() : "";
     }
 
     @Override
     public String getHttpMethod() {
-        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_METHOD_PARAMETER_NAME).toString() : null;
+        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_METHOD_PARAMETER_NAME).toString() : "";
     }
 
     @Override
