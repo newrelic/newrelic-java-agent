@@ -25,9 +25,9 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public Throwable getException() {
-        if (transactionData != null && transactionData.getThrowable() != null) {
+        if (isTransactionDataThrowableValid()) {
             return transactionData.getThrowable().throwable;
-        } else if (tracedError != null && tracedError instanceof ThrowableError) {
+        } else if (isTracedErrorInstanceOfThrowableError()) {
             return ((ThrowableError) tracedError).getThrowable();
         }
 
@@ -36,9 +36,9 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public String getErrorClass() {
-        if (transactionData != null&& transactionData.getThrowable() != null && transactionData.getThrowable().throwable != null) {
+        if (isTransactionDataThrowableValid() && transactionData.getThrowable().throwable != null) {
             return transactionData.getThrowable().throwable.getClass().toString();
-        } else if (tracedError != null && tracedError instanceof ThrowableError) {
+        } else if (isTracedErrorInstanceOfThrowableError()) {
             return ((ThrowableError) tracedError).getThrowable().getClass().toString();
         }
 
@@ -47,9 +47,9 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public String getErrorMessage() {
-        if (transactionData != null && transactionData.getThrowable() != null && transactionData.getThrowable().throwable.getMessage() != null) {
+        if (isTransactionDataThrowableValid() && transactionData.getThrowable().throwable.getMessage() != null) {
             return transactionData.getThrowable().throwable.getMessage();
-        } else if (tracedError != null && tracedError instanceof ThrowableError && ((ThrowableError) tracedError).getThrowable() != null) {
+        } else if (isTracedErrorInstanceOfThrowableError() && ((ThrowableError) tracedError).getThrowable() != null) {
             return ((ThrowableError) tracedError).getThrowable().getMessage();
         }
         return "";
@@ -57,10 +57,10 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public StackTraceElement[] getStackTraceElement() {
-        if (transactionData != null && transactionData.getThrowable() != null && transactionData.getThrowable().throwable != null) {
+        if (isTransactionDataThrowableValid() && transactionData.getThrowable().throwable != null) {
             return transactionData.getThrowable().throwable.getStackTrace();
 
-        } else if (tracedError != null && tracedError instanceof ThrowableError && ((ThrowableError) tracedError).getThrowable() != null) {
+        } else if (isTracedErrorInstanceOfThrowableError() && ((ThrowableError) tracedError).getThrowable() != null) {
             return ((ThrowableError) tracedError).getThrowable().getStackTrace();
 
         }
@@ -113,11 +113,19 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public boolean isErrorExpected() {
-        if (transactionData != null && transactionData.getThrowable() != null) {
+        if (isTransactionDataThrowableValid()) {
             return transactionData.getThrowable().expected;
         } else if (tracedError != null) {
             return tracedError.isExpected();
         }
         return false;
+    }
+
+    private boolean isTransactionDataThrowableValid() {
+        return (transactionData != null && transactionData.getThrowable() != null);
+    }
+
+    private boolean isTracedErrorInstanceOfThrowableError() {
+        return (tracedError != null && tracedError instanceof ThrowableError);
     }
 }
