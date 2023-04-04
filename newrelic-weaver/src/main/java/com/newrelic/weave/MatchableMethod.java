@@ -151,17 +151,19 @@ class MatchableMethod {
 
                     // unfortunately we need to allow weaving of concrete methods that only throw exceptions
                     // this requires us to examine the method body to check if there's a RETURN instruction
-                    boolean hasReturnInstruction = false;
-                    InsnList instructions = methodNode.instructions;
-                    int instructionsSize = instructions.size();
-                    for (int i = 0; i < instructionsSize; i++) {
-                        int opcode = instructions.get(i).getOpcode();
-                        if (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) {
-                            hasReturnInstruction = true;
-                            break;
-                        }
-                    }
-                    methodMap.put(key, new MatchableMethod(SUPERCLASS, methodNode, !hasReturnInstruction));
+//                    boolean hasReturnInstruction = false;
+//                    InsnList instructions = methodNode.instructions;
+//                    int instructionsSize = instructions.size();
+//                    for (int i = 0; i < instructionsSize; i++) {
+//                        int opcode = instructions.get(i).getOpcode();
+//                        if (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) {
+//                            hasReturnInstruction = true;
+//                            break;
+//                        }
+//                    }
+//                    methodMap.put(key, new MatchableMethod(SUPERCLASS, methodNode, !hasReturnInstruction));
+                    // Basically allowing concrete base methods weaving.
+                    methodMap.put(key, new MatchableMethod(SUPERCLASS, methodNode, true));
                 }
                 superName = superNode.superName;
             }
