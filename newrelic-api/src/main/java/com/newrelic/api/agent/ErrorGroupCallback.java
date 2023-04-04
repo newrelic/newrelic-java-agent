@@ -22,7 +22,7 @@ package com.newrelic.api.agent;
  * For example, this implementation of the generateGroupingString method will generate a key based on the error class
  * and the transaction name. If either one of those properties is empty, it will return null, which will prevent a
  * grouping key from being assigned. Note that all the methods in ErrorData will never return null, just empty Strings or
- * empty maps/arrays.
+ * empty maps/arrays, except {@link ErrorData#getException()}.
  * <pre>
  * {@code
  * public class MyErrorGrouper implements ErrorGroupCallback {

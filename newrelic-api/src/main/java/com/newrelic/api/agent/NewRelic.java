@@ -425,6 +425,7 @@ public final class NewRelic {
      * errorGroupCallback instance is null no grouping key will be generated.
      *
      * @param errorGroupCallback the ErrorGroupCallback used to generate grouping keys for errors
+     * @since 8.10.0
      */
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
 

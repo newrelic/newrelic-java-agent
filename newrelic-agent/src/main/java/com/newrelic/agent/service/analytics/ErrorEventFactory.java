@@ -34,9 +34,11 @@ import com.newrelic.api.agent.NewRelic;
 
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import static com.newrelic.agent.json.AttributeFilters.ERROR_EVENTS_ATTRIBUTE_FILTER;
 import static com.newrelic.agent.model.ErrorEvent.*;
@@ -170,7 +172,7 @@ public class ErrorEventFactory {
             }
         }
 
-        String groupId = invokeErrorGroupCallback(new ErrorDataImpl(transactionData, tracedError));
+        String groupId = invokeErrorGroupCallback(transactionData, tracedError);
         if (groupId != null && !"".equals(groupId)) {
             agentAttrs.put(ERROR_GROUP_NAME_ATTR, groupId);
         }
@@ -188,19 +190,21 @@ public class ErrorEventFactory {
         return userAttributes;
     }
 
-    private static String invokeErrorGroupCallback(ErrorData errorData) {
+    private static String invokeErrorGroupCallback(TransactionData transactionData, TracedError tracedError) {
         String groupId = null;
 
         try {
             if (ErrorGroupCallbackHolder.getErrorGroupCallback() != null) {
                 long start = System.currentTimeMillis();
-                groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(errorData);
+                groupId = ErrorGroupCallbackHolder.getErrorGroupCallback().generateGroupingString(new ErrorDataImpl(transactionData, tracedError));
                 long duration = System.currentTimeMillis() - start;
                 NewRelic.getAgent().getMetricAggregator().recordResponseTimeMetric(MetricNames.SUPPORTABILITY_ERROR_GROUPING_CALLBACK_EXECUTION_TIME, duration);
-                Agent.LOG.finest(MessageFormat.format("Customer errorGroupCallback generated groupId of [{0}] in {1}ms", groupId, duration));
+                NewRelic.getAgent().getLogger().log(Level.FINEST, "Customer errorGroupCallback generated groupId of [{0}] in {1}ms", groupId, duration);
             }
         } catch (Exception e) {
-            Agent.LOG.warning(MessageFormat.format("Customer errorGroupCallback implementation threw an exception: {0}", e.getMessage()));
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "Customer errorGroupCallback implementation threw an exception: {0}", e.getMessage());
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Customer errorGroupCallback implementation stacktrace {0}:",
+                    Arrays.toString(e.getStackTrace()).replace(",", "\n"));
         }
 
         return groupId;

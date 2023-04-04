@@ -604,7 +604,7 @@ public class NewRelicApiImplementation implements PublicApi {
 
     @Override
     public void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
-        ErrorGroupCallbackHolder.setErrorGroupCallback((errorGroupCallback));
+        ErrorGroupCallbackHolder.setErrorGroupCallback(errorGroupCallback);
     }
 
     private static void logException(String msg, Throwable t) {

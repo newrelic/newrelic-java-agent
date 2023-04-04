@@ -97,18 +97,17 @@ public class ErrorDataImpl implements ErrorData {
 
     @Override
     public String getRequestUri() {
-        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_URI).toString() : "";
-
+        return getAgentAttributeOrReturnEmptyString(AttributeNames.REQUEST_URI);
     }
 
     @Override
     public String getHttpStatusCode() {
-        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.HTTP_STATUS_CODE).toString() : "";
+        return getAgentAttributeOrReturnEmptyString(AttributeNames.HTTP_STATUS_CODE);
     }
 
     @Override
     public String getHttpMethod() {
-        return transactionData != null ? transactionData.getAgentAttributes().get(AttributeNames.REQUEST_METHOD_PARAMETER_NAME).toString() : "";
+        return getAgentAttributeOrReturnEmptyString(AttributeNames.REQUEST_METHOD_PARAMETER_NAME);
     }
 
     @Override
@@ -122,10 +121,19 @@ public class ErrorDataImpl implements ErrorData {
     }
 
     private boolean isTransactionDataThrowableValid() {
-        return (transactionData != null && transactionData.getThrowable() != null);
+        return transactionData != null && transactionData.getThrowable() != null;
     }
 
     private boolean isTracedErrorInstanceOfThrowableError() {
-        return (tracedError != null && tracedError instanceof ThrowableError);
+        return tracedError != null && tracedError instanceof ThrowableError;
+    }
+
+    private String getAgentAttributeOrReturnEmptyString(String key) {
+        Object value = null;
+        if (transactionData != null) {
+            value = transactionData.getAgentAttributes().get(key);
+        }
+
+        return value == null ? "" : value.toString();
     }
 }

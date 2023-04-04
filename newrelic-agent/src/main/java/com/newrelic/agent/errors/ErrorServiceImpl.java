@@ -38,8 +38,6 @@ import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
-import com.newrelic.api.agent.ErrorData;
-import com.newrelic.api.agent.NewRelic;
 
 import java.net.HttpURLConnection;
 import java.text.MessageFormat;

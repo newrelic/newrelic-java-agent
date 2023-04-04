@@ -12,7 +12,7 @@ import com.newrelic.api.agent.NewRelic;
 
 public class ErrorGroupCallbackHolder {
 
-    private static ErrorGroupCallback errorGroupCallback = null;
+    private static volatile ErrorGroupCallback errorGroupCallback = null;
 
     public static void setErrorGroupCallback(ErrorGroupCallback newErrorGroupCallback) {
         errorGroupCallback = newErrorGroupCallback;

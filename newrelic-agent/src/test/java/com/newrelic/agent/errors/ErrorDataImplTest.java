@@ -180,6 +180,33 @@ public class ErrorDataImplTest {
     }
 
     @Test
+    public void testGetRequestUri_transactionDataNotNull_requestUriKeyMissing() {
+        Map<String, Object> agentAttributes = new HashMap<>();
+        when(transactionData.getAgentAttributes()).thenReturn(agentAttributes);
+
+        errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
+        assertEquals("", errorDataImpl.getRequestUri());
+    }
+
+    @Test
+    public void testGetHttpStatusCode_transactionDataNotNull_statusCodeKeyMissing() {
+        Map<String, Object> agentAttributes = new HashMap<>();
+        when(transactionData.getAgentAttributes()).thenReturn(agentAttributes);
+
+        errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
+        assertEquals("", errorDataImpl.getHttpStatusCode());
+    }
+
+    @Test
+    public void testGetHttpMethod_transactionDataNotNull_httpMethodKeyMissing() {
+        Map<String, Object> agentAttributes = new HashMap<>();
+        when(transactionData.getAgentAttributes()).thenReturn(agentAttributes);
+
+        errorDataImpl = new ErrorDataImpl(transactionData, tracedError);
+        assertEquals("", errorDataImpl.getHttpMethod());
+    }
+
+    @Test
     public void testIsErrorExpected_tracedErrorNull() {
         errorDataImpl = new ErrorDataImpl(transactionData, null);
         assertFalse(errorDataImpl.isErrorExpected());
