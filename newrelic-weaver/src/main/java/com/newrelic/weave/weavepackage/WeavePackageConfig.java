@@ -7,21 +7,21 @@
 
 package com.newrelic.weave.weavepackage;
 
+import org.objectweb.asm.tree.ClassNode;
+
 import java.io.IOException;
-import java.lang.NumberFormatException;
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-
-import org.objectweb.asm.tree.ClassNode;
+import java.util.regex.Pattern;
 
 /**
  * Holds metadata and config options for a {@link WeavePackage}. Use {@link #builder()} to instantiate.
  */
-public class WeavePackageConfig {
+public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
+
     /**
      * Creates a WeavePackageConfig using the builder pattern.
      */
@@ -35,6 +35,7 @@ public class WeavePackageConfig {
         private float version = 1.0f;
         private String source = null;
         private boolean enabled = true;
+        private long priority = 0L;
         private boolean custom = false;
         private ClassNode errorHandleClassNode = ErrorTrapHandler.NO_ERROR_TRAP_HANDLER;
         private WeavePreprocessor preprocessor = WeavePreprocessor.NO_PREPROCESSOR;
@@ -94,7 +95,7 @@ public class WeavePackageConfig {
         }
 
         /**
-         * Set the of the weave package.
+         * Set the version of the weave package.
          * 
          * @param version the version of the weave package
          * @return builder with updated state
@@ -129,9 +130,32 @@ public class WeavePackageConfig {
         }
 
         /**
-         * Set whether or not the package is "custom".
+         * Sets the priority of this package. The higher the priority, the earlier it will be weaved.<br/>
+         * A package that is weaved later wraps any instrumentation that was weaved earlier.<br/>
+         * <pre>
+         *     Priority -10 {
+         *         Priority 0 {
+         *             Priority 10 {
+         *                 Original code
+         *             }
+         *         }
+         *     }
          *
-         * @param custom whether or not the package is "custom"
+         * </pre>
+         * The default priority (and the most common for the agent instrumentation) is 0.<br/>
+         * So to have your code be wrapped by the agent instrumentation, set a positive priority.
+         * @param priority the priority of the instrumentation package
+         * @return builder with updated state
+         */
+        public Builder priority(long priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        /**
+         * Set whether the package is "custom".
+         *
+         * @param custom whether the package is "custom"
          * @return builder with updated state
          */
         public Builder custom(boolean custom) {
@@ -249,7 +273,10 @@ public class WeavePackageConfig {
                 enabled = Boolean.parseBoolean(enabledS);
             }
 
-            return this.name(name).alias(alias).vendorId(vendorId).version(version).enabled(enabled);
+            String priorityS = mainAttributes.getValue("Priority");
+            long priority = priorityS == null ? 0 : Long.parseLong(priorityS);
+
+            return this.name(name).alias(alias).vendorId(vendorId).version(version).enabled(enabled).priority(priority);
         }
 
         /**
@@ -262,7 +289,7 @@ public class WeavePackageConfig {
             if (null == name) {
                 throw new RuntimeException("WeavePackageConfig must have an Implementation-Name");
             }
-            return new WeavePackageConfig(name, alias, vendorId, version, enabled, source, custom, instrumentation,
+            return new WeavePackageConfig(name, alias, vendorId, version, enabled, priority, source, custom, instrumentation,
                     errorHandleClassNode, preprocessor, postprocessor, extensionClassTemplate);
         }
     }
@@ -293,15 +320,17 @@ public class WeavePackageConfig {
     private final WeavePreprocessor preprocessor;
     private final WeavePostprocessor postprocessor;
     private final ClassNode extensionClassTemplate;
+    private final long priority;
 
     private WeavePackageConfig(String name, String alias, String vendorId, float version, boolean enabled,
-            String source, boolean custom, Instrumentation instrumentation, ClassNode errorTrapClassNode,
+            long priority, String source, boolean custom, Instrumentation instrumentation, ClassNode errorTrapClassNode,
             WeavePreprocessor preprocessor, WeavePostprocessor postprocessor, ClassNode extensionClassTemplate) {
         this.name = name;
         this.alias = alias;
         this.vendorId = vendorId;
         this.version = version;
         this.enabled = enabled;
+        this.priority = priority;
         this.source = source;
         this.custom = custom;
 
@@ -357,6 +386,13 @@ public class WeavePackageConfig {
     }
 
     /**
+     * The priority of this package.
+     */
+    public long getPriority() {
+        return priority;
+    }
+
+    /**
      * Whether or not the {@link WeavePackage} is "custom", i.e. loaded by the agent from the /extensions directory.
      */
     public boolean isCustom() {
@@ -403,6 +439,25 @@ public class WeavePackageConfig {
 
     @Override
     public String toString() {
-        return "WeavePackageConfig [name=" + name + ", version=" + version + ", enabled=" + enabled + "]";
+        return "WeavePackageConfig [name=" + name + ", version=" + version + ", enabled=" + enabled + ", priority=" + priority + "]";
+    }
+
+
+    @Override
+    public int compareTo(WeavePackageConfig that) {
+        // higher priority should come first
+        if (this.priority != that.priority) {
+            return (this.priority > that.priority ? -1 : 1);
+        }
+
+        if (this.name == null && that.name == null) {
+            return 0;
+        } else if (this.name == null) {
+            return -1;
+        } else if (that.name == null) {
+            return 1;
+        } else {
+            return this.name.compareTo(that.name);
+        }
     }
 }

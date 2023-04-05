@@ -1,0 +1,9 @@
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.order-three', 'Priority': 3 }
+}
+
