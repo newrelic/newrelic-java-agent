@@ -1,4 +1,8 @@
-^com/newrelic/(weave|agent/deps|agent/tracers|org/apache)/.*
+^com/newrelic/(weave|agent/deps|agent/tracers|org/apache|agent/security)/.*
+^com/nr/(instrumentation|agent)/security/.*
+^java/io/(BufferedOutputStream|ByteArrayOutputStream|DataOutputStream|FilterOutputStream|ObjectOutputStream|PipedOutputStream)
+^java/lang/(NullOutputStream|ProcessPipeOutputStream)
+^java/net/SocketOutputStream
 ^(org/objectweb/asm/|javax/xml/|org/apache/juli/)(.*)
 # Don't instrument agent threads
 ^com/newrelic/agent/.*AgentThread.*
