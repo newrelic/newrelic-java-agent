@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeValidator;
@@ -29,11 +28,9 @@ import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.util.TimeConversion;
-import com.newrelic.api.agent.ErrorData;
 import com.newrelic.api.agent.NewRelic;
 
 import java.nio.charset.StandardCharsets;
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -202,9 +199,11 @@ public class ErrorEventFactory {
                 NewRelic.getAgent().getLogger().log(Level.FINEST, "Customer errorGroupCallback generated groupId of [{0}] in {1}ms", groupId, duration);
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.WARNING, "Customer errorGroupCallback implementation threw an exception: {0}", e.getMessage());
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "Customer errorGroupCallback implementation stacktrace {0}:",
-                    Arrays.toString(e.getStackTrace()).replace(",", "\n"));
+            if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+                NewRelic.getAgent().getLogger().log(Level.FINEST, e, "Customer errorGroupCallback threw an exception.");
+            } else {
+                NewRelic.getAgent().getLogger().log(Level.WARNING, "Customer errorGroupCallback implementation threw an exception: {0}", e.getMessage());
+            }
         }
 
         return groupId;
