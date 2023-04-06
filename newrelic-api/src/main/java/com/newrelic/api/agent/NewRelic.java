@@ -427,4 +427,17 @@ public final class NewRelic {
     public static void setInstanceName(String instanceName) {
     }
 
+
+    /**
+     * Registers an {@link ErrorGroupCallback} that's used to generate a grouping key for the supplied
+     * error. This key will be used to group similar error messages on the Errors Inbox UI. If the
+     * errorGroupCallback instance is null no grouping key will be generated.
+     *
+     * @param errorGroupCallback the ErrorGroupCallback used to generate grouping keys for errors
+     * @since 8.10.0
+     */
+    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
+
+    }
+
 }

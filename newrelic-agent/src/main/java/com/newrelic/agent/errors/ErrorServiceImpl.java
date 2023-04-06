@@ -330,6 +330,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         DistributedSamplingPriorityQueue<ErrorEvent> eventList = getReservoir(appName);
 
         ErrorEvent errorEvent = createErrorEvent(appName, error, transactionData, transactionStats);
+
         eventList.add(errorEvent);
 
         if (errorCount.get() >= ERROR_LIMIT_PER_REPORTING_PERIOD) {
@@ -677,6 +678,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .statusCodeAndMessage(statusCode, message)
                     .requestUri(uri)
                     .build();
+
             reportError(error);
             Agent.LOG.finer(MessageFormat.format("Reported HTTP error {0} with status code {1} URI {2}", message, statusCode, uri));
         } else {
