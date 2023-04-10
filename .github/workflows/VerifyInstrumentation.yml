@@ -3,7 +3,14 @@ name: Verify Instrumentation
 on:
   workflow_dispatch:
     inputs:
-      ref:
+      agent-ref:
+        required: true
+        default: main
+        type: string
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+  workflow_call:
+    inputs:
+      agent-ref:
         required: true
         default: main
         type: string
@@ -17,7 +24,7 @@ jobs:
     name: Build agent
     uses: ./.github/workflows/X-Reusable-BuildAgent.yml
     with:
-      ref: ${{ inputs.ref || 'main' }}
+      ref: ${{ inputs.agent-ref || 'main' }}
     secrets: inherit
 
   # GHA Matrix strategy only allows 255 entries.
@@ -31,7 +38,7 @@ jobs:
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
       page: 1/2
-      ref: ${{ github.event.inputs.ref || 'main' }}
+      ref: ${{ inputs.agent-ref || 'main' }}
     secrets: inherit
 
   verify-instrumentation-2:
@@ -40,7 +47,7 @@ jobs:
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
       page: 2/2
-      ref: ${{ github.event.inputs.ref || 'main' }}
+      ref: ${{ inputs.agent-ref || 'main' }}
     secrets: inherit
     
   notify-failure:
