@@ -14,66 +14,11 @@ on:
 jobs:
   # build the agent and saves Gradle's cache so all modules can use the cache
   build-agent:
-    runs-on: ubuntu-20.04
-    env:
-      # we use this in env var for conditionals (secrets can't be used in conditionals)
-      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.ref }}
-
-      - name: Set up Javas
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: |
-            11
-            8
-
-      # Rewrite gradle.properties
-      - name: set gradle.properties
-        run: |
-          sed -i -e "s|jdk8=8|jdk8=${JAVA_HOME_8_x64}|
-          s|jdk11=11|jdk11=${JAVA_HOME_11_x64}|" gradle.properties.gha
-          mv gradle.properties.gha gradle.properties
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-
-      - name: Setup Gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_11_x64" >> $GITHUB_ENV
-
-      ## AWS jars - plan to cache
-      - name: Configure AWS Credentials
-        if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: Download S3 instrumentation jar zip
-        if: ${{ env.AWS_KEY != '' }}
-        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip  ## Updated 2022
-
-      - name: Unzip the instrumentation jars
-        if: ${{ env.AWS_KEY != '' }}
-        run: unzip proprietary-jars.zip
-
-      - name: Log jars are in target libs
-        if: ${{ env.AWS_KEY != '' }}
-        run: find instrumentation -name "*.jar"
-      ## End AWS jars - plan to cache (check for cache, restore if required)
-
-      - name: Build agent
-        run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
-
-      - name: Cache agent
-        uses: actions/cache@v3
-        with:
-          path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
-          key: ${{ github.run_id }}
+    name: Build agent
+    uses: ./.github/workflows/X-Reusable-BuildAgent.yml
+    with:
+      ref: ${{ inputs.ref || 'main' }}
+    secrets: inherit
 
   # GHA Matrix strategy only allows 255 entries.
   # So 2 pages should be good until we have around 500 instrumentation modules
