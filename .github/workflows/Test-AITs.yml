@@ -1,64 +1,127 @@
-name: AITs - R2DBC
+name: Test - AITs
 
 on:
-  pull_request:
-    branches: [ main ] ## branches TBD
-    types: [opened, synchronize, reopened] ## Types TBD
-  push:
-    branches: [ main ]
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: "Specify branch (main is default)"
+      agent-ref:
+        description: "Specify agent branch/tag/sha (main is default)"
         required: false
         default: 'main'
+      ait-ref:
+        description: "Specify AIT branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+      cache-ref:
+        description: "Specify cache branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: "Specify agent branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+        type: string
+      ait-ref:
+        description: "Specify AIT branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+        type: string
+      cache-ref:
+        description: "Specify cache branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
+  build-agent:
+    uses: ./.github/workflows/X-Reusable-BuildAgent.yml
+    with:
+      # inputs.agent-ref is for workflow dispatch/call, github.ref for PR or push, main if all else fail
+      ref: ${{ inputs.agent-ref || github.ref || 'main' }}
+    secrets: inherit
+
+  list-tests:
+    name: List tests
+    runs-on: ubuntu-20.04
+    outputs:
+      tests: ${{ steps.read-tests.outputs.tests }}
+    steps:
+      - name: Checkout AIT repo test
+        uses: actions/checkout@v3
+        with:
+          repository: newrelic/java-agent-integration-tests
+          ref: ${{ inputs.ait-ref || 'main' }}
+          token: ${{ secrets.AITPAT }}
+          path: agent-integration-tests
+
+      - id: read-tests
+        name: List instrumentation tests
+        run: |
+          excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
+          echo "datastore/datastores.py" >> $excluded_tests
+          echo "framework/play/play2.py" >> $excluded_tests
+          echo "framework/snap/snap.py" >> $excluded_tests
+          echo "framework/spring/spring_webflux.py" >> $excluded_tests
+          echo "r2dbc/mssql.py" >> $excluded_tests
+          echo "security/hsm_record_sql.py" >> $excluded_tests
+          echo "security/lasp_datastore.py" >> $excluded_tests
+          echo "server/mule.py" >> $excluded_tests
+          echo "server/was_liberty.py" >> $excluded_tests
+          echo "server/weblogic.py" >> $excluded_tests
+          echo "trace/client.py" >> $excluded_tests
+          echo "trace/server.py" >> $excluded_tests
+          echo "trace/trace_base.py" >> $excluded_tests
+          echo "trace/tracecontext/__init__.py" >> $excluded_tests
+          echo "trace/tracecontext/traceparent.py" >> $excluded_tests
+          echo "trace/tracecontext/tracestate.py" >> $excluded_tests
+          cd agent-integration-tests/tests/java/functionality
+          tmpfile=$(mktemp /tmp/dirs.XXXXXXXXXX)
+          # list the tests
+          find . -iname "*.py" | cut -d'/' -f 2- | grep -v -x -f $excluded_tests | sort > $tmpfile
+          # checking if there is at least one test, xargs trims the output
+          TEST_COUNT=$(cat $tmpfile | wc -l | xargs)
+          if [[ "$TEST_COUNT" == "0" ]];
+          then
+            echo ":x: Failure: no test was found. There is probably something wrong with the script." >>$GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          # converting the simple test list to a JSON array
+          FILES=$(cat $tmpfile | jq -R -s -c 'split("\n")[:-1]')
+          # creates an envar with the ait files in a JSON format
+          TESTS=$((
+            echo '{ "tests" : '
+            echo $FILES
+            echo " }"
+          ) | jq -c .)
+          # save the output of the job
+          echo "tests=$TESTS" >> $GITHUB_OUTPUT
+
   tests:
-    name: R2DBC
-    # needs: install-all-java
+    name: ${{ matrix.tests }}
+    needs: [build-agent, list-tests]
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     # Determine if easier to make the env strings below part of the matrix
-    env:
-      java_func_path: "tests/java/functionality"
-      java_func_type: "r2dbc"
-      default-branch: "main"
     strategy:
-      ##max-parallel: 1 ## used to force sequential
       fail-fast: false
-      matrix:
-        func_tests:
-          - mariadb.py
-          - oracle.py
-          - postgres.py
-          - mysql.py
-#         - mssql.py
-          - h2.py
+      matrix: ${{ fromJson(needs.list-tests.outputs.tests) }}
     steps:
-      - uses: actions/checkout@v3
-
       ## Ongoing tests with artifactory dependencies
       - name: Checkout AIT repo test
         uses: actions/checkout@v3
         with:
           repository: newrelic/java-agent-integration-tests
-          ref: main
+          ref: ${{ inputs.ait-ref }}
           token: ${{ secrets.AITPAT }}
           path: agent-integration-tests
 
-      # Print Environmental variables
-      - name: Print Environmental variables
-        run: |
-          printenv | sort -f
-
-      # Apps repos/caches - this prpcess could be a candidate for custom action
+      # Apps repos/caches - this process could be a candidate for custom action
       - name: Checkout Cache 1
         uses: actions/checkout@v3
         with:
           repository: newrelic/java-ait-cache-1
-          ref: main
+          ref: ${{ inputs.cache-ref || 'main' }}
           token: ${{ secrets.AITPAT }}
           path: appcache1
           lfs: true
@@ -67,7 +130,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: newrelic/java-ait-cache-2
-          ref: main
+          ref: ${{ inputs.cache-ref || 'main' }}
           token: ${{ secrets.AITPAT }}
           path: appcache2
           lfs: true
@@ -76,7 +139,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: newrelic/java-ait-cache-3
-          ref: main
+          ref: ${{ inputs.cache-ref || 'main' }}
           token: ${{ secrets.AITPAT }}
           path: appcache3
           lfs: true
@@ -85,7 +148,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: newrelic/java-ait-cache-4
-          ref: main
+          ref: ${{ inputs.cache-ref || 'main' }}
           token: ${{ secrets.AITPAT }}
           path: appcache4
           lfs: true
@@ -93,15 +156,12 @@ jobs:
       # Consolidate caches into one directory
       - name: Consolidate caches into Apps directory
         run: |
-          ls -la
           mkdir apps
           mv appcache1/* apps/
           mv appcache2/* apps/
           mv appcache3/* apps/
           mv appcache4/* apps/
           cd apps
-          ls -la
-          ls -la java_test_webapp-master/
           cd ../
 
       ## JDK Installs
@@ -218,49 +278,24 @@ jobs:
 
       ## End JDK Install
 
-      # Check ENV variables
-      - name: Check environmental variables
-        run: printenv | sort -f
-
-      # End Java restore section
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-
       ## TESTING SECTION
-
-      - name: Check new Java home path
-        run: |
-          echo "Current JAVA_HOME is ${JAVA_HOME}"
-          # ls -la {ORG_GRADLE_PROJECT_jdk8}
-
 
       # Replication of steps from ait README
 
-      # Is newrelicJar present in newrelic-agent/build
-      # TO DO: Below version number has to be dynamic
-      - name: Build newrelicJar
-        if: ${{ failure() || success() }}
-        run: |
-          echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
-          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
-          ls -la
-          ./gradlew $GRADLE_OPTIONS clean jar --parallel
-          ls -la newrelic-agent/build/
-
-      - name: Check disk space
-        run: |
-          df -h
-          du -a ${GITHUB_WORKSPACE} | sort -n -r | head -n 10
+      - name: Retrieve agent from cache
+        id: retrieve-agent
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          key: ${{ github.run_id }}
 
       - name: CD to agent-integration-tests dir.
         run: |
           cd agent-integration-tests/
-          ls -la
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
-      - name: Create virtualenv and run AITs - ${{ matrix.func_tests}}
+      - name: Create virtualenv and run ${{ matrix.tests }}
         if: ${{ failure() || success() }}
         run: |
           cd agent-integration-tests
@@ -268,70 +303,38 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/apps /home/runner/apps
           ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
           echo "still complains of file not found"
-          ls -la ${GITHUB_WORKSPACE}
           sudo apt-get install virtualenv
           virtualenv -p /usr/bin/python3.8 .
-          echo "What version of maven are we using?"
-          mvn --version
-          echo "are the files created?"
-          ls -la bin/
-          echo "checking conf"
-          ls -la conf/
-          echo "runnig bin/activate"
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
-          echo "run autoconfigure"
           JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
           ZULU=${ORG_GRADLE_PROJECT_zulu} \
           JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
           JAVA19JRE=${ORG_GRADLE_PROJECT_jdk19} \
           conf/autoconfigure
-          echo "running conf/testenv java"
           . conf/testenv java
-          echo "check local java config"
           cat conf/java_local_config.yml
-          echo "Changing java_agent_dev_root values"
           sed -i 's|java_agent_dev_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent|java_agent_dev_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar|' conf/java_local_config.yml
           sed -i 's|app_root: /home/runner/apps|app_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/apps|' conf/java_local_config.yml
-          echo "verifying values have been changed"
-          cat conf/java_local_config.yml
-          echo "shell variables:"
-          set | sort -f
-          echo "GENERATE ARTIFACTS"
           ## artifacts section for testing
           mkdir testing-artifacts
-          echo "was the dir created?"
-          ls -la
           touch testing-artifacts/shell-variables.txt
           touch testing-artifacts/env-variables.txt
           set | sort -f > testing-artifacts/shell-variables.txt
           printenv | sort -f > testing-artifacts/env-variables.txt
           cp conf/java_local_config.yml testing-artifacts/
-          echo "check the contents of testing-artifacts"
-          ls -la testing-artifacts/
-          echo "are we still in agent-integration-tests?"
-          pwd
           ## End testing artifacts section
-          echo "Check the current value of JAVA_HOME"
-          echo "The current JAVA_HOME is ${JAVA_HOME}"
-          echo "RUN THE TESTS"
-          echo "Running ${{ matrix.func_basic_features }}"
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
-          ./bin/runtest.sh ${java_func_path}/${java_func_type}/${{ matrix.func_tests }}
-
+          ./bin/runtest.sh tests/java/functionality/${{ matrix.tests }}
 
       # Rename matrix item to remove problem characers
       - name: Rename Matrix item
-        if: ${{ failure() || success() }}
-        env:
-          MATRIX: ${{ matrix.func_tests}}
         run: |
-          MATRIX_ITEM=$(echo ${MATRIX} | sed 's|/|-|g')
+          MATRIX_ITEM=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
           echo "MATRIX="${MATRIX_ITEM}"" >> $GITHUB_ENV
 
-      # Capture Testing Artifacts
       - name: Capture testing artifacts
         if: ${{ failure() || success() }}
         uses: actions/upload-artifact@v3
@@ -339,8 +342,3 @@ jobs:
           name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
           path: |
             agent-integration-tests/testing-artifacts/*
-
-      # Print Environmental variables
-      - name: Print Environmental variables (verify activate has been sourced)
-        run: |
-          printenv |  sort -f

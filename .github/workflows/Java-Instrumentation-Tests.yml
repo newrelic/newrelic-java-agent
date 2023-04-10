@@ -1,33 +1,37 @@
 name: Java Instrumentation Tests
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: "Specify branch (main is default)"
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
         required: false
         default: 'main'
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+        required: false
+        default: 'main'
+        type: string
 jobs:
   tests:
     strategy:
       fail-fast: false
       matrix:
         jre: [8, 11, 17, 19]
-    name: Java ${{ matrix.jre }} Instrumentation Tests
+    name: Java ${{ matrix.jre }}
     timeout-minutes: 120
     # needs: install-all-java
     runs-on: ubuntu-20.04
     env:
-      default-branch: "main"
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       # Install 8
       - name: Set up Java 8

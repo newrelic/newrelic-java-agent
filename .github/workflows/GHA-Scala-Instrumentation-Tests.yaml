@@ -1,26 +1,27 @@
 name: Scala Instrumentation Tests
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches: [main]
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: "Specify branch (main is default)"
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
         required: false
         default: 'main'
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
   scala-instrumentation-tests:
-    name: Scala ${{ matrix.scala }} on Java ${{ matrix.java-version }} Instrumentation Tests
+    name: Scala ${{ matrix.scala }} on Java ${{ matrix.java-version }}
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     env:
-      default-branch: "main"
       # we use this in env var for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
     strategy:
@@ -36,6 +37,8 @@ jobs:
             scala: 2.11
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Set up Java 8
         # https://github.com/actions/setup-java
