@@ -84,7 +84,7 @@ jobs:
     needs: build-agent
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
-      page: 10/20
+      page: 8/20
       ref: ${{ github.event.inputs.ref || 'main' }}
     secrets: inherit
 
@@ -93,7 +93,7 @@ jobs:
     needs: build-agent
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
-      page: 11/20
+      page: 9/20
       ref: ${{ github.event.inputs.ref || 'main' }}
     secrets: inherit
     
