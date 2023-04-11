@@ -96,3 +96,15 @@ jobs:
       page: 11/20
       ref: ${{ github.event.inputs.ref || 'main' }}
     secrets: inherit
+    
+  notify-slack:
+    needs: [verify-instrumentation-1, verify-instrumentation-2]
+    if: ${{ failure() }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Send GitHub Action trigger data to Slack workflow
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
