@@ -204,7 +204,9 @@ public class AgentConfigFactory {
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
         addServerProp(DistributedTracingConfig.ACCOUNT_ID, serverData.get(DistributedTracingConfig.ACCOUNT_ID), settings);
         addServerProp("agent_home", ConfigFileHelper.getNewRelicDirectory().getAbsolutePath(), settings);
-        addServerProp("agent_jar_location", AgentJarHelper.getAgentJarDirectory(), settings);
+        if(AgentJarHelper.getAgentJarDirectory() != null) {
+            addServerProp("agent_jar_location", AgentJarHelper.getAgentJarDirectory().getAbsolutePath(), settings);
+        }
         if (settingsConfig.getProperty(SECURITY_POLICIES_TOKEN) != null) {
             addServerProp(RECORD_SQL, recordSqlSecure, settings);
             // Root
