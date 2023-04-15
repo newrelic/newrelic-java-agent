@@ -144,7 +144,8 @@ jobs:
         id: run_tests_1
         continue-on-error: true
         env:
-          JAVA_HOME: ${{ env['ORG_GRADLE_PROJECT_jdk' + matrix.jre] }}
+
+          JAVA_HOME: ${{ format('ORG_GRADLE_PROJECT_jdk{0}', matrix.jre) }}
         run: |
           ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
@@ -153,14 +154,14 @@ jobs:
         continue-on-error: true
         if: steps.run_tests_1.outcome == 'failure'
         env:
-          JAVA_HOME: ${{ env['ORG_GRADLE_PROJECT_jdk' + matrix.jre] }}
+          JAVA_HOME: ${{ format('ORG_GRADLE_PROJECT_jdk{0}', matrix.jre) }}
         run: |
           ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 3)
         if: steps.run_tests_2.outcome == 'failure'
         env:
-          JAVA_HOME: ${{ env['ORG_GRADLE_PROJECT_jdk' + matrix.jre] }}
+          JAVA_HOME: ${{ format('ORG_GRADLE_PROJECT_jdk{0}', matrix.jre) }}
         run: |
           ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
