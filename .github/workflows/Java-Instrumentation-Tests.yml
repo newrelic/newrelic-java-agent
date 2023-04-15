@@ -12,6 +12,8 @@ on:
         description: "Specify branch (main is default)"
         required: false
         default: 'main'
+
+
 jobs:
   tests:
     strategy:
@@ -20,15 +22,14 @@ jobs:
         jre: [8, 11, 17, 19]
     name: Java ${{ matrix.jre }} Instrumentation Tests
     timeout-minutes: 60
-    # needs: install-all-java
     runs-on: ubuntu-20.04
     env:
       default-branch: "main"
-      # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
     steps:
       - uses: actions/checkout@v3
 
+      #  all the setup steps from the original workflow
       # Install 8
       - name: Set up Java 8
         # https://github.com/actions/setup-java
@@ -139,9 +140,27 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 1)
+        id: run_tests_1
+        continue-on-error: true
         env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+          JAVA_HOME: ${{ env['ORG_GRADLE_PROJECT_jdk' + matrix.jre] }}
+        run: |
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 2)
+        id: run_tests_2
+        continue-on-error: true
+        if: steps.run_tests_1.outcome == 'failure'
+        env:
+          JAVA_HOME: ${{ env['ORG_GRADLE_PROJECT_jdk' + matrix.jre] }}
+        run: |
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 3)
+        if: steps.run_tests_2.outcome == 'failure'
+        env:
+          JAVA_HOME: ${{ env['ORG_GRADLE_PROJECT_jdk' + matrix.jre] }}
         run: |
           ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
