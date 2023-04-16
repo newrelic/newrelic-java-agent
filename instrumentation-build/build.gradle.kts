@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("com.github.johnrengelman.shadow")
+    id("com.github.johnrengelman.shadow") apply false
     id("org.gradle.test-retry") version "1.3.1"
 }
 
