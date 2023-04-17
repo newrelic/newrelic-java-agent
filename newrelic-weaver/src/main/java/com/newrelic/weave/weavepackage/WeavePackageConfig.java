@@ -457,7 +457,8 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         } else if (that.name == null) {
             return 1;
         } else {
-            return this.name.compareTo(that.name);
+            // reverse sorting for name
+            return that.name.compareTo(this.name);
         }
     }
 }
