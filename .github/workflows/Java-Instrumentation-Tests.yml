@@ -143,7 +143,6 @@ jobs:
         id: run_tests_1
         continue-on-error: true
         env:
-
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           timeout 35m ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
