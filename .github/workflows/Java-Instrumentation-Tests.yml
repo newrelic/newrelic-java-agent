@@ -19,7 +19,7 @@ jobs:
       matrix:
         jre: [8, 11, 17, 19]
     name: Java ${{ matrix.jre }} Instrumentation Tests
-    timeout-minutes: 60
+    timeout-minutes: 120
     # needs: install-all-java
     runs-on: ubuntu-20.04
     env:
@@ -146,7 +146,7 @@ jobs:
 
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+          timeout 35m ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 2)
         id: run_tests_2
@@ -155,14 +155,14 @@ jobs:
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+          timeout 35m ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 3)
         if: steps.run_tests_2.outcome == 'failure'
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+          timeout 35m ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
