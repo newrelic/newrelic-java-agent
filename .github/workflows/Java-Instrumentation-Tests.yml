@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jre: [8, 11, 17, 19]
+        jre: [8, 11, 17, 20]
     name: Java ${{ matrix.jre }} Instrumentation Tests
     timeout-minutes: 60
     # needs: install-all-java
@@ -70,17 +70,17 @@ jobs:
           echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
 
       # Install latest non-LTS Java version (we should only ever test one non-LTS version to keep test times reasonable)
-      - name: Set up Java 19
+      - name: Set up Java 20
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 19
+          java-version: 20
 
       # Save new JDK variable
-      - name: Save JAVA_HOME as JDK19 for later usage
+      - name: Save JAVA_HOME as JDK20 for later usage
         run: |
           echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk19=$JAVA_HOME" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk20=$JAVA_HOME" >> $GITHUB_ENV
 
       # Needed for toolchains and GHA.
       - name: setup gradle options
@@ -134,7 +134,7 @@ jobs:
           sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
           s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
           s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|
-          s|jdk19=19|jdk19=${ORG_GRADLE_PROJECT_jdk19}|" gradle.properties.gha
+          s|jdk20=20|jdk20=${ORG_GRADLE_PROJECT_jdk20}|" gradle.properties.gha
           cat gradle.properties.gha
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
