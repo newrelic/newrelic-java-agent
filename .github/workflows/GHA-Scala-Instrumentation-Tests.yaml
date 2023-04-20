@@ -90,7 +90,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Build newrelicJar w/o GE
+      - name: Build newrelicJar
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
@@ -111,30 +111,26 @@ jobs:
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 1)
         id: run_tests_1
         continue-on-error: true
+        timeout-minutes: 25
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
-        timeout-minutes: 25
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 2)
         id: run_tests_2
         if: steps.run_tests_1.outcome == 'failure'
         continue-on-error: true
+        timeout-minutes: 25
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          sleep 60
-          ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
-        timeout-minutes: 25
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 3)
         if: steps.run_tests_2.outcome == 'failure'
+        timeout-minutes: 25
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          sleep 60
-          ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
-        timeout-minutes: 25
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
 
       - name: Capture build reports
         if: ${{ failure() }}
