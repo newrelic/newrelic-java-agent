@@ -12,14 +12,14 @@ import com.newrelic.agent.bridge.PublicApi;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.test.marker.Java11IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
-import com.newrelic.test.marker.Java19IncompatibleTest;
+import com.newrelic.test.marker.Java20IncompatibleTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 import javax.activation.MimeType;
 
-@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java19IncompatibleTest.class })
+@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java20IncompatibleTest.class })
 public class CustomExtensionTestAddition {
 
     @Test
