@@ -205,15 +205,15 @@ jobs:
           echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install latest non-LTS Java version (we should only ever test one non-LTS version to keep test times reasonable)
-      - name: Set up Java 19
+      - name: Set up Java 20
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 19
+          java-version: 20
 
-      - name: Save JAVA_HOME as JDK19 for later usage
+      - name: Save JAVA_HOME as JDK20 for later usage
         run: |
-          echo "ORG_GRADLE_PROJECT_jdk19=${JAVA_HOME}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_jdk20=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install 8, last to set JAVA_HOME to 8
       - name: Set up Java 8
@@ -313,7 +313,7 @@ jobs:
           JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
           ZULU=${ORG_GRADLE_PROJECT_zulu} \
           JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
-          JAVA19JRE=${ORG_GRADLE_PROJECT_jdk19} \
+          JAVA20JRE=${ORG_GRADLE_PROJECT_jdk20}
           conf/autoconfigure
           . conf/testenv java
           cat conf/java_local_config.yml
