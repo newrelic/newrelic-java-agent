@@ -1,22 +1,25 @@
 name: Java Functional Tests
 
 on:
-  pull_request:
-    branches: [ main ] ## branches TBD
-    types: [opened, synchronize, reopened, ready_for_review] ## Types TBD
-  push:
-    branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: "Specify branch (main is default)"
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
         required: false
         default: 'main'
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
   java-functional-tests:
-    name: Java ${{ matrix.java-version }} Functional Tests
+    name: Java ${{ matrix.java-version }}
     timeout-minutes: 150
     runs-on: ubuntu-20.04
     env:
@@ -28,6 +31,8 @@ jobs:
         java-version: [ 8, 11, 17, 19 ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
       #- uses: gradle/wrapper-validation-action@v1.0.4
 
       - name: Set up Java 8

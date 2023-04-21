@@ -1,0 +1,59 @@
+name: Test Suite - PR
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      agent-ref:
+        description: "Specify agent branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+      ait-ref:
+        description: "Specify AIT branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+      cache-ref:
+        description: "Specify cache branch/tag/sha (main is default)"
+        required: false
+        default: 'main'
+
+jobs:
+  aits:
+    uses: ./.github/workflows/Test-AITs.yml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+      ait-ref: ${{ inputs.ait-ref || 'main' }}
+      cache-ref: ${{ inputs.cache-ref || 'main' }}
+    secrets: inherit
+
+  functional-tests:
+    uses: ./.github/workflows/GHA-Functional-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  functional-tests-scala:
+    uses: ./.github/workflows/GHA-Scala-Functional-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  instrumentation-tests:
+    uses: ./.github/workflows/Java-Instrumentation-Tests.yml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  instrumentation-tests-scala:
+    uses: ./.github/workflows/GHA-Scala-Instrumentation-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  unit-tests:
+    uses: ./.github/workflows/GHA-Unit-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
