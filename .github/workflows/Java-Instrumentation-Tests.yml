@@ -143,29 +143,32 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 1)
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 1)
         id: run_tests_1
         continue-on-error: true
+        timeout-minutes: 35
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          timeout 35m ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 2)
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 2)
         id: run_tests_2
         continue-on-error: true
+        timeout-minutes: 35
         if: steps.run_tests_1.outcome == 'failure'
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          timeout 35m ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE (attempt 3)
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 3)
+        timeout-minutes: 35
         if: steps.run_tests_2.outcome == 'failure'
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          timeout 35m ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports

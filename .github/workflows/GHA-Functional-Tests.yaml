@@ -109,22 +109,26 @@ jobs:
 
       - name: Run functional tests on ${{ matrix.java-version }} (attempt 1)
         timeout-minutes: 50
+        id: run_tests_1
+        continue-on-error: true
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue
 
       - name: Run functional tests on ${{ matrix.java-version }} (attempt 2)
-        if: steps.run_tests_1.outcome == 'failure'
+        id: run_tests_2
+        continue-on-error: true
         timeout-minutes: 50
+        if: steps.run_tests_1.outcome == 'failure'
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue
 
       - name: Run functional tests on ${{ matrix.java-version }} (attempt 3)
-        if: steps.run_tests_2.outcome == 'failure'
         timeout-minutes: 50
+        if: steps.run_tests_2.outcome == 'failure'
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
