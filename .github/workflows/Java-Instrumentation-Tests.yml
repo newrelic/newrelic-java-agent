@@ -121,7 +121,7 @@ jobs:
 
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
-      - name: Build newrelicJar w/o GE
+      - name: Build newrelicJar
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |

@@ -108,9 +108,9 @@ jobs:
           ls -la newrelic-agent/build/
 
       - name: Run functional tests on ${{ matrix.java-version }} (attempt 1)
-        timeout-minutes: 50
         id: run_tests_1
         continue-on-error: true
+        timeout-minutes: 50
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
