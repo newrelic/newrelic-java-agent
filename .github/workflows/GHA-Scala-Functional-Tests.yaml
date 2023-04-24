@@ -21,9 +21,6 @@ jobs:
     name: Java ${{ matrix.java-version }}
     timeout-minutes: 120
     runs-on: ubuntu-20.04
-    env:
-      # we use this in env var for conditionals (secrets can't be used in conditionals)
-      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
@@ -72,25 +69,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build newrelicJar
-        if: ${{ env.GRADLE_KEY != '' }}
-        env:
-          CI: GHA
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          GRADLE_CACHE_USER: gha
-          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
-          JRE: jre${{ matrix.java-version }}
-          LANGUAGE: scala
-          TEST_TYPE: functional
-        run: |
-          # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
-          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
-          ls -la
-          ./gradlew clean jar --parallel
-          ls -la newrelic-agent/build/
-
-      - name: Build newrelicJar w/o GE
-        if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
@@ -100,23 +78,30 @@ jobs:
           ./gradlew clean jar --parallel
           ls -la newrelic-agent/build/
 
-      - name: Run functional tests against version defined in matrix
-        if: ${{ env.GRADLE_KEY != '' }}
+      - name: Run functional tests against version defined in ${{ matrix.java-version }} (attempt 1)
+        id: run_tests_1
+        continue-on-error: true
+        timeout-minutes: 25
         env:
-          CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          GRADLE_CACHE_USER: gha
-          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
-          JRE: jre${{ matrix.java-version }}
-          LANGUAGE: scala
-          TEST_TYPE: functional
         run: |
           # Removed ":newrelic-cats-effect3-api:test" temporarily
-          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue --scan -Dscan.uploadInBackground=false --build-cache
+          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
 
-      - name: Run functional tests against version defined in matrix w/o GE
-        if: ${{ env.GRADLE_KEY == '' }}
+      - name: Run functional tests against version defined in ${{ matrix.java-version }} (attempt 2)
+        id: run_tests_2
+        continue-on-error: true
+        if: steps.run_tests_1.outcome == 'failure'
+        timeout-minutes: 25
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          # Removed ":newrelic-cats-effect3-api:test" temporarily
+          ./gradlew --console=plain --parallel :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
+
+      - name: Run functional tests against version defined in ${{ matrix.java-version }} (attempt 3)
+        if: steps.run_tests_2.outcome == 'failure'
+        timeout-minutes: 25
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
