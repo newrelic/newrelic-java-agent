@@ -10,6 +10,8 @@ plugins {
     id("java-library")
     id("maven-publish")
     id("signing")
+    id("jacoco")
+
 }
 
 repositories {
@@ -326,8 +328,16 @@ test {
     } else {
         jvmArgs "-Dnewrelic.config.file=${projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml"
     }
+
+    finalizedBy jacocoTestReport // Run the code coverage report after tests
 }
 
+jacocoTestReport {
+    reports {
+        xml.enabled true // Enable XML report
+        html.enabled true // Enable HTML report
+    }
+}
 
 task testJar(type: Jar, dependsOn: testClasses) {
     getArchiveBaseName().set("test-${project.archivesBaseName}")
