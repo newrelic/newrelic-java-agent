@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```
 common:
   class_transformer:
-    com.newrelic.instrumentation.kafka-streams-spans:
+    kafka-streams-spans:
       enabled: true
 ```
 
