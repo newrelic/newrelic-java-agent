@@ -3,7 +3,7 @@ Spring Webflux Instrumentation
 
 This instrumentation assumes that Spring Webflux usage primarily centered 
 around maintaining non-blocking flow from the beginning of a request to
-the response rendering completion.  If blocking calls occur during the request
+the response rendering completion. If blocking calls occur during the request
 handling, it is possible that the agent will lose transaction context and 
 transaction naming will not be able to work as intended.  
 
@@ -19,9 +19,9 @@ public Mono<String> submit(@RequestBody String body) {
 }
 ```
 
-When the `@RequestBody` is past as a parameter in this manner, the transaction
-naming might show up as `NettyDispatcher`.  If so, simply wrap the 
-`RequestBody` parameter in a `Mono` as shown:
+When the `@RequestBody` is passed as a parameter in this manner, the
+transaction naming might show up as `NettyDispatcher`. If so, simply wrap 
+the `RequestBody` parameter in a `Mono` as shown:
 
 ```java
 @PostMapping("/some/path")

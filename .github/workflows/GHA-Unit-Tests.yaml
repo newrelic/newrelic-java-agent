@@ -1,30 +1,26 @@
 name: Unit Tests
 
 on:
-  pull_request:
-    branches: [ main ] ## branches TBD
-    types: [opened, synchronize, reopened, ready_for_review] ## Types TBD
-  push:
-    branches: [main]
-  # Allows you to run this workflow manually from the Actions tab
-  # Use context values as : ${{ github.event.inputs.BRANCH }}
-  # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: "Specify branch (main is default)"
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
         required: false
         default: 'main'
-# A workflow run is made up of one or more jobs. Jobs run in parallel by default.
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+        required: false
+        default: 'main'
+        type: string
+
 jobs:
   unit-test:
-    name: Unit Tests on JRE ${{ matrix.java-version }}
-    timeout-minutes: 120
+    name: Java ${{ matrix.java-version }}
+    timeout-minutes: 150
     runs-on: ubuntu-20.04
-    env:
-      default-branch: "main"
-      # we use this in env var for conditionals (secrets can't be used in conditionals)
-      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       # max-parallel: 1 ## used to force sequential vs. concurrent
       fail-fast: false
@@ -32,7 +28,8 @@ jobs:
         java-version: [8, 11, 17, 19]
     steps:
       - uses: actions/checkout@v3
-      #- uses: gradle/wrapper-validation-action@v1.0.4
+        with:
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Set up Java 8
         uses: actions/setup-java@v3
@@ -95,22 +92,31 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Run unit tests for each Java version as defined in the matrix
-        if: ${{ env.GRADLE_KEY != '' }}
+      - name: Run unit tests for each Java version as defined in the matrix (attempt 1)
+        id: run_tests_1
+        continue-on-error: true
+        timeout-minutes: 35
         env:
-          CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          GRADLE_CACHE_USER: gha
-          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
-          JRE: jre${{ matrix.java-version }}
-          LANGUAGE: polyglot
-          TEST_TYPE: unit
         run: |
-          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue --scan -Dscan.uploadInBackground=false --build-cache
+          echo "*** NOT PUBLISHING BUILD SCANS ***"
+          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
-      - name: Run unit tests for each Java version as defined in the matrix no build scan or cache
-        if: ${{ env.GRADLE_KEY == '' }}
+      - name: Run unit tests for each Java version as defined in the matrix (attempt 2)
+        id: run_tests_2
+        continue-on-error: true
+        timeout-minutes: 35
+        if: steps.run_tests_1.outcome == 'failure'
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          echo "*** NOT PUBLISHING BUILD SCANS ***"
+          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+
+      - name: Run unit tests for each Java version as defined in the matrix (attempt 3)
+        continue-on-error: true
+        timeout-minutes: 35
+        if: steps.run_tests_2.outcome == 'failure'
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |

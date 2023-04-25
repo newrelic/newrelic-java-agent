@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.ErrorGroupCallback;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 
@@ -157,6 +158,13 @@ public interface PublicApi {
     void addCustomParameters(Map<String, Object> params);
 
     /**
+     * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
+     *
+     * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
+     */
+    void setUserId(String userId);
+
+    /**
      * Set the name of the current transaction.
      *
      * @param category Metric category. If the input is null, then the default will be used.
@@ -259,4 +267,14 @@ public interface PublicApi {
      */
     void setInstanceName(String instanceName);
 
+
+    /**
+     * Registers an {@link ErrorGroupCallback} that's used to generate a grouping key for the supplied
+     * error. This key will be used to group similar error messages on the Errors Inbox UI. If the
+     * errorGroupCallback instance is null no grouping key will be generated.
+     *
+     * @param errorGroupCallback the ErrorGroupCallback used to generate grouping keys for errors
+     */
+
+    void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback);
 }

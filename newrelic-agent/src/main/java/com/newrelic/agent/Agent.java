@@ -19,7 +19,10 @@ import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
+import com.newrelic.agent.util.UnwindableInstrumentation;
+import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
+import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.security.NewRelicSecurity;
 import com.newrelic.bootstrap.BootstrapLoader;
@@ -118,6 +121,7 @@ public final class Agent {
      */
     @SuppressWarnings("unused")
     public static void continuePremain(String agentArgs, Instrumentation inst, long startTime) {
+        inst = maybeWrapInstrumentation(inst);
         final LifecycleObserver lifecycleObserver = LifecycleObserver.createLifecycleObserver(agentArgs);
         if (!lifecycleObserver.isAgentSafe()) {
             return;
@@ -151,8 +155,9 @@ public final class Agent {
             return;
         }
 
+        ServiceManager serviceManager = null;
         try {
-            ServiceManager serviceManager = ServiceFactory.getServiceManager();
+            serviceManager = ServiceFactory.getServiceManager();
 
             // The following method will immediately configure the log so that the rest of our initialization sequence
             // is written to the newrelic_agent.log rather than to the console. Configuring the log also applies the
@@ -198,7 +203,27 @@ public final class Agent {
                 }
             }
             t.printStackTrace();
-            System.exit(1);
+
+            if (inst instanceof UnwindableInstrumentation) {
+                final UnwindableInstrumentation instrumentation = (UnwindableInstrumentation) inst;
+                if (serviceManager != null) {
+                    try {
+                        serviceManager.stop();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                LOG.severe("Detaching the New Relic agent");
+                instrumentation.unwind();
+                LOG.severe("The New Relic agent was detached");
+                return;
+            } else {
+                System.exit(1);
+            }
+        }
+        if (inst instanceof UnwindableInstrumentation) {
+            final UnwindableInstrumentation instrumentation = (UnwindableInstrumentation) inst;
+            instrumentation.started();
         }
         lifecycleObserver.agentStarted();
         InitialiseNewRelicSecurityIfAllowed(inst);
@@ -236,6 +261,13 @@ public final class Agent {
             LOG.warning("New Relic Security is completely disabled forcefully by user provided config `security.agent.enabled`. " +
                     "Not loading security capabilities.");
         }
+    }
+
+    private static Instrumentation maybeWrapInstrumentation(Instrumentation inst) {
+        if (System.getProperty(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY) != null) {
+            return UnwindableInstrumentationImpl.wrapInstrumentation(inst);
+        }
+        return inst;
     }
 
     private static boolean tryToInitializeServiceManager(Instrumentation inst) {

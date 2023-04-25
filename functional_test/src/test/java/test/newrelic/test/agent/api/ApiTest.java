@@ -783,6 +783,27 @@ public class ApiTest implements TransactionListener {
         Assert.assertEquals(true, Transaction.getTransaction().getUserAttributes().get("bool"));
     }
 
+
+    @Test
+    public void testSetUserId() throws Exception {
+        try {
+            runTestSetUserId();
+        } finally {
+            Transaction.clearTransaction();
+        }
+    }
+
+
+    @Trace(dispatcher = true)
+    private void runTestSetUserId() {
+        NewRelic.setUserId("hello");
+        Assert.assertEquals("hello", Transaction.getTransaction().getAgentAttributes().get("enduser.id"));
+        NewRelic.setUserId("");
+        Assert.assertFalse("Agent attributes shouldn't have user ID", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
+        NewRelic.setUserId(null);
+        Assert.assertFalse("Agent attributes shouldn't have user ID", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
+    }
+
     @Test
     public void testIgnoreApdexNotSet() {
         Transaction tx = Transaction.getTransaction();

@@ -265,6 +265,15 @@ public final class NewRelic {
     }
 
     /**
+     * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
+     *
+     * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
+     * @since 8.1.0
+     */
+    public static void setUserId(String userId) {
+    }
+
+    /**
      * Set the name of the current transaction.
      *
      * @param category Metric category. If the input is null, then the default will be used.
@@ -416,6 +425,19 @@ public final class NewRelic {
      * @since 3.36.0
      */
     public static void setInstanceName(String instanceName) {
+    }
+
+
+    /**
+     * Registers an {@link ErrorGroupCallback} that's used to generate a grouping key for the supplied
+     * error. This key will be used to group similar error messages on the Errors Inbox UI. If the
+     * errorGroupCallback instance is null no grouping key will be generated.
+     *
+     * @param errorGroupCallback the ErrorGroupCallback used to generate grouping keys for errors
+     * @since 8.10.0
+     */
+    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
+
     }
 
 }

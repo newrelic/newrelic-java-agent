@@ -97,6 +97,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private final boolean defaultMethodTracingEnabled;
     private final boolean isBuiltinExtensionEnabled;
     private final boolean litemode;
+    private final long autoAsyncLinkRateLimit;
 
     public ClassTransformerConfigImpl(Map<String, Object> props, boolean customTracingEnabled, boolean litemode) {
         super(props, SYSTEM_PROPERTY_ROOT);
@@ -117,6 +118,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         preValidateWeavePackages = getProperty(PREVALIDATE_WEAVE_PACKAGES, DEFAULT_PREVALIDATE_WEAVE_PACKAGES);
         preMatchWeaveMethods = getProperty(PREMATCH_WEAVE_METHODS, DEFAULT_PREMATCH_WEAVE_METHODS);
         defaultMethodTracingEnabled = getProperty("default_method_tracing_enabled", true);
+        autoAsyncLinkRateLimit = getProperty("auto_async_link_rate_limit", TimeUnit.SECONDS.toMillis(1));
 
         this.traceAnnotationMatcher = customTracingEnabled ? initializeTraceAnnotationMatcher(props) : new NoMatchAnnotationMatcher();
         this.ignoreTransactionAnnotationMatcher = new ClassNameAnnotationMatcher(AnnotationNames.NEW_RELIC_IGNORE_TRANSACTION, false);
@@ -302,6 +304,11 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     @Override
     public boolean preMatchWeaveMethods() {
         return preMatchWeaveMethods;
+    }
+
+    @Override
+    public long getAutoAsyncLinkRateLimit() {
+        return autoAsyncLinkRateLimit;
     }
 
     public static final String JDBC_STATEMENTS_PROPERTY = "jdbc_statements";

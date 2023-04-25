@@ -4,13 +4,74 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Coming soon
-* TBD
+
+## Version 8.1.0 
+### New features and improvements
+
+- Added support for Webflux 6 [1181](https://github.com/newrelic/newrelic-java-agent/pull/1181)
+
+- Added support for Spring JMS 6 [1088](https://github.com/newrelic/newrelic-java-agent/issues/1088)
+
+- Added support for Mongodb Reactive Streams [1164](https://github.com/newrelic/newrelic-java-agent/pull/1164)
+
+- Added support for Kafka Streams [1170](https://github.com/newrelic/newrelic-java-agent/pull/1170)
+
+  Support for Kafka Streams comes in two flavors, metrics and spans. Metrics are enabled by default, while spans are disabled by default. To enable spans add the following to your _newrelic.yml_ configuration under the common stanza:
+```
+common:
+  class_transformer:
+    com.newrelic.instrumentation.kafka-streams-spans:
+      enabled: true
+```
+
+- Error fingerprint - supply your own errors inbox group names [1195](https://github.com/newrelic/newrelic-java-agent/pull/1195)
+
+  Are your error occurrences grouped poorly? Set your own error fingerprint via a callback function. A new public API method has been added that will accept a user defined proc. The proc will be invoked for each noticed error and whenever it returns a string, that string will be used as the error group name for the error and will take precedence over any server-side grouping that takes place with the New Relic errors inbox. This gives users much greater control over the grouping of their errors. For more information check our [API: Error Grouping](https://docs.newrelic.com/docs/apm/agents/java-agent/api-guides/java-agent-api-register-error-group-callback-to-set-fingerprint/) and [APM: Group errors tab](https://docs.newrelic.com/docs/errors-inbox/apm-tab/) pages.
+
+- User tracking [1188](https://github.com/newrelic/newrelic-java-agent/pull/1188)
+
+  You can now see the number of users impacted by an error group. Identify the end user with a new public API method that will accept a string representation of a user id and associate that user id with the current transaction. Transactions and errors will then have a new `enduser.id` agent attribute associated with them. This will allow agent users to tag transactions and errors as belonging to given user ids in support of greater filtering and alerting capabilities. For more information check the [Newrelic.setUserId ](https://newrelic.github.io/java-agent-api/javadoc/com/newrelic/api/agent/NewRelic.html#setUserName(java.lang.String) documentation and the [Track users impacted with errors inbox](https://docs.newrelic.com/docs/errors-inbox/error-users-impacted/) page.
+
+- Invoking `token.link()` outside a transaction will instrument that method to start an async transaction [1140](https://github.com/newrelic/newrelic-java-agent/pull/1140)
+
+- The Kafka clients instrumentation has new metrics to list the nodes: `MessageBroker/Kafka/Nodes/&lt;node>` [1130](https://github.com/newrelic/newrelic-java-agent/pull/1130)
+
+
+
+### Fixes
+
+- Fix ClassCircularityError when agent attaches [1137](https://github.com/newrelic/newrelic-java-agent/pull/1137)
+- Fix NullPointerException thrown when calling `addCustomAttributes` [1115](https://github.com/newrelic/newrelic-java-agent/issues/1115)
+- Make sure `TokenAndRefCount.token` is never null [1149](https://github.com/newrelic/newrelic-java-agent/issues/1149)
+- Using a time based cache to store database connection data to prevent a memory leak when instrumenting MySQL client with replication [1114](https://github.com/newrelic/newrelic-java-agent/pull/1114)
+- Decreased the number of threads used in the HttpUrlConnection instrumentation [1145](https://github.com/newrelic/newrelic-java-agent/pull/1145)
+- Fix an issue when HttpUrlConnection is used with the legacy cross application tracing [1142](https://github.com/newrelic/newrelic-java-agent/issues/1142)
+- Performance improvement in Netty’s RequestWrapper [1163](https://github.com/newrelic/newrelic-java-agent/pull/1163)
+- Gracefully shutdown the agent if it encounters issues on startup [1136](https://github.com/newrelic/newrelic-java-agent/pull/1136)
+- Fix WeavedMethod and InstrumentedMethod annotations when applied to constructors.  [1153](https://github.com/newrelic/newrelic-java-agent/issues/1153)
+- Performance improvements when using Tomcat [1131](https://github.com/newrelic/newrelic-java-agent/pull/1131)
+- Fixed a bug that caused the agent to not report some exceptions [1176](https://github.com/newrelic/newrelic-java-agent/pull/1176)
+- Updated DockerData to increase the number of container IDs detected [1178](https://github.com/newrelic/newrelic-java-agent/pull/1178)
+- Reduce the number of threads used in Kafka clients instrumentation [1056](https://github.com/newrelic/newrelic-java-agent/issues/1056)
+- Grammar changes [1175](https://github.com/newrelic/newrelic-java-agent/pull/1175) and [1190](https://github.com/newrelic/newrelic-java-agent/pull/1190)
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.0.1...v8.1.0
+
+
+## Version 8.0.1 (2023-02-23)
+
+### Fixes
+- Various fixes to the HttpUrlConnection instrumentation. See the [README](https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation/httpurlconnection#readme) for full details https://github.com/newrelic/newrelic-java-agent/pull/1145
+- Ensure that `TokenAndRefCount.token` is never null https://github.com/newrelic/newrelic-java-agent/pull/1148
+- Correct a possible NullPointerException being thrown when calling addCustomAttributes https://github.com/newrelic/newrelic-java-agent/pull/1141
+- Fix ClassCircularityError when agent attaches https://github.com/newrelic/newrelic-java-agent/pull/1139
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.0.0...v8.0.1
 
 ## Version 8.0.0 (2023-01-26)
 
 ### Important
-This release includes a change to the `HttpURLConnection` instrumentation that creates a `TimerTask` to help ensure complete externals reporting. Under some circumstances this may result in a large number of threads being created, which may exhaust the maximum allocated to the JVM, causing it to stop. We are working on a fix to this issue and will publish an updated release promptly.
+This release includes a change to the `HttpURLConnection` instrumentation that creates a `TimerTask` to help ensure complete externals reporting. Under some circumstances this may result in a large number of threads being created, which may exhaust the maximum allocated to the JVM, causing it to stop. This issue has been fixed in the 8.0.1 release and it is highly recommended that you update to this version of the Java agent.
 
 ### New features and improvements
 - Added support for Slick 3.4.0 on Scala 2.13 https://github.com/newrelic/newrelic-java-agent/pull/1072

@@ -8,8 +8,14 @@
 package org.apache.kafka.clients.consumer;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.ArrayList;
+
+import org.apache.kafka.clients.consumer.internals.ConsumerMetadata;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.metrics.Metrics;
+import org.apache.kafka.common.utils.Timer;
+import org.apache.kafka.common.Node;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.DestinationType;
@@ -20,12 +26,13 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
-import org.apache.kafka.common.utils.Timer;
 
 @Weave(originalName = "org.apache.kafka.clients.consumer.KafkaConsumer")
 public class KafkaConsumer_Instrumentation<K, V> {
 
     private final Metrics metrics = Weaver.callOriginal();
+
+    private final ConsumerMetadata metadata = Weaver.callOriginal();
 
     @NewField
     private boolean initialized;
@@ -33,7 +40,12 @@ public class KafkaConsumer_Instrumentation<K, V> {
     @WeaveAllConstructors
     public KafkaConsumer_Instrumentation() {
         if (!initialized) {
-            metrics.addReporter(new NewRelicMetricsReporter());
+            List<Node> nodes = metadata.fetch().nodes();
+            List<String> nodeNames = new ArrayList<>(nodes.size());
+            for (Node node : nodes) {
+                nodeNames.add(node.host() + ":" + node.port());
+            }
+            metrics.addReporter(new NewRelicMetricsReporter(nodeNames));
             initialized = true;
         }
     }

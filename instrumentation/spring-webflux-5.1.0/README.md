@@ -19,9 +19,9 @@ public Mono<String> submit(@RequestBody String body) {
 }
 ```
 
-When the `@RequestBody` is past as a parameter in this manner, the transaction
-naming might show up as `NettyDispatcher`.  If so, simply wrap the 
-`RequestBody` parameter in a `Mono` as shown:
+When the `@RequestBody` is passed as a parameter in this manner, the
+transaction naming might show up as `NettyDispatcher`. If so, simply wrap
+the `RequestBody` parameter in a `Mono` as shown:
 
 ```java
 @PostMapping("/some/path")

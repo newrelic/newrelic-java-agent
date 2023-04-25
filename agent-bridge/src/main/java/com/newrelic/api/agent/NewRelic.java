@@ -218,6 +218,16 @@ public final class NewRelic {
         AgentBridge.publicApi.addCustomParameters(params);
     }
 
+
+    /**
+     * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
+     *
+     * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
+     */
+    public static void setUserId(String userId) {
+        AgentBridge.publicApi.setUserId(userId);
+    }
+
     /**
      * Set the name of the current transaction.
      * 
@@ -348,6 +358,17 @@ public final class NewRelic {
      */
     public static void setInstanceName(String instanceName) {
         AgentBridge.publicApi.setInstanceName(instanceName);
+    }
+
+    /**
+     * Registers an {@link ErrorGroupCallback} that's used to generate a grouping key for the supplied
+     * error. This key will be used to group similar error messages on the Errors Inbox UI. If the
+     * errorGroupCallback instance is null no grouping key will be generated.
+     *
+     * @param errorGroupCallback the ErrorGroupCallback used to generate grouping keys for errors
+     */
+    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
+        AgentBridge.publicApi.setErrorGroupCallback(errorGroupCallback);
     }
 
 }

@@ -9,6 +9,7 @@ package com.newrelic.agent.bridge;
 
 import java.util.Map;
 
+import com.newrelic.api.agent.ErrorGroupCallback;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 
@@ -71,6 +72,11 @@ class NoOpPublicApi implements PublicApi {
 
     @Override
     public void addCustomParameters(Map<String, Object> params) {
+
+    }
+
+    @Override
+    public void setUserId(String userId) {
 
     }
 
@@ -145,6 +151,11 @@ class NoOpPublicApi implements PublicApi {
 
     @Override
     public void setInstanceName(String instanceName) {
+
+    }
+
+    @Override
+    public void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
 
     }
 

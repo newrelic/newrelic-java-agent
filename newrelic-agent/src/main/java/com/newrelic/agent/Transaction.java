@@ -126,9 +126,9 @@ public class Transaction {
     static final ClassMethodSignature REQUEST_INITIALIZED_CLASS_SIGNATURE = new ClassMethodSignature(
             "javax.servlet.ServletRequestListener", "requestInitialized", "(Ljavax/servlet/ServletRequestEvent;)V");
     static final int REQUEST_INITIALIZED_CLASS_SIGNATURE_ID = ClassMethodSignatures.get().add(REQUEST_INITIALIZED_CLASS_SIGNATURE);
-  static final ClassMethodSignature SCALA_API_TXN_CLASS_SIGNATURE = new ClassMethodSignature(
+    static final ClassMethodSignature SCALA_API_TXN_CLASS_SIGNATURE = new ClassMethodSignature(
     "newrelic.scala.api.TraceOps$", "txn", null);
-  public static final int SCALA_API_TXN_CLASS_SIGNATURE_ID =
+    public static final int SCALA_API_TXN_CLASS_SIGNATURE_ID =
     ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
     private static final String THREAD_ASSERTION_FAILURE = "Thread assertion failed!";
 
@@ -1419,6 +1419,7 @@ public class Transaction {
         synchronized (newTx.lock) {
             if (!newTx.isInProgress()) {
                 Agent.LOG.log(Level.FINER, "Transaction {0}: ignoring link call because transaction not in progress.", newTx);
+                AgentBridge.instrumentation.instrument();
                 return false;
             } else if (!token.isActive()) {
                 Agent.LOG.log(Level.FINER, "Transaction {0}: ignoring link call because token is no longer active {1}.", newTx, token);
@@ -1427,6 +1428,7 @@ public class Transaction {
                 TransactionActivity oldTxa = TransactionActivity.get();
                 if (oldTxa == null || !oldTxa.isStarted()) {
                     Agent.LOG.log(Level.FINER, "Transaction {0}: ignoring link call because there is no started txa to link to: {1}.", newTx, oldTxa);
+                    AgentBridge.instrumentation.instrument();
                     return false;
                 } else {
                     // don't worry about a race with expire, if tracer is not null we're fine because tracer is

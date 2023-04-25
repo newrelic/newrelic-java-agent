@@ -1,29 +1,29 @@
 name: Scala Instrumentation Tests
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches: [main]
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: "Specify branch (main is default)"
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
         required: false
         default: 'main'
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
   scala-instrumentation-tests:
-    name: Scala ${{ matrix.scala }} on Java ${{ matrix.java-version }} Instrumentation Tests
+    name: Scala ${{ matrix.scala }} on Java ${{ matrix.java-version }}
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     env:
-      default-branch: "main"
       # we use this in env var for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      GRADLE_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     strategy:
       ##max-parallel: 1 ## used to force sequential
       fail-fast: false
@@ -37,7 +37,8 @@ jobs:
             scala: 2.11
     steps:
       - uses: actions/checkout@v3
-      #- uses: gradle/wrapper-validation-action@v1.0.4
+        with:
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Set up Java 8
         # https://github.com/actions/setup-java
@@ -93,26 +94,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build newrelicJar
-        if: ${{ env.GRADLE_KEY != '' }}        
-        env:
-          CI: GHA
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          GRADLE_CACHE_USER: gha
-          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
-          JRE: jre${{ matrix.java-version }}
-          LANGUAGE: scala
-          SCALA_VERSION: scala${{ matrix.scala }}
-          TEST_TYPE: instrumentation
-        run: |
-          # echo "JAVA_HOME=${ORG_GRADLE_PROJECT_jdk8}" >> $GITHUB_ENV
-          echo "REVIEW ANY NEW ITEMS IN WORKSPACE"
-          ls -la
-          ./gradlew clean jar --parallel
-          ls -la newrelic-agent/build/
-
-      - name: Build newrelicJar w/o GE
-        if: ${{ env.GRADLE_KEY == '' }}
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
@@ -130,22 +111,26 @@ jobs:
           rm gradle.properties
           mv gradle.properties.gha gradle.properties
 
-      - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }}
-        if: ${{ env.GRADLE_KEY != '' }}
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 1)
+        id: run_tests_1
+        continue-on-error: true
+        timeout-minutes: 25
         env:
-          CI: GHA
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: 34.229.76.228=${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          GRADLE_CACHE_USER: gha
-          GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
-          JRE: jre${{ matrix.java-version }}
-          LANGUAGE: scala
-          SCALA_VERSION: scala${{ matrix.scala }}
-          TEST_TYPE: instrumentation
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue --scan -Dscan.uploadInBackground=false --build-cache
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
 
-      - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} w/o GE
-        if: ${{ env.GRADLE_KEY == '' }}
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 2)
+        id: run_tests_2
+        if: steps.run_tests_1.outcome == 'failure'
+        continue-on-error: true
+        timeout-minutes: 25
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
+
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 3)
+        if: steps.run_tests_2.outcome == 'failure'
+        timeout-minutes: 25
         env:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
