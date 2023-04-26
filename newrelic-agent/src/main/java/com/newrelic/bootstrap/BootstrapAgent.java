@@ -9,6 +9,7 @@ package com.newrelic.bootstrap;
 
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
+import com.newrelic.agent.config.JbossUtils;
 import com.newrelic.agent.modules.ClassLoaderUtil;
 import com.newrelic.agent.modules.ClassLoaderUtilImpl;
 import com.newrelic.agent.modules.HttpModuleUtil;
@@ -16,6 +17,7 @@ import com.newrelic.agent.modules.HttpModuleUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -111,8 +113,22 @@ public class BootstrapAgent {
         }
 
         checkAndApplyIBMLibertyProfileLogManagerWorkaround();
+        checkAndApplyJbossAdjustments(inst);
         startAgent(agentArgs, inst);
     }
+
+    private static void checkAndApplyJbossAdjustments(Instrumentation inst) {
+        if(JbossUtils.isJbossServer(inst)){
+            String cur = System.getProperty(JbossUtils.JBOSS_MODULES_SYSTEM_PKGS);
+            if (StringUtils.isBlank(cur)) {
+                System.setProperty(JbossUtils.JBOSS_MODULES_SYSTEM_PKGS, JbossUtils.COM_NR_INSTRUMENTATION_SECURITY);
+            } else if(!StringUtils.containsIgnoreCase(cur, JbossUtils.COM_NR_INSTRUMENTATION_SECURITY)){
+                System.setProperty(JbossUtils.JBOSS_MODULES_SYSTEM_PKGS, cur + JbossUtils.JOIN_STR_COM_NR_INSTRUMENTATION_SECURITY);
+            }
+        }
+    }
+
+
 
     private static void checkAndApplyIBMLibertyProfileLogManagerWorkaround() {
         if (IBMUtils.isIbmJVM()) {

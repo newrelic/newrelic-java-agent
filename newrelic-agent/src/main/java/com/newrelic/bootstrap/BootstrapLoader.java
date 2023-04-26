@@ -7,6 +7,7 @@
 
 package com.newrelic.bootstrap;
 
+import com.newrelic.api.agent.security.NewRelicSecurity;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.io.OutputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -50,6 +52,10 @@ public class BootstrapLoader {
 
     public static final String WEAVER_API_JAR_NAME = "newrelic-weaver-api";
 
+    public static final String NEWRELIC_SECURITY_AGENT = "newrelic-security-agent";
+
+    public static final String NEWRELIC_SECURITY_API = "newrelic-security-api";
+
     static final class ApiClassTransformer implements ClassFileTransformer {
         private final byte[] bytes;
 
@@ -72,7 +78,30 @@ public class BootstrapLoader {
         }
     }
 
+    static final class SecurityApiClassTransformer implements ClassFileTransformer {
+        private final byte[] bytes;
+
+        SecurityApiClassTransformer(byte[] bytes) {
+            this.bytes = bytes;
+        }
+
+        @Override
+        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                                ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+
+            if (className == null) {
+                return null;
+            }
+
+            if (NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME.equals(className)) {
+                return bytes;
+            }
+            return null;
+        }
+    }
+
     private static final String NEWRELIC_API_INTERNAL_CLASS_NAME = "com/newrelic/api/agent/NewRelic";
+    private static final String NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME = "com/newrelic/api/agent/security/NewRelicSecurity";
 
     private static void addBridgeJarToClassPath(Instrumentation instrProxy, String jar) throws ClassNotFoundException, IOException {
         JarFile jarFileInAgent = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(jar));
@@ -88,6 +117,18 @@ public class BootstrapLoader {
         JarEntry jarEntry = bridgeJarFile.getJarEntry(NEWRELIC_API_INTERNAL_CLASS_NAME + ".class");
         final byte[] bytes = read(bridgeJarFile.getInputStream(jarEntry), true);
         instrProxy.addTransformer(new ApiClassTransformer(bytes), true);
+    }
+
+    /**
+     * This forces the correct NewRelic Security api implementation to load by getting the implementation class bytes out of the
+     * security agent jar and hooking up a class transformer to always load those bytes for our api class.
+     */
+    public static void forceCorrectNewRelicSecurityApi(Instrumentation instrProxy) throws IOException, UnmodifiableClassException {
+        JarFile securityAgentJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT));
+        JarEntry jarEntry = securityAgentJarFile.getJarEntry(NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME + ".class");
+        final byte[] bytes = read(securityAgentJarFile.getInputStream(jarEntry), true);
+        instrProxy.addTransformer(new SecurityApiClassTransformer(bytes), true);
+        instrProxy.retransformClasses(NewRelicSecurity.class);
     }
 
     private static void addJarToClassPath(Instrumentation instrProxy, JarFile jarfile) {
@@ -111,7 +152,7 @@ public class BootstrapLoader {
     public static Collection<URL> getJarURLs() throws ClassNotFoundException, IOException {
         List<URL> urls = new ArrayList<>();
         for (String name : new String[] { AGENT_BRIDGE_JAR_NAME, AGENT_BRIDGE_DATASTORE_JAR_NAME,
-                API_JAR_NAME, WEAVER_API_JAR_NAME }) {
+                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API}) {
             File jarFileInAgent = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(name);
             urls.add(jarFileInAgent.toURI().toURL());
         }
@@ -135,6 +176,8 @@ public class BootstrapLoader {
             addBridgeJarToClassPath(inst, AGENT_BRIDGE_JAR_NAME);
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(API_JAR_NAME)));
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(WEAVER_API_JAR_NAME)));
+            addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_API)));
+            addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -21,7 +21,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
 
     private static final String[] INTERNAL_JAR_FILE_NAMES = new String[] { BootstrapLoader.AGENT_BRIDGE_JAR_NAME,
-            BootstrapLoader.API_JAR_NAME, BootstrapLoader.WEAVER_API_JAR_NAME };
+            BootstrapLoader.API_JAR_NAME, BootstrapLoader.WEAVER_API_JAR_NAME,  BootstrapLoader.NEWRELIC_SECURITY_AGENT};
 
     public static final EmbeddedJarFiles INSTANCE = new EmbeddedJarFilesImpl();
 

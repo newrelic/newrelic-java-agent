@@ -26,6 +26,7 @@ import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.DefaultThreadFactory;
+import com.newrelic.api.agent.NewRelic;
 import org.objectweb.asm.commons.Method;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -151,6 +152,10 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
         PointCutClassTransformer classTransformer = new PointCutClassTransformer(instrProxy, retransformSupported);
         contextManager = InstrumentationContextManager.create(classLoaderClassTransformer, instrProxy,
                 AgentBridge.class.getClassLoader() == null);
+
+        // Preload NR Transaction and related object to avoid ClassCircularity Error in Security instrumentation Module
+        // java-io-stream.
+        NewRelic.getAgent().getTransaction();
 
         contextManager.addContextClassTransformer(classTransformer.getMatcher(), classTransformer);
         for (PointCut pc : classTransformer.getPointcuts()) {

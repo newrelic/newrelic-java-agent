@@ -1,3 +1,9 @@
+import com.nr.builder.publish.PublishConfig
+
+plugins{
+    id("maven-publish")
+    id("signing")
+}
 
 dependencies {
     implementation(project(":newrelic-weaver-api"))
@@ -7,4 +13,11 @@ jar {
     manifest {
         attributes 'Implementation-Title': 'New Relic Scala Weaver API', 'Implementation-Version': project.version
     }
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java Weaver API for Scala",
+        "New Relic Java agent Weaver API for Scala module") { it ->
+    it.from(components.java)
 }

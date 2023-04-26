@@ -26,11 +26,7 @@ import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -510,6 +506,7 @@ public class WeavePackageManager {
                 if (null != packageListener) {
                     packageListener.validated(verificationResult, classloader);
                 }
+
                 if ((classloader == BootstrapLoader.PLACEHOLDER && !this.canWeaveBootstrapClassLoader())
                         || (!verificationResult.succeeded())) {
                     ConcurrentMap<WeavePackage, PackageValidationResult> result = invalidPackages.asMap().putIfAbsent(

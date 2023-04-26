@@ -1,3 +1,43 @@
+import com.nr.builder.publish.PublishConfig
+
+plugins {
+    id("maven-publish")
+    id("signing")
+}
+
+jar {
+    from("$rootDir/LICENSE")
+    manifest {
+        attributes 'Implementation-Title': 'New Relic Bridge', 'Implementation-Version': project.version
+    }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+tasks.withType(GenerateModuleMetadata.class) {
+    enabled = false
+}
+
+
+tasks.withType(Javadoc).configureEach {
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+
+    options.addBooleanOption("-frames", true)
+    options.addBooleanOption("-no-module-directories", true)
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java Bridge",
+        "Bridge") { it ->
+    it.from(components.java)
+}
+
 dependencies {
     api(project(":newrelic-api"))
     api(project(":newrelic-weaver-api"))

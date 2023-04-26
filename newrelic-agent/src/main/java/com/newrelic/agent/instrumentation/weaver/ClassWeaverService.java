@@ -27,9 +27,11 @@ import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessor
 import com.newrelic.agent.instrumentation.weaver.preprocessors.TracedWeaveInstrumentationTracker;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.api.agent.weaver.internal.WeavePackageType;
 import com.newrelic.bootstrap.BootstrapAgent;
+import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.ClassWeave;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.ClassCache;
@@ -136,6 +138,17 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         loadExternalWeavePackages(ServiceFactory.getExtensionService().getWeaveExtensions());
     }
 
+    /**
+     * Registers the security weave instrumentation jars that are packaged into the csec agent jar's instrumentation directory.
+     */
+    public void registerSecurityInstrumentation(AgentConfig agentConfig) {
+        if(agentConfig.getValue("security.agent.enabled", true) &&
+            agentConfig.getValue("security.enabled") != null
+        ) {
+            loadInternalSecurityWeavePackages();
+        }
+    }
+
     public Runnable createRetransformRunnable(Class<?>[] loadedClasses) {
         return new RetransformRunnable(loadedClasses);
     }
@@ -202,6 +215,91 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         }
         postprocessors.setWeavePackageType(type);
         return result;
+    }
+
+
+    /**
+     * Load all the security weave packages embedded in the agent jar.
+     */
+    private Collection<ClassMatchVisitorFactory> loadInternalSecurityWeavePackages() {
+        LOG.log(Level.FINE, "Starting security instrumentation load");
+        final Collection<ClassMatchVisitorFactory> matchers = Sets.newConcurrentHashSet();
+        URL securityAgentUrl = null;
+        try {
+            securityAgentUrl = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(com.newrelic.bootstrap.BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
+        } catch (Exception err) {
+            LOG.log(Level.SEVERE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : {0}", err.getMessage());
+            LOG.log(Level.FINE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : ", err);
+            return matchers;
+        }
+        Collection<String> jarFileNames = AgentJarHelper.findJarFileNames(securityAgentUrl, Pattern.compile("instrumentation-security\\/(.*).jar"));
+        if (jarFileNames.isEmpty()) {
+            LOG.log(Level.SEVERE, "No security instrumentation packages were found in the agent.");
+        } else {
+            LOG.log(Level.FINE, "Loading {0} security instrumentation packages", jarFileNames.size());
+        }
+
+        int partitions = (jarFileNames.size() < PARTITIONS) ? jarFileNames.size() : PARTITIONS;
+        // Note: An ExecutorService would be better suited for this work but we are
+        // specifically not using it here to prevent the ConcurrentCallablePointCut
+        // from being loaded too early
+        final CountDownLatch executorCountDown = new CountDownLatch(partitions);
+        List<Set<String>> weavePackagePartitions = partitionInstrumentationJars(jarFileNames, partitions);
+
+        for (final Set<String> weavePackageJars : weavePackagePartitions) {
+
+            URL finalSecurityAgentUrl = securityAgentUrl;
+            Runnable loadWeavePackagesRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (final String name : weavePackageJars) {
+                            URL instrumentationUrl = new URL("jar:" + finalSecurityAgentUrl.toExternalForm() + "!/" + name);
+                            if (instrumentationUrl == null) {
+                                Agent.LOG.error("Unable to find instrumentation jar: " + name);
+                            } else {
+                                try (InputStream inputStream = instrumentationUrl.openStream()) {
+                                    WeavePackage internalWeavePackage = createWeavePackage(inputStream, instrumentationUrl.toExternalForm());
+                                    if (null == internalWeavePackage) {
+                                        LOG.log(Level.FINEST, "internal weave package: {0} was null", instrumentationUrl.toExternalForm());
+                                        continue;
+                                    } else if (internalWeavePackage.getPackageViolations().size() > 0) {
+                                        LOG.log(Level.FINER, "skip loading weave package: {0}", internalWeavePackage.getName());
+                                        for (WeaveViolation violation : internalWeavePackage.getPackageViolations()) {
+                                            LOG.log(Level.FINER, "\t violation: {0}", violation);
+                                        }
+                                    } else {
+                                        LOG.log(Level.FINER, "adding weave package: {0}", internalWeavePackage.getName());
+                                        LOG.log(Level.INFO, "adding weave package: {0}", internalWeavePackage.getName());
+
+                                        internalWeavePackages.add(internalWeavePackage.getName());
+                                        weavePackageManager.register(internalWeavePackage);
+                                    }
+                                } catch (Throwable t) {
+                                    LOG.log(Level.FINER, t, "unable to load weave package jar {0}", instrumentationUrl);
+                                }
+                            }
+                        }
+                    } catch (Throwable t) {
+                        LOG.log(Level.FINER, t, "A thread loading weaved packages threw an error");
+                    } finally {
+                        executorCountDown.countDown();
+                    }
+                }
+            };
+
+            new Thread(loadWeavePackagesRunnable).start();
+        }
+
+        try {
+            // Wait for all partitions to complete
+            executorCountDown.await();
+            LOG.log(Level.FINE, "Loaded {0} internal instrumentation packages", internalWeavePackages.size());
+        } catch (InterruptedException e) {
+            LOG.log(Level.FINE, e, "Interrupted while waiting for instrumentation packages.");
+        }
+
+        return matchers;
     }
 
     /**

@@ -13,6 +13,7 @@ import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.reinstrument.RemoteInstrumentationServiceImpl;
+import com.newrelic.agent.transport.ConnectionResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -199,6 +200,13 @@ public class AgentConfigFactory {
         addServerProp(EXPECTED_CLASSES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_CLASSES), settings);
         addServerProp(EXPECTED_STATUS_CODES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_STATUS_CODES), settings);
 
+        // Adding agent_run_id & account_id to config as required by K2 agent
+        addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
+        addServerProp(DistributedTracingConfig.ACCOUNT_ID, serverData.get(DistributedTracingConfig.ACCOUNT_ID), settings);
+        addServerProp("agent_home", ConfigFileHelper.getNewRelicDirectory().getAbsolutePath(), settings);
+        if(AgentJarHelper.getAgentJarDirectory() != null) {
+            addServerProp("agent_jar_location", AgentJarHelper.getAgentJarDirectory().getAbsolutePath(), settings);
+        }
         if (settingsConfig.getProperty(SECURITY_POLICIES_TOKEN) != null) {
             addServerProp(RECORD_SQL, recordSqlSecure, settings);
             // Root

@@ -379,6 +379,35 @@ common: &default_settings
     # An example label
     #label_name: label_value
 
+  security:
+    # Default is false
+    enabled: true
+
+    # NR security provides two modes IAST and RASP
+    # Default is IAST
+    # mode: IAST
+
+    # New Relic’s SaaS connection URLs
+    # validator_service_url: wss://csec.nr-data.net
+
+    # To completely disable security
+    # set agent.enabled flag to false
+    # If the flag is set to false,
+    # the security module is not loaded
+    # This property is read only once at
+    # application start.
+    # agent:
+    #   enabled: true
+
+    # Following category of security events
+    # can be disabled from generating.
+    # detection:
+    #   rci:
+    #     enabled: true
+    #   rxss:
+    #     enabled: true
+    #   deserialization:
+    #     enabled: true
 
 # Application Environments
 # ------------------------------------------

@@ -355,4 +355,10 @@ public interface Transaction {
      */
     void acceptDistributedTraceHeaders(TransportType transportType, Headers headers);
 
+    /**
+     * Returns the associated security related metadata from this Transaction.
+     * @return securityMetaData object associated with this transaction.
+     */
+    Object getSecurityMetaData();
+
 }

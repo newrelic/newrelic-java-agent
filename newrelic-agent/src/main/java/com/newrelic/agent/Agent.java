@@ -9,11 +9,7 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.config.AgentJarHelper;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.ConfigServiceFactory;
-import com.newrelic.agent.config.JarResource;
-import com.newrelic.agent.config.JavaVersionUtils;
+import com.newrelic.agent.config.*;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -27,7 +23,10 @@ import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
 import com.newrelic.bootstrap.BootstrapAgent;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.security.NewRelicSecurity;
 import com.newrelic.bootstrap.BootstrapLoader;
+import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
 import org.objectweb.asm.ClassReader;
 
@@ -227,6 +226,41 @@ public final class Agent {
             instrumentation.started();
         }
         lifecycleObserver.agentStarted();
+        InitialiseNewRelicSecurityIfAllowed(inst);
+    }
+
+    private static void InitialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
+        // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
+        if(NewRelic.getAgent().getConfig().getValue("security.agent.enabled", true) &&
+                NewRelic.getAgent().getConfig().getValue("security.enabled") != null) {
+            try {
+                LOG.log(Level.INFO, "Invoking New Relic Security module");
+                ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
+                    @Override
+                    public void connected(IRPMService rpmService, AgentConfig agentConfig) {
+                        try {
+                            URL securityJarURL = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
+                            LOG.log(Level.INFO, "Connected to New Relic cloud. Starting New Relic Security module");
+                            NewRelicSecurity.getAgent().refreshState(securityJarURL, inst);
+                            NewRelicSecurity.markAgentAsInitialised();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public void disconnected(IRPMService rpmService) {
+                        NewRelicSecurity.getAgent().deactivateSecurity();
+                    }
+                });
+            } catch (Throwable t2) {
+                // TODO : Give a generic error here.
+                LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
+            }
+        } else {
+            LOG.warning("New Relic Security is completely disabled forcefully by user provided config `security.agent.enabled`. " +
+                    "Not loading security capabilities.");
+        }
     }
 
     private static Instrumentation maybeWrapInstrumentation(Instrumentation inst) {
@@ -255,6 +289,7 @@ public final class Agent {
 
             // Now that we know the agent is enabled, add the ApiClassTransformer
             BootstrapLoader.forceCorrectNewRelicApi(inst);
+            BootstrapLoader.forceCorrectNewRelicSecurityApi(inst);
 
             // init problem classes before class transformer service is active
             InitProblemClasses.loadInitialClasses();
