@@ -77,15 +77,15 @@ public class MetricsScheduler {
                         }
                     }
                 }
-                if (METRICS_AS_EVENTS) {
-                    for (NewRelicMetricsReporter.NodeMetricName nodeMetricName : nrMetricsReporter.getNodes().values()) {
-                        eventData.put(nodeMetricName.asEventName(), 1f);
-                    }
-                } else {
-                    for (NewRelicMetricsReporter.NodeMetricName nodeMetricName : nrMetricsReporter.getNodes().values()) {
-                        NewRelic.recordMetric(nodeMetricName.getMetricName(), 1f);
+
+                for (NewRelicMetricsReporter.NodeMetricNames consumerNodeMetricNames : nrMetricsReporter.getNodes().values()) {
+                    if (METRICS_AS_EVENTS) {
+                        consumerNodeMetricNames.getEventNames().forEach(metricName -> eventData.put(metricName, 1f));
+                    } else {
+                        consumerNodeMetricNames.getMetricNames().forEach(metricName -> NewRelic.recordMetric(metricName, 1f));
                     }
                 }
+
                 if (METRICS_AS_EVENTS) {
                     NewRelic.getAgent().getInsights().recordCustomEvent(METRICS_EVENT_TYPE, eventData);
                 }
