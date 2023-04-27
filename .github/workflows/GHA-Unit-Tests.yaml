@@ -114,7 +114,6 @@ jobs:
           ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Run unit tests for each Java version as defined in the matrix (attempt 3)
-        continue-on-error: true
         timeout-minutes: 35
         if: steps.run_tests_2.outcome == 'failure'
         env:
