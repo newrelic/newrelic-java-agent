@@ -44,14 +44,3 @@ runs:
         if [ $? -ne 0 ]; then
           echo "Instrumentation jar zip unavailable." >> $GITHUB_STEP_SUMMARY
         fi
-
-    - name: Publish agent APIs locally
-      shell: bash
-      run: ./gradlew $GRADLE_OPTIONS :newrelic-api:publishToMavenLocal :agent-bridge:publishToMavenLocal :agent-bridge-datastore:publishToMavenLocal :newrelic-weaver-api:publishToMavenLocal :newrelic-weaver:publishToMavenLocal :newrelic-weaver-scala:publishToMavenLocal :newrelic-weaver-scala-api:publishToMavenLocal --parallel
-
-    - name: Publish K2 locally
-      shell: bash
-      run: |
-        cd k2-javaagent
-        ./gradlew $GRADLE_OPTIONS publishToMavenLocal
-        cd ..

@@ -30,14 +30,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Checkout K2 agent
-        uses: actions/checkout@v3
-        with:
-          repository: k2io/K2-JavaAgent
-          ref: v2/nr/instrumentation-changes
-          token: ${{ secrets.AITPAT }}
-          path: k2-javaagent
-
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 

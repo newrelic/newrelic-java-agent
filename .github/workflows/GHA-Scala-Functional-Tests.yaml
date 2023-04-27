@@ -32,14 +32,6 @@ jobs:
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
-      - name: Checkout K2 agent
-        uses: actions/checkout@v3
-        with:
-          repository: k2io/K2-JavaAgent
-          ref: v2/nr/instrumentation-changes
-          token: ${{ secrets.AITPAT }}
-          path: k2-javaagent
-
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@v1-node16
