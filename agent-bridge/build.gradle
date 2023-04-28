@@ -1,6 +1,18 @@
+plugins {
+    id 'jacoco'
+}
 dependencies {
     api(project(":newrelic-api"))
     api(project(":newrelic-weaver-api"))
 
     testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
 }
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    executionData(test)
+}
+
+test.finalizedBy jacocoTestReport

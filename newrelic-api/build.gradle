@@ -3,6 +3,7 @@ import com.nr.builder.publish.PublishConfig
 plugins {
     id("maven-publish")
     id("signing")
+    id("jacoco")
 }
 
 jar {
@@ -36,3 +37,14 @@ PublishConfig.config(
         "The public API of the Java agent, and no-op implementations for safe usage without the agent.") { it ->
     it.from(components.java)
 }
+
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    executionData(test)
+}
+
+test.finalizedBy jacocoTestReport

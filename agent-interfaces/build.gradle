@@ -1,5 +1,6 @@
 plugins {
     id "java-library"
+    id "jacoco"
 }
 
 dependencies {
@@ -7,3 +8,13 @@ dependencies {
     api(project(":newrelic-api"))
     implementation(project(":agent-model"))
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    executionData(test)
+}
+
+test.finalizedBy jacocoTestReport

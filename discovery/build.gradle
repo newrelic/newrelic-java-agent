@@ -1,5 +1,17 @@
-
+plugins {
+    id "jacoco"
+}
 dependencies {
     implementation("com.googlecode.json-simple:json-simple:1.1")
     implementation("com.google.guava:guava:28.2-android")
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    executionData(test)
+}
+
+test.finalizedBy jacocoTestReport

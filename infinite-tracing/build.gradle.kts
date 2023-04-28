@@ -32,8 +32,10 @@ tasks.test {
         events("failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
     }
+
 }
 
 tasks.withType<GenerateModuleMetadata> {
     enabled = false
 }
+

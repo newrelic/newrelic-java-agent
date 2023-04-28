@@ -1,7 +1,7 @@
 evaluationDependsOn(":newrelic-agent") // This is important because we need newrelic-agent to be configured before this project so the correct ("unversioned") jar name gets used
 
 apply plugin: 'scala'
-
+apply plugin: 'jacoco'
 configurations {
     compileFirst
 }
@@ -34,3 +34,13 @@ jar {
         attributes 'Implementation-Title': 'New Relic Scala Weaver', 'Implementation-Version': project.version
     }
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    executionData(test)
+}
+
+test.finalizedBy jacocoTestReport

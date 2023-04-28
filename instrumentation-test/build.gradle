@@ -1,3 +1,6 @@
+plugins {
+    id "jacoco"
+}
 evaluationDependsOn(":newrelic-agent")
 
 repositories {
@@ -23,3 +26,15 @@ dependencies {
 afterEvaluate {
     compileJava.dependsOn project(":newrelic-agent").getTasksByName("newrelicJar", false)
 }
+
+
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    executionData(test)
+}
+
+test.finalizedBy jacocoTestReport

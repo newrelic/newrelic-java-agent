@@ -2,6 +2,7 @@ plugins {
     `java-library`
     id("com.github.johnrengelman.shadow")
     id("org.gradle.test-retry") version "1.3.1"
+    id("jacoco")
 }
 
 java {
