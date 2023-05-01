@@ -75,12 +75,6 @@ public class FileAppenderFactoryTest {
 
         Assert.assertEquals(FileAppender.class, fileAppender.getClass());
         Assert.assertEquals(FILENAME + "3", rollingFileAppender.getFileName());
-
-        try {
-            System.out.println(new File(FILENAME + "0").getCanonicalPath());
-            System.out.println(new File(FILENAME + "0").exists());
-        } catch (Exception ignored) {}
-
     }
 
     @AfterClass
