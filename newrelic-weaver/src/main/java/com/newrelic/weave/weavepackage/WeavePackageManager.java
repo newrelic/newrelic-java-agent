@@ -26,7 +26,12 @@ import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -335,7 +340,10 @@ public class WeavePackageManager {
 
         ClassNode composite = WeaveUtils.convertToClassNode(targetBytes);
         PackageWeaveResult finalResult = null;
-        for (PackageValidationResult weavePackageResult : matchedPackageResults) {
+
+        List<PackageValidationResult> sortedMatchedPackages = new ArrayList<>(matchedPackageResults);
+        sortedMatchedPackages.sort(PackageValidationResult.CONFIG_COMPARATOR);
+        for (PackageValidationResult weavePackageResult : sortedMatchedPackages) {
             PackageWeaveResult result = weavePackageResult.weave(className, superNames, interfaceNames, composite,
                                                                  cache, skipMethods);
             if (null != weaveListener) {

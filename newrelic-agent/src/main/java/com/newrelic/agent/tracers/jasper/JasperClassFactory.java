@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.tracers.jasper;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,8 +58,11 @@ public class JasperClassFactory {
     }
 
     public Object createScriptlet(String script) throws Exception {
-        return scriptletClass.getConstructor(new Class[] { String.class, markClass, nodeClass }).newInstance(script,
-                null, null);
+        Constructor<?> constructor = scriptletClass.getDeclaredConstructor(String.class, markClass, nodeClass);
+        if (!constructor.isAccessible()) {
+            constructor.setAccessible(true);
+        }
+        return constructor.newInstance(script, null, null);
     }
 
     public GenerateVisitor getGenerateVisitor(Object visitor) {
