@@ -4,6 +4,17 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.2.0 
+### New features and improvements
+
+- Added support for Java 20  https://github.com/newrelic/newrelic-java-agent/pull/1226
+
+### Fixes
+
+- Prevented a NullPointerException from the lettuce instrumentation https://github.com/newrelic/newrelic-java-agent/pull/1204 
+
+- Fix failure with browser agent auto injection for tomcat versions 8.5.87+ and 9.0.74+ https://github.com/newrelic/newrelic-java-agent/pull/1225 
+
 
 ## Version 8.1.0 
 ### New features and improvements
