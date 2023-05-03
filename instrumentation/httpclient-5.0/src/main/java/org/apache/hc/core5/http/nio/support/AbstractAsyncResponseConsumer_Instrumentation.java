@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package org.apache.hc.core5.http.nio.support;
 
 import com.newrelic.api.agent.NewRelic;
@@ -22,7 +29,16 @@ public class AbstractAsyncResponseConsumer_Instrumentation {
 
     @Trace(async = true)
     public final void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "inside RespCons.streamEnd, token="+token);
+        if (token != null) {
+            token.linkAndExpire();
+            token = null;
+        }
+
+        Weaver.callOriginal();
+    }
+
+    @Trace(async = true)
+    public final void failed(final Exception cause) {
         if (token != null) {
             token.linkAndExpire();
             token = null;
