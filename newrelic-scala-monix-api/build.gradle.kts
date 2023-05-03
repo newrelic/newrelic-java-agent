@@ -14,7 +14,11 @@ crossBuild {
     builds {
         register("scala") {
             scalaVersions = setOf("2.11", "2.12", "2.13")
-
+            // Add Jacoco configuration inside this block
+            jacoco {
+                toolVersion = "0.8.10"
+                reportsDir = file("$buildDir/customJacocoReportDir")
+            }
         }
     }
 }
@@ -96,3 +100,11 @@ tasks {
     }
 }
 
+
+// This is a functional test really. Jacoco conflicts with the InstrumetnationTestRunner init.
+// We will need to resolve this in future work to get Jacoco working with functional tests.
+tasks.withType<Test> {
+    extensions.configure(JacocoTaskExtension::class) {
+        isEnabled = false
+    }
+}

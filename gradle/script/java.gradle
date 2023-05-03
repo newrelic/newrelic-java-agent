@@ -214,7 +214,7 @@ test {
         destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
         classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
         destinationFile = layout.buildDirectory.file("jacoco/${name}.exec").get().asFile
-        excludes = [":instrumentation", ":infinite-tracing", ":functional_test"]
+//        excludes = [":instrumentation", ":infinite-tracing", ":functional_test", ":newrelic-scala-monix-api"]
 
     }
     finalizedBy jacocoTestReport // report is always generated after tests run
