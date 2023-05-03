@@ -7,7 +7,6 @@
 
 package org.apache.hc.core5.http.nio;
 
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
@@ -19,7 +18,6 @@ import org.apache.hc.core5.http.HttpException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 
 @Weave(type=MatchType.Interface, originalName = "org.apache.hc.core5.http.nio.AsyncDataConsumer")
 public abstract class AsyncDataConsumer_Instrumentation {
