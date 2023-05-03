@@ -1,0 +1,33 @@
+package org.apache.hc.core5.http.nio.support;
+
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Token;
+import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.weaver.MatchType;
+import com.newrelic.api.agent.weaver.NewField;
+import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.Weaver;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+
+@Weave(type=MatchType.BaseClass, originalName = "org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer")
+public class AbstractAsyncResponseConsumer_Instrumentation {
+
+    @NewField
+    public Token token;
+
+    @Trace(async = true)
+    public final void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "inside RespCons.streamEnd, token="+token);
+        if (token != null) {
+            token.linkAndExpire();
+            token = null;
+        }
+
+        Weaver.callOriginal();
+    }
+}

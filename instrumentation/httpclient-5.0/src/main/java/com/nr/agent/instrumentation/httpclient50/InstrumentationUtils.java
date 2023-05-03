@@ -1,8 +1,10 @@
 package com.nr.agent.instrumentation.httpclient50;
 
 import com.newrelic.api.agent.GenericParameters;
+import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -14,12 +16,6 @@ public class InstrumentationUtils {
     public static final String PROCEDURE = "execute";
     public static final URI UNKNOWN_HOST_URI = URI.create("http://UnknownHost/");
 
-    // TODO remove
-//    public static void doOutboundCATClassic(ClassicHttpRequest request) {
-//        NewRelic.getAgent().getLogger().log(Level.INFO, "inside doOutboundCATClassic");
-//        NewRelic.getAgent().getTracedMethod().addOutboundRequestHeaders(new OutboundWrapper(request));
-//    }
-//
     public static void doOutboundCAT(HttpRequest request) {
         NewRelic.getAgent().getLogger().log(Level.INFO, "inside doOutboundCAT");
         NewRelic.getAgent().getTracedMethod().addOutboundRequestHeaders(new OutboundWrapper(request));
@@ -34,4 +30,17 @@ public class InstrumentationUtils {
                     .build());
         }
     }
+
+    public static void processResponse(URI requestURI, HttpResponse response) {
+        InboundWrapper inboundCatWrapper = new InboundWrapper(response);
+        NewRelic.getAgent().getTracedMethod()
+                .reportAsExternal(HttpParameters
+                        .library(LIBRARY)
+                        .uri(requestURI)
+                        .procedure(PROCEDURE)
+                        .inboundHeaders(inboundCatWrapper)
+                        .status(response.getCode(), response.getReasonPhrase())
+                        .build());
+    }
+
 }
