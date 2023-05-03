@@ -44,7 +44,7 @@ public abstract class HttpAsyncClient_Instrumentation {
         // TODO anything for DT?
 
         Token token = NewRelic.getAgent().getTransaction().getToken();
-        callback = new WrappedFutureCallback<>(request, callback, token);
+        callback = new WrappedFutureCallback<>(request, callback, token); // TODO should only need to do 1 of these 2
         responseConsumer = new WrappedResponseConsumer(responseConsumer, token);
 
         NewRelic.getAgent().getLogger().log(Level.INFO, "1st tracedMethod: "+NewRelic.getAgent().getTracedMethod());
