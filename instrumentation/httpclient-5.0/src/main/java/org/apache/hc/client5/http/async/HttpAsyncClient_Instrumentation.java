@@ -13,8 +13,11 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.httpclient50.WrappedFutureCallback;
+import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer_Instrumentation;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.nio.AsyncDataConsumer;
+import org.apache.hc.core5.http.nio.AsyncDataConsumer_Instrumentation;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
@@ -38,9 +41,16 @@ public class HttpAsyncClient_Instrumentation {
         HttpRequest request = ((BasicRequestProducer_Instrumentation)requestProducer).nrRequest;
         Token token = NewRelic.getAgent().getTransaction().getToken();
         callback = new WrappedFutureCallback<>(request, callback); // needed for finishing off the External registration
+
+        // TODO one of these is likely overkill
         if (responseConsumer instanceof AbstractAsyncResponseConsumer_Instrumentation) {
-            AbstractAsyncResponseConsumer_Instrumentation asyncRespConsumer = (AbstractAsyncResponseConsumer_Instrumentation)responseConsumer;
-            asyncRespConsumer.token = token;
+            ((AbstractAsyncResponseConsumer_Instrumentation)responseConsumer).token = token;
+        }
+        if (responseConsumer instanceof AsyncDataConsumer) {
+            ((AsyncDataConsumer_Instrumentation)responseConsumer).token = token;
+        }
+        if (responseConsumer instanceof AbstractCharResponseConsumer_Instrumentation) {
+            ((AbstractCharResponseConsumer_Instrumentation)responseConsumer).token = token;
         }
 
         Future<T> origResult =  Weaver.callOriginal();
