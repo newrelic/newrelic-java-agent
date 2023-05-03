@@ -1,12 +1,10 @@
 package com.nr.agent.instrumentation.httpclient50;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.api.agent.weaver.NewField;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpRequest;
@@ -14,7 +12,6 @@ import org.apache.hc.core5.http.HttpResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.logging.Level;
 
 public class WrappedFutureCallback<T> implements FutureCallback<T> {
@@ -32,7 +29,7 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
     }
     @Override
     @Trace(async = true)
-    public void completed(T response) {
+    public void completed(T response) {  // TODO why is the Tx a NoOp on the first pass through?
         NewRelic.getAgent().getLogger().log(Level.INFO, "I done intercepted it: completed: "+response.getClass());
         NewRelic.getAgent().getLogger().log(Level.INFO, "Agent: "+NewRelic.getAgent());
         NewRelic.getAgent().getLogger().log(Level.INFO, "Transaction: "+NewRelic.getAgent().getTransaction());
@@ -57,7 +54,7 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
     public void failed(Exception ex) {
         NewRelic.getAgent().getLogger().log(Level.INFO, "I done intercepted it: failed");
         if (token != null) token.link();
-        handleUnknownHost(ex);
+        InstrumentationUtils.handleUnknownHost(ex);
         // TODO anything more to do?
         if (origCallback != null) origCallback.failed(ex);
         if (token != null) token.expire();
@@ -89,6 +86,7 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
         // TODO ***********************************************************
         // TODO ***********************************************************
         if (token != null) token.link();
+        // TODO remove the debug logging below
         NewRelic.getAgent().getLogger().log(Level.INFO, "Current Stack for thread "+
                 Thread.currentThread().getName()+"-"+
                 Thread.currentThread().getId()+"\n: "+
@@ -102,6 +100,7 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
         if (NewRelic.getAgent().getTracedMethod().getClass().toString().contains("DefaultTracer")) {
             NewRelic.getAgent().getLogger().log(Level.INFO, "------------------------------------------------------------SUCCESS");
         }
+
         NewRelic.getAgent().getTracedMethod()
                 .reportAsExternal(HttpParameters
                         .library(LIBRARY)
@@ -113,6 +112,8 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
         if (token != null) token.expire();
         token = null;
     }
+
+    // TODO remove
     private String stackString(StackTraceElement[] elems) {
         StringBuilder sb = new StringBuilder();
         for (StackTraceElement elem : elems) {
@@ -120,16 +121,5 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
             sb.append("\n");
         }
         return sb.toString();
-    }
-    // TODO move this to a Util class?
-    private void handleUnknownHost(Exception e) {
-        if (e instanceof UnknownHostException) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "Found UnknownHostException");
-            NewRelic.getAgent().getTracedMethod().reportAsExternal(GenericParameters
-                    .library(LIBRARY)
-                    .uri(UNKNOWN_HOST_URI)
-                    .procedure(PROCEDURE)
-                    .build());
-        }
     }
 }

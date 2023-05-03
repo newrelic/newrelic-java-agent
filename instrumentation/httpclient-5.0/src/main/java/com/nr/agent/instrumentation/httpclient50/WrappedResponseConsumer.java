@@ -51,7 +51,7 @@ public class WrappedResponseConsumer implements AsyncResponseConsumer {
     }
 
     @Override
-    @Trace(async = true)  // TODO why doesn't this get weaved until after at least 1 run?
+    @Trace(async = true)
     public void streamEnd(List<? extends Header> trailers) throws HttpException, IOException {
         if (token != null) {
             token.linkAndExpire();
