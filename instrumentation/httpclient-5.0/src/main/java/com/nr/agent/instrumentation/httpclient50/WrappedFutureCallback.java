@@ -25,7 +25,6 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
     }
 
     @Override
-    @Trace(async = true)
     public void completed(T response) {
         try {
             InstrumentationUtils.processResponse(request.getUri(), (BasicHttpResponse)response);
@@ -36,14 +35,12 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
     }
 
     @Override
-    @Trace(async = true)
     public void failed(Exception ex) {
         InstrumentationUtils.handleUnknownHost(ex);
         if (origCallback != null) origCallback.failed(ex);
     }
 
     @Override
-    @Trace(async = true)
     public void cancelled() {
         // TODO handle cancellation  anything to do?
         if (origCallback != null) origCallback.cancelled();

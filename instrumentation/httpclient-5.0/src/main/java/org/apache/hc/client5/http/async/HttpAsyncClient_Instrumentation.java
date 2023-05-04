@@ -39,7 +39,7 @@ public class HttpAsyncClient_Instrumentation {
 
         HttpRequest request = ((BasicRequestProducer_Instrumentation)requestProducer).nrRequest;
         Token token = NewRelic.getAgent().getTransaction().getToken();
-        callback = new WrappedFutureCallback<>(request, callback); // needed for finishing off the External registration
+        callback = new WrappedFutureCallback<>(request, callback);
 
         if (responseConsumer instanceof AsyncResponseConsumer_Instrumentation) {
             ((AsyncResponseConsumer_Instrumentation)responseConsumer).token = token;
