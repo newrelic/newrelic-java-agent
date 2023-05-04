@@ -3,6 +3,15 @@ name: Publish snapshot on main merge
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Specify branch/tag/hash"
+        required: true
+        default: 'main'
+      description:
+        description: "A description for the SNAPSHOTS that will be published. It will appear in the summary."
+        required: true
 
 jobs:
   publish_snapshot:
