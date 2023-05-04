@@ -73,7 +73,7 @@ public class FileAppenderFactory {
             return buildDailyRollingAppender();
         }
 
-        if ((fileCount > 1) || (logLimitBytes > 0)) {
+        if (logLimitBytes > 0) {
             return initializeRollingFileAppender()
                     .withStrategy(DefaultRolloverStrategy.newBuilder()
                             .withMin(String.valueOf(MIN_FILE_COUNT))
