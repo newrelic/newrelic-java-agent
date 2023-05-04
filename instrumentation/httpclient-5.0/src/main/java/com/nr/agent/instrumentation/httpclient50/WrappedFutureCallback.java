@@ -30,8 +30,7 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
         try {
             InstrumentationUtils.processResponse(request.getUri(), (BasicHttpResponse)response);
         } catch (URISyntaxException e) {
-            // TODO throw new IOException(e);
-            // TODO can this happen now?  perhaps in one of the overload methods?
+            // TODO what should we do here?  if the request URI has invalid syntax
         }
         if (origCallback != null) origCallback.completed(response);
     }

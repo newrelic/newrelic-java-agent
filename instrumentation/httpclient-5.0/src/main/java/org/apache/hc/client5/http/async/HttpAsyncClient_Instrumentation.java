@@ -44,7 +44,7 @@ public class HttpAsyncClient_Instrumentation {
         if (responseConsumer instanceof AsyncResponseConsumer_Instrumentation) {
             ((AsyncResponseConsumer_Instrumentation)responseConsumer).token = token;
         }
-        if (responseConsumer instanceof AsyncDataConsumer) {
+        if (responseConsumer instanceof AsyncDataConsumer_Instrumentation) {
             ((AsyncDataConsumer_Instrumentation)responseConsumer).token = token;
         }
 

@@ -7,8 +7,6 @@
 
 package com.nr.agent.instrumentation.httpclient50;
 
-import org.apache.hc.core5.http.ClassicHttpRequest;
-
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.OutboundHeaders;
 import org.apache.hc.core5.http.HttpRequest;

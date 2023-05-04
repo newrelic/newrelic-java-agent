@@ -13,11 +13,6 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
-
-import java.io.IOException;
-import java.util.List;
 
 @Weave(type=MatchType.BaseClass, originalName = "org.apache.hc.core5.http.nio.AsyncResponseConsumer")
 public class AsyncResponseConsumer_Instrumentation {

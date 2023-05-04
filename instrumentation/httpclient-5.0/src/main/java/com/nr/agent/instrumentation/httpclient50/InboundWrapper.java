@@ -9,7 +9,6 @@ package com.nr.agent.instrumentation.httpclient50;
 
 import com.newrelic.api.agent.ExtendedInboundHeaders;
 import com.newrelic.api.agent.HeaderType;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 
@@ -17,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InboundWrapper extends ExtendedInboundHeaders {
-    private final HttpResponse delegate;  // TODO should we hold the entire response here?  we only need the headers
+    private final HttpResponse delegate;
 
     public InboundWrapper(HttpResponse response) {
         this.delegate = response;
