@@ -13,9 +13,9 @@ import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.TransactionNamePriority;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "org.apache.http.client" }, configName = "spans.yml")
-public class HttpClientInstrumentationSpanTests {
+@InstrumentationTestConfig(includePrefixes = { "org.apache.hc.client5", "org.apache.hc.core5" }, configName = "spans.yml")
+public class HttpClient5ClassicSpanTests {
 
     @Rule
     public HttpServerRule server = new HttpServerRule();

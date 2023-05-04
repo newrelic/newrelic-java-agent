@@ -42,7 +42,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.apache.hc.client5" })
-public class HttpClientInstrumentation5Test {
+public class HttpClient5ClassicTest {
     @Rule
     public HttpServerRule server = new HttpServerRule();
 
@@ -78,7 +78,7 @@ public class HttpClientInstrumentation5Test {
         Assert.assertEquals(2, introspector.getFinishedTransactionCount());
         String txOne = null;
         for (String txName : introspector.getTransactionNames()) {
-            if (txName.matches(".*HttpClient5Test.*")) {
+            if (txName.matches(".*HttpClientInstrumentation5Test.*")) {
                 txOne = txName;
             }
         }
@@ -137,7 +137,7 @@ public class HttpClientInstrumentation5Test {
         httpClientExternal(endpoint.toURL().toString(), true);
 
         // transaction
-        String txName = "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient5Test/httpClientExternal";
+        String txName = "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClientInstrumentation5Test/httpClientExternal";
         assertEquals(2, introspector.getFinishedTransactionCount());
         Collection<String> names = introspector.getTransactionNames();
         assertEquals(2, names.size());
@@ -148,7 +148,7 @@ public class HttpClientInstrumentation5Test {
         assertEquals(1, MetricsHelper.getScopedMetricCount(txName, "ExternalTransaction/" + host + "/"
                 + server.getCrossProcessId() + "/" + server.getServerTransactionName()));
         assertEquals(1, MetricsHelper.getScopedMetricCount(txName,
-                "Java/com.nr.agent.instrumentation.httpclient.HttpClient5Test/httpClientExternal"));
+                "Java/com.nr.agent.instrumentation.httpclient.HttpClientInstrumentation5Test/httpClientExternal"));
 
         // unscoped metrics
         assertEquals(1, MetricsHelper.getUnscopedMetricCount("ExternalTransaction/" + host + "/"
