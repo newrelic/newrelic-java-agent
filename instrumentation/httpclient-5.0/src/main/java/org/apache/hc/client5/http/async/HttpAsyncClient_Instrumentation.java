@@ -13,7 +13,6 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.httpclient50.WrappedFutureCallback;
-import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer_Instrumentation;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -21,9 +20,9 @@ import org.apache.hc.core5.http.nio.AsyncDataConsumer_Instrumentation;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.AsyncResponseConsumer_Instrumentation;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer_Instrumentation;
-import org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer_Instrumentation;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 import java.util.concurrent.Future;
@@ -33,7 +32,7 @@ public class HttpAsyncClient_Instrumentation {
 
     public <T> Future<T> execute(
             AsyncRequestProducer requestProducer,
-            AsyncResponseConsumer<T> responseConsumer, // TODO likely need to instrument this as well, for failed() method
+            AsyncResponseConsumer<T> responseConsumer,
             HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             HttpContext context,
             FutureCallback<T> callback) {
@@ -42,19 +41,13 @@ public class HttpAsyncClient_Instrumentation {
         Token token = NewRelic.getAgent().getTransaction().getToken();
         callback = new WrappedFutureCallback<>(request, callback); // needed for finishing off the External registration
 
-        // TODO one of these is likely overkill
-        if (responseConsumer instanceof AbstractAsyncResponseConsumer_Instrumentation) {
-            ((AbstractAsyncResponseConsumer_Instrumentation)responseConsumer).token = token;
+        if (responseConsumer instanceof AsyncResponseConsumer_Instrumentation) {
+            ((AsyncResponseConsumer_Instrumentation)responseConsumer).token = token;
         }
         if (responseConsumer instanceof AsyncDataConsumer) {
             ((AsyncDataConsumer_Instrumentation)responseConsumer).token = token;
         }
-        if (responseConsumer instanceof AbstractCharResponseConsumer_Instrumentation) {
-            ((AbstractCharResponseConsumer_Instrumentation)responseConsumer).token = token;
-        }
 
-        Future<T> origResult =  Weaver.callOriginal();
-
-        return origResult;
+        return Weaver.callOriginal();
     }
 }

@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package org.apache.hc.core5.http.nio.support;
 
 import com.newrelic.api.agent.weaver.MatchType;

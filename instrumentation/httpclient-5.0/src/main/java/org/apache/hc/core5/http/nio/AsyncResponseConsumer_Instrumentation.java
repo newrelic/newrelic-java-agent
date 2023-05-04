@@ -5,7 +5,7 @@
  *
  */
 
-package org.apache.hc.core5.http.nio.support;
+package org.apache.hc.core5.http.nio;
 
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
@@ -19,21 +19,11 @@ import org.apache.hc.core5.http.HttpException;
 import java.io.IOException;
 import java.util.List;
 
-@Weave(type=MatchType.BaseClass, originalName = "org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer")
-public class AbstractAsyncResponseConsumer_Instrumentation {
+@Weave(type=MatchType.BaseClass, originalName = "org.apache.hc.core5.http.nio.AsyncResponseConsumer")
+public class AsyncResponseConsumer_Instrumentation {
 
     @NewField
     public Token token;
-
-    @Trace(async = true)
-    public final void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
-        if (token != null) {
-            token.linkAndExpire();
-            token = null;
-        }
-
-        Weaver.callOriginal();
-    }
 
     @Trace(async = true)
     public final void failed(final Exception cause) {
