@@ -12,10 +12,10 @@ import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.agent.instrumentation.httpclient50.InstrumentationUtils;
 import com.nr.agent.instrumentation.httpclient50.WrappedFutureCallback;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer_Instrumentation;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
@@ -38,6 +38,7 @@ public class HttpAsyncClient_Instrumentation {
             FutureCallback<T> callback) {
 
         HttpRequest request = ((BasicRequestProducer_Instrumentation)requestProducer).nrRequest;
+        InstrumentationUtils.doOutboundCAT(request);
         Token token = NewRelic.getAgent().getTransaction().getToken();
         callback = new WrappedFutureCallback<>(request, callback);
 
