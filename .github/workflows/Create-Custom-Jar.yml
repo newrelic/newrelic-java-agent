@@ -31,6 +31,11 @@ jobs:
           distribution: 'temurin'
           java-version: 8
 
+      - name: Save JAVA_HOME as JDK8 env variables
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV    
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
