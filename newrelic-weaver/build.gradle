@@ -4,6 +4,8 @@ configurations {
     }
 }
 
+apply from: '../spotbugs-config.gradle'
+
 repositories {
     // hack to allow us to resolve the ':tools' dependency
     flatDir name: 'javaHomeLib', dirs: jdk8 + "/lib"

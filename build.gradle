@@ -3,6 +3,8 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "1.6.20" apply false
     id "com.newrelic.gradle-verify-instrumentation-plugin" version "4.0" apply false
     id "com.newrelic.gradle-compatibility-doc-plugin" version "1.1" apply false
+    id "com.github.spotbugs" version "5.0.14" apply false
+
 }
 
 allprojects {
@@ -47,6 +49,11 @@ subprojects {
         mavenLocal()
         mavenCentral()
         jcenter()
+    }
+
+    def isSpotbugsEligible = ['newrelic-agent', 'newrelic-weaver', 'agent-bridge', 'agent-bridge-datastore', 'agent-model', 'agent-interfaces', 'newrelic-api'].contains(project.name)
+    if (isSpotbugsEligible) {
+        apply plugin: 'com.github.spotbugs'
     }
 
     def isJavaProject = ![

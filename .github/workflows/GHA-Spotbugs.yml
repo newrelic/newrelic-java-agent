@@ -1,0 +1,63 @@
+on:
+  workflow_dispatch:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag) to run spotbugs on'
+        required: false
+        default: 'main'
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag) to run spotbugs on'
+        required: false
+        default: 'main'
+        type: string
+
+jobs:
+  spotbugs:
+    timeout-minutes: 15
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
+
+      - name: Set up Java 8
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 8
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: setup gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8" >> $GITHUB_ENV
+
+      - name: set gradle.properties
+        run: |
+          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
+          mv gradle.properties.gha gradle.properties
+
+      - name: Check environmental variables
+        run: printenv | sort -f
+
+      - name: Build newrelicJar
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          ls -la
+          cat settings.gradle
+          ./gradlew $GRADLE_OPTIONS clean jar --parallel
+          ls -la newrelic-agent/build/
+
+      - name: Execute Spotbugs
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          ./gradlew $GRADLE_OPTIONS spotbugsMain --parallel
+          
+      - uses: jwgmeligmeyling/spotbugs-github-action@master
+        with:
+          path: '**/build/spotbugs/main.xml'

@@ -1,0 +1,20 @@
+spotbugs {
+    ignoreFailures = true
+    showStackTraces = true
+    showProgress = false
+    effort = 'default'
+    reportLevel = 'default'
+    reportsDir = file("$buildDir/spotbugs")
+    maxHeapSize = '1g'
+}
+
+spotbugsMain {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+spotbugsTest {
+    enabled = false
+}

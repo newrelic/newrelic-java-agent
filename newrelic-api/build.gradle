@@ -5,6 +5,8 @@ plugins {
     id("signing")
 }
 
+apply from: '../spotbugs-config.gradle'
+
 jar {
     from("$rootDir/LICENSE")
     manifest {

@@ -153,6 +153,34 @@ Run all tests for a specific Scala instrumentation module:
 ./gradlew -PincludeScala instrumentation:sttp-2.13_2.2.3:test --parallel
 ```
 
+## Code Quality
+
+The agent utilizes [Jacoco](https://www.jacoco.org/jacoco/) and [Spotbugs](https://spotbugs.readthedocs.io/en/stable/introduction.html) to measure and improve code quality.
+
+#### Jacoco
+
+**TODO**
+
+#### Spotbugs
+
+[Spotbugs](https://spotbugs.readthedocs.io/en/stable/introduction.html) is a static code analysis tool to identify bugs in Java programs. It utilizes the Spotbugs
+gradle plugin. The projects that are scanned by Spotbugs are:
+- newrelic-agent
+- newrelic-weaver
+- agent-bridge
+- agent-bridge-datastore
+- agent-model
+- agent-interfaces
+- newrelic-api
+
+To run Spotbugs, execute the following command:
+```text
+./gradlew spotbugsMain --parallel
+```
+
+The task will generate both XML and HTML files in the `build/spotbugs` folder underneath each subproject's top level folder.
+The HTML file can be opened normally in a browser. The XML files can be imported into the [Spotbugs UI](https://spotbugs.readthedocs.io/en/stable/gui.html).
+
 ## Support
 
 Should you need assistance with New Relic products, you are in good hands with several diagnostic tools and support channels.
