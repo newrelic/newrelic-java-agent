@@ -1,18 +1,8 @@
 name: Publish snapshot on main merge
 
-# trigger action
 on:
   push:
     branches: [ NR-114485-publish-internal-snapshots* ]
-#  workflow_dispatch:
-#    inputs:
-#      ref:
-#        description: "Specify branch/tag/hash"
-#        required: true
-#        default: 'main'
-#      description:
-#        description: "A description for the SNAPSHOTS that will be published. It will appear in the summary."
-#        required: true
 
 jobs:
   publish_snapshot:
@@ -78,7 +68,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew $GRADLE_OPTIONS publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish
-      - name: Publish snapshot apis
+      - name: Publish snapshot scala apis
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
@@ -86,15 +76,11 @@ jobs:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew $GRADLE_OPTIONS :newrelic-scala-api:publish :newrelic-scala-cats-api:publish :newrelic-cats-effect3-api:publish :newrelic-scala-zio-api:publish
-      - name: Publish internal apis for k2
+      - name: Publish snapshot apis for k2
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: |
-          echo "GRADLE_OPTIONS: " $GRADLE_OPTIONS
-          ./gradlew $GRADLE_OPTIONS :newrelic-weaver:publish
-
-
+        run: ./gradlew $GRADLE_OPTIONS :agent-bridge:publish :agent-bridge-datastore:publish :newrelic-weaver:publish :newrelic-weaver-api:publish :newrelic-weaver-scala:publish :newrelic-weaver-scala-api:publish

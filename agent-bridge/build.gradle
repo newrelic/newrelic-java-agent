@@ -1,6 +1,25 @@
+import com.nr.builder.publish.PublishConfig
+
+plugins {
+    id("maven-publish")
+    id("signing")
+}
+
 dependencies {
     api(project(":newrelic-api"))
     api(project(":newrelic-weaver-api"))
 
     testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java agent bridge API",
+        "The bridge API of the Java agent.") { it ->
+    it.from(components.java)
 }
