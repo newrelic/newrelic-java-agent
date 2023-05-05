@@ -67,11 +67,7 @@ jobs:
         run: |
           ./gradlew $GRADLE_OPTIONS spotbugsMain --parallel
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+      - uses: actions/upload-artifact@v3
         with:
-          # Path to SARIF file relative to the root of the repository
-          sarif_file: newrelic-agent/build/spotbugs/main.sarif
-          # Optional category for the results
-          # Used to differentiate multiple results for one commit
-          category: Spotbugs-newrelic-agent
+          name: spotbugs-results
+          path: /**/build/spotbugs/main.xml
