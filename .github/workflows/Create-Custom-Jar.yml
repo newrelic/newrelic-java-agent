@@ -81,3 +81,23 @@ jobs:
         with:
           name: agent-bridge-spotbugs-results
           path: 'agent-bridge/build/spotbugs/main.html'
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-bridge-datastore-spotbugs-results
+          path: 'agent-bridge-datastore/build/spotbugs/main.html'
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-model-spotbugs-results
+          path: 'agent-model/build/spotbugs/main.html'
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-interfaces-spotbugs-results
+          path: 'agent-interfaces/build/spotbugs/main.html'
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: newrelic-api-spotbugs-results
+          path: 'newrelic-api/build/spotbugs/main.html'
