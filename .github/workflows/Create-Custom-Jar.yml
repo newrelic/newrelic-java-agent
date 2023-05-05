@@ -44,7 +44,7 @@ jobs:
 
       - name: set gradle.properties
         run: |
-          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
+          sed -i -e "s|jdk8=8|jdk8=${JDK8}" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
       - name: Check environmental variables
