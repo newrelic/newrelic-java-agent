@@ -279,7 +279,7 @@ public class MethodInfoTest {
         }
         List<Member> output = new ArrayList<>();
 
-        // jacoco will cause issues here
+        // jacoco will cause issues here unless we filter out the jacoco signature
         Method[] m = filterJacocoMethods(ClassWithStuffa.class.getDeclaredMethods());
         Assert.assertEquals(1, m.length);
         boolean actual = MethodInfoUtil.getMethod(output, ClassWithStuffa.class, m[0].getName(),
