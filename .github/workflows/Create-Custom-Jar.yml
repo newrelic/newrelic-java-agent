@@ -70,4 +70,14 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: newrelic-agent-spotbugs-results
-          path: 'newrelic-agent/build/spotbugs/main.xml'
+          path: 'newrelic-agent/build/spotbugs/main.html'
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: newrelic-weaver-spotbugs-results
+          path: 'newrelic-weaver/build/spotbugs/main.html'
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-bridge-spotbugs-results
+          path: 'agent-bridge/build/spotbugs/main.html'
