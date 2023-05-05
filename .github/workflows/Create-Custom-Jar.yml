@@ -1,35 +1,31 @@
-name: Create custom jar
+name: Execute Spotbugs
 
 on:
   workflow_dispatch:
     inputs:
-      ref:
-        description: "Specify branch/tag/hash"
-        required: true
+      agent-ref:
+        description: 'The ref (branch, SHA, tag) to run spotbugs on'
+        required: false
         default: 'main'
-      description:
-        description: "A description for the custom jar that will be generated. It will appear in the summary."
-        required: true
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag) to run spotbugs on'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
-  create_custom_jar:
+  spotbugs:
+    timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.ref }}
-      - uses: gradle/wrapper-validation-action@v1
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
-      # JDK 11
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 11
-      - name: save JAVA_HOME as JDK11 for later usage
-        run: echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
-      # setting JDK 8 last so it is the default
-      - name: Set up JDK 1.8
+      - name: Set up Java 8
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
@@ -37,38 +33,33 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-      - name: Setup Gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
+
+      - name: setup gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8" >> $GITHUB_ENV
+
       - name: set gradle.properties
         run: |
           sed -i -e "s|jdk8=8|jdk8=${JDK8}|
-          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-      - name: Download S3 instrumentation jar zip
-        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip  ## Updated 2022
-      - name: Unzip the instrumentation jars
-        run: unzip proprietary-jars.zip
-      #      - name: Log jars are in target libs
-      #        run: find instrumentation -name "*.jar"
+      - name: Check environmental variables
+        run: printenv | sort -f
 
-      - name: Build agent
-        run: ./gradlew $GRADLE_OPTIONS jar
-
-      - name: Set summary
+      - name: Build newrelicJar
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
-          echo "${{ inputs.description }}" >> $GITHUB_STEP_SUMMARY
-          echo "This jar was built from the ref (branch/tag/hash): ${{ inputs.ref }}." >> $GITHUB_STEP_SUMMARY
+          ls -la
+          cat settings.gradle
+          ./gradlew $GRADLE_OPTIONS clean jar --parallel
+          ls -la newrelic-agent/build/
 
-      - name: Capture custom jar
-        uses: actions/upload-artifact@v3
+      - name: Execute Spotbugs
+        env:
+          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+        run: |
+          ./gradlew $GRADLE_OPTIONS spotbugsMain --parallel
+
+      - uses: jwgmeligmeyling/spotbugs-github-action@master
         with:
-          name: custom-newrelic-jar
-          path: |
-            newrelic-agent/build/newrelicJar/newrelic.jar
+          path: '**/build/spotbugs/main.xml'
