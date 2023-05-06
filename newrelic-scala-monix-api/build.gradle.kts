@@ -14,11 +14,7 @@ crossBuild {
     builds {
         register("scala") {
             scalaVersions = setOf("2.11", "2.12", "2.13")
-            // Add Jacoco configuration inside this block
-            jacoco {
-                toolVersion = "0.8.10"
-                reportsDir = file("$buildDir/customJacocoReportDir")
-            }
+
         }
     }
 }

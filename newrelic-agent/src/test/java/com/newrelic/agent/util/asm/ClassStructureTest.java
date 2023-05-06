@@ -298,7 +298,7 @@ public class ClassStructureTest {
     // helper method to filter out jacoco injected code.
     private Set<Method> filterJacocoMethods(ClassStructure classStructure) {
         return classStructure.getMethods().stream()
-                .filter(method -> !method.toString().contains("$jacoco")) // Ignore JaCoCo methods
+                .filter(method -> !method.toString().contains("$jacoco"))
                 .collect(Collectors.toSet());
     }
 
