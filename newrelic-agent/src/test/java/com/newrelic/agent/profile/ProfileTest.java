@@ -26,7 +26,6 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.TransactionStats;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
@@ -44,6 +43,7 @@ import java.lang.management.ThreadMXBean;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -666,7 +666,7 @@ public class ProfileTest {
             parsedData = data.get(4);
         } else {
             String rawData = (String) data.get(4);
-            byte[] compressedData = Base64.decodeBase64(rawData);
+            byte[] compressedData = Base64.getDecoder().decode(rawData);
 
             InflaterInputStream inStream = new InflaterInputStream(new ByteArrayInputStream(compressedData));
             rawData = CharStreams.toString(new InputStreamReader(inStream, Charsets.UTF_8));

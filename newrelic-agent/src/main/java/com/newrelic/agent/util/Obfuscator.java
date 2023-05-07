@@ -8,8 +8,7 @@
 package com.newrelic.agent.util;
 
 import java.nio.charset.StandardCharsets;
-
-import org.apache.commons.codec.binary.Base64;
+import java.util.Base64;
 
 /**
  * This class obfuscates and deobfuscates strings using a given key. It is used by the real user monitoring feature to
@@ -28,7 +27,7 @@ public class Obfuscator {
     public static String obfuscateNameUsingKey(String name, String key) {
         byte[] encodedBytes = name.getBytes(StandardCharsets.UTF_8);
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-        return Base64.encodeBase64String(encode(encodedBytes, keyBytes));
+        return Base64.getEncoder().encodeToString(encode(encodedBytes, keyBytes));
     }
 
     private static byte[] encode(byte[] bytes, byte[] keyBytes) {
@@ -43,7 +42,7 @@ public class Obfuscator {
      *
      */
     public static String deobfuscateNameUsingKey(String name, String key) {
-        byte[] bytes = Base64.decodeBase64(name);
+        byte[] bytes = Base64.getDecoder().decode(name);
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
         return new String(encode(bytes, keyBytes), StandardCharsets.UTF_8);
     }

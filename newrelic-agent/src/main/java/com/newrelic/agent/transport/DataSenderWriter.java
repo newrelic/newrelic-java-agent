@@ -14,11 +14,11 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
 import com.newrelic.agent.service.ServiceFactory;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONValue;
 
 /**
@@ -140,7 +140,7 @@ public class DataSenderWriter extends OutputStreamWriter {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return Base64.encodeBase64String(outStream.toByteArray());
+        return Base64.getEncoder().encodeToString(outStream.toByteArray());
     }
 
 }

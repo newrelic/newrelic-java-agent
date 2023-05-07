@@ -23,7 +23,6 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.threads.BasicThreadInfo;
 import com.newrelic.agent.threads.ThreadNameNormalizer;
 import com.newrelic.agent.trace.TransactionGuidFactory;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
@@ -41,6 +40,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -606,7 +606,7 @@ public class ProfileTest {
             parsedData = data.get(4);
         } else {
             String rawData = (String) data.get(4);
-            byte[] compressedData = Base64.decodeBase64(rawData);
+            byte[] compressedData = Base64.getDecoder().decode(rawData);
 
             InflaterInputStream inStream = new InflaterInputStream(new ByteArrayInputStream(compressedData));
             rawData = CharStreams.toString(new InputStreamReader(inStream, Charsets.UTF_8));
