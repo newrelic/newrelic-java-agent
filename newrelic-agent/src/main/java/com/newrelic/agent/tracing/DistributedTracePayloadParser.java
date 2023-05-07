@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.tracing;
 
-import com.google.common.base.Charsets;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.api.agent.MetricAggregator;

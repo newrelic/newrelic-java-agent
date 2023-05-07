@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.profile;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -647,10 +646,10 @@ public class ProfileTest {
         // After verifying data size, inflate the data to parse the json
         if (simpleCompression) {
             InflaterInputStream inStream = new InflaterInputStream(new ByteArrayInputStream(profileOutput));
-            String jsonOutput = CharStreams.toString(new InputStreamReader(inStream, Charsets.UTF_8));
+            String jsonOutput = CharStreams.toString(new InputStreamReader(inStream, StandardCharsets.UTF_8));
             parse = parser.parse(jsonOutput);
         } else {
-            parse = parser.parse(new String(profileOutput, Charsets.UTF_8));
+            parse = parser.parse(new String(profileOutput, StandardCharsets.UTF_8));
         }
         Assert.assertTrue(parse instanceof List);
 
@@ -669,7 +668,7 @@ public class ProfileTest {
             byte[] compressedData = Base64.getDecoder().decode(rawData);
 
             InflaterInputStream inStream = new InflaterInputStream(new ByteArrayInputStream(compressedData));
-            rawData = CharStreams.toString(new InputStreamReader(inStream, Charsets.UTF_8));
+            rawData = CharStreams.toString(new InputStreamReader(inStream, StandardCharsets.UTF_8));
             parsedData = parser.parse(rawData);
         }
 
