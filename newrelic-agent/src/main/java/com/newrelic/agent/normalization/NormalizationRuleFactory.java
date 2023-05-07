@@ -113,14 +113,7 @@ public class NormalizationRuleFactory {
     }
 
     private static void sortRules(List<NormalizationRule> rules) {
-        Collections.sort(rules, new Comparator<NormalizationRule>() {
-            @Override
-            public int compare(NormalizationRule lhs, NormalizationRule rhs) {
-                Integer lhsOrder = lhs.getOrder();
-                Integer rhsOrder = rhs.getOrder();
-                return lhsOrder.compareTo(rhsOrder);
-            }
-        });
+        rules.sort(Comparator.comparing(NormalizationRule::getOrder));
     }
 
     private static NormalizationRule createRule(Map<String, Object> ruleData) {
