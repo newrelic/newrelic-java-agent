@@ -29,12 +29,7 @@ public class ProfilerService extends AbstractService implements ProfilerControl 
 
     private volatile ProfileSession currentSession;
     private final ScheduledExecutorService scheduledExecutor;
-    private final TransactionListener transactionListener = new TransactionListener() {                    
-        @Override
-        public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
-            transactionFinished(transactionData);
-        }
-    };
+    private final TransactionListener transactionListener = (transactionData, transactionStats) -> transactionFinished(transactionData);
 
     private final TransactionProfileService transactionProfileService;
 

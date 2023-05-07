@@ -42,24 +42,9 @@ public class WebRequestDispatcher extends DefaultDispatcher implements WebRespon
 
     private static final String UNKNOWN_URI = "/Unknown";
 
-    private static final StatusCodePolicy LAST_STATUS_CODE_POLICY = new StatusCodePolicy() {
-        @Override
-        public int nextStatus(int currentStatus, int lastStatus) {
-            return lastStatus;
-        }
-    };
-    private static final StatusCodePolicy ERROR_STATUS_CODE_POLICY = new StatusCodePolicy() {
-        @Override
-        public int nextStatus(int currentStatus, int lastStatus) {
-            return currentStatus < HttpURLConnection.HTTP_BAD_REQUEST ? lastStatus : currentStatus;
-        }
-    };
-    private static final StatusCodePolicy FREEZE_STATUS_CODE_POLICY = new StatusCodePolicy() {
-        @Override
-        public int nextStatus(int currentStatus, int lastStatus) {
-            return currentStatus;
-        }
-    };
+    private static final StatusCodePolicy LAST_STATUS_CODE_POLICY = (currentStatus, lastStatus) -> lastStatus;
+    private static final StatusCodePolicy ERROR_STATUS_CODE_POLICY = (currentStatus, lastStatus) -> currentStatus < HttpURLConnection.HTTP_BAD_REQUEST ? lastStatus : currentStatus;
+    private static final StatusCodePolicy FREEZE_STATUS_CODE_POLICY = (currentStatus, lastStatus) -> currentStatus;
     private final AtomicBoolean responseRecorded = new AtomicBoolean(false);
     private volatile Request request;
     private volatile Response response;

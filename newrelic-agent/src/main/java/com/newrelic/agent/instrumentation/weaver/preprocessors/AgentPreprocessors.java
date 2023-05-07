@@ -198,12 +198,7 @@ public class AgentPreprocessors implements WeavePreprocessor {
                         final int throwableLocal = newLocal(Type.getType(Throwable.class));
                         storeLocal(throwableLocal);
 
-                        Runnable throwableMessage = new Runnable() {
-                            @Override
-                            public void run() {
-                                loadLocal(throwableLocal);
-                            }
-                        };
+                        Runnable throwableMessage = () -> loadLocal(throwableLocal);
 
                         BridgeUtils.getLogger(this).logToChild(weavePackageName, Level.FINE,
                                 "{0}.{1}{2} threw an exception: {3}", className, name, desc, throwableMessage);

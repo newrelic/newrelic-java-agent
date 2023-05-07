@@ -13,9 +13,6 @@ import java.util.Set;
 public interface ExtensionsLoadedListener {
     void loaded(Set<File> extensions);
 
-    ExtensionsLoadedListener NOOP = new ExtensionsLoadedListener() {
-        @Override
-        public void loaded(Set<File> extensions) {
-        }
+    ExtensionsLoadedListener NOOP = extensions -> {
     };
 }

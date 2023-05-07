@@ -67,15 +67,11 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
                             // cause for expiring one is the same as for expiring all (EXPLICIT). So markExpire needs to be
                             // called in either case, since it doesn't hurt to null out the tracer again, and it still needs
                             // to happen in the expire all case.
-                            expirationService.expireToken(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // In the case of a token being expired we *must* spin off the work on to a
-                                    // second thread in order to prevent a possible deadlock between the expire code
-                                    // and other tx usages.
-                                    token.markExpired();
-                                }
-                            });
+                            //
+                            // In the case of a token being expired we *must* spin off the work on to a
+                            // second thread in order to prevent a possible deadlock between the expire code
+                            // and other tx usages.
+                            expirationService.expireToken(token::markExpired);
                         }
                     }
                 }).build();

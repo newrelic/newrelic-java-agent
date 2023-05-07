@@ -271,13 +271,7 @@ public class ExtensionService extends AbstractService implements HarvestListener
 
     private void reloadWeaveInstrumentationIfModified() {
         File[] jarFiles = getExtensionFiles(ExtensionFileTypes.JAR.getFilter());
-        Collection<File> weaveFiles = Collections2.filter(Arrays.asList(jarFiles), new Predicate<File>() {
-            @Override
-            public boolean apply(File extension) {
-                boolean isWeave = JarExtension.isWeaveInstrumentation(extension);
-                return isWeave;
-            }
-        });
+        Collection<File> weaveFiles = Collections2.filter(Arrays.asList(jarFiles), JarExtension::isWeaveInstrumentation);
 
         Collection<File> newWeaveFiles = new HashSet<>();
         Collection<File> removedWeaveFiles = new HashSet<>();
