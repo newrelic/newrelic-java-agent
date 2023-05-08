@@ -1,113 +1,74 @@
-# GHA to run Spotbugs against top level Java agent projects. Both HTML and XML files are generated for each project
-# and attached to the workflow run page under the "Artifacts" section. The files are downloaded as a zip (per project).
-# The XML file can be analyzed inside the Spotbugs GUI: https://spotbugs.readthedocs.io/en/stable/running.html
-name: Execute Spotbugs
+name: Create custom jar
 
 on:
   workflow_dispatch:
     inputs:
-      agent-ref:
-        description: 'The ref (branch, SHA, tag) to run spotbugs on'
-        required: false
+      ref:
+        description: "Specify branch/tag/hash"
+        required: true
         default: 'main'
-        type: string
-  workflow_call:
-    inputs:
-      agent-ref:
-        description: 'The ref (branch, SHA, tag) to run spotbugs on'
-        required: false
-        default: 'main'
-        type: string
+      description:
+        description: "A description for the custom jar that will be generated. It will appear in the summary."
+        required: true
 
 jobs:
-  spotbugs:
-    timeout-minutes: 15
+  create_custom_jar:
     runs-on: ubuntu-20.04
-    permissions:
-      security-events: write
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
+          ref: ${{ inputs.ref }}
+      - uses: gradle/wrapper-validation-action@v1
 
-      - name: Set up Java 8
+      # JDK 11
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 11
+      - name: save JAVA_HOME as JDK11 for later usage
+        run: echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
+      # setting JDK 8 last so it is the default
+      - name: Set up JDK 1.8
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 8
 
-      - name: Save JAVA_HOME as JDK8 env variables
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV    
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-
-      - name: setup gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8" >> $GITHUB_ENV
-
+      - name: Setup Gradle options
+        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
       - name: set gradle.properties
         run: |
-          sed -i -e "s|jdk8=8|jdk8=${JDK8}|" gradle.properties.gha
+          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
+          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
-      - name: Check environmental variables
-        run: printenv | sort -f
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: Download S3 instrumentation jar zip
+        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip  ## Updated 2022
+      - name: Unzip the instrumentation jars
+        run: unzip proprietary-jars.zip
+      #      - name: Log jars are in target libs
+      #        run: find instrumentation -name "*.jar"
 
-      - name: Build newrelicJar
-        env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
+      - name: Build agent
+        run: ./gradlew $GRADLE_OPTIONS jar
+
+      - name: Set summary
         run: |
-          ls -la
-          cat settings.gradle
-          ./gradlew $GRADLE_OPTIONS clean jar --parallel
-          ls -la newrelic-agent/build/
+          echo "${{ inputs.description }}" >> $GITHUB_STEP_SUMMARY
+          echo "This jar was built from the ref (branch/tag/hash): ${{ inputs.ref }}." >> $GITHUB_STEP_SUMMARY
 
-      - name: Execute Spotbugs
-        env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          ./gradlew $GRADLE_OPTIONS spotbugsMain --parallel
-
-      - uses: actions/upload-artifact@v3
+      - name: Capture custom jar
+        uses: actions/upload-artifact@v3
         with:
-          name: newrelic-agent-spotbugs-results
-          path: 'newrelic-agent/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: newrelic-weaver-spotbugs-results
-          path: 'newrelic-weaver/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agent-bridge-spotbugs-results
-          path: 'agent-bridge/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agent-bridge-datastore-spotbugs-results
-          path: 'agent-bridge-datastore/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agent-model-spotbugs-results
-          path: 'agent-model/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agent-interfaces-spotbugs-results
-          path: 'agent-interfaces/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: newrelic-api-spotbugs-results
-          path: 'newrelic-api/build/spotbugs/main.*'
-          retention-days: 5
+          name: custom-newrelic-jar
+          path: |
+            newrelic-agent/build/newrelicJar/newrelic.jar
