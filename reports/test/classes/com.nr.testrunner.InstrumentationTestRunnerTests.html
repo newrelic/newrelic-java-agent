@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.106s</div>
+<div class="counter">0.090s</div>
 <p>duration</p>
 </div>
 </td>
@@ -66,6 +66,9 @@
 <li>
 <a href="#tab1">Standard output</a>
 </li>
+<li>
+<a href="#tab2">Standard error</a>
+</li>
 </ul>
 <div id="tab0" class="tab">
 <h2>Tests</h2>
@@ -79,7 +82,7 @@
 </thead>
 <tr>
 <td class="success">testDoTransactionInUnitTest</td>
-<td class="success">0.001s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -89,22 +92,22 @@
 </tr>
 <tr>
 <td class="success">testNameTransactionSupportability</td>
-<td class="success">0.006s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testNewRelicApiTxName</td>
-<td class="success">0.094s</td>
+<td class="success">0.081s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testNoTransaction</td>
-<td class="success">0.002s</td>
+<td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testTransaction</td>
-<td class="success">0.001s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -112,24 +115,44 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-08T20:30:49,555+0000 [5524 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:30:49,555+0000 [5524 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:30:49,555+0000 [5524 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:30:49,566+0000 [5524 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:30:49,567+0000 [5524 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:30:49,567+0000 [5524 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:30:49,569+0000 [5524 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:30:49,570+0000 [5524 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:30:49,572+0000 [5524 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:30:49,645+0000 [5524 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:30:49,645+0000 [5524 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:30:49,646+0000 [5524 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:30:49,656+0000 [5524 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:30:49,656+0000 [5524 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:30:49,657+0000 [5524 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:30:49,658+0000 [5524 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:30:49,658+0000 [5524 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:30:49,658+0000 [5524 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+<pre>2023-05-08T20:32:36,665+0000 [5475 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:32:36,665+0000 [5475 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:32:36,665+0000 [5475 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:32:36,680+0000 [5475 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:32:36,680+0000 [5475 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:32:36,680+0000 [5475 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:32:36,683+0000 [5475 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:32:36,683+0000 [5475 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:32:36,683+0000 [5475 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:32:36,869+0000 [5475 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:32:36,869+0000 [5475 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:32:36,869+0000 [5475 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:32:36,884+0000 [5475 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:32:36,884+0000 [5475 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:32:36,884+0000 [5475 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:32:36,886+0000 [5475 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:32:36,886+0000 [5475 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:32:36,886+0000 [5475 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+</pre>
+</span>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>May 08, 2023 8:32:36 PM fi.iki.elonen.NanoHTTPD$Response send
+SEVERE: Could not send response to the client
+java.net.SocketException: Socket closed
+	at java.net.SocketOutputStream.socketWrite(SocketOutputStream.java:118)
+	at java.net.SocketOutputStream.write(SocketOutputStream.java:143)
+	at fi.iki.elonen.NanoHTTPD$Response$ChunkedOutputStream.write(NanoHTTPD.java:1442)
+	at java.util.zip.GZIPOutputStream.finish(GZIPOutputStream.java:164)
+	at fi.iki.elonen.NanoHTTPD$Response.sendBodyWithCorrectEncoding(NanoHTTPD.java:1665)
+	at fi.iki.elonen.NanoHTTPD$Response.sendBodyWithCorrectTransferAndEncoding(NanoHTTPD.java:1654)
+	at fi.iki.elonen.NanoHTTPD$Response.send(NanoHTTPD.java:1624)
+	at fi.iki.elonen.NanoHTTPD$HTTPSession.execute(NanoHTTPD.java:957)
+	at fi.iki.elonen.NanoHTTPD$ClientHandler.run(NanoHTTPD.java:192)
+	at java.lang.Thread.run(Thread.java:750)
+
 </pre>
 </span>
 </div>
@@ -141,7 +164,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 8:30:52 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 8:32:49 PM</p>
 </div>
 </div>
 </body>
