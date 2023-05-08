@@ -1,3 +1,6 @@
+# GHA to run Spotbugs against top level Java agent projects. Both HTML and XML files are generated for each project
+# and attached to the workflow run page under the "Artifacts" section. The files are downloaded as a zip (per project).
+# The XML file can be analyzed inside the Spotbugs GUI: https://spotbugs.readthedocs.io/en/stable/running.html
 name: Execute Spotbugs
 
 on:
@@ -70,34 +73,41 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: newrelic-agent-spotbugs-results
-          path: 'newrelic-agent/build/spotbugs/main.html'
+          path: 'newrelic-agent/build/spotbugs/main.*'
+          retention-days: 5
 
       - uses: actions/upload-artifact@v3
         with:
           name: newrelic-weaver-spotbugs-results
-          path: 'newrelic-weaver/build/spotbugs/main.html'
+          path: 'newrelic-weaver/build/spotbugs/main.*'
+          retention-days: 5
 
       - uses: actions/upload-artifact@v3
         with:
           name: agent-bridge-spotbugs-results
-          path: 'agent-bridge/build/spotbugs/main.html'
+          path: 'agent-bridge/build/spotbugs/main.*'
+          retention-days: 5
 
       - uses: actions/upload-artifact@v3
         with:
           name: agent-bridge-datastore-spotbugs-results
-          path: 'agent-bridge-datastore/build/spotbugs/main.html'
+          path: 'agent-bridge-datastore/build/spotbugs/main.*'
+          retention-days: 5
 
       - uses: actions/upload-artifact@v3
         with:
           name: agent-model-spotbugs-results
-          path: 'agent-model/build/spotbugs/main.html'
+          path: 'agent-model/build/spotbugs/main.*'
+          retention-days: 5
 
       - uses: actions/upload-artifact@v3
         with:
           name: agent-interfaces-spotbugs-results
-          path: 'agent-interfaces/build/spotbugs/main.html'
+          path: 'agent-interfaces/build/spotbugs/main.*'
+          retention-days: 5
 
       - uses: actions/upload-artifact@v3
         with:
           name: newrelic-api-spotbugs-results
-          path: 'newrelic-api/build/spotbugs/main.html'
+          path: 'newrelic-api/build/spotbugs/main.*'
+          retention-days: 5

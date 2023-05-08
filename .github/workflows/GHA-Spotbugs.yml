@@ -1,3 +1,6 @@
+# GHA to run Spotbugs against top level Java agent projects. Both HTML and XML files are generated for each project
+# and attached to the workflow run page under the "Artifacts" section. The files are downloaded as a zip (per project).
+# The XML file can be analyzed inside the Spotbugs GUI: https://spotbugs.readthedocs.io/en/stable/running.html
 name: Execute Spotbugs
 
 on:
@@ -20,6 +23,8 @@ jobs:
   spotbugs:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
+    permissions:
+      security-events: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -31,6 +36,11 @@ jobs:
           distribution: 'temurin'
           java-version: 8
 
+      - name: Save JAVA_HOME as JDK8 env variables
+        run: |
+          echo "Current JAVA_HOME = ${JAVA_HOME}"
+          echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV    
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
@@ -39,7 +49,7 @@ jobs:
 
       - name: set gradle.properties
         run: |
-          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
+          sed -i -e "s|jdk8=8|jdk8=${JDK8}|" gradle.properties.gha
           mv gradle.properties.gha gradle.properties
 
       - name: Check environmental variables
@@ -59,7 +69,45 @@ jobs:
           JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
         run: |
           ./gradlew $GRADLE_OPTIONS spotbugsMain --parallel
-          
-      - uses: jwgmeligmeyling/spotbugs-github-action@master
+
+      - uses: actions/upload-artifact@v3
         with:
-          path: '**/build/spotbugs/main.xml'
+          name: newrelic-agent-spotbugs-results
+          path: 'newrelic-agent/build/spotbugs/main.*'
+          retention-days: 5
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: newrelic-weaver-spotbugs-results
+          path: 'newrelic-weaver/build/spotbugs/main.*'
+          retention-days: 5
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-bridge-spotbugs-results
+          path: 'agent-bridge/build/spotbugs/main.*'
+          retention-days: 5
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-bridge-datastore-spotbugs-results
+          path: 'agent-bridge-datastore/build/spotbugs/main.*'
+          retention-days: 5
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-model-spotbugs-results
+          path: 'agent-model/build/spotbugs/main.*'
+          retention-days: 5
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-interfaces-spotbugs-results
+          path: 'agent-interfaces/build/spotbugs/main.*'
+          retention-days: 5
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: newrelic-api-spotbugs-results
+          path: 'newrelic-api/build/spotbugs/main.*'
+          retention-days: 5
