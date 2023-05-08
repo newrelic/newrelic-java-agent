@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">2.408s</div>
+<div class="counter">2.818s</div>
 <p>duration</p>
 </div>
 </td>
@@ -82,8 +82,10 @@
 	at org.junit.Assert.assertEquals(Assert.java:645)
 	at org.junit.Assert.assertEquals(Assert.java:631)
 	at com.newrelic.agent.attributes.AgentAttributeSenderTest.shouldTruncateLongAttributeValues(AgentAttributeSenderTest.java:149)
-	at jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
-	at java.lang.reflect.Method.invoke(Method.java:578)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
@@ -103,8 +105,10 @@
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
 	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
-	at jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
-	at java.lang.reflect.Method.invoke(Method.java:578)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
@@ -135,22 +139,22 @@
 </thead>
 <tr>
 <td class="failures">shouldTruncateLongAttributeValues</td>
-<td class="failures">0.046s</td>
+<td class="failures">0.038s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testCustomAttributesInTransaction</td>
-<td class="success">2.275s</td>
+<td class="success">2.700s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testCustomAttributesOutsideTransaction</td>
-<td class="success">0.020s</td>
+<td class="success">0.038s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testErrorAttributesTypes</td>
-<td class="success">0.067s</td>
+<td class="success">0.042s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -158,30 +162,30 @@
 <div id="tab2" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-08T20:49:47,431+0000 [34461 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:49:47,452+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:47,453+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:49:49,101+0000 [34461 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:49:49,101+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:49,101+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:49:49,234+0000 [34461 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:49:49,235+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:49,235+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:49:49,262+0000 [34461 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:49:49,263+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:49,263+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:49:49,277+0000 [34461 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:49:49,277+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:49,277+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:49:49,283+0000 [34461 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:49:49,284+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:49,284+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:49:49,297+0000 [34461 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:49:49,297+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:49,301+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:49:49,346+0000 [34461 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:49:49,348+0000 [34461 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:49:49,348+0000 [34461 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+<pre>2023-05-08T20:51:48,253+0000 [35873 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:51:48,259+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:48,260+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:51:50,130+0000 [35873 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:51:50,132+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:50,132+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:51:50,267+0000 [35873 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:51:50,267+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:50,268+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:51:50,284+0000 [35873 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:51:50,289+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:50,289+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:51:50,304+0000 [35873 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:51:50,304+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:50,305+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:51:50,332+0000 [35873 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:51:50,332+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:50,332+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:51:50,342+0000 [35873 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:51:50,342+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:50,343+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:51:50,356+0000 [35873 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:51:50,356+0000 [35873 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:51:50,361+0000 [35873 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
 </pre>
 </span>
 </div>
@@ -193,7 +197,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 8:59:32 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 9:01:01 PM</p>
 </div>
 </div>
 </body>

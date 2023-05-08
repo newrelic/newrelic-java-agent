@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.314s</div>
+<div class="counter">2.103s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">testAccept</td>
-<td class="success">0.019s</td>
+<td class="success">0.040s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testAcceptThenInsert</td>
-<td class="success">1.248s</td>
+<td class="success">1.923s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testInsert</td>
-<td class="success">0.023s</td>
+<td class="success">0.048s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testInsertExcludeNewRelicHeader</td>
-<td class="success">0.024s</td>
+<td class="success">0.092s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -102,61 +102,61 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-08T20:58:34,693+0000 [46799 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:58:34,707+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:34,707+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,464+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,465+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,465+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,504+0000 [46799 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-08T20:58:35,528+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,528+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,528+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,531+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,531+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,532+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,604+0000 [46799 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:58:35,604+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,604+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,612+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,612+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,613+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,616+0000 [46799 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-08T20:58:35,618+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,618+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,618+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,620+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,620+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,620+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,622+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,622+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,622+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,627+0000 [46799 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:58:35,628+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,628+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,634+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,634+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,635+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,638+0000 [46799 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-08T20:58:35,640+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,640+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,641+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,642+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,642+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,642+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,647+0000 [46799 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:58:35,647+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,647+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,654+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,654+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,655+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,662+0000 [46799 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-08T20:58:35,664+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,664+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,664+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:35,666+0000 [46799 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:35,666+0000 [46799 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:35,666+0000 [46799 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+<pre>2023-05-08T20:59:08,756+0000 [47136 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:59:08,762+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:08,762+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:09,966+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:09,969+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:09,970+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,038+0000 [47136 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-08T20:59:10,093+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,094+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,095+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,102+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,105+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,105+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,300+0000 [47136 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:59:10,301+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,301+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,335+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,335+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,339+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,350+0000 [47136 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-08T20:59:10,356+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,356+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,357+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,363+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,365+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,365+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,376+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,376+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,377+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,391+0000 [47136 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:59:10,391+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,392+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,410+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,411+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,412+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,419+0000 [47136 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-08T20:59:10,421+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,423+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,423+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,425+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,425+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,425+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,437+0000 [47136 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:59:10,437+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,437+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,450+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,450+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,453+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,464+0000 [47136 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-08T20:59:10,466+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,466+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,466+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:59:10,472+0000 [47136 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:59:10,473+0000 [47136 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:59:10,473+0000 [47136 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
 </pre>
 </span>
 </div>
@@ -168,7 +168,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 8:59:32 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 9:01:01 PM</p>
 </div>
 </div>
 </body>

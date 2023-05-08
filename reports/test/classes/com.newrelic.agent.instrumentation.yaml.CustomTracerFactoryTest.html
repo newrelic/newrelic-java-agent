@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.038s</div>
+<div class="counter">0.066s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">testNoTracerWithParent</td>
-<td class="success">0.001s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testNoTracerWithoutParent</td>
-<td class="success">0.024s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testTracerNoParent</td>
 <td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testNoTracerWithoutParent</td>
+<td class="success">0.042s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testTracerNoParent</td>
+<td class="success">0.003s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testTracerWithParent</td>
-<td class="success">0.011s</td>
+<td class="success">0.019s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -102,18 +102,18 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-08T20:56:29,204+0000 [44549 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-05-08T20:56:29,210+0000 [44549 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:29,210+0000 [44549 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:29,357+0000 [44549 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-08T20:56:29,386+0000 [44549 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
-2023-05-08T20:56:29,409+0000 [44549 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
-2023-05-08T20:56:29,468+0000 [44549 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
-2023-05-08T20:56:29,675+0000 [44549 1] com.newrelic INFO: Setting audit_mode to false
-2023-05-08T20:56:29,777+0000 [44549 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
-2023-05-08T20:56:29,778+0000 [44549 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
-2023-05-08T20:56:29,816+0000 [44549 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.instrumentation.yaml.CustomTracerFactory$2@503df2d0 != com.newrelic.agent.tracers.OtherRootTracer@26fb4d06)
-2023-05-08T20:56:29,822+0000 [44549 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.instrumentation.yaml.CustomTracerFactory$1@5d96bdf8 != null)
+<pre>2023-05-08T20:55:30,121+0000 [42245 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-05-08T20:55:30,130+0000 [42245 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:55:30,132+0000 [42245 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:55:30,488+0000 [42245 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-08T20:55:30,525+0000 [42245 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
+2023-05-08T20:55:30,572+0000 [42245 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
+2023-05-08T20:55:30,722+0000 [42245 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
+2023-05-08T20:55:31,113+0000 [42245 1] com.newrelic INFO: Setting audit_mode to false
+2023-05-08T20:55:31,342+0000 [42245 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
+2023-05-08T20:55:31,343+0000 [42245 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+2023-05-08T20:55:31,418+0000 [42245 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.instrumentation.yaml.CustomTracerFactory$2@78a0ff63 != com.newrelic.agent.tracers.OtherRootTracer@7c601d50)
+2023-05-08T20:55:31,436+0000 [42245 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.instrumentation.yaml.CustomTracerFactory$1@1f1e58ca != null)
 </pre>
 </span>
 </div>
@@ -125,7 +125,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 8:59:32 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 9:01:01 PM</p>
 </div>
 </div>
 </body>

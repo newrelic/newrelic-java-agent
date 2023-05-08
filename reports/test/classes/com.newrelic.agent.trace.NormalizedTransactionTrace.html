@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.234s</div>
+<div class="counter">2.822s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">testNormalizedTransactionTraceTest</td>
-<td class="success">1.234s</td>
+<td class="success">2.822s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -87,18 +87,18 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-08T20:58:07,760+0000 [46138 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:58:07,771+0000 [46138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:07,771+0000 [46138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:08,531+0000 [46138 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-08T20:58:08,545+0000 [46138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:08,546+0000 [46138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:08,546+0000 [46138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:08,598+0000 [46138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:58:08,598+0000 [46138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:58:08,599+0000 [46138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:58:08,601+0000 [46138 1] com.newrelic WARN: The agent did not receive any url rules from the New Relic server.
-2023-05-08T20:58:08,618+0000 [46138 1] com.newrelic WARN: Transaction com.newrelic.agent.Transaction@169268a7 was not reported because of an internal error.
+<pre>2023-05-08T20:58:13,232+0000 [45845 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:58:13,247+0000 [45845 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:58:13,253+0000 [45845 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:58:14,970+0000 [45845 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-08T20:58:15,002+0000 [45845 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:58:15,006+0000 [45845 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:58:15,007+0000 [45845 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:58:15,062+0000 [45845 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:58:15,063+0000 [45845 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:58:15,063+0000 [45845 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:58:15,067+0000 [45845 1] com.newrelic WARN: The agent did not receive any url rules from the New Relic server.
+2023-05-08T20:58:15,122+0000 [45845 1] com.newrelic WARN: Transaction com.newrelic.agent.Transaction@600f5704 was not reported because of an internal error.
 java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.config.TransactionTracerConfig.getTransactionThresholdInNanos()&quot; because the return value of &quot;com.newrelic.agent.Transaction.getTransactionTracerConfig()&quot; is null
 	at com.newrelic.agent.Transaction.recordFinalGCTime(Transaction.java:1199) ~[main/:?]
 	at com.newrelic.agent.Transaction.finishTransaction(Transaction.java:1009) [main/:?]
@@ -110,8 +110,10 @@ java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.config.Tr
 	at com.newrelic.agent.tracers.DefaultTracer.performFinishWork(DefaultTracer.java:312) [main/:?]
 	at com.newrelic.agent.tracers.DefaultTracer.finish(DefaultTracer.java:236) [main/:?]
 	at com.newrelic.agent.trace.NormalizedTransactionTrace.testNormalizedTransactionTraceTest(NormalizedTransactionTrace.java:125) [test/:?]
-	at jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:578) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50) [junit-4.12.jar:4.12]
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) [junit-4.12.jar:4.12]
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47) [junit-4.12.jar:4.12]
@@ -131,8 +133,10 @@ java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.config.Tr
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38) [gradle-testing-jvm-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62) [gradle-testing-jvm-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51) [gradle-testing-base-7.5.1.jar:7.5.1]
-	at jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:578) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36) [gradle-messaging-7.5.1.jar:7.5.1]
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24) [gradle-messaging-7.5.1.jar:7.5.1]
 	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33) [gradle-messaging-7.5.1.jar:7.5.1]
@@ -158,7 +162,7 @@ java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.config.Tr
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 8:59:32 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 9:01:01 PM</p>
 </div>
 </div>
 </body>
