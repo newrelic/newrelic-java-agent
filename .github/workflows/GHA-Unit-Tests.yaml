@@ -148,6 +148,10 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@users.noreply.github.com"
 
+      - name: Create reports directory
+        if: ${{ failure() }}
+        run: mkdir -p gh-pages/reports
+
       - name: Copy test reports to gh-pages branch
         if: ${{ failure() }}
         run: |
