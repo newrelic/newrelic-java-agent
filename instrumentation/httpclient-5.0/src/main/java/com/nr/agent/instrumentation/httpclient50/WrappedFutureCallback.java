@@ -7,43 +7,51 @@
 
 package com.nr.agent.instrumentation.httpclient50;
 
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 
 import java.net.URISyntaxException;
+import java.util.logging.Level;
 
 public class WrappedFutureCallback<T> implements FutureCallback<T> {
 
     HttpRequest request;
     FutureCallback origCallback;
 
-    public WrappedFutureCallback (HttpRequest request, FutureCallback origCallback) {
+    Segment segment;
+
+    public WrappedFutureCallback (HttpRequest request, FutureCallback origCallback, Segment segment) {
         this.request = request;
         this.origCallback = origCallback;
+        this.segment = segment;
     }
 
     @Override
     public void completed(T response) {
         try {
-            InstrumentationUtils.processResponse(request.getUri(), (BasicHttpResponse)response);
+            InstrumentationUtils.processResponse(request.getUri(), (BasicHttpResponse)response, segment);
         } catch (URISyntaxException e) {
-            // TODO what should we do here?  if the request URI has invalid syntax
+            AgentBridge.getAgent().getLogger().log(Level.FINER, "Exception with uri: " + e.getMessage());
         }
         if (origCallback != null) origCallback.completed(response);
+        if (segment != null) segment.end();
     }
 
     @Override
     public void failed(Exception ex) {
         InstrumentationUtils.handleUnknownHost(ex);
         if (origCallback != null) origCallback.failed(ex);
+        if (segment != null) segment.end();
     }
 
     @Override
     public void cancelled() {
-        // TODO handle cancellation  anything to do?
         if (origCallback != null) origCallback.cancelled();
+        if (segment != null) segment.end();
     }
 
 }

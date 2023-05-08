@@ -24,21 +24,11 @@ public class WrappedResponseHandler<T> implements HttpClientResponseHandler<T> {
     @Override
     public T handleResponse(ClassicHttpResponse response) throws HttpException, IOException {
         try {
-            processResponse(uri, response);
+            InstrumentationUtils.processResponse(uri, response, NewRelic.getAgent().getTracedMethod());
         } catch (Throwable t) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, t, "Unable to process response");
         }
         return originalResponseHandler.handleResponse(response);
     }
 
-    private static void processResponse(URI requestURI, ClassicHttpResponse response) {
-        InboundWrapper inboundCatWrapper = new InboundWrapper(response);
-        NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
-                .library(InstrumentationUtils.LIBRARY)
-                .uri(requestURI)
-                .procedure(InstrumentationUtils.PROCEDURE)
-                .inboundHeaders(inboundCatWrapper)
-                .status(response.getCode(), response.getReasonPhrase())
-                .build());
-    }
 }

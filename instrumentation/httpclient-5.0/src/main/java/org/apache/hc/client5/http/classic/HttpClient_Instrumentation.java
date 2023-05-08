@@ -31,17 +31,6 @@ import java.net.URISyntaxException;
 @Weave(type = MatchType.Interface, originalName = "org.apache.hc.client5.http.classic.HttpClient")
 public class HttpClient_Instrumentation {
 
-    private static void processResponse(URI requestURI, HttpResponse response) {
-        InboundWrapper inboundCatWrapper = new InboundWrapper(response);
-        NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
-                .library(InstrumentationUtils.LIBRARY)
-                .uri(requestURI)
-                .procedure(InstrumentationUtils.PROCEDURE)
-                .inboundHeaders(inboundCatWrapper)
-                .status(response.getCode(), response.getReasonPhrase())
-                .build());
-    }
-
     @Trace(leaf = true)
     public HttpResponse execute(ClassicHttpRequest request) throws IOException {
         InstrumentationUtils.doOutboundCAT(request);
@@ -53,7 +42,7 @@ public class HttpClient_Instrumentation {
             throw e;
         }
         try {
-            processResponse(request.getUri(), response);
+            InstrumentationUtils.processResponse(request.getUri(), response, NewRelic.getAgent().getTracedMethod());
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -71,7 +60,7 @@ public class HttpClient_Instrumentation {
             throw e;
         }
         try {
-            processResponse(request.getUri(), response);
+            InstrumentationUtils.processResponse(request.getUri(), response, NewRelic.getAgent().getTracedMethod());
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -90,7 +79,7 @@ public class HttpClient_Instrumentation {
         }
         try {
             URI actualURI = getUri(target, request);
-            processResponse(actualURI, response);
+            InstrumentationUtils.processResponse(actualURI, response, NewRelic.getAgent().getTracedMethod());
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -109,7 +98,7 @@ public class HttpClient_Instrumentation {
         }
         try {
             URI actualURI = getUri(target, request);
-            processResponse(actualURI, response);
+            InstrumentationUtils.processResponse(actualURI, response, NewRelic.getAgent().getTracedMethod());
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }

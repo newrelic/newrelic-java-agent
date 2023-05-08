@@ -8,6 +8,7 @@
 package org.apache.hc.client5.http.async;
 
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -37,10 +38,12 @@ public class HttpAsyncClient_Instrumentation {
             HttpContext context,
             FutureCallback<T> callback) {
 
+        Segment segment = InstrumentationUtils.startAsyncSegment();
+
         HttpRequest request = ((BasicRequestProducer_Instrumentation)requestProducer).nrRequest;
-        InstrumentationUtils.doOutboundCAT(request);
+        InstrumentationUtils.doOutboundCAT(request, segment);
         Token token = NewRelic.getAgent().getTransaction().getToken();
-        callback = new WrappedFutureCallback<>(request, callback);
+        callback = new WrappedFutureCallback<>(request, callback, segment);
 
         if (responseConsumer instanceof AsyncResponseConsumer_Instrumentation) {
             ((AsyncResponseConsumer_Instrumentation)responseConsumer).token = token;
