@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">2.767s</div>
+<div class="counter">1.496s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">jmxConfig6</td>
-<td class="success">0.037s</td>
+<td class="success">0.039s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testYml</td>
-<td class="success">0.186s</td>
+<td class="success">0.079s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testYmlJmx</td>
-<td class="success">0.037s</td>
+<td class="success">0.015s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testYmlNoJMX</td>
-<td class="success">2.507s</td>
+<td class="success">1.363s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -102,37 +102,37 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-08T20:55:59,063+0000 [43172 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:55:59,069+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:55:59,070+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:00,830+0000 [43172 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:56:00,831+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:00,831+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:00,909+0000 [43172 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:56:00,910+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:00,910+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:00,935+0000 [43172 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:56:00,936+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:00,936+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:00,947+0000 [43172 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:56:00,948+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:00,948+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:00,963+0000 [43172 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:56:00,963+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:00,965+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:00,982+0000 [43172 1] com.newrelic WARN: There is no 'metric' property in the JMX configuration file. Please verify the format of your yml file.
-2023-05-08T20:56:00,982+0000 [43172 1] com.newrelic WARN: Not recording JMX metric with object name solr*:type=documentCache,* in extension Test because there are no attributes.
-2023-05-08T20:56:00,983+0000 [43172 1] com.newrelic WARN: There is no 'metric' property in the JMX configuration file. Please verify the format of your yml file.
-2023-05-08T20:56:00,986+0000 [43172 1] com.newrelic WARN: Not recording JMX metric with object name solr*:type==empty,* in extension Test because there are no attributes.
-2023-05-08T20:56:01,135+0000 [43172 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-08T20:56:01,136+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:01,137+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:01,147+0000 [43172 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-08T20:56:01,148+0000 [43172 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-08T20:56:01,150+0000 [43172 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-08T20:56:01,167+0000 [43172 1] com.newrelic WARN: Not recording JMX metric with object name name:type=example in extension Test because there are no attributes.
-2023-05-08T20:56:01,167+0000 [43172 1] com.newrelic WARN: Not recording JMX metric because the object name is null or empty in extension Test
-2023-05-08T20:56:01,170+0000 [43172 1] com.newrelic WARN: Not recording JMX metric because the object name is null or empty in extension Test
+<pre>2023-05-08T20:54:58,950+0000 [38352 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:54:58,957+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:54:58,957+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:54:59,894+0000 [38352 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:54:59,895+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:54:59,895+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:54:59,945+0000 [38352 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:54:59,946+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:54:59,947+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:54:59,970+0000 [38352 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:54:59,971+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:54:59,972+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:54:59,982+0000 [38352 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:54:59,982+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:54:59,983+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:54:59,991+0000 [38352 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:54:59,991+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:54:59,991+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:55:00,001+0000 [38352 1] com.newrelic WARN: There is no 'metric' property in the JMX configuration file. Please verify the format of your yml file.
+2023-05-08T20:55:00,001+0000 [38352 1] com.newrelic WARN: Not recording JMX metric with object name solr*:type=documentCache,* in extension Test because there are no attributes.
+2023-05-08T20:55:00,002+0000 [38352 1] com.newrelic WARN: There is no 'metric' property in the JMX configuration file. Please verify the format of your yml file.
+2023-05-08T20:55:00,002+0000 [38352 1] com.newrelic WARN: Not recording JMX metric with object name solr*:type==empty,* in extension Test because there are no attributes.
+2023-05-08T20:55:00,062+0000 [38352 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-08T20:55:00,062+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:55:00,063+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:55:00,070+0000 [38352 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-08T20:55:00,071+0000 [38352 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-08T20:55:00,071+0000 [38352 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-08T20:55:00,076+0000 [38352 1] com.newrelic WARN: Not recording JMX metric with object name name:type=example in extension Test because there are no attributes.
+2023-05-08T20:55:00,076+0000 [38352 1] com.newrelic WARN: Not recording JMX metric because the object name is null or empty in extension Test
+2023-05-08T20:55:00,077+0000 [38352 1] com.newrelic WARN: Not recording JMX metric because the object name is null or empty in extension Test
 </pre>
 </span>
 </div>
@@ -144,7 +144,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 9:01:01 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 8, 2023 9:03:03 PM</p>
 </div>
 </div>
 </body>
