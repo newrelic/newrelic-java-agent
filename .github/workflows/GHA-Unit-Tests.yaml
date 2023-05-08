@@ -150,7 +150,8 @@ jobs:
 
       - name: Create reports directory
         if: ${{ failure() }}
-        run: mkdir -p gh-pages/reports
+        run: |
+          mkdir -p gh-pages/reports
 
       - name: Copy test reports to gh-pages branch
         if: ${{ failure() }}
