@@ -39,15 +39,16 @@ public class HttpAsyncClient_Instrumentation {
 
         HttpRequest request = ((BasicRequestProducer_Instrumentation)requestProducer).nrRequest;
         InstrumentationUtils.doOutboundCAT(request);
-        Token token = NewRelic.getAgent().getTransaction().getToken();
-        callback = new WrappedFutureCallback<>(request, callback);
 
+        Token token = NewRelic.getAgent().getTransaction().getToken();
         if (responseConsumer instanceof AsyncResponseConsumer_Instrumentation) {
             ((AsyncResponseConsumer_Instrumentation)responseConsumer).token = token;
         }
         if (responseConsumer instanceof AsyncDataConsumer_Instrumentation) {
             ((AsyncDataConsumer_Instrumentation)responseConsumer).token = token;
         }
+
+        callback = new WrappedFutureCallback<>(request, callback);
 
         return Weaver.callOriginal();
     }
