@@ -11,13 +11,6 @@ on:
         required: false
         default: 'main'
         type: string
-  workflow_call:
-    inputs:
-      agent-ref:
-        description: 'The ref (branch, SHA, tag) to run spotbugs on'
-        required: false
-        default: 'main'
-        type: string
 
 jobs:
   spotbugs:
