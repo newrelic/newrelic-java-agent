@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.utilization;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
@@ -20,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -118,7 +118,7 @@ public class DataFetcher {
         // boot_id MUST be collected in Linux environments, otherwise it MUST be excluded from the hash.
         if (os.contains("linux")) {
             try {
-                String bootId = Files.asCharSource(new File("/proc/sys/kernel/random/boot_id"), Charsets.UTF_8).read().trim();
+                String bootId = Files.asCharSource(new File("/proc/sys/kernel/random/boot_id"), StandardCharsets.UTF_8).read().trim();
 
                 /* The agent MUST validate that /proc/sys/kernel/random/boot_id contains only ASCII characters. If the
                  * boot id contains non-ASCII characters, the agent MUST NOT send the boot_id key.

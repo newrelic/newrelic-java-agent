@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.database;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.newrelic.agent.MockCoreService;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
@@ -21,6 +20,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -515,7 +515,7 @@ public class DatabaseStatementResponseParserTest {
     public void testLargeHtmlTextSqlSlowdown() throws Exception {
         URL htmlFileUrl = this.getClass().getResource("/large_file.html");
         File htmlFile = new File(htmlFileUrl.getFile());
-        String largeHtmlText = Files.toString(htmlFile, Charsets.UTF_8);
+        String largeHtmlText = Files.toString(htmlFile, StandardCharsets.UTF_8);
 
         ParsedDatabaseStatement parsedStatement = parseStatement(
                 "Replace into table1 (col1, col2, col3, col4, col5) values ('string', 'string', '" + largeHtmlText + "', CURRENT_TIMESTAMP, int)");
@@ -529,7 +529,7 @@ public class DatabaseStatementResponseParserTest {
     public void testLargeSqlSlowdown() throws Exception {
         URL largeSqlFileUrl = this.getClass().getResource("/large_sql.sql");
         File largeSqlFile = new File(largeSqlFileUrl.getFile());
-        String largeSql = Files.toString(largeSqlFile, Charsets.UTF_8);
+        String largeSql = Files.toString(largeSqlFile, StandardCharsets.UTF_8);
         ParsedDatabaseStatement parsedStatement = parseStatement(largeSql);
 
         assertEquals("insert", parsedStatement.getOperation());

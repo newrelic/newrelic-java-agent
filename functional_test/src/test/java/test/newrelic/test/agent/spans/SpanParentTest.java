@@ -26,7 +26,6 @@ import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.api.agent.*;
-import com.sun.jersey.core.util.Base64;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -346,7 +345,7 @@ public class SpanParentTest {
     }
 
     private String findGuid(String headerValue) throws ParseException {
-        byte[] ar = Base64.decode(headerValue);
+        byte[] ar = Base64.getDecoder().decode(headerValue);
         String s = new String(ar);
         JSONParser parser = new JSONParser();
         JSONObject jsonObject = (JSONObject) parser.parse(s);

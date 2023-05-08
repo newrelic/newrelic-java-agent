@@ -15,7 +15,6 @@ import com.newrelic.agent.modules.HttpModuleUtil;
 import com.newrelic.agent.modules.HttpModuleUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -26,6 +25,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.zip.InflaterInputStream;
 
@@ -85,7 +85,7 @@ public class BootstrapAgent {
     }
 
     static String decodeAndDecompressAgentArguments(String agentArgs) throws IOException {
-        byte[] decodeBase64 = Base64.decodeBase64(agentArgs);
+        byte[] decodeBase64 = Base64.getDecoder().decode(agentArgs);
         InflaterInputStream zipStream = new InflaterInputStream(new ByteArrayInputStream(decodeBase64));
         return new BufferedReader(new InputStreamReader(zipStream)).readLine();
     }
