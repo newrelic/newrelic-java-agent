@@ -78,7 +78,7 @@ public class HttpClient5ClassicTest {
         Assert.assertEquals(2, introspector.getFinishedTransactionCount());
         String txOne = null;
         for (String txName : introspector.getTransactionNames()) {
-            if (txName.matches(".*HttpClientInstrumentation5Test.*")) {
+            if (txName.matches(".*HttpClient5ClassicTest.*")) {
                 txOne = txName;
             }
         }
@@ -137,7 +137,7 @@ public class HttpClient5ClassicTest {
         httpClientExternal(endpoint.toURL().toString(), true);
 
         // transaction
-        String txName = "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClientInstrumentation5Test/httpClientExternal";
+        String txName = "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient5ClassicTest/httpClientExternal";
         assertEquals(2, introspector.getFinishedTransactionCount());
         Collection<String> names = introspector.getTransactionNames();
         assertEquals(2, names.size());
@@ -148,7 +148,7 @@ public class HttpClient5ClassicTest {
         assertEquals(1, MetricsHelper.getScopedMetricCount(txName, "ExternalTransaction/" + host + "/"
                 + server.getCrossProcessId() + "/" + server.getServerTransactionName()));
         assertEquals(1, MetricsHelper.getScopedMetricCount(txName,
-                "Java/com.nr.agent.instrumentation.httpclient.HttpClientInstrumentation5Test/httpClientExternal"));
+                "Java/com.nr.agent.instrumentation.httpclient.HttpClient5ClassicTest/httpClientExternal"));
 
         // unscoped metrics
         assertEquals(1, MetricsHelper.getUnscopedMetricCount("ExternalTransaction/" + host + "/"
