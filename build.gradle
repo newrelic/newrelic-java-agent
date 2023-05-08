@@ -51,11 +51,6 @@ subprojects {
         jcenter()
     }
 
-    def isSpotbugsEligible = ['newrelic-agent', 'newrelic-weaver', 'agent-bridge', 'agent-bridge-datastore', 'agent-model', 'agent-interfaces', 'newrelic-api'].contains(project.name)
-    if (isSpotbugsEligible) {
-        apply plugin: 'com.github.spotbugs'
-    }
-
     def isJavaProject = ![
             'instrumentation',  // is a parent project
             'instrumentation-build', // is a build utility
