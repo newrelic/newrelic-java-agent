@@ -134,3 +134,29 @@ jobs:
           # that were leftover in unrelated modules for functional and instrumentation tests.
           path: |
             **/build/reports/tests/*
+
+      - name: Checkout gh-pages branch
+        if: ${{ failure() }}
+        uses: actions/checkout@v2
+        with:
+          ref: 'gh-pages'
+          path: 'gh-pages'
+
+      - name: Configure Git
+        if: ${{ failure() }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      - name: Copy test reports to gh-pages branch
+        if: ${{ failure() }}
+        run: |
+          cp -r **/build/reports/tests/* gh-pages/reports
+
+      - name: Commit and push test reports to gh-pages
+        if: ${{ failure() }}
+        run: |
+          cd gh-pages
+          git add .
+          git commit -m "Update test reports"
+          git push
