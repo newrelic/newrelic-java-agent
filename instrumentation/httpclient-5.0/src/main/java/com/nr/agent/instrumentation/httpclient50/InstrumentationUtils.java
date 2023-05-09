@@ -19,6 +19,7 @@ import org.apache.hc.core5.http.HttpResponse;
 
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
 
 public class InstrumentationUtils {
 
@@ -46,6 +47,7 @@ public class InstrumentationUtils {
     }
 
     public static void handleUnknownHost(Exception e) {
+        NewRelic.getAgent().getLogger().log(Level.FINER, e, "Caught exception, checking for UnknownHost");
         if (e instanceof UnknownHostException) {
             NewRelic.getAgent().getTracedMethod().reportAsExternal(GenericParameters
                     .library(LIBRARY)
