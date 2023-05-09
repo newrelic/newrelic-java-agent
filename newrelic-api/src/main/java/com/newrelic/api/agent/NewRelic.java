@@ -357,6 +357,7 @@ public final class NewRelic {
 
     /**
      * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * If high security mode is enabled, this method call does nothing.
      *
      * <p>
      * <b>Note:</b> The user {@code name} argument has a limit of 255 bytes, encoded with UTF-8 encoding. A {@code name}

@@ -536,9 +536,13 @@ public class NewRelicApiImplementation implements PublicApi {
 
     /**
      * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * If high security mode is enabled, this method call does nothing.
      */
     @Override
     public void setUserName(String name) {
+        if(ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+            return;
+        }
         Transaction tx = Transaction.getTransaction(false);
         if (tx == null) {
             return;

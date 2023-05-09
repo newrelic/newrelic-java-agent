@@ -226,6 +226,7 @@ public interface PublicApi {
 
     /**
      * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * If high security mode is enabled, this method call does nothing.
      *
      * @param name User name to associate with the RUM JavaScript footer.
      */
