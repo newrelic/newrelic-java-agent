@@ -48,7 +48,7 @@ jobs:
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
       - name: Build newrelicJar
-        run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
+        run: ./gradlew $GRADLE_OPTIONS clean jar
 
       # GHA run instrumentation tests
 
@@ -56,19 +56,19 @@ jobs:
         id: run_tests_1
         continue-on-error: true
         timeout-minutes: 35
-        run: ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 2)
         id: run_tests_2
         continue-on-error: true
         timeout-minutes: 35
         if: steps.run_tests_1.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 3)
         timeout-minutes: 35
         if: steps.run_tests_2.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports

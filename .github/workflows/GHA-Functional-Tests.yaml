@@ -47,25 +47,25 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Build newrelicJar
-        run: ./gradlew clean jar --parallel
+        run: ./gradlew $GRADLE_OPTIONS clean jar
 
       - name: Run functional tests on ${{ matrix.java-version }} (attempt 1)
         id: run_tests_1
         continue-on-error: true
         timeout-minutes: 50
-        run: ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :functional_test:test -Ptest${{ matrix.java-version }} --continue
 
       - name: Run functional tests on ${{ matrix.java-version }} (attempt 2)
         id: run_tests_2
         continue-on-error: true
         timeout-minutes: 50
         if: steps.run_tests_1.outcome == 'failure'
-        run: ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :functional_test:test -Ptest${{ matrix.java-version }} --continue
 
       - name: Run functional tests on ${{ matrix.java-version }} (attempt 3)
         timeout-minutes: 50
         if: steps.run_tests_2.outcome == 'failure'
-        run: ./gradlew --console=plain --parallel :functional_test:test -Ptest${{ matrix.java-version }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :functional_test:test -Ptest${{ matrix.java-version }} --continue
 
       - name: Capture build reports
         if: ${{ failure() }}

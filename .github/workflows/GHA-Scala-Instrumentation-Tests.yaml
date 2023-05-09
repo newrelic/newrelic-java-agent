@@ -53,25 +53,25 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Build newrelicJar
-        run: ./gradlew clean jar --parallel
+        run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 1)
         id: run_tests_1
         continue-on-error: true
         timeout-minutes: 25
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 2)
         id: run_tests_2
         if: steps.run_tests_1.outcome == 'failure'
         continue-on-error: true
         timeout-minutes: 25
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 3)
         if: steps.run_tests_2.outcome == 'failure'
         timeout-minutes: 25
-        run: ./gradlew --console=plain --parallel :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} -PnoInstrumentation -Pscala-${{ matrix.scala }} --continue
 
       - name: Capture build reports
         if: ${{ failure() }}

@@ -19,6 +19,9 @@ runs:
           11
           8
 
+    - name: Check Gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
+
     - name: set gradle.properties
       shell: bash
       run: |
@@ -33,7 +36,7 @@ runs:
 
     - name: Setup Gradle options
       shell: bash
-      run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_11_X64,JAVA_HOME_17_X64,JAVA_HOME_20_X64" >> $GITHUB_ENV
+      run: echo "GRADLE_OPTIONS=--console=plain --parallel -Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_11_X64,JAVA_HOME_17_X64,JAVA_HOME_20_X64" >> $GITHUB_ENV
 
     - name: Download S3 instrumentation jar zip
       shell: bash

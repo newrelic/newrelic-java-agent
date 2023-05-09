@@ -33,7 +33,7 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Build agent
-        run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
+        run: ./gradlew $GRADLE_OPTIONS clean jar
 
       - name: Cache agent
         uses: actions/cache@v3
