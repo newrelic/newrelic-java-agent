@@ -22,8 +22,6 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.NoOpToken;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TransactionNamePriority;
-import com.newrelic.api.agent.Logs;
-import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.browser.BrowserTransactionState;
 import com.newrelic.agent.browser.BrowserTransactionStateImpl;
@@ -79,10 +77,12 @@ import com.newrelic.api.agent.DistributedTracePayload;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.Insights;
+import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
+import com.newrelic.api.agent.TransportType;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -2561,5 +2561,9 @@ public class Transaction {
         synchronized (lock) {
             return runningChildren.size() + finishedChildren.size();
         }
+    }
+
+    public Object getSecurityMetaData() {
+        return null;
     }
 }
