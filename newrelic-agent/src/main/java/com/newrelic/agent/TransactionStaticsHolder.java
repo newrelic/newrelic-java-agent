@@ -26,6 +26,8 @@ class TransactionStaticsHolder {
     private static long _segmentTimeoutMillis = Long.MIN_VALUE;
     private static int _asyncTimeoutSeconds = Integer.MIN_VALUE;
 
+    private UncoveredCodeExample uncoveredCodeExample = new UncoveredCodeExample();
+
     static long SEGMENT_TIMEOUT_MILLIS() {
         if (_segmentTimeoutMillis == Long.MIN_VALUE) {
             _segmentTimeoutMillis = TimeUnit.SECONDS.toMillis(
