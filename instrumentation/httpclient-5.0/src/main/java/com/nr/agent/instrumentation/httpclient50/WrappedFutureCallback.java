@@ -9,7 +9,6 @@ package com.nr.agent.instrumentation.httpclient50;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Segment;
-import com.newrelic.api.agent.Trace;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
@@ -20,6 +19,7 @@ import java.util.logging.Level;
 public class WrappedFutureCallback<T> implements FutureCallback<T> {
 
     HttpRequest request;
+
     FutureCallback origCallback;
 
     Segment segment;

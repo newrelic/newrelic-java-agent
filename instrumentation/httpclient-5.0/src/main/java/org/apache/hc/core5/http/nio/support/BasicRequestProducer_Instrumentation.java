@@ -13,7 +13,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 
-@Weave(type=MatchType.ExactClass, originalName = "org.apache.hc.core5.http.nio.support.BasicRequestProducer")
+@Weave(type=MatchType.BaseClass, originalName = "org.apache.hc.core5.http.nio.support.BasicRequestProducer")
 public class BasicRequestProducer_Instrumentation {
 
     @NewField

@@ -14,13 +14,11 @@ import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.Segment;
-import com.newrelic.api.agent.TracedMethod;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
 
 public class InstrumentationUtils {
 
@@ -34,7 +32,6 @@ public class InstrumentationUtils {
     }
 
     public static void doOutboundCAT(HttpRequest request, Segment segment) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "inside doOutboundCAT");
         OutboundHeaders outboundHeaders = new OutboundWrapper(request);
         if (segment != null) {
             segment.addOutboundRequestHeaders(outboundHeaders);
@@ -67,13 +64,8 @@ public class InstrumentationUtils {
         }
     }
 
-    public static void processResponse(URI requestURI, HttpResponse response, TracedMethod tracedMethod) {
-        HttpParameters params = createInboundParams(requestURI, response);
-        if (tracedMethod != null) {
-            tracedMethod.reportAsExternal(params);
-        } else {
-            NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
-        }
+    public static void processResponse(URI requestURI, HttpResponse response) {
+        processResponse(requestURI, response, null);
     }
 
     private static  HttpParameters createInboundParams(URI requestURI, HttpResponse response) {

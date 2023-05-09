@@ -1,8 +1,6 @@
 package com.nr.agent.instrumentation.httpclient50;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.NewRelic;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
@@ -24,7 +22,7 @@ public class WrappedResponseHandler<T> implements HttpClientResponseHandler<T> {
     @Override
     public T handleResponse(ClassicHttpResponse response) throws HttpException, IOException {
         try {
-            InstrumentationUtils.processResponse(uri, response, NewRelic.getAgent().getTracedMethod());
+            InstrumentationUtils.processResponse(uri, response);
         } catch (Throwable t) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, t, "Unable to process response");
         }

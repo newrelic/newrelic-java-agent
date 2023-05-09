@@ -19,8 +19,13 @@ import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.TransactionNamePriority;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -36,21 +41,36 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "org.apache.hc.client5" })
-public class HttpClient5ClassicTest {
+@InstrumentationTestConfig(includePrefixes = { "org.apache.hc.client5", "org.apache.hc.core5" })
+public class HttpClient5Test {
     @Rule
     public HttpServerRule server = new HttpServerRule();
 
     @Test
-    public void testError() throws Exception {
+    public void testErrorClassic() throws Exception {
+        testError(false);
+    }
+
+    @Test
+    public void testErrorAsync() throws Exception {
+        testError(true);
+    }
+
+    private void testError(boolean async) throws Exception {
         final String host2 = "www.notarealhostbrosef.bro";
         try {
-            httpClientExternal("http://" + host2, true);
+            if (async) {
+                httpClientExternalAsync("http://" + host2, true);
+            } else {
+                httpClientExternalClassic("http://" + host2, true);
+            }
             Assert.fail("Host should not be reachable: " + host2);
         } catch (UnknownHostException e) {
         }
@@ -68,17 +88,30 @@ public class HttpClient5ClassicTest {
     }
 
     @Test
-    public void testExternal() throws Exception {
+    public void testExternalClassic() throws Exception {
+        testExternal(false);
+    }
+
+    @Test
+    public void testExternalAsync() throws Exception {
+        testExternal(true);
+    }
+
+    private void testExternal(boolean async) throws Exception {
         URI endpoint = server.getEndPoint();
         String host1 = endpoint.getHost();
 
-        httpClientExternal(endpoint.toString(), false);
+        if (async) {
+            httpClientExternalAsync(endpoint.toString(), false);
+        } else {
+            httpClientExternalClassic(endpoint.toString(), false);
+        }
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Assert.assertEquals(2, introspector.getFinishedTransactionCount());
         String txOne = null;
         for (String txName : introspector.getTransactionNames()) {
-            if (txName.matches(".*HttpClient5ClassicTest.*")) {
+            if (txName.matches(".*HttpClient5Test.*")) {
                 txOne = txName;
             }
         }
@@ -107,11 +140,26 @@ public class HttpClient5ClassicTest {
     }
 
     @Test
-    public void testRollups() throws Exception {
+    public void testRollupsClassic() throws Exception {
+        testRollups(false);
+    }
+
+    @Test
+    public void testRollupsAsync() throws Exception {
+        testRollups(true);
+    }
+
+    private  void testRollups(boolean async) throws Exception {
         // manually set host and port here in order to get 2 unique endpoints
-        httpClientExternal("http://localhost:" + server.getEndPoint().getPort(), false);
-        httpClientExternal("http://localhost:" + server.getEndPoint().getPort(), false);
-        httpClientExternal("http://127.0.0.1:" + server.getEndPoint().getPort(), false);
+        if (async) {
+            httpClientExternalAsync("http://localhost:" + server.getEndPoint().getPort(), false);
+            httpClientExternalAsync("http://localhost:" + server.getEndPoint().getPort(), false);
+            httpClientExternalAsync("http://127.0.0.1:" + server.getEndPoint().getPort(), false);
+        } else {
+            httpClientExternalClassic("http://localhost:" + server.getEndPoint().getPort(), false);
+            httpClientExternalClassic("http://localhost:" + server.getEndPoint().getPort(), false);
+            httpClientExternalClassic("http://127.0.0.1:" + server.getEndPoint().getPort(), false);
+        }
 
         // generates one scoped metric
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
@@ -130,14 +178,30 @@ public class HttpClient5ClassicTest {
     }
 
     @Test
-    public void testCat() throws Exception {
+    public void testCatClassic() throws Exception {
+        testCat(false);
+    }
+
+    @Test
+    public void testCatAsync() throws Exception {
+        testCat(true);
+    }
+
+    private void testCat(boolean async) throws Exception {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         URI endpoint = server.getEndPoint();
         String host = endpoint.getHost();
-        httpClientExternal(endpoint.toURL().toString(), true);
+
+        String methodName = "httpClientExternalClassic";
+        if (async) {
+            httpClientExternalAsync(endpoint.toURL().toString(), true);
+            methodName = "httpClientExternalAsync";
+        } else {
+            httpClientExternalClassic(endpoint.toURL().toString(), true);
+        }
 
         // transaction
-        String txName = "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient5ClassicTest/httpClientExternal";
+        String txName = "OtherTransaction/Custom/com.nr.agent.instrumentation.httpclient.HttpClient5Test/"+methodName;
         assertEquals(2, introspector.getFinishedTransactionCount());
         Collection<String> names = introspector.getTransactionNames();
         assertEquals(2, names.size());
@@ -148,7 +212,7 @@ public class HttpClient5ClassicTest {
         assertEquals(1, MetricsHelper.getScopedMetricCount(txName, "ExternalTransaction/" + host + "/"
                 + server.getCrossProcessId() + "/" + server.getServerTransactionName()));
         assertEquals(1, MetricsHelper.getScopedMetricCount(txName,
-                "Java/com.nr.agent.instrumentation.httpclient.HttpClient5ClassicTest/httpClientExternal"));
+                "Java/com.nr.agent.instrumentation.httpclient.HttpClient5Test/"+methodName));
 
         // unscoped metrics
         assertEquals(1, MetricsHelper.getUnscopedMetricCount("ExternalTransaction/" + host + "/"
@@ -175,7 +239,7 @@ public class HttpClient5ClassicTest {
     }
 
     @Test
-    public void testHostWithoutScheme() throws IOException, URISyntaxException {
+    public void testHostWithoutScheme() throws Exception {
         externalRequest(server.getEndPoint());
 
         String txName = "OtherTransaction/HttpClientTest/externalRequest";
@@ -191,7 +255,7 @@ public class HttpClient5ClassicTest {
      * Start a background transaction, make an external request using httpclient, then finish.
      */
     @Trace(dispatcher = true)
-    private void httpClientExternal(String host, boolean doCat) throws IOException {
+    private void httpClientExternalClassic(String host, boolean doCat) throws IOException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet httpget = new HttpGet(host);
             httpget.addHeader(HttpTestServer.DO_CAT, String.valueOf(doCat));
@@ -201,13 +265,27 @@ public class HttpClient5ClassicTest {
     }
 
     @Trace(dispatcher = true)
+    private void httpClientExternalAsync(String host, boolean doCat) throws Exception {
+        try (CloseableHttpAsyncClient httpAsyncClient = HttpAsyncClients.createDefault()) {
+            httpAsyncClient.start();
+            SimpleHttpRequest request = SimpleRequestBuilder.get(host).build();
+            request.addHeader(HttpTestServer.DO_CAT, String.valueOf(doCat));
+            Future<SimpleHttpResponse> future = httpAsyncClient.execute(request, null);
+            SimpleHttpResponse response = future.get();
+        } catch (ExecutionException ee) {
+            if (ee.getCause() instanceof UnknownHostException) throw new UnknownHostException ();
+        }
+    }
+
+    @Trace(dispatcher = true)
     public void externalRequest(URI endpoint) throws IOException {
         NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.CUSTOM_HIGH, true, "HttpClientTest", "externalRequest");
-        CloseableHttpClient client = HttpClients.createDefault();
-        final HttpHost httpHost = new HttpHost(endpoint.getScheme(), endpoint.getHost(), endpoint.getPort());
-        final HttpPost httpPost = new HttpPost(URI.create("/qw"));
-        httpPost.addHeader(HttpTestServer.DO_CAT, "false");
-        client.execute(httpHost, httpPost);
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            final HttpHost httpHost = new HttpHost(endpoint.getScheme(), endpoint.getHost(), endpoint.getPort());
+            final HttpPost httpPost = new HttpPost(URI.create("/qw"));
+            httpPost.addHeader(HttpTestServer.DO_CAT, "false");
+            client.execute(httpHost, httpPost);
+        }
     }
 
 }

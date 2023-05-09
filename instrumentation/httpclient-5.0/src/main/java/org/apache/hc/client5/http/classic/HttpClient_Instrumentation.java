@@ -7,13 +7,10 @@
 
 package org.apache.hc.client5.http.classic;
 
-import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.httpclient50.InboundWrapper;
 import com.nr.agent.instrumentation.httpclient50.InstrumentationUtils;
 import com.nr.agent.instrumentation.httpclient50.WrappedResponseHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -42,7 +39,7 @@ public class HttpClient_Instrumentation {
             throw e;
         }
         try {
-            InstrumentationUtils.processResponse(request.getUri(), response, NewRelic.getAgent().getTracedMethod());
+            InstrumentationUtils.processResponse(request.getUri(), response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -60,7 +57,7 @@ public class HttpClient_Instrumentation {
             throw e;
         }
         try {
-            InstrumentationUtils.processResponse(request.getUri(), response, NewRelic.getAgent().getTracedMethod());
+            InstrumentationUtils.processResponse(request.getUri(), response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -79,7 +76,7 @@ public class HttpClient_Instrumentation {
         }
         try {
             URI actualURI = getUri(target, request);
-            InstrumentationUtils.processResponse(actualURI, response, NewRelic.getAgent().getTracedMethod());
+            InstrumentationUtils.processResponse(actualURI, response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -98,7 +95,7 @@ public class HttpClient_Instrumentation {
         }
         try {
             URI actualURI = getUri(target, request);
-            InstrumentationUtils.processResponse(actualURI, response, NewRelic.getAgent().getTracedMethod());
+            InstrumentationUtils.processResponse(actualURI, response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
