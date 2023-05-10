@@ -5,6 +5,8 @@ plugins {
     id("signing")
 }
 
+apply from: '../gradle/script/spotbugs-config.gradle'
+
 dependencies {
     api(project(":newrelic-api"))
     api(project(":newrelic-weaver-api"))
