@@ -159,6 +159,7 @@ public interface PublicApi {
 
     /**
      * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
+     * When high security mode is enabled, this method call will do nothing.
      *
      * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
      */
@@ -225,6 +226,7 @@ public interface PublicApi {
 
     /**
      * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * If high security mode is enabled, this method call does nothing.
      *
      * @param name User name to associate with the RUM JavaScript footer.
      */
