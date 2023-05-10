@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">0</div>
+<div class="counter">6</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">-</div>
+<div class="counter">0.024s</div>
 <p>duration</p>
 </div>
 </td>
@@ -51,7 +51,7 @@
 </td>
 <td>
 <div class="infoBox success" id="successRate">
-<div class="percent">-</div>
+<div class="percent">100%</div>
 <p>successful</p>
 </div>
 </td>
@@ -77,21 +77,68 @@
 <th>Result</th>
 </tr>
 </thead>
+<tr>
+<td class="success">basicWeavingTest</td>
+<td class="success">0.002s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">nonWeaveChildClassWithMultipleTraitsTest</td>
+<td class="success">0.005s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">weaveChildClassWithMultipleTraitsTest</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">weaveChildObjectWithTraitField</td>
+<td class="success">0.009s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">weaveClassExtendingTraitTest</td>
+<td class="success">0.005s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">weaveObjectTest</td>
+<td class="success">0.002s</td>
+<td class="success">passed</td>
+</tr>
 </table>
 </div>
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-10T00:29:15,485+0000 [7277 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:29:15,498+0000 [7277 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:29:15,499+0000 [7277 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T00:29:16,509+0000 [7277 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:29:16,515+0000 [7277 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:29:16,515+0000 [7277 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T00:29:16,529+0000 [7277 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:29:16,531+0000 [7277 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:29:16,532+0000 [7277 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.SomeTrait18071341023868683373.new.class
+<pre>2023-05-10T00:30:36,515+0000 [7760 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T00:30:36,524+0000 [7760 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T00:30:36,525+0000 [7760 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T00:30:36,932+0000 [7760 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T00:30:36,933+0000 [7760 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T00:30:36,934+0000 [7760 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T00:30:36,938+0000 [7760 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T00:30:36,938+0000 [7760 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T00:30:36,939+0000 [7760 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.SomeTrait174360554777811760.new.class
+2023-05-10T00:30:37,427+0000 [7760 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T00:30:37,428+0000 [7760 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T00:30:37,428+0000 [7760 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T00:30:37,443+0000 [7760 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T00:30:37,443+0000 [7760 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T00:30:37,443+0000 [7760 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T00:30:37,445+0000 [7760 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T00:30:37,446+0000 [7760 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T00:30:37,446+0000 [7760 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.OverridingTrait4740270049103715191.new.class
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.ChildFieldClass11088205290653889846.new.class
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.FieldTrait12115362989136890335.new.class
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.OriginalClass11590162295704506740.new.class
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.SomeObject$791363323034036649.new.class
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.MultipleOverridingNonWeaved11423861159758269604.new.class
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.ChildWeaveTrait9650823344647260606.new.class
+Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.MultipleOverridingWeaved15885570371097017049.new.class
 </pre>
 </span>
 </div>
@@ -103,7 +150,7 @@ Wrote /tmp/com.nr.weave.weavepackage.language.scala.testclasses.SomeTrait1807134
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 12:29:39 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 12:33:30 AM</p>
 </div>
 </div>
 </body>
