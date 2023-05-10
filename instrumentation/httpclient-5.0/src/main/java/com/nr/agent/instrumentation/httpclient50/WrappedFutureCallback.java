@@ -18,11 +18,11 @@ import java.util.logging.Level;
 
 public class WrappedFutureCallback<T> implements FutureCallback<T> {
 
-    HttpRequest request;
+    private HttpRequest request;
 
-    FutureCallback origCallback;
+    private FutureCallback origCallback;
 
-    Segment segment;
+    private Segment segment;
 
     public WrappedFutureCallback (HttpRequest request, FutureCallback origCallback, Segment segment) {
         this.request = request;
