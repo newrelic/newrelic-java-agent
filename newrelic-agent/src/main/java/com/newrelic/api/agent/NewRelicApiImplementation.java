@@ -298,7 +298,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void setUserId(String userId) {
-        if(ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
             return;
         }
         final String attributeKey = "enduser.id";
@@ -540,7 +540,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void setUserName(String name) {
-        if(ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
             return;
         }
         Transaction tx = Transaction.getTransaction(false);
