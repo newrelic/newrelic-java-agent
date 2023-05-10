@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ClassStructureTest {
 
@@ -45,9 +46,11 @@ public class ClassStructureTest {
     @Test
     public void testClassWithNoMethods() throws IOException {
         ClassStructure struct = ClassStructure.getClassStructure(ExtendsOther.class);
+        //jacoco reports manipulate bytecode and inject code, so we need to filter out $jacoco
+        Set<Method> filteredMethods = filterJacocoMethods(struct);
 
-        Assert.assertEquals(1, struct.getMethods().size());
-        Assert.assertTrue(struct.getMethods().contains(new Method("<init>", "()V")));
+        Assert.assertEquals(1, filteredMethods.size());
+        Assert.assertTrue(filteredMethods.contains(new Method("<init>", "()V")));
 
         // assertClassStructure(ExtendsOther.class, true);
     }
@@ -149,13 +152,19 @@ public class ClassStructureTest {
         Set<Method> methods = new HashSet<>(struct.getMethods());
         // clinit is not returned by Class.getDeclaredConstructors
         methods.remove(new Method("<clinit>", "()V"));
-
+        // not removing jacoco yet because it would change the size for this custom assertion
         if (methods.size() > struct2.getMethods().size()) {
             failMethods(methods, struct2.getMethods());
         } else if (methods.size() > struct2.getMethods().size()) {
             failMethods(methods, struct.getMethods());
         }
-        Assert.assertEquals(methods, struct2.getMethods());
+        // Jacoco inserts itself into our tests, so we need to filter it out for some assertions
+        Set<Method> filteredMethods1 = filterJacocoMethods(struct);
+        // clinit is not returned by Class.getDeclaredConstructors
+        filteredMethods1.remove(new Method("<clinit>", "()V"));
+        Set<Method> filteredMethods2 = filterJacocoMethods(struct2);
+
+        Assert.assertEquals(filteredMethods1, filteredMethods2);
         Assert.assertEquals(Sets.newHashSet(struct.getInterfaces()), Sets.newHashSet(struct2.getInterfaces()));
 
         if ((flags & ClassStructure.CLASS_ANNOTATIONS) == ClassStructure.CLASS_ANNOTATIONS) {
@@ -285,4 +294,12 @@ public class ClassStructureTest {
             return 0;
         }
     }
+
+    // helper method to filter out jacoco injected code.
+    private Set<Method> filterJacocoMethods(ClassStructure classStructure) {
+        return classStructure.getMethods().stream()
+                .filter(method -> !method.toString().contains("$jacoco"))
+                .collect(Collectors.toSet());
+    }
+
 }

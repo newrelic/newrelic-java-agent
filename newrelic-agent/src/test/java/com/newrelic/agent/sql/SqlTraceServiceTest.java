@@ -52,7 +52,6 @@ import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.ApplicationNamePriority;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
@@ -73,6 +72,7 @@ import java.io.Writer;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -747,7 +747,7 @@ public class SqlTraceServiceTest {
     }
 
     private Object decodeParams(Object object) {
-        byte[] bytes = Base64.decodeBase64(object.toString());
+        byte[] bytes = Base64.getDecoder().decode(object.toString());
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
         InputStream zipStream = new InflaterInputStream(inputStream);
         Reader in = new InputStreamReader(zipStream);

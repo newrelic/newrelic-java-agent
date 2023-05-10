@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +48,7 @@ import java.util.regex.Pattern;
  */
 public class PackageValidationResult {
     private static final Pattern WEAVE_PACKAGE_PATTERN = Pattern.compile("^com.newrelic.weave..*");
+    public static final Comparator<PackageValidationResult> CONFIG_COMPARATOR = Comparator.comparing(PackageValidationResult::weavePackageConfig);
     private final Queue<WeaveViolation> violations = Queues.newConcurrentLinkedQueue();
     private final Map<String, ClassNode> utilClasses = new ConcurrentHashMap<>();
     private final Map<String, ClassNode> allAnnotationClasses = new ConcurrentHashMap<>();
@@ -568,5 +570,9 @@ public class PackageValidationResult {
      */
     public WeavePackage getWeavePackage() {
         return this.weavePackage;
+    }
+
+    private static WeavePackageConfig weavePackageConfig(PackageValidationResult p) {
+        return p.getWeavePackage().getConfig();
     }
 }

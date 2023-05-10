@@ -70,7 +70,7 @@ dependencies {
         transitive = false
     }
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
-    shadowIntoJar("com.newrelic:jfr-daemon:1.9.0")
+    shadowIntoJar("com.newrelic:jfr-daemon:1.9.1")
     shadowIntoJar "org.ow2.asm:asm:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-tree:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-commons:$asmVersion"
@@ -80,8 +80,6 @@ dependencies {
     shadowIntoJar 'net.sourceforge.jregex:jregex:1.2_01'
 
     shadowIntoJar 'org.apache.httpcomponents:httpclient:4.5.13'
-    // We use this explicitly for its Base64 class. It's also a dependency of httpclient.
-    shadowIntoJar("commons-codec:commons-codec:1.11")
     // We use StringUtils. Since we still support Java 7, we can't go much higher than this.
     shadowIntoJar("org.apache.commons:commons-lang3:3.8.1")
 

@@ -45,7 +45,6 @@ import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionTimer;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -63,6 +62,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -1128,7 +1128,7 @@ public class TransactionTraceTest {
     }
 
     private Object decodeTransactionTraceData(Object object) {
-        byte[] bytes = Base64.decodeBase64(object.toString());
+        byte[] bytes = Base64.getDecoder().decode(object.toString());
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
         InputStream zipStream = new InflaterInputStream(inputStream);
         Reader in = new InputStreamReader(zipStream);

@@ -7,20 +7,19 @@
 
 package com.newrelic.agent.tracing;
 
-import com.google.common.base.Charsets;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.DistributedTracePayload;
 import com.newrelic.agent.service.ServiceFactory;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.tracing.DistributedTraceUtil.*;
 
 public class DistributedTracePayloadImpl implements DistributedTracePayload {
-    private static final Base64 base64 = new Base64();
 
     public final long timestamp;
     public final String parentType;
@@ -114,7 +113,7 @@ public class DistributedTracePayloadImpl implements DistributedTracePayload {
 
     @Override
     public String httpSafe() {
-        return base64.encodeAsString(text().getBytes(Charsets.UTF_8));
+        return Base64.getEncoder().encodeToString(text().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

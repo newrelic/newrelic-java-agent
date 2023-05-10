@@ -1,3 +1,10 @@
+import com.nr.builder.publish.PublishConfig
+
+plugins {
+    id("maven-publish")
+    id("signing")
+}
+
 apply from: '../gradle/script/spotbugs-config.gradle'
 
 dependencies {
@@ -7,4 +14,16 @@ dependencies {
 
     testImplementation('org.awaitility:awaitility:4.2.0')
     testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java agent bridge datastore API",
+        "The bridge datastore API of the Java agent.") { it ->
+    it.from(components.java)
 }

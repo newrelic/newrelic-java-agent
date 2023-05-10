@@ -1,8 +1,14 @@
 apply plugin: 'java-library'
+apply plugin: 'jacoco'
 
+jacoco{
+    toolVersion = "0.8.10"
+}
 configurations {
     includeInJar
 }
+
+
 
 dependencies {
     configurations.implementation.extendsFrom(configurations.includeInJar)
@@ -89,7 +95,8 @@ test {
     // This method determines if we should run tests with the Java version configured by the -PtestN gradle property.
     ext.configuredWithValidTestJDK = {
         if (project.hasProperty("test9") || project.hasProperty("test10") || project.hasProperty("test12") || project.hasProperty("test13") ||
-                project.hasProperty("test14") || project.hasProperty("test15") || project.hasProperty("test16") || project.hasProperty("test18")) {
+                project.hasProperty("test14") || project.hasProperty("test15") || project.hasProperty("test16") || project.hasProperty("test18") ||
+                project.hasProperty("test19")) {
             logger.lifecycle("The newrelic-java-agent project does not support testing with the Java version configured by the -PtestN gradle property.")
             return false
         }
@@ -110,8 +117,8 @@ test {
         configuration.call()
     }
 
-    if (project.hasProperty("test19")) {
-        configureTest("jdk19") {
+    if (project.hasProperty("test20")) {
+        configureTest("jdk20") {
             jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
                     '--add-opens=java.base/java.util=ALL-UNNAMED',
                     '--add-opens=java.base/java.net=ALL-UNNAMED',
@@ -120,7 +127,7 @@ test {
                     '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
                     '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java19IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java20IncompatibleTest'
             }
         }
     }
@@ -201,6 +208,28 @@ test {
         events "FAILED" // additional events for more verbose logging: "PASSED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR", "STARTED"
         exceptionFormat "short"
     }
+
+    jacoco {
+        enabled = true
+        destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
+        classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
+        destinationFile = layout.buildDirectory.file("jacoco/${name}.exec").get().asFile
+
+    }
+    finalizedBy jacocoTestReport // report is always generated after tests run
+
+}
+
+
+jacocoTestReport {
+
+    dependsOn test
+
+    reports {
+        xml.required = true
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
+    }
+
 }
 
 dependencies {
