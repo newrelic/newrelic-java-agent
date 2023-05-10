@@ -5,6 +5,8 @@ plugins {
     id("signing")
 }
 
+apply from: '../gradle/script/spotbugs-config.gradle'
+
 jar {
     from("$rootDir/LICENSE")
     manifest {
@@ -31,16 +33,16 @@ tasks.withType(Javadoc).configureEach {
     options.addBooleanOption("-no-module-directories", true)
 }
 
-PublishConfig.config(
-        project,
-        "New Relic Java Bridge",
-        "Bridge") { it ->
-    it.from(components.java)
-}
-
 dependencies {
     api(project(":newrelic-api"))
     api(project(":newrelic-weaver-api"))
 
     testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java agent bridge API",
+        "The bridge API of the Java agent.") { it ->
+    it.from(components.java)
 }

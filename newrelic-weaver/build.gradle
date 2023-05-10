@@ -1,6 +1,6 @@
 import com.nr.builder.publish.PublishConfig
 
-plugins{
+plugins {
     id("maven-publish")
     id("signing")
 }
@@ -10,6 +10,8 @@ configurations {
         extendsFrom(testRuntimeOnly)
     }
 }
+
+apply from: '../gradle/script/spotbugs-config.gradle'
 
 repositories {
     // hack to allow us to resolve the ':tools' dependency
@@ -60,9 +62,14 @@ artifacts {
     testClasses testJar
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 PublishConfig.config(
         project,
-        "New Relic Java Weaver",
-        "New Relic Java agent Weaver module") { it ->
+        "New Relic Java agent Weaver",
+        "The Weaver of the Java agent.") { it ->
     it.from(components.java)
 }

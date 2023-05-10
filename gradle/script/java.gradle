@@ -1,8 +1,14 @@
 apply plugin: 'java-library'
+apply plugin: 'jacoco'
 
+jacoco{
+    toolVersion = "0.8.10"
+}
 configurations {
     includeInJar
 }
+
+
 
 dependencies {
     configurations.implementation.extendsFrom(configurations.includeInJar)
@@ -202,6 +208,28 @@ test {
         events "FAILED" // additional events for more verbose logging: "PASSED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR", "STARTED"
         exceptionFormat "short"
     }
+
+    jacoco {
+        enabled = true
+        destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
+        classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
+        destinationFile = layout.buildDirectory.file("jacoco/${name}.exec").get().asFile
+
+    }
+    finalizedBy jacocoTestReport // report is always generated after tests run
+
+}
+
+
+jacocoTestReport {
+
+    dependsOn test
+
+    reports {
+        xml.required = true
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
+    }
+
 }
 
 dependencies {
