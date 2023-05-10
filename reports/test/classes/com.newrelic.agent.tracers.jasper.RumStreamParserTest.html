@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.120s</div>
+<div class="counter">0.259s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">checkAllFiles</td>
-<td class="success">0.120s</td>
+<td class="success">0.259s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -87,14 +87,14 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-10T01:21:09,781+0000 [47098 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:21:09,795+0000 [47098 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:21:09,797+0000 [47098 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:21:11,633+0000 [47098 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-10T01:21:11,675+0000 [47098 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:21:11,676+0000 [47098 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:21:11,676+0000 [47098 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:21:11,721+0000 [47098 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+<pre>2023-05-10T01:28:04,218+0000 [38693 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:28:04,260+0000 [38693 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:28:04,261+0000 [38693 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:28:08,509+0000 [38693 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-10T01:28:08,613+0000 [38693 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:28:08,618+0000 [38693 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:28:08,619+0000 [38693 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:28:08,675+0000 [38693 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
 Processing File: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/tracers/jasper/chuncktestfiles/script_before_head.html
 Actual:
 &lt;script&gt;	var messages = [];	function issueInHere(cmsId, previewSelector) {		var html = $.ajax({			timeout : 1000,		});		if ((html != undefined) &amp;&amp; (html.responseText != undefined)) {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&quot; + html.responseText					+ &quot;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		} else {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&amp;nbsp;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		}	}	function issueInThere(cmsId, previewSelector) {		var html = $.ajax({			timeout : 1000,		});		if ((html != undefined) &amp;&amp; (html.responseText != undefined)) {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&quot; + html.responseText					+ &quot;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		} else {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&amp;nbsp;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		}	}	function whereIsIssue(cmsId, previewSelector) {		var html = $.ajax({			timeout : 1000,		});		if ((html != undefined) &amp;&amp; (html.responseText != undefined)) {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&quot; + html.responseText					+ &quot;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		} else {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&amp;nbsp;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		}	}&lt;/script&gt;&lt;div class=&quot;css-stuff&quot;&gt;	&lt;div class=&quot;title bla&quot;&gt;Messages&lt;/div&gt;	&lt;div class=&quot;subtitle bla&quot;&gt;Message Here&lt;/div&gt;&lt;/div&gt;&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot; &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;&lt;title&gt;Insert title here&lt;/title&gt;
@@ -150,7 +150,7 @@ try {
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 1:23:21 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 1:34:36 AM</p>
 </div>
 </div>
 </body>

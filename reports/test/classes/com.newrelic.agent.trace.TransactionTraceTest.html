@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">7.927s</div>
+<div class="counter">9.371s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">excludeRootTraceFromTT</td>
-<td class="success">0.108s</td>
+<td class="success">0.079s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -89,57 +89,57 @@
 </tr>
 <tr>
 <td class="success">serializeAttsDisabled</td>
-<td class="success">0.095s</td>
+<td class="success">0.065s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">serializeAttsDisabledWithIntrinsics</td>
-<td class="success">0.099s</td>
+<td class="success">0.093s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">serializeUserAgentAttsEnabled</td>
-<td class="success">0.073s</td>
+<td class="success">0.090s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">serializeUserAgentAttsEnabledRequestUriCanNotBeDisabled</td>
-<td class="success">0.078s</td>
+<td class="success">0.116s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">serializeUserAgentIntrinsicsEnabled</td>
-<td class="success">0.154s</td>
+<td class="success">0.105s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">serializeUserOnlyEnabled</td>
-<td class="success">6.713s</td>
+<td class="success">8.198s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">serializeUserOnlyEnabledRequestAttsDisabled</td>
-<td class="success">0.088s</td>
+<td class="success">0.057s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testDistributedTracingAtts</td>
-<td class="success">0.240s</td>
+<td class="success">0.299s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testExecContext</td>
-<td class="success">0.138s</td>
+<td class="success">0.119s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testGetMetricName</td>
-<td class="success">0.017s</td>
+<td class="success">0.022s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testTraceWithTimeout</td>
-<td class="success">0.060s</td>
+<td class="success">0.064s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -147,125 +147,125 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-10T01:15:38,874+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:38,909+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:38,911+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:40,498+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:40,498+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:40,498+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:41,810+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:41,810+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:41,811+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:41,837+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:41,839+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:41,840+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:41,856+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:41,857+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:41,858+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:41,878+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:41,880+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:41,880+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:41,945+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@25a8ff84 != null)
-2023-05-10T01:15:41,949+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@454be9f6 != null)
-2023-05-10T01:15:41,950+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@2bba7b40 != null)
-2023-05-10T01:15:41,953+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@4f8ad451 != null)
-2023-05-10T01:15:41,956+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@2dbc56fb != null)
-2023-05-10T01:15:41,959+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@37220ee3 != null)
-2023-05-10T01:15:41,959+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@4fba033c != null)
-2023-05-10T01:15:41,960+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@568b7ec6 != null)
-2023-05-10T01:15:41,960+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@194ff162 != null)
-2023-05-10T01:15:41,960+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@3ebda1be != null)
-2023-05-10T01:15:41,961+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.OtherRootTracer@2181e6b6 != null)
-2023-05-10T01:15:41,965+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:41,968+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:41,969+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:41,989+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:41,992+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:41,993+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,041+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,064+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,065+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,100+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,101+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,103+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+<pre>2023-05-10T01:30:55,247+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:55,275+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:55,277+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:57,079+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:57,079+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:57,080+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,668+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:58,669+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,669+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,692+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:58,693+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,693+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,708+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:58,712+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,712+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,726+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:58,730+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,730+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,777+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@5cf3924c != null)
+2023-05-10T01:30:58,778+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@5a0ec54c != null)
+2023-05-10T01:30:58,778+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@486d9e4e != null)
+2023-05-10T01:30:58,779+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@702e8e67 != null)
+2023-05-10T01:30:58,782+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@308f13dc != null)
+2023-05-10T01:30:58,783+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@1c078424 != null)
+2023-05-10T01:30:58,783+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@383cf604 != null)
+2023-05-10T01:30:58,784+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@3c650ad2 != null)
+2023-05-10T01:30:58,784+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@74bcff71 != null)
+2023-05-10T01:30:58,785+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@54ba7366 != null)
+2023-05-10T01:30:58,785+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.OtherRootTracer@b692323 != null)
+2023-05-10T01:30:58,791+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:58,791+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,791+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,809+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:58,809+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,810+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,846+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:58,847+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,848+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,864+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:58,864+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,865+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
 5000
 5000
-2023-05-10T01:15:42,119+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,120+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,120+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,212+0000 [43104 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-10T01:15:42,259+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,264+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,264+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,366+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,367+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,367+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,379+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,379+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,380+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,404+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,411+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,411+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,430+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,432+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,433+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,444+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,445+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,446+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,472+0000 [43104 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-05-10T01:15:42,476+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,479+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,480+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,506+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,509+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,510+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,532+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,533+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,533+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,562+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,563+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,563+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,589+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,589+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,590+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,605+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,605+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,605+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,615+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,615+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,616+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,621+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,622+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,623+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,643+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,643+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,644+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,663+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,663+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,663+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,693+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,694+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,694+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,710+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,710+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,710+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,725+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,725+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,725+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,763+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,765+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,765+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,794+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,796+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,797+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,806+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,807+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,807+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,823+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,824+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,824+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,835+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@7c394b55 != com.newrelic.agent.tracers.OtherRootTracer@25014710)
-2023-05-10T01:15:42,838+0000 [43104 1] com.newrelic WARN: Transaction com.newrelic.agent.Transaction@581242e1 was not reported because of an internal error.
+2023-05-10T01:30:58,893+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:58,893+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:58,893+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:58,986+0000 [40028 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-10T01:30:59,064+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,065+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,065+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,193+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,193+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,193+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,219+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,219+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,219+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,275+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,275+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,275+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,295+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,295+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,296+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,308+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,309+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,315+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,339+0000 [40028 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-05-10T01:30:59,346+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,346+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,356+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,373+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,373+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,373+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,394+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,394+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,395+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,433+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,434+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,434+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,447+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,450+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,451+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,467+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,467+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,467+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,473+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,473+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,473+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,489+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,489+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,489+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,496+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,496+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,496+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,518+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,518+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,518+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,537+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,537+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,537+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,546+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,546+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,546+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,562+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,562+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,562+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,583+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,589+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,590+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,606+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,606+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,606+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,610+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,610+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,610+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,615+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,615+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,615+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,627+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@49bf8d66 != com.newrelic.agent.tracers.OtherRootTracer@29d14018)
+2023-05-10T01:30:59,630+0000 [40028 1] com.newrelic WARN: Transaction com.newrelic.agent.Transaction@3bc079f1 was not reported because of an internal error.
 java.lang.NullPointerException: null
 	at com.newrelic.agent.Transaction.renameTransaction(Transaction.java:720) ~[main/:?]
 	at com.newrelic.agent.Transaction.freezeTransactionName(Transaction.java:707) ~[main/:?]
@@ -278,10 +278,10 @@ java.lang.NullPointerException: null
 	at com.newrelic.agent.tracers.DefaultTracer.performFinishWork(DefaultTracer.java:312) [main/:?]
 	at com.newrelic.agent.tracers.DefaultTracer.finish(DefaultTracer.java:236) [main/:?]
 	at com.newrelic.agent.trace.TransactionTraceTest.testExecContext(TransactionTraceTest.java:867) [test/:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:?]
-	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:566) ~[?:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_362]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_362]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_362]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_362]
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50) [junit-4.12.jar:4.12]
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) [junit-4.12.jar:4.12]
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47) [junit-4.12.jar:4.12]
@@ -300,15 +300,15 @@ java.lang.NullPointerException: null
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38) [gradle-testing-jvm-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62) [gradle-testing-jvm-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51) [gradle-testing-base-7.5.1.jar:7.5.1]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:?]
-	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:566) ~[?:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_362]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_362]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_362]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_362]
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36) [gradle-messaging-7.5.1.jar:7.5.1]
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24) [gradle-messaging-7.5.1.jar:7.5.1]
 	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33) [gradle-messaging-7.5.1.jar:7.5.1]
 	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94) [gradle-messaging-7.5.1.jar:7.5.1]
-	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source) [?:?]
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source) [?:?]
 	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176) [gradle-testing-base-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129) [gradle-testing-base-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100) [gradle-testing-base-7.5.1.jar:7.5.1]
@@ -318,37 +318,37 @@ java.lang.NullPointerException: null
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71) [gradle-worker-processes-7.5.1.jar:7.5.1]
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69) [gradle-worker.jar:?]
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74) [gradle-worker.jar:?]
-2023-05-10T01:15:42,886+0000 [43104 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@7c3019d6 != com.newrelic.agent.tracers.OtherRootTracer@25014710)
-2023-05-10T01:15:42,907+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,907+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,908+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,930+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,935+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,935+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,945+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,946+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,947+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,959+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:42,961+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,962+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:42,986+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:42,986+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:42,987+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:43,001+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:43,001+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:43,002+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:43,018+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:43,018+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:43,018+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:43,029+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:43,030+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:43,030+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:43,049+0000 [43104 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:15:43,049+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:43,051+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:15:43,069+0000 [43104 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T01:15:43,069+0000 [43104 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:15:43,070+0000 [43104 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,667+0000 [40028 1] com.newrelic ERROR: Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for com.newrelic.agent.TransactionActivity@0 (com.newrelic.agent.tracers.DefaultTracer@41a98737 != com.newrelic.agent.tracers.OtherRootTracer@29d14018)
+2023-05-10T01:30:59,684+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,690+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,693+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,713+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,717+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,717+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,730+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,731+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,732+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,752+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,753+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,754+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,781+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,784+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,784+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,796+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,797+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,798+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,822+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,823+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,823+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,836+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,837+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,839+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,862+0000 [40028 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-10T01:30:59,862+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,863+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-10T01:30:59,874+0000 [40028 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-10T01:30:59,875+0000 [40028 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-10T01:30:59,876+0000 [40028 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
 </pre>
 </span>
 </div>
@@ -360,7 +360,7 @@ java.lang.NullPointerException: null
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 1:23:21 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 1:34:36 AM</p>
 </div>
 </div>
 </body>
