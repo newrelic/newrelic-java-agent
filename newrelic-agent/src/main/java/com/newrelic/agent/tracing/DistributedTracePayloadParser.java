@@ -7,22 +7,20 @@
 
 package com.newrelic.agent.tracing;
 
-import com.google.common.base.Charsets;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.api.agent.MetricAggregator;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.tracing.DistributedTraceUtil.*;
 
 public class DistributedTracePayloadParser {
-    private static final Base64 base64 = new Base64();
-
     private final MetricAggregator metricAggregator;
     private final DistributedTraceService distributedTraceService;
     private final IAgentLogger logger;
@@ -53,7 +51,7 @@ public class DistributedTracePayloadParser {
             char firstChar = payload.charAt(0);
             if (firstChar != '{') {
                 // This must be base64 encoded, decode it
-                payload = new String(base64.decode(payload), Charsets.UTF_8);
+                payload = new String(Base64.getDecoder().decode(payload), StandardCharsets.UTF_8);
             }
         }
 

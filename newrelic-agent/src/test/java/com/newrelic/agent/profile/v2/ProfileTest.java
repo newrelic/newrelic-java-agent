@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.profile.v2;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.newrelic.agent.MockServiceManager;
@@ -23,7 +22,6 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.threads.BasicThreadInfo;
 import com.newrelic.agent.threads.ThreadNameNormalizer;
 import com.newrelic.agent.trace.TransactionGuidFactory;
-import org.apache.commons.codec.binary.Base64;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
@@ -39,8 +37,10 @@ import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -587,10 +587,10 @@ public class ProfileTest {
         // After verifying data size, inflate the data to parse the json
         if (simpleCompression) {
             InflaterInputStream inStream = new InflaterInputStream(new ByteArrayInputStream(profileOutput));
-            String jsonOutput = CharStreams.toString(new InputStreamReader(inStream, Charsets.UTF_8));
+            String jsonOutput = CharStreams.toString(new InputStreamReader(inStream, StandardCharsets.UTF_8));
             parse = parser.parse(jsonOutput);
         } else {
-            parse = parser.parse(new String(profileOutput, Charsets.UTF_8));
+            parse = parser.parse(new String(profileOutput, StandardCharsets.UTF_8));
         }
         Assert.assertTrue(parse instanceof List);
 
@@ -606,10 +606,10 @@ public class ProfileTest {
             parsedData = data.get(4);
         } else {
             String rawData = (String) data.get(4);
-            byte[] compressedData = Base64.decodeBase64(rawData);
+            byte[] compressedData = Base64.getDecoder().decode(rawData);
 
             InflaterInputStream inStream = new InflaterInputStream(new ByteArrayInputStream(compressedData));
-            rawData = CharStreams.toString(new InputStreamReader(inStream, Charsets.UTF_8));
+            rawData = CharStreams.toString(new InputStreamReader(inStream, StandardCharsets.UTF_8));
             parsedData = parser.parse(rawData);
         }
 
