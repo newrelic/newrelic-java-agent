@@ -27,100 +27,39 @@ jobs:
       matrix:
         java-version: [8, 11, 17, 20]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Java agent
+        uses: actions/checkout@v3
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
-      - name: Set up Java 8
-        uses: actions/setup-java@v3
+      - name: Configure AWS Credentials
+        if: ${{ env.AWS_KEY != '' }}
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          distribution: 'temurin'
-          java-version: 8
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
-      - name: Save JAVA_HOME as JDK8 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
-
-      - name: Set up Java 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 11
-
-      - name: Save JAVA_HOME as JDK11 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk11=$JAVA_HOME" >> $GITHUB_ENV
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 17
-
-      - name: Save JAVA_HOME as JDK17 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
-
-      # Install latest non-LTS Java version (we should only ever test one non-LTS version to keep test times reasonable)
-      - name: Set up Java 20
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 20
-
-      - name: Save JAVA_HOME as JDK20 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk20=$JAVA_HOME" >> $GITHUB_ENV
-
-      - name: Check environmental variables
-        run: printenv | sort -f
-
-      - name: Set gradle.properties
-        run: |
-          sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
-          s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
-          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|
-          s|jdk20=20|jdk20=${ORG_GRADLE_PROJECT_jdk20}|" gradle.properties.gha
-          cat gradle.properties.gha
-          rm gradle.properties
-          mv gradle.properties.gha gradle.properties
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
 
       - name: Run unit tests for each Java version as defined in the matrix (attempt 1)
         id: run_tests_1
         continue-on-error: true
         timeout-minutes: 35
-        env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          echo "*** NOT PUBLISHING BUILD SCANS ***"
-          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Run unit tests for each Java version as defined in the matrix (attempt 2)
         id: run_tests_2
         continue-on-error: true
         timeout-minutes: 35
         if: steps.run_tests_1.outcome == 'failure'
-        env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          echo "*** NOT PUBLISHING BUILD SCANS ***"
-          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Run unit tests for each Java version as defined in the matrix (attempt 3)
         timeout-minutes: 35
         if: steps.run_tests_2.outcome == 'failure'
-        env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          echo "*** NOT PUBLISHING BUILD SCANS ***"
-          ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Upload coverage to Codecov
         if: success()

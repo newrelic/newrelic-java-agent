@@ -24,7 +24,7 @@ jobs:
     name: Build agent
     uses: ./.github/workflows/X-Reusable-BuildAgent.yml
     with:
-      ref: ${{ inputs.agent-ref || 'main' }}
+      agent-ref: ${{ inputs.agent-ref || 'main' }}
     secrets: inherit
 
   # GHA Matrix strategy only allows 255 entries.
