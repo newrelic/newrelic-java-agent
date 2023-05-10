@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/X-Reusable-BuildAgent.yml
     with:
       # inputs.agent-ref is for workflow dispatch/call, github.ref for PR or push, main if all else fail
-      ref: ${{ inputs.agent-ref || github.ref || 'main' }}
+      agent-ref: ${{ inputs.agent-ref || github.ref || 'main' }}
     secrets: inherit
 
   list-tests:

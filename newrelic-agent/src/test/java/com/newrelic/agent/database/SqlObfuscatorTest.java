@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.database;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.CharSource;
 import com.google.common.io.Files;
 import org.junit.Assert;
@@ -15,6 +14,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -269,7 +269,7 @@ public class SqlObfuscatorTest {
 
         URL htmlFileUrl = this.getClass().getResource("/html_ipsum.html");
         File htmlFile = new File(htmlFileUrl.getFile());
-        CharSource largeHtmlText = Files.asCharSource(htmlFile, Charsets.UTF_8);
+        CharSource largeHtmlText = Files.asCharSource(htmlFile, StandardCharsets.UTF_8);
         String rawSql = "Replace into table1 (col1, col2, col3, col4, col5) values ('string', 'string', '" + largeHtmlText +  "', CURRENT_TIMESTAMP, int)";
 
         String actualSql = sqlObfuscator.obfuscateSql(rawSql);

@@ -3,7 +3,7 @@ name: Create custom jar
 on:
   workflow_dispatch:
     inputs:
-      ref:
+      agent-ref:
         description: "Specify branch/tag/hash"
         required: true
         default: 'main'
@@ -13,50 +13,25 @@ on:
 
 jobs:
   create_custom_jar:
+    name: Create jar
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.ref }}
-      - uses: gradle/wrapper-validation-action@v1
 
-      # JDK 11
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
+      - name: Checkout Java agent
+        uses: actions/checkout@v3
         with:
-          distribution: 'temurin'
-          java-version: 11
-      - name: save JAVA_HOME as JDK11 for later usage
-        run: echo "JDK11=$JAVA_HOME" >> $GITHUB_ENV
-      # setting JDK 8 last so it is the default
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 8
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-      - name: Setup Gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JDK11" >> $GITHUB_ENV
-      - name: set gradle.properties
-        run: |
-          sed -i -e "s|jdk8=8|jdk8=${JDK8}|
-          s|jdk11=11|jdk11=${JDK11}|" gradle.properties.gha
-          mv gradle.properties.gha gradle.properties
+          ref: ${{ inputs.agent-ref }}
 
       - name: Configure AWS Credentials
+        if: ${{ env.AWS_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
-      - name: Download S3 instrumentation jar zip
-        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip  ## Updated 2022
-      - name: Unzip the instrumentation jars
-        run: unzip proprietary-jars.zip
-      #      - name: Log jars are in target libs
-      #        run: find instrumentation -name "*.jar"
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
 
       - name: Build agent
         run: ./gradlew $GRADLE_OPTIONS jar

@@ -1,8 +1,9 @@
 import com.nr.builder.publish.PublishConfig
 
-plugins{
+plugins {
     id("maven-publish")
     id("signing")
+    id("scala")
 }
 
 dependencies {
@@ -15,9 +16,14 @@ jar {
     }
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 PublishConfig.config(
         project,
-        "New Relic Java Weaver API for Scala",
-        "New Relic Java agent Weaver API for Scala module") { it ->
+        "New Relic Java agent Scala Weaver API",
+        "The Scala Weaver API of the Java agent.") { it ->
     it.from(components.java)
 }
