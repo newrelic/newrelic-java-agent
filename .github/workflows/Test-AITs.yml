@@ -71,6 +71,7 @@ jobs:
           echo "server/tomee.py" >> $excluded_tests
           echo "server/was_liberty.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
+          # The files below are not tests
           echo "trace/client.py" >> $excluded_tests
           echo "trace/server.py" >> $excluded_tests
           echo "trace/trace_base.py" >> $excluded_tests
@@ -163,22 +164,8 @@ jobs:
           mv appcache2/* apps/
           mv appcache3/* apps/
           mv appcache4/* apps/
-          cd apps
-          cd ../
 
       ## JDK Installs
-
-      # Install 11
-      - name: Set up Java 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 11
-
-      # Set the JDK variable
-      - name: Set the required JDK variable
-        run: |
-          echo "ORG_GRADLE_PROJECT_jdk11=${JAVA_HOME}" >> $GITHUB_ENV
 
       # Install Zulu
       - name: Set up Zulu
@@ -192,40 +179,15 @@ jobs:
         run: |
           echo "ORG_GRADLE_PROJECT_zulu=${JAVA_HOME}" >> $GITHUB_ENV
 
-      # Install 17
-      - name: Set up Java 17
+      - name: Set up Javas
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 17
-
-      # Set the JDK variable
-      - name: Set the required JDK variable
-        run: |
-          echo "ORG_GRADLE_PROJECT_jdk17=${JAVA_HOME}" >> $GITHUB_ENV
-
-      # Install latest non-LTS Java version (we should only ever test one non-LTS version to keep test times reasonable)
-      - name: Set up Java 20
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 20
-
-      - name: Save JAVA_HOME as JDK20 for later usage
-        run: |
-          echo "ORG_GRADLE_PROJECT_jdk20=${JAVA_HOME}" >> $GITHUB_ENV
-
-      # Install 8, last to set JAVA_HOME to 8
-      - name: Set up Java 8
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 8
-
-      # Set the JDK variable
-      - name: Set the required JDK variable
-        run: |
-          echo "ORG_GRADLE_PROJECT_jdk8=${JAVA_HOME}" >> $GITHUB_ENV
+          java-version: |
+            20
+            17
+            11
+            8
 
       - name: Set up Toolchain
         shell: bash
@@ -241,7 +203,7 @@ jobs:
                     <version>8</version>
             </provides>
             <configuration>
-                    <jdkHome>${ORG_GRADLE_PROJECT_jdk8}</jdkHome>
+                    <jdkHome>${JAVA_HOME_8_X64}</jdkHome>
             </configuration>
             </toolchain>
             <toolchain>
@@ -250,7 +212,7 @@ jobs:
                     <version>11</version>
             </provides>
             <configuration>
-                    <jdkHome>${ORG_GRADLE_PROJECT_jdk11}</jdkHome>
+                    <jdkHome>${JAVA_HOME_11_X64}</jdkHome>
             </configuration>
             </toolchain>
             <toolchain>
@@ -259,7 +221,7 @@ jobs:
                     <version>17</version>
             </provides>
             <configuration>
-                    <jdkHome>${ORG_GRADLE_PROJECT_jdk17}</jdkHome>
+                    <jdkHome>${JAVA_HOME_17_X64}</jdkHome>
             </configuration>
             </toolchain>
             <toolchain>
@@ -268,15 +230,11 @@ jobs:
                     <version>20</version>
             </provides>
             <configuration>
-                    <jdkHome>${ORG_GRADLE_PROJECT_jdk20}</jdkHome>
+                    <jdkHome>${JAVA_HOME_20_X64}</jdkHome>
             </configuration>
             </toolchain>
           </toolchains>
           EOF
-
-      # Needed for toolchains and GHA.
-      - name: setup gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8,ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
 
       ## End JDK Install
 
@@ -309,11 +267,11 @@ jobs:
           virtualenv -p /usr/bin/python3.8 .
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
-          JAVA8JRE=${ORG_GRADLE_PROJECT_jdk8} \
-          JAVA11JRE=${ORG_GRADLE_PROJECT_jdk11} \
           ZULU=${ORG_GRADLE_PROJECT_zulu} \
-          JAVA17JRE=${ORG_GRADLE_PROJECT_jdk17} \
-          JAVA20JRE=${ORG_GRADLE_PROJECT_jdk20} \
+          JAVA8JRE=${JAVA_HOME_8_X64} \
+          JAVA11JRE=${JAVA_HOME_11_X64} \
+          JAVA17JRE=${JAVA_HOME_17_X64} \
+          JAVA20JRE=${JAVA_HOME_20_X64} \
           conf/autoconfigure
           . conf/testenv java
           cat conf/java_local_config.yml
