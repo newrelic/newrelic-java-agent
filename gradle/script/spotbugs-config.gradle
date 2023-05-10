@@ -12,6 +12,7 @@ spotbugs {
     reportLevel = 'default'
     reportsDir = file("$buildDir/spotbugs")
     maxHeapSize = '1g'
+    includeFilter = file('../gradle/script/spotbugs-include-filter.xml')
 }
 
 spotbugsMain {
