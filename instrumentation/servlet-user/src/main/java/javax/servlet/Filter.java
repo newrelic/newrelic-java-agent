@@ -8,6 +8,7 @@
 package javax.servlet;
 
 import java.security.Principal;
+import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,7 +28,9 @@ public abstract class Filter {
         if (request instanceof HttpServletRequest) {
             Principal principal = ((HttpServletRequest) request).getUserPrincipal();
             if (principal != null) {
-                NewRelic.setUserName(principal.getName());
+                if (Boolean.FALSE.equals(NewRelic.getAgent().getConfig().getValue("high_security"))) {
+                    AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
+                }
                 NewRelic.setUserId(principal.getName());
             }
         }

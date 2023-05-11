@@ -16,6 +16,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.util.logging.Level;
 
 @Weave(type = MatchType.Interface)
 public abstract class Servlet {
@@ -26,7 +27,9 @@ public abstract class Servlet {
         if (request instanceof HttpServletRequest) {
             Principal principal = ((HttpServletRequest) request).getUserPrincipal();
             if (principal != null) {
-                NewRelic.setUserName(principal.getName());
+                if (Boolean.FALSE.equals(NewRelic.getAgent().getConfig().getValue("high_security"))) {
+                    AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
+                }
                 NewRelic.setUserId(principal.getName());
             }
         }
