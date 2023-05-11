@@ -119,7 +119,7 @@ public class HttpClient5Test {
         Assert.assertEquals(1, MetricsHelper.getScopedMetricCount(txOne, "External/" + host1 + "/CommonsHttp/execute"));
         Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/" + host1 + "/CommonsHttp/execute"));
 
-        // external rollups
+        // external roll ups
         Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/" + host1 + "/all"));
         Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/allOther"));
         Assert.assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/all"));
