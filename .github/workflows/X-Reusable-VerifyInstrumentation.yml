@@ -69,5 +69,8 @@ jobs:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
 
+      # Verify instrumentation must run with Java 17
       - name: Running verifyInstrumentation on (${{ matrix.modules }})
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation
