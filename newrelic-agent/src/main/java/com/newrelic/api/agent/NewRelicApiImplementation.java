@@ -292,15 +292,11 @@ public class NewRelicApiImplementation implements PublicApi {
 
     /**
      * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
-     * When high security mode is enabled, this method call will do nothing.
      *
      * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
      */
     @Override
     public void setUserId(String userId) {
-        if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
-            return;
-        }
         final String attributeKey = "enduser.id";
         final String methodCalled = "setUserId";
         // Ignore null and empty strings
@@ -536,13 +532,9 @@ public class NewRelicApiImplementation implements PublicApi {
 
     /**
      * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
-     * If high security mode is enabled, this method call does nothing.
      */
     @Override
     public void setUserName(String name) {
-        if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
-            return;
-        }
         Transaction tx = Transaction.getTransaction(false);
         if (tx == null) {
             return;

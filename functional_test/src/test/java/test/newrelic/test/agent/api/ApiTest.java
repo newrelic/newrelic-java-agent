@@ -91,8 +91,7 @@ import java.util.Map;
 
 public class ApiTest implements TransactionListener {
     ApiTestHelper apiTestHelper = new ApiTestHelper();
-    private static final String CAT_CONFIG_FILE = "configs/cross_app_tracing_test.yml";
-    private static final String HIGH_SECURITY_CONFIG_FILE = "configs/high_security_config.yml";
+    private static final String CONFIG_FILE = "configs/cross_app_tracing_test.yml";
     private static final ClassLoader CLASS_LOADER = ApiTest.class.getClassLoader();
 
     @Before
@@ -115,8 +114,8 @@ public class ApiTest implements TransactionListener {
         ServiceFactory.getTransactionService().addTransactionListener(this);
     }
 
-    public EnvironmentHolder setupEnvironmentHolder(String configFile, String environment) throws Exception {
-        EnvironmentHolderSettingsGenerator envHolderSettings = new EnvironmentHolderSettingsGenerator(configFile, environment, CLASS_LOADER);
+    public EnvironmentHolder setupEnvironmentHolder(String environment) throws Exception {
+        EnvironmentHolderSettingsGenerator envHolderSettings = new EnvironmentHolderSettingsGenerator(CONFIG_FILE, environment, CLASS_LOADER);
         EnvironmentHolder environmentHolder = new EnvironmentHolder(envHolderSettings);
         environmentHolder.setupEnvironment();
         return environmentHolder;
@@ -787,12 +786,10 @@ public class ApiTest implements TransactionListener {
 
     @Test
     public void testSetUserId() throws Exception {
-        EnvironmentHolder holder = setupEnvironmentHolder(HIGH_SECURITY_CONFIG_FILE, "high_security_disabled_test");
         try {
             runTestSetUserId();
         } finally {
             Transaction.clearTransaction();
-            holder.close();
         }
     }
 
@@ -804,24 +801,6 @@ public class ApiTest implements TransactionListener {
         NewRelic.setUserId("");
         Assert.assertFalse("Agent attributes shouldn't have user ID", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
         NewRelic.setUserId(null);
-        Assert.assertFalse("Agent attributes shouldn't have user ID", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
-    }
-
-    @Test
-    public void testSetUserIdWithHighSecurity() throws Exception {
-        EnvironmentHolder holder = setupEnvironmentHolder(HIGH_SECURITY_CONFIG_FILE, "high_security_enabled_test");
-        try {
-            runTestSetUserId();
-        } finally {
-            Transaction.clearTransaction();
-            holder.close();
-        }
-    }
-
-
-    @Trace(dispatcher = true)
-    private void runTestSetUserWithHighSecurity() {
-        NewRelic.setUserId("hello");
         Assert.assertFalse("Agent attributes shouldn't have user ID", Transaction.getTransaction().getAgentAttributes().containsKey("enduser.id"));
     }
 
@@ -1924,7 +1903,7 @@ public class ApiTest implements TransactionListener {
     @Test
     public void testExternalCatAPI() throws Exception {
         // override default agent config to disabled distributed tracing and use CAT instead
-        EnvironmentHolder holder = setupEnvironmentHolder(CAT_CONFIG_FILE, "cat_enabled_dt_disabled_test");
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
         TestServer server = new TestServer(8088);
 
         try {
@@ -2088,7 +2067,7 @@ public class ApiTest implements TransactionListener {
     @Test
     public void testMessagingAPI() throws Exception {
         // override default agent config to disabled distributed tracing and use CAT instead
-        EnvironmentHolder holder = setupEnvironmentHolder(CAT_CONFIG_FILE, "cat_enabled_dt_disabled_test");
+        EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
         MessagingTestServer server = new MessagingTestServer(8088);
 
         try {

@@ -26,7 +26,7 @@ public abstract class Servlet {
         if (request instanceof HttpServletRequest) {
             Principal principal = ((HttpServletRequest) request).getUserPrincipal();
             if (principal != null) {
-                NewRelic.setUserName(principal.getName());
+                AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
                 NewRelic.setUserId(principal.getName());
             }
         }
