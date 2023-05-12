@@ -266,6 +266,7 @@ public final class NewRelic {
 
     /**
      * Sets the user ID for the current transaction by adding the "enduser.id" agent attribute. It is reported in errors and transaction traces.
+     * When high security mode is enabled, this method call will do nothing.
      *
      * @param userId The user ID to report. If it is a null or blank String, the "enduser.id" agent attribute will not be included in the current transaction and any associated errors.
      * @since 8.1.0
@@ -356,6 +357,7 @@ public final class NewRelic {
 
     /**
      * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * If high security mode is enabled, this method call does nothing.
      *
      * <p>
      * <b>Note:</b> The user {@code name} argument has a limit of 255 bytes, encoded with UTF-8 encoding. A {@code name}

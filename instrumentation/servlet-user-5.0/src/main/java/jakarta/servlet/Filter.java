@@ -27,7 +27,7 @@ public abstract class Filter {
         if (request instanceof HttpServletRequest) {
             Principal principal = ((HttpServletRequest) request).getUserPrincipal();
             if (principal != null) {
-                AgentBridge.getAgent().getTransaction().getAgentAttributes().put("user", principal.getName());
+                NewRelic.setUserName(principal.getName());
                 NewRelic.setUserId(principal.getName());
             }
         }
