@@ -10,6 +10,7 @@ class TokenAwareExecutionContext(delegate: ExecutionContext) extends ExecutionCo
     AgentBridge.getAgent.getLogger.log(Level.FINEST, s"[${Thread.currentThread().getName}] Instrumenting IOShift " +
       s"ExecutionContext $delegate")
   }
+  
   override def execute(runnable: Runnable): Unit = {
     delegate.execute(new TokenAwareRunnable(runnable))
   }
