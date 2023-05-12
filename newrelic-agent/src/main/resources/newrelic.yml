@@ -380,7 +380,7 @@ common: &default_settings
     #label_name: label_value
 
   security:
-    # Determines whether the security data is sent to NR or not. When this is disabled but security.agent.enabled is
+    # Determines whether the security data is sent to NR or not. When this is disabled but agent enabled is
     # true, the security module will run but data will not be sent. Default is false.
     enabled: false
 
@@ -392,9 +392,8 @@ common: &default_settings
     # New Relic’s SaaS connection URLs
     validator_service_url: wss://csec.nr-data.net
 
-    # To completely disable security, set the security.agent.enabled flag to false. If the flag is set to false,
-    # the security module is not loaded and it is completely disabled. This property is read only once at application
-    # start. Default is false.
+    # To completely disable security, set this flag to false, which will completely diable security. This property is 
+    # read only once at application start. Default is false.
     agent:
       enabled: false
 
