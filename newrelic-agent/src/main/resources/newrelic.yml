@@ -380,34 +380,31 @@ common: &default_settings
     #label_name: label_value
 
   security:
-    # Default is false
-    enabled: true
+    # Determines whether the security data is sent to NR or not. When this is disabled but agent enabled is
+    # true, the security module will run but data will not be sent. Default is false.
+    enabled: false
 
     # NR security provides two modes IAST and RASP
-    # Default is IAST
-    # mode: IAST
+    # Default is IAST. Due to the invasive nature of IAST scanning, DO NOT enable this mode in either a
+    # production environment or an environment where production data is processed.
+    mode: IAST
 
     # New Relic’s SaaS connection URLs
-    # validator_service_url: wss://csec.nr-data.net
+    validator_service_url: wss://csec.nr-data.net
 
-    # To completely disable security
-    # set agent.enabled flag to false
-    # If the flag is set to false,
-    # the security module is not loaded
-    # This property is read only once at
-    # application start.
-    # agent:
-    #   enabled: true
+    # To completely disable security, set this flag to false, which will completely diable security. This property is 
+    # read only once at application start. Default is false.
+    agent:
+      enabled: false
 
-    # Following category of security events
-    # can be disabled from generating.
-    # detection:
-    #   rci:
-    #     enabled: true
-    #   rxss:
-    #     enabled: true
-    #   deserialization:
-    #     enabled: true
+    # These are the category of csec security events that can be disabled from generating.
+    detection:
+      rci:
+        enabled: true
+      rxss:
+        enabled: true
+      deserialization:
+        enabled: true
 
 # Application Environments
 # ------------------------------------------
