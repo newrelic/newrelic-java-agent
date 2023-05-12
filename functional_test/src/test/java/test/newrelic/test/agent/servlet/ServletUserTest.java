@@ -12,10 +12,6 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.TransactionState;
 import com.newrelic.agent.TransactionStateImpl;
-import com.newrelic.agent.config.AgentConfigImpl;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.ServiceManager;
 import org.apache.struts.mock.MockHttpServletRequest;
 import org.apache.struts.mock.MockHttpServletResponse;
 import org.junit.Assert;
@@ -35,13 +31,9 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 public class ServletUserTest {
 
