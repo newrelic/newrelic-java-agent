@@ -7,17 +7,15 @@
 
 package javax.servlet;
 
-import java.security.Principal;
-import java.util.logging.Level;
-
-import javax.servlet.http.HttpServletRequest;
-
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 
 @Weave(type = MatchType.Interface)
 public abstract class Filter {

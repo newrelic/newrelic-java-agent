@@ -16,7 +16,6 @@ import com.newrelic.api.agent.weaver.Weaver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.logging.Level;
 
 @Weave(type = MatchType.Interface)
 public abstract class Servlet {
