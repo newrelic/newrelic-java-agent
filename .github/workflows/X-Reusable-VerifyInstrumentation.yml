@@ -68,6 +68,7 @@ jobs:
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
+          fail-on-cache-miss: true
 
       - name: Running verifyInstrumentation on (${{ matrix.modules }})
         run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation
