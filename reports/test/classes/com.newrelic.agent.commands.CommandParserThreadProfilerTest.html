@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">3.727s</div>
+<div class="counter">3.705s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,37 +79,37 @@
 </thead>
 <tr>
 <td class="success">testProfilerCommandParserCommandException</td>
-<td class="success">0.022s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testProfilerCommandParserInvalidPeriod</td>
 <td class="success">0.034s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testProfilerCommandParserInvalidPeriod</td>
+<td class="success">0.042s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testProfilerCommandParserLegacyMinimumRequired</td>
-<td class="success">0.019s</td>
+<td class="success">0.033s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testProfilerCommandParserLegacyNullDefault</td>
-<td class="success">0.028s</td>
+<td class="success">0.022s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testProfilerCommandParserProfileAgent</td>
-<td class="success">0.023s</td>
+<td class="success">0.031s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testProfilerCommandParserTPv2</td>
-<td class="success">0.027s</td>
+<td class="success">0.031s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testProfilerCommandParserTPv2NullDefaults</td>
-<td class="success">3.574s</td>
+<td class="success">3.512s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -117,50 +117,50 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-15T22:49:35,115+0000 [5179 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-15T22:49:35,158+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:35,160+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,476+0000 [5179 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-15T22:49:38,476+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,477+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,549+0000 [5179 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-15T22:49:38,549+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,551+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,566+0000 [5179 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-15T22:49:38,566+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,567+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,578+0000 [5179 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-15T22:49:38,579+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,579+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,588+0000 [5179 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-15T22:49:38,590+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,591+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,606+0000 [5179 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-15T22:49:38,606+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,606+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,621+0000 [5179 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-15T22:49:38,621+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,622+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,635+0000 [5179 1] com.newrelic.agent.commands.CommandParser ERROR: Unable to parse command : com.newrelic.agent.commands.CommandException: sample_period &gt; duration in start_profiler command: 500 &gt; 300
-2023-05-15T22:49:38,638+0000 [5179 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-15T22:49:38,638+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,638+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,655+0000 [5179 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-15T22:49:38,658+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,658+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,667+0000 [5179 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-15T22:49:38,667+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,668+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,676+0000 [5179 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-15T22:49:38,678+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,679+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,685+0000 [5179 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-15T22:49:38,685+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,685+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,695+0000 [5179 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-15T22:49:38,701+0000 [5179 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-15T22:49:38,701+0000 [5179 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-15T22:49:38,705+0000 [5179 1] com.newrelic.agent.commands.CommandParser ERROR: Unable to parse command : com.newrelic.agent.commands.CommandException: Missing profile_id in start_profiler command
+<pre>2023-05-15T22:49:42,335+0000 [4942 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T22:49:42,365+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:42,368+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,646+0000 [4942 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T22:49:45,646+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,648+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,695+0000 [4942 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T22:49:45,696+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,696+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,710+0000 [4942 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T22:49:45,716+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,716+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,726+0000 [4942 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T22:49:45,726+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,727+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,740+0000 [4942 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T22:49:45,744+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,744+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,758+0000 [4942 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T22:49:45,759+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,759+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,786+0000 [4942 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T22:49:45,786+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,789+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,799+0000 [4942 1] com.newrelic.agent.commands.CommandParser ERROR: Unable to parse command : com.newrelic.agent.commands.CommandException: sample_period &gt; duration in start_profiler command: 500 &gt; 300
+2023-05-15T22:49:45,801+0000 [4942 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T22:49:45,801+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,801+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,817+0000 [4942 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T22:49:45,817+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,817+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,824+0000 [4942 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T22:49:45,825+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,826+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,850+0000 [4942 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T22:49:45,850+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,852+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,857+0000 [4942 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T22:49:45,858+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,858+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,880+0000 [4942 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T22:49:45,882+0000 [4942 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T22:49:45,882+0000 [4942 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T22:49:45,891+0000 [4942 1] com.newrelic.agent.commands.CommandParser ERROR: Unable to parse command : com.newrelic.agent.commands.CommandException: Missing profile_id in start_profiler command
 </pre>
 </span>
 </div>
@@ -172,7 +172,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 15, 2023 11:02:40 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 15, 2023 11:03:20 PM</p>
 </div>
 </div>
 </body>
