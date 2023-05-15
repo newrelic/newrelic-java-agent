@@ -50,6 +50,9 @@ jobs:
       - name: Build newrelicJar
         run: ./gradlew $GRADLE_OPTIONS clean jar
 
+      - name: Remove parallel from GRADLE_OPTIONS
+        run: echo "GRADLE_OPTIONS=$GRADLE_OPTIONS" | sed "s/--parallel//" >> $GITHUB_ENV
+
       # GHA run instrumentation tests
 
       - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 1)
