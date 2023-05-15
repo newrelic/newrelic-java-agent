@@ -110,6 +110,14 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.list-tests.outputs.tests) }}
     steps:
+      - name: Retrieve agent from cache
+        id: retrieve-agent
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
+          key: ${{ github.run_id }}
+          fail-on-cache-miss: true
+
       ## Ongoing tests with artifactory dependencies
       - name: Checkout AIT repo test
         uses: actions/checkout@v3
@@ -241,13 +249,6 @@ jobs:
       ## TESTING SECTION
 
       # Replication of steps from ait README
-
-      - name: Retrieve agent from cache
-        id: retrieve-agent
-        uses: actions/cache@v3
-        with:
-          path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
-          key: ${{ github.run_id }}
 
       - name: CD to agent-integration-tests dir.
         run: |
