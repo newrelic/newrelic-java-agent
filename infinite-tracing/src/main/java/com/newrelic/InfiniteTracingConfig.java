@@ -13,6 +13,8 @@ public class InfiniteTracingConfig {
     private final Double flakyPercentage;
     private final Long flakyCode;
     private final boolean usePlaintext;
+    private final boolean useCompression;
+    private final boolean useBatching;
 
     public InfiniteTracingConfig(Builder builder) {
         this.licenseKey = builder.licenseKey;
@@ -23,6 +25,8 @@ public class InfiniteTracingConfig {
         this.flakyPercentage = builder.flakyPercentage;
         this.flakyCode = builder.flakyCode;
         this.usePlaintext = builder.usePlaintext;
+        this.useCompression = builder.useCompression;
+        this.useBatching = builder.useBatching;
     }
 
     public static Builder builder() {
@@ -61,6 +65,14 @@ public class InfiniteTracingConfig {
         return usePlaintext;
     }
 
+    public boolean getUseCompression() {
+        return useCompression;
+    }
+
+    public boolean getUseBatching() {
+        return useBatching;
+    }
+
     public static class Builder {
         public int maxQueueSize;
         public Logger logger;
@@ -70,6 +82,8 @@ public class InfiniteTracingConfig {
         private Double flakyPercentage;
         private Long flakyCode;
         private boolean usePlaintext;
+        private boolean useCompression;
+        private boolean useBatching;
 
         /**
          * The New Relic APM license key configured for the application.
@@ -137,10 +151,30 @@ public class InfiniteTracingConfig {
         /**
          * The optional boolean connect using plaintext
          *
-         * @param usePlaintext
+         * @param usePlaintext true to use plaintext, false otherwise
          */
         public Builder usePlaintext(boolean usePlaintext) {
             this.usePlaintext = usePlaintext;
+            return this;
+        }
+
+        /**
+         * The optional boolean to use compression when sending to the Trace Observer.
+         *
+         * @param useCompression true to use compression, false otherwise
+         */
+        public Builder useCompression(boolean useCompression) {
+            this.useCompression = useCompression;
+            return this;
+        }
+
+        /**
+         * The optional boolean to use batching when sending to the Trace Observer.
+         *
+         * @param useBatching true to use batching, false otherwise
+         */
+        public Builder useBatching(boolean useBatching) {
+            this.useBatching = useBatching;
             return this;
         }
 

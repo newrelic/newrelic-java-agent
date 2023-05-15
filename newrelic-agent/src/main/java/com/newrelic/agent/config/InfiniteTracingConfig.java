@@ -20,6 +20,10 @@ public interface InfiniteTracingConfig {
 
     boolean getUsePlaintext();
 
+    boolean getUseCompression();
+
+    boolean getUseBatching();
+
     boolean isEnabled();
 
 }

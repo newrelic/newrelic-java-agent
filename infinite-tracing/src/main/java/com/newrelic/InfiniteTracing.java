@@ -48,6 +48,10 @@ public class InfiniteTracing implements Consumer<SpanEvent> {
      */
     public void start(String agentRunToken, Map<String, String> requestMetadata) {
         synchronized (lock) {
+            // Record supportability metrics related to Infinite Tracing configuration settings
+            aggregator.incrementCounter("Supportability/InfiniteTracing/gRPC/Compression/" + (config.getUseCompression() ? "enabled" : "disabled"));
+            aggregator.incrementCounter("Supportability/InfiniteTracing/gRPC/Batching/" + (config.getUseBatching() ? "enabled" : "disabled"));
+
             if (spanEventSenderFuture != null) {
                 channelManager.updateMetadata(agentRunToken, requestMetadata);
                 channelManager.shutdownChannelAndBackoff(0);
