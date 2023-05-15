@@ -22,6 +22,10 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
     public static final String FLAKY_CODE = "_flakyCode";
     public static final String USE_PLAINTEXT = "plaintext";
     public static final boolean DEFAULT_USE_PLAINTEXT = false;
+    public static final String USE_COMPRESSION = "compression";
+    public static final boolean DEFAULT_USE_COMPRESSION = true;
+    public static final String USE_BATCHING = "batching";
+    public static final boolean DEFAULT_USE_BATCHING = true;
 
     static final String SYSTEM_PROPERTY_ROOT = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + ROOT + ".";
 
@@ -81,6 +85,16 @@ public class InfiniteTracingConfigImpl extends BaseConfig implements InfiniteTra
     @Override
     public boolean getUsePlaintext() {
         return getProperty(USE_PLAINTEXT, DEFAULT_USE_PLAINTEXT);
+    }
+
+    @Override
+    public boolean getUseCompression() {
+        return getProperty(USE_COMPRESSION, DEFAULT_USE_COMPRESSION);
+    }
+
+    @Override
+    public boolean getUseBatching() {
+        return getProperty(USE_BATCHING, DEFAULT_USE_BATCHING);
     }
 
     @Override

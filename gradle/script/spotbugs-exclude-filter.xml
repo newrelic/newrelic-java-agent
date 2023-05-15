@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+        xmlns="https://github.com/spotbugs/filter/3.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+
+    <!--
+        - Only include high priority findings
+        - Ignore DM_DEFAULT_ENCODING
+            i18n encoding issues
+        - Ignore NM_SAME_SIMPLE_NAME_AS_SUPERCLASS, NM_SAME_SIMPLE_NAME_AS_INTERFACE
+            This class/interface has a simple name that is identical to that of an implemented/extended interface, except that the class/interface
+            is in a different package
+    -->
+    <Match>
+        <Not>
+            <Priority value="1" />
+        </Not>
+    </Match>
+
+    <Match>
+        <Bug pattern="DM_DEFAULT_ENCODING" />
+    </Match>
+
+    <Match>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" />
+    </Match>
+
+    <Match>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+    </Match>
+</FindBugsFilter>

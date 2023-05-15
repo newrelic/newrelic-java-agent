@@ -42,6 +42,12 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
+          name: all-spotbugs-results
+          path: '**/build/spotbugs/main.*'
+          retention-days: 5
+
+      - uses: actions/upload-artifact@v3
+        with:
           name: newrelic-agent-spotbugs-results
           path: 'newrelic-agent/build/spotbugs/main.*'
           retention-days: 5
@@ -60,20 +66,8 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: agent-bridge-datastore-spotbugs-results
-          path: 'agent-bridge-datastore/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
           name: agent-model-spotbugs-results
           path: 'agent-model/build/spotbugs/main.*'
-          retention-days: 5
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agent-interfaces-spotbugs-results
-          path: 'agent-interfaces/build/spotbugs/main.*'
           retention-days: 5
 
       - uses: actions/upload-artifact@v3
