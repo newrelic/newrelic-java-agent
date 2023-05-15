@@ -1,0 +1,20 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.2.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.httpclient-5.0' }
+}
+
+verifyInstrumentation {
+    passesOnly ('org.apache.httpcomponents.client5:httpclient5:[5.0,)')
+    excludeRegex '.*alpha.*'
+    excludeRegex '.*beta.*'
+}
+
+site {
+    title 'Apache Httpclient'
+    type 'Messaging'
+}
