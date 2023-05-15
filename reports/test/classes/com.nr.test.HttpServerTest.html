@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.637s</div>
+<div class="counter">1.605s</div>
 <p>duration</p>
 </div>
 </td>
@@ -66,6 +66,9 @@
 <li>
 <a href="#tab1">Standard output</a>
 </li>
+<li>
+<a href="#tab2">Standard error</a>
+</li>
 </ul>
 <div id="tab0" class="tab">
 <h2>Tests</h2>
@@ -79,22 +82,22 @@
 </thead>
 <tr>
 <td class="success">testCatCallDefaultName</td>
-<td class="success">1.519s</td>
+<td class="success">1.510s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testCatCallSetName</td>
-<td class="success">0.039s</td>
+<td class="success">0.037s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testExternalCall</td>
-<td class="success">0.046s</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testServerUp</td>
-<td class="success">0.033s</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -102,24 +105,74 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-10T00:47:24,469+0000 [5927 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:47:24,470+0000 [5927 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:47:24,475+0000 [5927 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T00:47:24,482+0000 [5927 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:47:24,482+0000 [5927 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:47:24,482+0000 [5927 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T00:47:24,484+0000 [5927 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:47:24,484+0000 [5927 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:47:24,485+0000 [5927 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T00:47:25,089+0000 [5927 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:47:25,090+0000 [5927 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:47:25,090+0000 [5927 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T00:47:25,105+0000 [5927 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:47:25,105+0000 [5927 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:47:25,105+0000 [5927 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T00:47:25,107+0000 [5927 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-10T00:47:25,108+0000 [5927 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T00:47:25,108+0000 [5927 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+<pre>2023-05-15T20:00:10,981+0000 [2245 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T20:00:10,981+0000 [2245 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T20:00:10,981+0000 [2245 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T20:00:10,997+0000 [2245 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T20:00:10,998+0000 [2245 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T20:00:10,998+0000 [2245 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T20:00:11,002+0000 [2245 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T20:00:11,002+0000 [2245 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T20:00:11,002+0000 [2245 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T20:00:11,586+0000 [2245 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T20:00:11,587+0000 [2245 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T20:00:11,589+0000 [2245 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T20:00:11,611+0000 [2245 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T20:00:11,613+0000 [2245 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T20:00:11,613+0000 [2245 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T20:00:11,620+0000 [2245 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-15T20:00:11,621+0000 [2245 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T20:00:11,622+0000 [2245 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+</pre>
+</span>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>May 15, 2023 8:00:13 PM fi.iki.elonen.NanoHTTPD$Response send
+SEVERE: Could not send response to the client
+java.net.SocketException: Socket closed
+	at java.base/sun.nio.ch.NioSocketImpl.ensureOpenAndConnected(NioSocketImpl.java:163)
+	at java.base/sun.nio.ch.NioSocketImpl.beginWrite(NioSocketImpl.java:356)
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:401)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:433)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:812)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1120)
+	at java.base/java.io.OutputStream.write(OutputStream.java:124)
+	at fi.iki.elonen.NanoHTTPD$Response$ChunkedOutputStream.write(NanoHTTPD.java:1442)
+	at fi.iki.elonen.NanoHTTPD$Response$ChunkedOutputStream.write(NanoHTTPD.java:1435)
+	at java.base/java.util.zip.GZIPOutputStream.writeHeader(GZIPOutputStream.java:191)
+	at java.base/java.util.zip.GZIPOutputStream.&lt;init&gt;(GZIPOutputStream.java:97)
+	at java.base/java.util.zip.GZIPOutputStream.&lt;init&gt;(GZIPOutputStream.java:112)
+	at fi.iki.elonen.NanoHTTPD$Response.sendBodyWithCorrectEncoding(NanoHTTPD.java:1663)
+	at fi.iki.elonen.NanoHTTPD$Response.sendBodyWithCorrectTransferAndEncoding(NanoHTTPD.java:1654)
+	at fi.iki.elonen.NanoHTTPD$Response.send(NanoHTTPD.java:1624)
+	at fi.iki.elonen.NanoHTTPD$HTTPSession.execute(NanoHTTPD.java:957)
+	at fi.iki.elonen.NanoHTTPD$ClientHandler.run(NanoHTTPD.java:192)
+	at java.base/java.lang.Thread.run(Thread.java:1623)
+
+May 15, 2023 8:00:13 PM fi.iki.elonen.NanoHTTPD$Response send
+SEVERE: Could not send response to the client
+java.net.SocketException: Socket closed
+	at java.base/sun.nio.ch.NioSocketImpl.ensureOpenAndConnected(NioSocketImpl.java:163)
+	at java.base/sun.nio.ch.NioSocketImpl.beginWrite(NioSocketImpl.java:356)
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:401)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:433)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:812)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1120)
+	at java.base/java.io.OutputStream.write(OutputStream.java:124)
+	at fi.iki.elonen.NanoHTTPD$Response$ChunkedOutputStream.write(NanoHTTPD.java:1442)
+	at fi.iki.elonen.NanoHTTPD$Response$ChunkedOutputStream.write(NanoHTTPD.java:1435)
+	at java.base/java.util.zip.GZIPOutputStream.writeHeader(GZIPOutputStream.java:191)
+	at java.base/java.util.zip.GZIPOutputStream.&lt;init&gt;(GZIPOutputStream.java:97)
+	at java.base/java.util.zip.GZIPOutputStream.&lt;init&gt;(GZIPOutputStream.java:112)
+	at fi.iki.elonen.NanoHTTPD$Response.sendBodyWithCorrectEncoding(NanoHTTPD.java:1663)
+	at fi.iki.elonen.NanoHTTPD$Response.sendBodyWithCorrectTransferAndEncoding(NanoHTTPD.java:1654)
+	at fi.iki.elonen.NanoHTTPD$Response.send(NanoHTTPD.java:1624)
+	at fi.iki.elonen.NanoHTTPD$HTTPSession.execute(NanoHTTPD.java:957)
+	at fi.iki.elonen.NanoHTTPD$ClientHandler.run(NanoHTTPD.java:192)
+	at java.base/java.lang.Thread.run(Thread.java:1623)
+
 </pre>
 </span>
 </div>
@@ -131,7 +184,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 12:48:05 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 15, 2023 8:01:26 PM</p>
 </div>
 </div>
 </body>

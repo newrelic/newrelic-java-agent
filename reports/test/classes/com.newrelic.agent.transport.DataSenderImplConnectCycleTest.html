@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">5.743s</div>
+<div class="counter">4.972s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,17 +79,17 @@
 </thead>
 <tr>
 <td class="success">testFullPreconnectConnectCycleNoSecurity</td>
-<td class="success">0.013s</td>
+<td class="success">0.034s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testFullPreconnectConnectCycleWithLasp</td>
-<td class="success">5.708s</td>
+<td class="success">4.899s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testReconnectCycleNoSecurity</td>
-<td class="success">0.022s</td>
+<td class="success">0.039s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -97,34 +97,34 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-10T01:49:08,952+0000 [41387 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:49:08,971+0000 [41387 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:49:08,973+0000 [41387 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:49:10,581+0000 [41387 1] com.newrelic INFO: Setting audit_mode to false
-2023-05-10T01:49:10,581+0000 [41387 1] com.newrelic INFO: Agent run id: agent run id
-2023-05-10T01:49:10,604+0000 [41387 1] com.newrelic INFO: LASP Policies received from server side: {&quot;record_sql&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;allow_raw_exception_messages&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;custom_events&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;message_parameters&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;job_arguments&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:false},&quot;custom_instrumentation_editor&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;custom_parameters&quot;:{&quot;enabled&quot;:false,&quot;required&quot;:true},&quot;attributes_include&quot;:{&quot;enabled&quot;:false,&quot;required&quot;:true}}
-2023-05-10T01:49:10,604+0000 [41387 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
-2023-05-10T01:49:10,606+0000 [41387 1] com.newrelic WARN: Did not receive requestMetadata on connect
-2023-05-10T01:49:10,607+0000 [41387 1] com.newrelic INFO: Agent run id: my-run-id
-2023-05-10T01:49:10,610+0000 [41387 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:49:10,610+0000 [41387 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:49:10,610+0000 [41387 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:49:10,619+0000 [41387 1] com.newrelic INFO: Setting audit_mode to false
-2023-05-10T01:49:10,620+0000 [41387 1] com.newrelic INFO: Agent run id: agent run id
-2023-05-10T01:49:10,621+0000 [41387 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
-2023-05-10T01:49:10,622+0000 [41387 1] com.newrelic WARN: Did not receive requestMetadata on connect
-2023-05-10T01:49:10,622+0000 [41387 1] com.newrelic INFO: Agent run id: my-run-id
-2023-05-10T01:49:10,624+0000 [41387 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-10T01:49:10,624+0000 [41387 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-10T01:49:10,624+0000 [41387 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-10T01:49:10,633+0000 [41387 1] com.newrelic INFO: Setting audit_mode to false
-2023-05-10T01:49:10,633+0000 [41387 1] com.newrelic INFO: Agent run id: agent run id
-2023-05-10T01:49:10,634+0000 [41387 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
-2023-05-10T01:49:10,635+0000 [41387 1] com.newrelic WARN: Did not receive requestMetadata on connect
-2023-05-10T01:49:10,635+0000 [41387 1] com.newrelic INFO: Agent run id: my-run-id
-2023-05-10T01:49:10,636+0000 [41387 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
-2023-05-10T01:49:10,639+0000 [41387 1] com.newrelic WARN: Did not receive requestMetadata on connect
-2023-05-10T01:49:10,639+0000 [41387 1] com.newrelic INFO: Agent run id: my-run-id
+<pre>2023-05-15T23:01:11,502+0000 [14800 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T23:01:11,528+0000 [14800 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T23:01:11,535+0000 [14800 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T23:01:13,356+0000 [14800 1] com.newrelic INFO: Setting audit_mode to false
+2023-05-15T23:01:13,356+0000 [14800 1] com.newrelic INFO: Agent run id: agent run id
+2023-05-15T23:01:13,408+0000 [14800 1] com.newrelic INFO: LASP Policies received from server side: {&quot;record_sql&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;allow_raw_exception_messages&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;custom_events&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;message_parameters&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;job_arguments&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:false},&quot;custom_instrumentation_editor&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;custom_parameters&quot;:{&quot;enabled&quot;:false,&quot;required&quot;:true},&quot;attributes_include&quot;:{&quot;enabled&quot;:false,&quot;required&quot;:true}}
+2023-05-15T23:01:13,411+0000 [14800 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-05-15T23:01:13,413+0000 [14800 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-05-15T23:01:13,414+0000 [14800 1] com.newrelic INFO: Agent run id: my-run-id
+2023-05-15T23:01:13,429+0000 [14800 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T23:01:13,430+0000 [14800 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T23:01:13,430+0000 [14800 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T23:01:13,448+0000 [14800 1] com.newrelic INFO: Setting audit_mode to false
+2023-05-15T23:01:13,456+0000 [14800 1] com.newrelic INFO: Agent run id: agent run id
+2023-05-15T23:01:13,457+0000 [14800 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-05-15T23:01:13,458+0000 [14800 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-05-15T23:01:13,458+0000 [14800 1] com.newrelic INFO: Agent run id: my-run-id
+2023-05-15T23:01:13,461+0000 [14800 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-15T23:01:13,462+0000 [14800 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-15T23:01:13,462+0000 [14800 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-15T23:01:13,489+0000 [14800 1] com.newrelic INFO: Setting audit_mode to false
+2023-05-15T23:01:13,489+0000 [14800 1] com.newrelic INFO: Agent run id: agent run id
+2023-05-15T23:01:13,490+0000 [14800 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-05-15T23:01:13,494+0000 [14800 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-05-15T23:01:13,495+0000 [14800 1] com.newrelic INFO: Agent run id: my-run-id
+2023-05-15T23:01:13,495+0000 [14800 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-05-15T23:01:13,497+0000 [14800 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-05-15T23:01:13,498+0000 [14800 1] com.newrelic INFO: Agent run id: my-run-id
 </pre>
 </span>
 </div>
@@ -136,7 +136,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 10, 2023 1:50:57 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 15, 2023 11:02:40 PM</p>
 </div>
 </div>
 </body>
