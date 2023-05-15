@@ -8,6 +8,13 @@ tasks.withType(Test).configureEach {
     }
 }
 
+tasks.withType(JacocoReport).configureEach {
+    reports {
+        xml.enabled true
+        html.destination file("${buildDir}/reports/jacoco")
+    }
+}
+
 def shouldVerifyInstrumentation = ("instrumentation" == project.parent.name);
 if (shouldVerifyInstrumentation) {
 
