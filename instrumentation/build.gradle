@@ -1,5 +1,5 @@
 import com.newrelic.agent.instrumentation.verify.VerifyTask
-apply plugin: 'jacoco'
+
 subprojects {
 
     // the version of all instrumentation projects.
@@ -8,12 +8,6 @@ subprojects {
     // pull in shared instrumentation build logic
     apply from: "$rootProject.projectDir/gradle/script/instrumentation.gradle"
 
-    // Add JaCoCo plugin
-    apply plugin: 'jacoco'
-    jacoco {
-        toolVersion = "0.8.10"  // Set the version of JaCoCo you want to use
-        reportsDir = file("$buildDir/reports/jacoco")
-    }
     tasks.withType(Test) { task ->
         task.enabled = !project.hasProperty('noInstrumentation')
     }

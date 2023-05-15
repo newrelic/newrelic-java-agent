@@ -1,4 +1,12 @@
 apply(from: "$rootProject.projectDir/gradle/script/cache_weave_attributes.gradle.kts")
+apply plugin: 'jacoco'
+
+tasks.withType(Test).configureEach {
+    jacoco {
+        destinationFile = layout.buildDirectory.file('jacoco/jacocoTest.exec').get().asFile
+        classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
+    }
+}
 
 def shouldVerifyInstrumentation = ("instrumentation" == project.parent.name);
 if (shouldVerifyInstrumentation) {
