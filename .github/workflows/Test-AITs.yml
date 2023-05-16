@@ -77,7 +77,7 @@ jobs:
           echo "basic_features/spans.py" >> $excluded_tests
           echo "basic_features/thread_sampler.py" >> $excluded_tests
           echo "basic_features/trans_traces.py" >> $excluded_tests
-          echo "basic_features/url_names.py" >> $excluded_tests
+          echo "basic_features/uri_names.py" >> $excluded_tests
           echo "client/grpc_client.py" >> $excluded_tests
           echo "client/http4s.py" >> $excluded_tests
           echo "client/play_ws_2_6.py" >> $excluded_tests
@@ -115,7 +115,8 @@ jobs:
           echo "r2dbc/mysql.py" >> $excluded_tests
           echo "r2dbc/oracle.py" >> $excluded_tests
           echo "r2dbc/postgres.py" >> $excluded_tests
-          echo "security/atts.py" >> $excluded_tests
+          echo "security/datastore_base.py" >> $excluded_tests
+          echo "security/hsm_atts.py" >> $excluded_tests
           echo "security/hsm_custom_events.py" >> $excluded_tests
           echo "security/hsm_custom_params.py" >> $excluded_tests
           echo "security/hsm_msg_params.py" >> $excluded_tests
@@ -126,7 +127,7 @@ jobs:
           echo "security/lasp_custom_params.py" >> $excluded_tests
           echo "security/lasp_datastore.py" >> $excluded_tests
           echo "security/lasp_msg_params.py" >> $excluded_tests
-          echo "security/lasp_strip_exceptions_.py" >> $excluded_tests
+          echo "security/lasp_strip_exceptions.py" >> $excluded_tests
           echo "server/embedded_jetty.py" >> $excluded_tests
           echo "server/glassfish.py" >> $excluded_tests
           echo "server/jetty.py" >> $excluded_tests
