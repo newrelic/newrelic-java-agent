@@ -352,6 +352,7 @@ jobs:
           sed -i 's|app_root: /home/runner/apps|app_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/apps|' conf/java_local_config.yml
           ## artifacts section for testing
           mkdir testing-artifacts
+          cp /home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-integration-tests/testapps/java/external_endpoint_app/*.log testing-artifacts
           touch testing-artifacts/shell-variables.txt
           touch testing-artifacts/env-variables.txt
           set | sort -f > testing-artifacts/shell-variables.txt
@@ -375,10 +376,3 @@ jobs:
           name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
           path: |
             agent-integration-tests/testing-artifacts/*
-
-      - name: Capture external_endpoint_app crash log(s)
-        uses: actions/upload-artifact@v3
-        with:
-          name: logs
-          path: |
-            agent-integration-tests/testapps/java/external_endpoint_app/*.log
