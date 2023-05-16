@@ -8,9 +8,10 @@ import com.newrelic.trace.v1.V1;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.ClientCallStreamObserver;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -43,7 +44,13 @@ class ChannelManagerTest {
     @Mock
     private ManagedChannel managedChannel;
     @Mock
-    private ClientCallStreamObserver<V1.Span> spanObserver;
+    private ClientCallStreamObserver<V1.Span> spanStreamObserver;
+    @Mock
+    private ClientCallStreamObserver<V1.SpanBatch> spanBatchStreamObserver;
+    @Mock
+    private Observer spanObserver;
+    @Mock
+    private SpanBatchObserver spanBatchObserver;
     @Mock
     private ResponseObserver responseObserver;
     @Mock
@@ -59,51 +66,63 @@ class ChannelManagerTest {
         doReturn(managedChannel).when(target).buildChannel();
         doReturn(stub).when(target).buildStub(managedChannel);
         doReturn(responseObserver).when(target).buildResponseObserver();
-        doReturn(spanObserver).when(stub).recordSpan(responseObserver);
+        doReturn(spanStreamObserver).when(stub).recordSpan(responseObserver);
+        doReturn(spanBatchStreamObserver).when(stub).recordSpanBatch(responseObserver);
+        doReturn(spanObserver).when(target).buildSpanObserver(spanStreamObserver);
+        doReturn(spanBatchObserver).when(target).buildSpanBatchObserver(spanBatchStreamObserver);
     }
 
-    @Test
-    void getSpanObserver_ShutdownThrowsException() {
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void getSpanObserver_ShutdownThrowsException(boolean batchingEnabled) {
+        setupBatchingAndGetExpectedObserver(batchingEnabled);
+
         target.shutdownChannelForever();
 
         assertThrows(RuntimeException.class, new Executable() {
             @Override
             public void execute() {
-                target.getSpanObserver();
+                target.getObserver();
             }
         });
     }
 
-    @Test
-    void getSpanObserver_BuildsChannelAndSpanObserverWhenMissing() {
-        assertEquals(spanObserver, target.getSpanObserver());
-        assertEquals(spanObserver, target.getSpanObserver());
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void getSpanObserver_BuildsChannelAndSpanObserverWhenMissing(boolean batchingEnabled) {
+        final Observer expectedObserver = setupBatchingAndGetExpectedObserver(batchingEnabled);
+        assertEquals(expectedObserver, target.getObserver());
+        assertEquals(expectedObserver, target.getObserver());
 
         verify(target).buildChannel();
         verify(target).buildStub(managedChannel);
         verify(target).buildResponseObserver();
-        verify(stub, times(1)).recordSpan(responseObserver);
+        verifyExpectedRecordMethod(1, batchingEnabled);
         verify(aggregator).incrementCounter("Supportability/InfiniteTracing/Connect");
     }
 
-    @Test
-    void getSpanObserver_RecreatesSpanObserver() {
-        assertEquals(spanObserver, target.getSpanObserver());
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void getSpanObserver_RecreatesSpanObserver(boolean batchingEnabled) {
+        final Observer expectedObserver = setupBatchingAndGetExpectedObserver(batchingEnabled);
+        assertEquals(expectedObserver, target.getObserver());
         target.recreateSpanObserver();
-        assertEquals(spanObserver, target.getSpanObserver());
-        assertEquals(spanObserver, target.getSpanObserver());
+        assertEquals(expectedObserver, target.getObserver());
+        assertEquals(expectedObserver, target.getObserver());
 
         verify(target).buildChannel();
         verify(target, times(2)).buildStub(managedChannel);
-        verify(spanObserver).cancel(eq("CLOSING_CONNECTION"), any(ChannelClosingException.class));
+        verify(expectedObserver).cancel(eq("CLOSING_CONNECTION"), any(ChannelClosingException.class));
         verify(target, times(2)).buildResponseObserver();
-        verify(stub, times(2)).recordSpan(responseObserver);
+        verifyExpectedRecordMethod(2, batchingEnabled);
         verify(aggregator, times(2)).incrementCounter("Supportability/InfiniteTracing/Connect");
     }
 
-    @Test
+    @ParameterizedTest
     @Timeout(15)
-    void getSpanObserver_AwaitsBackoff() throws ExecutionException, InterruptedException {
+    @ValueSource(booleans = { false, true })
+    void getSpanObserver_AwaitsBackoff(boolean batchingEnabled) throws ExecutionException, InterruptedException {
+        final Observer expectedObserver = setupBatchingAndGetExpectedObserver(batchingEnabled);
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         // Submit a task to initiate a backoff
@@ -118,9 +137,9 @@ class ChannelManagerTest {
 
         // Obtain a span observer in another thread, confirming it waits for the backoff to complete
         final AtomicLong getSpanObserverCompletedAt = new AtomicLong();
-        Future<ClientCallStreamObserver<V1.Span>> futureSpanObserver = executorService.submit(new Callable<ClientCallStreamObserver<V1.Span>>() {
+        Future<Observer> futureSpanObserver = executorService.submit(new Callable<Observer>() {
             @Override
-            public ClientCallStreamObserver<V1.Span> call() {
+            public Observer call() {
                 try {
                     // Wait for the backoff task to have initiated backoff
                     Thread.sleep(1000);
@@ -128,32 +147,47 @@ class ChannelManagerTest {
                     throw new RuntimeException("Thread interrupted while sleeping.");
                 }
 
-                ClientCallStreamObserver<V1.Span> response = target.getSpanObserver();
+                Observer response = target.getObserver();
                 getSpanObserverCompletedAt.set(System.currentTimeMillis());
                 return response;
             }
         });
 
         backoffFuture.get();
-        assertEquals(spanObserver, futureSpanObserver.get());
+        assertEquals(expectedObserver, futureSpanObserver.get());
         assertTrue(backoffCompletedAt.get() > 0);
         assertTrue(getSpanObserverCompletedAt.get() > 0);
         assertTrue(getSpanObserverCompletedAt.get() >= backoffCompletedAt.get());
     }
 
-    @Test
-    void shutdownChannelAndBackoff_ShutsDownChannelCancelsSpanObserver() {
-        assertEquals(spanObserver, target.getSpanObserver());
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void shutdownChannelAndBackoff_ShutsDownChannelCancelsSpanObserver(boolean batchingEnabled) {
+        final Observer expectedObserver = setupBatchingAndGetExpectedObserver(batchingEnabled);
+
+        assertEquals(expectedObserver, target.getObserver());
         target.shutdownChannelAndBackoff(0);
-        assertEquals(spanObserver, target.getSpanObserver());
+        assertEquals(expectedObserver, target.getObserver());
 
         verify(target).recreateSpanObserver();
         // Channel and span observer is built twice
         verify(target, times(2)).buildChannel();
         verify(target, times(2)).buildStub(managedChannel);
         verify(target, times(2)).buildResponseObserver();
-        verify(stub, times(2)).recordSpan(responseObserver);
+        verifyExpectedRecordMethod(2, batchingEnabled);
         verify(aggregator, times(2)).incrementCounter("Supportability/InfiniteTracing/Connect");
     }
 
+    private Observer setupBatchingAndGetExpectedObserver(boolean batchingEnabled) {
+        when(config.getUseBatching()).thenReturn(batchingEnabled);
+        return batchingEnabled ? spanBatchObserver : spanObserver;
+    }
+
+    private void verifyExpectedRecordMethod(int times, boolean batchingEnabled) {
+        if (batchingEnabled) {
+            verify(stub, times(times)).recordSpanBatch(responseObserver);
+        } else {
+            verify(stub, times(times)).recordSpan(responseObserver);
+        }
+    }
 }

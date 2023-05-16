@@ -3,8 +3,10 @@ package com.newrelic;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.trace.v1.V1;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 class SpanConverter {
 
@@ -29,6 +31,18 @@ class SpanConverter {
                 .putAllIntrinsics(intrinsicAttributes)
                 .putAllAgentAttributes(agentAttributes)
                 .putAllUserAttributes(userAttributes)
+                .build();
+    }
+
+    /**
+     * Convert the batch of span events to the equivalent gRPC spans.
+     *
+     * @param spanEvents the span event batch
+     * @return the gRPC span batch
+     */
+    static V1.SpanBatch convert(Collection<SpanEvent> spanEvents) {
+        return V1.SpanBatch.newBuilder()
+                .addAllSpans(spanEvents.stream().map(SpanConverter::convert).collect(Collectors.toList()))
                 .build();
     }
 

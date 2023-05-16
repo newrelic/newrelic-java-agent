@@ -168,9 +168,7 @@ gradle plugin. The projects that are scanned by Spotbugs are:
 - newrelic-agent
 - newrelic-weaver
 - agent-bridge
-- agent-bridge-datastore
 - agent-model
-- agent-interfaces
 - newrelic-api
 
 To run Spotbugs, execute the following command:
