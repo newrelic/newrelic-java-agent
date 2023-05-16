@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">6</div>
+<div class="counter">5</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">6.952s</div>
+<div class="counter">5.520s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,32 +79,27 @@
 </thead>
 <tr>
 <td class="success">configChanged_RespectsChangedSetting</td>
-<td class="success">0.036s</td>
+<td class="success">0.030s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">daemonConfigBuiltCorrect</td>
-<td class="success">0.041s</td>
+<td class="success">0.046s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">isEnabledIsCorrect</td>
-<td class="success">0.022s</td>
+<td class="success">0.032s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">jfrLoopDoesNotStartWhenCoreApiIsFalse</td>
-<td class="success">0.034s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">jfrLoopDoesNotStartWhenIsEnabledIsFalse</td>
-<td class="success">5.411s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">jfrLoopDoesStart</td>
-<td class="success">1.408s</td>
+<td class="success">5.389s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -112,35 +107,26 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-16T00:05:50,855+0000 [24504 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-16T00:05:50,887+0000 [24504 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-16T00:05:50,889+0000 [24504 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-16T00:05:52,639+0000 [24504 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
-2023-05-16T00:05:52,647+0000 [24504 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
-2023-05-16T00:05:52,668+0000 [24504 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
-2023-05-16T00:05:52,697+0000 [24504 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-16T00:05:52,698+0000 [24504 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-16T00:05:52,699+0000 [24504 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-16T00:05:52,737+0000 [24504 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-16T00:05:52,740+0000 [24504 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-16T00:05:52,740+0000 [24504 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-16T00:05:52,759+0000 [24504 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-16T00:05:52,761+0000 [24504 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-16T00:05:52,761+0000 [24504 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-16T00:05:52,780+0000 [24504 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
-2023-05-16T00:05:52,781+0000 [24504 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-16T00:05:52,781+0000 [24504 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-16T00:05:52,781+0000 [24504 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-16T00:05:52,958+0000 [24504 1] com.newrelic INFO: Attaching New Relic JFR Monitor
-2023-05-16T00:05:52,997+0000 [24504 1] com.newrelic INFO: JFR Monitor obtained entity guid from agent: test_guid
-2023-05-16T00:05:54,170+0000 [24504 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-16T00:05:54,170+0000 [24504 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-16T00:05:54,171+0000 [24504 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-16T00:05:54,201+0000 [24504 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
-2023-05-16T00:05:54,202+0000 [24504 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-05-16T00:05:54,202+0000 [24504 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-16T00:05:54,203+0000 [24504 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-16T00:05:54,237+0000 [24504 1] com.newrelic INFO: JFR enabled flag changed to false
+<pre>2023-05-16T14:40:24,420+0000 [8780 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-16T14:40:24,455+0000 [8780 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-16T14:40:24,457+0000 [8780 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-16T14:40:26,230+0000 [8780 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
+2023-05-16T14:40:26,236+0000 [8780 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
+2023-05-16T14:40:26,279+0000 [8780 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
+2023-05-16T14:40:26,317+0000 [8780 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-16T14:40:26,322+0000 [8780 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-16T14:40:26,322+0000 [8780 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-16T14:40:26,365+0000 [8780 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-16T14:40:26,367+0000 [8780 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-16T14:40:26,369+0000 [8780 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-16T14:40:26,401+0000 [8780 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-16T14:40:26,403+0000 [8780 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-16T14:40:26,404+0000 [8780 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-16T14:40:26,417+0000 [8780 1] com.newrelic INFO: New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.
+2023-05-16T14:40:26,421+0000 [8780 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-05-16T14:40:26,422+0000 [8780 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-16T14:40:26,423+0000 [8780 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-16T14:40:26,440+0000 [8780 1] com.newrelic INFO: JFR enabled flag changed to false
 </pre>
 </span>
 </div>
@@ -152,7 +138,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 16, 2023 12:15:32 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 16, 2023 2:50:12 PM</p>
 </div>
 </div>
 </body>
