@@ -59,21 +59,92 @@ jobs:
         name: List instrumentation tests
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
-          echo "basic_features/external.py" >> $excluded_tests
+          echo "basic_features/auto_app_naming.py" >> $excluded_tests
+          echo "basic_features/cat.py" >> $excluded_tests
+          echo "basic_features/classloading.py" >> $excluded_tests
+          echo "basic_features/commands.py" >> $excluded_tests
+          echo "basic_features/connect_opt.py" >> $excluded_tests
+          echo "basic_features/env_vars.py" >> $excluded_tests
+          echo "basic_features/errors.py" >> $excluded_tests
+          echo "basic_features/extensions.py" >> $excluded_tests
+          # echo "basic_features/external.py" >> $excluded_tests
+          echo "basic_features/inf_tracing_test.py" >> $excluded_tests
+          echo "basic_features/instrumentation_priority.py" >> $excluded_tests
+          echo "basic_features/key_tx.py" >> $excluded_tests
+          echo "basic_features/logging_test.py" >> $excluded_tests
+          echo "basic_features/report_period.py" >> $excluded_tests
+          echo "basic_features/rules.py" >> $excluded_tests
+          echo "basic_features/spans.py" >> $excluded_tests
+          echo "basic_features/thread_sampler.py" >> $excluded_tests
+          echo "basic_features/trans_traces.py" >> $excluded_tests
+          echo "basic_features/url_names.py" >> $excluded_tests
+          echo "client/grpc_client.py" >> $excluded_tests
+          echo "client/http4s.py" >> $excluded_tests
+          echo "client/play_ws_2_6.py" >> $excluded_tests
+          echo "client/sttp_2.py" >> $excluded_tests
+          echo "client/sttp_3.py" >> $excluded_tests
+          echo "datastore/cassandra.py" >> $excluded_tests
+          echo "datastore/datastore_base.py" >> $excluded_tests
           echo "datastore/datastores.py" >> $excluded_tests
+          echo "datastore/jcache.py" >> $excluded_tests
+          echo "datastore/redis.py" >> $excluded_tests
+          echo "framework/akka/akka.py" >> $excluded_tests
+          echo "framework/akka/akkahttp.py" >> $excluded_tests
+          echo "framework/cats/cats2.py" >> $excluded_tests
+          echo "framework/cats/cats3.py" >> $excluded_tests
+          echo "framework/ejb/ejb.py" >> $excluded_tests
+          echo "framework/jakarta/jakarta8.py" >> $excluded_tests
+          echo "framework/jakarta/jakarta9.py" >> $excluded_tests
+          echo "framework/jakarta/jakarta91.py" >> $excluded_tests
+          echo "framework/jaxrs/jaxrs.py" >> $excluded_tests
+          echo "framework/jms/jms.py" >> $excluded_tests
+          echo "framework/lettuce/lettuce.py" >> $excluded_tests
+          echo "framework/monix/monix.py" >> $excluded_tests
+          echo "framework/netty/netty.py" >> $excluded_tests
           echo "framework/play/play2.py" >> $excluded_tests
+          echo "framework/quartz/quartz.py" >> $excluded_tests
           echo "framework/snap/snap.py" >> $excluded_tests
+          echo "framework/spring/spring_5_0.py" >> $excluded_tests
+          echo "framework/spring/spring_6_0.py" >> $excluded_tests
           echo "framework/spring/spring_webflux.py" >> $excluded_tests
+          echo "framework/thrift/thrift.py" >> $excluded_tests
+          echo "framework/zio/zio.py" >> $excluded_tests
+          echo "r2dbc/h2.py" >> $excluded_tests
+          echo "r2dbc/mariadb.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
+          echo "r2dbc/mysql.py" >> $excluded_tests
+          echo "r2dbc/oracle.py" >> $excluded_tests
+          echo "r2dbc/postgres.py" >> $excluded_tests
+          echo "security/atts.py" >> $excluded_tests
+          echo "security/hsm_custom_events.py" >> $excluded_tests
+          echo "security/hsm_custom_params.py" >> $excluded_tests
+          echo "security/hsm_msg_params.py" >> $excluded_tests
           echo "security/hsm_record_sql.py" >> $excluded_tests
+          echo "security/hsm_strip_exceptions.py" >> $excluded_tests
+          echo "security/lasp_attributes.py" >> $excluded_tests
+          echo "security/lasp_custom_events.py" >> $excluded_tests
+          echo "security/lasp_custom_params.py" >> $excluded_tests
           echo "security/lasp_datastore.py" >> $excluded_tests
+          echo "security/lasp_msg_params.py" >> $excluded_tests
+          echo "security/lasp_strip_exceptions_.py" >> $excluded_tests
+          echo "server/embedded_jetty.py" >> $excluded_tests
+          echo "server/glassfish.py" >> $excluded_tests
+          echo "server/jetty.py" >> $excluded_tests
           echo "server/mule.py" >> $excluded_tests
+          echo "server/resin.py" >> $excluded_tests
+          echo "server/solr.py" >> $excluded_tests
+          echo "server/solr5.py" >> $excluded_tests
+          echo "server/tomcat.py" >> $excluded_tests
           echo "server/tomee.py" >> $excluded_tests
+          echo "server/vertx.py" >> $excluded_tests
           echo "server/was_liberty.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
+          echo "server/websphere.py" >> $excluded_tests
+          echo "server/wildfly.py" >> $excluded_tests
           # The files below are not tests
           echo "trace/client.py" >> $excluded_tests
           echo "trace/server.py" >> $excluded_tests
+          echo "trace/test.py" >> $excluded_tests
           echo "trace/trace_base.py" >> $excluded_tests
           echo "trace/tracecontext/__init__.py" >> $excluded_tests
           echo "trace/tracecontext/traceparent.py" >> $excluded_tests
@@ -303,3 +374,10 @@ jobs:
           name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
           path: |
             agent-integration-tests/testing-artifacts/*
+
+      - name: Capture nanohttpd crash log
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: |
+            /home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-integration-tests/testapps/java/external_endpoint_app/*.log
