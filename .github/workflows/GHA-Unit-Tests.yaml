@@ -108,7 +108,7 @@ jobs:
           TEST_TYPE: unit
         run: |
           ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue --scan -Dscan.uploadInBackground=false --build-cache
-
+        
       - name: Run unit tests for each Java version as defined in the matrix no build scan or cache
         if: ${{ env.GRADLE_KEY == '' }}
         env:
@@ -116,7 +116,8 @@ jobs:
         run: |
           echo "*** NOT PUBLISHING BUILD SCANS ***"
           ./gradlew --console=plain --parallel test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
-
+        
+        
       - name: Capture build reports
         # If previous step fails, run this step regardless
         if: ${{ failure() }}
@@ -129,3 +130,46 @@ jobs:
           # that were leftover in unrelated modules for functional and instrumentation tests.
           path: |
             **/build/reports/tests/*
+        
+      - name: Checkout GhPages branch
+        if: ${{ failure() }}
+        uses: actions/checkout@v3
+        with:
+            ref: 'gh-pages'
+            path: 'gh-pages'
+        
+      - name: Configure Git
+        if: ${{ failure() }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+      
+      - name: Move into gh-pages
+        if: ${{ failure() }}
+        run: |
+          cd gh-pages
+          mkdir -p reports/${{ github.run_id }}/${{ matrix.java-version }}
+      
+      - name: Download test reports folder
+        if: ${{ failure() }}
+        uses: actions/download-artifact@v3
+        with: 
+          name: unit-tests-results-java-${{ matrix.java-version }}
+          path: gh-pages/reports/${{ github.run_id }}/${{ matrix.java-version }}
+          
+      - name: Check git status and folder contents
+        if: ${{ failure() }}
+        run: |
+          cd gh-pages
+          cd ./reports/${{ github.run_id }}/${{ matrix.java-version }}
+          
+      - name: Commit and push test reports to gh-pages
+        if: ${{ failure() }}
+        run: |
+          cd gh-pages
+          git add -f reports/*
+          git commit -m 'Update test reports for ${{ github.run_id}} on Java version ${{ matrix.java-version }}'
+          git push
+    
+
+
