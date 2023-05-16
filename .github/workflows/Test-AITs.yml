@@ -352,7 +352,6 @@ jobs:
           sed -i 's|app_root: /home/runner/apps|app_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/apps|' conf/java_local_config.yml
           ## artifacts section for testing
           mkdir testing-artifacts
-          cp /home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-integration-tests/testapps/java/external_endpoint_app/*.log testing-artifacts
           touch testing-artifacts/shell-variables.txt
           touch testing-artifacts/env-variables.txt
           set | sort -f > testing-artifacts/shell-variables.txt
@@ -362,6 +361,7 @@ jobs:
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
           ./bin/runtest.sh tests/java/functionality/${{ matrix.tests }}
+          cp /home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-integration-tests/testapps/java/external_endpoint_app/*.log testing-artifacts
 
       # Rename matrix item to remove problem characers
       - name: Rename Matrix item
