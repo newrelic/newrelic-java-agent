@@ -122,12 +122,7 @@ public class LabelsConfigImpl implements LabelsConfig, JSONStreamAware {
         for (Map.Entry<String, String> entry : labels.entrySet()) {
             final String name = entry.getKey();
             final String value = entry.getValue();
-            jsonLabels.add(new JSONStreamAware() {
-                @Override
-                public void writeJSONString(Writer out) throws IOException {
-                    JSONObject.writeJSONString(ImmutableMap.of("label_type", name, "label_value", value), out);
-                }
-            });
+            jsonLabels.add(out1 -> JSONObject.writeJSONString(ImmutableMap.of("label_type", name, "label_value", value), out1));
         }
         JSONArray.writeJSONString(jsonLabels, out);
     }

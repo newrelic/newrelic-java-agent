@@ -199,12 +199,7 @@ public class TracerToSpanEvent {
     }
 
     private Map<String, ?> filterAttributes(Map<String, ?> intrinsicAttributes) {
-        return Maps.filterKeys(intrinsicAttributes, new Predicate<String>() {
-            @Override
-            public boolean apply(String key) {
-                return !UNWANTED_SPAN_ATTRIBUTES.contains(key);
-            }
-        });
+        return Maps.filterKeys(intrinsicAttributes, key -> !UNWANTED_SPAN_ATTRIBUTES.contains(key));
     }
 
     private String getParentId(Tracer tracer, TransactionData transactionData, boolean crossProcessOnly) {

@@ -117,13 +117,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
     }
 
     private void queueRetransform() {
-        executor.schedule(new Runnable() {
-
-            @Override
-            public void run() {
-                retransformMatchingClasses();
-            }
-        }, getRetransformPeriodInSeconds(), TimeUnit.SECONDS);
+        executor.schedule(() -> retransformMatchingClasses(), getRetransformPeriodInSeconds(), TimeUnit.SECONDS);
     }
 
     private long getRetransformPeriodInSeconds() {

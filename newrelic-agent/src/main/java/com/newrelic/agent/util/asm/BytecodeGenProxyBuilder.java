@@ -280,14 +280,7 @@ public class BytecodeGenProxyBuilder<T> {
 
         @Override
         public <N extends Number> N loadLocal(final int local, final Type type, final N value) {
-            Runnable r = new Runnable() {
-
-                @Override
-                public void run() {
-
-                    methodAdapter.loadLocal(local, type);
-                }
-            };
+            Runnable r = () -> methodAdapter.loadLocal(local, type);
             return load(value, r);
         }
 
@@ -357,13 +350,7 @@ public class BytecodeGenProxyBuilder<T> {
          */
         @Override
         public <O> O loadLocal(final int localId, final Class<O> clazz) {
-            return load(clazz, new Runnable() {
-
-                @Override
-                public void run() {
-                    methodAdapter.loadLocal(localId, Type.getType(clazz));
-                }
-            });
+            return load(clazz, () -> methodAdapter.loadLocal(localId, Type.getType(clazz)));
         }
     }
 
