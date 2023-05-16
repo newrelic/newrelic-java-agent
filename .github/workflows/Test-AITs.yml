@@ -376,9 +376,9 @@ jobs:
           path: |
             agent-integration-tests/testing-artifacts/*
 
-      - name: Capture nanohttpd crash log
+      - name: Capture external_endpoint_app crash log(s)
         uses: actions/upload-artifact@v3
         with:
           name: logs
           path: |
-            /home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-integration-tests/testapps/java/external_endpoint_app/*.log
+            agent-integration-tests/testapps/java/external_endpoint_app/*.log
