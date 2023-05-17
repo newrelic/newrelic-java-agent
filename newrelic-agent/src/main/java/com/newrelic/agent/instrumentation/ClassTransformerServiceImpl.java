@@ -23,10 +23,12 @@ import com.newrelic.agent.instrumentation.methodmatchers.MethodMatcher;
 import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
 import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
+import com.newrelic.agent.security.deps.org.apache.commons.lang3.StringUtils;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.security.schema.SecurityMetaData;
 import org.objectweb.asm.commons.Method;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -156,6 +158,10 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
         // Preload NR Transaction and related object to avoid ClassCircularity Error in Security instrumentation Module
         // java-io-stream.
         NewRelic.getAgent().getTransaction();
+
+        // Preload Security used classes to avoid complete application thread blocking in rare scenarios.
+        StringUtils.startsWithAny("abc", "z", "b", "a");
+        new SecurityMetaData();
 
         contextManager.addContextClassTransformer(classTransformer.getMatcher(), classTransformer);
         for (PointCut pc : classTransformer.getPointcuts()) {
