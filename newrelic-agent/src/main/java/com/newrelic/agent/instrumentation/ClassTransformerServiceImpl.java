@@ -160,7 +160,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
         NewRelic.getAgent().getTransaction();
 
         // Preload Security used classes to avoid complete application thread blocking in rare scenarios.
-        StringUtils.startsWithAny("abc", "z", "b", "a");
+        StringUtils.startsWithAny(StringUtils.LF, StringUtils.EMPTY, StringUtils.LF);
         new SecurityMetaData();
 
         contextManager.addContextClassTransformer(classTransformer.getMatcher(), classTransformer);
