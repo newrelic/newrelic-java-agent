@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.474s</div>
+<div class="counter">1.316s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,37 +79,37 @@
 </thead>
 <tr>
 <td class="success">testValidateFileInDistributedZIP</td>
-<td class="success">1.239s</td>
+<td class="success">1.088s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationClasses</td>
-<td class="success">0.028s</td>
+<td class="success">0.030s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationConstructor</td>
-<td class="success">0.049s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testValidateInstrumentationDuplicates</td>
-<td class="success">0.034s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testValidateInstrumentationInnerClass</td>
 <td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testValidateInstrumentationDuplicates</td>
+<td class="success">0.021s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testValidateInstrumentationInnerClass</td>
+<td class="success">0.048s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testValidateInstrumentationInterfaces</td>
-<td class="success">0.019s</td>
+<td class="success">0.014s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationStatic</td>
-<td class="success">0.076s</td>
+<td class="success">0.086s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -120,15 +120,15 @@
 <pre>Matched Method: validateAndAddParameter (Lcom/newrelic/agent/xml/XmlInstrumentParams;[Ljava/lang/String;Ljava/lang/String;)V
 Matched Method: getFlagName ()Ljava/lang/String;
 Matched Method: isArgRequired ()Z
-Matched Method: createExactParamsMethodMatcher (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher;
 Matched Method: matches (ILjava/lang/String;Ljava/lang/String;Ljava/util/Set;)Z
+Matched Method: createExactParamsMethodMatcher (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher;
 Xml was successfully read. Starting processing.
 Found the method startElement from the xml in the list of class methods. Checking method parameters.
 Matched Method: startElement (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V
-Found the method getPrefix from the xml in the list of class methods. Checking method parameters.
-Matched Method: getPrefix ()Ljava/lang/String;
 Found the method getMarker from the xml in the list of class methods. Checking method parameters.
 Matched Method: getMarker ()Ljava/lang/String;
+Found the method getPrefix from the xml in the list of class methods. Checking method parameters.
+Matched Method: getPrefix ()Ljava/lang/String;
 Found the method startDocument from the xml in the list of class methods. Checking method parameters.
 Matched Method: startDocument ()V
 Found the method characters from the xml in the list of class methods. Checking method parameters.
@@ -142,16 +142,16 @@ Found the method createExactParamsMethodMatcher from the xml in the list of clas
 Descriptors for method createExactParamsMethodMatcher did not match. Xml descriptor: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;), Method descriptor: (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher; 
 Xml was successfully read. Starting processing.
 Xml was successfully read. Starting processing.
-2023-05-17T20:08:42,986+0000 [18925 1] com.newrelic WARN: Method setAsciiStream has already been added to a point cut and will not be added again.
+2023-05-17T20:09:37,642+0000 [19937 1] com.newrelic WARN: Method setAsciiStream has already been added to a point cut and will not be added again.
 Xml was successfully read. Starting processing.
 Found the method setInstrumentation from the xml in the list of class methods. Checking method parameters.
 Matched Method: setInstrumentation (Lcom/newrelic/agent/extension/beans/Extension$Instrumentation;)V
+Found the method main from the xml in the list of class methods. Checking method parameters.
+Matched Method: main ([Ljava/lang/String;)V
 Found the method initVersion from the xml in the list of class methods. Checking method parameters.
 Matched Method: initVersion ()Ljava/lang/String;
 Found the method continuePremain from the xml in the list of class methods. Checking method parameters.
 Matched Method: continuePremain (Ljava/lang/String;Ljava/lang/instrument/Instrumentation;J)V
-Found the method main from the xml in the list of class methods. Checking method parameters.
-Matched Method: main ([Ljava/lang/String;)V
 </pre>
 </span>
 </div>
@@ -163,7 +163,7 @@ Matched Method: main ([Ljava/lang/String;)V
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 17, 2023 8:08:53 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 17, 2023 8:09:41 PM</p>
 </div>
 </div>
 </body>

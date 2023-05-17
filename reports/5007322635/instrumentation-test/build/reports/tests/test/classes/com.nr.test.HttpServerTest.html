@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.375s</div>
+<div class="counter">1.005s</div>
 <p>duration</p>
 </div>
 </td>
@@ -66,9 +66,6 @@
 <li>
 <a href="#tab1">Standard output</a>
 </li>
-<li>
-<a href="#tab2">Standard error</a>
-</li>
 </ul>
 <div id="tab0" class="tab">
 <h2>Tests</h2>
@@ -82,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">testCatCallDefaultName</td>
-<td class="success">1.252s</td>
+<td class="success">0.865s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testCatCallSetName</td>
-<td class="success">0.035s</td>
+<td class="success">0.045s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testExternalCall</td>
-<td class="success">0.038s</td>
+<td class="success">0.047s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testServerUp</td>
-<td class="success">0.050s</td>
+<td class="success">0.048s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -105,33 +102,24 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-05-17T19:57:32,573+0000 [5445 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-17T19:57:32,573+0000 [5445 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-17T19:57:32,573+0000 [5445 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-17T19:57:32,594+0000 [5445 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-17T19:57:32,594+0000 [5445 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-17T19:57:32,594+0000 [5445 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-17T19:57:32,595+0000 [5445 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-17T19:57:32,596+0000 [5445 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-17T19:57:32,596+0000 [5445 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-17T19:57:33,002+0000 [5445 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-17T19:57:33,009+0000 [5445 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-17T19:57:33,010+0000 [5445 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-17T19:57:33,024+0000 [5445 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-17T19:57:33,027+0000 [5445 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-17T19:57:33,028+0000 [5445 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-05-17T19:57:33,030+0000 [5445 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-05-17T19:57:33,031+0000 [5445 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-05-17T19:57:33,031+0000 [5445 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-</pre>
-</span>
-</div>
-<div id="tab2" class="tab">
-<h2>Standard error</h2>
-<span class="code">
-<pre>	at fi.iki.elonen.NanoHTTPD$ClientHandler.run(NanoHTTPD.java:192)
-	at java.base/java.lang.Thread.run(Thread.java:829)
-
+<pre>2023-05-17T19:57:59,893+0000 [5458 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-17T19:57:59,894+0000 [5458 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-17T19:57:59,894+0000 [5458 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-17T19:57:59,915+0000 [5458 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-17T19:57:59,915+0000 [5458 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-17T19:57:59,915+0000 [5458 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-17T19:57:59,919+0000 [5458 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-17T19:57:59,924+0000 [5458 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-17T19:57:59,924+0000 [5458 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-17T19:58:00,202+0000 [5458 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-17T19:58:00,203+0000 [5458 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-17T19:58:00,204+0000 [5458 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-17T19:58:00,219+0000 [5458 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-17T19:58:00,219+0000 [5458 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-17T19:58:00,220+0000 [5458 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-05-17T19:58:00,221+0000 [5458 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-05-17T19:58:00,222+0000 [5458 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-05-17T19:58:00,223+0000 [5458 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
 </pre>
 </span>
 </div>
@@ -143,7 +131,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 17, 2023 7:57:35 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at May 17, 2023 7:58:02 PM</p>
 </div>
 </div>
 </body>
