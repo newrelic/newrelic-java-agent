@@ -63,13 +63,7 @@ public class CoreServiceImpl extends AbstractService implements CoreService {
         initializeBridgeApis();
 
         final long startTime = System.currentTimeMillis();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                jvmShutdown(startTime);
-            }
-        };
-        Thread shutdownThread = new Thread(runnable, "New Relic JVM Shutdown");
+        Thread shutdownThread = new Thread(() -> jvmShutdown(startTime), "New Relic JVM Shutdown");
         Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
@@ -96,13 +90,7 @@ public class CoreServiceImpl extends AbstractService implements CoreService {
 
     @Override
     public void shutdownAsync() {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                shutdown();
-            }
-        };
-        Thread shutdownThread = new Thread(runnable, "New Relic Shutdown");
+        Thread shutdownThread = new Thread(this::shutdown, "New Relic Shutdown");
         shutdownThread.start();
     }
 

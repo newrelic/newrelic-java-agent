@@ -55,12 +55,7 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     public DistributedSamplingPriorityQueue(String appName, String serviceName, int reservoirSize, int decidedLast, int target, Comparator<E> comparator) {
         this.appName = appName;
         this.serviceName = serviceName;
-        this.comparator = comparator == null ? new Comparator<E>() {
-            @Override
-            public int compare(E left, E right) {
-                return Float.compare(right.getPriority(), left.getPriority());
-            }
-        } : comparator;
+        this.comparator = comparator == null ? (left, right) -> Float.compare(right.getPriority(), left.getPriority()) : comparator;
         this.data = createQueue(reservoirSize, this.comparator);
         this.recorded = new AtomicInteger(0);
         this.decidedLast = decidedLast;

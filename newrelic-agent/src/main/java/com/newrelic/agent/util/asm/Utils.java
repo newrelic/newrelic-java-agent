@@ -11,8 +11,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.instrumentation.annotationmatchers.AnnotationMatcher;
 import com.newrelic.weave.utils.BootstrapLoader;
+import com.newrelic.weave.utils.WeaveUtils;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -27,6 +32,9 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
+import java.util.logging.Level;
 
 public class Utils {
 
@@ -184,5 +192,40 @@ public class Utils {
             nextLocal += argumentTypes[i].getSize();
         }
         return nextLocal;
+    }
+
+    public static Predicate<Class> getAnnotationsMatcher(AnnotationMatcher annotationMatcher) {
+        return clazz -> {
+            if (clazz.getClassLoader() == null || clazz.isArray() || clazz.isAnnotation() || clazz.isEnum() ||
+                    clazz.isInterface() || Proxy.isProxyClass(clazz)) {
+                return false;
+            }
+            final AtomicBoolean containsTracer = new AtomicBoolean(false);
+            final String classResource = clazz.getName().replace('.', '/') + ".class";
+            try (InputStream in = clazz.getClassLoader().getResourceAsStream(classResource)) {
+                if (in == null) {
+                    return false;
+                }
+                ClassReader classReader = new ClassReader(in);
+                classReader.accept(new ClassVisitor(WeaveUtils.ASM_API_LEVEL) {
+                    @Override
+                    public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                        return new MethodVisitor(WeaveUtils.ASM_API_LEVEL) {
+                            @Override
+                            public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                                if (!containsTracer.get() && annotationMatcher.matches(descriptor)) {
+                                    containsTracer.set(true);
+                                }
+                                return null;
+                            }
+                        };
+                    }
+
+                }, ClassReader.SKIP_CODE);
+            } catch (IOException e) {
+                Agent.LOG.log(Level.FINE, e.getMessage(), e);
+            }
+            return containsTracer.get();
+        };
     }
 }

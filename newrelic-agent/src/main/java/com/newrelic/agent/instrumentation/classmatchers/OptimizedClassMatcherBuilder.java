@@ -35,26 +35,20 @@ public class OptimizedClassMatcherBuilder {
         return new OptimizedClassMatcherBuilder();
     }
 
-    private static final Supplier<Set<ClassAndMethodMatcher>> CLASS_AND_METHOD_MATCHER_SET_SUPPLIER = new Supplier<Set<ClassAndMethodMatcher>>() {
-
-        @Override
-        public Set<ClassAndMethodMatcher> get() {
-            return Collections.newSetFromMap(new HashMap<ClassAndMethodMatcher, Boolean>());
-        }
-    };
+    private static final Supplier<Set<ClassAndMethodMatcher>> CLASS_AND_METHOD_MATCHER_SET_SUPPLIER = () -> Collections.newSetFromMap(new HashMap<>());
 
     /**
-     * A map of method matchers to their ClassAndMethodMatcher. This will contains method matchers which loosely match
+     * A map of method matchers to their ClassAndMethodMatcher. This will contain method matchers which loosely match
      * methods, like the {@link AllMethodsMatcher} or {@link ExactParamsMethodMatcher}.
      */
     private final SetMultimap<MethodMatcher, ClassAndMethodMatcher> methodMatchers = Multimaps.newSetMultimap(
-            new HashMap<MethodMatcher, Collection<ClassAndMethodMatcher>>(), CLASS_AND_METHOD_MATCHER_SET_SUPPLIER);
+            new HashMap<>(), CLASS_AND_METHOD_MATCHER_SET_SUPPLIER);
 
     /**
      * A set multimap of exact methods to match to the ClassAndMethodMatchers which match them.
      */
     private final SetMultimap<Method, ClassAndMethodMatcher> methods = Multimaps.newSetMultimap(
-            new HashMap<Method, Collection<ClassAndMethodMatcher>>(), CLASS_AND_METHOD_MATCHER_SET_SUPPLIER);
+            new HashMap<>(), CLASS_AND_METHOD_MATCHER_SET_SUPPLIER);
 
     /**
      * A set of method annotation descriptors to match. Note that the class matchers of this guys are not used.

@@ -57,14 +57,7 @@ public class AnnotationDetails extends AnnotationVisitor {
 
     Multimap<String, Object> getOrCreateAttributes() {
         if (attributes == null) {
-            attributes = Multimaps.newListMultimap(new HashMap<String, Collection<Object>>(),
-                    new Supplier<List<Object>>() {
-
-                        @Override
-                        public List<Object> get() {
-                            return new ArrayList<>();
-                        }
-                    });
+            attributes = Multimaps.newListMultimap(new HashMap<>(), ArrayList::new);
         }
         return attributes;
     }

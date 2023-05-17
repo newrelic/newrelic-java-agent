@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.profile;
 
-import com.google.common.collect.Maps;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONStreamAware;
 
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,7 +29,7 @@ public class ProfileSegment implements JSONStreamAware {
     private final ProfiledMethod method;
     private int runnableCallCount = 0;
     private int nonrunnableCallCount = 0;
-    private final Map<ProfiledMethod, ProfileSegment> children = Maps.newIdentityHashMap();
+    private final Map<ProfiledMethod, ProfileSegment> children = new IdentityHashMap<>();
 
     /**
      * Parameters are guaranteed to be non-null.

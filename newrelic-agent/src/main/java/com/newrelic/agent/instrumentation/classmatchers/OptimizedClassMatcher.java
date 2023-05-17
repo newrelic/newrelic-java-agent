@@ -95,14 +95,7 @@ public final class OptimizedClassMatcher implements ClassMatchVisitorFactory {
         return new ClassMethods(loader, reader, classBeingRedefined, cv, context);
     }
 
-    static final Supplier<Set<String>> STRING_COLLECTION_SUPPLIER = new Supplier<Set<String>>() {
-
-        @Override
-        public Set<String> get() {
-            return new HashSet<>();
-        }
-
-    };
+    static final Supplier<Set<String>> STRING_COLLECTION_SUPPLIER = HashSet::new;
 
     private Multimap<ClassAndMethodMatcher, String> newClassMatches() {
 
@@ -200,14 +193,7 @@ public final class OptimizedClassMatcher implements ClassMatchVisitorFactory {
 
         private SetMultimap<Method, ClassAndMethodMatcher> getOrCreateMatches() {
             if (matches == null) {
-                matches = Multimaps.newSetMultimap(new HashMap<Method, Collection<ClassAndMethodMatcher>>(),
-                        new Supplier<Set<ClassAndMethodMatcher>>() {
-
-                            @Override
-                            public Set<ClassAndMethodMatcher> get() {
-                                return new HashSet<>();
-                            }
-                        });
+                matches = Multimaps.newSetMultimap(new HashMap<>(), HashSet::new);
             }
             return matches;
         }
