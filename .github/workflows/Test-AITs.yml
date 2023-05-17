@@ -361,9 +361,10 @@ jobs:
           TEST_LOG_LEVEL=DEBUG TEST_SUPPRESS_METRIC_DEBUG=1 \
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
           ./bin/runtest.sh tests/java/functionality/${{ matrix.tests }}
-          cp /home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-integration-tests/testapps/java/external_endpoint_app/*.log testing-artifacts
+          cp /home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-integration-tests/testapps/java/external_endpoint_app/*.log testing-artifacts || :
+          cp /home/runner/work/newrelic-java-agent/newrelic-java-agent/apps/jetty-distribution-9.4.44.v20210927/logs/*.logs testing-artifacts || :
 
-      # Rename matrix item to remove problem characers
+      # Rename matrix item to remove problem characters
       - name: Rename Matrix item
         run: |
           MATRIX_ITEM=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
