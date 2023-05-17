@@ -1,0 +1,57 @@
+name: Unit Tests
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  # Use context values as : ${{ github.event.inputs.BRANCH }}
+  # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
+  workflow_dispatch:
+    inputs:
+      BRANCH:
+        description: "Specify branch (main is default)"
+        default: 'main'
+
+jobs:
+  dummy-action:
+    name: Copy something from one branch to gh-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make downloads directory
+        run: mkdir html_downloads
+      - name: Generate html files
+        run: |
+          cd html_downloads
+          echo 'This is the first file' > alpha.html
+          echo 'This is the second file' > beta.html
+          echo 'And this is the last file' > omega.html
+          cd .. 
+          
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v1
+        with: 
+          path: html_downloads
+      
+      - name: Checkout GhPages branch
+        uses: actions/checkout@v3
+        with:
+            ref: 'gh-pages'
+            path: 'gh-pages'
+        
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      - name: Create reports directory
+        run: |
+          mkdir -p gh-pages/reports
+
+      - name: Copy test reports to gh-pages branch
+        run: |
+          cp -r html_downloads gh-pages/reports
+
+      - name: Commit and push test reports to gh-pages
+        run: |
+          cd gh-pages
+          git add .
+          git commit -m "Update test reports"
+          git push
