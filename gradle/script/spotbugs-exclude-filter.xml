@@ -12,21 +12,30 @@
             This class/interface has a simple name that is identical to that of an implemented/extended interface, except that the class/interface
             is in a different package
     -->
+    <!-- Only include high priority findings -->
     <Match>
         <Not>
             <Priority value="1" />
         </Not>
     </Match>
 
+    <!-- Ignore DM_DEFAULT_ENCODING - i18n encoding issues -->
     <Match>
         <Bug pattern="DM_DEFAULT_ENCODING" />
     </Match>
 
+    <!-- Ignore NM_SAME_SIMPLE_NAME_AS_SUPERCLASS, NM_SAME_SIMPLE_NAME_AS_INTERFACE -->
     <Match>
         <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" />
     </Match>
 
     <Match>
         <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+    </Match>
+
+    <!-- Ignoring this class since it's a stand alone utility that's not executed for normal agent functionality -->
+    <Match>
+        <Class name="com.newrelic.weave.verification.WeavePackageVerifier" />
+        <Method name="createClassloaderForVerification" />
     </Match>
 </FindBugsFilter>
