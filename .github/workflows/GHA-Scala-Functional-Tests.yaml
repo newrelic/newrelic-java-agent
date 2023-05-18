@@ -72,7 +72,6 @@ jobs:
 
 
       - name: Upload coverage to Codecov
-        if: success()
         uses: codecov/codecov-action@v3
         with:
           files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
