@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public class CustomAttributeSender extends AttributeSender {
-    protected static String ATTRIBUTE_TYPE = "custom";
+    protected static final String ATTRIBUTE_TYPE = "custom";
 
     public CustomAttributeSender() {
         super(new AttributeValidator(ATTRIBUTE_TYPE));

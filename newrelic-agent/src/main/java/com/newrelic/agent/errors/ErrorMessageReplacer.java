@@ -52,7 +52,7 @@ public class ErrorMessageReplacer {
     }
 
     @VisibleForTesting
-    public static ErrorMessageReplacer NO_REPLACEMENT = new ErrorMessageReplacer(new StripExceptionConfig() {
+    public static final ErrorMessageReplacer NO_REPLACEMENT = new ErrorMessageReplacer(new StripExceptionConfig() {
         @Override
         public boolean isEnabled() {
             return false;

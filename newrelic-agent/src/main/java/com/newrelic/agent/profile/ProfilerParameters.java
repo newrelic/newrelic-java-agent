@@ -90,10 +90,7 @@ public class ProfilerParameters implements JSONStreamAware {
     }
 
     public ProfilerParameters setProfilerFormat(String profileFormat) {
-        if (profileFormat != null) {
-            profileFormat.trim();
-        }
-        this.profilerFormat = profileFormat;
+        this.profilerFormat = profileFormat == null ? null : profileFormat.trim();
         return this;
     }
 
