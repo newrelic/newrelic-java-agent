@@ -66,6 +66,7 @@ jobs:
         with:
           files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
           fail_ci_if_error: false #default is false, but being explicit about what to expect.
+          verbose: true
 
       - name: Capture Jacoco reports
         if: success()
