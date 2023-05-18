@@ -131,6 +131,7 @@ jobs:
           path: |
             **/build/reports/tests/*
         
+      # Add the gh-pages stuff
       - name: Checkout GhPages branch
         if: ${{ failure() }}
         uses: actions/checkout@v3
@@ -147,29 +148,63 @@ jobs:
       - name: Move into gh-pages
         if: ${{ failure() }}
         run: |
-          cd gh-pages
-          mkdir -p reports/${{ github.run_id }}/${{ matrix.java-version }}
+          mkdir -p gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
       
       - name: Download test reports folder
         if: ${{ failure() }}
         uses: actions/download-artifact@v3
         with: 
           name: unit-tests-results-java-${{ matrix.java-version }}
-          path: gh-pages/reports/${{ github.run_id }}/${{ matrix.java-version }}
+          path: gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
           
-      - name: Check git status and folder contents
+      - name: Set up Python
+        if: ${{ failure() }}
+        uses: actions/setup-python@v3
+      
+      - name: Generate Test Reports Index Page
         if: ${{ failure() }}
         run: |
-          cd gh-pages
-          cd ./reports/${{ github.run_id }}/${{ matrix.java-version }}
+          python gh-pages/ghpages_utils/generateFolderStructureHTML.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
           
       - name: Commit and push test reports to gh-pages
         if: ${{ failure() }}
         run: |
           cd gh-pages
+          git pull
           git add -f reports/*
-          git commit -m 'Update test reports for ${{ github.run_id}} on Java version ${{ matrix.java-version }}'
+          git commit -m "Update test reports for ${{ github.run_id}} on Java version ${{ matrix.java-version }}"
           git push
+           
+  indexGHPages:
+    if: ${{ always() }} 
+    needs: unit-test
+    name: Create Index files for the branch and workflow run
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout GhPages branch
+        uses: actions/checkout@v3
+        with:
+            ref: 'gh-pages'
+            path: 'gh-pages'
+        
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"   
     
-
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        
+      - name: Generate branch and run index pages
+        run: |
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ github.ref }}
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}
+          
+      - name: Commit and push test reports to gh-pages
+        run: |
+          cd gh-pages
+          git pull
+          git add -f reports/*
+          git commit -m "Update index files for branch and run_id."
+          git push
 
