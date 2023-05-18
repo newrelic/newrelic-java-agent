@@ -62,7 +62,7 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v2
         with:
           files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
           fail_ci_if_error: false #default is false, but being explicit about what to expect.
