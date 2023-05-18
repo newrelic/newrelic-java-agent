@@ -70,13 +70,13 @@ jobs:
           # Removed ":newrelic-cats-effect3-api:test" temporarily
           ./gradlew $GRADLE_OPTIONS :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
 
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
-          fail_ci_if_error: false #default is false, but being explicit about what to expect.
-          verbose: true
+#
+#      - name: Upload coverage to Codecov
+#        uses: codecov/codecov-action@v3
+#        with:
+#          files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
+#          fail_ci_if_error: false #default is false, but being explicit about what to expect.
+#          verbose: true
 
       - name: Capture Jacoco reports
         if: success()
