@@ -8,6 +8,7 @@
 package com.newrelic.bootstrap;
 
 import com.newrelic.api.agent.security.NewRelicSecurity;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -87,7 +88,7 @@ public class BootstrapLoader {
 
         @Override
         public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                                ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+                ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
             if (className == null) {
                 return null;
@@ -152,7 +153,7 @@ public class BootstrapLoader {
     public static Collection<URL> getJarURLs() throws ClassNotFoundException, IOException {
         List<URL> urls = new ArrayList<>();
         for (String name : new String[] { AGENT_BRIDGE_JAR_NAME, AGENT_BRIDGE_DATASTORE_JAR_NAME,
-                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API}) {
+                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API }) {
             File jarFileInAgent = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(name);
             urls.add(jarFileInAgent.toURI().toURL());
         }
@@ -162,10 +163,10 @@ public class BootstrapLoader {
     /**
      * Primary interface to this class. Manipulate class paths as required when we run as an Agent.
      *
-     * @param inst the instrumentation interface to JVM
+     * @param inst                                 the instrumentation interface to JVM
      * @param isJavaSqlLoadedOnPlatformClassLoader true if java.sql is loaded by the subordinate
-     * platform class loader. If so, we can't add the datastore jar to the bootstrap because
-     * required classes will be loaded by the platform class loader instead.
+     *                                             platform class loader. If so, we can't add the datastore jar to the bootstrap because
+     *                                             required classes will be loaded by the platform class loader instead.
      */
     static void load(Instrumentation inst, boolean isJavaSqlLoadedOnPlatformClassLoader) {
         try {
@@ -186,7 +187,7 @@ public class BootstrapLoader {
     /**
      * Copy bytes from an InputStream to an OutputStream.
      *
-     * @param input the InputStream to read from
+     * @param input  the InputStream to read from
      * @param output the OutputStream to write to
      * @return the number of bytes copied
      * @throws IOException In case of an I/O problem

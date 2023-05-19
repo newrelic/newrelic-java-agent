@@ -20,14 +20,13 @@ import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.weaver.errorhandler.LogAndReturnOriginal;
-import com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl;
 import com.newrelic.agent.instrumentation.weaver.extension.CaffeineBackedExtensionClass;
+import com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPostprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessors;
 import com.newrelic.agent.instrumentation.weaver.preprocessors.TracedWeaveInstrumentationTracker;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.api.agent.weaver.internal.WeavePackageType;
 import com.newrelic.bootstrap.BootstrapAgent;
@@ -142,8 +141,8 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
      * Registers the security weave instrumentation jars that are packaged into the csec agent jar's instrumentation directory.
      */
     public void registerSecurityInstrumentation(AgentConfig agentConfig) {
-        if(agentConfig.getValue("security.agent.enabled", true) &&
-            agentConfig.getValue("security.enabled") != null
+        if (agentConfig.getValue("security.agent.enabled", true) &&
+                agentConfig.getValue("security.enabled") != null
         ) {
             loadInternalSecurityWeavePackages();
         }
@@ -157,7 +156,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
      * Create a weave package from a jar source.
      *
      * @param inputStream The JarInputStream to read from.
-     * @param source URL where the jar was read from.
+     * @param source      URL where the jar was read from.
      */
     private WeavePackage createWeavePackage(InputStream inputStream, String source) throws Exception {
         JarInputStream jarStream = new JarInputStream(inputStream);
@@ -217,7 +216,6 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         return result;
     }
 
-
     /**
      * Load all the security weave packages embedded in the agent jar.
      */
@@ -228,7 +226,8 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         try {
             securityAgentUrl = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(com.newrelic.bootstrap.BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
         } catch (Exception err) {
-            LOG.log(Level.SEVERE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : {0}", err.getMessage());
+            LOG.log(Level.SEVERE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : {0}",
+                    err.getMessage());
             LOG.log(Level.FINE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : ", err);
             return matchers;
         }

@@ -151,8 +151,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
         contextManager = InstrumentationContextManager.create(classLoaderClassTransformer, instrProxy,
                 AgentBridge.class.getClassLoader() == null);
 
-        // Preload NR Transaction and related object to avoid ClassCircularity Error in Security instrumentation Module
-        // java-io-stream.
+        // Preload NR Transaction and related object to avoid ClassCircularity Error in Security instrumentation Module java-io-stream.
         NewRelic.getAgent().getTransaction();
 
         contextManager.addContextClassTransformer(classTransformer.getMatcher(), classTransformer);

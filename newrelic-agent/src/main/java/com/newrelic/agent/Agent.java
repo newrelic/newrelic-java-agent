@@ -9,7 +9,12 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AgentJarHelper;
+import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.JarResource;
+import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -22,9 +27,9 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
-import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.security.NewRelicSecurity;
+import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
@@ -231,7 +236,7 @@ public final class Agent {
 
     private static void InitialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
-        if(NewRelic.getAgent().getConfig().getValue("security.agent.enabled", true) &&
+        if (NewRelic.getAgent().getConfig().getValue("security.agent.enabled", true) &&
                 NewRelic.getAgent().getConfig().getValue("security.enabled") != null) {
             try {
                 LOG.log(Level.INFO, "Invoking New Relic Security module");
