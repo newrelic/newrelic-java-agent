@@ -164,7 +164,8 @@ jobs:
       - name: Generate Test Reports Index Page
         if: ${{ failure() }}
         run: |
-          python gh-pages/ghpages_utils/generateFolderStructureHTML.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
+          pip install beautifulsoup4
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
           
       - name: Commit and push test reports to gh-pages
         if: ${{ failure() }}
