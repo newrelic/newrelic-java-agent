@@ -28,7 +28,7 @@ jobs:
           git config --global user.email "actions@users.noreply.github.com"
 
       - name: Clean out any existing top-level index file
-        run: rm gh-pages/${{ inputs.path }}/index.html
+        run: rm -f gh-pages/${{ inputs.path }}/index.html
 
       - name: Set up Python
         run: actions/setup-python@v3
@@ -38,7 +38,8 @@ jobs:
 
       - name: Commit and push to GH Pages
         run: |
+          cd gh-pages
           git pull
-          git add -f .
+          git add -f ${{ inputs.path }}/*
           git commit -m "Generate index page for directory ${{ inputs.path }}"
           git push
