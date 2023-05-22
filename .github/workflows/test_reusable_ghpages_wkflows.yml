@@ -43,7 +43,7 @@ jobs:
     uses: ./.github/workflows/Reusable-Publish-To-GH-Pages.yml
     with:
       artifactName: html_downloads_artifact
-      destinationPath: tempDirectory
+      destinationPath: tempDirectory/${{ github.run_id }}
 
   indexFiles:
     name: Generate Index File
