@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public class GCP implements CloudVendor {
-    public static String PROVIDER = "gcp";
+    public static final String PROVIDER = "gcp";
     private final CloudUtility cloudUtility;
 
     public GCP(CloudUtility cloudUtility) {

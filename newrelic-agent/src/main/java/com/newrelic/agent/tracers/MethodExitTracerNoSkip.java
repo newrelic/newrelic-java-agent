@@ -41,7 +41,7 @@ public abstract class MethodExitTracerNoSkip extends AbstractTracer {
     public MethodExitTracerNoSkip(ClassMethodSignature signature, Transaction transaction) {
         super(transaction);
         this.signature = signature;
-        this.parentTracer = transaction == null ? null : transaction.getTransactionActivity().getLastTracer();
+        this.parentTracer = transaction.getTransactionActivity().getLastTracer();
     }
 
     /**

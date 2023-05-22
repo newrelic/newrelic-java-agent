@@ -47,7 +47,7 @@ import java.util.logging.Level;
  */
 public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction {
 
-    public static TransactionApiImpl INSTANCE = new TransactionApiImpl();
+    public static final TransactionApiImpl INSTANCE = new TransactionApiImpl();
 
     /**
      * Two ApiImpl classes are equal if their wrapped Transactions are the same object. They are also equal if neither
@@ -478,12 +478,8 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
         if(txa != null) {
           tx.checkFinishTransactionFromActivity(txa);
         }
-      if (null != tx) {
         Transaction.clearTransaction();
         return true;
-      } else {
-        return false;
-      }
     }
 
   @Override
