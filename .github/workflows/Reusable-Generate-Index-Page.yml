@@ -31,7 +31,7 @@ jobs:
         run: rm -f gh-pages/${{ inputs.path }}/index.html
 
       - name: Set up Python
-        run: actions/setup-python@v3
+        uses: actions/setup-python@v3
 
       - name: Run indexing script
         run: python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/${{ inputs.path }}
