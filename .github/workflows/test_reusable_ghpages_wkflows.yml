@@ -45,10 +45,16 @@ jobs:
       artifactName: html_downloads_artifact
       destinationPath: tempDirectory/${{ github.run_id }}
 
-  indexFiles:
+  indexTopLevel:
     name: Generate Index File
     needs: publish
     uses: ./.github/workflows/Reusable-Generate-Index-Page.yml
     with:
       path: tempDirectory
 
+  indexCompletely:
+    name: Generate Complete Index Tree for Run
+    needs: publish
+    uses: ./.github/workflows/Reusable-Generate-Complete-Index-Tree.yml
+    with:
+      path: tempDirectory/${{ github.run_id }}
