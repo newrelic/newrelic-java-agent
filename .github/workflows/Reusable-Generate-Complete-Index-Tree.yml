@@ -1,0 +1,45 @@
+#Reusable workflow to add an index file to a given directory in GH-Pages.
+#The index file displays a dropdown of the complete (recursive) file structure within the directory, terminating with any found .html files.
+
+#By default, the url path to a given directory in Gh-Pages displays 404.
+
+name: Generate Complete Index Tree
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: The path to the directory to index in gh-pages. This path should omit the gh-pages prefix.
+        type: string
+        required: true
+
+jobs:
+  generateIndexTree:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GhPages branch
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          path: 'gh-pages'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      - name: Clean index.html file if it already exists
+        run: rm -f gh-pages/${{ inputs.path }}/index.html
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+
+      - name: Generate Test Reports Index Page
+        run: |
+          python gh-pages/ghpages_utils/generateFolderStructureHTML.py gh-pages/${{ inputs.path }}
+
+      - name: Commit and push to gh-pages
+        run: |
+          git pull
+          git add -f .
+          git commit -m "Generate complete index file structure for directory ${{ inputs.path }}"
+          git push
