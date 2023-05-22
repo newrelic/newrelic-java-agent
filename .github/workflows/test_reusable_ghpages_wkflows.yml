@@ -54,7 +54,7 @@ jobs:
 
   indexCompletely:
     name: Generate Complete Index Tree for Run
-    needs: publish
+    needs: indexTopLevel
     uses: ./.github/workflows/Reusable-Generate-Complete-Index-Tree.yml
     with:
       path: tempDirectory/${{ github.run_id }}
