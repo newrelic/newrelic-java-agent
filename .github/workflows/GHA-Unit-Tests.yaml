@@ -133,7 +133,7 @@ jobs:
         
 
   publishReports:
-    name: Publishing reports to GH Pages for Java ${{ matrix.java-version }}
+    name: Publish to GH Pages for Java ${{ matrix.java-version }}
     needs: unit-test
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -147,7 +147,6 @@ jobs:
         with:
             ref: 'gh-pages'
             path: 'gh-pages'
-        
       - name: Configure Git
         run: |
           git config --global user.name "GitHub Actions Bot"
@@ -159,9 +158,13 @@ jobs:
           name: unit-tests-results-java-${{ matrix.java-version }}
           path: gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
 
-      - name: Copy index.html file to the appropriate location
+      - name: Set up Python
+        uses: actions/setup-python@v3
+
+      - name: Generate Test Reports Index Page
         run: |
-          cp **build/reports/tests/test/index.html gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}/index.html
+          pip install beautifulsoup4
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
           
       - name: Commit and push test reports to gh-pages
         run: |
