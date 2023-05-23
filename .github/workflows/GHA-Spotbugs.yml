@@ -100,6 +100,16 @@ jobs:
         with:
           path: gh-pages/spotbugs/${{ inputs.agent-ref }}
 
+      - name: Copy the main.html files into index.html files
+        run: |
+          cd gh-pages/spotbugs/${{ inputs.agent-ref }}
+          cp all-spotbugs-results/main.html all-spotbugs-results/index.html
+          cp newrelic-agent-spotbugs-results/main.html newrelic-agent-spotbugs-results/index.html
+          cp newrelic-weaver-spotbugs-results/main.html newrelic-weaver-spotbugs-results/index.html
+          cp agent-bridge-spotbugs-results/main.html agent-bridge-spotbugs-results/index.html
+          cp agent-model-spotbugs-results/main.html agent-model-spotbugs-results/index.html
+          cp newrelic-api-spotbugs-results/main.html newrelic-api-spotbugs-results/index.html
+
       - name: Generate index page
         run: |
           python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/spotbugs/${{ inputs.agent-ref }}
