@@ -75,3 +75,71 @@ jobs:
           name: newrelic-api-spotbugs-results
           path: 'newrelic-api/build/spotbugs/main.*'
           retention-days: 5
+
+  publish:
+    runs-on: ubuntu-20.04
+    strategy:
+      max-parallel: 1
+      matrix:
+        project-name: [ all, newrelic-agent, newrelic-weaver, agent-bridge, agent-model, newrelic-api ]
+    steps:
+      - name: Checkout GhPages branch
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          path: 'gh-pages'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      - name: Clear any artifacts from previous runs
+        run: |
+          rm -r gh-pages/spotbugs/${{ github.agent-ref }}
+
+      - name: Download spotbugs reports
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.project-name}}-spotbugs-results
+          path: gh-pages/spotbugs/${{ github.agent-ref }}
+
+      - name: Commit and push test reports to gh-pages
+        run: |
+          cd gh-pages
+          git pull
+          git add -f reports/*
+          git commit -m "Update test reports for ${{ github.run_id}} on Java version ${{ matrix.java-version }}"
+          git push
+
+  indexGHPages:
+    needs: publish
+    name: Create index file
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout GhPages branch
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          path: 'gh-pages'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"   
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+
+      - name: Generate branch and run index pages
+        run: |
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/spotbugs/${{ github.agent-ref }}
+
+      - name: Commit and push test reports to gh-pages
+        run: |
+          cd gh-pages
+          git pull
+          git add -f spotbugs/*
+          git commit -m "Update index files for spotbugs"
+          git push
+
