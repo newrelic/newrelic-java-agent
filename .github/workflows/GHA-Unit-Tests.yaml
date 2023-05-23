@@ -156,7 +156,7 @@ jobs:
         uses: actions/download-artifact@v3
         with: 
           name: unit-tests-results-java-${{ matrix.java-version }}
-          path: gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
+          path: gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/java-${{ matrix.java-version }}
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -164,14 +164,14 @@ jobs:
       - name: Generate Test Reports Index Page
         run: |
           pip install beautifulsoup4
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/java-${{ matrix.java-version }}
           
       - name: Commit and push test reports to gh-pages
         run: |
           cd gh-pages
           git pull
           git add -f reports/*
-          git commit -m "Update test reports for ${{ github.run_id}} on Java version ${{ matrix.java-version }}"
+          git commit -m "Update test reports for ${{ github.run_id}} on Java ${{ matrix.java-version }}"
           git push
            
   indexGHPages:
@@ -206,4 +206,8 @@ jobs:
           git add -f reports/*
           git commit -m "Update index files for branch and run_id."
           git push
+
+      - name: Gh Pages Summary
+        run: |
+          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ github.ref }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
 
