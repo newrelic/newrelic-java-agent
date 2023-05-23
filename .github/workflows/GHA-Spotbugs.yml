@@ -96,23 +96,22 @@ jobs:
 
       - name: Clear any artifacts from previous runs
         run: |
-          rm -r gh-pages/spotbugs/${{ github.agent-ref }}
+          rm -rf gh-pages/spotbugs/${{ inputs.agent-ref }}
 
       - name: Download spotbugs reports
         uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.project-name}}-spotbugs-results
-          path: gh-pages/spotbugs/${{ github.agent-ref }}
+          path: gh-pages/spotbugs/${{ inputs.agent-ref }}
 
       - name: Commit and push test reports to gh-pages
         run: |
           cd gh-pages
-          git pull
-          git add -f reports/*
-          git commit -m "Update test reports for ${{ github.run_id}} on Java version ${{ matrix.java-version }}"
+          git add -f spotbugs/*
+          git commit -m "Update test reports spotbugs project ${{ matrix.project-name }}"
           git push
 
-  indexGHPages:
+  index:
     needs: publish
     name: Create index file
     runs-on: ubuntu-20.04
@@ -133,13 +132,15 @@ jobs:
 
       - name: Generate branch and run index pages
         run: |
-          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/spotbugs/${{ github.agent-ref }}
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/spotbugs/${{ inputs.agent-ref }}
 
       - name: Commit and push test reports to gh-pages
         run: |
           cd gh-pages
-          git pull
           git add -f spotbugs/*
           git commit -m "Update index files for spotbugs"
           git push
+
+      - name: Summary step
+        run: echo "[View spotbugs results](https://kanderson250.github.io/newrelic-java-agent/spotbugs/${{ inputs.agent-ref }})" >> $GITHUB_STEP_SUMMARY
 
