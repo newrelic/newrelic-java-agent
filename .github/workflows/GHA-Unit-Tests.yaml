@@ -131,7 +131,16 @@ jobs:
           path: |
             **/build/reports/tests/*
         
-      # Add the gh-pages stuff
+
+  publishReports:
+    name: Publishing reports to GH Pages for Java ${{ matrix.java-version }}
+    needs: unit-test
+    if: ${{ always() }}
+    strategy:
+      matrix:
+        java-version: [8, 11, 17, 19]
+    concurrency: write-to-gh-pages
+    steps:
       - name: Checkout GhPages branch
         if: ${{ failure() }}
         uses: actions/checkout@v3
@@ -145,27 +154,17 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@users.noreply.github.com"
       
-      - name: Move into gh-pages
-        if: ${{ failure() }}
-        run: |
-          mkdir -p gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
-      
       - name: Download test reports folder
         if: ${{ failure() }}
         uses: actions/download-artifact@v3
         with: 
           name: unit-tests-results-java-${{ matrix.java-version }}
           path: gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
-          
-      - name: Set up Python
-        if: ${{ failure() }}
-        uses: actions/setup-python@v3
-      
-      - name: Generate Test Reports Index Page
+
+      - name: Copy index.html file to the appropriate location
         if: ${{ failure() }}
         run: |
-          pip install beautifulsoup4
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}
+          cp **build/reports/tests/test/index.html gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/${{ matrix.java-version }}/index.html
           
       - name: Commit and push test reports to gh-pages
         if: ${{ failure() }}
@@ -178,7 +177,7 @@ jobs:
            
   indexGHPages:
     if: ${{ always() }} 
-    needs: unit-test
+    needs: publishReports
     name: Create Index files for the branch and workflow run
     runs-on: ubuntu-20.04
     steps:
