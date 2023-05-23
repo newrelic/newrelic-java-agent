@@ -27,7 +27,6 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.security.NewRelicSecurity;
 import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
@@ -54,6 +53,9 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+
+import static com.newrelic.agent.config.SecurityAgentConfig.addSecurityAgentConfigSupportabilityMetrics;
+import static com.newrelic.agent.config.SecurityAgentConfig.shouldInitializeSecurityAgent;
 
 /**
  * New Relic Agent class. The premain you see here is but a fleeting shadow of the true premain. The real premain,
@@ -236,16 +238,16 @@ public final class Agent {
 
     private static void InitialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
-        if (NewRelic.getAgent().getConfig().getValue("security.agent.enabled", true) &&
-                NewRelic.getAgent().getConfig().getValue("security.enabled") != null) {
+        addSecurityAgentConfigSupportabilityMetrics();
+        if (shouldInitializeSecurityAgent()) {
             try {
-                LOG.log(Level.INFO, "Invoking New Relic Security module");
+                LOG.log(Level.INFO, "Initializing New Relic Security module");
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
                     @Override
                     public void connected(IRPMService rpmService, AgentConfig agentConfig) {
                         try {
                             URL securityJarURL = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
-                            LOG.log(Level.INFO, "Connected to New Relic cloud. Starting New Relic Security module");
+                            LOG.log(Level.INFO, "Connected to New Relic. Starting New Relic Security module");
                             NewRelicSecurity.getAgent().refreshState(securityJarURL, inst);
                             NewRelicSecurity.markAgentAsInitialised();
                         } catch (IOException e) {
@@ -259,12 +261,10 @@ public final class Agent {
                     }
                 });
             } catch (Throwable t2) {
-                // TODO : Give a generic error here.
                 LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
             }
         } else {
-            LOG.warning("New Relic Security is completely disabled forcefully by user provided config `security.agent.enabled`. " +
-                    "Not loading security capabilities.");
+            LOG.warning("New Relic Security is completely disabled by user provided config `security.agent.enabled`. Not loading security capabilities.");
         }
     }
 

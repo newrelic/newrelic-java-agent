@@ -200,7 +200,7 @@ public class AgentConfigFactory {
         addServerProp(EXPECTED_CLASSES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_CLASSES), settings);
         addServerProp(EXPECTED_STATUS_CODES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_STATUS_CODES), settings);
 
-        // Adding agent_run_id & account_id to config as required by K2 agent
+        // Adding agent_run_id & account_id to config as required by Security agent
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
         addServerProp(DistributedTracingConfig.ACCOUNT_ID, serverData.get(DistributedTracingConfig.ACCOUNT_ID), settings);
         addServerProp("agent_home", ConfigFileHelper.getNewRelicDirectory().getAbsolutePath(), settings);
