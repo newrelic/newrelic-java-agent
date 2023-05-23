@@ -8,7 +8,6 @@
 package com.newrelic.agent.tracing;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.newrelic.agent.*;
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.attributes.CrossAgentInput;
@@ -97,14 +96,14 @@ public class W3CTraceContextCrossAgentTest {
         serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);
 
-        Map<String, Object> config = Maps.newHashMap();
+        Map<String, Object> config = new HashMap<>();
         config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
-        Map<String, Object> dtConfig = Maps.newHashMap();
+        Map<String, Object> dtConfig = new HashMap<>();
         dtConfig.put("enabled", true);
         dtConfig.put("exclude_newrelic_header", true);
         config.put("distributed_tracing", dtConfig);
-        Map<String, Object> spanConfig = Maps.newHashMap();
+        Map<String, Object> spanConfig = new HashMap<>();
         spanConfig.put("collect_span_events", true);
         config.put("span_events", spanConfig);
 
@@ -194,7 +193,7 @@ public class W3CTraceContextCrossAgentTest {
                 intrinsics == null ? Collections.<String, Object>emptyMap() : (Map<String, Object>) intrinsics.get("Transaction");
         Map<String, Object> spanAssertions = intrinsics == null ? Collections.<String, Object>emptyMap() : (Map<String, Object>) intrinsics.get("Span");
 
-        Map<String, Object> connectInfo = Maps.newHashMap();
+        Map<String, Object> connectInfo = new HashMap<>();
         connectInfo.put(DistributedTracingConfig.ACCOUNT_ID, accountId);
         connectInfo.put(DistributedTracingConfig.TRUSTED_ACCOUNT_KEY, accountKey);
         connectInfo.put(DistributedTracingConfig.PRIMARY_APPLICATION_ID, "2827902");
@@ -301,15 +300,15 @@ public class W3CTraceContextCrossAgentTest {
     }
 
     private void replaceConfig(boolean spanEventsEnabled) {
-        Map<String, Object> config = Maps.newHashMap();
+        Map<String, Object> config = new HashMap<>();
         config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
-        Map<String, Object> dtConfig = Maps.newHashMap();
+        Map<String, Object> dtConfig = new HashMap<>();
         dtConfig.put("enabled", true);
         dtConfig.put("exclude_newrelic_header", true);
         config.put("distributed_tracing", dtConfig);
 
-        Map<String, Object> spansConfig = Maps.newHashMap();
+        Map<String, Object> spansConfig = new HashMap<>();
         spansConfig.put("enabled", spanEventsEnabled);
         spansConfig.put("collect_span_events", true);
         config.put("span_events", spansConfig);

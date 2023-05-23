@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.newrelic.agent.discovery.StatusMessageWriter;
+import com.newrelic.agent.service.ServiceFactory;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -41,8 +43,13 @@ public class LifecycleObserver {
             try {
                 final AgentArguments args = AgentArguments.fromJsonObject(new JSONParser().parse(agentArgs));
                 final Number port = args.getServerPort();
-                final StatusClient client = StatusClient.create(port.intValue());
-                client.write(StatusMessage.info(args.getId(), "Msg", "Initializing agent"));
+                StatusMessageWriter client = StatusClient.create(port.intValue());
+                try {
+                    client.write(StatusMessage.info(args.getId(), "Msg", "Initializing agent"));
+                } catch (IOException io) {
+                    // still create a lifecycle observer, even if we can't communicate our progress
+                    client = message -> { };
+                }
                 return new AttachLifecycleObserver(client, args);
             } catch (ParseException | IOException e) {
                 // ignore
@@ -53,11 +60,11 @@ public class LifecycleObserver {
 
     private static class AttachLifecycleObserver extends LifecycleObserver {
 
-        private final StatusClient client;
+        private final StatusMessageWriter client;
         private final AtomicReference<ServiceManager> serviceManager = new AtomicReference<>();
         private final String id;
 
-        public AttachLifecycleObserver(StatusClient client, AgentArguments args) {
+        public AttachLifecycleObserver(StatusMessageWriter client, AgentArguments args) {
             this.client = client;
             this.id = args.getId();
         }
@@ -80,6 +87,9 @@ public class LifecycleObserver {
          */
         @Override
         void agentStarted() {
+            // retransform classes that use the custom Trace annotation
+            new Thread(() -> ServiceFactory.getClassTransformerService().retransformForAttach()).start();
+
             writeMessage(StatusMessage.warn(id, "Msg",
                     "The agent has started and is connecting to New Relic. This may take a few minutes."));
             while (!writeConnectMessage()) {

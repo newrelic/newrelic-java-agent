@@ -121,13 +121,7 @@ public class TraceMethodVisitor extends AdviceAdapter {
 
         } else {
 
-            Object[] loadArgs = loader.load(Object[].class, new Runnable() {
-
-                @Override
-                public void run() {
-                    loadArgArray();
-                }
-            });
+            Object[] loadArgs = loader.load(Object[].class, this::loadArgArray);
 
             instrumentation.createTracer(loader.loadThis(this.access), signatureId, traceDetails.dispatcher(),
                     metricName, tracerFactory, loadArgs);

@@ -10,7 +10,6 @@ package com.newrelic.agent.config;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
-import com.newrelic.agent.security.intcodeagent.websocket.JsonConverter;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
@@ -791,13 +790,13 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * CSEC specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
      */
     private Map<String, Object> placeSecurityCollectorRelatedModification(Map<String, Object> props) {
-        if(getProperty("security") != null) {
-            if(props == null) {
+        if (getProperty("security") != null) {
+            if (props == null) {
                 props = new HashMap<>();
             } else {
                 props = new HashMap<>(props);
             }
-            Set<String> securityExcludes = new HashSet<>() ;
+            Set<String> securityExcludes = new HashSet<>();
             securityExcludes.add("java/util/zip/InflaterInputStream");
             securityExcludes.add("java/util/zip/ZipFile$ZipFileInputStream");
             securityExcludes.add("java/util/zip/ZipFile$ZipFileInflaterInputStream");
@@ -805,9 +804,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             securityExcludes.add("com/nr/.*");
 
             Object userProvidedExcludes = props.get(ClassTransformerConfigImpl.EXCLUDES);
-            if(userProvidedExcludes instanceof String) {
+            if (userProvidedExcludes instanceof String) {
                 securityExcludes.add((String) userProvidedExcludes);
-            } else if(userProvidedExcludes instanceof Set){
+            } else if (userProvidedExcludes instanceof Set) {
                 securityExcludes.addAll((Collection<? extends String>) userProvidedExcludes);
             }
             props.put(ClassTransformerConfigImpl.EXCLUDES, securityExcludes);

@@ -59,4 +59,6 @@ public interface ClassTransformerService extends Service {
      * agent.
      */
     Instrumentation getExtensionInstrumentation();
+
+    default void retransformForAttach() {}
 }

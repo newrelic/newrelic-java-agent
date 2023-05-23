@@ -192,14 +192,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
                 Agent.LOG.fine("Adding " + name + " as a Trace annotation");
                 internalizedNames.add(internalizeName(name));
             }
-            matchers.add(new AnnotationMatcher() {
-
-                @Override
-                public boolean matches(String annotationDesc) {
-                    return internalizedNames.contains(annotationDesc);
-                }
-
-            });
+            matchers.add(internalizedNames::contains);
         }
         return OrAnnotationMatcher.getOrMatcher(matchers.toArray(new AnnotationMatcher[0]));
     }

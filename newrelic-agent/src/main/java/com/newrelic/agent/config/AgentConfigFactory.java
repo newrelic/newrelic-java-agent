@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.newrelic.agent.config.SpanEventsConfig.*;
+import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 
 public class AgentConfigFactory {
 
@@ -204,7 +204,7 @@ public class AgentConfigFactory {
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
         addServerProp(DistributedTracingConfig.ACCOUNT_ID, serverData.get(DistributedTracingConfig.ACCOUNT_ID), settings);
         addServerProp("agent_home", ConfigFileHelper.getNewRelicDirectory().getAbsolutePath(), settings);
-        if(AgentJarHelper.getAgentJarDirectory() != null) {
+        if (AgentJarHelper.getAgentJarDirectory() != null) {
             addServerProp("agent_jar_location", AgentJarHelper.getAgentJarDirectory().getAbsolutePath(), settings);
         }
         if (settingsConfig.getProperty(SECURITY_POLICIES_TOKEN) != null) {
@@ -316,8 +316,8 @@ public class AgentConfigFactory {
      * Take the dot-delimited key in `prop` and dive into `settings`, using the dot to
      * separate levels in the hierarchy in `settings`.
      *
-     * @param prop a dot-delimited key, like "slow_sql.enabled".
-     * @param val a non-null value to set, like {@literal true}. Null values will be ignored.
+     * @param prop     a dot-delimited key, like "slow_sql.enabled".
+     * @param val      a non-null value to set, like {@literal true}. Null values will be ignored.
      * @param settings A map that may contain nested maps, like {slow_sql: {}}. Sublevels are created if they do not exist.
      */
     @SuppressWarnings("unchecked")

@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.profile;
 
-import com.google.common.collect.Maps;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONStreamAware;
 
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public class ProfileTree implements JSONStreamAware {
 
-    private final Map<ProfiledMethod, ProfileSegment> rootSegments = Maps.newIdentityHashMap();
+    private final Map<ProfiledMethod, ProfileSegment> rootSegments = new IdentityHashMap<>();
     /**
      * A map of stack trace elements to ProfiledMethods. This helps us create fewer {@link ProfiledMethod} instances and
      * allows us to use identity hashmaps.

@@ -89,15 +89,12 @@ public class SpanEventsServiceFactory {
     }
 
     private void configureUpdateOnConfigChange(final Map<String, SpanErrorBuilder> errorBuilderForApp) {
-        configService.addIAgentConfigListener(new AgentConfigListener() {
-            @Override
-            public void configChanged(String appName, AgentConfig agentConfig) {
+        configService.addIAgentConfigListener((appName, agentConfig) ->
                 errorBuilderForApp.put(agentConfig.getApplicationName(), new SpanErrorBuilder(
                         new ErrorAnalyzerImpl(agentConfig.getErrorCollectorConfig()),
                         new ErrorMessageReplacer(agentConfig.getStripExceptionConfig())
-                ));
-            }
-        });
+                ))
+        );
     }
 
     private Map<String, SpanErrorBuilder> buildSpanEventErrorBuilder(AgentConfig agentConfig, SpanErrorBuilder spanErrorBuilder) {

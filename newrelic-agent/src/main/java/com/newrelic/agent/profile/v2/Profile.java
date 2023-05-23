@@ -123,12 +123,7 @@ public class Profile implements IProfile {
     }
     
     CacheLoader<String, ProfileTree> createCacheLoader(final boolean reportCpu) {
-        return new CacheLoader<String, ProfileTree>() {
-            @Override
-            public ProfileTree load(String key) throws Exception {
-                return new ProfileTree(Profile.this, reportCpu);
-            }
-        };
+        return key -> new ProfileTree(Profile.this, reportCpu);
     }
 
     private Map<Long, Long> getThreadCpuTimes() {        

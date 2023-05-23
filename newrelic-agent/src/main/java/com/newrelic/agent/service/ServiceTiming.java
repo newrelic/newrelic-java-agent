@@ -22,12 +22,7 @@ import java.util.logging.Level;
  */
 public class ServiceTiming {
 
-    private static final Comparator<ServiceNameAndTime> serviceNameComparator = new Comparator<ServiceNameAndTime>() {
-        @Override
-        public int compare(ServiceNameAndTime service1, ServiceNameAndTime service2) {
-            return service1.serviceName.compareTo(service2.serviceName);
-        }
-    };
+    private static final Comparator<ServiceNameAndTime> serviceNameComparator = Comparator.comparing(ServiceNameAndTime::getServiceName);
 
     private static final Map<ServiceNameAndType, Long> serviceTimings = new LinkedHashMap<>();
     private static final Set<ServiceNameAndTime> serviceInitializationTimings = new TreeSet<>(serviceNameComparator);
