@@ -153,7 +153,7 @@ jobs:
       - name: Download test reports folder
         uses: actions/download-artifact@v3
         with:
-          path: gh-pages/reports/${{ github.ref }}/${{ github.run_id }}
+          path: gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -161,15 +161,15 @@ jobs:
       - name: Generate Test Reports page
         run: |
           pip install beautifulsoup4
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/unit-tests-results-java-8
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/unit-tests-results-java-11
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/unit-tests-results-java-17
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}/unit-tests-results-java-19
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-8
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-11
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-17
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-19
 
       - name: Generate index pages
         run: |
-          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ github.ref }}
-          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ github.ref }}/${{ github.run_id }}
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ inputs.BRANCH }}
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
           
       - name: Commit and push test reports to gh-pages
         run: |
@@ -180,5 +180,5 @@ jobs:
 
       - name: Gh Pages Summary
         run: |
-          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ github.ref }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ inputs.BRANCH }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
 
