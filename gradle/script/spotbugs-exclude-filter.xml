@@ -43,7 +43,7 @@
         <Class name="~com\.newrelic\.agent\.stats\..*" />
     </Match>
 
-    <!-- This is bad practice, but refactoring/correction would be a non-trivial lift since this is used as flag across multiple config implementations -->
+    <!-- This is an optimization; as long as the class is never subclassed, this will not be a problem -->
     <Match>
         <Bug pattern="CN_IDIOM_NO_SUPER_CALL" />
         <Class name="~com\.newrelic\.agent\.stats\..*" />
