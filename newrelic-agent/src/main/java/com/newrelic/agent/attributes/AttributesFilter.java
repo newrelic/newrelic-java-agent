@@ -11,7 +11,6 @@ import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
-import com.newrelic.agent.config.AttributesConfigImpl;
 
 import java.util.Map;
 import java.util.logging.Level;
@@ -36,10 +35,38 @@ public class AttributesFilter {
     private final DestinationFilter browserFilter;
     private final Map<String, DestinationFilter> destinationFilterMap;
 
+    private static final String[] DEFAULT_ERROR_EVENTS_EXCLUDES = new String[] {};
+    private static final String[] DEFAULT_TRANSACTION_TRACES_EXCLUDES = new String[] {};
+    private static final String[] DEFAULT_TRANSACTION_SEGMENTS_EXCLUDES = new String[] {};
+    private static final String[] DEFAULT_SPAN_EVENTS_EXCLUDES = new String[] {};
+
+    private static final String[] DEFAULT_BROWSER_EXCLUDES = new String[] {
+            AttributeNames.DISPLAY_HOST,
+            AttributeNames.HTTP_REQUEST_STAR,
+            AttributeNames.INSTANCE_NAME,
+            AttributeNames.JVM_STAR,
+            AttributeNames.MESSAGE_REQUEST_STAR,
+            AttributeNames.REQUEST_REFERER_PARAMETER_NAME,
+            AttributeNames.REQUEST_ACCEPT_PARAMETER_NAME,
+            AttributeNames.REQUEST_HOST_PARAMETER_NAME,
+            AttributeNames.REQUEST_USER_AGENT_PARAMETER_NAME,
+            AttributeNames.REQUEST_METHOD_PARAMETER_NAME,
+            AttributeNames.REQUEST_CONTENT_LENGTH_PARAMETER_NAME,
+            AttributeNames.RESPONSE_CONTENT_TYPE_PARAMETER_NAME,
+            AttributeNames.SOLR_STAR,
+    };
+
+    private static final String[] DEFAULT_TRANSACTION_EVENTS_EXCLUDES = new String[] {
+            AttributeNames.HTTP_REQUEST_STAR,
+            AttributeNames.JVM_STAR,
+            AttributeNames.MESSAGE_REQUEST_STAR,
+            AttributeNames.SOLR_STAR
+    };
+
     public AttributesFilter(AgentConfig config) {
-        this(config, AttributesConfigImpl.DEFAULT_BROWSER_EXCLUDES, AttributesConfigImpl.DEFAULT_ERROR_EVENTS_EXCLUDES,
-                AttributesConfigImpl.DEFAULT_TRANSACTION_EVENTS_EXCLUDES, AttributesConfigImpl.DEFAULT_TRANSACTION_TRACES_EXCLUDES,
-                AttributesConfigImpl.DEFAULT_SPAN_EVENTS_EXCLUDES, AttributesConfigImpl.DEFAULT_TRANSACTION_SEGMENTS_EXCLUDES);
+        this(config, DEFAULT_BROWSER_EXCLUDES, DEFAULT_ERROR_EVENTS_EXCLUDES,
+                DEFAULT_TRANSACTION_EVENTS_EXCLUDES, DEFAULT_TRANSACTION_TRACES_EXCLUDES,
+                DEFAULT_SPAN_EVENTS_EXCLUDES, DEFAULT_TRANSACTION_SEGMENTS_EXCLUDES);
     }
 
     // have this constructor for testing
