@@ -31,7 +31,9 @@ public class SecurityAgentConfig {
     public static final boolean SECURITY_AGENT_ENABLED_DEFAULT = false;
     public static final String SECURITY_ENABLED = "security.enabled";
     public static final boolean SECURITY_ENABLED_DEFAULT = false;
-    public static final String VALIDATOR_SERVICE_URL = "validator_service_url";
+    public static final String SECURITY_MODE = "security.mode";
+    public static final String SECURITY_MODE_DEFAULT = "IAST";
+    public static final String VALIDATOR_SERVICE_URL = "security.validator_service_url";
     public static final String VALIDATOR_SERVICE_URL_DEFAULT = "wss://csec.nr-data.net";
     public static final String SECURITY_DETECTION_RCI_ENABLED = "security.detection.rci.enabled";
     public static final boolean SECURITY_DETECTION_RCI_ENABLED_DEFAULT = true;
@@ -110,5 +112,14 @@ public class SecurityAgentConfig {
      */
     public static String getSecurityAgentValidatorServiceUrl() {
         return config.getValue(VALIDATOR_SERVICE_URL, VALIDATOR_SERVICE_URL_DEFAULT);
+    }
+
+    /**
+     * Get the Security agent mode. Default is IAST.
+     *
+     * @return String representing the Security agent mode
+     */
+    public static String getSecurityAgentMode() {
+        return config.getValue(SECURITY_MODE, SECURITY_MODE_DEFAULT);
     }
 }

@@ -261,8 +261,6 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
                                 }
                             } else {
                                 LOG.log(Level.FINER, "adding weave package: {0}", internalWeavePackage.getName());
-                                LOG.log(Level.INFO, "adding weave package: {0}", internalWeavePackage.getName());
-
                                 internalWeavePackages.add(internalWeavePackage.getName());
                                 weavePackageManager.register(internalWeavePackage);
                             }
