@@ -9,12 +9,14 @@ package com.newrelic.agent.service.analytics;
 
 import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.collect.Queues;
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public class DistributedSamplingPriorityQueue<E extends PriorityAware> implements SamplingPriorityQueue<E> {
 
@@ -113,7 +115,9 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     @Override
     public boolean add(E element) {
         incrementNumberOfTries();
+        Agent.LOG.log(Level.INFO, "--LogSend Adding logging event to queue");
         boolean added = data.offer(element);
+        Agent.LOG.log(Level.INFO, "--LogSend Done adding logging event to queue");
         if (added && element.decider()) {
             decided.incrementAndGet();
             if (DistributedTraceUtil.isSampledPriority(element.getPriority())) {
@@ -137,7 +141,9 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     public List<E> asList() {
         List<E> elements;
         synchronized (data) {
+            Agent.LOG.log(Level.INFO, "--LogSend Creating new ArrayList from queue");
             elements = new ArrayList<>(data);
+            Agent.LOG.log(Level.INFO, "--LogSend Done creating new ArrayList from queue");
         }
         Collections.sort(elements, this.comparator);
         return elements;

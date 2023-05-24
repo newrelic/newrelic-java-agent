@@ -86,6 +86,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         @Override
         public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
             // Get log events from the transaction when it is finished
+            Agent.LOG.log(Level.INFO, "--LogSend dispatcherTransactionFinished called");
             TransactionLogs data = (TransactionLogs) transactionData.getLogEventData();
             storeEvents(transactionData.getApplicationName(), transactionData.getPriority(), data.events);
         }
@@ -94,6 +95,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         public void dispatcherTransactionCancelled(Transaction transaction) {
             // Get log events from the transaction when it is canceled
             // Even if the transaction is canceled we still want to send up any events that were held in it
+            Agent.LOG.log(Level.INFO, "--LogSend dispatcherTransactionCancelled called");
             TransactionLogs data = (TransactionLogs) transaction.getLogEventData();
             storeEvents(transaction.getApplicationName(), transaction.getPriority(), data.events);
         }
@@ -254,11 +256,15 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * @param events collection of LogEvents to store
      */
     private void storeEvents(String appName, float priority, Collection<LogEvent> events) {
+        Agent.LOG.log(Level.INFO, "--LogSend storeEvents - adding {0} events", events.size());
         if (events.size() > 0) {
+            Agent.LOG.log(Level.INFO, "--LogSend storeEvents: getting eventList (queue) from reservoir map");
             DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
+            Agent.LOG.log(Level.INFO, "--LogSend storeEvents: Done getting eventList (queue) from reservoir map");
             for (LogEvent event : events) {
                 // Set "priority" on LogEvent based on priority value from Transaction
                 event.setPriority(priority);
+                Agent.LOG.log(Level.INFO, "--LogSend storeEvents: adding event to queue");
                 eventList.add(event);
             }
         }
@@ -325,7 +331,9 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             return;
         }
 
+        Agent.LOG.log(Level.INFO, "--LogSend Fetching eventList (queue) from app reservoir map");
         DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
+        Agent.LOG.log(Level.INFO, "--LogSend Done fetching eventList (queue) from app reservoir map");
         eventList.add(event);
         Agent.LOG.finest(MessageFormat.format("Added Custom Event of type {0}", event.getType()));
     }
@@ -340,6 +348,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         if (logEventsDisabled()) {
             return;
         }
+        Agent.LOG.log(Level.INFO, "--LogSend Fetching event list (queue) from ");
         DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
         eventList.add(createValidatedEvent(attributes, contextDataKeyFilter));
         Agent.LOG.finest(MessageFormat.format("Added event of type {0}", LOG_EVENT_TYPE));
@@ -402,13 +411,15 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         final DistributedSamplingPriorityQueue<LogEvent> reservoir = this.reservoirForApp.put(appName,
                 new DistributedSamplingPriorityQueue<>(appName, LOG_SENDER_SERVICE, maxSamplesStored));
 
-        Agent.LOG.log(Level.INFO, "--LogSend Reservoir size == {0}", reservoir != null ? reservoir.size() : "reservoir is null (why)");
+        Agent.LOG.log(Level.INFO, "--LogSend Fetched reservoir; Reservoir size == {0}", reservoir != null ? reservoir.size() : "reservoir is null (why)");
         if (reservoir != null && reservoir.size() > 0) {
             try {
                 // Send LogEvents
+                Agent.LOG.log(Level.INFO, "--LogSend Getting ready to send events");
                 ServiceFactory.getRPMServiceManager()
                         .getOrCreateRPMService(appName)
                         .sendLogEvents(Collections.unmodifiableList(reservoir.asList()));
+                Agent.LOG.log(Level.INFO, "--LogSend Events sent");
 
                 final long durationInNanos = System.nanoTime() - startTimeInNanos;
                 ServiceFactory.getStatsService().doStatsWork(new StatsWork() {
