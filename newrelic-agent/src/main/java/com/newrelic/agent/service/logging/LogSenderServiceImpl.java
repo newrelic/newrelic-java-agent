@@ -387,6 +387,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     public void harvestEvents(final String appName) {
         if (!getIsEnabledForApp(ServiceFactory.getConfigService().getAgentConfig(appName), appName)) {
+            Agent.LOG.log(Level.INFO, "--LogSend Log forwarding for is disabled");
             reservoirForApp.remove(appName);
             return;
         }
