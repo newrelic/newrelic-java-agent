@@ -95,9 +95,6 @@ class GeneratedNewFieldMethod {
 
                 // must return after the field instruction
                 int nextInsnOpcode = instructions.get(i + 1).getOpcode();
-                if (nextInsnOpcode < Opcodes.IRETURN && nextInsnOpcode > Opcodes.RETURN) {
-                    return null;
-                }
 
                 return new GeneratedNewFieldMethod(new Method(method.name, method.desc), fieldName,
                         ((FieldInsnNode) instruction).desc, instruction.getOpcode());

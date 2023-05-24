@@ -41,7 +41,7 @@ public class SpanEventFactory {
     // Truncate `db.statement` at 2000 characters
     private static final int DB_STATEMENT_TRUNCATE_LENGTH = 2000;
 
-    public static Supplier<Long> DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER = System::currentTimeMillis;
+    public static final Supplier<Long> DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER = System::currentTimeMillis;
 
     private final SpanEvent.Builder builder = SpanEvent.builder();
     private final String appName;

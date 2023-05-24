@@ -72,14 +72,15 @@ jobs:
 
 
       - name: Upload coverage to Codecov
-        if: success()
+        if: matrix.java-version == '11'
         uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
           fail_ci_if_error: false #default is false, but being explicit about what to expect.
 
       - name: Capture Jacoco reports
-        if: success()
+        if: matrix.java-version == '11'
         uses: actions/upload-artifact@v3
         with:
           name: jacoco-reports-java-${{ matrix.java-version }}

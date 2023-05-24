@@ -72,7 +72,7 @@ public abstract class ManyClassMatcher extends ClassMatcher {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + matchers + ")";
+        return getClass().getSimpleName() + "(" + Arrays.toString(matchers) + ")";
     }
 
 }

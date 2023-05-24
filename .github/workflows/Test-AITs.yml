@@ -59,7 +59,6 @@ jobs:
         name: List instrumentation tests
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
-          echo "basic_features/external.py" >> $excluded_tests
           echo "datastore/datastores.py" >> $excluded_tests
           echo "framework/play/play2.py" >> $excluded_tests
           echo "framework/snap/snap.py" >> $excluded_tests
