@@ -30,4 +30,34 @@
         <Class name="com.newrelic.weave.verification.WeavePackageVerifier" />
         <Method name="createClassloaderForVerification" />
     </Match>
+
+    <!-- Although dodgy code, the ignored result of putIfAbsent is ok since the values put into the maps will not change on subsequent calls -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED" />
+        <Class name="com.newrelic.weave.utils.ClassCache" />
+    </Match>
+
+    <!-- This is an optimization; as long as the class is never subclassed, this will not be a problem -->
+    <Match>
+        <Bug pattern="CN_IDIOM_NO_SUPER_CALL" />
+        <Class name="~com\.newrelic\.agent\.stats\..*" />
+    </Match>
+
+    <!-- This is bad practice, but refactoring/correction would be a non-trivial lift since this is used as flag across multiple config implementations -->
+    <Match>
+        <Bug pattern="CN_IDIOM_NO_SUPER_CALL" />
+        <Class name="~com\.newrelic\.agent\.stats\..*" />
+    </Match>
+
+    <!-- Used as a weave class for any class that extends ClassLoader, so this is an invalid finding in the context of the agent -->
+    <Match>
+        <Bug pattern="EC_UNRELATED_TYPES_USING_POINTER_EQUALITY" />
+        <Class name="~com\.newrelic\.agent\.instrumentation\.builtin\..*" />
+    </Match>
+
+    <!-- This is bad practice, but refactoring/correction would be a non-trivial lift since this is used as flag across multiple config implementations -->
+    <Match>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+        <Class name="com.newrelic.agent.config.AgentConfigImpl" />
+    </Match>
 </FindBugsFilter>
