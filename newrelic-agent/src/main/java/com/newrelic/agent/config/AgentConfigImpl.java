@@ -787,7 +787,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /**
-     * CSEC specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
+     * Security agent specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
      */
     private Map<String, Object> placeSecurityCollectorRelatedModification(Map<String, Object> props) {
         if (getProperty("security") != null) {

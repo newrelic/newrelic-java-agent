@@ -79,6 +79,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.newrelic.agent.Agent.LOG;
+import static com.newrelic.agent.config.SecurityAgentConfig.shouldInitializeSecurityAgent;
 
 /**
  * All interfacing with the weaver is done here.
@@ -138,12 +139,10 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
     }
 
     /**
-     * Registers the security weave instrumentation jars that are packaged into the csec agent jar's instrumentation directory.
+     * Registers the security weave instrumentation jars that are packaged into the Security agent jar's instrumentation directory.
      */
-    public void registerSecurityInstrumentation(AgentConfig agentConfig) {
-        if (agentConfig.getValue("security.agent.enabled", true) &&
-                agentConfig.getValue("security.enabled") != null
-        ) {
+    public void registerSecurityInstrumentation() {
+        if (shouldInitializeSecurityAgent()) {
             loadInternalSecurityWeavePackages();
         }
     }
@@ -222,13 +221,13 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
     private Collection<ClassMatchVisitorFactory> loadInternalSecurityWeavePackages() {
         LOG.log(Level.FINE, "Starting security instrumentation load");
         final Collection<ClassMatchVisitorFactory> matchers = Sets.newConcurrentHashSet();
-        URL securityAgentUrl = null;
+        URL securityAgentUrl;
         try {
             securityAgentUrl = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(com.newrelic.bootstrap.BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
         } catch (Exception err) {
             LOG.log(Level.SEVERE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : {0}",
                     err.getMessage());
-            LOG.log(Level.FINE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : ", err);
+            LOG.log(Level.FINE, "Error while loading security instrumentation packages. Security agent jar was not found due to error : {0}", err);
             return matchers;
         }
         Collection<String> jarFileNames = AgentJarHelper.findJarFileNames(securityAgentUrl, Pattern.compile("instrumentation-security\\/(.*).jar"));
@@ -238,7 +237,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
             LOG.log(Level.FINE, "Loading {0} security instrumentation packages", jarFileNames.size());
         }
 
-        int partitions = (jarFileNames.size() < PARTITIONS) ? jarFileNames.size() : PARTITIONS;
+        int partitions = Math.min(jarFileNames.size(), PARTITIONS);
         // Note: An ExecutorService would be better suited for this work but we are
         // specifically not using it here to prevent the ConcurrentCallablePointCut
         // from being loaded too early
@@ -246,44 +245,33 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         List<Set<String>> weavePackagePartitions = partitionInstrumentationJars(jarFileNames, partitions);
 
         for (final Set<String> weavePackageJars : weavePackagePartitions) {
-
-            URL finalSecurityAgentUrl = securityAgentUrl;
-            Runnable loadWeavePackagesRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        for (final String name : weavePackageJars) {
-                            URL instrumentationUrl = new URL("jar:" + finalSecurityAgentUrl.toExternalForm() + "!/" + name);
-                            if (instrumentationUrl == null) {
-                                Agent.LOG.error("Unable to find instrumentation jar: " + name);
-                            } else {
-                                try (InputStream inputStream = instrumentationUrl.openStream()) {
-                                    WeavePackage internalWeavePackage = createWeavePackage(inputStream, instrumentationUrl.toExternalForm());
-                                    if (null == internalWeavePackage) {
-                                        LOG.log(Level.FINEST, "internal weave package: {0} was null", instrumentationUrl.toExternalForm());
-                                        continue;
-                                    } else if (internalWeavePackage.getPackageViolations().size() > 0) {
-                                        LOG.log(Level.FINER, "skip loading weave package: {0}", internalWeavePackage.getName());
-                                        for (WeaveViolation violation : internalWeavePackage.getPackageViolations()) {
-                                            LOG.log(Level.FINER, "\t violation: {0}", violation);
-                                        }
-                                    } else {
-                                        LOG.log(Level.FINER, "adding weave package: {0}", internalWeavePackage.getName());
-                                        LOG.log(Level.INFO, "adding weave package: {0}", internalWeavePackage.getName());
-
-                                        internalWeavePackages.add(internalWeavePackage.getName());
-                                        weavePackageManager.register(internalWeavePackage);
-                                    }
-                                } catch (Throwable t) {
-                                    LOG.log(Level.FINER, t, "unable to load weave package jar {0}", instrumentationUrl);
+            Runnable loadWeavePackagesRunnable = () -> {
+                try {
+                    for (final String name : weavePackageJars) {
+                        URL instrumentationUrl = new URL("jar:" + securityAgentUrl.toExternalForm() + "!/" + name);
+                        try (InputStream inputStream = instrumentationUrl.openStream()) {
+                            WeavePackage internalWeavePackage = createWeavePackage(inputStream, instrumentationUrl.toExternalForm());
+                            if (null == internalWeavePackage) {
+                                LOG.log(Level.FINEST, "internal weave package: {0} was null", instrumentationUrl.toExternalForm());
+                                continue;
+                            } else if (internalWeavePackage.getPackageViolations().size() > 0) {
+                                LOG.log(Level.FINER, "skip loading weave package: {0}", internalWeavePackage.getName());
+                                for (WeaveViolation violation : internalWeavePackage.getPackageViolations()) {
+                                    LOG.log(Level.FINER, "\t violation: {0}", violation);
                                 }
+                            } else {
+                                LOG.log(Level.FINER, "adding weave package: {0}", internalWeavePackage.getName());
+                                internalWeavePackages.add(internalWeavePackage.getName());
+                                weavePackageManager.register(internalWeavePackage);
                             }
+                        } catch (Throwable t) {
+                            LOG.log(Level.FINER, t, "unable to load weave package jar {0}", instrumentationUrl);
                         }
-                    } catch (Throwable t) {
-                        LOG.log(Level.FINER, t, "A thread loading weaved packages threw an error");
-                    } finally {
-                        executorCountDown.countDown();
                     }
+                } catch (Throwable t) {
+                    LOG.log(Level.FINER, t, "A thread loading weaved packages threw an error");
+                } finally {
+                    executorCountDown.countDown();
                 }
             };
 
@@ -322,7 +310,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
             LOG.log(Level.FINE, "Loading {0} instrumentation packages", jarFileNames.size());
         }
 
-        int partitions = (jarFileNames.size() < PARTITIONS) ? jarFileNames.size() : PARTITIONS;
+        int partitions = Math.min(jarFileNames.size(), PARTITIONS);
         // Note: An ExecutorService would be better suited for this work but we are
         // specifically not using it here to prevent the ConcurrentCallablePointCut
         // from being loaded too early
@@ -331,40 +319,37 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
 
         for (final Set<String> weavePackageJars : weavePackagePartitions) {
 
-            Runnable loadWeavePackagesRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        for (final String name : weavePackageJars) {
-                            URL instrumentationUrl = BootstrapAgent.class.getResource('/' + name);
-                            if (instrumentationUrl == null) {
-                                Agent.LOG.error("Unable to find instrumentation jar: " + name);
-                            } else {
-                                try (InputStream inputStream = instrumentationUrl.openStream()) {
-                                    WeavePackage internalWeavePackage = createWeavePackage(inputStream, instrumentationUrl.toExternalForm());
-                                    if (null == internalWeavePackage) {
-                                        LOG.log(Level.FINEST, "internal weave package: {0} was null", instrumentationUrl.toExternalForm());
-                                        continue;
-                                    } else if (internalWeavePackage.getPackageViolations().size() > 0) {
-                                        LOG.log(Level.FINER, "skip loading weave package: {0}", internalWeavePackage.getName());
-                                        for (WeaveViolation violation : internalWeavePackage.getPackageViolations()) {
-                                            LOG.log(Level.FINER, "\t violation: {0}", violation);
-                                        }
-                                    } else {
-                                        LOG.log(Level.FINER, "adding weave package: {0}", internalWeavePackage.getName());
-                                        internalWeavePackages.add(internalWeavePackage.getName());
-                                        weavePackageManager.register(internalWeavePackage);
+            Runnable loadWeavePackagesRunnable = () -> {
+                try {
+                    for (final String name : weavePackageJars) {
+                        URL instrumentationUrl = BootstrapAgent.class.getResource('/' + name);
+                        if (instrumentationUrl == null) {
+                            Agent.LOG.error("Unable to find instrumentation jar: " + name);
+                        } else {
+                            try (InputStream inputStream = instrumentationUrl.openStream()) {
+                                WeavePackage internalWeavePackage = createWeavePackage(inputStream, instrumentationUrl.toExternalForm());
+                                if (null == internalWeavePackage) {
+                                    LOG.log(Level.FINEST, "internal weave package: {0} was null", instrumentationUrl.toExternalForm());
+                                    continue;
+                                } else if (internalWeavePackage.getPackageViolations().size() > 0) {
+                                    LOG.log(Level.FINER, "skip loading weave package: {0}", internalWeavePackage.getName());
+                                    for (WeaveViolation violation : internalWeavePackage.getPackageViolations()) {
+                                        LOG.log(Level.FINER, "\t violation: {0}", violation);
                                     }
-                                } catch (Throwable t) {
-                                    LOG.log(Level.FINER, t, "unable to load weave package jar {0}", instrumentationUrl);
+                                } else {
+                                    LOG.log(Level.FINER, "adding weave package: {0}", internalWeavePackage.getName());
+                                    internalWeavePackages.add(internalWeavePackage.getName());
+                                    weavePackageManager.register(internalWeavePackage);
                                 }
+                            } catch (Throwable t) {
+                                LOG.log(Level.FINER, t, "unable to load weave package jar {0}", instrumentationUrl);
                             }
                         }
-                    } catch (Throwable t) {
-                        LOG.log(Level.FINER, t, "A thread loading weaved packages threw an error");
-                    } finally {
-                        executorCountDown.countDown();
                     }
+                } catch (Throwable t) {
+                    LOG.log(Level.FINER, t, "A thread loading weaved packages threw an error");
+                } finally {
+                    executorCountDown.countDown();
                 }
             };
 
