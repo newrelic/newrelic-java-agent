@@ -538,14 +538,17 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             sendLogEventsSyncRestart(events);
         } catch (HttpError e) {
             // We don't want to resend the data for certain response codes, retry for all others
+            Agent.LOG.log(Level.INFO, "--LogSend Caught HttpError: {0}", e);
             if (e.isRetryableError()) {
                 throw e;
             }
         } catch (ForceRestartException e) {
+            Agent.LOG.log(Level.INFO, "--LogSend Caught ForceRestartException: {0}", e);
             logForceRestartException(e);
             reconnectAsync();
             throw e;
         } catch (ForceDisconnectException e) {
+            Agent.LOG.log(Level.INFO, "--LogSend Caught ForceDisconnectException: {0}", e);
             logForceDisconnectException(e);
             shutdownAsync();
             throw e;

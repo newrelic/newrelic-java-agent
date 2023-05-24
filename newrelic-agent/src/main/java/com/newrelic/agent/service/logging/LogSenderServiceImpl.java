@@ -235,10 +235,12 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                 reservoirForApp.remove(applicationName);
                 return;
             }
+            Agent.LOG.log(Level.INFO, "--LogSend Adding log event that's not part of a txn");
             createAndStoreEvent(applicationName, attributes);
         // In a Transaction that is in progress and not ignored
         } else {
             // Store log events on the transaction
+            Agent.LOG.log(Level.INFO, "--LogSend Adding log event that is part of a txn");
             transaction.getLogEventData().recordLogEvent(attributes);
         }
         MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
@@ -389,6 +391,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             return;
         }
         if (maxSamplesStored <= 0) {
+            Agent.LOG.log(Level.INFO, "--LogSend maxSampleStored <= 0; clearing reservoir");
             clearReservoir(appName);
             return;
         }
@@ -398,6 +401,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         final DistributedSamplingPriorityQueue<LogEvent> reservoir = this.reservoirForApp.put(appName,
                 new DistributedSamplingPriorityQueue<>(appName, LOG_SENDER_SERVICE, maxSamplesStored));
 
+        Agent.LOG.log(Level.INFO, "--LogSend Reservoir size == {0}", reservoir != null ? reservoir.size() : "reservoir is null (why)");
         if (reservoir != null && reservoir.size() > 0) {
             try {
                 // Send LogEvents
@@ -511,6 +515,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         Map<String, Object> logEventAttributes = new HashMap<>(logEventLinkingMetadata);
 
         LogEvent event = new LogEvent(logEventAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
+        Agent.LOG.log(Level.INFO, "--LogSend Created LogEvent {0}; next will add attributes", event);
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
         // An AttributeSender is the way to reuse all the existing attribute validations. We
