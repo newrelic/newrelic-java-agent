@@ -31,7 +31,6 @@ dependencies {
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
 }
 
-val crossBuildScala_211Jar by tasks.getting
 val crossBuildScala_212Jar by tasks.getting
 val crossBuildScala_213Jar by tasks.getting
 
