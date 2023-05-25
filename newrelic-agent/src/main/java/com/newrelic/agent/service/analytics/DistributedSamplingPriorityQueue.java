@@ -115,9 +115,9 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     @Override
     public boolean add(E element) {
         incrementNumberOfTries();
-        Agent.LOG.log(Level.INFO, "--LogSend Adding logging event to queue");
+        Agent.LOG.log(Level.INFO, "--LogSend Adding logging event to queue for reservoir {0}", this);
         boolean added = data.offer(element);
-        Agent.LOG.log(Level.INFO, "--LogSend Done adding logging event to queue");
+        Agent.LOG.log(Level.INFO, "--LogSend Done adding logging event to queue for reservoir {0}", this);
         if (added && element.decider()) {
             decided.incrementAndGet();
             if (DistributedTraceUtil.isSampledPriority(element.getPriority())) {

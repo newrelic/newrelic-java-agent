@@ -411,15 +411,15 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         final DistributedSamplingPriorityQueue<LogEvent> reservoir = this.reservoirForApp.put(appName,
                 new DistributedSamplingPriorityQueue<>(appName, LOG_SENDER_SERVICE, maxSamplesStored));
 
-        Agent.LOG.log(Level.INFO, "--LogSend Fetched reservoir; Reservoir size == {0}", reservoir != null ? reservoir.size() : "reservoir is null (why)");
+        Agent.LOG.log(Level.INFO, "--LogSend Fetched reservoir; reservoir {0} of size == {1}", reservoir, reservoir != null ? reservoir.size() : "reservoir is null (why)");
         if (reservoir != null && reservoir.size() > 0) {
             try {
                 // Send LogEvents
-                Agent.LOG.log(Level.INFO, "--LogSend Getting ready to send events");
+                Agent.LOG.log(Level.INFO, "--LogSend Getting ready to send events for reservoir {0}", reservoir);
                 ServiceFactory.getRPMServiceManager()
                         .getOrCreateRPMService(appName)
                         .sendLogEvents(Collections.unmodifiableList(reservoir.asList()));
-                Agent.LOG.log(Level.INFO, "--LogSend Events sent");
+                Agent.LOG.log(Level.INFO, "--LogSend Events sent for reservoir {0}", reservoir);
 
                 final long durationInNanos = System.nanoTime() - startTimeInNanos;
                 ServiceFactory.getStatsService().doStatsWork(new StatsWork() {
