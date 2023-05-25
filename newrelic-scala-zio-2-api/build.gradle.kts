@@ -90,3 +90,8 @@ tasks {
     }
 }
 
+tasks.withType<Test> {
+    extensions.configure(JacocoTaskExtension::class) {
+        isEnabled = false
+    }
+}
