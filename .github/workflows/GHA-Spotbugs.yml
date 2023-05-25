@@ -96,31 +96,32 @@ jobs:
         run: |
           rm -rf gh-pages/spotbugs/${{ inputs.agent-ref }}
 
-      - name: Download spotbugs reports
+      # Download reports
+      - name: Download spotbugs reports 1
         uses: actions/download-artifact@v3
         with:
           name: newrelic-agent-spotbugs-results
           path: gh-pages/spotbugs/${{ inputs.agent-ref }}/newrelic-agent-spotbugs-results
 
-      - name: Download spotbugs reports
+      - name: Download spotbugs reports 2
         uses: actions/download-artifact@v3
         with:
           name: newrelic-weaver-spotbugs-results
           path: gh-pages/spotbugs/${{ inputs.agent-ref }}/newrelic-weaver-spotbugs-results
 
-      - name: Download spotbugs reports
+      - name: Download spotbugs reports 3
         uses: actions/download-artifact@v3
         with:
           name: agent-bridge-spotbugs-results
           path: gh-pages/spotbugs/${{ inputs.agent-ref }}/agent-bridge-spotbugs-results
 
-      - name: Download spotbugs reports
+      - name: Download spotbugs reports 4
         uses: actions/download-artifact@v3
         with:
           name: agent-model-spotbugs-results
           path: gh-pages/spotbugs/${{ inputs.agent-ref }}/agent-model-spotbugs-results
 
-      - name: Download spotbugs reports
+      - name: Download spotbugs reports 5
         uses: actions/download-artifact@v3
         with:
           name: newrelic-api-spotbugs-results
@@ -141,6 +142,10 @@ jobs:
       - name: Generate index page
         run: |
           python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/spotbugs/${{ inputs.agent-ref }}
+
+      # Used for cleanup and to ensure a file is always changed so the commit succeeds.
+      - name: Add date file
+        run: date > gh-pages/spotbugs/${{ inputs.agent-ref }}/date.txt
 
       - name: Commit and push test reports to gh-pages
         run: |
