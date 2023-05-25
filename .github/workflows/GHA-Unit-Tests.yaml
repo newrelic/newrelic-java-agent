@@ -135,9 +135,17 @@ jobs:
   publish:
     name: Publish to GH Pages
     needs: unit-test
-    if: ${{ always() }}
+    if: ${{ failure() }}
     runs-on: ubuntu-latest
     steps:
+
+      - name: Set BRANCH_NAME
+        run: |
+          if (( ${{ github.ref_name }} )); then
+            echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+          else
+            echo "BRANCH_NAME=${{ inputs.BRANCH }}" >> $GITHUB_ENV
+
       - name: Checkout GhPages branch
         uses: actions/checkout@v3
         with:
@@ -149,11 +157,30 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@users.noreply.github.com"
 
-      #No artifact is specified. By default, the four test reports will be downloaded in directories matching their names.
-      - name: Download test reports folder
+      #Download reports
+      - name: Download test reports 8
         uses: actions/download-artifact@v3
         with:
-          path: gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
+          name: unit-tests-results-java-8
+          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-8
+
+      - name: Download test reports 11
+        uses: actions/download-artifact@v3
+        with:
+          name: unit-tests-results-java-11
+          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-11
+
+      - name: Download test reports 17
+        uses: actions/download-artifact@v3
+        with:
+          name: unit-tests-results-java-17
+          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-17
+
+      - name: Download test reports 19
+        uses: actions/download-artifact@v3
+        with:
+          name: unit-tests-results-java-19
+          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-19
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -161,16 +188,22 @@ jobs:
       - name: Generate Test Reports page
         run: |
           pip install beautifulsoup4
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-8
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-11
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-17
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-19
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-8
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-11
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-17
+          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-19
 
       - name: Generate index pages
         run: |
-          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ inputs.BRANCH }}
-          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
-          
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ env.BRANCH_NAME }}
+          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}
+
+      #For cleanup purposes
+      - name: Add date file
+        run: |
+          date -u +%s > gh-pages/reports/${{ env.BRANCH_NAME }}
+          date -u +%s > gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}
+
       - name: Commit and push test reports to gh-pages
         run: |
           cd gh-pages
@@ -180,5 +213,5 @@ jobs:
 
       - name: Gh Pages Summary
         run: |
-          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ inputs.BRANCH }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
 
