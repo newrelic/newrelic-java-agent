@@ -256,15 +256,15 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * @param events collection of LogEvents to store
      */
     private void storeEvents(String appName, float priority, Collection<LogEvent> events) {
-        Agent.LOG.log(Level.INFO, "--LogSend storeEvents - adding {0} events", events.size());
+        Agent.LOG.log(Level.INFO, "--LogSend storeEvents (log in txn) - adding {0} events", events.size());
         if (events.size() > 0) {
-            Agent.LOG.log(Level.INFO, "--LogSend storeEvents: getting eventList (queue) from reservoir map");
+            Agent.LOG.log(Level.INFO, "--LogSend storeEvents (log in txn): getting eventList (queue) from reservoir map");
             DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
-            Agent.LOG.log(Level.INFO, "--LogSend storeEvents: Done getting eventList (queue) from reservoir map");
+            Agent.LOG.log(Level.INFO, "--LogSend storeEvents (log in txn): Done getting eventList (queue) from reservoir map");
             for (LogEvent event : events) {
                 // Set "priority" on LogEvent based on priority value from Transaction
                 event.setPriority(priority);
-                Agent.LOG.log(Level.INFO, "--LogSend storeEvents: adding event to queue");
+                Agent.LOG.log(Level.INFO, "--LogSend storeEvents (log in txn): adding event to queue");
                 eventList.add(event);
             }
         }
@@ -348,8 +348,9 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         if (logEventsDisabled()) {
             return;
         }
-        Agent.LOG.log(Level.INFO, "--LogSend Fetching event list (queue) from ");
+        Agent.LOG.log(Level.INFO, "--LogSend Fetching event list (queue) from appName: {0}", appName);
         DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
+        Agent.LOG.log(Level.INFO, "--LogSend Done Fetching event list (queue) from appName: {0}", appName);
         eventList.add(createValidatedEvent(attributes, contextDataKeyFilter));
         Agent.LOG.finest(MessageFormat.format("Added event of type {0}", LOG_EVENT_TYPE));
     }
