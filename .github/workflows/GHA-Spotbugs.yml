@@ -100,31 +100,31 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: newrelic-agent-spotbugs-results
-          path: gh-pages/spotbugs/${{ inputs.agent-ref }}
+          path: gh-pages/spotbugs/${{ inputs.agent-ref }}/newrelic-agent-spotbugs-results
 
       - name: Download spotbugs reports
         uses: actions/download-artifact@v3
         with:
           name: newrelic-weaver-spotbugs-results
-          path: gh-pages/spotbugs/${{ inputs.agent-ref }}
+          path: gh-pages/spotbugs/${{ inputs.agent-ref }}/newrelic-weaver-spotbugs-results
 
       - name: Download spotbugs reports
         uses: actions/download-artifact@v3
         with:
           name: agent-bridge-spotbugs-results
-          path: gh-pages/spotbugs/${{ inputs.agent-ref }}
+          path: gh-pages/spotbugs/${{ inputs.agent-ref }}/agent-bridge-spotbugs-results
 
       - name: Download spotbugs reports
         uses: actions/download-artifact@v3
         with:
           name: agent-model-spotbugs-results
-          path: gh-pages/spotbugs/${{ inputs.agent-ref }}
+          path: gh-pages/spotbugs/${{ inputs.agent-ref }}/agent-model-spotbugs-results
 
       - name: Download spotbugs reports
         uses: actions/download-artifact@v3
         with:
           name: newrelic-api-spotbugs-results
-          path: gh-pages/spotbugs/${{ inputs.agent-ref }}
+          path: gh-pages/spotbugs/${{ inputs.agent-ref }}/newrelic-api-spotbugs-results
 
       # By default, GH-Pages only recognizes index.html files as landing pages.
       # This can be reconfigured at the repository level, but not at the directory level.
