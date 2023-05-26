@@ -22,13 +22,13 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@users.noreply.github.com"
 
-      #Look for directories containing a date.txt file.
+      #Look in spotbugs for directories containing a date.txt file.
       #If the date.txt file contains a UTC string older than
       #five days ago, delete the directory.
       - name: Delete old folders
         run: |
-          cd gh-pages/spotbugs
-          directories=$(find . -name date.txt -exec dirname {} \;)
+          cd gh-pages
+          directories=$(find spotbugs -name date.txt -exec dirname {} \;)
           for directory in $directories; do
             date_in_file_utc=$(cat "$directory/date.txt")
             five_days_ago_utc=$(date -u -d "5 days ago" +%s)
