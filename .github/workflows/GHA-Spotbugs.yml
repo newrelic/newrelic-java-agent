@@ -145,7 +145,7 @@ jobs:
 
       # Used for cleanup and to ensure a file is always changed so the commit succeeds.
       - name: Add date file
-        run: date > gh-pages/spotbugs/${{ inputs.agent-ref }}/date.txt
+        run: echo $(date -u -d "2 days ago" +%s) > gh-pages/spotbugs/${{ inputs.agent-ref }}/date.txt
 
       - name: Commit and push test reports to gh-pages
         run: |
