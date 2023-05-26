@@ -1,0 +1,45 @@
+name: GH Pages Cleanup
+
+on:
+  push:
+    branch: [cleanup-ghpages]
+
+  schedule:
+    cron: "0 0 * * *"
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout GH Pages
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          path: 'gh-pages'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      #Look for directories containing a date.txt file.
+      #If the date.txt file contains a UTC string older than
+      #five days ago, delete the directory.
+      - name: Delete old folders
+        run: |
+          cd gh-pages/spotbugs
+          directories=$(find . -name date.txt -exec dirname {} \;)
+          for directory in $directories; do
+            date_in_file_utc=$(cat "$directory/date.txt")
+            five_days_ago_utc=$(date -u -d "5 days ago" +%s)
+            if ((date_in_file_utc < five_days_ago_utc)); then
+              rm -rf $directory
+            fi
+          done
+
+      - name: Commit and push
+        run: |
+          cd gh-pages
+          git add spotbugs/*
+          git commit -m "Removing old folders from spotbugs"
+          git push
