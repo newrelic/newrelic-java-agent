@@ -4,8 +4,9 @@ on:
   push:
     branch: [cleanup-ghpages]
 
+  #Scheduled to run every Friday
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 5 * *"
 
 jobs:
   cleanup:
