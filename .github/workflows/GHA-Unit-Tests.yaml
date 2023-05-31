@@ -199,8 +199,8 @@ jobs:
       #For cleanup purposes
       - name: Add date file
         run: |
-          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}
-          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
+          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}/date.txt
+          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/date.txt
 
       - name: Commit and push test reports to gh-pages
         run: |
