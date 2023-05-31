@@ -51,7 +51,7 @@ public class LineNumberWeaveTest {
                 "com.newrelic.weave.LineNumberWeaveTest$Weave"));
         Set<Integer> compositeLineNumbers = findLineNumbers(weave.getComposite());
 
-        assertEquals("Hello, Joe from the weaver!", new Original().greet("Joe"));
+        assertEquals("Hello, Bill from the weaver!", new Original().greet("Joe"));
         assertTrue(compositeLineNumbers.containsAll(originalLineNumbers));
 
         if(remove) {

@@ -44,7 +44,7 @@ public class InitialSizedJsonArrayTest {
         Assert.assertEquals(1, array.size());
         actual = writeToJson(array);
         Assert.assertEquals(1, actual.size());
-        Assert.assertEquals("Tiger", actual.get(0));
+        Assert.assertEquals("Cheetah", actual.get(0));
 
         array = new InitialSizedJsonArray(0);
         Assert.assertEquals(0, array.size());
