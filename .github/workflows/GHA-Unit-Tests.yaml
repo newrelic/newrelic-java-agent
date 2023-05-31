@@ -79,6 +79,7 @@ jobs:
 
       - name: Capture build reports
         # If previous step fails, run this step regardless
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: unit-tests-results-java-${{ matrix.java-version }}
@@ -88,39 +89,3 @@ jobs:
           # that were leftover in unrelated modules for functional and instrumentation tests.
           path: |
             **/build/reports/tests/*
-        
-      - name: Checkout GhPages branch
-        uses: actions/checkout@v3
-        with:
-            ref: 'gh-pages'
-            path: 'gh-pages'
-        
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@users.noreply.github.com"
-      
-      - name: Move into gh-pages
-        run: |
-          cd gh-pages
-          mkdir -p reports/${{ github.run_id }}
-      
-      - name: Download test reports folder
-        uses: actions/download-artifact@v3
-        with: 
-          name: unit-tests-results-java-${{ matrix.java-version }}
-          path: gh-pages/reports/${{ github.run_id }}
-          
-      - name: Check git status and folder contents
-        run: |
-          cd gh-pages
-          cd ./reports/${{ github.run_id }}
-          ls
-          git status
-          
-      - name: Commit and push test reports to gh-pages
-        run: |
-          cd gh-pages
-          git add -f reports/*
-          git commit -m "Update test reports"
-          git push
