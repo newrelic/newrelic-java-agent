@@ -88,10 +88,6 @@ public class PointCutConfiguration {
 
         boolean groupExplicitlyDisabled = !pointCutGroupConfig.getProperty("enabled", true);
         boolean classExplicitlyDisabled = !pointCutConfig.getProperty("enabled", true);
-        if (groupExplicitlyDisabled && classExplicitlyEnabled) {
-            Agent.LOG.info(MessageFormat.format("Disabled point cut \"{1}\" (\"{2}\")",  getName(), getGroupName()));
-            return false;
-        }
         if (groupExplicitlyDisabled || classExplicitlyDisabled) {
             Agent.LOG.info(MessageFormat.format("Disabled point cut \"{1}\" (\"{2}\")",  getName(), getGroupName()));
             return false;

@@ -40,7 +40,7 @@ import java.util.logging.Level;
 public abstract class AbstractTracer implements Tracer, AttributeHolder {
 
     static final int INITIAL_PARAMETER_MAP_SIZE = 5;
-    protected static String ATTRIBUTE_TYPE = "custom";
+    protected static final String ATTRIBUTE_TYPE = "custom";
 
     private final TransactionActivity transactionActivity;
     private AttributeValidator attributeValidator;

@@ -35,12 +35,7 @@ public class CloudUtility {
     private final Function<Integer, CloseableHttpClient> httpClientCreator;
 
     public CloudUtility() {
-        this(new Function<Integer, CloseableHttpClient>() {
-            @Override
-            public CloseableHttpClient apply(Integer requestTimeoutMillis) {
-                return configureHttpClient(requestTimeoutMillis);
-            }
-        });
+        this(CloudUtility::configureHttpClient);
     }
 
     CloudUtility(Function<Integer, CloseableHttpClient> httpClientCreator) {

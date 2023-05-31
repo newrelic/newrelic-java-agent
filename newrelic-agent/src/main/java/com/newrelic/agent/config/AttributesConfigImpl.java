@@ -19,35 +19,6 @@ import java.util.logging.Level;
 
 public class AttributesConfigImpl extends BaseConfig implements AttributesConfig {
 
-    public static final String[] DEFAULT_BROWSER_EXCLUDES = new String[] {
-            AttributeNames.DISPLAY_HOST,
-            AttributeNames.HTTP_REQUEST_STAR,
-            AttributeNames.INSTANCE_NAME,
-            AttributeNames.JVM_STAR,
-            AttributeNames.MESSAGE_REQUEST_STAR,
-            AttributeNames.REQUEST_REFERER_PARAMETER_NAME,
-            AttributeNames.REQUEST_ACCEPT_PARAMETER_NAME,
-            AttributeNames.REQUEST_HOST_PARAMETER_NAME,
-            AttributeNames.REQUEST_USER_AGENT_PARAMETER_NAME,
-            AttributeNames.REQUEST_METHOD_PARAMETER_NAME,
-            AttributeNames.REQUEST_CONTENT_LENGTH_PARAMETER_NAME,
-            AttributeNames.RESPONSE_CONTENT_TYPE_PARAMETER_NAME,
-            AttributeNames.SOLR_STAR,
-    };
-
-    public static final String[] DEFAULT_TRANSACTION_EVENTS_EXCLUDES = new String[] {
-            AttributeNames.HTTP_REQUEST_STAR,
-            AttributeNames.JVM_STAR,
-            AttributeNames.MESSAGE_REQUEST_STAR,
-            AttributeNames.SOLR_STAR
-    };
-
-    // request parameters and message parameters are turned off by default - this is done in attributes filter
-    public static final String[] DEFAULT_ERROR_EVENTS_EXCLUDES = new String[] {};
-    public static final String[] DEFAULT_TRANSACTION_TRACES_EXCLUDES = new String[] {};
-    public static final String[] DEFAULT_TRANSACTION_SEGMENTS_EXCLUDES = new String[] {};
-    public static final String[] DEFAULT_SPAN_EVENTS_EXCLUDES = new String[] {};
-
     private static final boolean DEFAULT_ENABLED = true;
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.attributes.";
 
@@ -100,10 +71,6 @@ public class AttributesConfigImpl extends BaseConfig implements AttributesConfig
     public boolean isAttsEnabled(AgentConfig config, boolean defaultProp, String... dest) {
         if (!enabledRoot) {
             return false;
-        }
-
-        if (dest.equals(AgentConfigImpl.ATTRIBUTES)) {
-            return enabledRoot;
         }
 
         boolean toEnable = false;

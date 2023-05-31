@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.util.asm;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -19,7 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Objects;
 
 /**
  * The details for a class or method annotation.
@@ -57,47 +56,32 @@ public class AnnotationDetails extends AnnotationVisitor {
 
     Multimap<String, Object> getOrCreateAttributes() {
         if (attributes == null) {
-            attributes = Multimaps.newListMultimap(new HashMap<String, Collection<Object>>(),
-                    new Supplier<List<Object>>() {
-
-                        @Override
-                        public List<Object> get() {
-                            return new ArrayList<>();
-                        }
-                    });
+            attributes = Multimaps.newListMultimap(new HashMap<>(), ArrayList::new);
         }
         return attributes;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof AnnotationDetails) {
-            AnnotationDetails other = (AnnotationDetails) obj;
-            if (!desc.equals(other.desc)) {
-                return false;
-            }
-            if ((attributes == null || other.attributes == null) && attributes != other.attributes) {
-                return false;
-            }
-            // if (attributes.size() != other.attributes.size()) {
-            // return false;
-            // }
-
-            for (Entry<String, Object> entry : attributes.entries()) {
-                List<Object> list = other.attributes.get(entry.getKey());
-                if (!list.contains(entry.getValue())) {
-                    return false;
-                }
-            }
-
+        if (this == obj) {
             return true;
         }
-        return super.equals(obj);
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        AnnotationDetails annotationDetails = (AnnotationDetails) obj;
+        return Objects.equals(desc, annotationDetails.desc) && Objects.equals(attributes, annotationDetails.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(desc, attributes);
     }
 
     @Override
     public String toString() {
         return "AnnotationDetails [desc=" + desc + ", attributes=" + attributes + "]";
     }
-
 }

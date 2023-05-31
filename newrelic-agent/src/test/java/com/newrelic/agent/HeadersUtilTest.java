@@ -21,10 +21,10 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.util.MockDistributedTraceService;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
@@ -62,7 +62,7 @@ public class HeadersUtilTest {
         assertFalse(tx.sampled());
 
         assertTrue("map should contain newrelic header", map.containsKey("newrelic"));
-        String decodedHeader = new String(Base64.decodeBase64(map.get("newrelic")), StandardCharsets.UTF_8);
+        String decodedHeader = new String(Base64.getDecoder().decode(map.get("newrelic")), StandardCharsets.UTF_8);
         JsonObject jsonObject = new Gson().fromJson(decodedHeader, JsonObject.class);
         assertFalse("d.sa should be false because tx is not sampled", jsonObject.getAsJsonObject("d").get("sa").getAsBoolean());
         assertEquals("d.pr should be zero", 0f, jsonObject.getAsJsonObject("d").get("pr").getAsFloat(), 0.0001);

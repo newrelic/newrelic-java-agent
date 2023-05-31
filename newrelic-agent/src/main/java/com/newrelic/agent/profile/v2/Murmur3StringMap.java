@@ -11,16 +11,15 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.newrelic.agent.util.StringMap;
-import org.apache.commons.codec.binary.Base64;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("UnstableApiUsage")
 public class Murmur3StringMap implements StringMap {
-    private static final Base64 base64 = new Base64();
     private final HashFunction hashFunction = Hashing.murmur3_128(394852370);
     private final Charset charSet = StandardCharsets.UTF_8;
 
@@ -42,8 +41,9 @@ public class Murmur3StringMap implements StringMap {
             key = string;
         } else {
             HashCode hash = hashFunction.newHasher().putString(string, charSet).hash();
-            byte[] asBytes = hash.asBytes();
-            key = new String(base64.encode(asBytes, 0, 8), StandardCharsets.US_ASCII);
+            final byte[] eightBytes = new byte[8];
+            hash.writeBytesTo(eightBytes, 0, 8);
+            key = new String(Base64.getEncoder().encode(eightBytes), StandardCharsets.US_ASCII);
         }
 
         stringMap.put(key, string);

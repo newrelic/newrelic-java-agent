@@ -319,6 +319,11 @@ public class NoOpTransaction implements Transaction {
     }
 
     @Override
+    public Object getSecurityMetaData() {
+        return new Object();
+    }
+
+    @Override
     public void setTransportType(TransportType transportType) {
     }
 }

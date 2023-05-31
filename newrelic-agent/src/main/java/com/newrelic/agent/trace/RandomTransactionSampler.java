@@ -15,6 +15,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -57,7 +58,7 @@ public class RandomTransactionSampler implements ITransactionSampler {
         if (td == null) {
             return Collections.emptyList();
         }
-        if (td.getApplicationName() != appName) {
+        if (!Objects.equals(td.getApplicationName(), appName)) {
             return Collections.emptyList();
         }
         if (shouldFinish()) {

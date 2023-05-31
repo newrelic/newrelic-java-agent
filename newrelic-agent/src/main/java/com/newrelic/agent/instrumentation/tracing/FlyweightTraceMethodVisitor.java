@@ -88,14 +88,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
     private Map<Method, Handler> getTracedMethodMethodHandlers() {
         Map<Method, Handler> map = new HashMap<>();
 
-        map.put(new Method("getMetricName", "()Ljava/lang/String;"), new Handler() {
-
-            @Override
-            public void handle(AdviceAdapter mv) {
-
-                mv.loadLocal(metricNameLocal);
-            }
-        });
+        map.put(new Method("getMetricName", "()Ljava/lang/String;"), mv -> mv.loadLocal(metricNameLocal));
 
         map.put(new Method("setMetricName", "([Ljava/lang/String;)V"), new Handler() {
 
@@ -145,13 +138,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
         addUnsupportedMethod(map, new Method("addCustomAttribute", "(Ljava/lang/String;Z)V"));
         addUnsupportedMethod(map, new Method("addCustomAttributes", "(Ljava/util/Map;)V"));
 
-        map.put(new Method("getParentTracedMethod", "()Lcom/newrelic/agent/bridge/TracedMethod;"), new Handler() {
-
-            @Override
-            public void handle(AdviceAdapter mv) {
-                mv.loadLocal(parentTracerLocal);
-            }
-        });
+        map.put(new Method("getParentTracedMethod", "()Lcom/newrelic/agent/bridge/TracedMethod;"), mv -> mv.loadLocal(parentTracerLocal));
 
         return map;
     }
@@ -276,12 +263,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
         // System.nanoTime when those values are
         // encountered
         long startTime = loader.loadLocal(startTimeLocal, Type.LONG_TYPE, -1L);
-        long loadEndTime = loader.load(-2l, new Runnable() {
-            @Override
-            public void run() {
-                invokeStatic(Type.getType(System.class), new Method("nanoTime", Type.LONG_TYPE, new Type[0]));
-            }
-        });
+        long loadEndTime = loader.load(-2l, () -> invokeStatic(Type.getType(System.class), new Method("nanoTime", Type.LONG_TYPE, new Type[0])));
 
         Transaction transactionApi = builder.build();
 

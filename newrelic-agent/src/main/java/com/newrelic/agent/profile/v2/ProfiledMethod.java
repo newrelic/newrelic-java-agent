@@ -125,14 +125,7 @@ public class ProfiledMethod implements JSONStreamAware {
             data.add(info.getJsonMethodMaps(stringMap));
         }
         
-        return new JSONStreamAware() {
-
-            @Override
-            public void writeJSONString(Writer out) throws IOException {
-                JSONArray.writeJSONString(data, out);
-            }
-            
-        };
+        return out -> JSONArray.writeJSONString(data, out);
     }
     
     void setMethodInfo(MethodInfo methodInfo) {

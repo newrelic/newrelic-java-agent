@@ -59,22 +59,8 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Set up Javas
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 17
-
-      # Rewrite gradle.properties
-      - name: set gradle.properties
-        run: |
-          sed -i -e "s|jdk8=8|jdk8=${JAVA_HOME_8_x64}|
-          s|jdk11=11|jdk11=${JAVA_HOME_11_x64}|
-          s|jdk17=17|jdk17=${JAVA_HOME_17_x64}|" gradle.properties.gha
-          mv gradle.properties.gha gradle.properties
-
-      - name: Setup Gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_11_x64,JAVA_HOME_8_x64" >> $GITHUB_ENV
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
 
       - name: Retrieve agent from cache
         id: retrieve-agent
@@ -82,6 +68,10 @@ jobs:
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}
+          fail-on-cache-miss: true
 
+      # Verify instrumentation must run with Java 17
       - name: Running verifyInstrumentation on (${{ matrix.modules }})
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation

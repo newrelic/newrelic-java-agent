@@ -205,13 +205,9 @@ abstract class AbstractTracingMethodAdapter extends AdviceAdapter {
     }
 
     protected final void invokeTraceFinishWithThrowable(final int exceptionVar) {
-        methodBuilder.loadUnsuccessful().loadArray(Object.class, new Runnable() {
-            @Override
-            public void run() {
-                visitVarInsn(ALOAD, exceptionVar);
-            }
-        }).invokeInvocationHandlerInterface(true);
-
+        methodBuilder.loadUnsuccessful()
+                .loadArray(Object.class, (Runnable) () -> visitVarInsn(ALOAD, exceptionVar))
+                .invokeInvocationHandlerInterface(true);
     }
 
     /**

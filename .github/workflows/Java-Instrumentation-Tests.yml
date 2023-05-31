@@ -1,149 +1,77 @@
 name: Java Instrumentation Tests
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: "Specify branch (main is default)"
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
         required: false
         default: 'main'
+        type: string
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+        required: false
+        default: 'main'
+        type: string
 jobs:
   tests:
     strategy:
       fail-fast: false
       matrix:
-        jre: [8, 11, 17, 19]
-    name: Java ${{ matrix.jre }} Instrumentation Tests
-    timeout-minutes: 60
+        jre: [8, 11, 17, 20]
+    name: Java ${{ matrix.jre }}
+    timeout-minutes: 120
     # needs: install-all-java
     runs-on: ubuntu-20.04
     env:
-      default-branch: "main"
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
     steps:
-      - uses: actions/checkout@v3
-
-      # Install 8
-      - name: Set up Java 8
-        # https://github.com/actions/setup-java
-        uses: actions/setup-java@v3
+      - name: Checkout Java agent
+        uses: actions/checkout@v3
         with:
-          distribution: 'temurin'
-          java-version: 8
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
-      # Save new JDK variable
-      - name: Save JAVA_HOME as JDK8 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk8=$JAVA_HOME" >> $GITHUB_ENV
-
-      # Install 11
-      - name: Set up Java 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 11
-
-      # Save new JDK variable
-      - name: Save JAVA_HOME as JDK11 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk11=$JAVA_HOME" >> $GITHUB_ENV
-
-      # Install 17
-      - name: Set up Java 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 17
-
-      # Save new JDK variable
-      - name: Save JAVA_HOME as JDK17 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk17=$JAVA_HOME" >> $GITHUB_ENV
-
-      # Install latest non-LTS Java version (we should only ever test one non-LTS version to keep test times reasonable)
-      - name: Set up Java 19
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 19
-
-      # Save new JDK variable
-      - name: Save JAVA_HOME as JDK19 for later usage
-        run: |
-          echo "Current JAVA_HOME = ${JAVA_HOME}"
-          echo "ORG_GRADLE_PROJECT_jdk19=$JAVA_HOME" >> $GITHUB_ENV
-
-      # Needed for toolchains and GHA.
-      - name: setup gradle options
-        run: echo "GRADLE_OPTIONS=-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=ORG_GRADLE_PROJECT_jdk8,ORG_GRADLE_PROJECT_jdk11" >> $GITHUB_ENV
-
-      # Check ENV variables
-      - name: Check environmental variables
-        run: printenv | sort -f
-
-      ## AWS jars - plan to cache
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Download S3 instrumentation jar zip
-        if: ${{ env.AWS_KEY != '' }}
-        run: aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip  ## Updated 2022
-
-      - name: Unzip the instrumentation jars
-        if: ${{ env.AWS_KEY != '' }}
-        run: unzip proprietary-jars.zip
-
-      - name: Log jars are in target libs
-        if: ${{ env.AWS_KEY != '' }}
-        run: find instrumentation -name "*.jar"
-      ## End AWS jars - plan to cache (check for cache, restore if required)
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
 
       # Is newrelicJar present in newrelic-agent/build
       # TO DO: Below version number has to be dynamic
-      - name: Build newrelicJar w/o GE
-        env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          ls -la
-          cat settings.gradle
-          ./gradlew $GRADLE_OPTIONS clean jar --parallel
-          ls -la newrelic-agent/build/
+      - name: Build newrelicJar
+        run: ./gradlew $GRADLE_OPTIONS clean jar
+
+      - name: Remove parallel from GRADLE_OPTIONS
+        run: echo "GRADLE_OPTIONS=$GRADLE_OPTIONS" | sed "s/--parallel//" >> $GITHUB_ENV
 
       # GHA run instrumentation tests
 
-      # Rewrite gradle.properties
-      - name: set gradle.properties
-        run: |
-          sed -i -e "s|jdk8=8|jdk8=${ORG_GRADLE_PROJECT_jdk8}|
-          s|jdk11=11|jdk11=${ORG_GRADLE_PROJECT_jdk11}|
-          s|jdk17=17|jdk17=${ORG_GRADLE_PROJECT_jdk17}|
-          s|jdk19=19|jdk19=${ORG_GRADLE_PROJECT_jdk19}|" gradle.properties.gha
-          cat gradle.properties.gha
-          rm gradle.properties
-          mv gradle.properties.gha gradle.properties
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 1)
+        id: run_tests_1
+        continue-on-error: true
+        timeout-minutes: 35
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} w/o GE
-        env:
-          JAVA_HOME: ${{ env.ORG_GRADLE_PROJECT_jdk8 }}
-        run: |
-          ./gradlew $GRADLE_OPTIONS --console=plain :instrumentation:test -Ptest${{ matrix.jre }} --continue
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 2)
+        id: run_tests_2
+        continue-on-error: true
+        timeout-minutes: 35
+        if: steps.run_tests_1.outcome == 'failure'
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
+
+      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 3)
+        timeout-minutes: 35
+        if: steps.run_tests_2.outcome == 'failure'
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports

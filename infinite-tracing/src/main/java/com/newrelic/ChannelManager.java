@@ -29,7 +29,7 @@ class ChannelManager {
     @GuardedBy("lock") private CountDownLatch backoffLatch;
     @GuardedBy("lock") private ManagedChannel managedChannel;
     @GuardedBy("lock") private boolean recreateSpanObserver = true;
-    @GuardedBy("lock") private ClientCallStreamObserver<V1.Span> spanObserver;
+    @GuardedBy("lock") private Observer observer;
     @GuardedBy("lock") private String agentRunToken;
     @GuardedBy("lock") private Map<String, String> requestMetadata;
 
@@ -62,7 +62,7 @@ class ChannelManager {
      *
      * @return a span observer
      */
-    ClientCallStreamObserver<V1.Span> getSpanObserver() {
+    Observer getObserver() {
         // Obtain the lock, and await the backoff if in progress
         CountDownLatch latch;
         synchronized (lock) {
@@ -88,23 +88,41 @@ class ChannelManager {
                 managedChannel = buildChannel();
             }
             if (recreateSpanObserver) {
-                if (spanObserver != null) {
+                if (observer != null) {
                     logger.log(Level.FINE, "Cancelling and recreating gRPC span observer.");
-                    spanObserver.cancel("CLOSING_CONNECTION", new ChannelClosingException());
+                    observer.cancel("CLOSING_CONNECTION", new ChannelClosingException());
                 }
                 IngestServiceStub ingestServiceStub = buildStub(managedChannel);
                 ResponseObserver responseObserver = buildResponseObserver();
-                spanObserver = (ClientCallStreamObserver<V1.Span>) ingestServiceStub.recordSpan(responseObserver);
+                if (config.getUseBatching()) {
+                    observer = buildSpanBatchObserver((ClientCallStreamObserver<V1.SpanBatch>) ingestServiceStub.recordSpanBatch(responseObserver));
+                } else {
+                    observer = buildSpanObserver((ClientCallStreamObserver<V1.Span>) ingestServiceStub.recordSpan(responseObserver));
+                }
                 aggregator.incrementCounter("Supportability/InfiniteTracing/Connect");
                 recreateSpanObserver = false;
             }
-            return spanObserver;
+            return observer;
         }
     }
 
     @VisibleForTesting
+    Observer buildSpanObserver(ClientCallStreamObserver<V1.Span> observer) {
+        return new SpanObserver(observer);
+    }
+
+    @VisibleForTesting
+    Observer buildSpanBatchObserver(ClientCallStreamObserver<V1.SpanBatch> observer) {
+        return new SpanBatchObserver(observer);
+    }
+
+    @VisibleForTesting
     IngestServiceStub buildStub(ManagedChannel managedChannel) {
-        return IngestServiceGrpc.newStub(managedChannel);
+        IngestServiceStub ingestServiceStub = IngestServiceGrpc.newStub(managedChannel);
+        if (config.getUseCompression()) {
+            ingestServiceStub = ingestServiceStub.withCompression("gzip");
+        }
+        return ingestServiceStub;
     }
 
     @VisibleForTesting
@@ -113,7 +131,7 @@ class ChannelManager {
     }
 
     /**
-     * Mark that the span observer should be canceled and recreated the next time {@link #getSpanObserver()} is called.
+     * Mark that the span observer should be canceled and recreated the next time {@link #getObserver()} is called.
      */
     void recreateSpanObserver() {
         synchronized (lock) {
@@ -122,7 +140,7 @@ class ChannelManager {
     }
 
     /**
-     * Shutdown the channel, cancel the span observer, and backoff. The next time {@link #getSpanObserver()}
+     * Shutdown the channel, cancel the span observer, and backoff. The next time {@link #getObserver()}
      * is called, it will await the backoff and the channel will be recreated.
      *
      * @param backoffSeconds the number of seconds to await before the channel can be recreated
@@ -160,7 +178,7 @@ class ChannelManager {
     }
 
     /**
-     * Shutdown the channel and do not recreate it. The next time {@link #getSpanObserver()} is called
+     * Shutdown the channel and do not recreate it. The next time {@link #getObserver()} is called
      * an exception will be thrown.
      */
     void shutdownChannelForever() {

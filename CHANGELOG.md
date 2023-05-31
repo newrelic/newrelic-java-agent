@@ -4,8 +4,92 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Coming soon
-* TBD
+## Version 8.3.0
+### New features and improvements
+
+- Batch Payloads and Compression for Infinite Tracing: Enhanced performance by providing option to enable payload compression and batching for Infinite Tracing [1146](https://github.com/newrelic/newrelic-java-agent/pull/1146)
+
+- HttpClient v5.0+ Support: The Java agent now supports HttpClient version 5.0 and above [1252](https://github.com/newrelic/newrelic-java-agent/pull/1252).
+
+- On-the-fly Class Retransformation: Classes with Trace annotation are now retransformed upon attach, enhancing instrumentation flexibility [1147](https://github.com/newrelic/newrelic-java-agent/pull/1147)
+
+- Enhanced Logging for Cats Effect 2: Log Cats Effect 2 instrumentation at Finest log level [1173](https://github.com/newrelic/newrelic-java-agent/pull/1173).
+
+- High Security Mode disables user tracking
+  [1261](https://github.com/newrelic/newrelic-java-agent/pull/1261)
+
+- Selective RollingFileAppender Usage: The RollingFileAppender is now only used when log_limit_in_kbytes is greater than 0, improving logging efficiency [1228](https://github.com/newrelic/newrelic-java-agent/pull/1228)
+
+### Fixes
+
+- Fixed Cats Effect 2 Logging: Addressed issues with Cats Effect 2 logging for better reliability [1269](https://github.com/newrelic/newrelic-java-agent/pull/1269)
+
+
+## Version 8.2.0 
+### New features and improvements
+
+- Added support for Java 20  https://github.com/newrelic/newrelic-java-agent/pull/1226
+
+### Fixes
+
+- Prevented a NullPointerException from the lettuce instrumentation https://github.com/newrelic/newrelic-java-agent/pull/1204 
+
+- Fix failure with browser agent auto injection for tomcat versions 8.5.87+ and 9.0.74+ https://github.com/newrelic/newrelic-java-agent/pull/1225 
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.2.0...v8.3.0
+
+## Version 8.1.0 
+### New features and improvements
+
+- Added support for Webflux 6 [1181](https://github.com/newrelic/newrelic-java-agent/pull/1181)
+
+- Added support for Spring JMS 6 [1088](https://github.com/newrelic/newrelic-java-agent/issues/1088)
+
+- Added support for Mongodb Reactive Streams [1164](https://github.com/newrelic/newrelic-java-agent/pull/1164)
+
+- Added support for Kafka Streams [1170](https://github.com/newrelic/newrelic-java-agent/pull/1170)
+
+  Support for Kafka Streams comes in two flavors, metrics and spans. Metrics are enabled by default, while spans are disabled by default. To enable spans add the following to your _newrelic.yml_ configuration under the common stanza:
+```
+common:
+  class_transformer:
+    kafka-streams-spans:
+      enabled: true
+```
+
+- Error fingerprint - supply your own errors inbox group names [1195](https://github.com/newrelic/newrelic-java-agent/pull/1195)
+
+  Are your error occurrences grouped poorly? Set your own error fingerprint via a callback function. A new public API method has been added that will accept a user defined proc. The proc will be invoked for each noticed error and whenever it returns a string, that string will be used as the error group name for the error and will take precedence over any server-side grouping that takes place with the New Relic errors inbox. This gives users much greater control over the grouping of their errors. For more information check our [API: Error Grouping](https://docs.newrelic.com/docs/apm/agents/java-agent/api-guides/java-agent-api-register-error-group-callback-to-set-fingerprint/) and [APM: Group errors tab](https://docs.newrelic.com/docs/errors-inbox/apm-tab/) pages.
+
+- User tracking [1188](https://github.com/newrelic/newrelic-java-agent/pull/1188)
+
+  You can now see the number of users impacted by an error group. Identify the end user with a new public API method that will accept a string representation of a user id and associate that user id with the current transaction. Transactions and errors will then have a new `enduser.id` agent attribute associated with them. This will allow agent users to tag transactions and errors as belonging to given user ids in support of greater filtering and alerting capabilities. For more information check the [Newrelic.setUserId ](https://newrelic.github.io/java-agent-api/javadoc/com/newrelic/api/agent/NewRelic.html#setUserName(java.lang.String) documentation and the [Track users impacted with errors inbox](https://docs.newrelic.com/docs/errors-inbox/error-users-impacted/) page.
+
+- Invoking `token.link()` outside a transaction will instrument that method to start an async transaction [1140](https://github.com/newrelic/newrelic-java-agent/pull/1140)
+
+- The Kafka clients instrumentation has new metrics to list the nodes: `MessageBroker/Kafka/Nodes/&lt;node>` [1130](https://github.com/newrelic/newrelic-java-agent/pull/1130)
+
+
+
+### Fixes
+
+- Fix ClassCircularityError when agent attaches [1137](https://github.com/newrelic/newrelic-java-agent/pull/1137)
+- Fix NullPointerException thrown when calling `addCustomAttributes` [1115](https://github.com/newrelic/newrelic-java-agent/issues/1115)
+- Make sure `TokenAndRefCount.token` is never null [1149](https://github.com/newrelic/newrelic-java-agent/issues/1149)
+- Using a time based cache to store database connection data to prevent a memory leak when instrumenting MySQL client with replication [1114](https://github.com/newrelic/newrelic-java-agent/pull/1114)
+- Decreased the number of threads used in the HttpUrlConnection instrumentation [1145](https://github.com/newrelic/newrelic-java-agent/pull/1145)
+- Fix an issue when HttpUrlConnection is used with the legacy cross application tracing [1142](https://github.com/newrelic/newrelic-java-agent/issues/1142)
+- Performance improvement in Netty’s RequestWrapper [1163](https://github.com/newrelic/newrelic-java-agent/pull/1163)
+- Gracefully shutdown the agent if it encounters issues on startup [1136](https://github.com/newrelic/newrelic-java-agent/pull/1136)
+- Fix WeavedMethod and InstrumentedMethod annotations when applied to constructors.  [1153](https://github.com/newrelic/newrelic-java-agent/issues/1153)
+- Performance improvements when using Tomcat [1131](https://github.com/newrelic/newrelic-java-agent/pull/1131)
+- Fixed a bug that caused the agent to not report some exceptions [1176](https://github.com/newrelic/newrelic-java-agent/pull/1176)
+- Updated DockerData to increase the number of container IDs detected [1178](https://github.com/newrelic/newrelic-java-agent/pull/1178)
+- Reduce the number of threads used in Kafka clients instrumentation [1056](https://github.com/newrelic/newrelic-java-agent/issues/1056)
+- Grammar changes [1175](https://github.com/newrelic/newrelic-java-agent/pull/1175) and [1190](https://github.com/newrelic/newrelic-java-agent/pull/1190)
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.0.1...v8.1.0
+
 
 ## Version 8.0.1 (2023-02-23)
 

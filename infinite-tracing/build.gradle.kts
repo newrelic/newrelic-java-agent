@@ -1,5 +1,10 @@
 plugins {
     id("java-library")
+    id("jacoco")
+}
+jacoco {
+    toolVersion = "0.8.10"
+    reportsDir = file("$buildDir/reports/jacoco")
 }
 
 group = "com.newrelic.agent.java"
@@ -16,6 +21,7 @@ dependencies {
     implementation(project(":newrelic-api"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.6.2")
     testImplementation("org.mockito:mockito-junit-jupiter:3.3.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
 }
@@ -32,8 +38,18 @@ tasks.test {
         events("failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
     }
+    finalizedBy("jacocoTestReport")
+
 }
 
 tasks.withType<GenerateModuleMetadata> {
     enabled = false
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.isEnabled = true
+        html.destination = file("${buildDir}/reports/jacoco")
+    }
 }

@@ -12,7 +12,7 @@ import com.newrelic.agent.Transaction;
 import java.util.Map;
 
 public class AgentAttributeSender extends AttributeSender {
-    protected static String ATTRIBUTE_TYPE = "agent";
+    protected static final String ATTRIBUTE_TYPE = "agent";
 
     public AgentAttributeSender() {
         super(new AttributeValidator(ATTRIBUTE_TYPE));

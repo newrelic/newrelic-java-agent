@@ -10,13 +10,13 @@ package com.newrelic.agent;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.google.common.base.Charsets;
 import com.newrelic.agent.profile.IProfile;
 import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.profile.ProfilerParameters;
@@ -130,7 +130,7 @@ public class JSONSerializerTest {
 
         Assert.assertNotNull(profileDataJson);
         // Check to make sure the profile data has a reasonable size
-        Assert.assertTrue(profileDataJson.getBytes(Charsets.UTF_8).length > 1024);
+        Assert.assertTrue(profileDataJson.getBytes(StandardCharsets.UTF_8).length > 1024);
     }
 
     @Test
