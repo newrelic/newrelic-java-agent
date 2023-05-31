@@ -7,22 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Version 8.3.0
 ### New features and improvements
 
-* Batch Payloads and Compression for Infinite Tracing: Enhanced performance by providing option to enable payload compression and batching for Infinite Tracing [1146](https://github.com/newrelic/newrelic-java-agent/pull/1146)
+- Batch Payloads and Compression for Infinite Tracing: Enhanced performance by providing option to enable payload compression and batching for Infinite Tracing [1146](https://github.com/newrelic/newrelic-java-agent/pull/1146)
 
-* HttpClient v5.0+ Support: The Java agent now supports HttpClient version 5.0 and above [1252](https://github.com/newrelic/newrelic-java-agent/pull/1252).
+- HttpClient v5.0+ Support: The Java agent now supports HttpClient version 5.0 and above [1252](https://github.com/newrelic/newrelic-java-agent/pull/1252).
 
-* On-the-fly Class Retransformation: Classes with Trace annotation are now retransformed upon attach, enhancing instrumentation flexibility [1147](https://github.com/newrelic/newrelic-java-agent/pull/1147)
+- On-the-fly Class Retransformation: Classes with Trace annotation are now retransformed upon attach, enhancing instrumentation flexibility [1147](https://github.com/newrelic/newrelic-java-agent/pull/1147)
 
-* Enhanced Logging for Cats Effect 2: Log Cats Effect 2 instrumentation at Finest log level [1173](https://github.com/newrelic/newrelic-java-agent/pull/1173).
+- Enhanced Logging for Cats Effect 2: Log Cats Effect 2 instrumentation at Finest log level [1173](https://github.com/newrelic/newrelic-java-agent/pull/1173).
 
-* High Security Mode disables user tracking
+- High Security Mode disables user tracking
   [1261](https://github.com/newrelic/newrelic-java-agent/pull/1261)
 
-* Selective RollingFileAppender Usage: The RollingFileAppender is now only used when log_limit_in_kbytes is greater than 0, improving logging efficiency [1228](https://github.com/newrelic/newrelic-java-agent/pull/1228)
+- Selective RollingFileAppender Usage: The RollingFileAppender is now only used when log_limit_in_kbytes is greater than 0, improving logging efficiency [1228](https://github.com/newrelic/newrelic-java-agent/pull/1228)
 
 ### Fixes
 
-* Fixed Cats Effect 2 Logging: Addressed issues with Cats Effect 2 logging for better reliability [1269](https://github.com/newrelic/newrelic-java-agent/pull/1269)
+- Fixed Cats Effect 2 Logging: Addressed issues with Cats Effect 2 logging for better reliability [1269](https://github.com/newrelic/newrelic-java-agent/pull/1269)
 
 
 ## Version 8.2.0 
@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix failure with browser agent auto injection for tomcat versions 8.5.87+ and 9.0.74+ https://github.com/newrelic/newrelic-java-agent/pull/1225 
 
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.2.0...v8.3.0
 
 ## Version 8.1.0 
 ### New features and improvements
