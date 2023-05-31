@@ -1,8 +1,6 @@
 name: GH Pages Cleanup
 
 on:
-  push:
-    branch: [cleanup-ghpages]
 
   #Scheduled to run every Friday
   schedule:
@@ -23,10 +21,10 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@users.noreply.github.com"
 
-      #Look in spotbugs for directories containing a date.txt file.
+      #Look in spotbugs and test reports for directories containing a date.txt file.
       #If the date.txt file contains a UTC string older than
       #five days ago, delete the directory.
-      - name: Delete old folders
+      - name: Delete old spotbugs folders
         run: |
           cd gh-pages
           directories=$(find spotbugs -name date.txt -exec dirname {} \;)
@@ -38,9 +36,21 @@ jobs:
             fi
           done
 
+      - name: Delete old reports folders
+        run: |
+          cd gh-pages
+          directories=$(find reports -name date.txt -exec dirname {} \;)
+          for directory in $directories; do
+            date_in_file_utc=$(cat "$directory/date.txt")
+            five_days_ago_utc=$(date -u -d "5 days ago" +%s)
+            if ((date_in_file_utc < five_days_ago_utc)); then
+              rm -rf $directory
+            fi
+          done
+
       - name: Commit and push
         run: |
           cd gh-pages
-          git add spotbugs/*
-          git commit -m "Removing old folders from spotbugs"
+          git add .
+          git commit -m "Removing old folders from spotbugs and test reports"
           git push
