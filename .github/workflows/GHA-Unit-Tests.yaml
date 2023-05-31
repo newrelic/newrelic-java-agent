@@ -130,21 +130,52 @@ jobs:
           # that were leftover in unrelated modules for functional and instrumentation tests.
           path: |
             **/build/reports/tests/*
-        
 
-  publish:
-    name: Publish to GH Pages
+      - name: Checkout GhPages branch
+        if: ${{ failure() }}
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          path: 'gh-pages'
+
+      - name: Configure Git
+        if: ${{ failure() }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      - name: Download test reports Java ${{ matrix.java-version }}
+        if: ${{ failure() }}
+        uses: actions/download-artifact@v3
+        with:
+          name: unit-tests-results-java-${{ matrix.java-version }}
+          path: gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
+
+      - name: Set up Python
+        if: ${{ failure() }}
+        uses: actions/setup-python@v3
+
+      - name: Generate Test Reports page
+        if: ${{ failure() }}
+        run: |
+          pip install beautifulsoup4
+          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
+
+      - name: Commit and push test reports to gh-pages
+        if: ${{ failure() }}
+        run: |
+          cd gh-pages
+          git add -f reports/*
+          git commit -m "Update test reports"
+          git pull --rebase
+          git push
+
+  index:
+    name: Write Index Pages
     needs: unit-test
     if: ${{ failure() }}
     runs-on: ubuntu-latest
     steps:
-
-      - name: Set BRANCH_NAME
-        run: |
-          if (( ${{ github.ref_name }} )); then
-            echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-          else
-            echo "BRANCH_NAME=${{ inputs.BRANCH }}" >> $GITHUB_ENV
 
       - name: Checkout GhPages branch
         uses: actions/checkout@v3
@@ -157,52 +188,19 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@users.noreply.github.com"
 
-      #Download reports
-      - name: Download test reports 8
-        uses: actions/download-artifact@v3
-        with:
-          name: unit-tests-results-java-8
-          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-8
-
-      - name: Download test reports 11
-        uses: actions/download-artifact@v3
-        with:
-          name: unit-tests-results-java-11
-          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-11
-
-      - name: Download test reports 17
-        uses: actions/download-artifact@v3
-        with:
-          name: unit-tests-results-java-17
-          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-17
-
-      - name: Download test reports 19
-        uses: actions/download-artifact@v3
-        with:
-          name: unit-tests-results-java-19
-          path: gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-19
-
       - name: Set up Python
         uses: actions/setup-python@v3
 
-      - name: Generate Test Reports page
+      - name: Generate Index Pages
         run: |
-          pip install beautifulsoup4
-          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-8
-          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-11
-          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-17
-          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-19
-
-      - name: Generate index pages
-        run: |
-          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ env.BRANCH_NAME }}
-          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}
+          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.BRANCH }}
+          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
 
       #For cleanup purposes
       - name: Add date file
         run: |
-          date -u +%s > gh-pages/reports/${{ env.BRANCH_NAME }}
-          date -u +%s > gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}
+          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}
+          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
 
       - name: Commit and push test reports to gh-pages
         run: |
@@ -213,5 +211,5 @@ jobs:
 
       - name: Gh Pages Summary
         run: |
-          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ inputs.BRANCH }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
 
