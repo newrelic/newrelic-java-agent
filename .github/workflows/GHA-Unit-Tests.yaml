@@ -188,15 +188,15 @@ jobs:
       - name: Generate Test Reports page
         run: |
           pip install beautifulsoup4
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-8
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-11
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-17
-          python gh-pages/ghpages_utils/getFailures.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-19
+          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-8
+          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-11
+          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-17
+          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}/unit-tests-results-java-19
 
       - name: Generate index pages
         run: |
-          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ env.BRANCH_NAME }}
-          python gh-pages/ghpages_utils/generateIndexFile.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}
+          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ env.BRANCH_NAME }}
+          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ env.BRANCH_NAME }}/${{ github.run_id }}
 
       #For cleanup purposes
       - name: Add date file
