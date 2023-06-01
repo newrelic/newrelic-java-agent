@@ -107,7 +107,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: unit-tests-results-java-${{ matrix.java-version }}
-          path: gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
+          path: gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
 
       - name: Set up Python
         if: ${{ failure() }}
@@ -120,7 +120,7 @@ jobs:
         if: ${{ failure() }}
         run: |
           pip install beautifulsoup4
-          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
+          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
 
       - name: Commit and push test reports to gh-pages
         if: ${{ failure() }}
@@ -154,14 +154,14 @@ jobs:
 
       - name: Generate Index Pages
         run: |
-          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.BRANCH }}
-          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}
+          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}
+          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}
 
       #For cleanup purposes
       - name: Add date file
         run: |
-          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}/date.txt
-          date -u +%s > gh-pages/reports/${{ inputs.BRANCH }}/${{ github.run_id }}/date.txt
+          date -u +%s > gh-pages/reports/${{ inputs.agent-ref }}/date.txt
+          date -u +%s > gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/date.txt
 
       - name: Commit and push test reports to gh-pages
         run: |
@@ -172,5 +172,5 @@ jobs:
 
       - name: Gh Pages Summary
         run: |
-          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ inputs.BRANCH }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-          
+          echo "[View test reports](https://kanderson250.github.io/newrelic-java-agent/reports/${{ inputs.agent-ref }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
