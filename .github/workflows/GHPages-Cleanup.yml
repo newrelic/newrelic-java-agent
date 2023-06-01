@@ -5,7 +5,13 @@ on:
   #Scheduled to run every Friday
   schedule:
     - cron: "0 8 * * 5"
-
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of days ago to clean. Gh-pages artifacts from before this date will be removed.'
+        required: false
+        default: '5'
+        type: string
 jobs:
   cleanup:
     runs-on: ubuntu-20.04
@@ -23,15 +29,15 @@ jobs:
 
       #Look in spotbugs and test reports for directories containing a date.txt file.
       #If the date.txt file contains a UTC string older than
-      #five days ago, delete the directory.
+      #the input number of days ago, delete the directory.
       - name: Delete old spotbugs folders
         run: |
           cd gh-pages
           directories=$(find spotbugs -name date.txt -exec dirname {} \;)
           for directory in $directories; do
             date_in_file_utc=$(cat "$directory/date.txt")
-            five_days_ago_utc=$(date -u -d "5 days ago" +%s)
-            if ((date_in_file_utc < five_days_ago_utc)); then
+            clean_days_ago_utc=$(date -u -d "${{ inputs.days }} days ago" +%s)
+            if ((date_in_file_utc < clean_days_ago_utc)); then
               rm -rf $directory
             fi
           done
@@ -42,8 +48,8 @@ jobs:
           directories=$(find reports -name date.txt -exec dirname {} \;)
           for directory in $directories; do
             date_in_file_utc=$(cat "$directory/date.txt")
-            five_days_ago_utc=$(date -u -d "5 days ago" +%s)
-            if ((date_in_file_utc < five_days_ago_utc)); then
+            clean_days_ago_utc=$(date -u -d "${{ inputs.days }} days ago" +%s)
+            if ((date_in_file_utc < clean_days_ago_utc)); then
               rm -rf $directory
             fi
           done
