@@ -79,6 +79,7 @@ jobs:
 
       - name: Capture build reports
         # If previous step fails, run this step regardless
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: unit-tests-results-java-${{ matrix.java-version }}
