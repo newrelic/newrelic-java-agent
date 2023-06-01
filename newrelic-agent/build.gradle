@@ -54,6 +54,7 @@ java {
 dependencies {
     // remove this stuff after we re-write the instrumentation
     implementation("javax.servlet:javax.servlet-api:3.0.1")
+    implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     // end remove
 
     jarIntoJar project(":newrelic-api")
@@ -107,6 +108,9 @@ dependencies {
     testImplementation("org.eclipse.jetty:jetty-server:8.1.22.v20160922")
     testImplementation("org.eclipse.jetty:jetty-servlet:8.1.22.v20160922")
     testImplementation(project(path: ':newrelic-weaver', configuration: 'testClasses'))
+
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.1')
+
 }
 
 /**

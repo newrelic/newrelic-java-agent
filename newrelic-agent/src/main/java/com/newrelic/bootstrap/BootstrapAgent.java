@@ -238,7 +238,7 @@ public class BootstrapAgent {
      * @param javaVersion the "java.version" system property.
      * @return true if java.sql classes will be loaded by the platform class loader.
      */
-    private static boolean isJavaSqlLoadedOnPlatformClassLoader(String javaVersion) {
+    static boolean isJavaSqlLoadedOnPlatformClassLoader(String javaVersion) {
         return !javaVersion.startsWith("1.");
     }
 
@@ -256,7 +256,7 @@ public class BootstrapAgent {
         }
     }
 
-    private static boolean agentIsDisabledBySystemPropertyOrEnvVar() {
+    static boolean agentIsDisabledBySystemPropertyOrEnvVar() {
         String sysVal = System.getProperty(AGENT_ENABLED_SYS_PROP);
         String envVal = System.getenv(AGENT_ENABLED_ENV_VAR);
         // We also check for null here because we only want to know if
@@ -278,7 +278,7 @@ public class BootstrapAgent {
                 || Boolean.parseBoolean(System.getenv("NEW_RELIC_EXPERIMENTAL_RUNTIME"));
     }
 
-    private static void printExperimentalRuntimeModeInUseMessage(String javaSpecVersion) {
+    static void printExperimentalRuntimeModeInUseMessage(String javaSpecVersion) {
         System.out.println("----------");
         System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
         System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
@@ -286,7 +286,7 @@ public class BootstrapAgent {
         System.out.println("----------");
     }
 
-    private static void printUnsupportedJavaVersionMessage(String javaSpecVersion) {
+    static void printUnsupportedJavaVersionMessage(String javaSpecVersion) {
         System.err.println("----------");
         System.err.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
         System.err.println("----------");
