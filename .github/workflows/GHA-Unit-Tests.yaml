@@ -116,12 +116,12 @@ jobs:
 
       #This step executes a Python script that reads and writes html.
       #The script requires the beautifulsoup dependency, which parses html.
-      #For details, view the ghpages_utils/README.md on the gh-pages branch.
+      #For details, view the utils/README.md on the gh-pages branch.
       - name: Generate Test Reports page
         if: ${{ failure() }}
         run: |
           pip install beautifulsoup4
-          python gh-pages/ghpages_utils/writeTestsFailuresPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
+          python gh-pages/utils/writeTestsFailuresPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
 
       - name: Commit and push test reports to gh-pages
         if: ${{ failure() }}
@@ -155,8 +155,8 @@ jobs:
 
       - name: Generate Index Pages
         run: |
-          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}
-          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}
+          python gh-pages/utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}
+          python gh-pages/utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}
 
       #For cleanup purposes
       - name: Add date file

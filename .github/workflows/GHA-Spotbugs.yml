@@ -141,7 +141,7 @@ jobs:
 
       - name: Generate index page
         run: |
-          python gh-pages/ghpages_utils/writeIndexPage.py gh-pages/spotbugs/${{ inputs.agent-ref }}
+          python gh-pages/utils/writeIndexPage.py gh-pages/spotbugs/${{ inputs.agent-ref }}
 
       # Used for cleanup and to ensure a file is always changed so the commit succeeds.
       - name: Add date file
