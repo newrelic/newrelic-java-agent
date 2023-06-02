@@ -16,6 +16,11 @@ jobs:
   cleanup:
     runs-on: ubuntu-20.04
     steps:
+      - name: Set days env variable
+        env:
+          default_days: '5'
+        run: |
+          echo "DAYS=${{ inputs.days ||  env.default_days }}" >> $GITHUB_ENV
       - name: Checkout GH Pages
         uses: actions/checkout@v3
         with:
@@ -36,7 +41,7 @@ jobs:
           directories=$(find spotbugs -name date.txt -exec dirname {} \;)
           for directory in $directories; do
             date_in_file_utc=$(cat "$directory/date.txt")
-            clean_days_ago_utc=$(date -u -d "${{ inputs.days }} days ago" +%s)
+            clean_days_ago_utc=$(date -u -d "${{ env.DAYS }} days ago" +%s)
             if ((date_in_file_utc < clean_days_ago_utc)); then
               rm -rf $directory
             fi
@@ -48,7 +53,7 @@ jobs:
           directories=$(find reports -name date.txt -exec dirname {} \;)
           for directory in $directories; do
             date_in_file_utc=$(cat "$directory/date.txt")
-            clean_days_ago_utc=$(date -u -d "${{ inputs.days }} days ago" +%s)
+            clean_days_ago_utc=$(date -u -d "${{ env.DAYS }} days ago" +%s)
             if ((date_in_file_utc < clean_days_ago_utc)); then
               rm -rf $directory
             fi
