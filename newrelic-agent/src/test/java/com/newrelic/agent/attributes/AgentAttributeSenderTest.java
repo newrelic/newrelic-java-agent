@@ -143,7 +143,7 @@ public class AgentAttributeSenderTest {
             Assert.assertEquals(expected, attribs.keySet());
 
             Assert.assertEquals(255, attribs.get("truncated-single-value").toString().length());
-            Assert.assertNotEquals(170, valueVeryLong.length());
+            Assert.assertNotEquals(255, valueVeryLong.length());
 
             Assert.assertEquals(255, attribs.get("truncated-map-value").toString().length());
             Assert.assertNotEquals(255, customParamMap.get("truncated-map-value"));
