@@ -242,8 +242,6 @@ public final class Agent {
         if (shouldInitializeSecurityAgent()) {
             try {
                 LOG.log(Level.INFO, "Initializing New Relic Security module");
-                // Trigger init calls on Security Agent.
-                NewRelicSecurity.getAgent();
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
                     @Override
                     public void connected(IRPMService rpmService, AgentConfig agentConfig) {
