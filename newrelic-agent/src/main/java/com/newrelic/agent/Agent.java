@@ -240,6 +240,8 @@ public final class Agent {
                 NewRelic.getAgent().getConfig().getValue("security.enabled") != null) {
             try {
                 LOG.log(Level.INFO, "Invoking New Relic Security module");
+                // Trigger init calls on Security Agent.
+                NewRelicSecurity.getAgent();
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
                     @Override
                     public void connected(IRPMService rpmService, AgentConfig agentConfig) {
