@@ -31,8 +31,8 @@ subprojects {
     dependencies {
         testImplementation(project(":instrumentation-test"))
 
-        testImplementation("com.newrelic.agent.java.security:newrelic-security-api:${csecCollectorVersion}")
-        testImplementation("com.newrelic.agent.java.security:newrelic-security-agent:${csecCollectorVersion}")
+        testImplementation("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
+        testImplementation("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
     }
 
     test {

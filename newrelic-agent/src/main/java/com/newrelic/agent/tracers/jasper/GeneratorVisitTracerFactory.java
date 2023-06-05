@@ -23,8 +23,8 @@ import com.newrelic.agent.tracers.Tracer;
 
 public class GeneratorVisitTracerFactory extends AbstractTracerFactory {
 
-    protected static String RUM_STATE_PROCESSOR_KEY = RUMStateProcessor.class.getName();
-    private static String UNKNOWN_JSP = "UNKNOWN";
+    protected static final String RUM_STATE_PROCESSOR_KEY = RUMStateProcessor.class.getName();
+    private static final String UNKNOWN_JSP = "UNKNOWN";
     private static final Pattern COMMENT_PATTERN = Pattern.compile("<!\\s*--.*?--\\s*\\>", Pattern.CASE_INSENSITIVE
             | Pattern.DOTALL);
 
