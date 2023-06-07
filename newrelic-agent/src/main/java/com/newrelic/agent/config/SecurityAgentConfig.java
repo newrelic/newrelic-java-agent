@@ -42,13 +42,17 @@ public class SecurityAgentConfig {
     public static final String SECURITY_DETECTION_DESERIALIZATION_ENABLED = "security.detection.deserialization.enabled";
     public static final boolean SECURITY_DETECTION_DESERIALIZATION_ENABLED_DEFAULT = true;
     private static final Config config = NewRelic.getAgent().getConfig();
+    private static final String ENABLED = "enabled";
+    private static final String DISABLED = "disabled";
 
     /**
      * Create supportability metrics showing the enabled status of the security agent.
      */
     public static void addSecurityAgentConfigSupportabilityMetrics() {
-        NewRelic.incrementCounter("Supportability/Java/Security/Agent/Enabled/" + isSecurityAgentEnabled());
-        NewRelic.incrementCounter("Supportability/Java/Security/Enabled/" + isSecurityEnabled());
+        String enabled = isSecurityEnabled() ? ENABLED : DISABLED;
+        NewRelic.incrementCounter("Supportability/Java/SecurityAgent/Enabled/" + enabled);
+        String agentEnabled = isSecurityAgentEnabled() ? ENABLED : DISABLED;
+        NewRelic.incrementCounter("Supportability/Java/SecurityAgent/Agent/Enabled/" + agentEnabled);
     }
 
     /**
