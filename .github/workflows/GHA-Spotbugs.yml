@@ -80,12 +80,9 @@ jobs:
     needs: spotbugs
     runs-on: ubuntu-20.04
     concurrency: gh-pages
+    env:
+      BRANCH_NAME: ${{ inputs.agent-ref || 'main' }}
     steps:
-      - name: Set branch name env variable
-        env:
-          default_branch: 'main'
-        run: |
-          echo "BRANCH_NAME=${{ inputs.agent-ref ||  env.default_branch }}" >> $GITHUB_ENV
 
       - name: Checkout GhPages branch
         uses: actions/checkout@v3

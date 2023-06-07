@@ -15,12 +15,9 @@ on:
 jobs:
   cleanup:
     runs-on: ubuntu-20.04
+    env:
+      DAYS: ${{ inputs.days || '5' }}
     steps:
-      - name: Set days env variable
-        env:
-          default_days: '5'
-        run: |
-          echo "DAYS=${{ inputs.days ||  env.default_days }}" >> $GITHUB_ENV
       - name: Checkout GH Pages
         uses: actions/checkout@v3
         with:
