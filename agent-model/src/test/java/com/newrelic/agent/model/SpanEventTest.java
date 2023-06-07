@@ -65,6 +65,32 @@ public class SpanEventTest {
         assertNotEquals(span2, span8);
     }
 
+    @Test
+    public void testBuilderMethods(){
+        long now = System.currentTimeMillis();
+
+        SpanEvent.Builder builder = baseBuilder(now);
+        assertEquals(builder.getSpanKindFromUserAttributes(), "client");
+
+        SpanEvent span1 = builder.build();
+        Map<String, String> emptyAttributes = new HashMap<>();
+        SpanEvent span2 = builder.putAllUserAttributesIfAbsent(emptyAttributes).build();
+        assertEquals(span1, span2);
+
+        Map<String, String> newUserAttributes = new HashMap<>();
+        newUserAttributes.put("a", "z");
+        newUserAttributes.put("c", "d");
+        SpanEvent span3 = builder.putAllUserAttributesIfAbsent(newUserAttributes).build();
+        assertEquals(span3.getUserAttributesCopy().get("a"), "b");
+        assertEquals(span3.getUserAttributesCopy().get("c"), "d");
+
+        SpanEvent span4 = builder.putAgentAttribute("baz", "thud").build();
+        assertEquals(span4.getAgentAttributes().get("baz"), "thud");
+
+        SpanEvent span5 = builder.putIntrinsic("tiger", "mouse").build();
+        assertEquals(span5.getIntrinsics().get("tiger"), "mouse");
+    }
+
     private SpanEvent.Builder baseBuilderExtraUser(long now, String extraUserAttr, String value) {
         return baseBuilder(now).putAllUserAttributes(singletonMap(extraUserAttr, value));
     }
