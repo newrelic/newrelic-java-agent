@@ -224,7 +224,12 @@ test {
 jacocoTestReport {
 
     dependsOn test
-
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/*NoOp*.class'])
+        }))
+    }
     reports {
         xml.required = true
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
