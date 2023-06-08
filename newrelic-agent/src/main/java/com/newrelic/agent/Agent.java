@@ -9,7 +9,12 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AgentJarHelper;
+import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.JarResource;
+import com.newrelic.agent.config.JavaVersionUtils;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -49,7 +54,9 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import static com.newrelic.agent.config.SecurityAgentConfig.*;
+import static com.newrelic.agent.config.SecurityAgentConfig.isSecurityEnabled;
+import static com.newrelic.agent.config.SecurityAgentConfig.shouldInitializeSecurityAgent;
+import static com.newrelic.agent.config.SecurityAgentConfig.addSecurityAgentConfigSupportabilityMetrics;
 
 /**
  * New Relic Agent class. The premain you see here is but a fleeting shadow of the true premain. The real premain,
@@ -239,7 +246,7 @@ public final class Agent {
                 ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
                     @Override
                     public void connected(IRPMService rpmService, AgentConfig agentConfig) {
-                        if(isSecurityEnabled()) {
+                        if (isSecurityEnabled()) {
                             try {
                                 URL securityJarURL = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.NEWRELIC_SECURITY_AGENT).toURI().toURL();
                                 LOG.log(Level.INFO, "Connected to New Relic. Starting New Relic Security module");
