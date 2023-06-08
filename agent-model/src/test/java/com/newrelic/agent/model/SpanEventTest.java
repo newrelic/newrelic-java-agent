@@ -81,14 +81,14 @@ public class SpanEventTest {
         newUserAttributes.put("a", "z");
         newUserAttributes.put("c", "d");
         SpanEvent span3 = builder.putAllUserAttributesIfAbsent(newUserAttributes).build();
-        assertEquals(span3.getUserAttributesCopy().get("a"), "b");
-        assertEquals(span3.getUserAttributesCopy().get("c"), "d");
+        assertEquals("b", span3.getUserAttributesCopy().get("a"));
+        assertEquals("d", span3.getUserAttributesCopy().get("c"));
 
         SpanEvent span4 = builder.putAgentAttribute("baz", "thud").build();
-        assertEquals(span4.getAgentAttributes().get("baz"), "thud");
+        assertEquals("thud", span4.getAgentAttributes().get("baz"));
 
         SpanEvent span5 = builder.putIntrinsic("tiger", "mouse").build();
-        assertEquals(span5.getIntrinsics().get("tiger"), "mouse");
+        assertEquals("mouse", span5.getIntrinsics().get("tiger"));
     }
 
     private SpanEvent.Builder baseBuilderExtraUser(long now, String extraUserAttr, String value) {
