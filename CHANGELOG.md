@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed Cats Effect 2 Logging: Addressed issues with Cats Effect 2 logging for better reliability [1269](https://github.com/newrelic/newrelic-java-agent/pull/1269)
 
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.2.0...v8.3.0
+
 
 ## Version 8.2.0 
 ### New features and improvements
@@ -36,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix failure with browser agent auto injection for tomcat versions 8.5.87+ and 9.0.74+ https://github.com/newrelic/newrelic-java-agent/pull/1225 
 
-**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.2.0...v8.3.0
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.1.0...v8.2.0
 
 ## Version 8.1.0 
 ### New features and improvements
