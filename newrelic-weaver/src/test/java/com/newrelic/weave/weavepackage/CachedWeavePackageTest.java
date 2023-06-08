@@ -16,6 +16,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 
+import com.newrelic.weave.utils.ClassCache;
+import com.newrelic.weave.utils.ClassLoaderFinder;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
@@ -24,6 +27,13 @@ import com.google.common.collect.ImmutableSet;
  * CachedWeavePackageTest.java
  */
 public class CachedWeavePackageTest {
+
+    public static ClassLoader classloader;
+
+    @BeforeClass
+    public static void init() throws IOException {
+        classloader = Thread.currentThread().getContextClassLoader();
+    }
 
     @Test
     public void testHasMatcher() throws IOException {
@@ -79,5 +89,53 @@ public class CachedWeavePackageTest {
                 ImmutableSet.of("java.lang.String"), ImmutableSet.of("something/or/other"), Collections.<String> emptySet(),
                 Collections.<String> emptySet(), null);
         assertTrue(weavePackage.weavesBootstrap());
+    }
+
+    @Test
+    public void testValidateSuccess() throws MalformedURLException, IOException {
+        CachedWeavePackage weavePackage = new CachedWeavePackage(
+                new URL("http://www.newrelic.com"),
+                WeavePackageConfig.builder().name("name").source("source").build(),
+                ImmutableSet.of("somemethod"),
+                ImmutableSet.of("java.lang.String"),
+                ImmutableSet.of("com/newrelic/weave/weavepackage/testclasses/ShadowedWeaveClass"),
+                ImmutableSet.of("something/not/there"), // illegal classes
+                Collections.<String> emptySet(),
+                null);
+        ClassCache cache = new ClassCache(new ClassLoaderFinder(classloader));
+        PackageValidationResult result = weavePackage.validate(cache);
+        assertTrue(result.succeeded());
+    }
+
+    @Test
+    public void testValidateFailRequiedClasses() throws MalformedURLException, IOException {
+        CachedWeavePackage weavePackage = new CachedWeavePackage(
+                new URL("http://www.newrelic.com"),
+                WeavePackageConfig.builder().name("name").source("source").build(),
+                ImmutableSet.of("somemethod"),
+                ImmutableSet.of("java.lang.String"),
+                ImmutableSet.of("something/random"), // required classes
+                Collections.<String> emptySet(),
+                Collections.<String> emptySet(),
+                null);
+        ClassCache cache = new ClassCache(new ClassLoaderFinder(classloader));
+        PackageValidationResult result = weavePackage.validate(cache);
+        assertTrue(!result.succeeded());
+    }
+
+    @Test
+    public void testValidateFailIllegalClasses() throws MalformedURLException, IOException {
+        CachedWeavePackage weavePackage = new CachedWeavePackage(
+                new URL("http://www.newrelic.com"),
+                WeavePackageConfig.builder().name("name").source("source").build(),
+                ImmutableSet.of("somemethod"),
+                ImmutableSet.of("java.lang.String"),
+                Collections.<String> emptySet(),
+                ImmutableSet.of("com/newrelic/weave/weavepackage/testclasses/ShadowedWeaveClass"),
+                Collections.<String> emptySet(),
+                null);
+        ClassCache cache = new ClassCache(new ClassLoaderFinder(classloader));
+        PackageValidationResult result = weavePackage.validate(cache);
+        assertTrue(!result.succeeded());
     }
 }
