@@ -18,6 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.Assert.*;
+
 public class InsertOnlyArrayTest {
 
     @Test
@@ -64,5 +66,25 @@ public class InsertOnlyArrayTest {
         for (Entry<Integer, Integer> entry : map.entrySet()) {
             Assert.assertEquals(entry.getValue(), array.get(entry.getKey()));
         }
+    }
+
+    @Test
+    public void getIndex_whenElementDoesNotExist_returnsNegative() {
+        InsertOnlyArray<Integer> array = new InsertOnlyArray<>(10);
+        array.add(1);
+        array.add(2);
+        array.add(3);
+
+        assertEquals(-1, array.getIndex(100));
+    }
+
+    @Test
+    public void getIndex_whenElementExists_returnsIndex() {
+        InsertOnlyArray<Integer> array = new InsertOnlyArray<>(10);
+        array.add(1);
+        array.add(2);
+        array.add(3);
+
+        assertEquals(2, array.getIndex(3));
     }
 }

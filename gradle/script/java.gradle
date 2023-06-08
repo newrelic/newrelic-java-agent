@@ -227,7 +227,8 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it,
-                    exclude: ['**/*NoOp*.class'])
+                    exclude: ['**/*NoOp*.class', '**/*Exception.class', '**/*Error.class', '**/com/newrelic/agent/DummyTransaction.class',
+                              '**/com/newrelic/agent/InternalLimitExceeded.class'])
         }))
     }
     reports {
