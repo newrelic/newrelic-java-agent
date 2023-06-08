@@ -89,3 +89,89 @@ jobs:
           # that were leftover in unrelated modules for functional and instrumentation tests.
           path: |
             **/build/reports/tests/*
+
+      - name: Checkout GhPages branch
+        if: ${{ failure() }}
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          path: 'gh-pages'
+
+      - name: Configure Git
+        if: ${{ failure() }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      - name: Download test reports Java ${{ matrix.java-version }}
+        if: ${{ failure() }}
+        uses: actions/download-artifact@v3
+        with:
+          name: unit-tests-results-java-${{ matrix.java-version }}
+          path: gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
+
+      - name: Set up Python
+        if: ${{ failure() }}
+        uses: actions/setup-python@v3
+
+      #This step executes a Python script that reads and writes html.
+      #The script requires the beautifulsoup dependency, which parses html.
+      #For details, view the utils/README.md on the gh-pages branch.
+      - name: Generate Test Reports page
+        if: ${{ failure() }}
+        run: |
+          pip install beautifulsoup4
+          python gh-pages/utils/writeTestsFailuresPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
+
+      - name: Commit and push test reports to gh-pages
+        if: ${{ failure() }}
+        run: |
+          cd gh-pages
+          git add -f reports/*
+          git commit -m "Update test reports"
+          git pull --rebase
+          git push
+
+  index:
+    name: Write Index Pages
+    needs: unit-test
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout GhPages branch
+        uses: actions/checkout@v3
+        with:
+            ref: 'gh-pages'
+            path: 'gh-pages'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+
+      - name: Generate Index Pages
+        run: |
+          python gh-pages/utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}
+          python gh-pages/utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}
+
+      #For cleanup purposes
+      - name: Add date file
+        run: |
+          date -u +%s > gh-pages/reports/${{ inputs.agent-ref }}/date.txt
+          date -u +%s > gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/date.txt
+
+      - name: Commit and push test reports to gh-pages
+        run: |
+          cd gh-pages
+          git add -f reports/*
+          git commit -m "Update test reports"
+          git push
+
+      - name: Gh Pages Summary
+        run: |
+          echo "[View test reports](https://newrelic.github.io/newrelic-java-agent/reports/${{ inputs.agent-ref }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
