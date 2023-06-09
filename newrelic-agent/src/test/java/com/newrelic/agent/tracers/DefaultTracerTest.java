@@ -415,6 +415,15 @@ public class DefaultTracerTest {
 
     @Test
     public void testTokenRefToken() throws URISyntaxException {
+        testTokenRefRoken(false);
+    }
+
+    @Test
+    public void testTokenRefTokenSql() throws URISyntaxException {
+        testTokenRefRoken(true);
+    }
+
+    private void testTokenRefRoken(boolean isSqlTracer) throws URISyntaxException {
         TransactionActivity.clear();
         Transaction.clearTransaction();
         Transaction tx = Transaction.getTransaction();
@@ -431,8 +440,48 @@ public class DefaultTracerTest {
         final AgentBridge.TokenAndRefCount tokenAndRefCount = new AgentBridge.TokenAndRefCount(token, root, new AtomicInteger(1));
         AgentBridge.activeToken.set(tokenAndRefCount);
 
-        DefaultTracer tracer = (DefaultTracer) AgentBridge.instrumentation.createTracer(null, 0, "iamyourchild",
-                DefaultTracer.DEFAULT_TRACER_FLAGS);
+        DefaultTracer tracer = (DefaultTracer)
+                (isSqlTracer ?
+                    AgentBridge.instrumentation.createSqlTracer(null, 0,
+                            "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS) :
+                    AgentBridge.instrumentation.createTracer(null, 0,
+                            "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS));
+
+        Assert.assertNotNull(tracer);
+
+        root.finish(0, null);
+        assertClmAbsent(root);
+        assertClmAbsent(tracer);
+    }
+
+    @Test
+    public void testCreateTracerNoToken() {
+        testCreateTracerNoToken(false);
+    }
+
+    @Test
+    public void testCreateSqlTracerNoToken() {
+        testCreateTracerNoToken(true);
+    }
+
+    public void testCreateTracerNoToken(boolean isSqlTracer) {
+        TransactionActivity.clear();
+        Transaction.clearTransaction();
+        Transaction tx = Transaction.getTransaction();
+        TransactionActivity txa = TransactionActivity.get();
+        Tracer root = new OtherRootTracer(tx, new ClassMethodSignature("com.newrelic.agent.TracedActivityTest",
+                "makeTransaction", "()V"), null, DefaultTracer.NULL_METRIC_NAME_FORMATTER);
+        txa.tracerStarted(root);
+
+        TransactionActivity.clear();
+        Transaction.clearTransaction();
+
+        DefaultTracer tracer = (DefaultTracer)
+                (isSqlTracer ?
+                        AgentBridge.instrumentation.createSqlTracer(null, 0,
+                                "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS | TracerFlags.DISPATCHER) :
+                        AgentBridge.instrumentation.createTracer(null, 0,
+                                "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS | TracerFlags.DISPATCHER));
 
         Assert.assertNotNull(tracer);
 
