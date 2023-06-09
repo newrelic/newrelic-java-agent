@@ -59,9 +59,11 @@ public class BootstrapLoader {
 
     static final class ApiClassTransformer implements ClassFileTransformer {
         private final byte[] bytes;
+        private final String apiClassName;
 
-        ApiClassTransformer(byte[] bytes) {
+        ApiClassTransformer(String apiClassName, byte[] bytes) {
             this.bytes = bytes;
+            this.apiClassName = apiClassName;
         }
 
         @Override
@@ -72,29 +74,7 @@ public class BootstrapLoader {
                 return null;
             }
 
-            if (NEWRELIC_API_INTERNAL_CLASS_NAME.equals(className)) {
-                return bytes;
-            }
-            return null;
-        }
-    }
-
-    static final class SecurityApiClassTransformer implements ClassFileTransformer {
-        private final byte[] bytes;
-
-        SecurityApiClassTransformer(byte[] bytes) {
-            this.bytes = bytes;
-        }
-
-        @Override
-        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-
-            if (className == null) {
-                return null;
-            }
-
-            if (NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME.equals(className)) {
+            if (apiClassName.equals(className)) {
                 return bytes;
             }
             return null;
@@ -117,7 +97,7 @@ public class BootstrapLoader {
         JarFile bridgeJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(AGENT_BRIDGE_JAR_NAME));
         JarEntry jarEntry = bridgeJarFile.getJarEntry(NEWRELIC_API_INTERNAL_CLASS_NAME + ".class");
         final byte[] bytes = read(bridgeJarFile.getInputStream(jarEntry), true);
-        instrProxy.addTransformer(new ApiClassTransformer(bytes), true);
+        instrProxy.addTransformer(new ApiClassTransformer(NEWRELIC_API_INTERNAL_CLASS_NAME, bytes), true);
     }
 
     /**
@@ -128,7 +108,7 @@ public class BootstrapLoader {
         JarFile securityAgentJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT));
         JarEntry jarEntry = securityAgentJarFile.getJarEntry(NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME + ".class");
         final byte[] bytes = read(securityAgentJarFile.getInputStream(jarEntry), true);
-        instrProxy.addTransformer(new SecurityApiClassTransformer(bytes), true);
+        instrProxy.addTransformer(new ApiClassTransformer(NEWRELIC_SECURITY_API_INTERNAL_CLASS_NAME, bytes), true);
         instrProxy.retransformClasses(NewRelicSecurity.class);
     }
 
