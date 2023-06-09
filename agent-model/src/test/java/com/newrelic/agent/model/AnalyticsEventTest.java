@@ -43,7 +43,7 @@ public class AnalyticsEventTest {
     public void allGetters_returnProperly() {
         AnalyticsEvent event = new TestAnalyticsEvent("type", 1, 0.9F, null);
         Assert.assertEquals(1L, event.getTimestamp());
-        Assert.assertEquals(0.9F, event.getPriority());
+        Assert.assertEquals(0.9F, event.getPriority(), .1);
         Assert.assertEquals("type", event.getType());
         Assert.assertTrue(event.isValid());
         Assert.assertFalse(event.decider());

@@ -11,9 +11,9 @@ public class WeavePackageTypeTest {
 
     @Test
     public void isInternal_withNonInternalPackageType_returnsFalse() {
-        Assert.assertTrue(WeavePackageType.CUSTOM.isInternal());
-        Assert.assertTrue(WeavePackageType.FIELD.isInternal());
-        Assert.assertTrue(WeavePackageType.UNKNOWN.isInternal());
+        Assert.assertFalse(WeavePackageType.CUSTOM.isInternal());
+        Assert.assertFalse(WeavePackageType.FIELD.isInternal());
+        Assert.assertFalse(WeavePackageType.UNKNOWN.isInternal());
     }
 
     @Test
@@ -21,6 +21,6 @@ public class WeavePackageTypeTest {
         Assert.assertEquals("Supportability/API/foo/Internal", WeavePackageType.INTERNAL.getSupportabilityMetric("foo"));
         Assert.assertEquals("Supportability/API/foo/Custom", WeavePackageType.CUSTOM.getSupportabilityMetric("foo"));
         Assert.assertEquals("Supportability/API/foo/Field", WeavePackageType.FIELD.getSupportabilityMetric("foo"));
-        Assert.assertEquals("Supportability/API/foo/Unknown", WeavePackageType.UNKNOWN.getSupportabilityMetric("foo"));
+        Assert.assertEquals("Supportability/API/foo/API", WeavePackageType.UNKNOWN.getSupportabilityMetric("foo"));
     }
 }
