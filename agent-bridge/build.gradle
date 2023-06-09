@@ -7,16 +7,37 @@ plugins {
 
 apply from: '../gradle/script/spotbugs-config.gradle'
 
-dependencies {
-    api(project(":newrelic-api"))
-    api(project(":newrelic-weaver-api"))
-
-    testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
+jar {
+    from("$rootDir/LICENSE")
+    manifest {
+        attributes 'Implementation-Title': 'New Relic Bridge', 'Implementation-Version': project.version
+    }
 }
 
 java {
     withSourcesJar()
     withJavadocJar()
+}
+
+tasks.withType(GenerateModuleMetadata.class) {
+    enabled = false
+}
+
+
+tasks.withType(Javadoc).configureEach {
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+
+    options.addBooleanOption("-frames", true)
+    options.addBooleanOption("-no-module-directories", true)
+}
+
+dependencies {
+    api(project(":newrelic-api"))
+    api(project(":newrelic-weaver-api"))
+
+    testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
 }
 
 PublishConfig.config(

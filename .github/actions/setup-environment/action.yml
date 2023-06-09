@@ -2,8 +2,7 @@ name: Setup Environment
 description:  Sets up the environment to build/test the agent.
 # This action expects the agent to be checked out at $GITHUB_WORKSPACE.
 # It will also set up the instrumentation jar zip if AWS credentials are set.
-# This action requires these because composite actions cannot use secrets and
-# for a composite action to be run, the repo must be checked out.
+# This action requires these because composite actions cannot use secrets.
 
 runs:
   using: composite

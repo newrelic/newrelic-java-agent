@@ -514,6 +514,7 @@ public class WeavePackageManager {
                 if (null != packageListener) {
                     packageListener.validated(verificationResult, classloader);
                 }
+
                 if ((classloader == BootstrapLoader.PLACEHOLDER && !this.canWeaveBootstrapClassLoader())
                         || (!verificationResult.succeeded())) {
                     ConcurrentMap<WeavePackage, PackageValidationResult> result = invalidPackages.asMap().putIfAbsent(

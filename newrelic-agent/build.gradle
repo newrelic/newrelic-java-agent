@@ -16,6 +16,7 @@ apply from: '../gradle/script/spotbugs-config.gradle'
 
 repositories {
     mavenCentral()
+    mavenLocal()
     jcenter()
 }
 
@@ -61,6 +62,8 @@ dependencies {
     jarIntoJar project(":agent-bridge-datastore")
     jarIntoJar project(":newrelic-weaver-api")
     jarIntoJar project(":newrelic-weaver-scala-api")
+    jarIntoJar("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
+    jarIntoJar("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
 
     shadowIntoJar project(":agent-interfaces")
     shadowIntoJar project(":agent-model")
@@ -263,6 +266,7 @@ task newrelicVersionedAgentJar(type: Jar) {
     // All projects have the same version, so we can safely remove this version from the name.
     from(project.configurations.jarIntoJar) {
         rename("-${project.version}", "")
+        rename("-${securityAgentVersion}", "")
     }
 
     from(zipTree(project.tasks['transformedShadowJar'].archiveFile.get().asFile.path))

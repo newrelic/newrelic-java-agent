@@ -171,8 +171,9 @@ public class InstrumentationContextManager {
 
         final TraceClassTransformer traceTransformer = new TraceClassTransformer();
         manager.classWeaverService.registerInstrumentation();
-        manager.addContextClassTransformer(manager.classWeaverService, manager.classWeaverService);
         AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+        manager.classWeaverService.registerSecurityInstrumentation();
+        manager.addContextClassTransformer(manager.classWeaverService, manager.classWeaverService);
         final boolean defaultMethodTracingEnabled = agentConfig.getClassTransformerConfig()
                 .isDefaultMethodTracingEnabled();
 

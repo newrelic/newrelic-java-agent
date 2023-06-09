@@ -21,6 +21,7 @@ allprojects {
 
     group = 'com.newrelic.agent.java'
     version = agentVersion + (project.findProperty("release") == "true" ? "" : "-SNAPSHOT")
+    version = version + (project.findProperty("release-suffix") != null ? project.findProperty("release-suffix") : "")
 
     idea.module {
         outputDir file('build/classes/main')

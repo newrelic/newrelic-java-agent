@@ -5,6 +5,34 @@ plugins {
     id("signing")
 }
 
+apply from: '../gradle/script/spotbugs-config.gradle'
+
+jar {
+    from("$rootDir/LICENSE")
+    manifest {
+        attributes 'Implementation-Title': 'New Relic Bridge DataStore', 'Implementation-Version': project.version
+    }
+}
+
+tasks.withType(GenerateModuleMetadata.class) {
+    enabled = false
+}
+
+
+tasks.withType(Javadoc).configureEach {
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+
+    options.addBooleanOption("-frames", true)
+    options.addBooleanOption("-no-module-directories", true)
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":newrelic-weaver-api"))
@@ -12,11 +40,6 @@ dependencies {
 
     testImplementation('org.awaitility:awaitility:4.2.0')
     testImplementation(fileTree(dir: 'src/test/resources/com/newrelic/agent/bridge', include: '*.jar'))
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
 }
 
 PublishConfig.config(

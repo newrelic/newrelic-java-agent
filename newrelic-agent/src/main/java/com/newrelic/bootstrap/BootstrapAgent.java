@@ -9,12 +9,14 @@ package com.newrelic.bootstrap;
 
 import com.newrelic.agent.config.IBMUtils;
 import com.newrelic.agent.config.JavaVersionUtils;
+import com.newrelic.agent.config.JbossUtils;
 import com.newrelic.agent.modules.ClassLoaderUtil;
 import com.newrelic.agent.modules.ClassLoaderUtilImpl;
 import com.newrelic.agent.modules.HttpModuleUtil;
 import com.newrelic.agent.modules.HttpModuleUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -111,6 +113,7 @@ public class BootstrapAgent {
         }
 
         checkAndApplyIBMLibertyProfileLogManagerWorkaround();
+        JbossUtils.checkAndApplyJbossAdjustments(inst);
         startAgent(agentArgs, inst);
     }
 

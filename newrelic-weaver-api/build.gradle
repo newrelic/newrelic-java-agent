@@ -6,6 +6,7 @@ plugins {
 }
 
 jar {
+    from("$rootDir/LICENSE")
     manifest {
         attributes 'Implementation-Title': 'New Relic Weaver API', 'Implementation-Version': project.version
     }
@@ -16,9 +17,23 @@ java {
     withJavadocJar()
 }
 
+tasks.withType(GenerateModuleMetadata.class) {
+    enabled = false
+}
+
+
+tasks.withType(Javadoc).configureEach {
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+
+    options.addBooleanOption("-frames", true)
+    options.addBooleanOption("-no-module-directories", true)
+}
+
 PublishConfig.config(
         project,
         "New Relic Java agent Weaver API",
-        "The Weaver API of the Java agent.") { it ->
+        "The public API of the Java agent Weaver module, and no-op implementations for safe usage without the agent.") { it ->
     it.from(components.java)
 }
