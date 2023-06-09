@@ -61,7 +61,9 @@ public class SecurityAgentConfig {
      * @return True if security agent should be initialized, false if not
      */
     public static boolean shouldInitializeSecurityAgent() {
-        return config.getValue(SECURITY_AGENT_ENABLED, SECURITY_AGENT_ENABLED_DEFAULT) && (config.getValue(SECURITY_ENABLED) != null);
+        return !config.getValue(AgentConfigImpl.HIGH_SECURITY, AgentConfigImpl.DEFAULT_HIGH_SECURITY) &&
+                config.getValue(SECURITY_AGENT_ENABLED, SECURITY_AGENT_ENABLED_DEFAULT) &&
+                (config.getValue(SECURITY_ENABLED) != null);
     }
 
     /**
@@ -70,7 +72,8 @@ public class SecurityAgentConfig {
      * @return True if security agent should be enabled, false if it should be completely disabled
      */
     public static boolean isSecurityAgentEnabled() {
-        return config.getValue(SECURITY_AGENT_ENABLED, SECURITY_AGENT_ENABLED_DEFAULT);
+        return config.getValue(SECURITY_AGENT_ENABLED, SECURITY_AGENT_ENABLED_DEFAULT) &&
+                !config.getValue(AgentConfigImpl.HIGH_SECURITY, AgentConfigImpl.DEFAULT_HIGH_SECURITY);
     }
 
     /**
@@ -79,7 +82,8 @@ public class SecurityAgentConfig {
      * @return True if security agent should send data, false if it should not
      */
     public static boolean isSecurityEnabled() {
-        return config.getValue(SECURITY_ENABLED, SECURITY_ENABLED_DEFAULT);
+        return config.getValue(SECURITY_ENABLED, SECURITY_ENABLED_DEFAULT) &&
+                !config.getValue(AgentConfigImpl.HIGH_SECURITY, AgentConfigImpl.DEFAULT_HIGH_SECURITY);
     }
 
     /**
