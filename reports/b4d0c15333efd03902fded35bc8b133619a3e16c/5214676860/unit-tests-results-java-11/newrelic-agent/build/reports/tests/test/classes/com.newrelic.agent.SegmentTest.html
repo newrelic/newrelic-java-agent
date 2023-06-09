@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">16.674s</div>
+<div class="counter">16.688s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,52 +79,52 @@
 </thead>
 <tr>
 <td class="success">confirmTxnGc</td>
-<td class="success">0.029s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testAsync</td>
 <td class="success">0.030s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testAsync</td>
+<td class="success">0.018s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testAsyncContextAttributeEndSameThread</td>
-<td class="success">0.343s</td>
+<td class="success">0.260s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testAsyncNamedTracedActivity</td>
-<td class="success">0.020s</td>
+<td class="success">0.012s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testAsyncSegmentWithTimeout</td>
-<td class="success">7.013s</td>
+<td class="success">7.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testAsyncWithTimeout</td>
-<td class="success">3.508s</td>
+<td class="success">3.511s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testAsyncWithoutTimeout</td>
-<td class="success">0.008s</td>
+<td class="success">0.011s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testCorrectParenting</td>
-<td class="success">0.003s</td>
+<td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testDefaultTracedActivityName</td>
-<td class="success">0.004s</td>
+<td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testEndSameThread</td>
-<td class="success">0.015s</td>
+<td class="success">0.009s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -134,42 +134,42 @@
 </tr>
 <tr>
 <td class="success">testExclusiveTimeAsync</td>
-<td class="success">0.065s</td>
+<td class="success">0.076s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testIgnore</td>
-<td class="success">0.006s</td>
+<td class="success">0.008s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testIgnoreAsync</td>
-<td class="success">0.022s</td>
+<td class="success">0.024s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testIgnoreTransaction</td>
-<td class="success">0.003s</td>
+<td class="success">0.004s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testMetricMigration</td>
-<td class="success">0.003s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testMetricMigrationAsync</td>
 <td class="success">0.009s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">testPsuedoAsync1</td>
+<td class="success">testMetricMigrationAsync</td>
 <td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testPsuedoAsync1</td>
+<td class="success">0.029s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testPsuedoAsync2</td>
-<td class="success">0.034s</td>
+<td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -179,27 +179,27 @@
 </tr>
 <tr>
 <td class="success">testSegmentAddCustomAttributeAsync</td>
-<td class="success">0.012s</td>
+<td class="success">0.013s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSegmentAddCustomAttributeSync</td>
-<td class="success">0.002s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSegmentTracerAttributes</td>
-<td class="success">0.011s</td>
+<td class="success">0.022s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSpanParenting</td>
-<td class="success">0.095s</td>
+<td class="success">0.113s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSyncNamedTracedActivity</td>
-<td class="success">0.004s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -209,7 +209,7 @@
 </tr>
 <tr>
 <td class="success">testTxnAttrSegmentTimeout</td>
-<td class="success">5.401s</td>
+<td class="success">5.441s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -217,19 +217,48 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-06-08T19:27:48,894+0000 [30755 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:27:48,923+0000 [30755 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:27:48,926+0000 [30755 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:27:49,033+0000 [30755 1] com.newrelic INFO: The property traced_activity_timeout is deprecated. Change to segment_timeout
-2023-06-08T19:27:52,641+0000 [30755 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:27:52,642+0000 [30755 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:27:52,642+0000 [30755 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:27:52,817+0000 [30755 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-06-08T19:27:56,438+0000 [30755 1] com.newrelic INFO: Segment timed out after 3 seconds. The &quot;segment_timeout&quot; configuration parameter can be used to adjust this timeout. The affected transaction name is &quot;BAR/BAZ&quot;.
+<pre>2023-06-09T12:38:35,859+0000 [30753 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:38:35,903+0000 [30753 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:38:35,907+0000 [30753 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:38:36,022+0000 [30753 1] com.newrelic INFO: The property traced_activity_timeout is deprecated. Change to segment_timeout
+2023-06-09T12:38:39,565+0000 [30753 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:38:39,567+0000 [30753 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:38:39,568+0000 [30753 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:38:39,734+0000 [30753 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-06-09T12:38:43,287+0000 [30753 1] com.newrelic INFO: Segment timed out after 3 seconds. The &quot;segment_timeout&quot; configuration parameter can be used to adjust this timeout. The affected transaction name is &quot;BAR/BAZ&quot;.
 
-2023-06-08T19:28:02,567+0000 [30755 17] com.newrelic INFO: Segment timed out after 3 seconds. The &quot;segment_timeout&quot; configuration parameter can be used to adjust this timeout. The affected transaction name is &quot;timeout&quot;.
+2023-06-09T12:38:49,501+0000 [30753 17] com.newrelic INFO: Segment timed out after 3 seconds. The &quot;segment_timeout&quot; configuration parameter can be used to adjust this timeout. The affected transaction name is &quot;timeout&quot;.
 
-2023-06-08T19:28:07,578+0000 [30755 27] com.newrelic INFO: Segment timed out after 3 seconds. The &quot;segment_timeout&quot; configuration parameter can be used to adjust this timeout. The affected transaction name is &quot;BAR/BAZ&quot;.
+2023-06-09T12:38:49,506+0000 [30753 17] com.newrelic.agent.TransactionService WARN: Error recording transaction &quot;OtherTransaction/SegmentTimeout/timeout&quot;
+java.lang.NullPointerException: null
+	at com.newrelic.agent.SegmentTest.dispatcherTransactionFinished(SegmentTest.java:1000) ~[test/:?]
+	at com.newrelic.agent.TransactionService.doProcessTransaction(TransactionService.java:150) ~[main/:?]
+	at com.newrelic.agent.TransactionService.transactionFinished(TransactionService.java:103) ~[main/:?]
+	at com.newrelic.agent.Transaction.finishTransaction(Transaction.java:1113) ~[main/:?]
+	at com.newrelic.agent.Transaction.checkFinishTransaction(Transaction.java:2425) ~[main/:?]
+	at com.newrelic.agent.Transaction.checkFinishTransaction(Transaction.java:2411) ~[main/:?]
+	at com.newrelic.agent.Transaction.activityFinished(Transaction.java:2510) ~[main/:?]
+	at com.newrelic.agent.TransactionActivity.finished(TransactionActivity.java:420) ~[main/:?]
+	at com.newrelic.agent.TransactionActivity.tracerFinished(TransactionActivity.java:369) ~[main/:?]
+	at com.newrelic.agent.tracers.DefaultTracer.performFinishWork(DefaultTracer.java:312) ~[main/:?]
+	at com.newrelic.agent.tracers.DefaultTracer.finish(DefaultTracer.java:236) ~[main/:?]
+	at com.newrelic.agent.Transaction.finishTracer(Transaction.java:2367) ~[main/:?]
+	at com.newrelic.agent.Transaction.finishSegment(Transaction.java:2362) ~[main/:?]
+	at com.newrelic.agent.Segment$1.run(Segment.java:202) ~[main/:?]
+	at com.newrelic.agent.ExpirationService.expireSegmentInline(ExpirationService.java:47) ~[main/:?]
+	at com.newrelic.agent.Segment.finish(Segment.java:214) ~[main/:?]
+	at com.newrelic.agent.Segment.end(Segment.java:144) ~[main/:?]
+	at com.newrelic.agent.Transaction.checkExpireTracedActivities(Transaction.java:2458) ~[main/:?]
+	at com.newrelic.agent.Transaction.cleanUp(Transaction.java:1227) ~[main/:?]
+	at com.newrelic.agent.TransactionService.processQueue(TransactionService.java:76) ~[main/:?]
+	at com.newrelic.agent.TransactionService.lambda$new$0(TransactionService.java:66) ~[main/:?]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515) [?:?]
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:305) [?:?]
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305) [?:?]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128) [?:?]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628) [?:?]
+	at java.lang.Thread.run(Thread.java:829) [?:?]
+2023-06-09T12:38:52,538+0000 [30753 17] com.newrelic INFO: Segment timed out after 3 seconds. The &quot;segment_timeout&quot; configuration parameter can be used to adjust this timeout. The affected transaction name is &quot;BAR/BAZ&quot;.
 
 </pre>
 </span>
@@ -242,7 +271,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jun 8, 2023 7:46:21 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jun 9, 2023 12:55:40 PM</p>
 </div>
 </div>
 </body>
