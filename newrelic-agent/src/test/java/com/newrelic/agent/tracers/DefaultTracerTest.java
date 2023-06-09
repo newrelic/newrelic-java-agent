@@ -464,7 +464,6 @@ public class DefaultTracerTest {
         testCreateTracerNoToken(true);
     }
 
-    @Test
     public void testCreateTracerNoToken(boolean isSqlTracer) {
         TransactionActivity.clear();
         Transaction.clearTransaction();
