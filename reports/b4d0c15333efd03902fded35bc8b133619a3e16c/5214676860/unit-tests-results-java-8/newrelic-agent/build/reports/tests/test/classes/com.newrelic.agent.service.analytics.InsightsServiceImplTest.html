@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">15.142s</div>
+<div class="counter">15.408s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,42 +79,42 @@
 </thead>
 <tr>
 <td class="success">testAnalyticsEventValid</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testCustomEventFasterHarvest</td>
-<td class="success">14.538s</td>
+<td class="success">14.750s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testHarvestableConfigure</td>
-<td class="success">0.017s</td>
+<td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testHighSecurity</td>
-<td class="success">0.017s</td>
+<td class="success">0.020s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testNoTransaction</td>
-<td class="success">0.050s</td>
+<td class="success">0.040s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testTransactionHarvest</td>
-<td class="success">0.393s</td>
+<td class="success">0.456s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithTransaction</td>
-<td class="success">0.025s</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithTransaction_JAVA2614Regression</td>
-<td class="success">0.102s</td>
+<td class="success">0.105s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -122,76 +122,76 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-06-08T19:36:43,915+0000 [32902 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-06-08T19:36:43,941+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:43,946+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:45,584+0000 [32902 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-06-08T19:36:45,711+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:45,712+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:45,712+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:46,144+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:46,144+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:46,145+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:56,954+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:56,954+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:56,954+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,120+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,120+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,121+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,127+0000 [32902 1] com.newrelic WARN: Custom event with invalid type of invalid-type was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
-2023-06-08T19:36:57,127+0000 [32902 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
-2023-06-08T19:36:57,129+0000 [32902 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,130+0000 [32902 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
-2023-06-08T19:36:57,131+0000 [32902 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
-2023-06-08T19:36:57,132+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,133+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
-2023-06-08T19:36:57,215+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,216+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,219+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,225+0000 [32902 1] com.newrelic INFO: The property async_timeout is deprecated. Change to token_timeout
-2023-06-08T19:36:57,236+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,237+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,238+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,240+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,241+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,242+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,252+0000 [32902 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
-2023-06-08T19:36:57,254+0000 [32902 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,256+0000 [32902 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
-2023-06-08T19:36:57,258+0000 [32902 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
-2023-06-08T19:36:57,259+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,260+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
-2023-06-08T19:36:57,339+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,340+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,340+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,364+0000 [32902 1] com.newrelic WARN: Custom event with invalid type of invalid-type was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
-2023-06-08T19:36:57,365+0000 [32902 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
-2023-06-08T19:36:57,369+0000 [32902 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,371+0000 [32902 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
-2023-06-08T19:36:57,373+0000 [32902 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
-2023-06-08T19:36:57,376+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,377+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
-2023-06-08T19:36:57,391+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,391+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,393+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,395+0000 [32902 1] com.newrelic INFO: The property async_timeout is deprecated. Change to token_timeout
-2023-06-08T19:36:57,398+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,398+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,400+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,407+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,408+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,409+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,412+0000 [32902 1] com.newrelic INFO: The property async_timeout is deprecated. Change to token_timeout
-2023-06-08T19:36:57,415+0000 [32902 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-06-08T19:36:57,415+0000 [32902 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-06-08T19:36:57,416+0000 [32902 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-06-08T19:36:57,425+0000 [32902 1] com.newrelic WARN: Custom event with invalid type of invalid-type was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
-2023-06-08T19:36:57,426+0000 [32902 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
-2023-06-08T19:36:57,427+0000 [32902 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,428+0000 [32902 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
-2023-06-08T19:36:57,429+0000 [32902 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
-2023-06-08T19:36:57,430+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
-2023-06-08T19:36:57,430+0000 [32902 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
+<pre>2023-06-09T12:56:22,955+0000 [33138 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-09T12:56:22,974+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:22,976+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:24,651+0000 [33138 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-06-09T12:56:24,771+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:24,773+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:24,774+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:25,268+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:25,269+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:25,269+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,146+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,147+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,147+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,346+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,347+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,347+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,361+0000 [33138 1] com.newrelic WARN: Custom event with invalid type of invalid-type was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
+2023-06-09T12:56:36,361+0000 [33138 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
+2023-06-09T12:56:36,364+0000 [33138 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,366+0000 [33138 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
+2023-06-09T12:56:36,368+0000 [33138 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
+2023-06-09T12:56:36,370+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,371+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
+2023-06-09T12:56:36,455+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,456+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,456+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,458+0000 [33138 1] com.newrelic INFO: The property async_timeout is deprecated. Change to token_timeout
+2023-06-09T12:56:36,463+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,463+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,464+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,466+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,467+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,467+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,472+0000 [33138 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
+2023-06-09T12:56:36,473+0000 [33138 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,474+0000 [33138 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
+2023-06-09T12:56:36,475+0000 [33138 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
+2023-06-09T12:56:36,476+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,476+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
+2023-06-09T12:56:36,569+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,569+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,569+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,589+0000 [33138 1] com.newrelic WARN: Custom event with invalid type of invalid-type was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
+2023-06-09T12:56:36,590+0000 [33138 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
+2023-06-09T12:56:36,590+0000 [33138 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,592+0000 [33138 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
+2023-06-09T12:56:36,593+0000 [33138 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
+2023-06-09T12:56:36,593+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,594+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
+2023-06-09T12:56:36,612+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,613+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,613+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,615+0000 [33138 1] com.newrelic INFO: The property async_timeout is deprecated. Change to token_timeout
+2023-06-09T12:56:36,618+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,618+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,618+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,629+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,629+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,630+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,633+0000 [33138 1] com.newrelic INFO: The property async_timeout is deprecated. Change to token_timeout
+2023-06-09T12:56:36,636+0000 [33138 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-06-09T12:56:36,636+0000 [33138 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-09T12:56:36,636+0000 [33138 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-09T12:56:36,649+0000 [33138 1] com.newrelic WARN: Custom event with invalid type of invalid-type was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
+2023-06-09T12:56:36,650+0000 [33138 1] com.newrelic WARN: Custom event with invalid type of null was reported but ignored. Event types must match /^[a-zA-Z0-9:_ ]+$/, be non-null, and less than 256 chars.
+2023-06-09T12:56:36,651+0000 [33138 1] com.newrelic WARN: Custom event [bothNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,652+0000 [33138 1] com.newrelic WARN: Custom event [valueNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: key / Value: [null]
+2023-06-09T12:56:36,653+0000 [33138 1] com.newrelic WARN: Custom event [keyNull] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: value
+2023-06-09T12:56:36,654+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: [null] / Value: [null]
+2023-06-09T12:56:36,655+0000 [33138 1] com.newrelic WARN: Custom event [AllKeyValueCombos] with invalid attributes key or value of null was reported for a transaction but ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: goodKey2 / Value: [null]
 </pre>
 </span>
 </div>
@@ -203,7 +203,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jun 8, 2023 7:43:21 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jun 9, 2023 1:04:16 PM</p>
 </div>
 </div>
 </body>
