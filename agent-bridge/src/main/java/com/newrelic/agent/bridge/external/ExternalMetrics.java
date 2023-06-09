@@ -52,7 +52,7 @@ public class ExternalMetrics {
     public static void makeExternalComponentMetric(TracedMethod method, String host, String library,
             boolean includeOperationInMetric, String uri, String... operations) {
 
-        if (operations.length == 0) {
+        if (operations == null || operations.length == 0) {
             String metricName = MessageFormat.format(METRIC_NAME, host, library);
             method.setMetricNameFormatInfo(metricName, metricName, uri);
         } else {
