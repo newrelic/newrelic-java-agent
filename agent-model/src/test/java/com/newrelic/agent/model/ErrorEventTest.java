@@ -15,8 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ErrorEventTest {
-
-
     @Test
     public void writeJSONString_ErrorEvent_ValidOutput() throws IOException, ParseException {
         ErrorEvent event = baseErrorEvent();
@@ -61,6 +59,11 @@ public class ErrorEventTest {
         JSONArray jsonArray = (JSONArray) parser.parse(json);
         assertEquals(3, jsonArray.size());
 
+    }
+
+    @Test
+    public void isValid_ErrorEvent_returnsTrue() {
+        assertTrue(baseErrorEvent().isValid());
     }
 
     private ErrorEvent baseErrorEvent(){
