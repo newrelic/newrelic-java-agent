@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<BugCollection version="4.7.3" sequence="0" timestamp="1686301767863" analysisTimestamp="1686301767863" release="">
+<BugCollection version="4.7.3" sequence="0" timestamp="1686388559318" analysisTimestamp="1686388559318" release="">
   <Project projectName="newrelic-agent (spotbugsMain)">
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/DummyTransaction$DummyTransactionCache.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/Transaction$4.class</Jar>
@@ -625,9 +625,11 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ErrorCollectorConfigImpl.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/DatastoreConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/JarCollectorConfig.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/SecurityAgentConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/AgentConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/IgnoreErrorConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ServerProp.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/JbossUtils.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/TransactionTracerConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ApplicationLoggingForwardingConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ExternalTracerConfigImpl.class</Jar>
@@ -1017,7 +1019,6 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/instrumentation/weaver/preprocessors/TracedWeaveInstrumentationTracker.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/instrumentation/weaver/preprocessors/AgentPostprocessors.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/instrumentation/weaver/AgentWeaverListener.class</Jar>
-    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/instrumentation/weaver/ClassWeaverService$2.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/instrumentation/weaver/extension/CaffeineBackedExtensionClass.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/instrumentation/weaver/extension/ExtensionHolderFactoryImpl$ExtensionHolderImpl.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/instrumentation/weaver/extension/ExtensionHolderFactoryImpl.class</Jar>
@@ -1231,6 +1232,7 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/TransactionData.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/PrivateApiImpl.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/AsyncApiImpl.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/Agent$1.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/TracerService.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/RPMServiceManager.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/MetricNames.class</Jar>
@@ -1340,6 +1342,8 @@
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver-api/build/classes/java/main</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver-scala-api/build/classes/java/main</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver-scala-api/build/classes/scala/main</AuxClasspathEntry>
+    <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/com.newrelic.agent.java.security/newrelic-security-api/1.0.3-limited-preview/7820ace61159fb19775e57a012a9655e46585c1/newrelic-security-api-1.0.3-limited-preview.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/com.newrelic.agent.java.security/newrelic-security-agent/1.0.3-limited-preview/e8a12805b42082135908582b2f1fe7f8bd7ff562/newrelic-security-agent-1.0.3-limited-preview.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/agent-model/build/classes/java/main</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/infinite-tracing/build/classes/java/main</AuxClasspathEntry>
@@ -1375,7 +1379,7 @@
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/main/java</SrcDir>
   </Project>
   <Errors errors="0" missingClasses="0"></Errors>
-  <FindBugsSummary timestamp="Fri, 9 Jun 2023 09:09:27 +0000" total_classes="0" referenced_classes="0" total_bugs="0" total_size="0" num_packages="0" java_version="1.8.0_372" vm_version="25.372-b07" cpu_seconds="68.14" clock_seconds="52.31" peak_mbytes="546.70" alloc_mbytes="910.50" gc_seconds="3.31">
+  <FindBugsSummary timestamp="Sat, 10 Jun 2023 09:15:59 +0000" total_classes="0" referenced_classes="0" total_bugs="0" total_size="0" num_packages="0" java_version="1.8.0_372" vm_version="25.372-b07" cpu_seconds="53.55" clock_seconds="45.31" peak_mbytes="517.34" alloc_mbytes="910.50" gc_seconds="3.75">
     <FindBugsProfile></FindBugsProfile>
   </FindBugsSummary>
   <ClassFeatures></ClassFeatures>
