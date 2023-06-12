@@ -227,8 +227,19 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it,
-                    exclude: ['**/*NoOp*.class', '**/*Exception.class', '**/*Error.class', '**/com/newrelic/agent/DummyTransaction.class',
-                              '**/com/newrelic/agent/InternalLimitExceeded.class'])
+                    exclude: ['**/*NoOp*.class',
+                              '**/*Exception.class',
+                              '**/*Error.class',
+                              '**/Dummy*.class',
+                              'com/newrelic/agent/InternalLimitExceeded.class',
+                              'com/newrelic/agent/model/ApdexPerfZone.class',
+                              'com/newrelic/agent/model/CountedDuration.class',
+                              'com/newrelic/agent/model/PathHashes.class',
+                              'com/newrelic/agent/model/SpanCategory.class',
+                              'com/newrelic/agent/model/SyntheticsIds.class',
+                              'com/newrelic/agent/model/TimeoutCause.class',
+                              'com/newrelic/agent/model/TransactionTiming.class',
+                              'com/newrelic/agent/bridge/external/*Parameters.class'])
         }))
     }
     reports {
