@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -143,8 +144,10 @@ public class JdbcHelperTest {
         final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
 
         Assert.assertNull(JdbcHelper.getConnectionFactory(connection));
+        Assert.assertFalse(JdbcHelper.connectionFactoryExists(connection));
         JdbcHelper.putConnectionFactory("connUrl1", factory);
         Assert.assertEquals(factory, JdbcHelper.getConnectionFactory(connection));
+        Assert.assertTrue(JdbcHelper.connectionFactoryExists(connection));
     }
 
     @Test
@@ -156,7 +159,30 @@ public class JdbcHelperTest {
         final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
 
         Assert.assertNull(JdbcHelper.getCachedDatabaseName(connection));
+        Assert.assertFalse(JdbcHelper.databaseNameExists(connection));
         JdbcHelper.putDatabaseName("connUrl3", "dbName1");
         Assert.assertEquals("dbName1", JdbcHelper.getCachedDatabaseName(connection));
+        Assert.assertTrue(JdbcHelper.databaseNameExists(connection));
+    }
+
+    @Test
+    public void putAndGetVendor_withValidName_isSucccessful() {
+        DatabaseVendor vendor = Mockito.mock(JdbcDatabaseVendor.class);
+        Mockito.when(vendor.getType()).thenReturn("test");
+        Assert.assertEquals(UnknownDatabaseVendor.INSTANCE, JdbcHelper.getVendor(Driver.class, "jdbc:test"));
+        JdbcHelper.putVendor(Driver.class, vendor);
+        Assert.assertEquals(vendor, JdbcHelper.getVendor(Driver.class, "jdbc:test"));
+
+        // also test to make sure we can get it by the url without a valid class
+        Assert.assertEquals(vendor, JdbcHelper.getVendor(JdbcHelperTest.class, "jdbc:test"));
+    }
+
+    @Test
+    public void getDatabaseName_allCases() throws SQLException {
+        final Connection connection = Mockito.mock(Connection.class);
+        Mockito.when(connection.getCatalog()).thenReturn("myCatalog");
+
+        Assert.assertEquals(JdbcHelper.UNKNOWN, JdbcHelper.getDatabaseName(null));
+        Assert.assertEquals("myCatalog", JdbcHelper.getDatabaseName(connection));
     }
 }
