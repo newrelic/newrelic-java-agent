@@ -7,12 +7,16 @@
 
 package com.newrelic.agent.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import com.newrelic.weave.utils.Streams;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,6 +47,14 @@ public class ClassUtilsTest {
         Assert.assertEquals(method, superDef);
     }
 
+    @Test
+    public void getClassReferences() throws IOException {
+        Set<String> refs = ClassUtils.getClassReferences(getClassBytesFromClassLoaderResource(ClassUtilsTest.class.getName(), ClassUtils.class.getClassLoader()));
+        Assert.assertTrue(refs.contains("com/newrelic/agent/util/ClassUtilsTest"));
+        Assert.assertTrue(refs.contains("java/lang/Object"));
+        Assert.assertTrue(refs.contains("java/lang/String"));
+    }
+
     private abstract static class SuperInterfaceTest implements PreparedStatement {
 
         @Override
@@ -51,4 +63,16 @@ public class ClassUtilsTest {
         }
 
     }
+
+    private static byte[] getClassBytesFromClassLoaderResource(String classname, ClassLoader classloader)
+            throws IOException {
+        InputStream is = classloader.getResourceAsStream(classname.replace('.', '/') + ".class");
+        if (null == is) {
+            return null; // no such resource
+        }
+
+        return Streams.read(is, true);
+    }
+
+    private static String FIELD_ADDED_FOR_PARSING_TEST = "DON'T DELETE ME";
 }

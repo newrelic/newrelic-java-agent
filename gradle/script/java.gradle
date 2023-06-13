@@ -232,7 +232,10 @@ jacocoTestReport {
                               '**/*Error.class',
                               '**/Dummy*.class',
                               '**/*Type.class',
+                              '**/*Parameters.class',
                               'com/newrelic/agent/InternalLimitExceeded.class',
+                              'com/newrelic/agent/introspec/*.class',
+                              'com/newrelic/agent/jmx/metrics/*Generator.class',
                               'com/newrelic/agent/model/ApdexPerfZone.class',
                               'com/newrelic/agent/model/CountedDuration.class',
                               'com/newrelic/agent/model/PathHashes.class',
@@ -240,9 +243,8 @@ jacocoTestReport {
                               'com/newrelic/agent/model/SyntheticsIds.class',
                               'com/newrelic/agent/model/TimeoutCause.class',
                               'com/newrelic/agent/model/TransactionTiming.class',
-                              'com/newrelic/agent/bridge/external/*Parameters.class',
-                              'com/newrelic/weave/verification/*.class',
-                              'com/newrelic/agent/introspec/*.class'
+                              'com/newrelic/api/agent/NewRelic.class',
+                              'com/newrelic/weave/verification/*.class'
                     ])
         }))
     }
