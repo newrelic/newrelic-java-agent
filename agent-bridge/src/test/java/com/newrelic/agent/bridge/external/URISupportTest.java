@@ -22,6 +22,12 @@ public class URISupportTest {
     }
 
     @Test
+    public void getURI_withURLSyntaxException_returnsProperStr() throws MalformedURLException {
+        String urlStr = "http://newrelic.com:80/pracing";
+        Assert.assertEquals(urlStr, URISupport.getURI(new URL(urlStr+"#`")));
+    }
+
+    @Test
     public void getURI_withNullURL_returnsEmptyStr() throws MalformedURLException {
         URL url = null;
         Assert.assertEquals("", URISupport.getURI(url));

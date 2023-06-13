@@ -231,6 +231,7 @@ jacocoTestReport {
                               '**/*Exception.class',
                               '**/*Error.class',
                               '**/Dummy*.class',
+                              '**/*Type.class',
                               'com/newrelic/agent/InternalLimitExceeded.class',
                               'com/newrelic/agent/model/ApdexPerfZone.class',
                               'com/newrelic/agent/model/CountedDuration.class',
@@ -239,7 +240,10 @@ jacocoTestReport {
                               'com/newrelic/agent/model/SyntheticsIds.class',
                               'com/newrelic/agent/model/TimeoutCause.class',
                               'com/newrelic/agent/model/TransactionTiming.class',
-                              'com/newrelic/agent/bridge/external/*Parameters.class'])
+                              'com/newrelic/agent/bridge/external/*Parameters.class',
+                              'com/newrelic/weave/verification/*.class',
+                              'com/newrelic/agent/introspec/*.class'
+                    ])
         }))
     }
     reports {
