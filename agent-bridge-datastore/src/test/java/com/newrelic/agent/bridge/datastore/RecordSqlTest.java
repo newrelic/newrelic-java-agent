@@ -5,9 +5,8 @@
  *
  */
 
-package com.newrelic.agent.database;
+package com.newrelic.agent.bridge.datastore;
 
-import com.newrelic.agent.bridge.datastore.RecordSql;
 import org.junit.Assert;
 import org.junit.Test;
 
