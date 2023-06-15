@@ -4,6 +4,11 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.4.0
+### New features and improvements
+
+- Added a public preview of the Interactive Application Security Testing (IAST) mode of the [New Relic Security agent](https://github.com/newrelic/csec-java-agent). [1224](https://github.com/newrelic/newrelic-java-agent/pull/1224)
+
 ## Version 8.3.0
 ### New features and improvements
 
