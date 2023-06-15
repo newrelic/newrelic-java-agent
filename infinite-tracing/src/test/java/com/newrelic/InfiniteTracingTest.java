@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -83,4 +84,15 @@ class InfiniteTracingTest {
         assertEquals(spanEvent, queue.poll());
     }
 
+    @Test
+    public void buildChannelManager_returnsChannelManager() {
+        target = new InfiniteTracing(config, aggregator, executorService, queue);
+        assertNotNull(target.buildChannelManager("1234", ImmutableMap.of("key1", "value1")));
+    }
+
+    @Test
+    public void buildSpanEventSender_returnsSpanEventSender() {
+        target = new InfiniteTracing(config, aggregator, executorService, queue);
+        assertNotNull(target.buildSpanEventSender());
+    }
 }
