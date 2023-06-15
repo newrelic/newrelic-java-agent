@@ -55,4 +55,18 @@ public class R2dbcObfuscatorTest {
         String testFindDoubleQuotesNotDollarQuotes = "Found \"double_quoted_string\" but not $message$tagged_string$message$";
         assertEquals("Found ? but not $message$tagged_string$message$", R2dbcObfuscator.MYSQL_QUERY_CONVERTER.toObfuscatedQueryString(testFindDoubleQuotesNotDollarQuotes));
     }
+
+    @Test
+    public void queryConverter_shouldHandle_emptyQueries(){
+        assertEquals(null, R2dbcObfuscator.QUERY_CONVERTER.toObfuscatedQueryString(null));
+        assertEquals("", R2dbcObfuscator.QUERY_CONVERTER.toObfuscatedQueryString(""));
+    }
+
+    @Test
+    public void allQueryConverters_returnRawSql(){
+        String rawSql = "The lazy brown cow munched his grass";
+        assertEquals(rawSql, R2dbcObfuscator.QUERY_CONVERTER.toRawQueryString(rawSql));
+        assertEquals(rawSql, R2dbcObfuscator.POSTGRES_QUERY_CONVERTER.toRawQueryString(rawSql));
+        assertEquals(rawSql, R2dbcObfuscator.MYSQL_QUERY_CONVERTER.toRawQueryString(rawSql));
+    }
 }
