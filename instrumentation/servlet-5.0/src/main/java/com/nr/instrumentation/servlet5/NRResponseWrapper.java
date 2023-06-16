@@ -20,14 +20,9 @@ public class NRResponseWrapper implements Response {
         this.response = response;
     }
 
-    /**
-     * Since {@link #getStatus()} does not exist prior to Servlet 3.0, return 0, meaning "unknown".
-     * 
-     * @since Servlet 3.0
-     */
     @Override
     public int getStatus() throws Exception {
-        return 0;
+        return response.getStatus();
     }
 
     @Override

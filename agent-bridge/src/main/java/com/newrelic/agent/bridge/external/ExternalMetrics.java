@@ -51,13 +51,13 @@ public class ExternalMetrics {
      */
     public static void makeExternalComponentMetric(TracedMethod method, String host, String library,
             boolean includeOperationInMetric, String uri, String... operations) {
-        // transaction segment name always contains operations; metric name may or may not
-        String operationsPath = fixOperations(operations);
 
-        if (operationsPath == null) {
+        if (operations == null || operations.length == 0) {
             String metricName = MessageFormat.format(METRIC_NAME, host, library);
             method.setMetricNameFormatInfo(metricName, metricName, uri);
         } else {
+            // transaction segment name always contains operations; metric name may or may not
+            String operationsPath = fixOperations(operations);
             String transactionSegmentName = MessageFormat.format(TRANSACTION_SEGMENT_NAME, host, library, operationsPath);
 
             String metricName = includeOperationInMetric ? transactionSegmentName

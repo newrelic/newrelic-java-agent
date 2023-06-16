@@ -1,11 +1,14 @@
 package com.newrelic;
 
+import com.newrelic.api.agent.Logger;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class InfiniteTracingConfigTest {
 
@@ -51,5 +54,31 @@ class InfiniteTracingConfigTest {
                 .useBatching(true)
                 .build();
         assertTrue(config.getUseBatching());
+    }
+
+    @Test
+    public void builder_withAllAttributes_successfullyConstructsObj() {
+        InfiniteTracingConfig config = InfiniteTracingConfig.builder().useCompression(true)
+                .flakyCode(1L)
+                .flakyPercentage(.99)
+                .host("foo.com")
+                .licenseKey("123456")
+                .port(9999)
+                .maxQueueSize(10)
+                .useBatching(true)
+                .usePlaintext(true)
+                .logger(Mockito.mock(Logger.class)).build();
+
+        assertTrue(config.getUseCompression());
+        assertTrue(config.getUseBatching());
+        assertTrue(config.getUsePlaintext());
+        assertEquals(1L, config.getFlakyCode());
+        assertEquals(.99, config.getFlakyPercentage());
+        assertEquals("foo.com", config.getHost());
+        assertEquals("123456", config.getLicenseKey());
+        assertEquals(9999, config.getPort());
+        assertEquals(10, config.getMaxQueueSize());
+        assertNotNull(config.getLogger());
+
     }
 }

@@ -224,7 +224,35 @@ test {
 jacocoTestReport {
 
     dependsOn test
-
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/*NoOp*.class',
+                              '**/*Exception.class',
+                              '**/*Error.class',
+                              '**/Dummy*.class',
+                              '**/*Type.class',
+                              '**/*Type$*.class',
+                              '**/*Parameters.class',
+                              '**/*Parameters$*.class',
+                              'com/newrelic/agent/InternalLimitExceeded.class',
+                              'com/newrelic/agent/introspec/*.class',
+                              'com/newrelic/agent/jmx/metrics/*Generator.class',
+                              'com/newrelic/agent/jmx/metrics/*Generator$*.class',
+                              'com/newrelic/agent/bridge/external/ExternalParametersFactory.class',
+                              'com/newrelic/agent/model/ApdexPerfZone.class',
+                              'com/newrelic/agent/model/CountedDuration.class',
+                              'com/newrelic/agent/model/PathHashes.class',
+                              'com/newrelic/agent/model/SpanCategory.class',
+                              'com/newrelic/agent/model/SyntheticsIds.class',
+                              'com/newrelic/agent/model/TimeoutCause.class',
+                              'com/newrelic/agent/model/TransactionTiming.class',
+                              'com/newrelic/agent/model/TransactionTiming$*.class',
+                              'com/newrelic/api/agent/NewRelic.class',
+                              'com/newrelic/weave/verification/*.class'
+                    ])
+        }))
+    }
     reports {
         xml.required = true
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco')

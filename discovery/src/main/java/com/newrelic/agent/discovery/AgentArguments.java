@@ -90,30 +90,4 @@ public class AgentArguments implements JSONAware {
         }
         return JSONObject.toJSONString(args);
     }
-
-    private static Map<String, String> getEnvironmentMap() {
-        final Map<String, String> environment = new HashMap<>();
-        for (Entry<String, String> entry : System.getenv().entrySet()) {
-            if (entry.getKey().startsWith("NEW_RELIC_")) {
-                String value = System.getenv(entry.getKey());
-                if (value != null) {
-                    environment.put(entry.getKey(), value);
-                }
-            }
-        }
-        return environment;
-    }
-
-    private static Map<String, String> getSystemPropertiesMap() {
-        final Map<String, String> properties = new HashMap<>();
-        for (Entry<Object, Object> entry : System.getProperties().entrySet()) {
-            if (entry.getKey().toString().startsWith("newrelic.")) {
-                Object value = System.getProperties().get(entry.getKey());
-                if (value != null) {
-                    properties.put(entry.getKey().toString(), value.toString());
-                }
-            }
-        }
-        return properties;
-    }
 }
