@@ -49,10 +49,12 @@ jobs:
           cd gh-pages
           directories=$(find reports -name date.txt -exec dirname {} \;)
           for directory in $directories; do
-            date_in_file_utc=$(cat "$directory/date.txt")
-            clean_days_ago_utc=$(date -u -d "${{ env.DAYS }} days ago" +%s)
-            if ((date_in_file_utc < clean_days_ago_utc)); then
-              rm -rf $directory
+            if [ -f $directory/date.txt ]; then
+              date_in_file_utc=$(cat "$directory/date.txt")
+              clean_days_ago_utc=$(date -u -d "${{ env.DAYS }} days ago" +%s)
+              if ((date_in_file_utc < clean_days_ago_utc)); then
+                rm -rf $directory
+              fi
             fi
           done
 
