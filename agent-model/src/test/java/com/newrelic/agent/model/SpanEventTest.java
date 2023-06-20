@@ -9,6 +9,9 @@ package com.newrelic.agent.model;
 
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,6 +92,39 @@ public class SpanEventTest {
 
         SpanEvent span5 = builder.putIntrinsic("tiger", "mouse").build();
         assertEquals("mouse", span5.getIntrinsics().get("tiger"));
+    }
+
+    @Test
+    public void writeJSONString_SpanEvent_shouldFormatCorrectly() throws IOException {
+        long now = System.currentTimeMillis();
+        SpanEvent spanEvent = baseBuilder(now).build();
+
+        Writer stringWriter = new StringWriter();
+        spanEvent.writeJSONString(stringWriter);
+
+        assertEquals("[{\"cat\":\"dog\"},{\"a\":\"b\"},{\"foo\":\"bar\"}]", stringWriter.toString());
+    }
+
+    @Test
+    public void spanEvent_getsAll_intrinsics() {
+        SpanEvent.Builder builder = baseBuilder(System.currentTimeMillis());
+
+        Map<String, Object> moreIntrinsics = new HashMap<>();
+        moreIntrinsics.put("guid", "123456");
+        moreIntrinsics.put("traceId", "abcdefg");
+        moreIntrinsics.put("duration", 22.0f);
+        moreIntrinsics.put("parentId", "buzzbuzz");
+        moreIntrinsics.put("name", "thud");
+        moreIntrinsics.put("transactionId", "8675zzz");
+        builder.putAllIntrinsics(moreIntrinsics);
+
+        SpanEvent spanEvent = builder.build();
+        assertEquals(22.0f, spanEvent.getDuration(), 0);
+        assertEquals("123456", spanEvent.getGuid());
+        assertEquals("abcdefg", spanEvent.getTraceId());
+        assertEquals("buzzbuzz", spanEvent.getParentId());
+        assertEquals("thud", spanEvent.getName());
+        assertEquals("8675zzz", spanEvent.getTransactionId());
     }
 
     private SpanEvent.Builder baseBuilderExtraUser(long now, String extraUserAttr, String value) {
