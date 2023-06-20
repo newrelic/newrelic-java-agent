@@ -1,9 +1,6 @@
 package notjavax.servlet;
 
-import com.newrelic.agent.introspec.InstrumentationTestConfig;
-import com.newrelic.agent.introspec.InstrumentationTestRunner;
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.TransactionTrace;
+import com.newrelic.agent.introspec.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -12,61 +9,86 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "jakarta.servlet", configName = "debug.yml")
 public class HttpServletInstrumentationTest {
 
     @Test
-    public void doGetShouldAddToTraceCount() throws InterruptedException, ServletException, IOException {
-        startTx();
-        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+    public void doGetShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+
+        String currentMethod = "GET";
         String transactionName = "WebTransaction/Uri/Unknown";
+
+        startTx(currentMethod);
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
-//        Thread.sleep(1000000000L);
+        Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+
         assertEquals(1, traces.size());
+        assertEquals(2, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doGet"));
     }
 
     @Test
-    public void doPostShouldAddToTraceCount() throws InterruptedException, ServletException, IOException {
-        startTx();
-        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+    public void doPostShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+
+        String currentMethod = "POST";
         String transactionName = "WebTransaction/Uri/Unknown";
+
+        startTx(currentMethod);
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
-//        Thread.sleep(1000000000L);
+        Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+
         assertEquals(1, traces.size());
+        assertEquals(2, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doPost"));
     }
 
     @Test
-    public void doPutShouldAddToTraceCount() throws InterruptedException, ServletException, IOException {
-        startTx();
-        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+    public void doPutShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+
+        String currentMethod = "PUT";
         String transactionName = "WebTransaction/Uri/Unknown";
+
+        startTx(currentMethod);
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
-//        Thread.sleep(1000000000L);
+        Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+
         assertEquals(1, traces.size());
+        assertEquals(2, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doPut"));
     }
 
     @Test
-    public void doDeleteShouldAddToTraceCount() throws InterruptedException, ServletException, IOException {
-        startTx();
-        Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+    public void doDeleteShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+
+        String currentMethod = "DELETE";
         String transactionName = "WebTransaction/Uri/Unknown";
+
+        startTx(currentMethod);
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
-//        Thread.sleep(1000000000L);
+        Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+
         assertEquals(1, traces.size());
+        assertEquals(2, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doDelete"));
     }
 
-    private void startTx() throws ServletException, IOException {
+    private void startTx(String currentMethod) throws ServletException, IOException {
+
         MyServlet myServlet = new MyServlet();
         HttpServletTestRequest request = new HttpServletTestRequest();
-        HttpServletResponse response = new HttpServletTestResponse();
+        HttpServletTestResponse response = new HttpServletTestResponse();
+
+        request.setCurrentMethod(currentMethod);
         myServlet.service(request, response);
     }
 }
