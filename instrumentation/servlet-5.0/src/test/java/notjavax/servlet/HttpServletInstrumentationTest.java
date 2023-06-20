@@ -19,7 +19,7 @@ import static org.junit.Assert.assertTrue;
 public class HttpServletInstrumentationTest {
 
     @Test
-    public void doGetShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+    public void doGetShouldAddMetricsForTransaction() throws InterruptedException, ServletException, IOException {
 
         String currentMethod = "GET";
         String transactionName = "WebTransaction/Uri/Unknown";
@@ -35,7 +35,7 @@ public class HttpServletInstrumentationTest {
     }
 
     @Test
-    public void doPostShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+    public void doPostShouldAddMetricsForTransaction() throws InterruptedException, ServletException, IOException {
 
         String currentMethod = "POST";
         String transactionName = "WebTransaction/Uri/Unknown";
@@ -51,7 +51,7 @@ public class HttpServletInstrumentationTest {
     }
 
     @Test
-    public void doPutShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+    public void doPutShouldAddMetricsForTransaction() throws InterruptedException, ServletException, IOException {
 
         String currentMethod = "PUT";
         String transactionName = "WebTransaction/Uri/Unknown";
@@ -67,7 +67,7 @@ public class HttpServletInstrumentationTest {
     }
 
     @Test
-    public void doDeleteShouldAddMetricsToTransaction() throws InterruptedException, ServletException, IOException {
+    public void doDeleteShouldAddMetricsForTransaction() throws InterruptedException, ServletException, IOException {
 
         String currentMethod = "DELETE";
         String transactionName = "WebTransaction/Uri/Unknown";
