@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.instrumentation.classmatchers.html">com.newrelic.agent.instrumentation.classmatchers</a> &gt; OptimizedClassMatcherTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">12</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">12</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">14.518s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox failures" id="successRate">
+<div class="percent">0%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Failed tests</a>
+</li>
+<li>
+<a href="#tab1">Tests</a>
+</li>
+<li>
+<a href="#tab2">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Failed tests</h2>
+<div class="test">
+<a name="testAccessMatch"></a>
+<h3 class="failures">testAccessMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testAnnotationMatch"></a>
+<h3 class="failures">testAnnotationMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testGenericsMatch"></a>
+<h3 class="failures">testGenericsMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testMultipleMatch"></a>
+<h3 class="failures">testMultipleMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testNonMatch"></a>
+<h3 class="failures">testNonMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testOrMatch"></a>
+<h3 class="failures">testOrMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testReturnTypeMatch"></a>
+<h3 class="failures">testReturnTypeMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testSingleMatch"></a>
+<h3 class="failures">testSingleMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testSingleMatch2"></a>
+<h3 class="failures">testSingleMatch2</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testSkipObjectMethods_exactMatch"></a>
+<h3 class="failures">testSkipObjectMethods_exactMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testSkipObjectMethods_looseMatch"></a>
+<h3 class="failures">testSkipObjectMethods_looseMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testSlowMatch"></a>
+<h3 class="failures">testSlowMatch</h3>
+<span class="code">
+<pre>org.mockito.exceptions.base.MockitoException: 
+Mockito cannot mock this class: class com.newrelic.agent.service.analytics.InsightsServiceImpl.
+
+If you're not sure why you're getting this error, please report to the mailing list.
+
+
+Java               : 17
+JVM vendor name    : Eclipse Adoptium
+JVM vendor version : 17.0.7+7
+JVM name           : OpenJDK 64-Bit Server VM
+JVM version        : 17.0.7+7
+JVM info           : mixed mode, sharing
+OS name            : Linux
+OS version         : 5.15.0-1039-azure
+
+
+You are seeing this disclaimer because Mockito is configured to create inlined mocks.
+You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
+
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:149)
+	at com.newrelic.agent.MockServiceManager.&lt;init&gt;(MockServiceManager.java:94)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.initializeServiceManager(OptimizedClassMatcherTest.java:108)
+	at com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcherTest.before(OptimizedClassMatcherTest.java:65)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy2.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:176)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:133)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class java.lang.Object, interface com.newrelic.api.agent.Insights, class com.newrelic.agent.service.analytics.InsightsServiceImpl, interface com.newrelic.agent.service.analytics.InsightsService, class com.newrelic.agent.service.AbstractService]
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	... 44 more
+Caused by: java.lang.IllegalStateException: 
+Byte Buddy could not instrument all classes within the mock's type hierarchy
+
+This problem should never occur for javac-compiled classes. This problem has been observed for classes that are:
+ - Compiled by older versions of scalac
+ - Classes that are part of the Android distribution
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:280)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.mockClass(InlineBytecodeGenerator.java:213)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:51)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator$1.call(TypeCachingBytecodeGenerator.java:48)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:153)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:366)
+	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:175)
+	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:377)
+	at org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator.mockClass(TypeCachingBytecodeGenerator.java:41)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMockType(InlineByteBuddyMockMaker.java:379)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.doCreateMock(InlineByteBuddyMockMaker.java:339)
+	at org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker.createMock(InlineByteBuddyMockMaker.java:318)
+	at org.mockito.internal.util.MockUtil.createMock(MockUtil.java:53)
+	at org.mockito.internal.MockitoCore.mock(MockitoCore.java:62)
+	at org.mockito.Mockito.mock(Mockito.java:1951)
+	at org.mockito.Mockito.mock(Mockito.java:1862)
+	... 44 more
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 61
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:189)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:170)
+	at net.bytebuddy.jar.asm.ClassReader.&lt;init&gt;(ClassReader.java:156)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:86)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:3889)
+	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2166)
+	at net.bytebuddy.dynamic.scaffold.inline.RedefinitionDynamicTypeBuilder.make(RedefinitionDynamicTypeBuilder.java:224)
+	at net.bytebuddy.dynamic.scaffold.inline.AbstractInliningDynamicTypeBuilder.make(AbstractInliningDynamicTypeBuilder.java:123)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3659)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.transform(InlineBytecodeGenerator.java:391)
+	at java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:541)
+	at sun.instrument.InstrumentationImpl.retransformClasses0(Native Method)
+	at sun.instrument.InstrumentationImpl.retransformClasses(InstrumentationImpl.java:169)
+	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:276)
+	... 59 more
+</pre>
+</span>
+</div>
+</div>
+<div id="tab1" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="failures">testAccessMatch</td>
+<td class="failures">0.429s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testAnnotationMatch</td>
+<td class="failures">0.447s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testGenericsMatch</td>
+<td class="failures">0.415s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testMultipleMatch</td>
+<td class="failures">0.402s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testNonMatch</td>
+<td class="failures">0.362s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testOrMatch</td>
+<td class="failures">0.341s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testReturnTypeMatch</td>
+<td class="failures">9.967s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testSingleMatch</td>
+<td class="failures">0.395s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testSingleMatch2</td>
+<td class="failures">0.367s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testSkipObjectMethods_exactMatch</td>
+<td class="failures">0.414s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testSkipObjectMethods_looseMatch</td>
+<td class="failures">0.526s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testSlowMatch</td>
+<td class="failures">0.453s</td>
+<td class="failures">failed</td>
+</tr>
+</table>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-06-20T17:59:30,914+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:30,984+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:30,994+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:38,942+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:38,942+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:38,955+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:39,471+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:39,471+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:39,472+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:39,900+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:39,901+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:39,901+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:40,267+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:40,267+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:40,268+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:40,609+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:40,609+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:40,610+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:41,025+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:41,025+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:41,025+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:41,443+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:41,444+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:41,444+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:41,841+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:41,841+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:41,842+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:42,295+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:42,295+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:42,295+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:42,742+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:42,742+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:42,743+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-06-20T17:59:43,137+0000 [42943 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-06-20T17:59:43,137+0000 [42943 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-06-20T17:59:43,137+0000 [42943 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jun 20, 2023 6:16:38 PM</p>
+</div>
+</div>
+</body>
+</html>
