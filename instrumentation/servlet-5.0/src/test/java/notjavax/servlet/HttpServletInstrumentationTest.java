@@ -28,9 +28,11 @@ public class HttpServletInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
         Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+        String methodInTrace = traces.iterator().next().getInitialTraceSegment().getChildren().get(0).getMethodName();
 
         assertEquals(1, traces.size());
         assertEquals(2, metricsForTransaction.size());
+        assertEquals("doGet", methodInTrace);
         assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doGet"));
     }
 
@@ -44,9 +46,11 @@ public class HttpServletInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
         Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+        String methodInTrace = traces.iterator().next().getInitialTraceSegment().getChildren().get(0).getMethodName();
 
         assertEquals(1, traces.size());
         assertEquals(2, metricsForTransaction.size());
+        assertEquals("doPost", methodInTrace);
         assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doPost"));
     }
 
@@ -60,9 +64,11 @@ public class HttpServletInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
         Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+        String methodInTrace = traces.iterator().next().getInitialTraceSegment().getChildren().get(0).getMethodName();
 
         assertEquals(1, traces.size());
         assertEquals(2, metricsForTransaction.size());
+        assertEquals("doPut", methodInTrace);
         assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doPut"));
     }
 
@@ -76,9 +82,11 @@ public class HttpServletInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<TransactionTrace> traces = introspector.getTransactionTracesForTransaction(transactionName);
         Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+        String methodInTrace = traces.iterator().next().getInitialTraceSegment().getChildren().get(0).getMethodName();
 
         assertEquals(1, traces.size());
         assertEquals(2, metricsForTransaction.size());
+        assertEquals("doDelete", methodInTrace);
         assertTrue(metricsForTransaction.containsKey("Java/notjavax.servlet.MyServlet/doDelete"));
     }
 
