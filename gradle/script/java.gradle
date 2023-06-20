@@ -250,7 +250,10 @@ jacocoTestReport {
                               'com/newrelic/agent/model/TransactionTiming.class',
                               'com/newrelic/agent/model/TransactionTiming$*.class',
                               'com/newrelic/api/agent/NewRelic.class',
-                              'com/newrelic/weave/verification/*.class'
+                              'com/newrelic/weave/verification/*.class',
+                              'com/newrelic/agent/bridge/datastore/DatastoreMetrics.class',
+                              'com/newrelic/api/agent/ApplicationNamePriority.class',
+                              'com/newrelic/agent/bridge/TransactionNamePriority'
                     ])
         }))
     }
@@ -263,7 +266,7 @@ jacocoTestReport {
 
 dependencies {
     testImplementation("junit:junit:4.12")
-    testImplementation("org.mockito:mockito-core:3.9.0")
+    testImplementation("org.mockito:mockito-inline:3.9.0")
     testImplementation("org.hamcrest:hamcrest-library:1.3")
     testImplementation(project(":test-annotations"))
 }
