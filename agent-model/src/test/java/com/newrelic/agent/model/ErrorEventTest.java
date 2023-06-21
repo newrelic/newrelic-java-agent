@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 public class ErrorEventTest {
     @Test
@@ -66,6 +67,62 @@ public class ErrorEventTest {
         assertTrue(baseErrorEvent().isValid());
     }
 
+    @Test
+    public void errorEvent_getsAttributes(){
+        ErrorEvent event = baseErrorEvent();
+        Map<String, Object> expectedAttributes = new HashMap<>();
+        expectedAttributes.put("distributed", "b");
+
+        assertEquals(event.getErrorClass(), "e");
+        assertEquals(event.getErrorMessage(), "check out this error");
+        assertEquals(event.getTransactionName(), "buzzbuzz");
+        assertEquals(event.getDistributedTraceIntrinsics(), expectedAttributes);
+        assertEquals(event.getTransactionGuid(), "abc");
+    }
+    @Test
+    public void writeJSONString_handles_missingDataErrorEvent() throws IOException{
+        ErrorEvent event = missingDataErrorEvent();
+        Writer out = new StringWriter();
+        event.writeJSONString(out);
+        String json = out.toString();
+        System.out.println(json);
+
+        assertTrue(json.contains("\"error.class\":\"f\""));
+        assertTrue(json.contains("\"error.message\":\"another error\""));
+        assertTrue(json.contains("\"transactionName\":\"kayaks\""));
+        assertTrue(json.contains("\"error.expected\":false"));
+
+        assertFalse(json.contains("\"duration\":"));
+        assertFalse(json.contains("\"queueDuration\":"));
+        assertFalse(json.contains("\"externalDuration\":"));
+        assertFalse(json.contains("\"databaseDuration\":"));
+        assertFalse(json.contains("\"gcCumulative\":"));
+        assertFalse(json.contains("\"databaseCallCount\":"));
+        assertFalse(json.contains("\"externalCallCount\":"));
+        assertFalse(json.contains("\"port\":"));
+        assertFalse(json.contains("\"priority\":"));
+        assertFalse(json.contains("\"nr.transactionGuid\":"));
+        assertFalse(json.contains("\"nr.referringTransactionGuid\":"));
+        assertFalse(json.contains("\"nr.syntheticsResourceId\":"));
+        assertFalse(json.contains("\"nr.syntheticsMonitorId\":"));
+        assertFalse(json.contains("\"nr.syntheticsJobId\":"));
+        assertFalse(json.contains("\"nr.timeoutCause\":"));
+        assertFalse(json.contains("\"nr.tripId\":"));
+    }
+
+    private ErrorEvent missingDataErrorEvent(){
+        Map<String, Object> emptyUserAttributes = new HashMap<>();
+        Map<String, Object> emptyAgentAttributes = new HashMap<>();
+        AttributeFilter attributeFilter = new AttributeFilter.PassEverythingAttributeFilter();
+        return new ErrorEvent(
+                "foo", 1, Float.NEGATIVE_INFINITY, emptyUserAttributes, "f",
+                "another error", false, "kayaks",
+                Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY,
+                0, Float.NEGATIVE_INFINITY, 0, 0, null,
+                null, null, null, null,
+                Integer.MIN_VALUE, null, null, null, emptyAgentAttributes, attributeFilter
+        );
+    }
     private ErrorEvent baseErrorEvent(){
         Map<String, Object> userAttributes = new HashMap<>();
         userAttributes.put("user", "a");
