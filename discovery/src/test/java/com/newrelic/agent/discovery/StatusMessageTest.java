@@ -1,17 +1,20 @@
 package com.newrelic.agent.discovery;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Objects;
 import java.util.logging.Level;
 
+import com.google.common.hash.HashCode;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class StatusMessageTest {
     @Test
@@ -53,6 +56,15 @@ public class StatusMessageTest {
         assertEquals(Level.INFO, message.getLevel());
         assertTrue(message.isSuccess());
     }
+
+    @Test
+    public void testGetProcessId() {
+        Level level = Mockito.mock(Level.class);
+        StatusMessage statusMessage = new StatusMessage("string_ID", level, "string_label", "string_message");
+
+        assertEquals("string_ID", statusMessage.getProcessId());
+    }
+
 
     private void verifySerialization(StatusMessage message) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
