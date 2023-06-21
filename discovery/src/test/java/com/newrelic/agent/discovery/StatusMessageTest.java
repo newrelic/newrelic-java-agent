@@ -84,6 +84,24 @@ public class StatusMessageTest {
         assertEquals(TerminalColor.fromLevel(level).formatMessage(label, message), statusMessage.toString());
     }
 
+    @Test
+    public void testEquals() {
+        Level level = Mockito.mock(Level.class);
+        Level level2 = Mockito.mock(Level.class);
+        StatusMessage statusMessage = new StatusMessage("string_ID", level, "string_label", "string_message");
+        StatusMessage otherStatusMessage = new StatusMessage("other_string_ID", level, "other_string_label", "other_string_message");
+        StatusMessage otherStatusMessage2 = new StatusMessage("string_ID", level, "string_label", "other_string_message");
+        StatusMessage otherStatusMessage3 = new StatusMessage("string_ID", level, "other_string_label", "string_message");
+        StatusMessage otherStatusMessage4 = new StatusMessage("string_ID", level2, "string_label", "other_string_message");
+
+        assertTrue(statusMessage.equals(statusMessage));
+        assertFalse(statusMessage.equals(null));
+        assertFalse(statusMessage.equals("Some kind of Object"));
+        assertFalse(statusMessage.equals(otherStatusMessage));
+        assertFalse(statusMessage.equals(otherStatusMessage2));
+        assertFalse(statusMessage.equals(otherStatusMessage3));
+        assertFalse(statusMessage.equals(otherStatusMessage4));
+    }
 
     private void verifySerialization(StatusMessage message) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
