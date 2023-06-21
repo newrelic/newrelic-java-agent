@@ -39,6 +39,13 @@ public class ProfileSessionTest {
         Assert.assertEquals(10, target.getProfile().getSampleCount());
     }
 
+    @Test
+    public void test_multiStopBeforeDone() {
+        setup(50L, 500L);
+        target.start();
+        target.stop(true);
+    }
+    
     private void waitForDoneOrTimeout() {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis();
