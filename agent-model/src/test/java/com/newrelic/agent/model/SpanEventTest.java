@@ -36,6 +36,8 @@ public class SpanEventTest {
 
         SpanEvent span1 = baseBuilder(now).build();
         SpanEvent span2 = baseBuilder(now).build();
+        assertEquals(span1, span1);
+        assertNotEquals(span1, null);
         assertEquals(span2, span1);
         assertEquals(span1, span2);
 
@@ -106,7 +108,7 @@ public class SpanEventTest {
     }
 
     @Test
-    public void spanEvent_getsAll_intrinsics() {
+    public void spanEvent_getsAll_Attributes() {
         SpanEvent.Builder builder = baseBuilder(System.currentTimeMillis());
 
         Map<String, Object> moreIntrinsics = new HashMap<>();
@@ -125,6 +127,8 @@ public class SpanEventTest {
         assertEquals("buzzbuzz", spanEvent.getParentId());
         assertEquals("thud", spanEvent.getName());
         assertEquals("8675zzz", spanEvent.getTransactionId());
+        assertEquals("wally", spanEvent.getAppName());
+        assertEquals(true, spanEvent.decider());
     }
 
     private SpanEvent.Builder baseBuilderExtraUser(long now, String extraUserAttr, String value) {
