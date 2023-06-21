@@ -65,6 +65,16 @@ public class StatusMessageTest {
         assertEquals("string_ID", statusMessage.getProcessId());
     }
 
+    @Test
+    public void testHashCode() {
+        Level level = Mockito.mock(Level.class);
+        StatusMessage statusMessage = new StatusMessage("string_ID", level, "string_label", "string_message");
+
+        int hashCode = Objects.hash("string_ID", "string_label", level, "string_message");
+        assertEquals(hashCode, statusMessage.hashCode());
+    }
+
+
 
     private void verifySerialization(StatusMessage message) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
