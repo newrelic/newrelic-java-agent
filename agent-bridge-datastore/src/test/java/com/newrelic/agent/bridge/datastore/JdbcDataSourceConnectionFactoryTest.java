@@ -40,13 +40,23 @@ public class JdbcDataSourceConnectionFactoryTest {
     }
 
     @Test
-    public void getConnection_withoutDriverWithUsernameAndPassword_returnsConnection() throws SQLException {
+    public void getConnection_DriverWithoutUsernameAndPassword_returnsConnection() throws SQLException {
         Mockito.when(mockDataSource.getConnection()).thenReturn(mockConnection);
 
-        JdbcDataSourceConnectionFactory factory = new JdbcDataSourceConnectionFactory(mockVendor, mockDataSource, null, null);
+        JdbcDataSourceConnectionFactory factory = new JdbcDataSourceConnectionFactory(mockVendor, mockDataSource);
         Connection conn = factory.getConnection();
 
         Assert.assertEquals(mockConnection, conn);
+        Mockito.verify(mockDataSource).getConnection();
+    }
+
+    @Test(expected = SQLException.class)
+    public void getConnection_rethrowsSqlException() throws SQLException {
+        Mockito.when(mockDataSource.getConnection()).thenThrow(new SQLException("test"));
+
+        JdbcDataSourceConnectionFactory factory = new JdbcDataSourceConnectionFactory(mockVendor, mockDataSource);
+        Connection conn = factory.getConnection();
+
         Mockito.verify(mockDataSource).getConnection();
     }
 
