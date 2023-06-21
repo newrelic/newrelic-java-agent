@@ -3,6 +3,8 @@ package com.newrelic.agent.discovery;
 import static org.junit.Assert.*;
 
 import java.util.HashMap;
+import java.util.Map;
+
 import org.json.simple.JSONObject;
 
 import org.json.simple.JSONValue;
@@ -54,5 +56,15 @@ public class AgentArgumentsTest {
         assertEquals("cmd-line", args.getEnvironment().get("NEW_RELIC_COMMAND_LINE"));
         assertEquals("9876", args.getId());
         assertEquals(123L, args.getServerPort());
+    }
+
+    @Test
+    public void testGetSystemProperties() {
+        Map<String, String> systemPropsMap = new HashMap<>();
+        systemPropsMap.put("system-property-A", "system-property-value-A");
+        AgentArguments agentArguments = new AgentArguments(new HashMap<>(), systemPropsMap);
+
+        assertEquals(systemPropsMap, agentArguments.getSystemProperties());
+
     }
 }
