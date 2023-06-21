@@ -74,6 +74,15 @@ public class StatusMessageTest {
         assertEquals(hashCode, statusMessage.hashCode());
     }
 
+    @Test
+    public void testToString() {
+        Level level = Mockito.mock(Level.class);
+        String label = "string_label";
+        String message = "string_message";
+        StatusMessage statusMessage = new StatusMessage("string_ID", level, label, message);
+
+        assertEquals(TerminalColor.fromLevel(level).formatMessage(label, message), statusMessage.toString());
+    }
 
 
     private void verifySerialization(StatusMessage message) throws IOException {
