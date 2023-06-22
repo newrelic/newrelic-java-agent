@@ -16,7 +16,7 @@ on:
         type: string
         description: 'The ref (branch, SHA, tag?) to run the tests on'
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 8 * * MON-FRI'
 
 jobs:
   # build the agent and saves Gradle's cache so all modules can use the cache
@@ -25,6 +25,7 @@ jobs:
     uses: ./.github/workflows/X-Reusable-BuildAgent.yml
     with:
       agent-ref: ${{ inputs.agent-ref || 'main' }}
+      gradle-cache-read-only: ${{ github.event_name != 'schedule' }}
     secrets: inherit
 
   # GHA Matrix strategy only allows 255 entries.
