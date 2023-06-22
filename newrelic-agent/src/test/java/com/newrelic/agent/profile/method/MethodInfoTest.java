@@ -8,6 +8,8 @@
 package com.newrelic.agent.profile.method;
 
 import com.newrelic.agent.profile.TestFileWithLineNumbers;
+import com.newrelic.agent.profile.v2.Murmur3StringMap;
+import com.newrelic.agent.util.StringMap;
 import com.newrelic.agent.util.asm.ClassStructure;
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,6 +52,16 @@ public class MethodInfoTest {
         verifyAndGetArgsForConstructorsNoLineNumbers(new TestFileWithLineNumbers(new Object(),
                 new ArrayList<String>(), "1234", new HashSet<>()));
 
+    }
+
+    @Test
+    public void getJsonMethodMaps() {
+        MethodInfo info = MethodInfoUtil.createMethodInfo(TestFileWithLineNumbers.class, "instrumentedMethod", -1);
+        StringMap stringMap = new Murmur3StringMap();
+        stringMap.addString("instrumentedMethod");
+        List<Map<String, Object>> results = info.getJsonMethodMaps(stringMap);
+        Assert.assertNotNull(results);
+        Assert.assertEquals(1, results.size());
     }
 
     private void verifyAndGetArgsForConstructorsNoLineNumbers(TestFileWithLineNumbers newClass) {
@@ -182,8 +194,8 @@ public class MethodInfoTest {
         }
         // jacoco coverage inserts itself into our tests causing conflicts in these assertions.
         Method[] m = filterJacocoMethods(ClassWithStuffa.class.getDeclaredMethods());
-
         Assert.assertEquals(1, m.length);
+
         MethodInfo actual = MethodInfoUtil.getMethodInfo(ClassWithStuffa.class, m[0].getName(), "()V");
         Assert.assertNotNull(actual);
         List<Map<String, Object>> secondActual = actual.getJsonMethodMaps();
@@ -195,6 +207,15 @@ public class MethodInfoTest {
         List<String> args = (List<String>) methodData.get("args");
         Assert.assertNotNull(args);
         Assert.assertEquals(0, args.size());
+
+        Constructor[] c = ClassWithStuffa.class.getConstructors();
+        Assert.assertEquals(1, c.length);
+        MethodInfo constructor = MethodInfoUtil.getMethodInfo(ClassWithStuffa.class, "<init>", "(Lcom/newrelic/agent/profile/method/MethodInfoTest;)V");
+        Assert.assertNotNull(constructor);
+        Assert.assertTrue(constructor instanceof ExactMethodInfo);
+        MethodInfo wrongParam = MethodInfoUtil.getMethodInfo(ClassWithStuffa.class, "<init>", "(LI;)V");
+        Assert.assertNotNull(wrongParam);
+        Assert.assertTrue(wrongParam instanceof MultipleMethodInfo);
 
         class ClassWithStuffb {
 

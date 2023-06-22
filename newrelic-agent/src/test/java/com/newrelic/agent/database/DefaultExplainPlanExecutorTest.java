@@ -11,10 +11,14 @@ import com.newrelic.agent.bridge.datastore.DatabaseVendor;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.tracers.SqlTracerExplainInfo;
+import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 
 import static org.junit.Assert.assertFalse;
@@ -78,6 +82,30 @@ public class DefaultExplainPlanExecutorTest {
         assertFalse(tracer.hasExplainPlan());
     }
 
+    @Test
+    public void testRunExplainPlan() throws SQLException {
+        String sql = "select * from test";
+        SqlTracerExplainInfo tracer = new TestSqlStatementTracer();
+        Assert.assertFalse(tracer.hasExplainPlan());
+
+        DefaultExplainPlanExecutor executor = new DefaultExplainPlanExecutor(tracer,
+                sql, RecordSql.raw);
+
+        DatabaseService dbService = Mockito.mock(DatabaseService.class);
+        Connection connection = Mockito.mock(Connection.class);
+        Statement statement = Mockito.mock(Statement.class);
+        ResultSet results = Mockito.mock(ResultSet.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(results.getMetaData().getColumnCount()).thenReturn(2);
+        Mockito.when(statement.executeQuery(Mockito.any())).thenReturn(results);
+        Mockito.when(connection.createStatement()).thenReturn(statement);
+        DatabaseVendor vendor = Mockito.mock(DatabaseVendor.class);
+        Mockito.when(vendor.getExplainPlanSql(Mockito.any())).thenReturn(sql);
+
+        executor.runExplainPlan(dbService, connection, vendor);
+
+        Assert.assertTrue(tracer.hasExplainPlan());
+    }
+
     private SqlTracerExplainInfo createSqlTracerInfo(final String sql) {
         return new SqlTracerExplainInfo() {
             public Object[] explainPlan = null;
@@ -103,4 +131,30 @@ public class DefaultExplainPlanExecutorTest {
             }
         };
     }
+
+    public class TestSqlStatementTracer implements SqlTracerExplainInfo {
+
+        Object[] explainPlan;
+
+        @Override
+        public Object getSql() {
+            return null;
+        }
+
+        @Override
+        public void setExplainPlan(Object... explainPlan) {
+            this.explainPlan = explainPlan;
+        }
+
+        @Override
+        public boolean hasExplainPlan() {
+            return explainPlan != null;
+        }
+
+        @Override
+        public ExplainPlanExecutor getExplainPlanExecutor() {
+            return null;
+        }
+    }
+
 }
