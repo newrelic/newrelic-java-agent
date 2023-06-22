@@ -75,8 +75,8 @@ public class KafkaConnectMetricsReporter implements org.apache.kafka.common.metr
             Map<String, Object> eventData = METRICS_AS_EVENTS ? new HashMap<>() : Collections.emptyMap();
             for (final Map.Entry<String, KafkaMetric> metric : metrics.entrySet()) {
                 Object metricValue = metric.getValue().metricValue();
-                if (metricValue instanceof Double) {
-                    final float value = ((Double) metricValue).floatValue();
+                if (metricValue instanceof Number) {
+                    final float value = ((Number) metricValue).floatValue();
                     if (KAFKA_METRICS_DEBUG) {
                         NewRelic.getAgent().getLogger().log(Level.FINEST, "getMetric: {0} = {1}", metric.getKey(), value);
                     }

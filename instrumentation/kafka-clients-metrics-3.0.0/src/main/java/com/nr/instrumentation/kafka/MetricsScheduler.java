@@ -63,8 +63,8 @@ public class MetricsScheduler {
                 Map<String, Object> eventData = new HashMap<>();
                 for (final Map.Entry<String, KafkaMetric> metric : nrMetricsReporter.getMetrics().entrySet()) {
                     Object metricValue = metric.getValue().metricValue();
-                    if (metricValue instanceof Double) {
-                        final float value = ((Double) metricValue).floatValue();
+                    if (metricValue instanceof Number) {
+                        final float value = ((Number) metricValue).floatValue();
                         if (KAFKA_METRICS_DEBUG) {
                             AgentBridge.getAgent().getLogger().log(Level.FINEST, "getMetric: {0} = {1}", metric.getKey(), value);
                         }
