@@ -85,3 +85,5 @@
 # These duplicate kafka serialize/deserialize metrics
 ^org/apache/kafka/common/serialization/ExtendedSerializer\$Wrapper.*
 ^org/apache/kafka/common/serialization/ExtendedDeserializer\$Wrapper.*
+# exclusions for Open Liberty 21+ so transactions start properly
+com.ibm.ws.security.jaspi.JaspiServletFilter
