@@ -110,7 +110,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
-          key: ${{ github.run_id }}
+          key: agent-jar-${{ github.run_id }}
           fail-on-cache-miss: true
 
       ## Ongoing tests with artifactory dependencies

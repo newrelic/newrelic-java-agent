@@ -8,6 +8,11 @@ on:
         default: main
         type: string
         description: 'The ref (branch, SHA, tag?) to run the tests on'
+      gradle-cache-read-only:
+        required: false
+        default: true
+        type: boolean
+        description: 'Whether the gradle cache should be read only'
 jobs:
   # build the agent and saves Gradle's cache so all modules can use the cache
   build-agent:
@@ -31,6 +36,8 @@ jobs:
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          gradle-cache-read-only: ${{ inputs.gradle-cache-read-only }}
 
       - name: Build agent
         run: ./gradlew $GRADLE_OPTIONS clean jar
@@ -39,4 +46,4 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
-          key: ${{ github.run_id }}
+          key: agent-jar-${{ github.run_id }}
