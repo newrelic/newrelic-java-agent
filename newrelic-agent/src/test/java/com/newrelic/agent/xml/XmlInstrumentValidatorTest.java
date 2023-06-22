@@ -1,17 +1,22 @@
 package com.newrelic.agent.xml;
 
 import static com.newrelic.agent.AgentHelper.getFile;
+import static org.mockito.ArgumentMatchers.anyString;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 
 import com.newrelic.agent.xml.XmlInstrumentOptions;
 import com.newrelic.agent.xml.XmlInstrumentParams;
 import com.newrelic.agent.xml.XmlInstrumentValidator;
+import org.apache.commons.cli.CommandLine;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.newrelic.agent.extension.dom.ExtensionDomParser;
 import com.newrelic.agent.extension.util.XmlException;
+import org.mockito.Mockito;
 
 public class XmlInstrumentValidatorTest {
 
@@ -144,4 +149,51 @@ public class XmlInstrumentValidatorTest {
 
         XmlInstrumentValidator.validateInstrumentation(params);
     }
+
+    @Test
+    public void validateInstrumentation_shouldHandle_noCmdLineParams() {
+        final PrintStream out = System.out;
+        final ByteArrayOutputStream interceptOut = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(interceptOut));
+
+        CommandLine cmd = null;
+        XmlInstrumentValidator.validateInstrumentation(cmd);
+
+        Assert.assertEquals("There were no command line parameters.\n", interceptOut.toString());
+        System.setOut(out);
+    }
+
+    @Test
+    public void validateInstrumentation_shouldRequireFile_inCmdLineParams() {
+        final PrintStream out = System.out;
+        final ByteArrayOutputStream interceptOut = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(interceptOut));
+        CommandLine mockCmd = Mockito.mock(CommandLine.class);
+        Mockito.when(mockCmd.getOptionValues(anyString())).thenReturn(null);
+
+        XmlInstrumentValidator.validateInstrumentation(mockCmd);
+
+        Assert.assertTrue(interceptOut.toString().contains("FAIL: The command line parameters are invalid."));
+
+        System.setOut(out);
+    }
+
+    @Test
+    public void validateInstrumentation_shouldHandle_validCmdLineParams() {
+        final PrintStream out = System.out;
+        final ByteArrayOutputStream interceptOut = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(interceptOut));
+
+        CommandLine mockCmd = Mockito.mock(CommandLine.class);
+        File xmlFile = getFile(FILE_PATH_1);
+        Mockito.when(mockCmd.getOptionValues("file")).thenReturn(new String[] {xmlFile.getAbsolutePath()});
+        Mockito.when(mockCmd.getOptionValues("debug")).thenReturn(new String[] {"true"});
+
+        XmlInstrumentValidator.validateInstrumentation(mockCmd);
+        Assert.assertTrue(interceptOut.toString().contains("PASS"));
+
+        System.setOut(out);
+    }
+
+
 }
