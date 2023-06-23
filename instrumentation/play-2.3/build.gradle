@@ -2,10 +2,16 @@ apply plugin: 'scala'
 
 isScalaProjectEnabled(project, "scala-2.10")
 
+repositories {
+    maven {
+        url 'https://repo.typesafe.com/typesafe/maven-releases/'
+    }
+}
+
 dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
-    implementation("com.typesafe.play:play_2.10:2.3.9")
+    implementation("com.typesafe.play:play_2.10:2.3.10")
     implementation("org.scala-lang:scala-library:2.10.7")
 }
 
