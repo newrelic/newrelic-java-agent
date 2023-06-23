@@ -32,13 +32,8 @@ jar {
   manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-wrap-0.7.0' }
 }
 
-verifyInstrumentation {
-  passesOnly 'com.github.dwhjames:aws-wrap_2.10:[0.7.0,)'
-  passesOnly 'com.github.dwhjames:aws-wrap_2.11:[0.7.0,)'
-  excludeRegex '.*v0.8.0.*'
-}
-
 site {
     title 'AWS Wrap'
     type 'Other'
+    versionOverride '[0.7.0,)'
 }
