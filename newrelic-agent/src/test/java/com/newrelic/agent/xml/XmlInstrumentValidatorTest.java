@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.text.MessageFormat;
 
 import com.newrelic.agent.xml.XmlInstrumentOptions;
 import com.newrelic.agent.xml.XmlInstrumentParams;
@@ -151,38 +152,31 @@ public class XmlInstrumentValidatorTest {
     }
 
     @Test
-    public void validateInstrumentation_shouldHandle_noCmdLineParams() {
-        final PrintStream out = System.out;
-        final ByteArrayOutputStream interceptOut = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(interceptOut));
+    public void validateInstrumentation_shouldFail_noCmdLineParams() {
+        ConsoleSpy.interceptConsole();
 
-        CommandLine cmd = null;
-        XmlInstrumentValidator.validateInstrumentation(cmd);
+        XmlInstrumentValidator.validateInstrumentation((CommandLine) null);
+        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains("There were no command line parameters"));
 
-        Assert.assertEquals("There were no command line parameters.\n", interceptOut.toString());
-        System.setOut(out);
+        ConsoleSpy.resetConsole();
     }
 
     @Test
-    public void validateInstrumentation_shouldRequireFile_inCmdLineParams() {
-        final PrintStream out = System.out;
-        final ByteArrayOutputStream interceptOut = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(interceptOut));
+    public void validateInstrumentation_shouldFail_noFileInCmdLineParams() {
+        ConsoleSpy.interceptConsole();
+
         CommandLine mockCmd = Mockito.mock(CommandLine.class);
         Mockito.when(mockCmd.getOptionValues(anyString())).thenReturn(null);
 
         XmlInstrumentValidator.validateInstrumentation(mockCmd);
+        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains("FAIL: The command line parameters are invalid."));
 
-        Assert.assertTrue(interceptOut.toString().contains("FAIL: The command line parameters are invalid."));
-
-        System.setOut(out);
+        ConsoleSpy.resetConsole();
     }
 
     @Test
-    public void validateInstrumentation_shouldHandle_validCmdLineParams() {
-        final PrintStream out = System.out;
-        final ByteArrayOutputStream interceptOut = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(interceptOut));
+    public void validateInstrumentation_shouldPass_validCmdLineParams() {
+        ConsoleSpy.interceptConsole();
 
         CommandLine mockCmd = Mockito.mock(CommandLine.class);
         File xmlFile = getFile(FILE_PATH_1);
@@ -190,10 +184,41 @@ public class XmlInstrumentValidatorTest {
         Mockito.when(mockCmd.getOptionValues("debug")).thenReturn(new String[] {"true"});
 
         XmlInstrumentValidator.validateInstrumentation(mockCmd);
-        Assert.assertTrue(interceptOut.toString().contains("PASS"));
+        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains("PASS"));
 
-        System.setOut(out);
+        ConsoleSpy.resetConsole();
     }
+
+    @Test
+    public void validateInstrumentation_shouldCatch_Exceptions(){
+        ConsoleSpy.interceptConsole();
+
+        CommandLine mockCmd = Mockito.mock(CommandLine.class);
+        File xmlFile = getFile(FILE_PATH_5_CONSTRUCTOR);
+        Mockito.when(mockCmd.getOptionValues("file")).thenReturn(new String[] {xmlFile.getAbsolutePath()});
+
+        XmlInstrumentValidator.validateInstrumentation(mockCmd);
+        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains(MessageFormat.format("FAIL: The extension at {0} failed validation", xmlFile.getAbsolutePath())));
+
+        ConsoleSpy.resetConsole();
+
+    }
+
+    private static class ConsoleSpy {
+        private static PrintStream out;
+        private static ByteArrayOutputStream interceptOut;
+
+        private static void interceptConsole(){
+            out = System.out;
+            interceptOut = new ByteArrayOutputStream();
+            System.setOut(new PrintStream(interceptOut));
+        }
+        private static ByteArrayOutputStream getInterceptOut(){return interceptOut; }
+        private static void resetConsole(){
+            System.setOut(out);
+        }
+    }
+
 
 
 }
