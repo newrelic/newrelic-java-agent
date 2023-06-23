@@ -224,6 +224,7 @@ test {
 jacocoTestReport {
 
     dependsOn test
+    getExecutionData().setFrom(fileTree(buildDir).include("/jacoco/*.exec"))
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it,
