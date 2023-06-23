@@ -2,6 +2,7 @@ package com.newrelic.agent.service.logging;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.HarvestService;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.MockRPMService;
 import com.newrelic.agent.RPMService;
 import com.newrelic.agent.RPMServiceManager;
@@ -21,6 +22,7 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.stats.StatsService;
+import com.newrelic.api.agent.MetricAggregator;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -40,6 +42,7 @@ public class LogSenderServiceImplTest {
     private static final HarvestService harvestService = Mockito.mock(HarvestService.class);
     private static final TransactionService txService = Mockito.mock(TransactionService.class);
     private static final StatsService statsService = Mockito.mock(StatsService.class);
+    private static final MetricAggregator metricAggregator = Mockito.mock(MetricAggregator.class);
 
     private static LogSenderServiceImpl createService() throws Exception {
         return createService(createConfig());
@@ -57,6 +60,7 @@ public class LogSenderServiceImplTest {
         when(serviceManager.getConfigService()).thenReturn(Mockito.mock(ConfigService.class));
         when(serviceManager.getConfigService().getDefaultAgentConfig()).thenReturn(AgentConfigImpl.createAgentConfig(config));
         when(serviceManager.getRPMServiceManager().getRPMService().getApplicationName()).thenReturn(appName);
+        when(statsService.getMetricAggregator()).thenReturn(metricAggregator);
         ServiceFactory.setServiceManager(serviceManager);
 
         Transaction transaction = Mockito.mock(Transaction.class);
@@ -202,6 +206,19 @@ public class LogSenderServiceImplTest {
         assertEquals(3, analyticsData.getEvents().size());
     }
 
+    @Test
+    public void recordApplicationLoggingSupportabilityMetrics_incrementsProperMetric() throws Exception {
+        LogSenderServiceImpl logSenderService = createService();
+        logSenderService.recordApplicationLoggingSupportabilityMetrics(false, false, false);
+        Mockito.verify(metricAggregator).incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED);
+        Mockito.verify(metricAggregator).incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED);
+        Mockito.verify(metricAggregator).incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED);
+
+        logSenderService.recordApplicationLoggingSupportabilityMetrics(true, true, true);
+        Mockito.verify(metricAggregator).incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED);
+        Mockito.verify(metricAggregator).incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_METRICS_JAVA_ENABLED);
+        Mockito.verify(metricAggregator).incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED);
+    }
 
     private static Map<String, Object> createConfig() {
         return createConfig(null, null, null);

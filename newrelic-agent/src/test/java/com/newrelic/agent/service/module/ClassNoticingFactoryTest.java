@@ -29,7 +29,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class ClassNoticingFactoryTest {
@@ -77,7 +77,7 @@ public class ClassNoticingFactoryTest {
         String codeSourceLocation = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString();
         if (codeSourceLocation.endsWith("/")) {
             // we expect the test classes to be staged in a gradle directory, not in a jar.
-            verifyZeroInteractions(factory, executorService);
+            verifyNoInteractions(factory, executorService);
         } else {
             fail("Unexpected jar for test class?? " + codeSourceLocation);
         }

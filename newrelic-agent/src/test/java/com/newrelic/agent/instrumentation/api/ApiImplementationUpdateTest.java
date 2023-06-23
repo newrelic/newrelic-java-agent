@@ -62,7 +62,7 @@ public class ApiImplementationUpdateTest {
         reader.accept(visitor, ClassReader.SKIP_CODE);
 
         Mockito.verify(iInstrumentationContext, Mockito.never()).putMatch(
-                Mockito.<ClassMatchVisitorFactory> anyObject(), Mockito.<Match> anyObject());
+                Mockito.<ClassMatchVisitorFactory> any(), Mockito.<Match> any());
 
     }
 
@@ -88,7 +88,7 @@ public class ApiImplementationUpdateTest {
                 iInstrumentationContext);
         reader.accept(visitor, ClassReader.SKIP_CODE);
 
-        Mockito.verify(iInstrumentationContext, Mockito.only()).putMatch(arg.capture(), Mockito.<Match> anyObject());
+        Mockito.verify(iInstrumentationContext, Mockito.only()).putMatch(arg.capture(), Mockito.<Match> any());
         Assert.assertSame(matcher, arg.getValue());
 
     }
