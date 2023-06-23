@@ -37,7 +37,7 @@ runs:
     - name: Download S3 instrumentation jar zip
       shell: bash
       run: |
-        aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20220805.zip proprietary-jars.zip && unzip proprietary-jars.zip  
+        aws s3 cp s3://nr-java-agent-s3-instrumentation/proprietary-jars-20230623.zip proprietary-jars.zip && unzip proprietary-jars.zip
         if [ $? -ne 0 ]; then
           echo "Instrumentation jar zip unavailable." >> $GITHUB_STEP_SUMMARY
         fi
