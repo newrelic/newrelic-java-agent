@@ -156,7 +156,7 @@ public class XmlInstrumentValidatorTest {
         ConsoleSpy.interceptConsole();
 
         XmlInstrumentValidator.validateInstrumentation((CommandLine) null);
-        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains("There were no command line parameters"));
+        Assert.assertTrue(ConsoleSpy.getInterceptedOutput().toString().contains("There were no command line parameters"));
 
         ConsoleSpy.resetConsole();
     }
@@ -169,7 +169,7 @@ public class XmlInstrumentValidatorTest {
         Mockito.when(mockCmd.getOptionValues(anyString())).thenReturn(null);
 
         XmlInstrumentValidator.validateInstrumentation(mockCmd);
-        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains("FAIL: The command line parameters are invalid."));
+        Assert.assertTrue(ConsoleSpy.getInterceptedOutput().toString().contains("FAIL: The command line parameters are invalid."));
 
         ConsoleSpy.resetConsole();
     }
@@ -184,7 +184,7 @@ public class XmlInstrumentValidatorTest {
         Mockito.when(mockCmd.getOptionValues("debug")).thenReturn(new String[] {"true"});
 
         XmlInstrumentValidator.validateInstrumentation(mockCmd);
-        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains("PASS"));
+        Assert.assertTrue(ConsoleSpy.getInterceptedOutput().toString().contains("PASS"));
 
         ConsoleSpy.resetConsole();
     }
@@ -198,24 +198,24 @@ public class XmlInstrumentValidatorTest {
         Mockito.when(mockCmd.getOptionValues("file")).thenReturn(new String[] {xmlFile.getAbsolutePath()});
 
         XmlInstrumentValidator.validateInstrumentation(mockCmd);
-        Assert.assertTrue(ConsoleSpy.getInterceptOut().toString().contains(MessageFormat.format("FAIL: The extension at {0} failed validation", xmlFile.getAbsolutePath())));
+        Assert.assertTrue(ConsoleSpy.getInterceptedOutput().toString().contains(MessageFormat.format("FAIL: The extension at {0} failed validation", xmlFile.getAbsolutePath())));
 
         ConsoleSpy.resetConsole();
 
     }
 
     private static class ConsoleSpy {
-        private static PrintStream out;
-        private static ByteArrayOutputStream interceptOut;
+        private static final PrintStream ORIGINAL_SYSTEM_OUT = System.out;
+        private static ByteArrayOutputStream interceptedOutput;
 
         private static void interceptConsole(){
-            out = System.out;
-            interceptOut = new ByteArrayOutputStream();
-            System.setOut(new PrintStream(interceptOut));
+            interceptedOutput = new ByteArrayOutputStream();
+            System.setOut(new PrintStream(interceptedOutput));
         }
-        private static ByteArrayOutputStream getInterceptOut(){return interceptOut; }
+        private static ByteArrayOutputStream getInterceptedOutput(){return interceptedOutput; }
         private static void resetConsole(){
-            System.setOut(out);
+            System.setOut(ORIGINAL_SYSTEM_OUT);
+            interceptedOutput = null;
         }
     }
 
