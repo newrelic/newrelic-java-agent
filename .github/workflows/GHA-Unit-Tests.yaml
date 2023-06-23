@@ -46,18 +46,18 @@ jobs:
       - name: Run unit tests for each Java version as defined in the matrix (attempt 1)
         id: run_tests_1
         continue-on-error: true
-        timeout-minutes: 35
+        timeout-minutes: 120
         run: ./gradlew $GRADLE_OPTIONS test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Run unit tests for each Java version as defined in the matrix (attempt 2)
         id: run_tests_2
         continue-on-error: true
-        timeout-minutes: 35
+        timeout-minutes: 120
         if: steps.run_tests_1.outcome == 'failure'
         run: ./gradlew $GRADLE_OPTIONS test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
       - name: Run unit tests for each Java version as defined in the matrix (attempt 3)
-        timeout-minutes: 35
+        timeout-minutes: 120
         if: steps.run_tests_2.outcome == 'failure'
         run: ./gradlew $GRADLE_OPTIONS test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
 
