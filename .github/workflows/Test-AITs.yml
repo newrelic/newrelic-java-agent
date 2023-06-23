@@ -270,6 +270,8 @@ jobs:
           JAVA20JRE=${JAVA_HOME_20_X64} \
           conf/autoconfigure
           . conf/testenv java
+          export TEST_SAVE_WORKDIR=1
+          export TEST_LOG_LEVEL=DEBUG
           cat conf/java_local_config.yml
           sed -i 's|java_agent_dev_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent|java_agent_dev_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar|' conf/java_local_config.yml
           sed -i 's|app_root: /home/runner/apps|app_root: /home/runner/work/newrelic-java-agent/newrelic-java-agent/apps|' conf/java_local_config.yml
