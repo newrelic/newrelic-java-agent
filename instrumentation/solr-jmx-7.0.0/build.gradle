@@ -9,25 +9,13 @@ dependencies {
     implementation(project(":newrelic-weaver-api"))
 
     implementation("org.apache.lucene:lucene-core:7.0.0")
-    implementation("org.apache.solr:solr-core:7.0.0")
-    // some dependencies of solr-core:7.0.0 are no longer available, so should be provided on lib
-    implementation(fileTree(include: ["*.jar"], dir: "lib"))
+    implementation("org.apache.solr:solr-core:7.0.0") {
+        exclude(group: "org.restlet.jee", module: "org.restlet")
+        exclude(group: "org.restlet.jee", module: "org.restlet.ext.servlet")
+    }
 }
-
-def shouldBuild = fileTree(include: ["*.jar"], dir: "lib").size() > 0
-
-compileJava {
-    enabled(shouldBuild)
-}
-
-compileTestJava {
-    enabled(shouldBuild)
-}
-
-tasks.getByName("writeCachedWeaveAttributes").enabled(shouldBuild)
 
 jar {
-    enabled(shouldBuild)
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.solr-jmx-7.0.0' }
 }
 
