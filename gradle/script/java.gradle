@@ -224,7 +224,15 @@ test {
 jacocoTestReport {
 
     dependsOn test
-    getExecutionData().setFrom(fileTree(buildDir).include("**/jacoco/*.exec"))
+    
+    // Gather execution data from all subprojects
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    // Add all relevant sourcesets from the subprojects
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it,
