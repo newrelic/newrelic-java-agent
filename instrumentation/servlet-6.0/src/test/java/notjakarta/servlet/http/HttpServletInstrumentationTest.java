@@ -3,10 +3,12 @@ package notjakarta.servlet.http;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import jakarta.servlet.ServletException;
 
 import com.newrelic.agent.introspec.*;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -19,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "jakarta.servlet", configName = "debug.yml")
+@Category({ Java8IncompatibleTest.class })
 public class HttpServletInstrumentationTest {
 
     @Test
