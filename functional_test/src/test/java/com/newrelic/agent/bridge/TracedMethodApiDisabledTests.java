@@ -16,7 +16,7 @@ import org.junit.Test;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 
-public class TracedMethodApiDisabledTest {
+public class TracedMethodApiDisabledTests {
 
     private static PrivateApi originalPrivateApi;
 

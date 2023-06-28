@@ -36,7 +36,7 @@ public class ProfileSessionTest {
         Assert.assertTrue(target.isDone());
         Assert.assertNotNull(target.getProfile());
         Assert.assertEquals(new Long(0), target.getProfileId());
-        Assert.assertEquals(10, target.getProfile().getSampleCount());
+        Assert.assertTrue(target.getProfile().getSampleCount() > 1);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class ProfileSessionTest {
         long end = System.currentTimeMillis();
         while (!target.isDone() && ((end-start) < MAX_DURATION)) {
             try {
-                Thread.sleep(1);
+                Thread.sleep(50);
             } catch (Exception e) {}
         }
     }

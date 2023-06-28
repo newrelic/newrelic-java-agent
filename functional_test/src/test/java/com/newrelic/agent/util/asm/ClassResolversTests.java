@@ -16,7 +16,7 @@ import org.objectweb.asm.Type;
 
 import com.newrelic.api.agent.NewRelic;
 
-public class ClassResolversTest {
+public class ClassResolversTests {
 
     @Test
     public void testEmbedded() throws IOException {

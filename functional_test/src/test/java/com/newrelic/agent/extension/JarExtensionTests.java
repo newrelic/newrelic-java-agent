@@ -28,7 +28,7 @@ import com.newrelic.weave.utils.JarUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JarExtensionTest {
+public class JarExtensionTests {
     
     @BeforeClass
     public static void setup() throws Exception {

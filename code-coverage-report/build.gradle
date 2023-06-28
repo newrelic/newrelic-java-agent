@@ -1,0 +1,72 @@
+plugins {
+    id 'base'
+    id 'jacoco-report-aggregation'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // what tests get run
+    jacocoAggregation project(':newrelic-agent')
+    jacocoAggregation project(':newrelic-api')
+    jacocoAggregation project(':newrelic-weaver')
+    jacocoAggregation project(':agent-bridge')
+    jacocoAggregation project(':agent-bridge-datastore')
+    jacocoAggregation project(':agent-model')
+    jacocoAggregation project(':discovery')
+    jacocoAggregation project(':infinite-tracing')
+    jacocoAggregation project(':instrumentation-test')
+    jacocoAggregation project(':functional_test')
+}
+
+testCodeCoverageReport {
+    getClassDirectories().setFrom(files(  // what packages get included in the output
+            [project(':newrelic-agent'),
+             //project(':newrelic-api'),  // TODO this should go back once the excludes below work
+             project(':newrelic-weaver'),
+             project(':agent-bridge'),
+             project(':agent-bridge-datastore'),
+             project(':agent-model'),
+             project(':discovery'),
+             project(':infinite-tracing'),
+             project(':instrumentation-test'),
+             project(':functional_test'),
+            ].collect {
+                fileTree(dir: "${it.buildDir}/classes",
+                    exclude: ['**test/*',   // TODO these are not working, why?
+                              '**/test*',
+                              '**/fake*',
+                              '**/Fake*',
+                              '**/example*',
+                              '**/*NoOp*.class',
+                              '**/*Exception.class',
+                              '**/*Error.class',
+                              '**/Dummy*.class',
+                              '**/*Type.class',
+                              '**/*Type$*.class',
+                              '**/*Parameters.class',
+                              '**/*Parameters$*.class',
+                              '**/*InternalLimitExceeded.class',
+                              '**/*PrivateApiImpl.class',
+                              '**/com/newrelic/agent/introspec/*.class',
+                              'com/newrelic/agent/jmx/metrics/*Generator.class',
+                              'com/newrelic/agent/jmx/metrics/*Generator$*.class',
+                              'com/newrelic/agent/bridge/external/ExternalParametersFactory.class',
+                              'com/newrelic/agent/model/ApdexPerfZone.class',
+                              'com/newrelic/agent/model/CountedDuration.class',
+                              'com/newrelic/agent/model/PathHashes.class',
+                              'com/newrelic/agent/model/SpanCategory.class',
+                              'com/newrelic/agent/model/SyntheticsIds.class',
+                              'com/newrelic/agent/model/TimeoutCause.class',
+                              'com/newrelic/agent/model/TransactionTiming.class',
+                              'com/newrelic/agent/model/TransactionTiming$*.class',
+                              'com/newrelic/api/agent/NewRelic.class',
+                              'com/newrelic/weave/verification/*.class',
+                              'com/newrelic/agent/bridge/datastore/DatastoreMetrics.class',
+                              'com/newrelic/api/agent/ApplicationNamePriority.class',
+                              'com/newrelic/agent/bridge/TransactionNamePriority'
+                    ])}
+    ))
+}
