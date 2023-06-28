@@ -225,14 +225,6 @@ jacocoTestReport {
 
     dependsOn test
 
-    // Gather execution data from all subprojects
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-
-    // Add all relevant sourcesets from the subprojects
-    subprojects.each {
-        sourceSets it.sourceSets.main
-    }
-
     // add the source dirs for other modules  to be tracked
     //getAdditionalSourceDirs().setFrom(files(sourceSets.main.allSource.srcDirs).filter { it.path.contains('src/main/java') } )
 
