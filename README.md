@@ -78,7 +78,6 @@ The following modules have specific requirements to be built. The instructions f
 - [jdbc-sybase-6](./instrumentation/jdbc-sybase-6/README.md)
 - [open-liberty-jakarta-21.0.0.12](./instrumentation/open-liberty-jakarta-21.0.0.12/README.md)
 - [resin-3](./instrumentation/resin-3/README.md)
-- [solr-jmx-7.0.0](./instrumentation/solr-jmx-7.0.0/README.md)
 - [weblogic-12.2](./instrumentation/weblogic-12.2/README.md)
 - [weblogic-12](./instrumentation/weblogic-12/README.md)
 - [weblogic-jmx-12.2.1](./instrumentation/weblogic-jmx-12.2.1/README.md)
