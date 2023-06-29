@@ -45,6 +45,35 @@ public class MethodCacheTest {
     }
 
     @Test
+    public void withParamTypes() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        MethodCache methodCache = new MethodCache("getField1Args", Object.class);
+        String expectedField1 = "field1";
+        Test1 test1 = new Test1(expectedField1);
+        Class<?> clazz = test1.getClass();
+        Method method1 = methodCache.getDeclaredMethod(clazz, Object.class);
+        method1.setAccessible(true);
+        String actualField1 = (String) method1.invoke(test1, new Object());
+        Assert.assertEquals(expectedField1, actualField1);
+        Assert.assertEquals(methodCache.getSize(), 1);
+    }
+
+    @Test
+    public void getMethodAndClear() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        MethodCache methodCache = new MethodCache("getField1Args", Object.class);
+        String expectedField1 = "field1";
+        Test1 test1 = new Test1(expectedField1);
+        Class<?> clazz = test1.getClass();
+        Method method1 = methodCache.getMethod(clazz);
+        method1.setAccessible(true);
+        String actualField1 = (String) method1.invoke(test1, new Object());
+        Assert.assertEquals(expectedField1, actualField1);
+        Assert.assertEquals(methodCache.getSize(), 1);
+
+        methodCache.clear();;
+        Assert.assertEquals(methodCache.getSize(), 0);
+    }
+
+    @Test
     public void noArgsSuperclass() throws NoSuchMethodException, InvocationTargetException, IllegalArgumentException,
             IllegalAccessException {
 

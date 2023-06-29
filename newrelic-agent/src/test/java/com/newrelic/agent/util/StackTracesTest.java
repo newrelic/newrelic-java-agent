@@ -24,6 +24,7 @@ import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -146,6 +147,39 @@ public class StackTracesTest {
 
     }
 
+    @Test
+    public void test_getThreadStackTraceElements_andLast() {
+        StackTraceElement[] elements = StackTraces.getThreadStackTraceElements(Thread.currentThread().getId());
+        Assert.assertNotNull(elements);
+        Assert.assertTrue(elements.length > 0);
+        Collection<String> elementStrs = StackTraces.stackTracesToStrings(elements);
+        Assert.assertNotNull(elementStrs);
+        Assert.assertEquals(elements.length, elementStrs.size());
+
+        // less than requested exists, no actual trim
+        List elementList = StackTraces.last(elements, elements.length+1);
+        Assert.assertEquals(elements.length, elementList.size());
+
+        // actually trim down to size
+        elementList = StackTraces.last(elements, 3);
+        Assert.assertEquals(3, elementList.size());
+
+        // no thread
+        elements = StackTraces.getThreadStackTraceElements(Integer.MAX_VALUE);
+        Assert.assertNull(elements);
+        elementStrs = StackTraces.stackTracesToStrings(elements);
+        Assert.assertNotNull(elementStrs);
+        Assert.assertEquals(0, elementStrs.size());
+    }
+
+    @Test
+    public void test_createStackTraceException() {
+        Exception result = StackTraces.createStackTraceException("MyException");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("MyException", result.getMessage());
+        Assert.assertTrue(result.getStackTrace().length > 0);
+    }
+
     private List<StackTraceElement> changeComNewrelic(StackTraceElement[] elements) {
         String currentClass;
         List<StackTraceElement> toReturn = new ArrayList<>(elements.length);
@@ -169,6 +203,7 @@ public class StackTracesTest {
     @Test
     public void isSame() {
         StackTraceElement one = new StackTraceElement("1", "2", null, 0);
+        Assert.assertTrue(StackTraces.isSameClassAndMethod(one, one));
         StackTraceElement two = new StackTraceElement("1", "2", null, 0);
         Assert.assertTrue(StackTraces.isSameClassAndMethod(one, two));
 
@@ -212,6 +247,26 @@ public class StackTracesTest {
         serviceManager.setConfigService(configService);
         // get stack traces
         List<StackTraceElement> parentTrace = null;
+        List<StackTraceElement> childTrace = generateStack(0, 10);
+
+        List<String> trimmed = StackTraces.toStringListRemoveParent(childTrace, parentTrace);
+        Assert.assertEquals(childTrace.size(), trimmed.size());
+        for (int i = 0; i < childTrace.size(); i++) {
+            Assert.assertEquals(childTrace.get(i).toString(), trimmed.get(i));
+        }
+    }
+
+    @Test
+    public void testToStringListRemoveParentScrubbedParent() {
+        // need configuration service set
+        MockServiceManager serviceManager = new MockServiceManager();
+        ServiceFactory.setServiceManager(serviceManager);
+        Map<String, Object> configMap = new HashMap<>();
+        AgentConfig config = AgentConfigImpl.createAgentConfig(configMap);
+        ConfigService configService = ConfigServiceFactory.createConfigService(config, configMap);
+        serviceManager.setConfigService(configService);
+        // get stack traces
+        List<StackTraceElement> parentTrace = generateStack(0, 2, "com.newrelic.agent.Test");
         List<StackTraceElement> childTrace = generateStack(0, 10);
 
         List<String> trimmed = StackTraces.toStringListRemoveParent(childTrace, parentTrace);
@@ -271,10 +326,14 @@ public class StackTracesTest {
     }
 
     private List<StackTraceElement> generateStack(int start, int size) {
+        return generateStack(start, size, "Test");
+    }
+
+    private List<StackTraceElement> generateStack(int start, int size, String className) {
         ArrayList<StackTraceElement> stack = new ArrayList<>();
         int end = size + start;
         for (int i = start; i < end; i++) {
-            stack.add(new StackTraceElement("Test", "method", "file", i));
+            stack.add(new StackTraceElement(className, "method", "file", i));
         }
         return stack;
     }
