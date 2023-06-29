@@ -13,6 +13,7 @@ import com.newrelic.agent.config.TransactionEventsConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,5 +92,14 @@ public class TransactionEventsConfigTest {
         transaction.put(TransactionEventsConfig.MAX_SAMPLES_STORED, 10);
         config = AgentConfigImpl.createAgentConfig(root);
         Assert.assertFalse(config.getTransactionEventsConfig().isEnabled());
+    }
+
+    @Test
+    public void createTransactionEventConfig_withNullSettingsInstance_returnsInstanceWithDefaultProps() {
+        TransactionEventsConfig config = TransactionEventsConfig.createTransactionEventConfig(null);
+        Assert.assertEquals(2000, config.getMaxSamplesStored());
+        Assert.assertEquals(10, config.getTargetSamplesStored());
+        Assert.assertEquals(0, config.getRequestHeaderConfigs().size());
+        Assert.assertTrue(config.isEnabled());
     }
 }
