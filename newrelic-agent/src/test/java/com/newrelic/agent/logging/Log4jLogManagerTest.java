@@ -15,6 +15,10 @@ import static org.junit.Assert.*;
 public class Log4jLogManagerTest {
     Log4jLogManager logManager;
     AgentConfig mockAgentConfig;
+
+    private String CONSOLE_APPENDER_NAME = "Console"; //this is declared private static in Log4jLogger
+
+    private String FILE_APPENDER_NAME = FileAppenderFactory.FILE_APPENDER_NAME;
     @Before
     public void setup(){
         logManager = Log4jLogManager.create("quizzy bees");
@@ -76,7 +80,7 @@ public class Log4jLogManagerTest {
         Configuration config = ctx.getConfiguration();
         LoggerConfig loggerConfig = config.getLoggerConfig("quizzy bees");
 
-        assertNotNull(loggerConfig.getAppenders().get("Console"));
+        assertNotNull(loggerConfig.getAppenders().get(CONSOLE_APPENDER_NAME));
 
     }
 
@@ -91,21 +95,24 @@ public class Log4jLogManagerTest {
         Configuration config = ctx.getConfiguration();
         LoggerConfig loggerConfig = config.getLoggerConfig("quizzy bees");
 
-        assertNull(loggerConfig.getAppenders().get("Console"));
+        assertNull(loggerConfig.getAppenders().get(CONSOLE_APPENDER_NAME));
 
     }
 
-    //ASK FOR HELP ABOUT THIS
-//    @Test
-//    public void configureFileHandler_shouldWriteToFile(){
-//        File directory = new File("./");
-//        String EXPECTED_LOG_FILE_PATH = "";
-//        Mockito.when(mockAgentConfig.isLoggingToStdOut()).thenReturn(false);
-//        Mockito.when(mockAgentConfig.isDebugEnabled()).thenReturn(false);
-//
-//        logManager.configureLogger(mockAgentConfig);
-//
-//    }
+    @Test
+    public void configureFileHandler_shouldAddFileAppender(){
+        Mockito.when(mockAgentConfig.isLoggingToStdOut()).thenReturn(false);
+        Mockito.when(mockAgentConfig.isDebugEnabled()).thenReturn(false);
+
+        logManager.configureLogger(mockAgentConfig);
+
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig("quizzy bees");
+
+        assertNotNull(loggerConfig.getAppenders().get(FILE_APPENDER_NAME));
+
+    }
 
 
 }
