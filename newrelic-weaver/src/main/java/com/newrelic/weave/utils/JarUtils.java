@@ -49,6 +49,11 @@ public final class JarUtils {
      * @throws IOException
      */
     public static File createJarFile(String prefix, Map<String, byte[]> classes, Manifest manifest) throws IOException {
+        return createJarFile(prefix, classes, manifest, null);
+    }
+
+    public static File createJarFile(String prefix, Map<String, byte[]> classes,
+            Manifest manifest, Map<String, byte[]> extensions) throws IOException {
         File file = File.createTempFile(prefix, ".jar", getTempDir());
         file.deleteOnExit(); // Doesn't need to be kept after shutdown.
 
@@ -56,11 +61,12 @@ public final class JarUtils {
             manifest = new Manifest();
         }
         JarOutputStream outStream = new JarOutputStream(new FileOutputStream(file), manifest);
-        writeFilesToJarStream(classes, outStream);
+        writeFilesToJarStream(classes, outStream, extensions);
         return file;
     }
 
-    private static void writeFilesToJarStream(Map<String, byte[]> classes, JarOutputStream outStream)
+    private static void writeFilesToJarStream(Map<String, byte[]> classes, JarOutputStream outStream,
+            Map<String, byte[]> extensions)
             throws IOException {
 
         Map<String, byte[]> resources = new HashMap<>();
@@ -69,6 +75,7 @@ public final class JarUtils {
         }
         try {
             addJarEntries(outStream, resources);
+            addExtensions(outStream, extensions);
         } finally {
             try {
                 outStream.close();
@@ -86,7 +93,26 @@ public final class JarUtils {
             jarStream.closeEntry();
         }
     }
-    
+
+    private static void addExtensions(JarOutputStream jarStream, Map<String, byte[]> extensions) throws IOException {
+        if (extensions == null) return;
+
+        JarEntry extensionsEntry = new JarEntry("META-INF/extensions/extensions");
+        jarStream.putNextEntry(extensionsEntry);
+        for (Entry<String, byte[]> entry : extensions.entrySet()) {
+            jarStream.write(entry.getKey().getBytes());
+            jarStream.write("\r\n".getBytes());
+        }
+        jarStream.closeEntry();
+
+        for (Entry<String, byte[]> entry : extensions.entrySet()) {
+            JarEntry jarEntry = new JarEntry("META-INF/extensions/"+entry.getKey());
+            jarStream.putNextEntry(jarEntry);
+            jarStream.write(entry.getValue());
+            jarStream.closeEntry();
+        }
+    }
+
     /**
      * Returns the tempdir that the agent should use, or null for the default tempdir.
      */
