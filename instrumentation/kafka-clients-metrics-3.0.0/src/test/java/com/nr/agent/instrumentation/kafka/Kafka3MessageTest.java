@@ -10,10 +10,13 @@ package com.nr.agent.instrumentation.kafka;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import static com.newrelic.agent.introspec.MetricsHelper.getUnscopedMetricCount;
+
+import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.api.agent.Trace;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -26,6 +29,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.After;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Before;
@@ -78,7 +82,7 @@ public class Kafka3MessageTest {
      * @return whether messages were read
      */
     @Trace(dispatcher = true)
-    private boolean readMessages() {
+    private boolean readMessages() throws InterruptedException {
         int messagesRead = 0;
         try (KafkaConsumer<String, String> consumer = KafkaHelper.newConsumer(kafkaContainer)) {
             consumer.subscribe(Collections.singleton(TOPIC));
@@ -89,6 +93,9 @@ public class Kafka3MessageTest {
                 ConsumerRecords<String, String> records = consumer.poll(1000);
                 messagesRead += records.count();
                 if (messagesRead == 2) {
+                    // Sleep for a minute before closing the consumer so MetricsScheduler runs
+                    // few times and all metrics are reported
+                    Thread.sleep(60000L);
                     return true;
                 }
             }
@@ -107,6 +114,9 @@ public class Kafka3MessageTest {
             for (Future<RecordMetadata> future : futures) {
                 future.get();
             }
+            // Sleep for a minute before closing the producer so MetricsScheduler runs
+            // few times and all metrics are reported
+            Thread.sleep(60000L);
         }
     }
 
@@ -176,6 +186,13 @@ public class Kafka3MessageTest {
         assertTrue(consumedCount <= 2);
 
         assertEquals(1, getUnscopedMetricCount("MessageBroker/Kafka/Rebalance/Assigned/life-universe-everything/0"));
+
+        // Nodes metrics
+        assertTrue(unscopedNodesMetricExists("MessageBroker/Kafka/Nodes/localhost:[0-9]*"));
+        assertTrue(unscopedNodesMetricExists("MessageBroker/Kafka/Nodes/localhost:[0-9]*/Consume/" + TOPIC));
+        assertTrue(unscopedNodesMetricExists("MessageBroker/Kafka/Nodes/localhost:[0-9]*/Produce/" + TOPIC));
+        assertFalse(unscopedNodesMetricExists("MessageBroker/Kafka/Nodes/localhost:[0-9]*/Consume/" + ANOTHER_TOPIC));
+        assertTrue(unscopedNodesMetricExists("MessageBroker/Kafka/Nodes/localhost:[0-9]*/Produce/" + ANOTHER_TOPIC));
     }
 
     private void assertUnscopedMetricExists(String ... metricNames) {
@@ -187,4 +204,8 @@ public class Kafka3MessageTest {
         System.out.println(notFoundMetricCount + " metrics not found");
     }
 
+    private boolean unscopedNodesMetricExists(String metricName) {
+        return InstrumentationTestRunner.getIntrospector().getUnscopedMetrics().keySet().stream()
+                .anyMatch(key -> key.matches(metricName));
+    }
 }
