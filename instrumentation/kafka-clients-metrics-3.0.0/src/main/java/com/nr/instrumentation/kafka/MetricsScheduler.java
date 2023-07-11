@@ -80,9 +80,13 @@ public class MetricsScheduler {
 
                 for (NewRelicMetricsReporter.NodeMetricNames consumerNodeMetricNames : nrMetricsReporter.getNodes().values()) {
                     if (METRICS_AS_EVENTS) {
-                        consumerNodeMetricNames.getEventNames().forEach(eventName -> eventData.put(eventName, 1f));
+                        for (String eventName : consumerNodeMetricNames.getEventNames()) {
+                            eventData.put(eventName, 1f);
+                        }
                     } else {
-                        consumerNodeMetricNames.getMetricNames().forEach(metricName -> NewRelic.recordMetric(metricName, 1f));
+                        for (String metricName : consumerNodeMetricNames.getMetricNames()) {
+                            NewRelic.recordMetric(metricName, 1f);
+                        }
                     }
                 }
 

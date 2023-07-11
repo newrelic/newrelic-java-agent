@@ -90,7 +90,9 @@ public class NewRelicMetricsReporter implements MetricsReporter {
     }
 
     private void addTopicToNodeMetrics(String topic) {
-        nodes.values().forEach(nodeMetricNames -> nodeMetricNames.addMetricNameForTopic(topic));
+        for (NodeMetricNames nodeMetricNames : nodes.values()) {
+            nodeMetricNames.addMetricNameForTopic(topic);
+        }
     }
 
     @Override
