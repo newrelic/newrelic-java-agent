@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 
-public class ExternalComponentTracerTest {
+public class ExternalComponentNameFormatTest {
 
     @Test
     public void test() {
