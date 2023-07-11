@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 
-public class NewExternalComponentTracerTest {
+public class ExternalComponentTracerTest {
 
     private String UNKNOWN_HOST = "UnknownHost"; //declared private static in AbstractExternalComponentTracer
     private Transaction mockTransaction;
