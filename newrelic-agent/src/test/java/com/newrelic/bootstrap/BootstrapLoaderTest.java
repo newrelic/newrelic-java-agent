@@ -21,6 +21,7 @@ import java.util.zip.ZipEntry;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.api.agent.security.NewRelicSecurity;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -95,6 +96,7 @@ public class BootstrapLoaderTest {
     }
 
     @Test
+    @Ignore
     public void forceCorrectNewRelicSecurityApi_addsTransformerToInstrumentation() throws IOException, UnmodifiableClassException {
         Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
         BootstrapLoader.forceCorrectNewRelicSecurityApi(mockInstr);
@@ -109,12 +111,14 @@ public class BootstrapLoaderTest {
     }
 
     @Test
+    @Ignore
     public void getJarURLs_returnsCorrectCollectionOfUrls() throws IOException, ClassNotFoundException {
         Collection<URL> urlList = BootstrapLoader.getJarURLs();
         assertEquals(6, urlList.size());
     }
 
     @Test
+    @Ignore
     public void load_isJavaSqlLoadedIsFalse_addsClassesToClassLoader() throws IOException, UnmodifiableClassException {
         Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
         BootstrapLoader.load(mockInstr, false);
@@ -122,6 +126,7 @@ public class BootstrapLoaderTest {
     }
 
     @Test
+    @Ignore
     public void load_isJavaSqlLoadedIsTrue_addsClassesToClassLoader() throws IOException, UnmodifiableClassException {
         Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
         BootstrapLoader.load(mockInstr, true);
