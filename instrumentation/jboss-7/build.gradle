@@ -1,29 +1,30 @@
-repositories {
-    mavenCentral()
-    maven {
-        url 'https://repo.spring.io/plugins-release'
-    }
-}
-
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("org.jboss.web:jbossweb:7.5.10.Final")
     implementation("jakarta.servlet:jakarta.servlet-api:4.0.4")
+
+    // org.jboss.web:jbossweb:7.5.10.Final is expected to be in the lib folder
+    implementation(fileTree(include: ["*.jar"], dir: "lib"))
 }
+
+def shouldBuild = fileTree(include: ["*.jar"], dir: "lib").size() > 0
+
+compileJava {
+    enabled(shouldBuild)
+}
+
+compileTestJava {
+    enabled(shouldBuild)
+}
+
+tasks.getByName("writeCachedWeaveAttributes").enabled(shouldBuild)
 
 jar {
+    enabled(shouldBuild)
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jboss-7' }
-}
-
-verifyInstrumentation {
-    passes('org.jboss.web:jbossweb:[7.0,)') {
-        implementation("jakarta.servlet:jakarta.servlet-api:4.0.4")
-    }
-    excludeRegex(".*(Alpha|Beta|CR).*")
-    exclude("org.jboss.web:jbossweb:7.5.6.Final") // this appears to be a bad release that was excluded from multiple repos
 }
 
 site {
     title 'JBoss'
     type 'Appserver'
+    versionOverride '[7.0,)'
 }

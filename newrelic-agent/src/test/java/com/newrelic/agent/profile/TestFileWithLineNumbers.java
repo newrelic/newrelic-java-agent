@@ -7,6 +7,9 @@
 
 package com.newrelic.agent.profile;
 
+import com.newrelic.agent.instrumentation.InstrumentationType;
+import com.newrelic.agent.instrumentation.InstrumentedMethod;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,4 +69,6 @@ public class TestFileWithLineNumbers {
         return Thread.currentThread().getStackTrace();
     }
 
+    @InstrumentedMethod(instrumentationTypes = InstrumentationType.TraceAnnotation, instrumentationNames = "theName")
+    public void instrumentedMethod() { }
 }

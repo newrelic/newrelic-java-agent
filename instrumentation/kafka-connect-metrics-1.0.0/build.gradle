@@ -1,0 +1,27 @@
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.apache.kafka:connect-runtime:3.3.2")
+
+    testImplementation("org.mockito:mockito-inline:4.11.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-connect-metrics-1.0.0',
+            'Implementation-Title-Alias': 'kafka-connect-metrics' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.kafka:connect-runtime:[1.0.0,)'
+}
+
+// tests in this module use a class with static variables, so each test needs to run in a diff jvm
+test {
+    forkEvery(1)
+}
+
+site {
+    title 'Kafka'
+    type 'Messaging'
+}

@@ -63,8 +63,8 @@ public class MetricsScheduler {
                 Map<String, Object> eventData = new HashMap<>();
                 for (final Map.Entry<String, KafkaMetric> metric : nrMetricsReporter.getMetrics().entrySet()) {
                     Object metricValue = metric.getValue().metricValue();
-                    if (metricValue instanceof Double) {
-                        final float value = ((Double) metricValue).floatValue();
+                    if (metricValue instanceof Number) {
+                        final float value = ((Number) metricValue).floatValue();
                         if (KAFKA_METRICS_DEBUG) {
                             AgentBridge.getAgent().getLogger().log(Level.FINEST, "getMetric: {0} = {1}", metric.getKey(), value);
                         }
@@ -77,15 +77,19 @@ public class MetricsScheduler {
                         }
                     }
                 }
-                if (METRICS_AS_EVENTS) {
-                    for (NewRelicMetricsReporter.NodeMetricName nodeMetricName : nrMetricsReporter.getNodes().values()) {
-                        eventData.put(nodeMetricName.asEventName(), 1f);
-                    }
-                } else {
-                    for (NewRelicMetricsReporter.NodeMetricName nodeMetricName : nrMetricsReporter.getNodes().values()) {
-                        NewRelic.recordMetric(nodeMetricName.getMetricName(), 1f);
+
+                for (NewRelicMetricsReporter.NodeMetricNames consumerNodeMetricNames : nrMetricsReporter.getNodes().values()) {
+                    if (METRICS_AS_EVENTS) {
+                        for (String eventName : consumerNodeMetricNames.getEventNames()) {
+                            eventData.put(eventName, 1f);
+                        }
+                    } else {
+                        for (String metricName : consumerNodeMetricNames.getMetricNames()) {
+                            NewRelic.recordMetric(metricName, 1f);
+                        }
                     }
                 }
+
                 if (METRICS_AS_EVENTS) {
                     NewRelic.getAgent().getInsights().recordCustomEvent(METRICS_EVENT_TYPE, eventData);
                 }

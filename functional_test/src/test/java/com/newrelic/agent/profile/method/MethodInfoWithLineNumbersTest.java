@@ -60,7 +60,7 @@ public class MethodInfoWithLineNumbersTest {
     private List<String> verifyExactAndGetArgsForConstructors(TestFileWithLineNumbersFunctional newClass) {
 
         StackTraceElement trace = getTraceElementForConstructor(newClass.getTrace());
-        MethodInfo info = MethodInfoUtil.createMethodInfo(TestFileWithLineNumbers.class, trace.getMethodName(),
+        MethodInfo info = MethodInfoUtil.createMethodInfo(TestFileWithLineNumbersFunctional.class, trace.getMethodName(),
                 trace.getLineNumber());
         return verifyBasics(info);
     }

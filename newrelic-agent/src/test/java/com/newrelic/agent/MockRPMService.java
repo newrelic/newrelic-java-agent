@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MockRPMService extends BaseRPMService {
 
     public final List<IProfile> profiles = Collections.synchronizedList(new ArrayList<IProfile>());
+    public final List<com.newrelic.agent.profile.v2.IProfile> profilesV2 = Collections.synchronizedList(new ArrayList<com.newrelic.agent.profile.v2.IProfile>());
     private volatile boolean isConnected = false;
     private final CountDownLatch latch;
     private volatile int restartCount = 0;
@@ -98,13 +99,18 @@ public class MockRPMService extends BaseRPMService {
     @Override
     public List<Long> sendProfileData(List<ProfileData> profiles) throws Exception {
         for (ProfileData p : profiles) {
-            this.profiles.add((IProfile) p);
+            if (p instanceof IProfile) this.profiles.add((IProfile) p);
+            else if (p instanceof com.newrelic.agent.profile.v2.IProfile) this.profilesV2.add((com.newrelic.agent.profile.v2.IProfile)p);
         }
         return Collections.emptyList();
     }
 
     public List<IProfile> getProfiles() {
         return profiles;
+    }
+
+    public List<com.newrelic.agent.profile.v2.IProfile> getProfilesV2() {
+        return profilesV2;
     }
 
     @Override

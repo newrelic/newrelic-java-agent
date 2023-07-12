@@ -6,10 +6,6 @@ jar {
     manifest { attributes 'Premain-Class': 'com.newrelic.agent.test.agent.FunctionalAgent' }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":agent-bridge-datastore"))

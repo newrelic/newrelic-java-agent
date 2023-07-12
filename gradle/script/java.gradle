@@ -236,6 +236,7 @@ jacocoTestReport {
                               '**/*Parameters.class',
                               '**/*Parameters$*.class',
                               'com/newrelic/agent/InternalLimitExceeded.class',
+                              'com/newrelic/agent/PrivateApiImpl.class',
                               'com/newrelic/agent/introspec/*.class',
                               'com/newrelic/agent/jmx/metrics/*Generator.class',
                               'com/newrelic/agent/jmx/metrics/*Generator$*.class',
@@ -249,7 +250,11 @@ jacocoTestReport {
                               'com/newrelic/agent/model/TransactionTiming.class',
                               'com/newrelic/agent/model/TransactionTiming$*.class',
                               'com/newrelic/api/agent/NewRelic.class',
-                              'com/newrelic/weave/verification/*.class'
+                              'com/newrelic/weave/verification/*.class',
+                              'com/newrelic/agent/bridge/datastore/DatastoreMetrics.class',
+                              'com/newrelic/api/agent/ApplicationNamePriority.class',
+                              'com/newrelic/agent/bridge/TransactionNamePriority.class',
+                              'com/newrelic/agent/tracers/UltraLightTracer.class'
                     ])
         }))
     }

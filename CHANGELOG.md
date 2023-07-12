@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Version 8.4.0
 ### New features and improvements
 
-- Added a public preview of the Interactive Application Security Testing (IAST) mode of the [New Relic Security agent](https://github.com/newrelic/csec-java-agent). [1224](https://github.com/newrelic/newrelic-java-agent/pull/1224)
+- Added a public preview of the [Interactive Application Security Testing](https://docs.newrelic.com/docs/iast/use-iast/) (IAST) mode of the [New Relic Security agent](https://github.com/newrelic/csec-java-agent). [1224](https://github.com/newrelic/newrelic-java-agent/pull/1224)
 
 ## Version 8.3.0
 ### New features and improvements
