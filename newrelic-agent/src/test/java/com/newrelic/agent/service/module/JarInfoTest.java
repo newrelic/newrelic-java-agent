@@ -32,25 +32,21 @@ public class JarInfoTest {
         Map<String, String> attributes1 = new HashMap<>();
         attributes1.put("blep", "blop");
         attributes1.put("goob", "grog");
-        JarInfo jar1 = new JarInfo("1.0.1", attributes1);
 
         Map<String, String> attributes2 = new HashMap<>();
         attributes2.put("blep", "blop");
         attributes2.put("goob", "grog");
-        JarInfo jar2 = new JarInfo("1.0.1", attributes2);
 
+        JarInfo jar1 = new JarInfo("1.0.1", attributes1);
+        JarInfo jar2 = new JarInfo("1.0.1", attributes2);
         JarInfo jar3 = new JarInfo("1.0.1", null);
         JarInfo jar4 = new JarInfo("1.0.1", null);
-
         JarInfo jar5 = new JarInfo(null, null);
         JarInfo jar6 = new JarInfo(null, null);
 
-        JarInfo nullJar1 = null;
         FakeJarInfo fakeJar = new FakeJarInfo("1.0.1", attributes1);
 
         assertEquals(jar1, jar1);
-        assertNotEquals(jar1, nullJar1);
-        assertNotEquals(nullJar1, jar1);
 
         assertEquals(jar1, jar2);
         assertEquals(jar2, jar1);
@@ -58,6 +54,7 @@ public class JarInfoTest {
 
         assertNotEquals(jar3, jar1);
         assertNotEquals(jar1, jar3);
+        assertNotEquals(jar3.hashCode(), jar1.hashCode());
 
         assertEquals(jar3, jar4);
         assertEquals(jar4, jar3);
@@ -65,10 +62,14 @@ public class JarInfoTest {
 
         assertNotEquals(jar5, jar3);
         assertNotEquals(jar3, jar5);
+        assertNotEquals(jar3.hashCode(), jar5.hashCode());
 
         assertEquals(jar5, jar6);
         assertEquals(jar6, jar5);
         assertEquals(jar5.hashCode(), jar6.hashCode());
+
+        assertNotEquals(jar1, null);
+        assertNotEquals(null, jar1);
 
         assertNotEquals(jar1, fakeJar);
 
