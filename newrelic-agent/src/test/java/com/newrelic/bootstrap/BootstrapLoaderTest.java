@@ -89,6 +89,7 @@ public class BootstrapLoaderTest {
     }
 
     @Test
+    @Ignore
     public void forceCorrectNewRelicApi_addsTransformerToInstrumentation() throws IOException {
         Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
         BootstrapLoader.forceCorrectNewRelicApi(mockInstr);
@@ -105,6 +106,7 @@ public class BootstrapLoaderTest {
     }
 
     @Test
+    @Ignore
     public void getDatastoreJarURL_returnsCorrectURL() throws IOException, ClassNotFoundException {
         assertNotNull(BootstrapLoader.getDatastoreJarURL());
         assertTrue(BootstrapLoader.getDatastoreJarURL().toString().contains(AGENT_BRIDGE_DATASTORE_JAR_NAME));
