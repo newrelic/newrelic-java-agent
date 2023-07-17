@@ -40,22 +40,34 @@ public class FinalClassTransformerTest {
     }
 
     @Test
-    public void test_transform() throws Exception {
+    public void test_transform_withInstrTypesAndName() throws Exception {
+        test_transform(true, "test_transform_withInstrTypesAndName");
+    }
+
+    @Test
+    public void test_transform_withoutInstrTypesAndName() throws Exception {
+        test_transform(false, "test_transform_withoutInstrTypesAndName");
+    }
+
+    private void test_transform(boolean setTypesAndNames, String methodName) throws Exception {
         FinalClassTransformer target = new FinalClassTransformer();
         InstrumentationContext context = Mockito.mock(InstrumentationContext.class);
         Mockito.when(context.isModified(Mockito.any())).thenReturn(true);
-        Mockito.when(context.getOldStylePointCut(Mockito.any())).thenReturn(Mockito.mock(PointCut.class));
-        Mockito.when(context.getMergeInstrumentationPackages(Mockito.any())).thenReturn(Arrays.asList("package1"));
-        Method aMethod = new Method("test", "()V");
+        Method aMethod = new Method(methodName, "()V");
         Mockito.when(context.getTimedMethods()).thenReturn(new HashSet<>(Arrays.asList(aMethod)));
         Mockito.when(context.isUsingLegacyInstrumentation()).thenReturn(true);
         Mockito.when(context.hasModifiedClassStructure()).thenReturn(true);
 
         TraceInformation traceInformation = new TraceInformation();
-        TraceDetails traceDetails = TraceDetailsBuilder.newBuilder()
-                .setCustom(true)
-                .setInstrumentationType(InstrumentationType.TraceAnnotation)
-                .build();
+        TraceDetailsBuilder builder = TraceDetailsBuilder.newBuilder().setCustom(true);
+        if (setTypesAndNames) {
+            Mockito.when(context.getOldStylePointCut(Mockito.any())).thenReturn(Mockito.mock(PointCut.class));
+            Mockito.when(context.getMergeInstrumentationPackages(Mockito.any())).thenReturn(Arrays.asList("package1"));
+            builder = builder
+                    .setInstrumentationType(InstrumentationType.TraceAnnotation)
+                    .setInstrumentationSourceName("sourceName");
+        }
+        TraceDetails traceDetails = builder.build();
         traceInformation.putTraceAnnotation(aMethod, traceDetails);
         Mockito.when(context.getTraceInformation()).thenReturn(traceInformation);
 
