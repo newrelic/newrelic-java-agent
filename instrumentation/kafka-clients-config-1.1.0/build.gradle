@@ -1,0 +1,24 @@
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.apache.kafka:kafka-clients:3.3.0")
+
+    testImplementation("org.awaitility:awaitility:4.2.0")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-clients-config-1.1.0', 'Enabled': 'false' ,
+            'Implementation-Title-Alias': 'kafka-clients-config' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.kafka:kafka-clients:[1.1.0,)'
+}
+
+
+site {
+    title 'Kafka'
+    type 'Messaging'
+}
