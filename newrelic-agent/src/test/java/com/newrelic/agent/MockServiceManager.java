@@ -23,6 +23,7 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
+import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
@@ -134,6 +135,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         dbService = new DatabaseService();
         extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         jarCollectorService = Mockito.mock(JarCollectorService.class);
+        Mockito.when(jarCollectorService.getSourceVisitor()).thenReturn(Mockito.mock(ClassMatchVisitorFactory.class));
         sourceLanguageService = new SourceLanguageService();
         expirationService = new ExpirationService();
         distributedTraceService = Mockito.mock(DistributedTraceService.class);
