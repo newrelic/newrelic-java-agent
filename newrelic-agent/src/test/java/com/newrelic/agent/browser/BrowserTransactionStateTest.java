@@ -111,7 +111,20 @@ public class BrowserTransactionStateTest {
     }
 
     @Test
-    public void getBrowserTimingHeaderForJsp_canRenderHeaderReturnsTrue_returnsHeader() {
+    public void getBrowserTimingHeaderForJsp_nullContentType_returnsEmptyString() {
+        Dispatcher mockDispatcher = mock(Dispatcher.class, RETURNS_DEEP_STUBS);
+        BrowserTransactionState browserTransactionState = new BrowserTransactionStateImpl(tx);
+        when(tx.isInProgress()).thenReturn(true);
+        when(tx.isIgnore()).thenReturn(false);
+        when(tx.getDispatcher()).thenReturn(mockDispatcher);
+        when(mockDispatcher.isWebTransaction()).thenReturn(true);
+        when(mockDispatcher.getResponse().getContentType()).thenReturn(null);
+        Assert.assertEquals("", browserTransactionState.getBrowserTimingHeaderForJsp());
+    }
+
+    // For content-type "text/html"
+    @Test
+    public void getBrowserTimingHeaderForJsp_canRenderHeaderReturnsTrue1_returnsHeader() {
         BrowserConfig mockBrowserConfig = mock(BrowserConfig.class);
         Dispatcher mockDispatcher = mock(Dispatcher.class, RETURNS_DEEP_STUBS);
         BrowserTransactionState browserTransactionState = new BrowserTransactionStateImpl(tx);
@@ -120,6 +133,23 @@ public class BrowserTransactionStateTest {
         when(tx.getDispatcher()).thenReturn(mockDispatcher);
         when(mockDispatcher.isWebTransaction()).thenReturn(true);
         when(mockDispatcher.getResponse().getContentType()).thenReturn("text/html");
+        when(mockBrowserService.getBrowserConfig(any())).thenReturn(mockBrowserConfig);
+        when(mockBrowserConfig.getBrowserTimingHeader()).thenReturn("response");
+
+        Assert.assertEquals("response", browserTransactionState.getBrowserTimingHeaderForJsp());
+    }
+
+    // For content-type "text/xhtml"
+    @Test
+    public void getBrowserTimingHeaderForJsp_canRenderHeaderReturnsTrue2_returnsHeader() {
+        BrowserConfig mockBrowserConfig = mock(BrowserConfig.class);
+        Dispatcher mockDispatcher = mock(Dispatcher.class, RETURNS_DEEP_STUBS);
+        BrowserTransactionState browserTransactionState = new BrowserTransactionStateImpl(tx);
+        when(tx.isInProgress()).thenReturn(true);
+        when(tx.isIgnore()).thenReturn(false);
+        when(tx.getDispatcher()).thenReturn(mockDispatcher);
+        when(mockDispatcher.isWebTransaction()).thenReturn(true);
+        when(mockDispatcher.getResponse().getContentType()).thenReturn("text/xhtml");
         when(mockBrowserService.getBrowserConfig(any())).thenReturn(mockBrowserConfig);
         when(mockBrowserConfig.getBrowserTimingHeader()).thenReturn("response");
 
@@ -334,7 +364,7 @@ public class BrowserTransactionStateTest {
     }
 
     @Test
-    public void getBrowserTimingFooter_canRenderHeaderReturnsTrue_returnsHeader() {
+    public void getBrowserTimingFooter_canRenderFooterReturnsTrue_returnsHeader() {
         BrowserConfig mockBrowserConfig = mock(BrowserConfig.class);
         Dispatcher mockDispatcher = mock(Dispatcher.class, RETURNS_DEEP_STUBS);
         BrowserTransactionState browserTransactionState = new BrowserTransactionStateImpl(tx);
@@ -352,7 +382,23 @@ public class BrowserTransactionStateTest {
     }
 
     @Test
-    public void getBrowserTimingFooter_canRenderHeaderReturnsTrue_andBrowserConfigIsNull_returnsEmptyString() {
+    public void getBrowserTimingFooter_withoutHeaderBeingRendered_returnsEmptyString() {
+        BrowserConfig mockBrowserConfig = mock(BrowserConfig.class);
+        Dispatcher mockDispatcher = mock(Dispatcher.class, RETURNS_DEEP_STUBS);
+        BrowserTransactionState browserTransactionState = new BrowserTransactionStateImpl(tx);
+
+        when(tx.isInProgress()).thenReturn(true);
+        when(tx.isIgnore()).thenReturn(false);
+        when(tx.getDispatcher()).thenReturn(mockDispatcher);
+        when(mockDispatcher.isWebTransaction()).thenReturn(true);
+        when(mockDispatcher.getResponse().getContentType()).thenReturn("text/html");
+        when(mockBrowserService.getBrowserConfig(any())).thenReturn(mockBrowserConfig);
+
+        Assert.assertEquals("", browserTransactionState.getBrowserTimingFooter());
+    }
+
+    @Test
+    public void getBrowserTimingFooter_canRenderFooterReturnsTrue_andBrowserConfigIsNull_returnsEmptyString() {
         Dispatcher mockDispatcher = mock(Dispatcher.class, RETURNS_DEEP_STUBS);
         BrowserTransactionState browserTransactionState = new BrowserTransactionStateImpl(tx);
         simulateBrowserHeaderInjected(browserTransactionState);
