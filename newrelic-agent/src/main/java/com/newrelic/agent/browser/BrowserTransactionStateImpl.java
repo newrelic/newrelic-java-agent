@@ -181,12 +181,22 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
             Agent.LOG.finer("Unable to get browser timing header: transaction is not a web transaction");
             return false;
         }
-
-        String contentType = dispatcher.getResponse().getContentType();
-        if (!isHtml(contentType)) {
+        try {
+            String contentType = dispatcher.getResponse().getContentType();
+            if (!isHtml(contentType)) {
+                String msg = MessageFormat.format(
+                        "Unable to inject browser timing header in a JSP: bad content type: {0}", contentType);
+                Agent.LOG.finer(msg);
+                return false;
+            }
+        } catch (Exception e) {
             String msg = MessageFormat.format(
-                    "Unable to inject browser timing header in a JSP: bad content type: {0}", contentType);
-            Agent.LOG.finer(msg);
+                    "Unable to inject browser timing header in a JSP: exception getting content type: {0}", e);
+            if (Agent.LOG.isLoggable(Level.FINEST)) {
+                Agent.LOG.log(Level.FINEST, msg, e);
+            } else if (Agent.LOG.isLoggable(Level.FINER)) {
+                Agent.LOG.finer(msg);
+            }
             return false;
         }
 
