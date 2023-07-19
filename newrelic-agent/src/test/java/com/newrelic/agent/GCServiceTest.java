@@ -25,7 +25,7 @@ public class GCServiceTest {
 
         // Not using asserts (so as not to fail the build) in case GC was not triggered for some reason
         if (statsEngine.getSize() == 0) {
-            System.out.println("GC was not triggered")
+            System.out.println("GC was not triggered");
         }
     }
 
