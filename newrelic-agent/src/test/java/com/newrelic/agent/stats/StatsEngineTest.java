@@ -578,4 +578,59 @@ public class StatsEngineTest {
         Assert.assertEquals(20, stats3.getBytesReceived());
     }
 
+    @Test(expected=RuntimeException.class)
+    public void getStats_nullMetric_shouldThrow(){
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        statsEngine.getStats((MetricName) null);
+    }
+
+    @Test(expected=RuntimeException.class)
+    public void recordEmptyStats_nullMetric_shouldThrow(){
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        statsEngine.recordEmptyStats((MetricName) null);
+    }
+
+    @Test(expected=RuntimeException.class)
+    public void getResponseTimeStats_nullMetric_shouldThrow(){
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        statsEngine.getResponseTimeStats((MetricName) null);
+    }
+
+    @Test(expected=RuntimeException.class)
+    public void getApdexStats_nullMetric_shouldThrow(){
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        statsEngine.getApdexStats(null);
+    }
+    @Test(expected=RuntimeException.class)
+    public void getDataUsageStats_nullMetric_shouldThrow(){
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        statsEngine.getDataUsageStats(null);
+    }
+
+    @Test
+    public void recordEmptyStats_addsScopedAndUnscopedMetrics_correctly(){
+        MetricName scopedMetric1 = MetricName.create("buzz", "testScope1");
+        MetricName scopedMetric2 = MetricName.create("fizz", "testScope2");
+        MetricName unscopedMetric = MetricName.create("thud");
+
+        StatsEngineImpl statsEngine = new StatsEngineImpl();
+        Assert.assertEquals(0, statsEngine.getScopedStatsForTesting().size());
+        Assert.assertEquals(0, statsEngine.getUnscopedStatsForTesting().getSize());
+
+        statsEngine.recordEmptyStats(scopedMetric1);
+        statsEngine.recordEmptyStats(scopedMetric2);
+        statsEngine.recordEmptyStats(unscopedMetric);
+
+        Assert.assertEquals(2, statsEngine.getScopedStatsForTesting().size());
+        Assert.assertEquals(1, statsEngine.getUnscopedStatsForTesting().getSize());
+
+        statsEngine.recordEmptyStats(scopedMetric1); //recording stats for the same metric should have no change.
+        Assert.assertEquals(2, statsEngine.getScopedStatsForTesting().size());
+
+        Assert.assertEquals(3, statsEngine.getSize());
+        Assert.assertTrue(statsEngine.getMetricNames().contains(scopedMetric1));
+        Assert.assertTrue(statsEngine.getMetricNames().contains(scopedMetric2));
+        Assert.assertTrue(statsEngine.getMetricNames().contains(unscopedMetric));
+
+    }
 }
