@@ -44,6 +44,7 @@ import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.DefaultSqlTracer;
 import com.newrelic.agent.tracers.DefaultTracer;
+import com.newrelic.agent.tracers.SqlTracer;
 import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import org.junit.After;
@@ -60,6 +61,11 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DatabaseServiceTest {
 
@@ -368,6 +374,50 @@ public class DatabaseServiceTest {
         Assert.assertEquals(databaseName, tracer.getAgentAttribute(DatastoreMetrics.DB_INSTANCE));
 
         Transaction.clearTransaction();
+    }
+
+    @Test
+    public void runExplainPlan_whenSqlTracerHasPlan_runExplainPlan() throws Exception {
+        createServiceManager(createStagingMap());
+        SqlTracer mockSqlTracer = mock(SqlTracer.class);
+        ExplainPlanExecutor mockExplainPlanExecutor = mock(ExplainPlanExecutor.class);
+        ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
+        Connection mockConnection = mock(Connection.class);
+        DatabaseVendor mockDatabaseVendor = mock(DatabaseVendor.class);
+
+        when(mockSqlTracer.getConnectionFactory()).thenReturn(mockConnectionFactory);
+        when(mockSqlTracer.getExplainPlanExecutor()).thenReturn(mockExplainPlanExecutor);
+        when(mockSqlTracer.hasExplainPlan()).thenReturn(false);
+        when(mockConnectionFactory.getConnection()).thenReturn(mockConnection);
+        when(mockConnectionFactory.getDatabaseVendor()).thenReturn(mockDatabaseVendor);
+
+        DatabaseService databaseService = new DatabaseService();
+        databaseService.runExplainPlan(mockSqlTracer);
+
+        verify(mockExplainPlanExecutor, times(1)).runExplainPlan(databaseService, mockConnection, mockDatabaseVendor);
+        verify(mockConnection, times(1)).close();
+    }
+
+    @Test
+    public void runExplainPlan_catchesException_isNoOp() throws Exception {
+        createServiceManager(createStagingMap());
+        SqlTracer mockSqlTracer = mock(SqlTracer.class);
+        ExplainPlanExecutor mockExplainPlanExecutor = mock(ExplainPlanExecutor.class);
+        ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
+        Connection mockConnection = mock(Connection.class);
+        DatabaseVendor mockDatabaseVendor = mock(DatabaseVendor.class);
+
+        when(mockSqlTracer.getConnectionFactory()).thenReturn(mockConnectionFactory);
+        when(mockSqlTracer.getExplainPlanExecutor()).thenReturn(mockExplainPlanExecutor);
+        when(mockSqlTracer.hasExplainPlan()).thenReturn(false);
+        when(mockConnectionFactory.getConnection()).thenReturn(mockConnection);
+        when(mockConnectionFactory.getDatabaseVendor()).thenThrow(new RuntimeException());
+
+        DatabaseService databaseService = new DatabaseService();
+        databaseService.runExplainPlan(mockSqlTracer);
+
+        verify(mockExplainPlanExecutor, times(0)).runExplainPlan(databaseService, mockConnection, mockDatabaseVendor);
+        verify(mockConnection, times(1)).close();
     }
 
     private ConnectionFactory createConnectionFactory(final Connection connection) {
