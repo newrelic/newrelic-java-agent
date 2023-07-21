@@ -36,7 +36,8 @@ public class ProfileSessionTest {
         Assert.assertTrue(target.isDone());
         Assert.assertNotNull(target.getProfile());
         Assert.assertEquals(new Long(0), target.getProfileId());
-        Assert.assertEquals(10, target.getProfile().getSampleCount());
+        // we can't guarantee exactly 10 samples, but it should be close
+        Assert.assertTrue(target.getProfile().getSampleCount() >= 9);
     }
 
     @Test

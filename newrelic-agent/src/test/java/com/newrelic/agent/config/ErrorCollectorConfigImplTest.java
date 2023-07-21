@@ -1278,12 +1278,12 @@ public class ErrorCollectorConfigImplTest {
 
         public void verifyNoMessage() {
             Mockito.verify(mockLogger, Mockito.never()).log(
-                    Mockito.any(Level.class), Mockito.anyString(), Mockito.anyVararg());
+                    Mockito.any(Level.class), Mockito.anyString(), Mockito.any());
         }
 
         public void verifyMessage(Level at) {
-            Mockito.verify(mockLogger).log(Mockito.eq(at), Mockito.anyString(), Mockito.anyObject(),
-                    Mockito.anyObject(), Mockito.anyObject());
+            Mockito.verify(mockLogger).log(Mockito.eq(at), Mockito.anyString(), Mockito.any(),
+                    Mockito.any(), Mockito.any());
         }
 
         public void close() {

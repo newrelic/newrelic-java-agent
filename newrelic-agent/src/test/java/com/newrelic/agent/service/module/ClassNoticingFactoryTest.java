@@ -1,36 +1,25 @@
 package com.newrelic.agent.service.module;
 
+import com.newrelic.agent.bridge.TestLogger;
+import com.newrelic.agent.instrumentation.context.InstrumentationContext;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 
-import com.newrelic.agent.bridge.TestLogger;
-import com.newrelic.agent.instrumentation.context.InstrumentationContext;
-import org.apache.commons.validator.Arg;
-import org.hamcrest.Matchers;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ClassNoticingFactoryTest {
     @Test
@@ -77,7 +66,7 @@ public class ClassNoticingFactoryTest {
         String codeSourceLocation = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString();
         if (codeSourceLocation.endsWith("/")) {
             // we expect the test classes to be staged in a gradle directory, not in a jar.
-            verifyZeroInteractions(factory, executorService);
+            verifyNoInteractions(factory, executorService);
         } else {
             fail("Unexpected jar for test class?? " + codeSourceLocation);
         }
