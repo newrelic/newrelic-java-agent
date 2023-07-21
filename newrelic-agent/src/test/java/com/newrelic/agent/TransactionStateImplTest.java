@@ -32,7 +32,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.Returns;
 
 import java.util.HashMap;
@@ -40,6 +39,12 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TransactionStateImplTest {
 
@@ -128,13 +133,13 @@ public class TransactionStateImplTest {
     public void getTracer() throws Exception {
         Tracer rootTracer = createRootTracer();
         Transaction tx = Transaction.getTransaction();
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
 
         tx.getTransactionState().getTracer(tx, tracerFactory, null, null, (Object[]) null);
         assertEquals(rootTracer, tx.getTransactionActivity().getRootTracer());
 
         Tracer tracer = createTracer();
-        tracerFactory = Mockito.mock(TracerFactory.class, new Returns(tracer));
+        tracerFactory = mock(TracerFactory.class, new Returns(tracer));
 
         tx.getTransactionState().getTracer(tx, tracerFactory, null, null, (Object[]) null);
         assertEquals(tracer, tx.getTransactionActivity().getLastTracer());
@@ -144,7 +149,7 @@ public class TransactionStateImplTest {
     public void finish() throws Exception {
         Tracer rootTracer = createRootTracer();
         Transaction tx = Transaction.getTransaction();
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
         tx.getTransactionState().getTracer(tx, tracerFactory, null, null, (Object[]) null);
 
         Assert.assertTrue(tx.getTransactionState().finish(tx, rootTracer));
@@ -169,7 +174,7 @@ public class TransactionStateImplTest {
     public void tracerMetricName_Null() throws Exception {
         Tracer rootTracer = createRootTracer();
         Transaction tx = Transaction.getTransaction();
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
         tx.getTransactionState().getTracer(tx, tracerFactory, null, null, (Object[]) null);
         assertEquals(rootTracer, tx.getTransactionActivity().getRootTracer());
 
@@ -185,7 +190,7 @@ public class TransactionStateImplTest {
         Transaction tx = Transaction.getTransaction();
         TransactionCounts transactionCounts = tx.getTransactionCounts();
         transactionCounts.addTracers(3001);
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
         ClassMethodSignature sig = new ClassMethodSignature("com.test.Dude", "dude1", "()V");
 
         tx.getTransactionState().getTracer(tx, tracerFactory, sig, null, (Object[]) null);
@@ -204,7 +209,7 @@ public class TransactionStateImplTest {
         Tracer rootTracer = createRootTracer();
         Transaction tx = Transaction.getTransaction();
         TransactionCounts transactionCounts = tx.getTransactionCounts();
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
         tx.getTransactionState().getTracer(tx, tracerFactory, null, null, (Object[]) null);
         assertEquals(rootTracer, tx.getTransactionActivity().getRootTracer());
 
@@ -224,7 +229,7 @@ public class TransactionStateImplTest {
     public void tracerMetricName_NullCustom() throws Exception {
         Tracer rootTracer = createRootTracer();
         Transaction tx = Transaction.getTransaction();
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
         tx.getTransactionState().getTracer(tx, tracerFactory, new ClassMethodSignature("com.newrelic.test.Foo", "makeItSo", "()"), null, (Object[]) null);
         assertEquals(rootTracer, tx.getTransactionActivity().getRootTracer());
 
@@ -238,7 +243,7 @@ public class TransactionStateImplTest {
     public void tracerMetricName_NullInvocationTarget() throws Exception {
         Tracer rootTracer = createRootTracer();
         Transaction tx = Transaction.getTransaction();
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
         tx.getTransactionState().getTracer(tx, tracerFactory, null, null, (Object[]) null);
         assertEquals(rootTracer, tx.getTransactionActivity().getRootTracer());
 
@@ -253,7 +258,7 @@ public class TransactionStateImplTest {
     public void tracerMetricName() throws Exception {
         Tracer rootTracer = createRootTracer();
         Transaction tx = Transaction.getTransaction();
-        TracerFactory tracerFactory = Mockito.mock(TracerFactory.class, new Returns(rootTracer));
+        TracerFactory tracerFactory = mock(TracerFactory.class, new Returns(rootTracer));
         tx.getTransactionState().getTracer(tx, tracerFactory, null, null, (Object[]) null);
         assertEquals(rootTracer, tx.getTransactionActivity().getRootTracer());
 
@@ -264,4 +269,90 @@ public class TransactionStateImplTest {
         assertEquals("Test/java.lang.Object/dude4", tracer.getMetricName());
     }
 
+    @Test
+    public void getTracer_withTxnIgnoreOrTracerStartLocked_returnsNull() {
+        Transaction mockTxn = mock(Transaction.class);
+        TracerFactory mockFactory = mock(TracerFactory.class);
+        TransactionActivity mockTxnActivity = mock(TransactionActivity.class);
+        ClassMethodSignature signature = new ClassMethodSignature("class", "method", "desc");
+        TransactionState txnState = new TransactionStateImpl();
+
+        when(mockTxn.getTransactionActivity()).thenReturn(mockTxnActivity);
+        when(mockTxn.isIgnore()).thenReturn(true);
+
+        assertNull(txnState.getTracer(mockTxn, mockFactory, signature, new Object()));
+        assertNull(txnState.getTracer(mockTxn, new Object(), signature, "metricName", 0));
+
+        when(mockTxn.isIgnore()).thenReturn(false);
+        when(mockTxnActivity.isTracerStartLocked()).thenReturn(true);
+
+        assertNull(txnState.getTracer(mockTxn, mockFactory, signature, new Object()));
+        assertNull(txnState.getTracer(mockTxn, new Object(), signature, "metricName", 0));
+    }
+
+    @Test
+    public void getTracer_withDispatcherFlag_returnsOtherRootTracer() {
+        Transaction mockTxn = mock(Transaction.class, RETURNS_DEEP_STUBS);
+        TransactionActivity mockTxnActivity = mock(TransactionActivity.class);
+        ClassMethodSignature signature = new ClassMethodSignature("class", "method", "desc");
+        TransactionState txnState = new TransactionStateImpl();
+
+        when(mockTxn.getTransactionActivity()).thenReturn(mockTxnActivity);
+        when(mockTxn.isIgnore()).thenReturn(false);
+        when(mockTxn.getTransactionActivity().tracerStarted(any())).thenReturn(mock(Tracer.class));
+        when(mockTxn.getRootTracer()).thenReturn(mock(Tracer.class));
+        when(mockTxnActivity.isTracerStartLocked()).thenReturn(false);
+
+        Tracer result = txnState.getTracer(mockTxn, new Object(), signature, "metricName", TracerFlags.DISPATCHER);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void getSqlTracer_withTxnIgnoreOrTracerStartLocked_returnsNull() {
+        Transaction mockTxn = mock(Transaction.class);
+        TransactionActivity mockTxnActivity = mock(TransactionActivity.class);
+        ClassMethodSignature signature = new ClassMethodSignature("class", "method", "desc");
+        TransactionState txnState = new TransactionStateImpl();
+
+        when(mockTxn.getTransactionActivity()).thenReturn(mockTxnActivity);
+        when(mockTxn.isIgnore()).thenReturn(true);
+
+        assertNull(txnState.getSqlTracer(mockTxn, new Object(), signature, "metricName", 0));
+
+        when(mockTxn.isIgnore()).thenReturn(false);
+        when(mockTxnActivity.isTracerStartLocked()).thenReturn(true);
+
+        assertNull(txnState.getSqlTracer(mockTxn, new Object(), signature, "metricName", 0));
+    }
+
+    @Test
+    public void getSqlTracer_withDispatcherFlag_returnsOtherRootTracer() {
+        Transaction mockTxn = mock(Transaction.class, RETURNS_DEEP_STUBS);
+        TransactionActivity mockTxnActivity = mock(TransactionActivity.class);
+        ClassMethodSignature signature = new ClassMethodSignature("class", "method", "desc");
+        TransactionState txnState = new TransactionStateImpl();
+
+        when(mockTxn.getTransactionActivity()).thenReturn(mockTxnActivity);
+        when(mockTxn.isIgnore()).thenReturn(false);
+        when(mockTxn.getTransactionActivity().tracerStarted(any())).thenReturn(mock(Tracer.class));
+        when(mockTxn.getRootTracer()).thenReturn(mock(Tracer.class));
+        when(mockTxnActivity.isTracerStartLocked()).thenReturn(false);
+
+        Tracer result = txnState.getSqlTracer(mockTxn, new Object(), signature, "metricName", TracerFlags.DISPATCHER);
+        assertNotNull(result);
+
+        result = txnState.getSqlTracer(mockTxn, new Object(), signature, "metricName", 0);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void noOp_methods() {
+        TransactionState txnState = new TransactionStateImpl();
+        txnState.getRootTracer();
+        txnState.resume();
+        txnState.suspend();
+        txnState.complete();
+        txnState.suspend();
+        txnState.suspendRootTracer();
+    }
 }
