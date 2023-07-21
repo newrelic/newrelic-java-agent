@@ -14,9 +14,12 @@ import org.mockito.MockitoAnnotations;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -41,6 +44,7 @@ class InfiniteTracingTest {
 
     private LinkedBlockingDeque<SpanEvent> queue;
     private InfiniteTracing target;
+    private static final String serviceName = "TestService";
 
     @BeforeEach
     void setup() {
@@ -50,6 +54,7 @@ class InfiniteTracingTest {
         target = spy(new InfiniteTracing(config, aggregator, executorService, queue));
         doReturn(channelManager).when(target).buildChannelManager(anyString(), ArgumentMatchers.<String, String>anyMap());
         doReturn(spanEventSender).when(target).buildSpanEventSender();
+
     }
 
     @Test
@@ -95,4 +100,18 @@ class InfiniteTracingTest {
         target = new InfiniteTracing(config, aggregator, executorService, queue);
         assertNotNull(target.buildSpanEventSender());
     }
+
+    @Test
+    public void testNewThread() {
+        InfiniteTracing.DaemonThreadFactory factory = new InfiniteTracing.DaemonThreadFactory(serviceName);
+        Runnable runnable = () -> {
+        };
+
+        Thread thread = factory.newThread(runnable);
+        assertNotNull(thread);
+        assertTrue(thread.isDaemon());
+        assertEquals("New Relic " + serviceName + " #" + 1, thread.getName());
+
+    }
+
 }
