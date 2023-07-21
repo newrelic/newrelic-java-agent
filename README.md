@@ -66,6 +66,28 @@ After building, Java agent artifacts are located here:
 - Agent: `newrelic-agent/build/newrelicJar/newrelic.jar`
 - Agent API: `newrelic-api/build/libs/newrelic-api-*.jar`
 
+#### Non standard modules
+
+The following modules have specific requirements to be built. The instructions for each is in the module's README.md.
+
+- [aws-wrap-0.7.0](./instrumentation/aws-wrap-0.7.0/README.md)
+- [jboss-7](./instrumentation/jboss-7/README.md)
+- [jdbc-inet-merlia](./instrumentation/jdbc-inet-merlia/README.md)
+- [jdbc-inet-oranxo](./instrumentation/jdbc-inet-oranxo/README.md)
+- [jdbc-ojdbc](./instrumentation/jdbc-ojdbc/README.md)
+- [jdbc-sybase-6](./instrumentation/jdbc-sybase-6/README.md)
+- [open-liberty-jakarta-21.0.0.12](./instrumentation/open-liberty-jakarta-21.0.0.12/README.md)
+- [resin-3](./instrumentation/resin-3/README.md)
+- [weblogic-12.2](./instrumentation/weblogic-12.2/README.md)
+- [weblogic-12](./instrumentation/weblogic-12/README.md)
+- [weblogic-jmx-12.2.1](./instrumentation/weblogic-jmx-12.2.1/README.md)
+- [weblogic-jmx-12](./instrumentation/weblogic-jmx-12/README.md)
+- [websphere-8](./instrumentation/websphere-8/README.md)
+- [websphere-jmx-7](./instrumentation/websphere-jmx-7/README.md)
+- [websphere-liberty-profile-8.5.5.5](./instrumentation/websphere-liberty-profile-8.5.5.5/README.md)
+- [websphere-liberty-profile-dispatcher-8.5.5.5](./instrumentation/websphere-liberty-profile-dispatcher-8.5.5.5/README.md)
+- [websphere-liberty-profile-environment-8.5.5.5](./instrumentation/websphere-liberty-profile-environment-8.5.5.5/README.md)
+
 ## IntelliJ IDEA setup
 
 We recommend using IntelliJ IDEA for development on this project. Configure as follows:

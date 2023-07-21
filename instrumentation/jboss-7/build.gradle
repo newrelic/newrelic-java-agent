@@ -1,7 +1,3 @@
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":agent-bridge"))
     implementation("jakarta.servlet:jakarta.servlet-api:4.0.4")
@@ -27,15 +23,8 @@ jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jboss-7' }
 }
 
-verifyInstrumentation {
-    passes('org.jboss.web:jbossweb:[7.0,)') {
-        implementation("jakarta.servlet:jakarta.servlet-api:4.0.4")
-    }
-    excludeRegex(".*(Alpha|Beta|CR).*")
-    exclude("org.jboss.web:jbossweb:7.5.6.Final") // this appears to be a bad release that was excluded from multiple repos
-}
-
 site {
     title 'JBoss'
     type 'Appserver'
+    versionOverride '[7.0,)'
 }

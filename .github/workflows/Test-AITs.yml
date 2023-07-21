@@ -65,7 +65,6 @@ jobs:
           echo "framework/snap/snap.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
           echo "server/mule.py" >> $excluded_tests
-          echo "server/was_liberty.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
           # The files below are not tests
           echo "trace/client.py" >> $excluded_tests
@@ -111,7 +110,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
-          key: ${{ github.run_id }}
+          key: agent-jar-${{ github.run_id }}
           fail-on-cache-miss: true
 
       ## Ongoing tests with artifactory dependencies

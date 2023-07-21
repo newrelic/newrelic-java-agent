@@ -11,16 +11,12 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.7.2'}
 
-repositories {
-    mavenCentral()
-}
-
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.graphql-java-17.0' }
 }
 
 verifyInstrumentation {
-    passesOnly 'com.graphql-java:graphql-java:[17.0,)'
+    passesOnly 'com.graphql-java:graphql-java:[17.0,21.0)'
     excludeRegex 'com.graphql-java:graphql-java:(0.0.0|201|202).*'
     excludeRegex 'com.graphql-java:graphql-java:.*(vTEST|-beta|-alpha1|-nf-execution|-rc|-TEST).*'
 }

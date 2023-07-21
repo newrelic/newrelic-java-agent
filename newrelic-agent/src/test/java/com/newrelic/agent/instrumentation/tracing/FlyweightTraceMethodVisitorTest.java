@@ -12,6 +12,9 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.Method;
 
 import com.google.common.collect.ImmutableSet;
@@ -37,4 +40,21 @@ public class FlyweightTraceMethodVisitorTest {
             }
         }
     }
+    @Test
+    public void testVisitFieldInsn() {
+        TraceDetails trace = TraceDetailsBuilder.newBuilder().build();
+        Class<?> classBeingRedefined = Object.class;
+
+        FlyweightTraceMethodVisitor ftmv = new FlyweightTraceMethodVisitor(
+                "com/example/MyClass", null, Opcodes.ACC_PUBLIC, "myMethod", "(I)V", trace, classBeingRedefined
+        );
+
+        ftmv.visitFieldInsn(Opcodes.GETSTATIC, BridgeUtils.TRACED_METHOD_TYPE.getInternalName(), "fieldName", "I");
+
+
+        ftmv.visitFieldInsn(Opcodes.GETSTATIC, "com/example/OtherClass", "fieldName", "I");
+
+    }
+
+
 }

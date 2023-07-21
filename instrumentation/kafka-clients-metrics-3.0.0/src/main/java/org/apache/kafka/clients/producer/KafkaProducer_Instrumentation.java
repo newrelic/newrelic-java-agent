@@ -24,10 +24,11 @@ import com.nr.instrumentation.kafka.CallbackWrapper;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.List;
-import java.util.ArrayList;
 
 @Weave(originalName = "org.apache.kafka.clients.producer.KafkaProducer")
 public class KafkaProducer_Instrumentation<K, V> {
@@ -43,11 +44,11 @@ public class KafkaProducer_Instrumentation<K, V> {
     public KafkaProducer_Instrumentation() {
         if (!initialized) {
             List<Node> nodes = metadata.fetch().nodes();
-            List<String> nodeNames = new ArrayList<>(nodes.size());
+            Set<String> nodeNames = new HashSet<>(nodes.size());
             for (Node node : nodes) {
                 nodeNames.add(node.host() + ":" + node.port());
             }
-            metrics.addReporter(new NewRelicMetricsReporter(nodeNames));
+            metrics.addReporter(new NewRelicMetricsReporter(nodeNames, NewRelicMetricsReporter.Mode.PRODUCER));
             initialized = true;
         }
     }
