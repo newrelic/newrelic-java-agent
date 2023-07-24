@@ -46,14 +46,10 @@ import static com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPrepr
 import static com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessorsTest.TEST_QUERY_CONVERTER;
 import static com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessorsTest.addToClassloader;
 import static com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessorsTest.getClassBytesFromClassLoaderResource;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class AgentPostprocessorsTest {
 
@@ -98,341 +94,356 @@ public class AgentPostprocessorsTest {
     }
 
     private void testApiTestClass(Class<?> clazz, WeavePackageType weavePackageType) throws Exception {
-        ThreadLocal<WeavePackageType> weavePackageTypeSpy = new ThreadLocal<WeavePackageType>() {
+        final int[] counts = { 0, 0 };
+        // Ideally this would use a Mockito spy, but this bug prevents that on ThreadLocal:
+        // https://github.com/mockito/mockito/issues/2905
+        // That bug is fixed in Mockito Inline 5.2+, but that requires Java 11 or later, so Ignoring this test for now
+        ThreadLocal<WeavePackageType> myWeavePackageType = new ThreadLocal<WeavePackageType>() {
             @Override
             protected WeavePackageType initialValue() {
                 return null;
             }
+            @Override
+            public void set(WeavePackageType value) {
+                super.set(value);
+                counts[0]++;
+            }
+            @Override
+            public void remove() {
+                super.remove();
+                counts[1]++;
+            }
         };
-        AgentBridge.currentApiSource = spy(weavePackageTypeSpy);
+
+        AgentBridge.currentApiSource = myWeavePackageType;
 
         ApiTestClass testClass = (ApiTestClass) clazz.newInstance();
 
         // Token API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         Token token = testClass.getToken();
         assertNotNull(token);
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         com.newrelic.api.agent.Transaction transaction = testClass.getTransaction();
         assertNotNull(transaction);
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenNoReturn();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenNoReturnException();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenSeparateLinkExpireNoReturn();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenSeparateLinkExpireNoReturnException();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
         // Token API (Bridge)
-        assertBeforeApi();
+        assertBeforeApi(counts);
         com.newrelic.agent.bridge.Token tokenBridge = testClass.getTokenBridge();
         assertNotNull(tokenBridge);
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         Transaction transactionBridge = testClass.getTransactionBridge();
         assertNotNull(transactionBridge);
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenNoReturnBridge();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenNoReturnExceptionBridge();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenSeparateLinkExpireNoReturnBridge();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.getTokenSeparateLinkExpireNoReturnExceptionBridge();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
         // Segment API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentNoArgsWithTx(NewRelic.getAgent().getTransaction());
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentNoArgs();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentNoArgsNoReturn();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentNoArgsNoReturnException();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentArgs();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentArgsNoReturn();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentArgsNoReturnException();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentNoArgsWithGetToken();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentNoArgsNoReturnWithGetToken();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentNoArgsNoReturnExceptionWithGetToken();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentArgsWithGetToken();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentArgsNoReturnWithGetToken();
-        assertAfterApi(4, weavePackageType);
+        assertAfterApi(4, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.startSegmentArgsNoReturnExceptionWithGetToken();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
         // TracedActivity API (Bridge)
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.createAndStartTracedActivity();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.createAndStartTracedActivityNoReturn();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.createAndStartTracedActivityNoReturnException();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // NewRelic API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorWithStringAndEmptyMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorWithStringAndMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorWithThrowableAndEmptyMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorWithThrowableAndMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorExpectedWithStringAndEmptyMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorExpectedWithStringAndMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorExpectedWithThrowableAndEmptyMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.noticeErrorExpectedWithThrowableAndMap();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.addCustomParameter();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.ignoreApdexNewRelic();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.ignoreTransaction();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setAppServerPort();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setInstanceName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setServerInfo();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setTransactionNameNewRelic();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setUserName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setProductName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setAccountName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // Transaction API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.ignore();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.ignoreApdexTransaction();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.processRequestMetadata();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.processResponseMetadataWithURI();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.processResponseMetadata();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setTransactionName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // Transaction API (Bridge)
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.setTransactionNameBridge();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // TracedMethod API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.reportAsExternal();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // TracedMethod API (Bridge)
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.reportAsExternalBridge();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // Insights API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.recordCustomEvent();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // Public API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiCustomParameter();
-        assertAfterApi(2, weavePackageType);
+        assertAfterApi(2, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiBrowserHeaderFooter();
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiIgnoreApdex();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiIgnoreTransaction();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiNoticeError();
-        assertAfterApi(8, weavePackageType);
+        assertAfterApi(8, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetAccountName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetAppServerPort();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetInstanceName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetProductName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetRequestAndResponse();
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetServerInfo();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetTransactionName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.publicApiSetUserName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
         // Private API
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiCustomAttribute();
-        assertAfterApi(3, weavePackageType);
+        assertAfterApi(3, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiMBeanServer();
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiSampler();
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiTracerParameter();
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiReportError();
-        assertAfterApi(0, weavePackageType);
+        assertAfterApi(0, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiSetServerInfo();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiSetAppServerPort();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         testClass.privateApiSetInstanceName();
-        assertAfterApi(1, weavePackageType);
+        assertAfterApi(1, counts, weavePackageType);
 
-        assertBeforeApi();
+        assertBeforeApi(counts);
         boolean exceptionThrown = false;
         try {
             testClass.throwExceptionTest();
@@ -442,24 +453,25 @@ public class AgentPostprocessorsTest {
         if (!exceptionThrown) {
             fail("Exception was expected but not thrown");
         }
-        assertAfterApi(1, exceptionThrown ? 0 : 1, weavePackageType);
+        assertAfterApi(1, exceptionThrown ? 0 : 1, counts, weavePackageType);
     }
 
-    private void assertBeforeApi() {
+    private void assertBeforeApi(int[] counts) {
+        counts[0] = 0;
+        counts[1] = 0;
         assertNull(AgentBridge.currentApiSource.get());
     }
 
-    private void assertAfterApi(int times, WeavePackageType weavePackageType) {
-        assertAfterApi(times, times, weavePackageType);
+    private void assertAfterApi(int times, int[] counts, WeavePackageType weavePackageType) {
+        assertAfterApi(times, times, counts, weavePackageType);
     }
 
-    private void assertAfterApi(int setTimes, int removeTimes, WeavePackageType weavePackageType) {
-        verify(AgentBridge.currentApiSource, times(setTimes)).set(eq(weavePackageType));
-        verify(AgentBridge.currentApiSource, times(removeTimes)).remove();
+    private void assertAfterApi(int setTimes, int removeTimes, int[] counts, WeavePackageType weavePackageType) {
+        assertEquals(setTimes, counts[0]);
+        assertEquals(removeTimes, counts[1]);
         if (removeTimes != 0) {
             assertNull(AgentBridge.currentApiSource.get());
         }
-        reset(AgentBridge.currentApiSource);
     }
 
     public static class ApiTestClass {

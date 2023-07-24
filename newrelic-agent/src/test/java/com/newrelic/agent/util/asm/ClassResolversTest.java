@@ -60,7 +60,7 @@ public class ClassResolversTest {
         Mockito.verify(resolver1, Mockito.times(1)).getClassResource("foo/bar");
 
         Mockito.verifyNoMoreInteractions(resolver1);
-        Mockito.verifyZeroInteractions(resolver2);
+        Mockito.verifyNoInteractions(resolver2);
     }
 
     private File createJarFile() throws IOException {

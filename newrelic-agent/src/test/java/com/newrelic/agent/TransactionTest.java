@@ -841,7 +841,7 @@ public class TransactionTest {
         Mockito.verify(transactionService, Mockito.atLeastOnce()).transactionStarted(Mockito.any(Transaction.class));
         Mockito.verify(transactionService, Mockito.atLeastOnce()).transactionFinished(Mockito.any(
                 TransactionData.class), Mockito.any(TransactionStats.class));
-        Mockito.verifyZeroInteractions(transactionService);
+        Mockito.verifyNoMoreInteractions(transactionService);
     }
 
     @Test

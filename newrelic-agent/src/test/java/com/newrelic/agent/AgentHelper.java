@@ -68,7 +68,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.anyString;
 
 public abstract class AgentHelper {
 
