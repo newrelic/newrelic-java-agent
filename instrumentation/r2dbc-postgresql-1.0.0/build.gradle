@@ -1,0 +1,20 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("org.postgresql:r2dbc-postgresql:1.0.2.RELEASE")
+    testImplementation("ru.yandex.qatools.embed:postgresql-embedded:2.10")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.r2dbc-postgresql-1.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.postgresql:r2dbc-postgresql:[1.0.0.RELEASE,)'
+    excludeRegex(".*(M1|M2|RC).*")
+}
+
+site {
+    title 'PostgreSQL R2DBC'
+    type 'Datastore'
+}
