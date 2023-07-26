@@ -64,7 +64,6 @@ jobs:
           echo "framework/play/play2.py" >> $excluded_tests
           echo "framework/snap/snap.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
-          echo "r2dbc/oracle.py" >> $excluded_tests
           echo "server/mule.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
           # The files below are not tests
@@ -255,6 +254,7 @@ jobs:
       - name: Create virtualenv and run ${{ matrix.tests }}
         if: ${{ failure() || success() }}
         run: |
+          docker rmi $(docker images -q)
           cd agent-integration-tests
           echo "conf/testenv complains of the path below - creating symlink for now"
           ln -s ${GITHUB_WORKSPACE}/apps /home/runner/apps
