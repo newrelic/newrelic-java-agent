@@ -243,8 +243,8 @@ jobs:
 
       # looks like docker is not properly sanitized between runs in GHA
       # so its disk space may be pilling up and blows up during our tests
-      - name: Clean Docker volume data
-        run: docker system prune --all
+      - name: Clean Docker image data
+        run: docker rmi $(docker images -q)
 
       ## TESTING SECTION
 
