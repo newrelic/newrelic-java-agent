@@ -199,6 +199,7 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
             }
             return false;
         }
+
         return true;
     }
 

@@ -10,16 +10,26 @@ package com.newrelic.bootstrap;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
+import java.security.ProtectionDomain;
+import java.util.Collection;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.api.agent.security.NewRelicSecurity;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.newrelic.agent.config.JarResource;
+
+import static com.newrelic.bootstrap.BootstrapLoader.AGENT_BRIDGE_DATASTORE_JAR_NAME;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class BootstrapLoaderTest {
 
@@ -64,7 +74,78 @@ public class BootstrapLoaderTest {
         // Finally, call the code we're trying to test.
         Agent.addMixinInterfacesToBootstrap(agentJarResource, agentJarUrl, inst);
 
-        Mockito.verify(inst, Mockito.atLeastOnce()).appendToBootstrapClassLoaderSearch(Mockito.any(JarFile.class));
+        verify(inst, Mockito.atLeastOnce()).appendToBootstrapClassLoaderSearch(Mockito.any(JarFile.class));
+    }
+
+    @Test
+    public void apiClassTransformerInnerClass_constructor_andTransform() throws ClassNotFoundException, IllegalClassFormatException {
+        byte [] bytes = "test".getBytes();
+        ClassLoader mockClassloader = Mockito.mock(ClassLoader.class);
+        ProtectionDomain mockProtectionDomain = Mockito.mock(ProtectionDomain.class);
+        BootstrapLoader.ApiClassTransformer apiClassTransformer = new BootstrapLoader.ApiClassTransformer("appname", bytes);
+
+        assertEquals(apiClassTransformer.transform(mockClassloader, "appname", Class.forName("java.lang.String"), mockProtectionDomain, bytes), bytes);
+        assertNull(apiClassTransformer.transform(mockClassloader, null, Class.forName("java.lang.String"), mockProtectionDomain, bytes));
+    }
+
+    @Test
+    @Ignore
+    public void forceCorrectNewRelicApi_addsTransformerToInstrumentation() throws IOException {
+        Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
+        BootstrapLoader.forceCorrectNewRelicApi(mockInstr);
+        verify(mockInstr, times(1)).addTransformer(Mockito.any(BootstrapLoader.ApiClassTransformer.class), eq(true));
+    }
+
+    @Test
+    @Ignore
+    public void forceCorrectNewRelicSecurityApi_addsTransformerToInstrumentation() throws IOException, UnmodifiableClassException {
+        Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
+        BootstrapLoader.forceCorrectNewRelicSecurityApi(mockInstr);
+        verify(mockInstr, times(1)).addTransformer(Mockito.any(BootstrapLoader.ApiClassTransformer.class), eq(true));
+        verify(mockInstr, times(1)).retransformClasses(NewRelicSecurity.class);
+    }
+
+    @Test
+    @Ignore
+    public void getDatastoreJarURL_returnsCorrectURL() throws IOException, ClassNotFoundException {
+        assertNotNull(BootstrapLoader.getDatastoreJarURL());
+        assertTrue(BootstrapLoader.getDatastoreJarURL().toString().contains(AGENT_BRIDGE_DATASTORE_JAR_NAME));
+    }
+
+    @Test
+    @Ignore
+    public void getJarURLs_returnsCorrectCollectionOfUrls() throws IOException, ClassNotFoundException {
+        Collection<URL> urlList = BootstrapLoader.getJarURLs();
+        assertEquals(6, urlList.size());
+    }
+
+    @Test
+    @Ignore
+    public void load_isJavaSqlLoadedIsFalse_addsClassesToClassLoader() throws IOException, UnmodifiableClassException {
+        Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
+        BootstrapLoader.load(mockInstr, false);
+        verify(mockInstr, times(6)).appendToBootstrapClassLoaderSearch(any());
+    }
+
+    @Test
+    @Ignore
+    public void load_isJavaSqlLoadedIsTrue_addsClassesToClassLoader() throws IOException, UnmodifiableClassException {
+        Instrumentation mockInstr = Mockito.mock(Instrumentation.class);
+        BootstrapLoader.load(mockInstr, true);
+        verify(mockInstr, times(5)).appendToBootstrapClassLoaderSearch(any());
+    }
+
+    @Test
+    public void getTempDir_withSysPropSet_returnsNull() throws IOException, UnmodifiableClassException {
+        System.setProperty("newrelic.tempdir", "./");
+        assertNotNull(BootstrapLoader.getTempDir());
+        System.clearProperty("newrelic.tempdir");
+
+    }
+
+    @Test
+    public void getTempDir_withoutSysPropSet_returnsNull() throws IOException, UnmodifiableClassException {
+        assertNull(BootstrapLoader.getTempDir());
     }
 
     private JarResource getJarResource(final JarFile agentJarFile) {

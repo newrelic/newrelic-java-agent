@@ -241,6 +241,7 @@ jacocoTestReport {
                               'com/newrelic/agent/jmx/metrics/*Generator.class',
                               'com/newrelic/agent/jmx/metrics/*Generator$*.class',
                               'com/newrelic/agent/bridge/external/ExternalParametersFactory.class',
+                              'com/newrelic/agent/instrumentation/tracing/TraceDetailsBuilder*.class',
                               'com/newrelic/agent/model/ApdexPerfZone.class',
                               'com/newrelic/agent/model/CountedDuration.class',
                               'com/newrelic/agent/model/PathHashes.class',
@@ -254,7 +255,15 @@ jacocoTestReport {
                               'com/newrelic/agent/bridge/datastore/DatastoreMetrics.class',
                               'com/newrelic/api/agent/ApplicationNamePriority.class',
                               'com/newrelic/agent/bridge/TransactionNamePriority.class',
-                              'com/newrelic/agent/tracers/UltraLightTracer.class'
+                              'com/newrelic/weave/utils/Synchronized*.class',
+                              'com/newrelic/agent/tracers/UltraLightTracer.class',
+                              'com/newrelic/agent/core/CoreServiceImpl.class',
+                              'com/newrelic/agent/Deployments.class',
+                              'com/newrelic/agent/LifecycleObserver$*.class',
+                              'com/newrelic/agent/LifecycleObserver.class',
+                              'com/newrelic/agent/InitProblemClasses.class',
+                              'com/newrelic/agent/reinstrument/ReinstrumentUtils.class',
+                              'com/newrelic/agent/AsyncApiImpl.class'
                     ])
         }))
     }

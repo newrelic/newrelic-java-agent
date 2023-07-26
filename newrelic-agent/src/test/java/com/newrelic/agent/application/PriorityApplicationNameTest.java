@@ -12,6 +12,9 @@ import org.junit.Test;
 
 import com.newrelic.api.agent.ApplicationNamePriority;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 public class PriorityApplicationNameTest {
 
     @Test
@@ -19,8 +22,8 @@ public class PriorityApplicationNameTest {
         String expectedName = "MyApplicationName";
         ApplicationNamePriority expectedPriority = ApplicationNamePriority.FILTER_INIT_PARAM;
         PriorityApplicationName pan = PriorityApplicationName.create(expectedName, expectedPriority);
-        Assert.assertEquals(expectedPriority, pan.getPriority());
-        Assert.assertEquals(expectedName, pan.getName());
+        assertEquals(expectedPriority, pan.getPriority());
+        assertEquals(expectedName, pan.getName());
     }
 
     @Test
@@ -28,11 +31,11 @@ public class PriorityApplicationNameTest {
         String appName = "MyApp1;MyApp2";
         ApplicationNamePriority expectedPriority = ApplicationNamePriority.FILTER_INIT_PARAM;
         PriorityApplicationName pan = PriorityApplicationName.create(appName, expectedPriority);
-        Assert.assertEquals(expectedPriority, pan.getPriority());
-        Assert.assertEquals("MyApp1", pan.getName());
-        Assert.assertEquals(2, pan.getNames().size());
-        Assert.assertEquals("MyApp1", pan.getNames().get(0));
-        Assert.assertEquals("MyApp2", pan.getNames().get(1));
+        assertEquals(expectedPriority, pan.getPriority());
+        assertEquals("MyApp1", pan.getName());
+        assertEquals(2, pan.getNames().size());
+        assertEquals("MyApp1", pan.getNames().get(0));
+        assertEquals("MyApp2", pan.getNames().get(1));
     }
 
     @Test
@@ -75,13 +78,29 @@ public class PriorityApplicationNameTest {
         ApplicationNamePriority servletInitParamPriority = ApplicationNamePriority.SERVLET_INIT_PARAM;
         ApplicationNamePriority attributePriority = ApplicationNamePriority.REQUEST_ATTRIBUTE;
 
-        Assert.assertEquals(7, ApplicationNamePriority.values().length);
+        assertEquals(7, ApplicationNamePriority.values().length);
         Assert.assertTrue(nonePriority.compareTo(contextNamePriority) < 0);
         Assert.assertTrue(contextPathPriority.compareTo(contextNamePriority) < 0);
         Assert.assertTrue(contextNamePriority.compareTo(contextParamPriority) < 0);
         Assert.assertTrue(contextParamPriority.compareTo(filterInitParamPriority) < 0);
         Assert.assertTrue(filterInitParamPriority.compareTo(servletInitParamPriority) < 0);
         Assert.assertTrue(servletInitParamPriority.compareTo(attributePriority) < 0);
+    }
+
+    @Test
+    public void testHashCode() {
+        PriorityApplicationName obj1 = PriorityApplicationName.create("MyApp1",  ApplicationNamePriority.NONE);
+        PriorityApplicationName obj2 = PriorityApplicationName.create("MyApp1",  ApplicationNamePriority.NONE);
+        PriorityApplicationName obj3 = PriorityApplicationName.create("MyApp2",  ApplicationNamePriority.NONE);
+
+        // same object should have the same hashcode
+        assertEquals(obj1.hashCode(), obj1.hashCode());
+
+        // equal objects should have the same hashcode
+        assertEquals(obj1.hashCode(), obj2.hashCode());
+
+        // unequal objects should ideally have different hashcodes
+        assertNotEquals(obj1.hashCode(), obj3.hashCode());
     }
 
 }
