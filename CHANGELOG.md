@@ -4,6 +4,27 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.5.0
+## New features and improvements
+- Kafka Connect instrumentation: Adds [metrics](https://docs.newrelic.com/docs/apm/agents/java-agent/instrumentation/java-agent-instrument-kafka-message-queues/#view-kafka-metrics) and [transaction tracing](https://docs.newrelic.com/docs/apm/agents/java-agent/instrumentation/java-agent-instrument-kafka-message-queues/#collect-kafka-connect-transactions) for version 2.0.0+ [#1324](https://github.com/newrelic/newrelic-java-agent/pull/1324)
+- Kafka: Added metrics to understand the relationship between consumers, producers, topics and nodes [#1223](https://github.com/newrelic/newrelic-java-agent/pull/1223)
+- IAST: Limiting the supported version range for Apache log4j due to the new version release of Apache log4j on 21 June 2023 [#80](https://github.com/newrelic/csec-java-agent/pull/80/files)
+- IAST: Support for indication what all API-IDs are scanned or being scanned [#80](https://github.com/newrelic/csec-java-agent/pull/80/files)
+- All existing instrumnetation now supports Jakarta 10 EE
+
+## Fixes
+- Implement the getStatus() method in the NRWrapper class for version 5 and 6 of Servlet instrumentation [#1315](https://github.com/newrelic/newrelic-java-agent/pull/1315/files)
+
+## Deprecations
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- Struts v1 and v2 (legacy pointcut instrumentation)
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.4.0...v8.5.0
+
 ## Version 8.4.0
 ### New features and improvements
 
