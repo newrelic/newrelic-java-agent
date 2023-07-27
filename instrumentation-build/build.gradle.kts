@@ -24,5 +24,5 @@ dependencies {
     testImplementation(project(":newrelic-weaver-api"))
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.6.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
-    testImplementation("org.mockito:mockito-inline:3.12.4")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
 }
