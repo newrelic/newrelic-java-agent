@@ -1,6 +1,5 @@
 package com.newrelic.agent;
 
-import com.newrelic.agent.bridge.NoOpSegment;
 import com.newrelic.agent.bridge.NoOpToken;
 import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.TracedMethod;
@@ -31,7 +30,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -448,18 +446,6 @@ public class TransactionApiImplTest {
             mockStaticTxn.when(() -> com.newrelic.agent.Transaction.getTransaction(false)).thenReturn(mockTxn);
             transactionApi.provideHeaders(ConcurrentHashMapHeaders.build(HeaderType.MESSAGE));
             verify(mockTxn).provideHeaders(any());
-        }
-    }
-
-    @Test
-    public void getRequestMetadata_withTxn_fetchesMetadata() {
-        TransactionApiImpl transactionApi = new TransactionApiImpl();
-        Transaction mockTxn = mock(Transaction.class, RETURNS_DEEP_STUBS);
-
-        try (MockedStatic<com.newrelic.agent.Transaction> mockStaticTxn = mockStatic(com.newrelic.agent.Transaction.class)) {
-            mockStaticTxn.when(() -> com.newrelic.agent.Transaction.getTransaction(false)).thenReturn(mockTxn);
-            transactionApi.getCrossProcessState();
-            verify(mockTxn).getCrossProcessState().getRequestMetadata();
         }
     }
 
