@@ -47,7 +47,7 @@ public class EmbeddedJars {
                 String path = url.toExternalForm().substring(index + entry.getKey().length());
                 // add 1 to skip past the `.` and the value length, which is the length of the file extension
                 url = new URL(url.toExternalForm().substring(0, index + 1 + entry.getValue().length()));
-                // For some reason, some JAR files cannot be read properly by JarInputStream, at least the getNextJatEntry methodI
+                // For some reason, some JAR files cannot be read properly by JarInputStream, at least the getNextJarEntry method
                 // perhaps related to entry order (https://bugs.openjdk.org/browse/JDK-8031748)
                 JarFile jarFile = new JarFile(url.getFile());
                 JarEntry innerEntry = jarFile.getJarEntry(path);
