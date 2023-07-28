@@ -14,7 +14,7 @@ final class PostgresqlStatement_Instrumentation {
     public Flux<PostgresqlResult> execute() {
         Flux<PostgresqlResult> request = Weaver.callOriginal();
         if(request != null && parsedSql != null && resources != null) {
-            return R2dbcUtils.wrapRequest(request, parsedSql.getSql(), resources.getConfiguration());
+            return R2dbcUtils.wrapRequest(request, parsedSql.getSql(), resources.getClient(), resources.getConfiguration());
         }
         return request;
     }
