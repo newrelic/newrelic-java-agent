@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">9.827s</div>
+<div class="counter">10.067s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,67 +79,67 @@
 </thead>
 <tr>
 <td class="success">runTest[0:normal license key]</td>
-<td class="success">8.305s</td>
+<td class="success">8.539s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[10:env var host override with env key]</td>
-<td class="success">0.220s</td>
+<td class="success">0.223s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[11:env var host override default with default env key]</td>
-<td class="success">0.173s</td>
+<td class="success">0.174s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[12:No specified key defaults to collector.newrelic.com]</td>
-<td class="success">0.031s</td>
+<td class="success">0.035s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[1:region aware key with four character identifier]</td>
-<td class="success">0.057s</td>
+<td class="success">0.051s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[2:region aware key with five character identifier]</td>
-<td class="success">0.052s</td>
+<td class="success">0.033s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[3:region aware key with seven character identifier]</td>
-<td class="success">0.048s</td>
+<td class="success">0.025s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[4:region aware key with abnormal identifier]</td>
-<td class="success">0.050s</td>
+<td class="success">0.069s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[5:region aware key with more than one identifier]</td>
-<td class="success">0.038s</td>
+<td class="success">0.037s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[6:environment variable specified license key]</td>
-<td class="success">0.491s</td>
+<td class="success">0.520s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[7:env var host override]</td>
-<td class="success">0.172s</td>
+<td class="success">0.170s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[8:local config host override]</td>
-<td class="success">0.029s</td>
+<td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">runTest[9:local config host override with env key]</td>
-<td class="success">0.161s</td>
+<td class="success">0.164s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -147,45 +147,45 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-07-28T20:17:31,177+0000 [46016 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-07-28T20:17:31,214+0000 [46016 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-07-28T20:17:31,215+0000 [46016 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-07-28T20:17:38,066+0000 [46016 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
-2023-07-28T20:17:38,067+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:38,071+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:38,134+0000 [46016 1] com.newrelic INFO: Using region aware collector host: collector.gov01.nr-data.net
-2023-07-28T20:17:38,138+0000 [46016 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-07-28T20:17:38,139+0000 [46016 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-07-28T20:17:38,192+0000 [46016 1] com.newrelic INFO: Using region aware collector host: collector.foo1234.nr-data.net
-2023-07-28T20:17:38,192+0000 [46016 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-07-28T20:17:38,193+0000 [46016 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-07-28T20:17:38,243+0000 [46016 1] com.newrelic INFO: Using region aware collector host: collector.20foo.nr-data.net
-2023-07-28T20:17:38,247+0000 [46016 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-07-28T20:17:38,247+0000 [46016 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-07-28T20:17:38,315+0000 [46016 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
-2023-07-28T20:17:38,315+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:38,316+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:38,545+0000 [46016 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
-2023-07-28T20:17:38,549+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:38,551+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:38,883+0000 [46016 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
-2023-07-28T20:17:38,884+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:38,885+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:39,042+0000 [46016 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
-2023-07-28T20:17:39,044+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:39,045+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:39,087+0000 [46016 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
-2023-07-28T20:17:39,088+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:39,089+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:39,255+0000 [46016 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
-2023-07-28T20:17:39,256+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:39,257+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:39,488+0000 [46016 1] com.newrelic INFO: Using configured collector host: collector.newrelic.com
-2023-07-28T20:17:39,490+0000 [46016 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
-2023-07-28T20:17:39,491+0000 [46016 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
-2023-07-28T20:17:39,643+0000 [46016 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-07-28T20:17:39,644+0000 [46016 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-07-28T20:17:39,644+0000 [46016 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+<pre>2023-07-28T21:55:35,956+0000 [45738 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T21:55:35,998+0000 [45738 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T21:55:36,006+0000 [45738 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T21:55:42,980+0000 [45738 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
+2023-07-28T21:55:42,980+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:42,982+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:43,032+0000 [45738 1] com.newrelic INFO: Using region aware collector host: collector.gov01.nr-data.net
+2023-07-28T21:55:43,037+0000 [45738 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T21:55:43,037+0000 [45738 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T21:55:43,068+0000 [45738 1] com.newrelic INFO: Using region aware collector host: collector.foo1234.nr-data.net
+2023-07-28T21:55:43,069+0000 [45738 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T21:55:43,069+0000 [45738 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T21:55:43,097+0000 [45738 1] com.newrelic INFO: Using region aware collector host: collector.20foo.nr-data.net
+2023-07-28T21:55:43,097+0000 [45738 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T21:55:43,098+0000 [45738 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T21:55:43,167+0000 [45738 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
+2023-07-28T21:55:43,168+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:43,170+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:43,384+0000 [45738 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
+2023-07-28T21:55:43,396+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:43,399+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:43,744+0000 [45738 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-07-28T21:55:43,747+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:43,749+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:43,902+0000 [45738 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-07-28T21:55:43,904+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:43,908+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:43,947+0000 [45738 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-07-28T21:55:43,950+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:43,951+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:44,114+0000 [45738 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-07-28T21:55:44,121+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:44,122+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:44,342+0000 [45738 1] com.newrelic INFO: Using configured collector host: collector.newrelic.com
+2023-07-28T21:55:44,345+0000 [45738 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-07-28T21:55:44,347+0000 [45738 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-07-28T21:55:44,506+0000 [45738 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T21:55:44,507+0000 [45738 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T21:55:44,509+0000 [45738 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
 </pre>
 </span>
 </div>
@@ -197,7 +197,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jul 28, 2023 8:45:26 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jul 28, 2023 10:23:45 PM</p>
 </div>
 </div>
 </body>
