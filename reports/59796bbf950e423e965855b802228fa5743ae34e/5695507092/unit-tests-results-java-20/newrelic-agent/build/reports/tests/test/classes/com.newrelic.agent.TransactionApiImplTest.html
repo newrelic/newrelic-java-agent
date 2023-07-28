@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.TransactionApiImplTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.TransactionApiImplTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.html">com.newrelic.agent</a> &gt; TransactionApiImplTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">49</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">10.307s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">acceptDistributedTracePayload_withTxn_acceptsPayload</td>
+<td class="success">0.014s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">beforeSendResponseHeaders_withTxn_addsOutboundHeaders</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">clearTransaction_withTxn_clearsCurrentTxn</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">convertToWebTransaction_withTxn_convertsTxn</td>
+<td class="success">0.012s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">equals_properlyDeterminesEquality</td>
+<td class="success">0.007s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">finishFlyweightTracer_withTxn_startsFlyweightTracer</td>
+<td class="success">0.165s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getAgentAttributes_withTxn_fetchesAttributes</td>
+<td class="success">0.020s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getCrossProcessState_withTxn_returnsProcessState</td>
+<td class="success">0.012s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getLastTracer_withNoTxn_returnsNoOpTraceMethod</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getLastTracer_withNullLastTracer_returnsNoOpTracedMethod</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getLastTracer_withTxn_returnsTracedMethod</td>
+<td class="success">0.270s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getSecurityMetadata_withTxn_returnsMetadata</td>
+<td class="success">8.368s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getToken_withTxn_returnsToken</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getToken_withoutTxn_returnsNoopTokenInstance</td>
+<td class="success">0.020s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getWebResponse_withTxn_returnsResponse</td>
+<td class="success">0.018s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">hashCode_generatesProperHashValues</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">ignoreApdex_withTxn_ignoresApdex</td>
+<td class="success">0.021s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">ignoreErrors_withTxn_ignoresErrorsOnTxn</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">ignoreErrors_withTxn_setsFlagOnTxn</td>
+<td class="success">0.024s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">ignore_withTxn_ignoresTheTxn</td>
+<td class="success">0.008s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isAutoAppNamingEnabled_withTxn_returnsTxnAutoAppNamingFlag</td>
+<td class="success">0.012s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isAutoAppNaming_withTxn_returnsAppNamingFlag</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isStarted_withTxn_returnsStartStatus</td>
+<td class="success">0.022s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isTransactionNameSet_withActiveTxn_returnsTrue</td>
+<td class="success">0.032s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isTransactionNameSet_withNoTxn_returnsFalse</td>
+<td class="success">0.019s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isWebRequestSet_withTxn_returnsTxnWebRequestFlag</td>
+<td class="success">0.020s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isWebRequestSet_withTxn_returnsWebRequestSetFlag</td>
+<td class="success">0.014s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isWebResponseSet_withTxn_returnsTxnWebResponsetFlag</td>
+<td class="success">0.019s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isWebResponseSet_withTxn_returnsWebResponetSetFlag</td>
+<td class="success">0.011s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">isWebTransaction_withTxn_returnsWebTxnFlag</td>
+<td class="success">0.026s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">markFirstByteOfResponse_withTxn_marksByteOnTxn</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">markLastByteOfResponse_withTxn_marksLastByteOnTxn</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">markResponseAtTxaEnd_withTxn_marksResponseOnTxnActivity</td>
+<td class="success">0.018s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">markResponseSent_withTxnAndMarkResponseTimeIsFalse_returnsFalse</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">markResponseSent_withTxn_returnsTrue</td>
+<td class="success">0.456s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">markResponseSent_withoutTxn_returnsFalse</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">provideHeaders_withTxn_fetchesAttributes</td>
+<td class="success">0.041s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">requestDestroyed_withTxn_destroysRequest</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">requestInitialized_withTxn_initsRequest</td>
+<td class="success">0.087s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">saveMessageParameters_withTxn_saveParams</td>
+<td class="success">0.012s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">setApplicationName_withTxn_setsNameOnTxn</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">setTransactionName_withActiveTxn_properlySetsTxnName</td>
+<td class="success">0.009s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">setTransactionName_withNoTxn_ignoresRequest</td>
+<td class="success">0.007s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">setTransportType_withTxn_returnsMetadata</td>
+<td class="success">0.020s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">setWebRequest_withTxn_assignsRequest</td>
+<td class="success">0.009s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">setWebRequest_withTxn_setsWebRequestOnTxn</td>
+<td class="success">0.152s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">setWebResponse_withTxn_assignsResponse</td>
+<td class="success">0.152s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">startFlyweightTracer_withTxn_startsFlyweightTracer</td>
+<td class="success">0.024s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">startFlyweightTracer_withoutTxn_startsFlyweightTracer</td>
+<td class="success">0.014s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-07-28T20:23:16,811+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:16,860+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:16,862+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:18,898+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:18,898+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:18,899+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:18,929+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:18,930+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:18,930+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:18,941+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:18,948+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:18,948+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:18,957+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:18,958+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:18,958+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:18,977+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:18,978+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:18,978+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,009+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,016+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,016+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,038+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,047+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,048+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,507+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,515+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,516+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,531+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,533+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,533+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,576+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,577+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,580+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,601+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,603+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,604+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,623+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,629+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,631+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,646+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,647+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,648+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,804+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,805+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,806+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,824+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,825+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,826+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,841+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,843+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,844+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,867+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,871+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,872+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,887+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,888+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,892+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,912+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,914+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,916+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,937+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,938+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,939+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:19,953+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:19,954+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:19,954+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,105+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,106+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,106+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,116+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,118+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,118+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,130+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,130+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,130+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,141+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,143+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,143+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,314+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,314+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,315+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,400+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,401+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,401+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,409+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,409+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,411+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,422+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,422+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,422+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,431+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,435+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,435+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,446+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,446+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,446+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,452+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,452+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,452+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,461+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,461+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,462+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,472+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,473+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,474+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,482+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,483+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,483+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,497+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,497+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,497+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,513+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,513+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,513+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,525+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,526+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,526+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,795+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,796+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,796+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,808+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,808+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,808+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,819+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,820+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,820+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,827+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,827+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,831+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,837+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,837+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,837+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,858+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,859+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,859+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,876+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,877+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,877+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,893+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,894+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,894+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,903+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,904+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,904+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-07-28T20:23:20,920+0000 [50320 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-07-28T20:23:20,921+0000 [50320 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-07-28T20:23:20,924+0000 [50320 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jul 28, 2023 8:45:26 PM</p>
+</div>
+</div>
+</body>
+</html>
