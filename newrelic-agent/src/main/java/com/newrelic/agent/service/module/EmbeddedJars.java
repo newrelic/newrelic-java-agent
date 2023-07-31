@@ -7,16 +7,17 @@
 
 package com.newrelic.agent.service.module;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 
 public class EmbeddedJars {
     private static final Map<String,String> EMBEDDED_FORMAT_TO_EXTENSION = getEmbeddedFormatToExtension("ear","war","jar");
@@ -46,35 +47,15 @@ public class EmbeddedJars {
                 String path = url.toExternalForm().substring(index + entry.getKey().length());
                 // add 1 to skip past the `.` and the value length, which is the length of the file extension
                 url = new URL(url.toExternalForm().substring(0, index + 1 + entry.getValue().length()));
-                InputStream inputStream = url.openStream();
-                JarInputStream jarStream = new JarInputStream(inputStream);
-                
-                if (!readToEntry(jarStream, path)) {
-                    inputStream.close();
-                    throw new IOException("Unable to open stream for " + path + " in " + url.toExternalForm());
-                }
-                return jarStream;
+                // For some reason, some JAR files cannot be read properly by JarInputStream, at least the getNextJarEntry method
+                // perhaps related to entry order (https://bugs.openjdk.org/browse/JDK-8031748)
+                JarFile jarFile = new JarFile(url.getFile());
+                JarEntry innerEntry = jarFile.getJarEntry(path);
+                return jarFile.getInputStream(innerEntry);
             }
         }
         
         return url.openStream();
-    }
-    
-    /**
-     * Read a jar input stream until a given path is found.
-     * 
-     * @param jarStream
-     * @param path
-     * @return  true if the path was found
-     * @throws IOException
-     */
-    private static boolean readToEntry(JarInputStream jarStream, String path) throws IOException {
-        for (JarEntry jarEntry = null; (jarEntry = jarStream.getNextJarEntry()) != null;) {
-            if (path.equals(jarEntry.getName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     static JarInputStream getJarInputStream(URL url) throws IOException {
