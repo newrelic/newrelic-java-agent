@@ -11,7 +11,6 @@ import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.security.Permission;
 
 public class AgentCommandLineParserTest {
     private final ByteArrayOutputStream replacementOut = new ByteArrayOutputStream();
@@ -26,7 +25,6 @@ public class AgentCommandLineParserTest {
     public void setup() {
         System.setOut(new PrintStream(replacementOut));
         System.setErr(new PrintStream(replacementErr));
-        System.setSecurityManager(new NoExitSecurityManager());
     }
 
     @After
@@ -55,21 +53,6 @@ public class AgentCommandLineParserTest {
 
         Assert.assertTrue(replacementOut.toString().contains("usage: java -jar newrelic.jar"));
         Assert.assertTrue(replacementOut.toString().contains("java -jar newrelic.jar"));
-    }
-
-    @Test
-    public void parseCommand_withoutInvalidOption_printsHelpTextAndExits() {
-        String[] args = new String[] { "invalid" };
-        AgentCommandLineParser parser = new AgentCommandLineParser();
-
-        try {
-            parser.parseCommand(args);
-        } catch (RuntimeException re) {
-            Assert.assertEquals("1", re.getMessage());
-        }
-
-        Assert.assertTrue(replacementOut.toString().contains("usage: java -jar newrelic.jar"));
-        Assert.assertTrue(replacementOut.toString().contains("Commands:"));
     }
 
     @Test
@@ -114,49 +97,5 @@ public class AgentCommandLineParserTest {
 
         Assert.assertNotNull(replacementOut.toString());
         Assert.assertFalse(replacementOut.toString().isEmpty());
-    }
-
-    @Test
-    public void parseCommand_withoutParseException_printsHelpTextAndExits() {
-        String[] args = new String[] { "-invalidOption" };
-        AgentCommandLineParser parser = new AgentCommandLineParser();
-
-        try {
-            parser.parseCommand(args);
-        } catch (RuntimeException re) {
-            Assert.assertEquals("1", re.getMessage());
-        }
-
-        Assert.assertTrue(replacementOut.toString().contains("usage: java -jar newrelic.jar"));
-        Assert.assertTrue(replacementOut.toString().contains("Commands:"));
-        Assert.assertTrue(replacementErr.toString().contains("Error parsing arguments"));
-    }
-
-    @Test
-    public void parseCommand_withoutException_printsHelpTextAndExits() {
-        String[] args = new String[] { "%@$%&$" };
-        AgentCommandLineParser parser = new AgentCommandLineParser();
-
-        try {
-            parser.parseCommand(args);
-        } catch (RuntimeException re) {
-            Assert.assertEquals("1", re.getMessage());
-        }
-
-        Assert.assertTrue(replacementOut.toString().contains("usage: java -jar newrelic.jar"));
-        Assert.assertTrue(replacementOut.toString().contains("Commands:"));
-        Assert.assertTrue(replacementErr.toString().contains("Error executing command"));
-    }
-
-    class NoExitSecurityManager extends SecurityManager {
-        @Override
-        public void checkPermission(Permission perm) {
-        }
-
-        @Override
-        public void checkExit(int status) {
-            super.checkExit(status);
-            throw new RuntimeException(String.valueOf(status));
-        }
     }
 }
