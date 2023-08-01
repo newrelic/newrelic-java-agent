@@ -7,18 +7,23 @@
 
 package com.newrelic.agent.introspec.internal;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
+import com.newrelic.api.agent.HttpParameters;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ExternalRequestImplTest {
 
@@ -54,7 +59,7 @@ public class ExternalRequestImplTest {
 
         ExternalRequestImpl impl2 = ExternalRequestImpl.checkAndMakeExternal(getTracer("External/hostname/library",
                 "External/hostname/library/op"));
-        Assert.assertTrue(impl1.wasMerged(impl2));
+        assertTrue(impl1.wasMerged(impl2));
         Assert.assertEquals(2, impl1.getCount());
 
         ExternalRequestImpl impl = ExternalRequestImpl.checkAndMakeExternal(getTracer(
@@ -106,14 +111,61 @@ public class ExternalRequestImplTest {
     public void testOptionalOp() {
         ExternalRequestImpl ext = ExternalRequestImpl.checkAndMakeExternal(getTracer("External/hostname/library",
                 "External/hostname/library/op"));
+        Assert.assertEquals("External/hostname/library/op", ext.getSegmentName());
         Assert.assertEquals("hostname", ext.getHostname());
         Assert.assertEquals("library", ext.getLibrary());
         Assert.assertEquals("op", ext.getOperation());
 
         ext = ExternalRequestImpl.checkAndMakeExternal(getTracer("External/hostname/library",
                 "External/hostname/library"));
+        Assert.assertEquals("External/hostname/library", ext.getSegmentName());
         Assert.assertEquals("hostname", ext.getHostname());
         Assert.assertEquals("library", ext.getLibrary());
         Assert.assertNull(ext.getOperation());
     }
+
+    @Test
+    public void testHttpParams() throws URISyntaxException {
+        DefaultTracer tracer = getTracer("External/hostname/library", "External/hostname/library/op");
+        HttpParameters params = HttpParameters.library("library")
+                .uri(new URI("https://example.com"))
+                .procedure("GET")
+                .noInboundHeaders()
+                .status(200, "Success")
+                .build();
+        tracer.reportAsExternal(params);
+
+        ExternalRequestImpl ext = ExternalRequestImpl.checkAndMakeExternal(tracer);
+
+        Assert.assertEquals(Integer.valueOf(200), ext.getStatusCode());
+        Assert.assertEquals("Success", ext.getStatusText());
+    }
+
+    @Test
+    public void testWasMerged() throws URISyntaxException {
+        String metricName = "External/hostname/library";
+        String transactionSegName = "External/hostname/library/op";
+        DefaultTracer tracer = getTracer(metricName, transactionSegName);
+        ExternalRequestImpl ext = ExternalRequestImpl.checkAndMakeExternal(tracer);
+
+        RequestImpl potential = ExternalRequestImpl.checkAndMakeExternal(tracer);
+
+        boolean wasMerged = ext.wasMerged(potential);
+        assertTrue(wasMerged);
+    }
+
+    @Test
+    public void testWasNotMerged() throws URISyntaxException {
+        String metricName = "External/hostname/library";
+        String transactionSegName = "External/hostname/library/op";
+        DefaultTracer tracer = getTracer(metricName, transactionSegName);
+        ExternalRequestImpl ext = ExternalRequestImpl.checkAndMakeExternal(tracer);
+
+        DefaultTracer tracer2 = getTracer(metricName + "Different", transactionSegName + "eration");
+        RequestImpl potential = ExternalRequestImpl.checkAndMakeExternal(tracer2);
+
+        boolean wasMerged = ext.wasMerged(potential);
+        assertFalse(wasMerged);
+    }
+
 }
