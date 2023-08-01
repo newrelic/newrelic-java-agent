@@ -59,7 +59,7 @@ public class StatsImpl extends AbstractStats implements Stats {
             throw new IllegalArgumentException("Data points must be numbers");
         }
         double sos = sumOfSquares + (value * value);
-        if (sos < sumOfSquares) {
+        if (Double.isInfinite(sos)) {
             throw new IllegalArgumentException("Data value " + value + " caused sum of squares to roll over");
         }
         if (count > 0) {
