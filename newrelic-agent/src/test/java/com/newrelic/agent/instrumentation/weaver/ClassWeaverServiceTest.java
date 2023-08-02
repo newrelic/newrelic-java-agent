@@ -7,26 +7,46 @@ import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.extension.ExtensionService;
+import com.newrelic.agent.instrumentation.ClassTransformerService;
+import com.newrelic.agent.instrumentation.PointCutClassTransformer;
+import com.newrelic.agent.instrumentation.classmatchers.ClassAndMethodMatcher;
+import com.newrelic.agent.instrumentation.classmatchers.ClassMatcherTest;
+import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
+import com.newrelic.agent.instrumentation.context.InstrumentationContext;
+import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
+import com.newrelic.agent.instrumentation.custom.ClassRetransformer;
+import com.newrelic.agent.instrumentation.tracing.TraceDetails;
+import com.newrelic.agent.instrumentation.weaver.preprocessors.TracedWeaveInstrumentationTracker;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.trace.TransactionTraceService;
+import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.bootstrap.BootstrapAgent;
+import com.newrelic.weave.WeaveTestUtils;
+import com.newrelic.weave.utils.WeaveUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.tree.ClassNode;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 public class ClassWeaverServiceTest {
@@ -146,7 +166,77 @@ public class ClassWeaverServiceTest {
         }
     }
 
-    private static void createServiceManager(Set<File> weaveExtensions) throws Exception {
+    @Test
+    public void test_newClassMatchVisitor_notRetransforming() throws Exception {
+        createServiceManager(new HashSet<>(Arrays.asList()));
+
+        Instrumentation instrumentation = Mockito.mock(Instrumentation.class);
+        ClassWeaverService target = new ClassWeaverService(instrumentation);
+
+        InstrumentationContext iInstrumentationContext = Mockito.mock(InstrumentationContext.class);
+        Class<?> clazz = this.getClass();
+        ClassReader reader = ClassMatcherTest.getClassReader(clazz);
+
+        ClassVisitor result = target.newClassMatchVisitor(clazz.getClassLoader(), null, reader, null,
+                iInstrumentationContext);
+        Mockito.verify(iInstrumentationContext).putMatch(target, null);
+        Assert.assertNull(result);
+    }
+
+    @Test
+    public void test_newClassMatchVisitor_isRetransforming() throws Exception {
+        createServiceManager(new HashSet<>(Arrays.asList()), true);
+
+        Instrumentation instrumentation = Mockito.mock(Instrumentation.class);
+        ClassWeaverService target = new ClassWeaverService(instrumentation);
+
+        InstrumentationContext iInstrumentationContext = Mockito.mock(InstrumentationContext.class);
+        Class<?> clazz = this.getClass();
+        ClassReader reader = ClassMatcherTest.getClassReader(clazz);
+
+        startedRetransforming = false;
+        Runnable retransformer = target.createRetransformRunnable(null);
+        Thread thread = new Thread(retransformer);
+        thread.start();
+        while (!startedRetransforming) {
+            Thread.sleep(5);
+        }
+        ClassVisitor result = target.newClassMatchVisitor(clazz.getClassLoader(), null, reader, null,
+                iInstrumentationContext);
+
+        Mockito.verify(iInstrumentationContext, Mockito.times(0)).putMatch(target, null);
+        Assert.assertNull(result);
+
+        doneWithTestWork = true;
+    }
+
+    @Test
+    public void test_addTraceInformation() throws Exception {
+        createServiceManager(new HashSet<>(Arrays.asList()), true);
+
+        String weavePackageName = "weavePackageName";
+        String className = "originalClassName";
+        ConcurrentMap<String, Set<TracedWeaveInstrumentationTracker>> weaveTraceDetails = new ConcurrentHashMap<>();
+        TraceDetails traceDetails = Mockito.mock(TraceDetails.class);
+        TracedWeaveInstrumentationTracker traceDetailsTracker = new TracedWeaveInstrumentationTracker(
+                weavePackageName, className, null, true, traceDetails);
+        weaveTraceDetails.put(weavePackageName, new HashSet<>(Arrays.asList(traceDetailsTracker)));
+
+        InstrumentationContext context = Mockito.mock(InstrumentationContext.class);
+        byte[] classBytes = WeaveTestUtils.getClassBytes(SimpleInstrumentation.class.getName());
+        ClassNode classNode = WeaveUtils.convertToClassNode(classBytes);
+
+        ClassWeaverService.addTraceInformation(weaveTraceDetails, weavePackageName, context,
+                classNode, className);
+
+        Mockito.verify(context).addTrace(Mockito.any(), Mockito.any());
+    }
+
+    private void createServiceManager(Set<File> weaveExtensions) throws Exception {
+        createServiceManager(weaveExtensions, false);
+    }
+
+    private void createServiceManager(Set<File> weaveExtensions, boolean createDelayingClassTransformerService) throws Exception {
         MockServiceManager serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);
         serviceManager.start();
@@ -159,6 +249,9 @@ public class ClassWeaverServiceTest {
         TransactionTraceService transactionTraceService = new TransactionTraceService();
         serviceManager.setTransactionTraceService(transactionTraceService);
 
+        doneWithTestWork = false;
+        serviceManager.setClassTransformerService(new DelayingClassTransformerService());
+
         if (weaveExtensions != null) {
             ExtensionService mockExtensionService = Mockito.mock(ExtensionService.class);
             Mockito.when(mockExtensionService.getWeaveExtensions()).thenReturn(weaveExtensions);
@@ -166,4 +259,119 @@ public class ClassWeaverServiceTest {
         }
     }
 
+    @Weave
+    private class SimpleInstrumentation  {
+        @WeaveIntoAllMethods
+        public void simpleMethod() {
+
+        }
+    }
+
+    private boolean startedRetransforming = false;
+    private boolean doneWithTestWork = true;
+
+    private class DelayingClassTransformerService implements ClassTransformerService {
+
+        @Override
+        public PointCutClassTransformer getClassTransformer() {
+            return null;
+        }
+
+        @Override
+        public ClassRetransformer getLocalRetransformer() {
+            return null;
+        }
+
+        @Override
+        public ClassRetransformer getRemoteRetransformer() {
+            return null;
+        }
+
+        @Override
+        public void checkShutdown() {
+
+        }
+
+        @Override
+        public InstrumentationContextManager getContextManager() {
+            return null;
+        }
+
+        @Override
+        public boolean addTraceMatcher(ClassAndMethodMatcher matcher, String metricPrefix) {
+            return false;
+        }
+
+        @Override
+        public boolean addTraceMatcher(ClassAndMethodMatcher matcher, TraceDetails traceDetails) {
+            return false;
+        }
+
+        @Override
+        public void retransformMatchingClasses(Collection<ClassMatchVisitorFactory> classMatchers) {
+
+        }
+
+        @Override
+        public void retransformMatchingClassesImmediately(Class<?>[] loadedClasses, Collection<ClassMatchVisitorFactory> classMatchers) {
+            try {
+                startedRetransforming = true;
+                long start = System.currentTimeMillis();
+                while (!doneWithTestWork && (System.currentTimeMillis()-start) < 10000) {
+                    // max wait 10 seconds
+                    Thread.sleep(5);
+                }
+            } catch (Exception e) {}
+        }
+
+        @Override
+        public Instrumentation getExtensionInstrumentation() {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return null;
+        }
+
+        @Override
+        public void start() throws Exception {
+
+        }
+
+        @Override
+        public void stop() throws Exception {
+
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return false;
+        }
+
+        @Override
+        public IAgentLogger getLogger() {
+            return null;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return false;
+        }
+
+        @Override
+        public boolean isStopped() {
+            return false;
+        }
+
+        @Override
+        public boolean isStartedOrStarting() {
+            return false;
+        }
+
+        @Override
+        public boolean isStoppedOrStopping() {
+            return false;
+        }
+    }
 }
