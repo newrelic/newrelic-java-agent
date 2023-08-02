@@ -8,12 +8,15 @@
 package com.newrelic.api.agent;
 
 import com.newrelic.agent.IRPMService;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.attributes.AgentAttributeSender;
 import com.newrelic.agent.attributes.AttributeSender;
 import com.newrelic.agent.config.ConfigConstant;
+import com.newrelic.agent.dispatchers.Dispatcher;
+import com.newrelic.agent.errors.ErrorGroupCallbackHolder;
 import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -342,6 +345,116 @@ public class NewRelicApiImplementationTest {
 
         target.setUserId("");
         Mockito.verify(mockAgentSender, Mockito.times(0)).addAttribute("enduser.id", "123", "setUserId");
+    }
+
+    @Test
+    public void setUserName_withValidName_setsNameAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Dispatcher mockDispatcher = Mockito.mock(Dispatcher.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getDispatcher()).thenReturn(mockDispatcher);
+            Mockito.when(mockDispatcher.isWebTransaction()).thenReturn(true);
+            MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class);
+
+            target.setUserName("name");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_USER_NAME));
+            Mockito.verify(mockSender).addAttribute("user", "name", "setUserName");
+            mockMetricNames.close();
+        }
+    }
+
+    @Test
+    public void setAccountName_withValidName_setsNameAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Dispatcher mockDispatcher = Mockito.mock(Dispatcher.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getDispatcher()).thenReturn(mockDispatcher);
+            Mockito.when(mockDispatcher.isWebTransaction()).thenReturn(true);
+            MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class);
+
+            target.setAccountName("name");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_ACCOUNT_NAME));
+            Mockito.verify(mockSender).addAttribute("account", "name", "setAccountName");
+            mockMetricNames.close();
+        }
+    }
+
+    @Test
+    public void setProductName_withValidName_setsNameAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Dispatcher mockDispatcher = Mockito.mock(Dispatcher.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getDispatcher()).thenReturn(mockDispatcher);
+            Mockito.when(mockDispatcher.isWebTransaction()).thenReturn(true);
+            MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class);
+
+            target.setProductName("name");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_PRODUCT_NAME));
+            Mockito.verify(mockSender).addAttribute("product", "name", "setProductName");
+            mockMetricNames.close();
+        }
+    }
+
+    @Test
+    public void setAppServerPort_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setAppServerPort(8888);
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_APP_SERVER_PORT));
+        }
+    }
+
+    @Test
+    public void setServerInfo_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setServerInfo("dispatcher", "1");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_SERVER_INFO));
+        }
+    }
+
+    @Test
+    public void setInstanceName_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setInstanceName("instance");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_INSTANCE_NAME));
+        }
+    }
+
+    @Test
+    public void setErrorGroupCallback_setsCallback() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<ErrorGroupCallbackHolder> mockCallbackHandler = Mockito.mockStatic(ErrorGroupCallbackHolder.class)) {
+            target.setErrorGroupCallback(Mockito.mock(ErrorGroupCallback.class));
+            mockCallbackHandler.verify(() -> ErrorGroupCallbackHolder.setErrorGroupCallback(Mockito.any(ErrorGroupCallback.class)));
+        }
     }
 
     @Test
