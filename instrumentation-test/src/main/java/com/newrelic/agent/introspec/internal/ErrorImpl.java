@@ -23,7 +23,7 @@ class ErrorImpl implements Error {
         if (tError instanceof ThrowableError) {
             throwable = ((ThrowableError) tError).getThrowable();
         } else if (tError instanceof HttpTracedError) {
-            ((HttpTracedError) tError).getStatusCode();
+            statusCode = ((HttpTracedError) tError).getStatusCode();
         }
     }
 
