@@ -83,15 +83,6 @@ public class GenericClassAdapterTest {
         }
     }
 
-//    @Test
-//    public void visitMethod() {
-//        try (MockedStatic<PointCutClassTransformer> pointCutClassTransformer = mockStatic(PointCutClassTransformer.class)) {
-//            pointCutClassTransformer.when(() -> PointCutClassTransformer.canModifyClassStructure(any(ClassLoader.class), any(Class.class)))
-//                    .thenReturn(false);
-//
-//        }
-//    }
-
     @Test
     public void visitMethod_classInit() throws IllegalAccessException, NoSuchFieldException {
         try (MockedStatic<PointCutClassTransformer> pointCutClassTransformer = mockStatic(PointCutClassTransformer.class)) {
