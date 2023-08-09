@@ -191,7 +191,7 @@ public class PackageValidationResult {
         }
     }
 
-    private void buildResults(ClassCache classCache, ClassNode originalClassNode, String weaveClassName,
+    private boolean buildResults(ClassCache classCache, ClassNode originalClassNode, String weaveClassName,
             ClassNode weaveNode, Map<String, PreparedMatch> results, boolean isBaseMatch,
             Set<String> requiredClassAnnotations, Set<String> requiredMethodAnnotations, ClassNode errorHandler,
             Map<String, byte[]> annotationProxyClasses) throws IOException {
@@ -227,6 +227,9 @@ public class PackageValidationResult {
         }
 
         violations.addAll((this.weaveViolationFilter == null ? match.getViolations() : this.weaveViolationFilter.filterViolationCollection(match.getViolations())));
+
+        //Return true if this match had violations, even if they were filtered out of the PackageValidationResult violation list
+        return match.getViolations().size() > 0;
     }
 
     /**
@@ -461,12 +464,12 @@ public class PackageValidationResult {
         try {
             boolean isInterfaceMatch = WeaveUtils.isWeaveWithAnnotationInterfaceMatch(weaveNode);
             Map<String, PreparedMatch> results = new HashMap<>();
-            buildResults(cache, targetNode, weaveNode.name, weaveNode, results, isInterfaceMatch,
+            boolean targetNodeContainsViolations = buildResults(cache, targetNode, weaveNode.name, weaveNode, results, isInterfaceMatch,
                     weavePackage.getRequiredAnnotationClassesForAnnotationWeave(weaveNode.name),
                     weavePackage.getRequiredAnnotationClassesForMethodAnnotationWeave(weaveNode.name),
                     errorHandler, annotationProxyClasses);
 
-            if (!violations.isEmpty()) {
+            if (targetNodeContainsViolations) {
                 return composite;
             }
 
