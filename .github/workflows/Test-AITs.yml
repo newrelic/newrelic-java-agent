@@ -169,6 +169,11 @@ jobs:
           mv appcache3/* apps/
           mv appcache4/* apps/
 
+      # looks like docker is not properly sanitized between runs in GHA
+      # so its disk space may be pilling up and blows up during our tests
+      - name: Clean Docker image data
+        run: docker rmi $(docker images -q)
+
       ## JDK Installs
 
       # Install Zulu
@@ -246,11 +251,6 @@ jobs:
           EOF
 
       ## End JDK Install
-
-      # looks like docker is not properly sanitized between runs in GHA
-      # so its disk space may be pilling up and blows up during our tests
-      - name: Clean Docker image data
-        run: docker rmi $(docker images -q)
 
       ## TESTING SECTION
 
