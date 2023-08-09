@@ -104,7 +104,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.list-tests.outputs.tests) }}
-      max-parallel: 50
+      max-parallel: 30
     steps:
       - name: Retrieve agent from cache
         id: retrieve-agent
