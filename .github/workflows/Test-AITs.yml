@@ -171,16 +171,21 @@ jobs:
       ## JDK Installs
 
       # Install Zulu
-      - name: Set up Zulu
+      - name: Set up Zulu versions
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: |
+            20
+            17
+            11
 
-      # Set the JDK variable
-      - name: Set the required JDK variable
+      # Set the JDK variables for Zulu
+      - name: Set the JDK variables for Zulu
         run: |
-          echo "ORG_GRADLE_PROJECT_zulu=${JAVA_HOME}" >> $GITHUB_ENV
+          echo "JDK_zulu_11=${JAVA_HOME_11_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_17=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_20=${JAVA_HOME_20_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
         uses: actions/setup-java@v3
@@ -267,7 +272,9 @@ jobs:
           virtualenv -p /usr/bin/python3.8 .
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
-          ZULU=${ORG_GRADLE_PROJECT_zulu} \
+          ZULU11=${JDK_zulu_11} \
+          ZULU17=${JDK_zulu_17} \
+          ZULU20=${JDK_zulu_20} \
           JAVA8JRE=${JAVA_HOME_8_X64} \
           JAVA11JRE=${JAVA_HOME_11_X64} \
           JAVA17JRE=${JAVA_HOME_17_X64} \
