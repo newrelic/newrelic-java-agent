@@ -221,11 +221,6 @@ public class InstrumentationContextManager {
             Agent.LOG.log(Level.FINEST, "Skipping transform of {0}. Classloader {1} is excluded.", internalClassName, classloader);
             return false;
         }
-        if (internalClassName.startsWith("javax/crypto/")) {
-            // crypto classes can cause class circularity errors if they get too far along in the class transformer
-            Agent.LOG.finest(MessageFormat.format("Instrumentation skipped by ''javax crypto'' rule: {0}", internalClassName));
-            return false;
-        }
         if (classNameFilter.isIncluded(internalClassName)) {
             Agent.LOG.log(Level.FINEST, "Class {0} is explicitly included", internalClassName);
             return true;
