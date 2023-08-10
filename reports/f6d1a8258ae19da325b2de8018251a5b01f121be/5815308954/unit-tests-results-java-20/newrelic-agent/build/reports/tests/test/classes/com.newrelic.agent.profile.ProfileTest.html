@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">38.905s</div>
+<div class="counter">36.671s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">oneFrameStackIgnored</td>
-<td class="success">0.009s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testAdd</td>
-<td class="success">0.017s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testAddBackgroundThreadStackTraces</td>
 <td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testAdd</td>
+<td class="success">0.029s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testAddBackgroundThreadStackTraces</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testAddStackTrace</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -109,7 +109,7 @@
 </tr>
 <tr>
 <td class="success">testAsyncStackTracesMultipleThreads</td>
-<td class="success">2.391s</td>
+<td class="success">2.850s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -129,47 +129,47 @@
 </tr>
 <tr>
 <td class="success">testJson</td>
-<td class="success">0.028s</td>
+<td class="success">0.046s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSimpleCompressionJson</td>
-<td class="success">0.006s</td>
+<td class="success">0.022s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testTopDownTree</td>
-<td class="success">0.003s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWriteCompressedData</td>
-<td class="success">0.001s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">trimMultiRoots</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">trimSingleRoot</td>
-<td class="success">0.002s</td>
+<td class="success">0.004s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">truncateForCollectorLimit</td>
-<td class="success">13.047s</td>
+<td class="success">11.280s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">truncateForCollectorLimitSimpleCompression</td>
-<td class="success">22.431s</td>
+<td class="success">21.555s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">veryLargeProfile</td>
-<td class="success">0.964s</td>
+<td class="success">0.868s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -177,39 +177,39 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-08-10T01:21:20,567+0000 [58192 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-08-10T01:21:20,597+0000 [58192 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:21:20,599+0000 [58192 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:21:26,704+0000 [58192 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-08-10T01:21:26,788+0000 [58192 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-08-10T01:21:26,789+0000 [58192 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:21:26,790+0000 [58192 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:21:26,848+0000 [58192 1] com.newrelic INFO: Profile serialized size = 148 bytes
-2023-08-10T01:21:26,939+0000 [58192 30] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-08-10T01:21:26,940+0000 [58192 30] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:21:26,941+0000 [58192 30] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:21:29,265+0000 [58192 1] com.newrelic INFO: Profile size is 6 stack elements
-2023-08-10T01:21:29,270+0000 [58192 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-08-10T01:21:29,271+0000 [58192 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:21:29,271+0000 [58192 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:21:33,272+0000 [58192 1] com.newrelic INFO: Profile size is 66,000 stack elements
-2023-08-10T01:21:33,351+0000 [58192 1] com.newrelic INFO: Trimmed profile size by 6,000 stack elements
-2023-08-10T01:21:48,162+0000 [58192 1] com.newrelic INFO: Profile serialized size = 109 bytes
-2023-08-10T01:21:51,696+0000 [58192 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-08-10T01:21:51,696+0000 [58192 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:21:51,696+0000 [58192 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:21:51,699+0000 [58192 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-08-10T01:21:51,699+0000 [58192 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:21:51,699+0000 [58192 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:21:51,702+0000 [58192 1] com.newrelic INFO: Profile serialized size = 55 bytes
-2023-08-10T01:21:51,702+0000 [58192 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-08-10T01:21:51,703+0000 [58192 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:21:51,703+0000 [58192 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:21:52,562+0000 [58192 1] com.newrelic INFO: Profile size is 66,000 stack elements
-2023-08-10T01:21:52,663+0000 [58192 1] com.newrelic INFO: Trimmed profile size by 6,000 stack elements
-2023-08-10T01:21:53,419+0000 [58192 1] com.newrelic INFO: Profile size is 66,000 stack elements
-2023-08-10T01:21:53,467+0000 [58192 1] com.newrelic INFO: Trimmed profile size by 6,000 stack elements
-2023-08-10T01:22:05,649+0000 [58192 1] com.newrelic INFO: Profile serialized size = 905,400 bytes
+<pre>2023-08-10T19:33:25,103+0000 [58340 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-08-10T19:33:25,143+0000 [58340 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:33:25,162+0000 [58340 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:33:33,049+0000 [58340 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-08-10T19:33:33,213+0000 [58340 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-08-10T19:33:33,214+0000 [58340 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:33:33,215+0000 [58340 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:33:33,310+0000 [58340 1] com.newrelic INFO: Profile serialized size = 148 bytes
+2023-08-10T19:33:33,544+0000 [58340 30] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-08-10T19:33:33,551+0000 [58340 30] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:33:33,551+0000 [58340 30] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:33:36,207+0000 [58340 1] com.newrelic INFO: Profile size is 6 stack elements
+2023-08-10T19:33:36,209+0000 [58340 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-08-10T19:33:36,209+0000 [58340 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:33:36,209+0000 [58340 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:33:39,826+0000 [58340 1] com.newrelic INFO: Profile size is 66,000 stack elements
+2023-08-10T19:33:39,927+0000 [58340 1] com.newrelic INFO: Trimmed profile size by 6,000 stack elements
+2023-08-10T19:33:53,945+0000 [58340 1] com.newrelic INFO: Profile serialized size = 109 bytes
+2023-08-10T19:33:57,741+0000 [58340 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-08-10T19:33:57,745+0000 [58340 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:33:57,746+0000 [58340 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:33:57,769+0000 [58340 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-08-10T19:33:57,770+0000 [58340 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:33:57,770+0000 [58340 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:33:57,777+0000 [58340 1] com.newrelic INFO: Profile serialized size = 55 bytes
+2023-08-10T19:33:57,779+0000 [58340 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-08-10T19:33:57,781+0000 [58340 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:33:57,783+0000 [58340 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:33:58,557+0000 [58340 1] com.newrelic INFO: Profile size is 66,000 stack elements
+2023-08-10T19:33:58,641+0000 [58340 1] com.newrelic INFO: Trimmed profile size by 6,000 stack elements
+2023-08-10T19:33:59,240+0000 [58340 1] com.newrelic INFO: Profile size is 66,000 stack elements
+2023-08-10T19:33:59,332+0000 [58340 1] com.newrelic INFO: Trimmed profile size by 6,000 stack elements
+2023-08-10T19:34:09,852+0000 [58340 1] com.newrelic INFO: Profile serialized size = 905,400 bytes
 </pre>
 </span>
 </div>
@@ -221,7 +221,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 1:34:52 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 7:49:13 PM</p>
 </div>
 </div>
 </body>
