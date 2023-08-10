@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.407s</div>
+<div class="counter">0.623s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">crossCpuThreshold</td>
-<td class="success">0.027s</td>
+<td class="success">0.032s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">crossMemoryAndCpuThreshold</td>
-<td class="success">0.026s</td>
+<td class="success">0.044s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">crossMemoryThreshold</td>
-<td class="success">0.205s</td>
+<td class="success">0.370s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testNullAPI</td>
-<td class="success">0.149s</td>
+<td class="success">0.177s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -102,30 +102,30 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-08-10T01:26:23,102+0000 [52379 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-08-10T01:26:23,131+0000 [52379 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:26:23,139+0000 [52379 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:26:31,170+0000 [52379 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-08-10T01:26:31,468+0000 [52379 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-08-10T01:26:31,470+0000 [52379 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:26:31,471+0000 [52379 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:26:31,494+0000 [52379 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 10% Memory Threshold 100%.
-2023-08-10T01:26:31,617+0000 [52379 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-08-10T01:26:31,618+0000 [52379 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:26:31,619+0000 [52379 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:26:31,635+0000 [52379 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 0% Memory Threshold 100%.
-2023-08-10T01:26:31,638+0000 [52379 1] com.newrelic WARN: Circuit breaker tripped at memory 94.3%  GC CPU time 0%
-2023-08-10T01:26:31,640+0000 [52379 1] com.newrelic WARN: Circuit breaker tripped. The agent ceased to create transaction data to perserve heap memory. This may cause incomplete transaction data in the APM UI.
-2023-08-10T01:26:31,647+0000 [52379 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-08-10T01:26:31,647+0000 [52379 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:26:31,648+0000 [52379 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:26:31,667+0000 [52379 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 0% Memory Threshold 20%.
-2023-08-10T01:26:31,679+0000 [52379 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-08-10T01:26:31,686+0000 [52379 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:26:31,686+0000 [52379 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:26:31,693+0000 [52379 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 0% Memory Threshold 100%.
-2023-08-10T01:26:31,695+0000 [52379 1] com.newrelic WARN: Circuit breaker tripped at memory 94.17%  GC CPU time 0%
-2023-08-10T01:26:31,700+0000 [52379 1] com.newrelic WARN: Circuit breaker tripped. The agent ceased to create transaction data to perserve heap memory. This may cause incomplete transaction data in the APM UI.
+<pre>2023-08-10T19:15:52,679+0000 [50001 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-08-10T19:15:52,702+0000 [50001 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:15:52,704+0000 [50001 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:15:59,721+0000 [50001 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-08-10T19:16:00,124+0000 [50001 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-08-10T19:16:00,125+0000 [50001 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:16:00,126+0000 [50001 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:16:00,190+0000 [50001 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 10% Memory Threshold 100%.
+2023-08-10T19:16:00,404+0000 [50001 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-08-10T19:16:00,411+0000 [50001 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:16:00,412+0000 [50001 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:16:00,436+0000 [50001 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 0% Memory Threshold 100%.
+2023-08-10T19:16:00,441+0000 [50001 1] com.newrelic WARN: Circuit breaker tripped at memory 94.635%  GC CPU time 0%
+2023-08-10T19:16:00,442+0000 [50001 1] com.newrelic WARN: Circuit breaker tripped. The agent ceased to create transaction data to perserve heap memory. This may cause incomplete transaction data in the APM UI.
+2023-08-10T19:16:00,451+0000 [50001 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-08-10T19:16:00,452+0000 [50001 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:16:00,453+0000 [50001 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:16:00,475+0000 [50001 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 0% Memory Threshold 20%.
+2023-08-10T19:16:00,483+0000 [50001 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-08-10T19:16:00,484+0000 [50001 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:16:00,485+0000 [50001 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:16:00,512+0000 [50001 1] com.newrelic INFO: Circuit breaker: updated configuration - enabled true GC CPU Threshold 0% Memory Threshold 100%.
+2023-08-10T19:16:00,514+0000 [50001 1] com.newrelic WARN: Circuit breaker tripped at memory 94.505%  GC CPU time 0%
+2023-08-10T19:16:00,515+0000 [50001 1] com.newrelic WARN: Circuit breaker tripped. The agent ceased to create transaction data to perserve heap memory. This may cause incomplete transaction data in the APM UI.
 </pre>
 </span>
 </div>
@@ -137,7 +137,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 1:48:21 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 7:38:08 PM</p>
 </div>
 </div>
 </body>
