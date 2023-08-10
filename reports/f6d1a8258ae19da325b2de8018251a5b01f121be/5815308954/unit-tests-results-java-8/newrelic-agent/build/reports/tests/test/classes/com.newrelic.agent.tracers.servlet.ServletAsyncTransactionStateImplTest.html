@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">9.211s</div>
+<div class="counter">7.835s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">test_variousStateChanges</td>
-<td class="success">9.211s</td>
+<td class="success">7.835s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -87,10 +87,10 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-08-10T01:29:48,874+0000 [43066 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-08-10T01:29:48,910+0000 [43066 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T01:29:48,912+0000 [43066 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T01:29:56,420+0000 [43066 1] com.newrelic WARN: Transaction com.newrelic.agent.Transaction@5c96d290 was not reported because of an internal error.
+<pre>2023-08-10T19:17:15,395+0000 [40140 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-08-10T19:17:15,429+0000 [40140 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T19:17:15,430+0000 [40140 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T19:17:21,833+0000 [40140 1] com.newrelic WARN: Transaction com.newrelic.agent.Transaction@5c96d290 was not reported because of an internal error.
 java.lang.NullPointerException: null
 	at com.newrelic.agent.dispatchers.WebRequestDispatcher.filterRequestURI(WebRequestDispatcher.java:171) ~[main/:?]
 	at com.newrelic.agent.dispatchers.WebRequestDispatcher.setTransactionName(WebRequestDispatcher.java:166) ~[main/:?]
@@ -105,10 +105,10 @@ java.lang.NullPointerException: null
 	at com.newrelic.agent.tracers.DefaultTracer.finish(DefaultTracer.java:236) [main/:?]
 	at com.newrelic.agent.tracers.servlet.ServletAsyncTransactionStateImpl.complete(ServletAsyncTransactionStateImpl.java:121) [main/:?]
 	at com.newrelic.agent.tracers.servlet.ServletAsyncTransactionStateImplTest.test_variousStateChanges(ServletAsyncTransactionStateImplTest.java:66) [test/:?]
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_372]
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_372]
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_372]
-	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_372]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_382]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_382]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_382]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_382]
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50) [junit-4.12.jar:4.12]
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) [junit-4.12.jar:4.12]
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47) [junit-4.12.jar:4.12]
@@ -128,10 +128,10 @@ java.lang.NullPointerException: null
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38) [gradle-testing-jvm-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62) [gradle-testing-jvm-7.5.1.jar:7.5.1]
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51) [gradle-testing-base-7.5.1.jar:7.5.1]
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_372]
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_372]
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_372]
-	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_372]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_382]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_382]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_382]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[?:1.8.0_382]
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36) [gradle-messaging-7.5.1.jar:7.5.1]
 	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24) [gradle-messaging-7.5.1.jar:7.5.1]
 	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33) [gradle-messaging-7.5.1.jar:7.5.1]
@@ -157,7 +157,7 @@ java.lang.NullPointerException: null
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 1:34:26 AM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 7:28:06 PM</p>
 </div>
 </div>
 </body>
