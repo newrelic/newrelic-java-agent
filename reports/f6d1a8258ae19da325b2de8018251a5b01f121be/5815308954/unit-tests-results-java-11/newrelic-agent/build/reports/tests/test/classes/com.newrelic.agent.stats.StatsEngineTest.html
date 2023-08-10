@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.363s</div>
+<div class="counter">0.464s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">getApdexStats_nullMetric_shouldThrow</td>
-<td class="success">0s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -89,12 +89,12 @@
 </tr>
 <tr>
 <td class="success">getMetricData</td>
-<td class="success">0.005s</td>
+<td class="success">0.004s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getMetricDataFromDataUsageStats</td>
-<td class="success">0.001s</td>
+<td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -104,67 +104,67 @@
 </tr>
 <tr>
 <td class="success">getMetricDataNormalizeFromDataUsageStats</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getMetricDataScopedAndUnscoped1</td>
-<td class="success">0.161s</td>
+<td class="success">0.235s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getMetricDataScopedAndUnscoped2</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getMetricDataWithJavaOther</td>
-<td class="success">0s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getMetricDifferentScopes</td>
-<td class="success">0.004s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getMetricNames</td>
-<td class="success">0s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getMetricNamesFromDataUsageStats</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getResponseTimeStats_nullMetric_shouldThrow</td>
-<td class="success">0s</td>
+<td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getStats_nullMetric_shouldThrow</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">merge</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">mergeDataUsageStats</td>
-<td class="success">0.192s</td>
+<td class="success">0.196s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">recordEmptyStats_addsScopedAndUnscopedMetrics_correctly</td>
-<td class="success">0s</td>
+<td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">recordEmptyStats_nullMetric_shouldThrow</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -172,14 +172,14 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-08-10T19:30:29,100+0000 [60700 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-08-10T19:30:29,126+0000 [60700 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T19:30:29,133+0000 [60700 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T19:30:36,326+0000 [60700 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-08-10T19:30:36,508+0000 [60700 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-08-10T19:30:36,513+0000 [60700 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-08-10T19:30:36,517+0000 [60700 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-08-10T19:30:36,661+0000 [60700 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+<pre>2023-08-10T21:56:35,392+0000 [60949 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-08-10T21:56:35,431+0000 [60949 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T21:56:35,438+0000 [60949 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T21:56:44,600+0000 [60949 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-08-10T21:56:44,906+0000 [60949 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-08-10T21:56:44,912+0000 [60949 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-08-10T21:56:44,914+0000 [60949 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-08-10T21:56:45,045+0000 [60949 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
 </pre>
 </span>
 </div>
@@ -191,7 +191,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 7:38:08 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Aug 10, 2023 10:05:55 PM</p>
 </div>
 </div>
 </body>
