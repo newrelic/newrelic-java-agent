@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.newrelic.agent.instrumentation.InstrumentationType;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
 import com.newrelic.agent.instrumentation.tracing.TraceClassVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -51,6 +52,14 @@ public class AgentPostprocessors implements WeavePostprocessor {
         this.weavePackageType = weavePackageType;
     }
 
+    /**
+     * Set a map where each key is a weave package and each map entry is a set of {@link TracedWeaveInstrumentationTracker}s.
+     * <p>
+     * Each TracedWeaveInstrumentationTracker represents a method with the TracedWeaveInstrumentation type {@link InstrumentationType},
+     * which indicates that the method was instrumented via @Trace annotation from weaved instrumentation.
+     *
+     * @param tracedWeaveInstrumentationDetails map of weave packages, each with and associated set of TracedWeaveInstrumentationTrackers
+     */
     public void setTracedWeaveInstrumentationDetails(ConcurrentMap<String, Set<TracedWeaveInstrumentationTracker>> tracedWeaveInstrumentationDetails) {
         this.tracedWeaveInstrumentationDetails.putAll(tracedWeaveInstrumentationDetails);
     }
@@ -60,8 +69,10 @@ public class AgentPostprocessors implements WeavePostprocessor {
             WeavePackage weavePackage, boolean isUtilityClass) {
         cv = wrapApiCallsForSupportability(cv);
 
+        // Any class that doesn't have a @Weave or @SkipIfPresent annotation on it is considered to be a utility class. {see com.newrelic.weave.UtilityClass}
         if (isUtilityClass) {
             InstrumentationContext context = new InstrumentationContext(null, null, null);
+            this.setTracedWeaveInstrumentationDetails(((AgentPreprocessors) weavePackage.getConfig().getPreprocessor()).getTracedWeaveInstrumentationDetails());
             Set<TracedWeaveInstrumentationTracker> tracedWeaveInstrumentationTrackers = tracedWeaveInstrumentationDetails.get(weavePackage.getName());
             if (tracedWeaveInstrumentationTrackers != null) {
                 for (TracedWeaveInstrumentationTracker tracedWeaveInstrumentationTracker : tracedWeaveInstrumentationTrackers) {
