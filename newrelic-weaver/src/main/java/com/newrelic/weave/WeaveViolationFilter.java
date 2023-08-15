@@ -4,9 +4,8 @@ import com.google.common.collect.Queues;
 import com.newrelic.weave.violation.WeaveViolation;
 import com.newrelic.weave.violation.WeaveViolationType;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.Queue;
 
 /**
@@ -15,11 +14,11 @@ import java.util.Queue;
  * filters are configured for the instrumentation package).
  */
 public class WeaveViolationFilter {
-    private final List<WeaveViolationType> typesToFilter = new ArrayList<>();
+    private final Collection<WeaveViolationType> typesToFilter = EnumSet.noneOf(WeaveViolationType.class);
 
     private final String weavePackage;
 
-    public WeaveViolationFilter(String weavePackage, List<WeaveViolationType> types) {
+    public WeaveViolationFilter(String weavePackage, Collection<WeaveViolationType> types) {
         this.typesToFilter.addAll(types);
         this.weavePackage = weavePackage;
     }

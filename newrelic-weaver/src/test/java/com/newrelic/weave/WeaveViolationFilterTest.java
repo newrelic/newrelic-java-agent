@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -14,13 +15,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class WeaveViolationFilterTest {
-    List<WeaveViolationType> violationTypes;
+    EnumSet<WeaveViolationType> violationTypes;
 
     @Before
     public void setup() {
-        violationTypes = new ArrayList<>();
-        violationTypes.add(WeaveViolationType.METHOD_MISSING_REQUIRED_ANNOTATIONS);
-        violationTypes.add(WeaveViolationType.CLASS_MISSING_REQUIRED_ANNOTATIONS);
+        violationTypes = EnumSet.of(WeaveViolationType.METHOD_MISSING_REQUIRED_ANNOTATIONS, WeaveViolationType.CLASS_MISSING_REQUIRED_ANNOTATIONS);
     }
 
 

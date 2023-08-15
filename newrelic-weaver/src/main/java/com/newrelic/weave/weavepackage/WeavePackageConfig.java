@@ -14,8 +14,7 @@ import org.objectweb.asm.tree.ClassNode;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
@@ -177,7 +176,7 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         public Builder weaveViolationFilters(String violationFilterToken) {
             if (violationFilterToken != null) {
                 String [] filterTokens = violationFilterToken.split(",");
-                List<WeaveViolationType> types = new ArrayList<>();
+                EnumSet<WeaveViolationType> types = EnumSet.noneOf(WeaveViolationType.class);
                 for (String type : filterTokens) {
                     try {
                         types.add(WeaveViolationType.valueOf(type));
