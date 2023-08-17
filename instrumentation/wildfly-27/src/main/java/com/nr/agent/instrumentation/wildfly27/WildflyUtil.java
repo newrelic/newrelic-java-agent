@@ -10,7 +10,6 @@ package com.nr.agent.instrumentation.wildfly27;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 
-/*
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
@@ -20,13 +19,12 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import java.lang.management.ManagementFactory;
 import java.util.logging.Level;
- */
 
 public class WildflyUtil {
     public static void setServerInfo() {
         String version = "27+";
         String dispatcherName = "WildFly";
-        /*
+
       	MBeanServer server = ManagementFactory.getPlatformMBeanServer();
         ObjectName name = null;
 
@@ -53,18 +51,17 @@ public class WildflyUtil {
         if (productName != null && !productName.startsWith("WildFly")) {
             dispatcherName = productName;
         }
-         */
 
         AgentBridge.publicApi.setServerInfo(dispatcherName, version);
     }
 
-//    private static String getServerAttribute(MBeanServer server, ObjectName objectName, String attributeName) {
-//        String attribute = null;
-//        try {
-//            attribute = (String) server.getAttribute(objectName, attributeName);
-//        } catch (MBeanException | AttributeNotFoundException | InstanceNotFoundException | ReflectionException e) {
-//            NewRelic.getAgent().getLogger().log(Level.FINEST, e, "Error getting " + attributeName);
-//        }
-//        return attribute;
-//    }
+    private static String getServerAttribute(MBeanServer server, ObjectName objectName, String attributeName) {
+        String attribute = null;
+        try {
+            attribute = (String) server.getAttribute(objectName, attributeName);
+        } catch (MBeanException | AttributeNotFoundException | InstanceNotFoundException | ReflectionException e) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, e, "Error getting " + attributeName);
+        }
+        return attribute;
+    }
 }
