@@ -91,7 +91,7 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        String expectedErrorMessage = "Invalid Syntax : offending token 'cause' at line 1 column 1";
+        String expectedErrorMessage = "Invalid syntax with offending token 'cause' at line 1 column 1";
         assertErrorOperation("*", "GraphQL/operation",
                 "graphql.parser.InvalidSyntaxException", expectedErrorMessage, true);
     }

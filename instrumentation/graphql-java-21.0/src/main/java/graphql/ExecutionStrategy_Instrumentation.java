@@ -33,7 +33,7 @@ public class ExecutionStrategy_Instrumentation {
         return Weaver.callOriginal();
     }
 
-    protected <T> CompletableFuture<T> handleFetchingException(ExecutionContext executionContext, DataFetchingEnvironment environment, Throwable e) {
+    protected <T> CompletableFuture<T> handleFetchingException(DataFetchingEnvironment environment, Throwable e) {
         NewRelic.noticeError(e);
         return Weaver.callOriginal();
     }
