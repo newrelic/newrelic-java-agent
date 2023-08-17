@@ -23,7 +23,7 @@ public class JbossUtils {
      * possibly causing a LOT of overhead.
      * The system property set is required by the APM and security agents.
      */
-    public static void checkAndApplyJbossAdjustments(Instrumentation inst) {
+    public void checkAndApplyJbossAdjustments(Instrumentation inst) {
         if (isJbossServer(inst)) {
             String cur = System.getProperty(JBOSS_MODULES_SYSTEM_PKGS);
             if (StringUtils.isBlank(cur)) {
@@ -34,7 +34,7 @@ public class JbossUtils {
         }
     }
 
-    public static boolean isJbossServer(Instrumentation inst) {
+    public boolean isJbossServer(Instrumentation inst) {
         if (ClassLoader.getSystemClassLoader().getResource(JBOSS_MODULES_MAIN_CLASS) != null) {
             return true;
         }
