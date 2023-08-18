@@ -11,7 +11,8 @@ dependencies {
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-4.3.0',
-            'Implementation-Title-Alias': 'spring_annotations' }
+            'Implementation-Title-Alias': 'spring_annotations',
+            'Weave-Violation-Filter': 'METHOD_MISSING_REQUIRED_ANNOTATIONS,CLASS_MISSING_REQUIRED_ANNOTATIONS' }
 }
 
 verifyInstrumentation {
