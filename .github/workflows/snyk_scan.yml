@@ -61,4 +61,4 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          args: --all-sub-projects --org=java-agent --configuration-matching='(^compileClasspath$)|(^runtimeClasspath$)'
+          args: --all-sub-projects --org=java-agent --configuration-matching='(includeInJar)|(shadowIntoJar)'
