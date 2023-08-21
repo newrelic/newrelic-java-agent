@@ -13,18 +13,18 @@ import java.util.logging.Level;
 public class Cache_Instrumentation {
     public Cache.ValueWrapper get(Object key) {
         Cache.ValueWrapper result = Weaver.callOriginal();
-        NewRelic.incrementCounter("Supportability/Spring/Cache/" + getProviderClassName() + "/" + getName() + (result == null ? "/Misses" : "/Hits"));
+        NewRelic.incrementCounter("Spring/Cache/" + getProviderClassName() + "/" + getName() + (result == null ? "/Misses" : "/Hits"));
         return result;
     }
 
     public void evict(Object key) {
         Weaver.callOriginal();
-        NewRelic.incrementCounter("Supportability/Spring/Cache/" + getProviderClassName() + "/" + getName() + "/Evict");
+        NewRelic.incrementCounter("Spring/Cache/" + getProviderClassName() + "/" + getName() + "/Evict");
     }
 
     public void clear() {
         Weaver.callOriginal();
-        NewRelic.incrementCounter("Supportability/Spring/Cache/" + getProviderClassName() + "/" + getName() + "/Clear");
+        NewRelic.incrementCounter("Spring/Cache/" + getProviderClassName() + "/" + getName() + "/Clear");
     }
 
     public Object getNativeCache() {
@@ -37,6 +37,10 @@ public class Cache_Instrumentation {
 
     private String getProviderClassName() {
         Object provider = getNativeCache();
-        return provider.getClass().getName();
+        if (provider != null) {
+            return provider.getClass().getName();
+        } else {
+            return "Unknown";
+        }
     }
 }
