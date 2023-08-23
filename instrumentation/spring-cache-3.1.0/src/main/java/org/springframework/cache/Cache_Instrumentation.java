@@ -10,7 +10,7 @@ import org.springframework.cache.Cache;
 import java.util.logging.Level;
 
 @Weave(type = MatchType.Interface, originalName = "org.springframework.cache.Cache")
-public class Cache_Instrumentation {
+public abstract class Cache_Instrumentation {
     public Cache.ValueWrapper get(Object key) {
         Cache.ValueWrapper result = Weaver.callOriginal();
         NewRelic.incrementCounter("Spring/Cache/" + getProviderClassName() + "/" + getName() + (result == null ? "/Misses" : "/Hits"));
@@ -27,13 +27,9 @@ public class Cache_Instrumentation {
         NewRelic.incrementCounter("Spring/Cache/" + getProviderClassName() + "/" + getName() + "/Clear");
     }
 
-    public Object getNativeCache() {
-        return Weaver.callOriginal();
-    }
+    public abstract Object getNativeCache();
 
-    public String getName() {
-        return Weaver.callOriginal();
-    }
+    public abstract String getName();
 
     private String getProviderClassName() {
         Object provider = getNativeCache();
