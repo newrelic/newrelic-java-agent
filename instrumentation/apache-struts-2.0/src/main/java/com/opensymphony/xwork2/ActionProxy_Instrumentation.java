@@ -9,7 +9,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
 @Weave(type = MatchType.Interface, originalName = "com.opensymphony.xwork2.ActionProxy")
-public class ActionProxy_Instrumentation {
+public abstract class ActionProxy_Instrumentation {
     @Trace
     public String execute() throws Exception {
         Transaction transaction = AgentBridge.getAgent().getTransaction(false);
@@ -20,7 +20,5 @@ public class ActionProxy_Instrumentation {
         return Weaver.callOriginal();
     }
 
-    public String getActionName() {
-        return Weaver.callOriginal();
-    }
+    public abstract String getActionName();
 }
