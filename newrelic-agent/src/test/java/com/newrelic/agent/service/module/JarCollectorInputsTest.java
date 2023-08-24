@@ -19,7 +19,7 @@ public class JarCollectorInputsTest {
         JarCollectorInputs target = JarCollectorInputs.build(true, mock(JarAnalystFactory.class), mock(ExecutorService.class), mock(Logger.class));
         assertTrue(target.getClassToJarPathSubmitter() instanceof ClassToJarPathSubmitterImpl);
         assertTrue(target.getExtensionAnalysisProducer() instanceof ExtensionAnalysisProducer);
-        assertNotSame(ClassMatchVisitorFactory.NO_OP_FACTORY, target.getClassToJarPathSubmitter());
+        assertNotSame(ClassToJarPathSubmitterImpl.NO_OP_INSTANCE, target.getClassToJarPathSubmitter());
         assertNotSame(ExtensionsLoadedListener.NOOP, target.getExtensionAnalysisProducer());
     }
 
@@ -28,7 +28,7 @@ public class JarCollectorInputsTest {
         JarCollectorInputs target = JarCollectorInputs.build(false, mock(JarAnalystFactory.class), mock(ExecutorService.class), mock(Logger.class));
         assertFalse(target.getClassToJarPathSubmitter() instanceof ClassToJarPathSubmitterImpl);
         assertFalse(target.getExtensionAnalysisProducer() instanceof ExtensionAnalysisProducer);
-        assertSame(ClassMatchVisitorFactory.NO_OP_FACTORY, target.getClassToJarPathSubmitter());
+        assertSame(ClassToJarPathSubmitterImpl.NO_OP_INSTANCE, target.getClassToJarPathSubmitter());
         assertSame(ExtensionsLoadedListener.NOOP, target.getExtensionAnalysisProducer());
     }
 

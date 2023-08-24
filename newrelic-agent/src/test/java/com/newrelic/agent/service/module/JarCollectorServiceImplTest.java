@@ -33,9 +33,6 @@ import static org.mockito.Mockito.when;
 public class JarCollectorServiceImplTest {
 
     @Mock
-    public ClassToJarPathSubmitterImpl classNoticingFactory;
-
-    @Mock
     public IRPMService rpmService;
 
     @Captor

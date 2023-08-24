@@ -45,6 +45,7 @@ import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
 import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.logging.LogSenderServiceImpl;
+import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
@@ -135,6 +136,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         dbService = new DatabaseService();
         extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         jarCollectorService = Mockito.mock(JarCollectorService.class);
+        Mockito.when(jarCollectorService.getClassToJarPathSubmitter()).thenReturn(ClassToJarPathSubmitterImpl.NO_OP_INSTANCE);
         sourceLanguageService = new SourceLanguageService();
         expirationService = new ExpirationService();
         distributedTraceService = Mockito.mock(DistributedTraceService.class);
