@@ -63,6 +63,13 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         long transformStartTimeInNs = System.nanoTime();
+
+        //Submit the class for possible analysis from the jar collector
+        if((protectionDomain != null) && (protectionDomain.getCodeSource() != null)) {
+            Agent.LOG.finest(MessageFormat.format("DUF- submitting {0} to jar collector", className));
+            ServiceFactory.getJarCollectorService().getClassToJarPathSubmitter().processUrl(protectionDomain.getCodeSource().getLocation());
+        }
+
         try {
             if (className == null) {
                 return null;

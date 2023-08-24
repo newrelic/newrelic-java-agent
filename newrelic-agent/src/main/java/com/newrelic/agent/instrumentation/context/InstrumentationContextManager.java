@@ -147,7 +147,6 @@ public class InstrumentationContextManager {
         }
 
         classloaderExclusions = agentConfig.getClassTransformerConfig().getClassloaderExclusions();
-        matchVisitors.put(ServiceFactory.getJarCollectorService().getSourceVisitor(), NO_OP_TRANSFORMER);
         matchVisitors.put(ServiceFactory.getSourceLanguageService().getSourceVisitor(), NO_OP_TRANSFORMER);
 
         try {

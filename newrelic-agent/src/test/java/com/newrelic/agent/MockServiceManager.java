@@ -135,7 +135,6 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         dbService = new DatabaseService();
         extensionService = new ExtensionService(configService, ExtensionsLoadedListener.NOOP);
         jarCollectorService = Mockito.mock(JarCollectorService.class);
-        Mockito.when(jarCollectorService.getSourceVisitor()).thenReturn(Mockito.mock(ClassMatchVisitorFactory.class));
         sourceLanguageService = new SourceLanguageService();
         expirationService = new ExpirationService();
         distributedTraceService = Mockito.mock(DistributedTraceService.class);
