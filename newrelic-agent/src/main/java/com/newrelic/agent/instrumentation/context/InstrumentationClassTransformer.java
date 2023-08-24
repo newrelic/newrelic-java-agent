@@ -66,7 +66,6 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
 
         //Submit the class for possible analysis from the jar collector
         if((protectionDomain != null) && (protectionDomain.getCodeSource() != null)) {
-            Agent.LOG.finest(MessageFormat.format("DUF- submitting {0} to jar collector", className));
             ServiceFactory.getJarCollectorService().getClassToJarPathSubmitter().processUrl(protectionDomain.getCodeSource().getLocation());
         }
 
