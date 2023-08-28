@@ -15,6 +15,7 @@ import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher;
 import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldTransformer;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.Utils;
 import org.objectweb.asm.ClassReader;

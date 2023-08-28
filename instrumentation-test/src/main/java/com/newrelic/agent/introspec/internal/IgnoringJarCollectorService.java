@@ -11,6 +11,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.module.ClassToJarPathSubmitter;
+import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.service.module.JarCollectorService;
 
 public class IgnoringJarCollectorService implements JarCollectorService {
@@ -21,7 +22,7 @@ public class IgnoringJarCollectorService implements JarCollectorService {
 
     @Override
     public ClassToJarPathSubmitter getClassToJarPathSubmitter() {
-        return null;
+        return ClassToJarPathSubmitterImpl.NO_OP_INSTANCE;
     }
 
     @Override
