@@ -20,7 +20,7 @@ public class CacheInstrumentationTest {
         cacheImpl.get(null);    //Simulate cache miss via null param
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Spring/Cache/java.util.HashMap/sample/Misses"));
+        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Cache/Spring/java.util.HashMap/sample/misses"));
     }
 
     @Test
@@ -29,7 +29,7 @@ public class CacheInstrumentationTest {
         cacheImpl.get(null);    //Simulate cache miss via null param
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Spring/Cache/Unknown/sample/Misses"));
+        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Cache/Spring/Unknown/sample/misses"));
     }
 
     @Test
@@ -38,7 +38,7 @@ public class CacheInstrumentationTest {
         cacheImpl.get("foo");    //Simulate cache hit
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Spring/Cache/java.util.HashMap/sample/Hits"));
+        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Cache/Spring/java.util.HashMap/sample/hits"));
     }
 
     @Test
@@ -47,7 +47,7 @@ public class CacheInstrumentationTest {
         cacheImpl.clear();
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Spring/Cache/java.util.HashMap/sample/Clear"));
+        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Cache/Spring/java.util.HashMap/sample/clear"));
     }
 
     @Test
@@ -56,7 +56,7 @@ public class CacheInstrumentationTest {
         cacheImpl.evict("foo");
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Spring/Cache/java.util.HashMap/sample/Evict"));
+        Assert.assertTrue(introspector.getUnscopedMetrics().containsKey("Cache/Spring/java.util.HashMap/sample/evict"));
     }
 
     private static class SampleCacheImpl implements Cache {
