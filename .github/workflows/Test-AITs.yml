@@ -15,9 +15,9 @@ on:
         description: "Specify cache branch/tag/sha (main is default)"
         required: false
         default: 'main'
-      test-case:
-        description: "Specify the test case. 
-        For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case"
+      single-test:
+        description: "Specify a single test. If left blank, all tests will run. You can choose to specify a single test file or a test case in that file. 
+        For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case."
         required: false
         default: ''
   workflow_call:
@@ -37,9 +37,9 @@ on:
         required: false
         default: 'main'
         type: string
-      test-case:
-        description: "Specify the test case. 
-        For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case"
+      single-test:
+        description: "Specify a single test. If left blank, all tests will run. You can choose to specify a single test file or a test case in that file. 
+        For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case."
         required: false
         default: ''
         type: string
@@ -68,7 +68,7 @@ jobs:
 
       - id: read-tests
         name: List instrumentation tests
-        if: ${{inputs.test-case == ''}}
+        if: ${{inputs.single-test == ''}}
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
           echo "datastore/datastores.py" >> $excluded_tests
@@ -109,12 +109,12 @@ jobs:
 
       - id: read-single-test
         name: Read single test
-        if: ${{inputs.test-case != ''}}
+        if: ${{inputs.single-test != ''}}
         run: |
           # creates an envar with a single test in the same JSON format as the read-tests step above
           TESTS=$((
             echo '{ "tests" : '
-            echo ' ["${{ inputs.test-case }}"] ' 
+            echo ' ["${{ inputs.single-test }}"] ' 
             echo " }"
           ) | jq -c .)
           # save the output of the job
