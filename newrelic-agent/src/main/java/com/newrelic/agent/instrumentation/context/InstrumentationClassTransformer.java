@@ -66,9 +66,7 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
         long transformStartTimeInNs = System.nanoTime();
 
         //Submit the class for possible analysis from the jar collector
-        if((protectionDomain != null) && (protectionDomain.getCodeSource() != null)) {
-            ServiceFactory.getJarCollectorService().getClassToJarPathSubmitter().processUrl(protectionDomain.getCodeSource().getLocation());
-        }
+        submitTransformCandidateToJarCollector(protectionDomain);
 
         try {
             if (className == null) {
@@ -182,4 +180,9 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
         return false;
     }
 
+    private void submitTransformCandidateToJarCollector(ProtectionDomain protectionDomain) {
+        if ((protectionDomain != null) && (protectionDomain.getCodeSource() != null)) {
+            ServiceFactory.getJarCollectorService().getClassToJarPathSubmitter().processUrl(protectionDomain.getCodeSource().getLocation());
+        }
+    }
 }
