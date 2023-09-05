@@ -23,9 +23,11 @@ public abstract class AbstractStringLayout_Instrumentation {
 
     protected byte[] getBytes(final String s) {
         String modified = s;
-        // It is possible that the log being formatted into JSON might already have NR-LINKING metadata from JUL instrumentation
+        // It is possible that the log might already have NR-LINKING metadata from JUL instrumentation
         if (!s.contains(BLOB_PREFIX)) {
-            int indexToInsertNrLinkingMetadata = s.indexOf("\n", s.indexOf("message")) - 1;
+            // Finds the index of the closing parenthesis for a substring that begins with "message" and ends with the sequence ",\n
+            // Example JSON substring:   "message":"Tomcat initialized",\n
+            int indexToInsertNrLinkingMetadata = s.indexOf("\",\n", s.indexOf("message"));
             // Replace the JSON string with modified version that includes NR-LINKING metadata
             modified = new StringBuilder(s).insert(indexToInsertNrLinkingMetadata, getLinkingMetadataBlob()).toString();
         }
