@@ -22,9 +22,10 @@ public abstract class AbstractStringLayout_Instrumentation {
 
     protected byte[] getBytes(final String s) {
         String modified = s;
+        // It is possible that the log being formatted into JSON might already have NR-LINKING metadata from JUL instrumentation
         if (!s.contains("NR-LINKING")) {
             int indexToInsertNrLinkingMetadata = s.indexOf("\n", s.indexOf("message")) - 1;
-            // Replace the JSON string with modified version
+            // Replace the JSON string with modified version that includes NR-LINKING metadata
             modified = new StringBuilder(s).insert(indexToInsertNrLinkingMetadata, getLinkingMetadataBlob()).toString();
         }
         return modified.getBytes(charset);
