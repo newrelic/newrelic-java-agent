@@ -7,11 +7,14 @@
 
 package com.newrelic.weave.weavepackage;
 
+import com.newrelic.weave.WeaveViolationFilter;
+import com.newrelic.weave.violation.WeaveViolationType;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
+import java.util.EnumSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
@@ -37,6 +40,7 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         private boolean enabled = true;
         private long priority = 0L;
         private boolean custom = false;
+        private WeaveViolationFilter weaveViolationFilter = null;
         private ClassNode errorHandleClassNode = ErrorTrapHandler.NO_ERROR_TRAP_HANDLER;
         private WeavePreprocessor preprocessor = WeavePreprocessor.NO_PREPROCESSOR;
         private WeavePostprocessor postprocessor = WeavePostprocessor.NO_POSTPROCESSOR;
@@ -149,6 +153,41 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
          */
         public Builder priority(long priority) {
             this.priority = priority;
+            return this;
+        }
+
+        /**
+         * Using the supplied {@code violationFilterToken}, create a {@link WeaveViolationFilter} instance to be stored
+         * as part of the config.
+         * <p>
+         * The filter is configured by adding a manifest attribute of {@code Weave-Violation-Filter} with a value
+         * of {@link WeaveViolationType} strings, seperated by a comma. For example:
+         * <pre>
+         *     Weave-Violation-Filter: METHOD_MISSING_REQUIRED_ANNOTATIONS,CLASS_MISSING_REQUIRED_ANNOTATIONS
+         * </pre>
+         *
+         * Weave violations that match any of the configured types will be ignored and not added to the
+         * {@link PackageValidationResult}'s violation list. If no types are configured in the manifest,
+         * no filter will be created or applied.
+         *
+         * @param violationFilterToken the comma seperated String of WeaveViolationTypes to ignore
+         * @return builder with updated state
+         */
+        public Builder weaveViolationFilters(String violationFilterToken) {
+            if (violationFilterToken != null) {
+                String [] filterTokens = violationFilterToken.split(",");
+                EnumSet<WeaveViolationType> types = EnumSet.noneOf(WeaveViolationType.class);
+                for (String type : filterTokens) {
+                    try {
+                        types.add(WeaveViolationType.valueOf(type));
+                    } catch (IllegalArgumentException ignored) {}
+                }
+
+                if (types.size() > 0 ) {
+                    this.weaveViolationFilter = new WeaveViolationFilter(this.name, types);
+                }
+            }
+
             return this;
         }
 
@@ -276,7 +315,10 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
             String priorityS = mainAttributes.getValue("Priority");
             long priority = priorityS == null ? 0 : Long.parseLong(priorityS);
 
-            return this.name(name).alias(alias).vendorId(vendorId).version(version).enabled(enabled).priority(priority);
+            String violationFilterToken = mainAttributes.getValue("Weave-Violation-Filter");
+
+            return this.name(name).alias(alias).vendorId(vendorId).version(version).enabled(enabled).priority(priority)
+                    .weaveViolationFilters(violationFilterToken);
         }
 
         /**
@@ -290,7 +332,7 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
                 throw new RuntimeException("WeavePackageConfig must have an Implementation-Name");
             }
             return new WeavePackageConfig(name, alias, vendorId, version, enabled, priority, source, custom, instrumentation,
-                    errorHandleClassNode, preprocessor, postprocessor, extensionClassTemplate);
+                    errorHandleClassNode, preprocessor, postprocessor, extensionClassTemplate, weaveViolationFilter);
         }
     }
 
@@ -321,10 +363,12 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
     private final WeavePostprocessor postprocessor;
     private final ClassNode extensionClassTemplate;
     private final long priority;
+    private final WeaveViolationFilter weaveViolationFilter;
 
     private WeavePackageConfig(String name, String alias, String vendorId, float version, boolean enabled,
             long priority, String source, boolean custom, Instrumentation instrumentation, ClassNode errorTrapClassNode,
-            WeavePreprocessor preprocessor, WeavePostprocessor postprocessor, ClassNode extensionClassTemplate) {
+            WeavePreprocessor preprocessor, WeavePostprocessor postprocessor, ClassNode extensionClassTemplate,
+            WeaveViolationFilter weaveViolationFilter) {
         this.name = name;
         this.alias = alias;
         this.vendorId = vendorId;
@@ -339,6 +383,7 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         this.preprocessor = preprocessor;
         this.postprocessor = postprocessor;
         this.extensionClassTemplate = extensionClassTemplate;
+        this.weaveViolationFilter = weaveViolationFilter;
     }
 
     /**
@@ -397,6 +442,13 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
      */
     public boolean isCustom() {
         return custom;
+    }
+
+    /**
+     * The {@link WeaveViolationFilter} instance, if violations to filter are configured in the module manifest; null otherwise
+     */
+    public WeaveViolationFilter getWeaveViolationFilter() {
+        return this.weaveViolationFilter;
     }
 
     /**

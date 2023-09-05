@@ -15,6 +15,11 @@ on:
         description: "Specify cache branch/tag/sha (main is default)"
         required: false
         default: 'main'
+      single-test:
+        description: "Specify a single test. If left blank, all tests will run. You can choose to specify a single test file or a test case in that file. 
+        For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case."
+        required: false
+        default: ''
   workflow_call:
     inputs:
       agent-ref:
@@ -45,7 +50,7 @@ jobs:
     name: List tests
     runs-on: ubuntu-20.04
     outputs:
-      tests: ${{ steps.read-tests.outputs.tests }}
+      tests: ${{ steps.read-single-test.outputs.tests || steps.read-tests.outputs.tests }}
     steps:
       - name: Checkout AIT repo test
         uses: actions/checkout@v3
@@ -57,14 +62,13 @@ jobs:
 
       - id: read-tests
         name: List instrumentation tests
+        if: ${{inputs.single-test == ''}}
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
           echo "datastore/datastores.py" >> $excluded_tests
           echo "framework/jms/jms.py" >> $excluded_tests
-          echo "framework/play/play2.py" >> $excluded_tests
           echo "framework/snap/snap.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
-          echo "r2dbc/oracle.py" >> $excluded_tests
           echo "server/mule.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
           # The files below are not tests
@@ -91,6 +95,19 @@ jobs:
           TESTS=$((
             echo '{ "tests" : '
             echo $FILES
+            echo " }"
+          ) | jq -c .)
+          # save the output of the job
+          echo "tests=$TESTS" >> $GITHUB_OUTPUT
+
+      - id: read-single-test
+        name: Read single test
+        if: ${{inputs.single-test != ''}}
+        run: |
+          # creates an envar with a single test in the same JSON format as the read-tests step above
+          TESTS=$((
+            echo '{ "tests" : '
+            echo ' ["${{ inputs.single-test }}"] ' 
             echo " }"
           ) | jq -c .)
           # save the output of the job
@@ -169,19 +186,29 @@ jobs:
           mv appcache3/* apps/
           mv appcache4/* apps/
 
+      # looks like docker is not properly sanitized between runs in GHA
+      # so its disk space may be pilling up and blows up during our tests
+      - name: Clean Docker image data
+        run: docker rmi $(docker images -q)
+
       ## JDK Installs
 
       # Install Zulu
-      - name: Set up Zulu
+      - name: Set up Zulu versions
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: |
+            20
+            17
+            11
 
-      # Set the JDK variable
-      - name: Set the required JDK variable
+      # Set the JDK variables for Zulu
+      - name: Set the JDK variables for Zulu
         run: |
-          echo "ORG_GRADLE_PROJECT_zulu=${JAVA_HOME}" >> $GITHUB_ENV
+          echo "JDK_zulu_11=${JAVA_HOME_11_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_17=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_20=${JAVA_HOME_20_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
         uses: actions/setup-java@v3
@@ -247,8 +274,7 @@ jobs:
       # Replication of steps from ait README
 
       - name: CD to agent-integration-tests dir.
-        run: |
-          cd agent-integration-tests/
+        run: cd agent-integration-tests/
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
@@ -264,7 +290,9 @@ jobs:
           virtualenv -p /usr/bin/python3.8 .
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
-          ZULU=${ORG_GRADLE_PROJECT_zulu} \
+          ZULU11=${JDK_zulu_11} \
+          ZULU17=${JDK_zulu_17} \
+          ZULU20=${JDK_zulu_20} \
           JAVA8JRE=${JAVA_HOME_8_X64} \
           JAVA11JRE=${JAVA_HOME_11_X64} \
           JAVA17JRE=${JAVA_HOME_17_X64} \

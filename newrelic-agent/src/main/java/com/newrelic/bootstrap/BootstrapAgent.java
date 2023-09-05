@@ -113,7 +113,7 @@ public class BootstrapAgent {
         }
 
         checkAndApplyIBMLibertyProfileLogManagerWorkaround();
-        JbossUtils.checkAndApplyJbossAdjustments(inst);
+        new JbossUtils().checkAndApplyJbossAdjustments(inst);
         startAgent(agentArgs, inst);
     }
 

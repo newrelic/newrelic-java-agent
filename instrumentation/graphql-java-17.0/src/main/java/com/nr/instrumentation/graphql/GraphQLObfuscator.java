@@ -7,8 +7,6 @@
 
 package com.nr.instrumentation.graphql;
 
-import graphql.com.google.common.base.Joiner;
-
 import java.util.regex.Pattern;
 
 public class GraphQLObfuscator {
@@ -25,8 +23,8 @@ public class GraphQLObfuscator {
     private static final Pattern ALL_UNMATCHED_PATTERN;
 
     static {
-        String allDialectsPattern = Joiner.on("|").join(SINGLE_QUOTE, DOUBLE_QUOTE, UUID, HEX,
-                MULTILINE_COMMENT, COMMENT, NUMBER, BOOLEAN);
+        String allDialectsPattern = SINGLE_QUOTE + "|" + DOUBLE_QUOTE + "|" + UUID + "|" + HEX + "|" +
+                MULTILINE_COMMENT + "|" + COMMENT + "|" + NUMBER + "|" + BOOLEAN;
 
         ALL_DIALECTS_PATTERN = Pattern.compile(allDialectsPattern, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
         ALL_UNMATCHED_PATTERN = Pattern.compile("'|\"|/\\*|\\*/|\\$", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);

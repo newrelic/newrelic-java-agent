@@ -14,6 +14,7 @@ import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.MetricNameFormats;
+import org.mockito.Mockito;
 
 public class MetricNameFormatsTest {
 
@@ -121,6 +122,16 @@ public class MetricNameFormatsTest {
     };
     // @formatter:on
 
+
+    @Test
+    public void replaceFirstSegment_withNewSegmentName_returnsNewMetricNameFormat() {
+        MetricNameFormat mockFormatter = Mockito.mock(MetricNameFormat.class);
+        Mockito.when(mockFormatter.getMetricName()).thenReturn("MyMetric");
+        Mockito.when(mockFormatter.getTransactionSegmentName()).thenReturn("MySegment");
+        MetricNameFormat result = MetricNameFormats.replaceFirstSegment(mockFormatter, "NewSegment");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("NewSegment", result.getTransactionSegmentName());
+    }
     @Test
     public void testFormatterCustom() {
         MetricNameFormat mnf;
