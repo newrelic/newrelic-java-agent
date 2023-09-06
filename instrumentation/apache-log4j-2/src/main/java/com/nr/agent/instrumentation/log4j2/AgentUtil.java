@@ -14,7 +14,6 @@ import com.newrelic.agent.bridge.logging.LogAttributeType;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.message.Message;
-import org.apache.logging.log4j.util.ReadOnlyStringMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -128,4 +127,35 @@ public class AgentUtil {
                 ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
                 : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
+
+    /**
+     * Checks a pretty and compact JSON strings for a series of characters and returns the index of
+     * the characters or -1 if they were not found. This is used to find the log "message" substring
+     * so that the NR-LINKING metadata blob can be inserted when using local decorating with JsonLayout.
+     *
+     * @param writerString String representing JSON formatted log event
+     * @return positive int if index was found, else -1
+     */
+    public static int getIndexToModifyJson(String writerString) {
+        int indexOfMessage = writerString.indexOf("message");
+        // Pretty JSON format
+        int indexToModifyJson = writerString.indexOf("\",\n", indexOfMessage);
+        if (!foundIndexToInsertLinkingMetadata(indexToModifyJson)) {
+            // Compact JSON format
+            indexToModifyJson = writerString.indexOf("\",", indexOfMessage);
+        }
+        return indexToModifyJson;
+    }
+
+    /**
+     * Check if a valid match was found when calling String.indexOf.
+     * If index value is -1 then no valid match was found, a positive integer represents a valid index.
+     *
+     * @param indexToModifyJson int representing index returned by indexOf
+     * @return true if a valid index was found, else false
+     */
+    public static boolean foundIndexToInsertLinkingMetadata(int indexToModifyJson) {
+        return indexToModifyJson != -1;
+    }
+
 }
