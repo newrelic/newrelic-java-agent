@@ -1350,6 +1350,7 @@ public class Transaction {
      * TransactionActivity from its thread-local variable on the current thread.
      */
     public static void clearTransaction() {
+        Agent.LOG.finest("NR153813: clearTransaction.removingTxHolder");
         transactionHolder.remove();
         TransactionActivity.clear();
         AgentBridge.activeToken.remove();
@@ -1365,6 +1366,7 @@ public class Transaction {
      */
     public static void setTransaction(Transaction tx) {
         TransactionActivity.set(tx.initialActivity);
+        Agent.LOG.finest("NR153813: setTransaction.settingTxHolder to: "+tx);
         transactionHolder.set(tx);
     }
 
@@ -1405,6 +1407,7 @@ public class Transaction {
 
         if (oldTx == null) {
             oldTx = transactionHolder.get();
+            Agent.LOG.finest("NR153813: linkTxOnThread.gotTxHolder: "+oldTx);
         }
         if (newTx == null || newTx == oldTx) {
             Agent.LOG.log(Level.FINER, "Transaction {0}: ignoring link call because transaction already on thread.", newTx);
@@ -1464,13 +1467,16 @@ public class Transaction {
                         // Agent may be able to assert against leaking transaction, i.e.
                         // to assert that we never set a transaction on the thread unless
                         // the holder is null when we do it. JAVA-2647.
+                        Agent.LOG.finest("NR153813: linkTxOnThread oldTx: "+oldTx+"; oldTx.priorityTransactionName: "+oldTx.priorityTransactionName);
                         oldTx.ignore = true;
                         oldTx.checkExpire();
                         oldTx.checkFinishTransaction(oldTxa, oldTxaId);
+                        Agent.LOG.finest("NR153813: linkTxOnThread.settingTxHolder to: null");
                         transactionHolder.set(null);
                     }
                 }
 
+                Agent.LOG.finest("NR153813: linkTxOnThread.settingTxHolder to: "+newTx);
                 transactionHolder.set(newTx);
                 return true;
             }
@@ -1491,6 +1497,7 @@ public class Transaction {
      */
     public static Transaction getTransaction(boolean createIfNotExists) {
         Transaction tx = transactionHolder.get();
+        Agent.LOG.finest("NR153813: getTransaction.gotTxHolder: "+tx);
         AgentBridge.TokenAndRefCount activeToken = AgentBridge.activeToken.get();
         if (activeToken != null && activeToken.token != null && activeToken.token.isActive() && tx == null) {
             WeakRefTransaction weakRefTx = (WeakRefTransaction) activeToken.token.getTransaction();
@@ -1514,6 +1521,7 @@ public class Transaction {
             try {
                 tx = new Transaction();
                 tx.postConstruct();
+                Agent.LOG.finest("NR153813: getTransaction.settingTxHolder to: "+tx);
                 transactionHolder.set(tx);
             } catch (RuntimeException rex) {
                 // The exception might have been thrown after the Activity was
@@ -2397,6 +2405,7 @@ public class Transaction {
                 }
             } finally {
                 if (!activity.isNotInThreadLocal()) {
+                    Agent.LOG.finest("NR153813: activityFailedOrIgnored.removingTxHolder");
                     transactionHolder.remove();
                 }
             }
@@ -2515,6 +2524,7 @@ public class Transaction {
                 }
             } finally {
                 if (!activity.isNotInThreadLocal()) {
+                    Agent.LOG.finest("NR153813: activityFinished.removingTxHolder");
                     transactionHolder.remove();
                 }
             }

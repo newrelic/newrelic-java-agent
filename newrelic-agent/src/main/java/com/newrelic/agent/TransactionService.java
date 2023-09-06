@@ -84,6 +84,7 @@ public class TransactionService extends AbstractService {
 
     public void transactionStarted(Transaction transaction) {
         if (transaction != null && isStarted()) {
+            logger.finest("NR153813: transactionStarted for: "+transaction);
             updateQueue.put(transaction, placeholder);
             txStartedThisHarvest.incrementAndGet();
             if (transaction.getDispatcher() != null) {
@@ -99,13 +100,16 @@ public class TransactionService extends AbstractService {
      * processing captured by the transaction may have resulted in an error.
      */
     public void transactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
+        logger.finest("NR153813: transactionFinished for: "+transactionData.getTransaction());
         try {
             doProcessTransaction(transactionData, transactionStats);
             txFinishedThisHarvest.incrementAndGet();
         } catch (Exception e) {
             getLogger().log(Level.WARNING, e, "Error recording transaction \"{0}\"", transactionData.getBlameMetricName());
         } finally {
+            logger.finest("NR153813: transactionFinished.removing for: "+transactionData.getTransaction()+"; from updateQueue.size: "+updateQueue.size());
             updateQueue.remove(transactionData.getTransaction());
+            logger.finest("NR153813: transactionFinished.removed for: "+transactionData.getTransaction()+"; from updateQueue.size: "+updateQueue.size());
         }
     }
 
@@ -115,19 +119,25 @@ public class TransactionService extends AbstractService {
      * transactions are not reported to New Relic and they do not generate transaction events.
      */
     public void transactionCancelled(Transaction transaction) {
+        logger.finest("NR153813: transactionCancelled for: "+transaction+"; getDispatcher: :"+transaction.getDispatcher());
         try {
             txCancelledThisHarvest.incrementAndGet();
             if (transaction.getDispatcher() != null) {
                 for (ExtendedTransactionListener listener : extendedTransactionListeners) {
+                    logger.finest("NR153813: transactionCancelled.extTxFinishedListener started: "+listener);
                     listener.dispatcherTransactionCancelled(transaction);
+                    logger.finest("NR153813: transactionCancelled.extTxFinishedListener finished: "+listener);
                 }
             }
         } finally {
+            logger.finest("NR153813: transactionCancelled.removing for: "+transaction+"; from updateQueue.size: "+updateQueue.size());
             updateQueue.remove(transaction); // reduces likelihood of JAVA-2647
+            logger.finest("NR153813: transactionCancelled.removed for: "+transaction+"; from updateQueue.size: "+updateQueue.size());
         }
     }
 
     private void doProcessTransaction(TransactionData transactionData, TransactionStats transactionStats) {
+        logger.finest("NR153813: doProcessTransaction start for: "+transactionData.getTransaction());
         if (!ServiceFactory.getServiceManager().isStarted() || !ServiceFactory.getCoreService().isEnabled()) {
             return;
         }
@@ -142,12 +152,17 @@ public class TransactionService extends AbstractService {
             transactionStats.getUnscopedStats().getStats(MetricNames.SUPPORTABILITY_TRANSACTION_SIZE_CLAMP).incrementCallCount();
         }
 
+        logger.finest("NR153813: doProcessTransaction.getDispatcher: "+transactionData.getDispatcher());
         if (transactionData.getDispatcher() != null) {
             for (TransactionListener listener : transactionListeners) {
+                logger.finest("NR153813: doProcessTransaction.txFinishedListener started: "+listener);
                 listener.dispatcherTransactionFinished(transactionData, transactionStats);
+                logger.finest("NR153813: doProcessTransaction.txFinishedListener finished: "+listener);
             }
             for (ExtendedTransactionListener listener : extendedTransactionListeners) {
+                logger.finest("NR153813: doProcessTransaction.extTxFinishedListener started: "+listener);
                 listener.dispatcherTransactionFinished(transactionData, transactionStats);
+                logger.finest("NR153813: doProcessTransaction.extTxFinishedListener finished: "+listener);
             }
         } else {
             if (Agent.isDebugEnabled()) {
@@ -159,9 +174,12 @@ public class TransactionService extends AbstractService {
         statsService.doStatsWork(statsWork, transactionData.getBlameMetricName());
         if (transactionData.getDispatcher() != null) {
             for (TransactionStatsListener listener : transactionStatsListeners) {
+                logger.finest("NR153813: doProcessTransaction.txStatsFinishedListener started: "+listener);
                 listener.dispatcherTransactionStatsFinished(transactionData, transactionStats);
+                logger.finest("NR153813: doProcessTransaction.txStatsFinishedListener started: "+listener);
             }
         }
+        logger.finest("NR153813: doProcessTransaction end for: "+transactionData.getTransaction());
     }
 
     @Override
