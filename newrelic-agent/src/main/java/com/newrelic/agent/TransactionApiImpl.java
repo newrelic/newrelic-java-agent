@@ -162,8 +162,8 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     public boolean setTransactionName(com.newrelic.agent.bridge.TransactionNamePriority namePriority, boolean override,
             String category, String... parts) {
         Transaction tx = getTransactionIfExists();
-        Agent.LOG.log(Level.FINEST, "setTransactionName1: txn: {0}, override: {1}, category: {2}, parts: {3}",
-                (tx != null ? tx.toString() : "N/A"), override, category, String.join("/", parts));
+        Agent.LOG.log(Level.FINEST, "setTransactionName1: txn: {0}, override: {1}, namePriority: {2}, category: {3}, parts: {4}",
+                (tx != null ? tx.toString() : "N/A"), override, namePriority.toString(), category, String.join("/", parts));
         return (tx != null) ? tx.setTransactionName(namePriority, override, category, parts) : false;
     }
 
