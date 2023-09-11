@@ -8,7 +8,9 @@
 package com.newrelic.agent.transaction;
 
 import java.text.MessageFormat;
+import java.util.logging.Level;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
@@ -74,6 +76,7 @@ public class PriorityTransactionName {
     }
 
     public PriorityTransactionName freeze() {
+        Agent.LOG.log(Level.FINEST, "Setting priority transaction name to FROZEN: {0}", toString());
         if (isFrozen()) {
             return this;
         }
