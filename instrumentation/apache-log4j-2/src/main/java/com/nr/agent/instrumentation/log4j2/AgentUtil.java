@@ -129,7 +129,7 @@ public class AgentUtil {
     }
 
     /**
-     * Checks a pretty and compact JSON strings for a series of characters and returns the index of
+     * Checks pretty or compact JSON layout strings for a series of characters and returns the index of
      * the characters or -1 if they were not found. This is used to find the log "message" substring
      * so that the NR-LINKING metadata blob can be inserted when using local decorating with JsonLayout.
      *
