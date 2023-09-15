@@ -213,13 +213,13 @@ public class SpanEventFactory {
 
     // datastore parameter
     public SpanEventFactory setDatabaseName(String databaseName) {
-        builder.putIntrinsic("db.instance", databaseName);
+        builder.putAgentAttribute("db.instance", databaseName);
         return this;
     }
 
     // datastore parameter
     public SpanEventFactory setDatastoreComponent(String component) {
-        builder.putIntrinsic("db.system", component);
+        builder.putAgentAttribute("db.system", component);
         return this;
     }
 
@@ -227,7 +227,7 @@ public class SpanEventFactory {
     public SpanEventFactory setAddress(String hostName, String portPathOrId) {
         if (portPathOrId != null && hostName != null) {
             String address = MessageFormat.format("{0}:{1}", hostName, portPathOrId);
-            builder.putIntrinsic("peer.address", address);
+            builder.putAgentAttribute("peer.address", address);
         }
         return this;
     }
@@ -245,19 +245,20 @@ public class SpanEventFactory {
     // datastore parameter
     public SpanEventFactory setDatabaseStatement(String query) {
         if (query != null) {
-            builder.putIntrinsic("db.statement", truncateWithEllipsis(query, DB_STATEMENT_TRUNCATE_LENGTH));
+            builder.putAgentAttribute("db.statement", truncateWithEllipsis(query, DB_STATEMENT_TRUNCATE_LENGTH));
         }
         return this;
     }
 
     // datastore parameter
     private SpanEventFactory setDatabaseCollection(String collection) {
-        builder.putIntrinsic("db.sql.table", collection);
+        builder.putAgentAttribute("db.sql.table", collection);
         return this;
     }
 
+    // datastore parameter
     private SpanEventFactory setDatabaseOperation(String operation) {
-        builder.putIntrinsic("db.operation", operation);
+        builder.putAgentAttribute("db.operation", operation);
         return this;
     }
 

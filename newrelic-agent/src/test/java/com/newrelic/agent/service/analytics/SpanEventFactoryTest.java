@@ -70,7 +70,7 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setDatabaseStatement(threeKStatement).build();
 
         assertEquals(2000,
-                target.getIntrinsics().get("db.statement").toString().length());
+                target.getAgentAttributes().get("db.statement").toString().length());
     }
 
     @Test
@@ -181,13 +181,13 @@ public class SpanEventFactoryTest {
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
-        assertEquals("database name", target.getIntrinsics().get("db.instance"));
-        assertEquals("select", target.getIntrinsics().get("db.operation"));
-        assertEquals("users", target.getIntrinsics().get("db.sql.table"));
-        assertEquals("MySQL", target.getIntrinsics().get("db.system"));
+        assertEquals("database name", target.getAgentAttributes().get("db.instance"));
+        assertEquals("select", target.getAgentAttributes().get("db.operation"));
+        assertEquals("users", target.getAgentAttributes().get("db.sql.table"));
+        assertEquals("MySQL", target.getAgentAttributes().get("db.system"));
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
-        assertEquals("dbserver:3306", target.getIntrinsics().get("peer.address"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
+        assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
     }
 
     @Test
