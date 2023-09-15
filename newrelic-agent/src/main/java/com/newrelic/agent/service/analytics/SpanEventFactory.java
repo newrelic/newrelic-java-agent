@@ -132,12 +132,6 @@ public class SpanEventFactory {
         return this;
     }
 
-    public SpanEventFactory putAllUserAttributesIfAbsent(Map<String, ?> userAttributes) {
-        builder.putAllUserAttributesIfAbsent(filter.filterUserAttributes(appName, userAttributes));
-        return this;
-    }
-
-
     public SpanEventFactory putAgentAttribute(String key, Object value) {
         builder.putAgentAttribute(key, value);
         return this;
@@ -181,6 +175,10 @@ public class SpanEventFactory {
             final URI sanitizedURI = ExternalsUtil.sanitizeURI(uri);
             if (sanitizedURI != null) {
                 builder.putAgentAttribute("http.url", sanitizedURI.toString());
+                setServerAddress(sanitizedURI.getHost());
+                if (sanitizedURI.getPort() > 0) {
+                    setServerPort(sanitizedURI.getPort());
+                }
             }
         }
         return this;
@@ -221,13 +219,7 @@ public class SpanEventFactory {
 
     // datastore parameter
     public SpanEventFactory setDatastoreComponent(String component) {
-        builder.putIntrinsic("component", component);
-        return this;
-    }
-
-    // datastore parameter
-    public SpanEventFactory setHostName(String host) {
-        builder.putIntrinsic("peer.hostname", host);
+        builder.putIntrinsic("db.system", component);
         return this;
     }
 
@@ -237,6 +229,16 @@ public class SpanEventFactory {
             String address = MessageFormat.format("{0}:{1}", hostName, portPathOrId);
             builder.putIntrinsic("peer.address", address);
         }
+        return this;
+    }
+
+    public SpanEventFactory setServerAddress(String host) {
+        builder.putAgentAttribute("server.address", host);
+        return this;
+    }
+
+    public SpanEventFactory setServerPort(int port) {
+        builder.putAgentAttribute("server.port", port);
         return this;
     }
 
@@ -250,7 +252,12 @@ public class SpanEventFactory {
 
     // datastore parameter
     private SpanEventFactory setDatabaseCollection(String collection) {
-        builder.putIntrinsic("db.collection", collection);
+        builder.putIntrinsic("db.sql.table", collection);
+        return this;
+    }
+
+    private SpanEventFactory setDatabaseOperation(String operation) {
+        builder.putIntrinsic("db.operation", operation);
         return this;
     }
 
@@ -331,8 +338,12 @@ public class SpanEventFactory {
             setDatastoreComponent(datastoreParameters.getProduct());
             setDatabaseName(datastoreParameters.getDatabaseName());
             setDatabaseCollection(datastoreParameters.getCollection());
-            setHostName(datastoreParameters.getHost());
+            setDatabaseOperation(datastoreParameters.getOperation());
+            setServerAddress(datastoreParameters.getHost());
             setKindFromUserAttributes();
+            if (datastoreParameters.getPort() != null) {
+                setServerPort(datastoreParameters.getPort());
+            }
             if (datastoreParameters instanceof SlowQueryDatastoreParameters) {
                 SlowQueryDatastoreParameters<?> queryDatastoreParameters = (SlowQueryDatastoreParameters<?>) datastoreParameters;
                 setDatabaseStatement(determineObfuscationLevel(queryDatastoreParameters));

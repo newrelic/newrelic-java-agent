@@ -50,13 +50,16 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setUri(URI.create("https://newrelic.com")).build();
 
         assertEquals("https://newrelic.com", target.getAgentAttributes().get("http.url"));
+        assertEquals("newrelic.com", target.getAgentAttributes().get("server.address"));
+        assertNull(target.getAgentAttributes().get("server.port"));
     }
 
     @Test
     public void addressShouldBeSet() {
-        SpanEvent target = spanEventFactory.setAddress("localhost", "3306").build();
+        SpanEvent target = spanEventFactory.setServerAddress("localhost").setServerPort(3306).build();
 
-        assertEquals("localhost:3306", target.getIntrinsics().get("peer.address"));
+        assertEquals("localhost", target.getAgentAttributes().get("server.address"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
     }
 
     @Test
@@ -170,10 +173,21 @@ public class SpanEventFactoryTest {
     public void shouldSetDataStoreParameters() {
         DatastoreParameters mockParameters = mock(DatastoreParameters.class);
         when(mockParameters.getDatabaseName()).thenReturn("database name");
+        when(mockParameters.getOperation()).thenReturn("select");
+        when(mockParameters.getCollection()).thenReturn("users");
+        when(mockParameters.getProduct()).thenReturn("MySQL");
+        when(mockParameters.getHost()).thenReturn("dbserver");
+        when(mockParameters.getPort()).thenReturn(3306);
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
         assertEquals("database name", target.getIntrinsics().get("db.instance"));
+        assertEquals("select", target.getIntrinsics().get("db.operation"));
+        assertEquals("users", target.getIntrinsics().get("db.sql.table"));
+        assertEquals("MySQL", target.getIntrinsics().get("db.system"));
+        assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
+        assertEquals("dbserver:3306", target.getIntrinsics().get("peer.address"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
     }
 
     @Test
