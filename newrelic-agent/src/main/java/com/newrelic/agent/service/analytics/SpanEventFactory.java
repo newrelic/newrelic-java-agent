@@ -219,7 +219,7 @@ public class SpanEventFactory {
 
     // datastore parameter
     public SpanEventFactory setDatastoreComponent(String component) {
-        builder.putAgentAttribute("db.system", component);
+        builder.putIntrinsic("db.system", component);
         return this;
     }
 
@@ -233,12 +233,12 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setServerAddress(String host) {
-        builder.putAgentAttribute("server.address", host);
+        builder.putIntrinsic("server.address", host);
         return this;
     }
 
     public SpanEventFactory setServerPort(int port) {
-        builder.putAgentAttribute("server.port", port);
+        builder.putIntrinsic("server.port", port);
         return this;
     }
 
@@ -252,13 +252,13 @@ public class SpanEventFactory {
 
     // datastore parameter
     private SpanEventFactory setDatabaseCollection(String collection) {
-        builder.putAgentAttribute("db.sql.table", collection);
+        builder.putIntrinsic("db.sql.table", collection);
         return this;
     }
 
     // datastore parameter
     private SpanEventFactory setDatabaseOperation(String operation) {
-        builder.putAgentAttribute("db.operation", operation);
+        builder.putIntrinsic("db.operation", operation);
         return this;
     }
 
