@@ -40,7 +40,12 @@ public class SpringDispatcherPointCut extends TracerFactoryPointCut {
                                 RENDER_METHOD_NAME,
                                 "(Lorg/springframework/web/servlet/ModelAndView;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V"),
                         new ExactMethodMatcher("doDispatch",
-                                "(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V")));
+                                "(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V"),
+                        new ExactMethodMatcher(
+                                RENDER_METHOD_NAME,
+                                "(Lorg/springframework/web/servlet/ModelAndView;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V"),
+                        new ExactMethodMatcher("doDispatch",
+                                "(Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V")));
     }
 
     @Override
