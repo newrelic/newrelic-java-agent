@@ -69,6 +69,7 @@ public class DefaultTracer extends AbstractTracer {
 
     private static final String COMPONENT_PARAMETER_NAME = "component";
     private static final String HTTP_METHOD_PARAMETER_NAME = "http.method";
+    public static final String THREAD_ID_PARAMETER_NAME = "thread.id";
 
     private final long startTime;
     private final long timestamp;
@@ -290,6 +291,7 @@ public class DefaultTracer extends AbstractTracer {
             }
 
             try {
+                setAgentAttribute(THREAD_ID_PARAMETER_NAME, getTransactionActivity().getThreadId());
                 if (classMethodSignature != null && getTransaction() != null &&
                         ServiceFactory.getConfigService().getDefaultAgentConfig().getCodeLevelMetricsConfig().isEnabled()) {
                     String className = classMethodSignature.getClassName();
