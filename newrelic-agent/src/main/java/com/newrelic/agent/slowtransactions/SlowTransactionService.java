@@ -94,6 +94,8 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
             return;
         }
 
+        // We've identified the slowest open transaction over the threshold.
+        // Extract some data about its state and emit as event.
         String guid = slowestOpen.getGuid();
         Map<String, Object> attributes = new HashMap<>();
         // General
@@ -117,6 +119,7 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
 
         getLogger().info("Transaction with guid " + guid + " has exceeded slow transaction threshold of " + slowThresholdMs + ", attributes: " + attributes);
         NewRelic.getAgent().getInsights().recordCustomEvent("SlowTransaction", attributes);
+        // TODO: remove old entries after a while to avoid unbounded memory usage
         previouslyReportedTransactions.add(guid);
     }
 }
