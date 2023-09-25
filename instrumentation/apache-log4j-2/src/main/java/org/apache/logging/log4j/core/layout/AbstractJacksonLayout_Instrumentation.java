@@ -27,9 +27,7 @@ import static com.nr.agent.instrumentation.log4j2.AgentUtil.getIndexToModifyJson
 @Weave(originalName = "org.apache.logging.log4j.core.layout.AbstractJacksonLayout", type = MatchType.ExactClass)
 abstract class AbstractJacksonLayout_Instrumentation {
 
-    public void toSerializable(final LogEvent_Instrumentation event, final Writer writer) throws IOException {
-        Weaver.callOriginal();
-    }
+    public abstract void toSerializable(final LogEvent_Instrumentation event, final Writer writer) throws IOException;
 
     public String toSerializable(final LogEvent_Instrumentation event) {
         final StringBuilderWriter writer = new StringBuilderWriter();
