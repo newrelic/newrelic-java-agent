@@ -119,6 +119,10 @@ public class SpanEventFactory {
         if (agentAttributes == null || agentAttributes.isEmpty()) {
             return this;
         }
+        final Object threadId = agentAttributes.get(AttributeNames.THREAD_ID);
+        if (threadId != null) {
+            builder.putAgentAttribute(AttributeNames.THREAD_ID, threadId);
+        }
         if (agentAttributes.containsKey(AttributeNames.CLM_NAMESPACE) && agentAttributes.containsKey(AttributeNames.CLM_FUNCTION)) {
             builder.putAgentAttribute(AttributeNames.CLM_NAMESPACE, agentAttributes.get(AttributeNames.CLM_NAMESPACE));
             builder.putAgentAttribute(AttributeNames.CLM_FUNCTION, agentAttributes.get(AttributeNames.CLM_FUNCTION));
