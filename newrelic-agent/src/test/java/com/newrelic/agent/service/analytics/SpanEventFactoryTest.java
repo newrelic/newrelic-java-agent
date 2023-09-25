@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.MockConfigService;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
@@ -195,6 +196,21 @@ public class SpanEventFactoryTest {
 
         final Object stackTrace = spanEventFactory.build().getAgentAttributes().get("code.stacktrace");
         assertNotNull(stackTrace);
+    }
+
+    @Test
+    public void shouldSetCLMParameters() {
+        Map<String, Object> agentAttributes = ImmutableMap.of(
+                AttributeNames.CLM_NAMESPACE, "nr",
+                AttributeNames.CLM_FUNCTION, "process",
+                AttributeNames.THREAD_ID, 666
+        );
+
+        SpanEvent target = spanEventFactory.setClmAttributes(agentAttributes).build();
+
+        assertEquals("nr", target.getAgentAttributes().get(AttributeNames.CLM_NAMESPACE));
+        assertEquals("process", target.getAgentAttributes().get(AttributeNames.CLM_FUNCTION));
+        assertEquals(666, target.getAgentAttributes().get(AttributeNames.THREAD_ID));
     }
 
     @Test
