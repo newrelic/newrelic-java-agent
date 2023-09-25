@@ -7,11 +7,11 @@
 
 package com.nr.agent.instrumentation.httpurlconnection;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TraceSegment;
+import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.agent.introspec.TransactionTrace;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
@@ -20,23 +20,26 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests the methods that receive data from the downstream server and thus create the external.
+ */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "leave-me-alone" }, configName = "distributed_tracing.yml")
-public class MetricStateResponseCodeTest {
+public class InboundTest {
+    @Rule
+    public HttpServerRule server = new HttpServerRule();
+
     /**
      * Objective: make sure that a single call to an instance reports the metric and segment as expected.
      */
     @Test
     public void shouldSetMetricsAndSegmentWhenCalledOnce() throws Exception {
-        MetricState target = new MetricState();
-        runAndVerifyFirstCall(target, 1);
+        runAndVerifyFirstCall(new InstrumentedHttpUrlConnection(server), 1);
     }
 
     /**
@@ -45,19 +48,18 @@ public class MetricStateResponseCodeTest {
      */
     @Test
     public void shouldSetMetricsAndSegmentOnceWhenCalledTwice() throws Exception {
-        MetricState target = new MetricState();
         int nCalls = 2;
-        TraceSegment callGetResponseCodeSegment = runAndVerifyFirstCall(target, nCalls);
+        TraceSegment callGetResponseCodeSegment = runAndVerifyFirstCall(new InstrumentedHttpUrlConnection(server), nCalls);
 
         // The second call to getResponseCode is named Custom/../methodName because it doesn't result in additional I/O.
         TraceSegment defaultName = callGetResponseCodeSegment.getChildren().get(1);
         assertEquals(1, defaultName.getCallCount());
-        assertEquals("Custom/" + this.getClass().getName() + "/simulatedInstrumentedGetResponseCodeMethod", defaultName.getName());
+        assertEquals("Custom/" + InstrumentedHttpUrlConnection.class.getName() + "/getResponseCode", defaultName.getName());
     }
 
-    private TraceSegment runAndVerifyFirstCall(MetricState target, int nCalls) throws Exception {
+    private TraceSegment runAndVerifyFirstCall(InstrumentedHttpUrlConnection conn, int nCalls) throws Exception {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        callGetResponseCode(target, nCalls);
+        callGetResponseCode(conn, nCalls);
 
         // The name of the @Trace(dispatcher = true) method
         String transactionName = fetchTransactionName(introspector, "callGetResponseCode");
@@ -72,7 +74,7 @@ public class MetricStateResponseCodeTest {
         assertEquals(nCalls, callGetResponseCodeSegment.getChildren().size());
 
         // Only the first call is named External/.../getResponseCode
-        TraceSegment renamedSegment = callGetResponseCodeSegment.getChildren().get(0).getChildren().get(0);
+        TraceSegment renamedSegment = callGetResponseCodeSegment.getChildren().get(0);
         assertEquals(1, renamedSegment.getCallCount());
         assertEquals("External/localhost/HttpURLConnection/getResponseCode", renamedSegment.getName());
         return callGetResponseCodeSegment;
@@ -85,28 +87,30 @@ public class MetricStateResponseCodeTest {
     @Test
     public void shouldBumpMetricOnceIfAlreadyHaveResponseCode() throws Exception {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        MetricState target = new MetricState();
-        callGetResponseCodeThenGetInputStream(target);
+        callGetResponseCodeThenGetInputStream();
 
         // Only one external call.
         String transactionName = fetchTransactionName(introspector, "callGetResponseCodeThenGetInputStream");
-        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection/getResponseCode"));
-        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection/getResponseCode").getCallCount());
+        Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+        long externalMetricsCount = metricsForTransaction.keySet().stream().filter(metricName -> metricName.startsWith("External")).count();
+        assertEquals(1, externalMetricsCount);
+        assertTrue(metricsForTransaction.containsKey("External/localhost/HttpURLConnection/getResponseCode"));
+        assertEquals(1, metricsForTransaction.get("External/localhost/HttpURLConnection/getResponseCode").getCallCount());
 
         // Two child segments within the transaction.
         TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
         TraceSegment traceSegment = trace.getInitialTraceSegment();
         assertEquals(2, traceSegment.getChildren().size());
 
-        // The child of the first segment is external.
-        TraceSegment renamedSegment = traceSegment.getChildren().get(0).getChildren().get(0);
+        // The first segment is external.
+        TraceSegment renamedSegment = traceSegment.getChildren().get(0);
         assertEquals(1, renamedSegment.getCallCount());
         assertEquals("External/localhost/HttpURLConnection/getResponseCode", renamedSegment.getName());
 
         // The second is a normal method call.
         TraceSegment defaultName = traceSegment.getChildren().get(1);
         assertEquals(1, defaultName.getCallCount());
-        assertEquals("Custom/" + this.getClass().getName() + "/simulatedInstrumentedGetInputStreamMethod", defaultName.getName());
+        assertEquals("Custom/" + InstrumentedHttpUrlConnection.class.getName() + "/getInputStream", defaultName.getName());
     }
 
     /**
@@ -116,13 +120,15 @@ public class MetricStateResponseCodeTest {
     @Test
     public void shouldBumpMetricOnceIfAlreadyHaveInputStream() throws Exception {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        MetricState target = new MetricState();
-        callGetInputStreamThenResponseCode(target);
+        callGetInputStreamThenResponseCode();
 
         // Only one external call.
         String transactionName = fetchTransactionName(introspector, "callGetInputStreamThenResponseCode");
-        assertTrue(introspector.getMetricsForTransaction(transactionName).containsKey("External/localhost/HttpURLConnection/getInputStream"));
-        assertEquals(1, introspector.getMetricsForTransaction(transactionName).get("External/localhost/HttpURLConnection/getInputStream").getCallCount());
+        Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+        long externalMetricsCount = metricsForTransaction.keySet().stream().filter(metricName -> metricName.startsWith("External")).count();
+        assertEquals(1, externalMetricsCount);
+        assertTrue(metricsForTransaction.containsKey("External/localhost/HttpURLConnection/getInputStream"));
+        assertEquals(1, metricsForTransaction.get("External/localhost/HttpURLConnection/getInputStream").getCallCount());
 
         // Two child segments within the transaction.
         TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
@@ -130,14 +136,43 @@ public class MetricStateResponseCodeTest {
         assertEquals(2, traceSegment.getChildren().size());
 
         // The first segment is external.
-        TraceSegment renamedSegment = traceSegment.getChildren().get(0).getChildren().get(0);
+        TraceSegment renamedSegment = traceSegment.getChildren().get(0);
         assertEquals(1, renamedSegment.getCallCount());
         assertEquals("External/localhost/HttpURLConnection/getInputStream", renamedSegment.getName());
 
         // The second is a normal method call.
         TraceSegment defaultName = traceSegment.getChildren().get(1);
         assertEquals(1, defaultName.getCallCount());
-        assertEquals("Custom/" + this.getClass().getName() + "/simulatedInstrumentedGetResponseCodeMethod", defaultName.getName());
+        assertEquals("Custom/" + InstrumentedHttpUrlConnection.class.getName() + "/getResponseCode", defaultName.getName());
+    }
+
+    @Test
+    public void connectResponseMessageTest() throws Exception {
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        callConnectThenGetMessage();
+
+        // Only one external call.
+        String transactionName = fetchTransactionName(introspector, "callConnectThenGetMessage");
+        Map<String, TracedMetricData> metricsForTransaction = introspector.getMetricsForTransaction(transactionName);
+        long externalMetricsCount = metricsForTransaction.keySet().stream().filter(metricName -> metricName.startsWith("External")).count();
+        assertEquals(1, externalMetricsCount);
+        assertTrue(metricsForTransaction.containsKey("External/localhost/HttpURLConnection/getResponseMessage"));
+        assertEquals(1, metricsForTransaction.get("External/localhost/HttpURLConnection/getResponseMessage").getCallCount());
+
+        // Two child segments within the transaction.
+        TransactionTrace trace = introspector.getTransactionTracesForTransaction(transactionName).iterator().next();
+        TraceSegment traceSegment = trace.getInitialTraceSegment();
+        assertEquals(2, traceSegment.getChildren().size());
+
+        // The first s.
+        TraceSegment defaultName = traceSegment.getChildren().get(0);
+        assertEquals(1, defaultName.getCallCount());
+        assertEquals("Custom/" + InstrumentedHttpUrlConnection.class.getName() + "/connect", defaultName.getName());
+
+        // The second is a normal method call.
+        TraceSegment renamedSegment = traceSegment.getChildren().get(1);
+        assertEquals(1, renamedSegment.getCallCount());
+        assertEquals("External/localhost/HttpURLConnection/getResponseMessage", renamedSegment.getName());
     }
 
     private String fetchTransactionName(Introspector introspector, String expectedMethod) {
@@ -148,64 +183,37 @@ public class MetricStateResponseCodeTest {
         for (TransactionEvent event : introspector.getTransactionEvents(transactionName)) {
             foundExpectedEvent = foundExpectedEvent || event.getName().endsWith("/" + expectedMethod);
         }
-        assertTrue("Did not find an event ending in callGetResponseCode", foundExpectedEvent);
+        assertTrue("Did not find an event ending in " + expectedMethod, foundExpectedEvent);
         return transactionName;
     }
 
-    @Rule
-    public HttpServerRule server = new HttpServerRule();
-
-    private URL getURL() throws Exception {
-        return server.getEndPoint().toURL();
-    }
-
     @Trace(dispatcher = true) // NOTE: Method name is used as a string in the metric!
-    public void callGetResponseCode(MetricState target, int nCalls) throws Exception {
+    private void callGetResponseCode(InstrumentedHttpUrlConnection target, int nCalls) throws Exception {
         assertTrue(nCalls > 0);
 
-        URLConnection connection = getURL().openConnection();
-        assertTrue(connection instanceof HttpURLConnection);
-        HttpURLConnection conn = (HttpURLConnection) connection;
-
         for (int i = 0; i < nCalls; i++) {
-            simulatedInstrumentedGetResponseCodeMethod(conn, target);
+            target.getResponseCode();
         }
     }
 
     @Trace(dispatcher = true)
-    public void callGetResponseCodeThenGetInputStream(MetricState target) throws Exception {
-        URLConnection connection = getURL().openConnection();
-        assertTrue(connection instanceof HttpURLConnection);
-        HttpURLConnection conn = (HttpURLConnection) connection;
-
-        simulatedInstrumentedGetResponseCodeMethod(conn, target);
-        simulatedInstrumentedGetInputStreamMethod(true, conn, target);
+    private void callGetResponseCodeThenGetInputStream() throws Exception {
+        InstrumentedHttpUrlConnection connection = new InstrumentedHttpUrlConnection(server);
+        connection.getResponseCode();
+        connection.getInputStream(true);
     }
 
     @Trace(dispatcher = true)
-    public void callGetInputStreamThenResponseCode(MetricState target) throws Exception {
-        URLConnection connection = getURL().openConnection();
-        assertTrue(connection instanceof HttpURLConnection);
-        HttpURLConnection conn = (HttpURLConnection) connection;
-
-        simulatedInstrumentedGetInputStreamMethod(false, conn, target);
-        simulatedInstrumentedGetResponseCodeMethod(conn, target);
+    private void callGetInputStreamThenResponseCode() throws Exception {
+        InstrumentedHttpUrlConnection connection = new InstrumentedHttpUrlConnection(server);
+        connection.getInputStream(false);
+        connection.getResponseCode();
     }
 
-    /**
-     * The purpose of this method is to simulate the woven method from the instrumentation
-     * code. Since we can't weave JRE classes in these tests, we can't use the "real" code.
-     * This is the best approximation.
-     */
-    @Trace
-    private void simulatedInstrumentedGetResponseCodeMethod(HttpURLConnection conn, MetricState target) {
-        target.getResponseCodePreamble(AgentBridge.getAgent().getTracedMethod());
-        target.getInboundPostamble(conn, 0, null, "getResponseCode", AgentBridge.getAgent().getTracedMethod());
-    }
-
-    @Trace
-    private void simulatedInstrumentedGetInputStreamMethod(boolean isConnected, HttpURLConnection conn, MetricState target) {
-        target.getInputStreamPreamble(isConnected, conn, AgentBridge.getAgent().getTracedMethod());
-        target.getInboundPostamble(conn, 0, null, "getInputStream", AgentBridge.getAgent().getTracedMethod());
+    @Trace(dispatcher = true)
+    private void callConnectThenGetMessage() throws Exception {
+        InstrumentedHttpUrlConnection connection = new InstrumentedHttpUrlConnection(server);
+        connection.connect(false);
+        connection.getResponseMessage();
     }
 }
