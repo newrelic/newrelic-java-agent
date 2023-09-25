@@ -28,11 +28,14 @@ public final class AttributeNames {
     public static final String TIMEOUT_CAUSE = "nr.timeoutCause";
     public static final String ERROR_EXPECTED = "error.expected";
 
+    public static final String COMPONENT = "component";
+    public static final String HTTP_METHOD = "http.method";
     public static final String HTTP_STATUS_CODE = "http.statusCode";
     public static final String HTTP_STATUS_TEXT = "http.statusText";
 
     public static final String LOCK_THREAD_NAME = "jvm.lock_thread_name";
     public static final String THREAD_NAME = "jvm.thread_name";
+    public static final String THREAD_ID = "thread.id";
 
     public static final String MESSAGE_REQUEST_PREFIX = "message.parameters.";
 

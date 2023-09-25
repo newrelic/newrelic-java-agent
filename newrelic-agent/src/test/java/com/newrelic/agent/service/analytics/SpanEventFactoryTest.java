@@ -184,14 +184,14 @@ public class SpanEventFactoryTest {
         Map<String, Object> agentAttributes = ImmutableMap.of(
                 AttributeNames.CLM_NAMESPACE, "nr",
                 AttributeNames.CLM_FUNCTION, "process",
-                DefaultTracer.THREAD_ID_PARAMETER_NAME, 666
+                AttributeNames.THREAD_ID, 666
         );
 
         SpanEvent target = spanEventFactory.setClmAttributes(agentAttributes).build();
 
         assertEquals("nr", target.getAgentAttributes().get(AttributeNames.CLM_NAMESPACE));
         assertEquals("process", target.getAgentAttributes().get(AttributeNames.CLM_FUNCTION));
-        assertEquals(666, target.getAgentAttributes().get(DefaultTracer.THREAD_ID_PARAMETER_NAME));
+        assertEquals(666, target.getAgentAttributes().get(AttributeNames.THREAD_ID));
     }
 
     @Test

@@ -17,7 +17,6 @@ import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
@@ -120,9 +119,9 @@ public class SpanEventFactory {
         if (agentAttributes == null || agentAttributes.isEmpty()) {
             return this;
         }
-        final Object threadId = agentAttributes.get(DefaultTracer.THREAD_ID_PARAMETER_NAME);
+        final Object threadId = agentAttributes.get(AttributeNames.THREAD_ID);
         if (threadId != null) {
-            builder.putAgentAttribute(DefaultTracer.THREAD_ID_PARAMETER_NAME, threadId);
+            builder.putAgentAttribute(AttributeNames.THREAD_ID, threadId);
         }
         if (agentAttributes.containsKey(AttributeNames.CLM_NAMESPACE) && agentAttributes.containsKey(AttributeNames.CLM_FUNCTION)) {
             builder.putAgentAttribute(AttributeNames.CLM_NAMESPACE, agentAttributes.get(AttributeNames.CLM_NAMESPACE));
