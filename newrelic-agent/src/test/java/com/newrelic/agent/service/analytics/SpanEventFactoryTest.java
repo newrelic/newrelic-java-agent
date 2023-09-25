@@ -10,8 +10,8 @@ package com.newrelic.agent.service.analytics;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.MockConfigService;
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.attributes.AttributeNames;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
@@ -187,14 +187,16 @@ public class SpanEventFactoryTest {
 
     @Test
     public void shouldStoreStackTrace() {
-        SpanEventFactory spanEventFactory = new SpanEventFactory("MyApp", new AttributeFilter.PassEverythingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+        SpanEventFactory spanEventFactory = new SpanEventFactory("MyApp", new AttributeFilter.PassEverythingAttributeFilter(),
+                DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
         spanEventFactory.setKindFromUserAttributes();
         MockServiceManager serviceManager = new MockServiceManager();
         serviceManager.setConfigService(new MockConfigService(mock(AgentConfig.class)));
         ServiceFactory.setServiceManager(serviceManager);
-        spanEventFactory.setStackTraceAttributes(ImmutableMap.of(DefaultTracer.BACKTRACE_PARAMETER_NAME, Arrays.asList(Thread.currentThread().getStackTrace())));
+        spanEventFactory.setStackTraceAttributes(
+                ImmutableMap.of(DefaultTracer.BACKTRACE_PARAMETER_NAME, Arrays.asList(Thread.currentThread().getStackTrace())));
 
-        final Object stackTrace = spanEventFactory.build().getAgentAttributes().get("code.stacktrace");
+        final Object stackTrace = spanEventFactory.build().getAgentAttributes().get(AttributeNames.CODE_STACKTRACE);
         assertNotNull(stackTrace);
     }
 

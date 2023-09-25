@@ -129,7 +129,7 @@ public class SpanEventFactory {
                 final List<StackTraceElement> preStackTraces = StackTraces.scrubAndTruncate(stackTraceList);
                 final List<String> postParentRemovalTrace = StackTraces.toStringList(preStackTraces);
 
-                putAgentAttribute("code.stacktrace", truncateWithEllipsis(
+                putAgentAttribute(AttributeNames.CODE_STACKTRACE, truncateWithEllipsis(
                         Joiner.on(',').join(postParentRemovalTrace), MAX_EVENT_ATTRIBUTE_STRING_LENGTH));
             }
         }
@@ -161,7 +161,6 @@ public class SpanEventFactory {
         builder.putAllUserAttributesIfAbsent(filter.filterUserAttributes(appName, userAttributes));
         return this;
     }
-
 
     public SpanEventFactory putAgentAttribute(String key, Object value) {
         builder.putAgentAttribute(key, value);
