@@ -137,14 +137,7 @@ public class AgentUtil {
      * @return positive int if index was found, else -1
      */
     public static int getIndexToModifyJson(String writerString) {
-        int indexOfMessage = writerString.indexOf("message");
-        // Pretty JSON format
-        int indexToModifyJson = writerString.indexOf("\",\n", indexOfMessage);
-        if (!foundIndexToInsertLinkingMetadata(indexToModifyJson)) {
-            // Compact JSON format
-            indexToModifyJson = writerString.indexOf("\",", indexOfMessage);
-        }
-        return indexToModifyJson;
+        return writerString.indexOf("\",", writerString.indexOf("message"));
     }
 
     /**
