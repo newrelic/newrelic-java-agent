@@ -188,7 +188,7 @@ public class SpanEventFactoryTest {
 
         assertEquals("database name", target.getAgentAttributes().get("db.instance"));
         assertEquals("select", target.getAgentAttributes().get("db.operation"));
-        assertEquals("users", target.getAgentAttributes().get("db.sql.table"));
+        assertEquals("users", target.getAgentAttributes().get("db.collection"));
         assertEquals("MySQL", target.getAgentAttributes().get("db.system"));
         assertEquals("dbserver", target.getAgentAttributes().get("peer.hostname"));
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));

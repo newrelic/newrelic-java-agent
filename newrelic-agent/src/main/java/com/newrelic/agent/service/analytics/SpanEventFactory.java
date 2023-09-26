@@ -257,7 +257,7 @@ public class SpanEventFactory {
 
     // datastore parameter
     private SpanEventFactory setDatabaseCollection(String collection) {
-        builder.putAgentAttribute("db.sql.table", collection);
+        builder.putAgentAttribute("db.collection", collection);
         return this;
     }
 

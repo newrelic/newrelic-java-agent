@@ -469,7 +469,7 @@ public class DefaultSqlTracerClmTest {
         assertEquals("dbserver.nerd.us", spanEvent.getAgentAttributes().get("peer.hostname"));
         assertEquals("dbserver.nerd.us:9945", spanEvent.getAgentAttributes().get("peer.address"));
         assertEquals("SELECT price, name FROM BOOKS WHERE price <= 79.99", spanEvent.getAgentAttributes().get("db.statement"));
-        assertEquals("books", spanEvent.getAgentAttributes().get("db.sql.table"));
+        assertEquals("books", spanEvent.getAgentAttributes().get("db.collection"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
@@ -505,7 +505,7 @@ public class DefaultSqlTracerClmTest {
         assertEquals("dbserver.nerd.us:9945", spanEvent.getAgentAttributes().get("peer.address"));
         assertEquals(2000, spanEvent.getAgentAttributes().get("db.statement").toString().length());
         assertTrue(spanEvent.getAgentAttributes().get("db.statement").toString().endsWith("a..."));
-        assertEquals("books", spanEvent.getAgentAttributes().get("db.sql.table"));
+        assertEquals("books", spanEvent.getAgentAttributes().get("db.collection"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
@@ -542,7 +542,7 @@ public class DefaultSqlTracerClmTest {
         assertEquals("dbserver.nerd.us:9945", spanEvent.getAgentAttributes().get("peer.address"));
         assertEquals(2000, spanEvent.getAgentAttributes().get("db.statement").toString().length());
         assertTrue(spanEvent.getAgentAttributes().get("db.statement").toString().endsWith("aaa")); // Should not end with ... since it's exactly at the limit
-        assertEquals("books", spanEvent.getAgentAttributes().get("db.sql.table"));
+        assertEquals("books", spanEvent.getAgentAttributes().get("db.collection"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
