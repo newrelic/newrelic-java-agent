@@ -238,6 +238,7 @@ public class SpanEventFactory {
 
     public SpanEventFactory setServerAddress(String host) {
         builder.putAgentAttribute("server.address", host);
+        builder.putAgentAttribute("peer.hostname", host);
         return this;
     }
 

@@ -54,6 +54,7 @@ public class SpanEventFactoryTest {
 
         assertEquals("https://newrelic.com", target.getAgentAttributes().get("http.url"));
         assertEquals("newrelic.com", target.getAgentAttributes().get("server.address"));
+        assertEquals("newrelic.com", target.getAgentAttributes().get("peer.hostname"));
         assertNull(target.getAgentAttributes().get("server.port"));
     }
 
@@ -62,6 +63,7 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setServerAddress("localhost").setServerPort(3306).build();
 
         assertEquals("localhost", target.getAgentAttributes().get("server.address"));
+        assertEquals("localhost", target.getAgentAttributes().get("peer.hostname"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
     }
 
@@ -188,6 +190,7 @@ public class SpanEventFactoryTest {
         assertEquals("select", target.getAgentAttributes().get("db.operation"));
         assertEquals("users", target.getAgentAttributes().get("db.sql.table"));
         assertEquals("MySQL", target.getAgentAttributes().get("db.system"));
+        assertEquals("dbserver", target.getAgentAttributes().get("peer.hostname"));
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
