@@ -53,7 +53,7 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setUri(URI.create("https://newrelic.com")).build();
 
         assertEquals("https://newrelic.com", target.getAgentAttributes().get("http.url"));
-        assertEquals("newrelic.com", target.getIntrinsics().get("server.address"));
+        assertEquals("newrelic.com", target.getAgentAttributes().get("server.address"));
         assertNull(target.getAgentAttributes().get("server.port"));
     }
 
@@ -61,8 +61,8 @@ public class SpanEventFactoryTest {
     public void addressShouldBeSet() {
         SpanEvent target = spanEventFactory.setServerAddress("localhost").setServerPort(3306).build();
 
-        assertEquals("localhost", target.getIntrinsics().get("server.address"));
-        assertEquals(3306, target.getIntrinsics().get("server.port"));
+        assertEquals("localhost", target.getAgentAttributes().get("server.address"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
     }
 
     @Test
@@ -185,11 +185,11 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
         assertEquals("database name", target.getAgentAttributes().get("db.instance"));
-        assertEquals("select", target.getIntrinsics().get("db.operation"));
-        assertEquals("users", target.getIntrinsics().get("db.sql.table"));
-        assertEquals("MySQL", target.getIntrinsics().get("db.system"));
-        assertEquals("dbserver", target.getIntrinsics().get("server.address"));
-        assertEquals(3306, target.getIntrinsics().get("server.port"));
+        assertEquals("select", target.getAgentAttributes().get("db.operation"));
+        assertEquals("users", target.getAgentAttributes().get("db.sql.table"));
+        assertEquals("MySQL", target.getAgentAttributes().get("db.system"));
+        assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
     }
 
@@ -255,7 +255,3 @@ public class SpanEventFactoryTest {
         }
     }
 }
-
-
-
-
