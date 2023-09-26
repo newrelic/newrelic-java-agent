@@ -7,10 +7,13 @@
 
 package com.newrelic.agent.service.analytics;
 
+import com.google.common.collect.ImmutableMap;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
+import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
 import org.junit.Test;
@@ -188,6 +191,21 @@ public class SpanEventFactoryTest {
         assertEquals("dbserver", target.getIntrinsics().get("server.address"));
         assertEquals(3306, target.getIntrinsics().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
+    }
+
+    @Test
+    public void shouldSetCLMParameters() {
+        Map<String, Object> agentAttributes = ImmutableMap.of(
+                AttributeNames.CLM_NAMESPACE, "nr",
+                AttributeNames.CLM_FUNCTION, "process",
+                AttributeNames.THREAD_ID, 666
+        );
+
+        SpanEvent target = spanEventFactory.setClmAttributes(agentAttributes).build();
+
+        assertEquals("nr", target.getAgentAttributes().get(AttributeNames.CLM_NAMESPACE));
+        assertEquals("process", target.getAgentAttributes().get(AttributeNames.CLM_FUNCTION));
+        assertEquals(666, target.getAgentAttributes().get(AttributeNames.THREAD_ID));
     }
 
     @Test
