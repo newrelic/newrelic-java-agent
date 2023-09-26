@@ -29,20 +29,77 @@ import java.util.regex.Pattern;
  */
 public class DockerData {
 
-    private static final String FILE_WITH_CONTAINER_ID = "/proc/self/cgroup";
+    private static final String FILE_WITH_CONTAINER_ID_V1 = "/proc/self/cgroup";
+    private static final String FILE_WITH_CONTAINER_ID_V2 = "/proc/self/mountinfo";
     private static final String CPU = "cpu";
 
     private static final Pattern VALID_CONTAINER_ID = Pattern.compile("^[0-9a-f]{64}$");
-    private static final Pattern DOCKER_CONTAINER_STRING = Pattern.compile("^.*[^0-9a-f]+([0-9a-f]{64,}).*");
+    private static final Pattern DOCKER_CONTAINER_STRING_V1 = Pattern.compile("^.*[^0-9a-f]+([0-9a-f]{64,}).*");
+    private static final Pattern DOCKER_CONTAINER_STRING_V2 = Pattern.compile(".*/docker/containers/([0-9a-f]{64,}).*");
 
     public String getDockerContainerId(boolean isLinux) {
         if (isLinux) {
-            File cpuInfoFile;
-            cpuInfoFile = new File(FILE_WITH_CONTAINER_ID);
-            return getDockerIdFromFile(cpuInfoFile);
+            //try to get the container id from the v2 location
+            File containerIdFileV2 = new File(FILE_WITH_CONTAINER_ID_V2);
+            String idResultV2 = cgroupV2GetDockerIdFromFile(containerIdFileV2);
+            if (idResultV2 != null) {
+                return idResultV2;
+            }
+            //try to get container id from the v1 location
+            File containerIdFileV1 = new File(FILE_WITH_CONTAINER_ID_V1);
+            return getDockerIdFromFile(containerIdFileV1);
         }
         return null;
     }
+
+    /*
+    THIS LOGIC IS NOT BEAUTIFUL.
+    IT SHOULD BE REFACTORED.
+     */
+
+    String cgroupV2GetDockerIdFromFile(File mountInfoFile) {
+        if (mountInfoFile.exists() && mountInfoFile.canRead()) {
+            try {
+                return cgroupV2ReadFile(new FileReader(mountInfoFile));
+            } catch (FileNotFoundException e) {
+            }
+        }
+        return null;
+    }
+
+    String cgroupV2ReadFile(Reader reader) {
+        try (BufferedReader bReader = new BufferedReader(reader)) {
+            String line;
+            StringBuilder resultGoesHere = new StringBuilder();
+            while ((line = bReader.readLine()) != null) {
+                //check the first line with the docker/containers/ tag.
+                if (cgroupV2CheckLineAndGetResult(line, resultGoesHere)) {
+                    String value = resultGoesHere.toString().trim();
+                    if (isInvalidDockerValue(value)) {
+                        Agent.LOG.log(Level.WARNING, MessageFormat.format("Failed to validate Docker value {0}", value));
+                        return null;
+                    }
+                    return value;
+                }
+            }
+        } catch (Throwable e) {
+            Agent.LOG.log(Level.FINEST, e, "Exception occurred when reading docker file.");
+        }
+        return null;
+    }
+
+    boolean cgroupV2CheckLineAndGetResult(String line, StringBuilder resultGoesHere) {
+        String[] parts = line.split(" ");
+        if (parts.length >= 4 ) {
+            String mayContainId = parts[3];
+            if (checkAndGetMatch(DOCKER_CONTAINER_STRING_V2, resultGoesHere, mayContainId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //CGROUPS v1 logic
 
     String getDockerIdFromFile(File cpuInfoFile) {
         if (cpuInfoFile.exists() && cpuInfoFile.canRead()) {
@@ -94,7 +151,7 @@ public class DockerData {
         String[] parts = line.split(":");
         if (parts.length == 3 && validCpuLine(parts[1])) {
             String mayContainId = parts[2];
-            if (checkAndGetMatch(DOCKER_CONTAINER_STRING, resultGoesHere, mayContainId)) {
+            if (checkAndGetMatch(DOCKER_CONTAINER_STRING_V1, resultGoesHere, mayContainId)) {
                 return true;
             } else if (!mayContainId.equals("/")) {
                 Agent.LOG.log(Level.FINE, "Docker Data: Ignoring unrecognized cgroup ID format: {0}", mayContainId);
@@ -115,6 +172,7 @@ public class DockerData {
         return false;
     }
 
+    //Get the match for the capture group of a single-capture-group regex expression.
     private boolean checkAndGetMatch(Pattern p, StringBuilder result, String segment) {
         Matcher m = p.matcher(segment);
         if (m.matches() && m.groupCount() == 1) {
