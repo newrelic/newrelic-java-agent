@@ -191,7 +191,7 @@ public class SpanEventFactoryTest {
 
         assertEquals("nr", target.getAgentAttributes().get(AttributeNames.CLM_NAMESPACE));
         assertEquals("process", target.getAgentAttributes().get(AttributeNames.CLM_FUNCTION));
-        assertEquals(666, target.getAgentAttributes().get(AttributeNames.THREAD_ID));
+        assertEquals(666, target.getIntrinsics().get(AttributeNames.THREAD_ID));
     }
 
     @Test
