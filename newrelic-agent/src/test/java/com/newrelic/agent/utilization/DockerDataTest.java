@@ -41,59 +41,59 @@ public class DockerDataTest {
     public void testCheckLineAndGetIdValid() {
         StringBuilder sb = new StringBuilder();
         String line = "4:cpu:/docker/f37a7e4d17017e7bf774656b19ca4360c6cdc4951c86700a464101d0d9ce97ee";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("f37a7e4d17017e7bf774656b19ca4360c6cdc4951c86700a464101d0d9ce97ee", sb.toString());
 
         sb = new StringBuilder();
         line = "3:cpu:/lxc/cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159", sb.toString());
 
         sb = new StringBuilder();
         line = "3:cpu,memory:/lxc/cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159", sb.toString());
 
         sb = new StringBuilder();
         line = "3:cpuacct,cpu:/system.slice/docker-67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f.scope";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f", sb.toString());
 
         sb = new StringBuilder();
         line = "3:cpu:/system.slice/docker-67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f.scope";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f", sb.toString());
 
         sb = new StringBuilder();
         line = "2:cpu:/docker/47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2", sb.toString());
 
         sb = new StringBuilder();
         line = "2:cpu:/47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2", sb.toString());
 
         sb = new StringBuilder();
         line = "2:cpu:/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod917d7891_0d63_11ea_873f_005056993b36.slice/docker-92b21022a0cecd0212c5097aa63ed8248ed832902dbdbb654e6df95e05573646.scope";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("92b21022a0cecd0212c5097aa63ed8248ed832902dbdbb654e6df95e05573646", sb.toString());
 
         sb = new StringBuilder();
         line = "1:cpu:/system.slice/crio-67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f.scope";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f", sb.toString());
 
         //Azure docker container example
         sb = new StringBuilder();
         line = "2:cpu:/containers/f142db3a4219409af324d5481e297545aa33425fb7dc837e68cee93c36062ca8";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("f142db3a4219409af324d5481e297545aa33425fb7dc837e68cee93c36062ca8", sb.toString());
 
         //Azure docker container example
         sb = new StringBuilder();
         line = "11:cpu,cpuacct:/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod4b42abd9_149e_4db2_82f9_d52edd985efe.slice/cri-containerd-d340a98bd7761414d6b3b8fabd2917c74d85155af1477b584bcc4adf4b94eaf1.scope";
-        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
         Assert.assertEquals("d340a98bd7761414d6b3b8fabd2917c74d85155af1477b584bcc4adf4b94eaf1", sb.toString());
     }
 
@@ -105,64 +105,64 @@ public class DockerDataTest {
         sb = new StringBuilder();
         // it should be cpu not cpuacct
         line = "3:cpuacct:/lxc/cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         sb = new StringBuilder();
         // it should be cpu not cpuacct
         line = "3:cpuacct:/cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         sb = new StringBuilder();
         line = "2:cpuset:/docker/47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         sb = new StringBuilder();
         line = "2:cpuset:/47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         sb = new StringBuilder();
         line = "1:hugetlb,perf_event,blkio,freezer,devices,memory,cpuacct,cpu,cpuset:/lxc/b6d196c1-50f2-4949-abdb-5d4909864487";
         // id not grabbed becase of slashes (-)
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         sb = new StringBuilder();
         line = "1:hugetlb,perf_event,blkio,freezer,devices,memory,cpuacct,cpu,cpuset:/b6d196c1-50f2-4949-abdb-5d4909864487";
         // id not grabbed becase of slashes (-)
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         sb = new StringBuilder();
         line = "4:cpu:/lxc/p1";
         // id not grabbed because p not a valid id character
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         sb = new StringBuilder();
         line = "4:cpu:/p1";
         // id not grabbed because p not a valid id character
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = "4:cpu:";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = "4:cpu:";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = "4:cpu:/";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = "5:";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = ":";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = "::";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = "2:,:/";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
 
         line = "2;,;/";
-        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb));
+        Assert.assertFalse(dockerData.checkLineAndGetResult(line, sb, CGroup.V1));
     }
 
     @Test
@@ -224,7 +224,7 @@ public class DockerDataTest {
         // Invalid docker id. Missing characters.
         String invalidDockerId = "47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870";
         StringReader reader = new StringReader("2:cpu:/docker/" + invalidDockerId);
-        Assert.assertNull(dockerData.readFile(reader));
+        Assert.assertNull(dockerData.readFile(reader, CGroup.V1));
     }
 
     @Test
@@ -237,7 +237,7 @@ public class DockerDataTest {
         // Invalid docker id. Missing characters.
         String invalidDockerId = "47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870";
         StringReader reader = new StringReader("2:cpu:/" + invalidDockerId);
-        Assert.assertNull(dockerData.readFile(reader));
+        Assert.assertNull(dockerData.readFile(reader, CGroup.V1));
     }
 
     @Test
@@ -249,7 +249,7 @@ public class DockerDataTest {
         ServiceFactory.setServiceManager(mockServiceManager);
         String validDockerID = "47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2";
         StringReader reader = new StringReader("2:cpu:/docker/" + validDockerID);
-        Assert.assertEquals(validDockerID, dockerData.readFile(reader));
+        Assert.assertEquals(validDockerID, dockerData.readFile(reader, CGroup.V1));
     }
 
     @Test
@@ -259,7 +259,7 @@ public class DockerDataTest {
 
     private void processFile(File file, String answer) {
         System.out.println("Current test file: " + file.getAbsolutePath());
-        String actual = dockerData.getDockerIdFromFile(file);
+        String actual = dockerData.getDockerIdFromFile(file, CGroup.V1);
         Assert.assertEquals("The file " + file.getAbsolutePath() + " should have found " + answer + " but found "
                 + actual, answer, actual);
     }
