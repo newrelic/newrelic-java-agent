@@ -121,7 +121,7 @@ public class SpanEventFactory {
         }
         final Object threadId = agentAttributes.get(AttributeNames.THREAD_ID);
         if (threadId != null) {
-            builder.putAgentAttribute(AttributeNames.THREAD_ID, threadId);
+            builder.putIntrinsic(AttributeNames.THREAD_ID, threadId);
         }
         if (agentAttributes.containsKey(AttributeNames.CLM_NAMESPACE) && agentAttributes.containsKey(AttributeNames.CLM_FUNCTION)) {
             builder.putAgentAttribute(AttributeNames.CLM_NAMESPACE, agentAttributes.get(AttributeNames.CLM_NAMESPACE));
