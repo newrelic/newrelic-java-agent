@@ -17,7 +17,9 @@ import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.util.ExternalsUtil;
+import com.newrelic.agent.util.StackTraces;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.HttpParameters;
@@ -25,6 +27,7 @@ import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -40,6 +43,7 @@ public class SpanEventFactory {
     private static final Joiner TRACE_STATE_VENDOR_JOINER = Joiner.on(",");
     // Truncate `db.statement` at 2000 characters
     private static final int DB_STATEMENT_TRUNCATE_LENGTH = 2000;
+    private static final int MAX_EVENT_ATTRIBUTE_STRING_LENGTH = 4095;
 
     public static final Supplier<Long> DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER = System::currentTimeMillis;
 
@@ -115,9 +119,30 @@ public class SpanEventFactory {
         return this;
     }
 
+    /**
+     * This should be called after the span kind is set.
+     */
+    public SpanEventFactory setStackTraceAttributes(Map<String, Object> agentAttributes) {
+        if (builder.isClientSpan()) {
+            final List<StackTraceElement> stackTraceList = (List<StackTraceElement>) agentAttributes.get(DefaultTracer.BACKTRACE_PARAMETER_NAME);
+            if (stackTraceList != null) {
+                final List<StackTraceElement> preStackTraces = StackTraces.scrubAndTruncate(stackTraceList);
+                final List<String> postParentRemovalTrace = StackTraces.toStringList(preStackTraces);
+
+                putAgentAttribute(AttributeNames.CODE_STACKTRACE, truncateWithEllipsis(
+                        Joiner.on(',').join(postParentRemovalTrace), MAX_EVENT_ATTRIBUTE_STRING_LENGTH));
+            }
+        }
+        return this;
+    }
+
     public SpanEventFactory setClmAttributes(Map<String, Object> agentAttributes) {
         if (agentAttributes == null || agentAttributes.isEmpty()) {
             return this;
+        }
+        final Object threadId = agentAttributes.get(AttributeNames.THREAD_ID);
+        if (threadId != null) {
+            builder.putIntrinsic(AttributeNames.THREAD_ID, threadId);
         }
         if (agentAttributes.containsKey(AttributeNames.CLM_NAMESPACE) && agentAttributes.containsKey(AttributeNames.CLM_FUNCTION)) {
             builder.putAgentAttribute(AttributeNames.CLM_NAMESPACE, agentAttributes.get(AttributeNames.CLM_NAMESPACE));
@@ -129,6 +154,12 @@ public class SpanEventFactory {
     public SpanEventFactory putAllUserAttributes(Map<String, ?> userAttributes) {
         userAttributes = filter.filterUserAttributes(appName, userAttributes);
         builder.putAllUserAttributes(userAttributes);
+        return this;
+    }
+
+
+    public SpanEventFactory putAllUserAttributesIfAbsent(Map<String, ?> userAttributes) {
+        builder.putAllUserAttributesIfAbsent(filter.filterUserAttributes(appName, userAttributes));
         return this;
     }
 
@@ -160,8 +191,7 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setKindFromUserAttributes() {
-        Object spanKind = builder.getSpanKindFromUserAttributes();
-        builder.putIntrinsic("span.kind", spanKind);
+        builder.spanKind(builder.getSpanKindFromUserAttributes());
         return this;
     }
 
