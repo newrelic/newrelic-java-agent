@@ -20,12 +20,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /*
- * Grabs the docker container id from the file /proc/self/cgroup. The lines look something like below:
+ * Grabs the docker container id.
+ * For newer Linux systems running cgroup v2, this is taken from /proc/self/mountinfo. The line should look like:
+ *
+ *   594 576 254:1 /docker/containers/f37a7e4d17017e7bf994656b19ca4360c6cdc4951c86700a464101d0d9ce97ef/hosts /etc/hosts rw,relatime - ext4 /dev/vda1 rw,discard
+ *
+ * For older Linux systems running cgroup v1, this is taken from /proc/self/cgroup. The line should look like:
  *
  *   +4:cpu:/docker/3ccfa00432798ff38f85839de1e396f771b4acbe9f4ddea0a761c39b9790a782
  *
  *   We should grab the "cpu" line. The long id number is the number we want.
- *   This is the full docker id, not the short id that appears when you run a "docker ps".
+ *
+ * In either case, this is the full docker id, not the short id that appears when you run a "docker ps".
  */
 public class DockerData {
 
