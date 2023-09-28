@@ -3,6 +3,7 @@ package com.newrelic.agent.instrumentation.custom;
 import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher;
 import com.newrelic.agent.instrumentation.context.ContextClassTransformer;
 import com.newrelic.agent.instrumentation.context.InstrumentationContext;
+import com.newrelic.agent.util.asm.PatchedClassWriter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -34,7 +35,7 @@ public class ScalaTraitFinalFieldTransformer implements ContextClassTransformer 
 
     LOG.debug("Instrumenting class " + className);
     ClassReader reader = new ClassReader(classfileBuffer);
-    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    ClassWriter writer = new PatchedClassWriter(ClassWriter.COMPUTE_FRAMES, loader);
     ClassVisitor cv = writer;
     cv = new ScalaTraitFinalFieldVisitor(cv, context.getScalaFinalFields());
     reader.accept(cv, ClassReader.SKIP_FRAMES);
