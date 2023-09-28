@@ -91,7 +91,7 @@ public class DockerData {
         return false;
     }
 
-    boolean checkLineAndGetResultV1(String line, StringBuilder resultGoesHere) {
+   private  boolean checkLineAndGetResultV1(String line, StringBuilder resultGoesHere) {
         String[] parts = line.split(":");
         if (parts.length == 3 && validCpuLine(parts[1])) {
             String mayContainId = parts[2];
@@ -103,7 +103,7 @@ public class DockerData {
         }
         return false;
     }
-    boolean checkLineAndGetResultV2(String line, StringBuilder resultGoesHere) {
+    private boolean checkLineAndGetResultV2(String line, StringBuilder resultGoesHere) {
         String[] parts = line.split(" ");
         if (parts.length >= 4 ) {
             String mayContainId = parts[3];
