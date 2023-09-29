@@ -33,9 +33,6 @@ import static org.mockito.Mockito.when;
 public class JarCollectorServiceImplTest {
 
     @Mock
-    public ClassNoticingFactory classNoticingFactory;
-
-    @Mock
     public IRPMService rpmService;
 
     @Captor
@@ -179,7 +176,7 @@ public class JarCollectorServiceImplTest {
                 true,
                 shouldSendAllJars,
                 set,
-                classNoticingFactory
+                mock(ClassToJarPathSubmitter.class)
         );
     }
 

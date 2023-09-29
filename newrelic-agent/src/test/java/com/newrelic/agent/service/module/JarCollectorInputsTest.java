@@ -17,18 +17,18 @@ public class JarCollectorInputsTest {
     @Test
     public void correctInputsWhenEnabled() {
         JarCollectorInputs target = JarCollectorInputs.build(true, mock(JarAnalystFactory.class), mock(ExecutorService.class), mock(Logger.class));
-        assertTrue(target.getClassNoticingFactory() instanceof ClassNoticingFactory);
+        assertTrue(target.getClassToJarPathSubmitter() instanceof ClassToJarPathSubmitterImpl);
         assertTrue(target.getExtensionAnalysisProducer() instanceof ExtensionAnalysisProducer);
-        assertNotSame(ClassMatchVisitorFactory.NO_OP_FACTORY, target.getClassNoticingFactory());
+        assertNotSame(ClassToJarPathSubmitterImpl.NO_OP_INSTANCE, target.getClassToJarPathSubmitter());
         assertNotSame(ExtensionsLoadedListener.NOOP, target.getExtensionAnalysisProducer());
     }
 
     @Test
     public void correctInputsWhenNotEnabled() {
         JarCollectorInputs target = JarCollectorInputs.build(false, mock(JarAnalystFactory.class), mock(ExecutorService.class), mock(Logger.class));
-        assertFalse(target.getClassNoticingFactory() instanceof ClassNoticingFactory);
+        assertFalse(target.getClassToJarPathSubmitter() instanceof ClassToJarPathSubmitterImpl);
         assertFalse(target.getExtensionAnalysisProducer() instanceof ExtensionAnalysisProducer);
-        assertSame(ClassMatchVisitorFactory.NO_OP_FACTORY, target.getClassNoticingFactory());
+        assertSame(ClassToJarPathSubmitterImpl.NO_OP_INSTANCE, target.getClassToJarPathSubmitter());
         assertSame(ExtensionsLoadedListener.NOOP, target.getExtensionAnalysisProducer());
     }
 

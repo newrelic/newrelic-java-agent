@@ -15,6 +15,7 @@ import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher;
 import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldTransformer;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.Utils;
 import org.objectweb.asm.ClassReader;
@@ -63,6 +64,10 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         long transformStartTimeInNs = System.nanoTime();
+
+        //Submit the class for possible analysis from the jar collector
+        submitTransformCandidateToJarCollector(protectionDomain);
+
         try {
             if (className == null) {
                 return null;
@@ -175,4 +180,9 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
         return false;
     }
 
+    private void submitTransformCandidateToJarCollector(ProtectionDomain protectionDomain) {
+        if ((protectionDomain != null) && (protectionDomain.getCodeSource() != null)) {
+            ServiceFactory.getJarCollectorService().getClassToJarPathSubmitter().processUrl(protectionDomain.getCodeSource().getLocation());
+        }
+    }
 }
