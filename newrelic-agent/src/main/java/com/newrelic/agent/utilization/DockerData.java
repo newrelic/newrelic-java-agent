@@ -141,7 +141,9 @@ public class DockerData {
         return false;
     }
 
-    //Get the match for the capture group of a single-capture-group regex expression.
+    /*
+    * Get the match for the capture group of a single-capture-group regex expression.
+     */
     private boolean checkAndGetMatch(Pattern p, StringBuilder result, String segment) {
         Matcher m = p.matcher(segment);
         if (m.matches() && m.groupCount() == 1) {
@@ -150,74 +152,6 @@ public class DockerData {
         }
         return false;
     }
-
-    //CGROUPS v1 logic
-
-//    String getDockerIdFromFile(File cpuInfoFile) {
-//        if (cpuInfoFile.exists() && cpuInfoFile.canRead()) {
-//            try {
-//                return readFile(new FileReader(cpuInfoFile));
-//            } catch (FileNotFoundException e) {
-//            }
-//        }
-//        return null;
-//    }
-
-    /*
-     * protected for testing.
-     *
-     * Returns the docker id as a string, or null if this value could not be read, or failed validation.
-//     */
-//    String readFile(Reader reader) {
-//        try (BufferedReader bReader = new BufferedReader(reader)) {
-//
-//            String line;
-//            StringBuilder resultGoesHere = new StringBuilder();
-//            while ((line = bReader.readLine()) != null) {
-//                if (checkLineAndGetResult(line, resultGoesHere)) {
-//                    String value = resultGoesHere.toString().trim();
-//                    if (isInvalidDockerValue(value)) {
-//                        Agent.LOG.log(Level.WARNING, MessageFormat.format("Failed to validate Docker value {0}", value));
-//                        return null;
-//                    }
-//                    return value;
-//                }
-//            }
-//        } catch (Throwable e) {
-//            Agent.LOG.log(Level.FINEST, e, "Exception occurred when reading docker file.");
-//        }
-//        return null;
-//    }
-    //    String cgroupV2GetDockerIdFromFile(File mountInfoFile) {
-//        if (mountInfoFile.exists() && mountInfoFile.canRead()) {
-//            try {
-//                return cgroupV2ReadFile(new FileReader(mountInfoFile));
-//            } catch (FileNotFoundException e) {
-//            }
-//        }
-//        return null;
-//    }
-//
-//    String cgroupV2ReadFile(Reader reader) {
-//        try (BufferedReader bReader = new BufferedReader(reader)) {
-//            String line;
-//            StringBuilder resultGoesHere = new StringBuilder();
-//            while ((line = bReader.readLine()) != null) {
-//                //check the first line with the docker/containers/ tag.
-//                if (cgroupV2CheckLineAndGetResult(line, resultGoesHere)) {
-//                    String value = resultGoesHere.toString().trim();
-//                    if (isInvalidDockerValue(value)) {
-//                        Agent.LOG.log(Level.WARNING, MessageFormat.format("Failed to validate Docker value {0}", value));
-//                        return null;
-//                    }
-//                    return value;
-//                }
-//            }
-//        } catch (Throwable e) {
-//            Agent.LOG.log(Level.FINEST, e, "Exception occurred when reading docker file.");
-//        }
-//        return null;
-//    }
 
 
 }
