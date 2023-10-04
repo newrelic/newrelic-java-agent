@@ -447,6 +447,17 @@ public class NewRelicApiImplementationTest {
     }
 
     @Test
+    public void setUserId_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setUserId("instance");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_USER_ID));
+        }
+    }
+
+    @Test
     public void setErrorGroupCallback_setsCallback() {
         mockOutServices();
         NewRelicApiImplementation target = new NewRelicApiImplementation();
