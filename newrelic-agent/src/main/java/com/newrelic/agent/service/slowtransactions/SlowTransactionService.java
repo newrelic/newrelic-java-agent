@@ -21,17 +21,14 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class SlowTransactionService extends AbstractService implements ExtendedTransactionListener, HarvestListener {
 
     private final ConcurrentHashMap<String, Transaction> openTransactions = new ConcurrentHashMap<>();
-    private final Set<String> previouslyReportedTransactions = new HashSet<>();
     private final ThreadMXBean threadMXBean;
 
     private final boolean isEnabled;
@@ -95,7 +92,6 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
             getLogger().finest("Transaction cancelled with guid " + transaction.getGuid());
         }
         openTransactions.remove(transaction.getGuid());
-        previouslyReportedTransactions.remove(transaction.getGuid());
     }
 
     @Override
@@ -104,17 +100,11 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
             getLogger().finest("Transaction finished with guid " + transactionData.getGuid());
         }
         openTransactions.remove(transactionData.getGuid());
-        previouslyReportedTransactions.remove(transactionData.getGuid());
     }
 
     // Visible for testing
     Map<String, Transaction> getOpenTransactions() {
         return Collections.unmodifiableMap(openTransactions);
-    }
-
-    // Visible for testing
-    Set<String> getPreviouslyReportedTransactions() {
-        return Collections.unmodifiableSet(previouslyReportedTransactions);
     }
 
     @Override
@@ -136,11 +126,6 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
 
         // Identify the slowest open transaction we haven't yet reported
         for (Transaction transaction : openTransactions.values()) {
-            // Ignore previously reported transactions
-            if (previouslyReportedTransactions.contains(transaction.getGuid())) {
-                continue;
-            }
-
             long openMs = System.currentTimeMillis() - transaction.getWallClockStartTimeMs();
             if (openMs > slowestOpenMillis) {
                 slowestOpen = transaction;
@@ -171,12 +156,9 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
                             DistributedTraceServiceImpl.nextTruncatedFloat()));
             //insightsService.recordCustomEvent("SlowTransaction", attributes);
         }
-        addReportedTransaction(guid);
-    }
-
-    // Visible for testing
-    void addReportedTransaction(String guid) {
-        previouslyReportedTransactions.add(guid);
+        // Remove from openTransactions to ensure we don't report the same Transaction
+        // multiple times
+        openTransactions.remove(guid);
     }
 
     // Visible for testing

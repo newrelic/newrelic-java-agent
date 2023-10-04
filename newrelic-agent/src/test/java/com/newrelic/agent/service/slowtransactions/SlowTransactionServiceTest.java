@@ -3,7 +3,6 @@ package com.newrelic.agent.service.slowtransactions;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.IRPMService;
-import com.newrelic.agent.RPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
@@ -148,26 +147,18 @@ public class SlowTransactionServiceTest {
         // Start t1, verify added to open
         service.dispatcherTransactionStarted(t1);
         assertEquals(ImmutableMap.of(t1Guid, t1), service.getOpenTransactions());
-        assertEquals(Collections.emptySet(), service.getPreviouslyReportedTransactions());
 
         // Start t2, verify added to open
         service.dispatcherTransactionStarted(t2);
         assertEquals(ImmutableMap.of(t1Guid, t1, t2Guid, t2), service.getOpenTransactions());
-        assertEquals(Collections.emptySet(), service.getPreviouslyReportedTransactions());
 
-        // Add t1 and t2 to set of previously reported
-        service.addReportedTransaction(t1Guid);
-        service.addReportedTransaction(t2Guid);
-
-        // Cancel t1, verify removed from open and previously reported
+        // Cancel t1, verify removed from open
         service.dispatcherTransactionCancelled(t1);
         assertEquals(ImmutableMap.of(t2Guid, t2), service.getOpenTransactions());
-        assertEquals(Collections.singleton(t2Guid), service.getPreviouslyReportedTransactions());
 
-        // Finish t2, verify removed from open and previously reported
+        // Finish t2, verify removed from open
         service.dispatcherTransactionFinished(t2Data, mock(TransactionStats.class));
         assertEquals(Collections.emptyMap(), service.getOpenTransactions());
-        assertEquals(Collections.emptySet(), service.getPreviouslyReportedTransactions());
     }
 
     @Test
@@ -190,7 +181,7 @@ public class SlowTransactionServiceTest {
         service.run();
 
         verify(insightsService, never()).recordCustomEvent(any(), any());
-        assertEquals(Collections.emptySet(), service.getPreviouslyReportedTransactions());
+        assertEquals(ImmutableMap.of(t1Guid, t1, t2Guid, t2), service.getOpenTransactions());
     }
 
     @Test
