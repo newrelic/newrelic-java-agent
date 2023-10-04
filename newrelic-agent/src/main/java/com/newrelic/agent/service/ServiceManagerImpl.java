@@ -71,7 +71,7 @@ import com.newrelic.agent.service.module.JarCollectorServiceImpl;
 import com.newrelic.agent.service.module.JarCollectorServiceProcessor;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.service.module.TrackedAddSet;
-import com.newrelic.agent.slowtransactions.SlowTransactionService;
+import com.newrelic.agent.service.slowtransactions.SlowTransactionService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.stats.StatsEngine;
@@ -280,7 +280,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         harvestService.addHarvestListener(extensionService);
         harvestService.addHarvestListener(jarCollectorHarvestListener);
 
-        slowTransactionService = new SlowTransactionService();
+        slowTransactionService = new SlowTransactionService(config);
 
         asyncTxService.start();
         threadService.start();
