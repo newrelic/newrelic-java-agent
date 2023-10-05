@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">8.424s</div>
+<div class="counter">3.509s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,57 +79,57 @@
 </thead>
 <tr>
 <td class="success">testValidateFileInDistributedZIP</td>
-<td class="success">2.645s</td>
+<td class="success">1.159s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationClasses</td>
-<td class="success">0.054s</td>
+<td class="success">0.021s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationConstructor</td>
-<td class="success">0.096s</td>
+<td class="success">0.041s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationDuplicates</td>
-<td class="success">0.144s</td>
+<td class="success">0.061s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationInnerClass</td>
-<td class="success">0.051s</td>
+<td class="success">0.025s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationInterfaces</td>
-<td class="success">0.018s</td>
+<td class="success">0.009s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testValidateInstrumentationStatic</td>
-<td class="success">0.172s</td>
+<td class="success">0.067s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">validateInstrumentation_shouldCatch_Exceptions</td>
-<td class="success">0.029s</td>
+<td class="success">0.019s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">validateInstrumentation_shouldFail_noCmdLineParams</td>
-<td class="success">0.001s</td>
+<td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">validateInstrumentation_shouldFail_noFileInCmdLineParams</td>
-<td class="success">0.027s</td>
+<td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">validateInstrumentation_shouldPass_validCmdLineParams</td>
-<td class="success">5.187s</td>
+<td class="success">2.100s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -138,10 +138,10 @@
 <h2>Standard output</h2>
 <span class="code">
 <pre>Matched Method: validateAndAddParameter (Lcom/newrelic/agent/xml/XmlInstrumentParams;[Ljava/lang/String;Ljava/lang/String;)V
-Matched Method: getFlagName ()Ljava/lang/String;
 Matched Method: isArgRequired ()Z
-Matched Method: createExactParamsMethodMatcher (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher;
+Matched Method: getFlagName ()Ljava/lang/String;
 Matched Method: matches (ILjava/lang/String;Ljava/lang/String;Ljava/util/Set;)Z
+Matched Method: createExactParamsMethodMatcher (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher;
 Xml was successfully read. Starting processing.
 Found the method startElement from the xml in the list of class methods. Checking method parameters.
 Matched Method: startElement (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V
@@ -162,16 +162,16 @@ Found the method createExactParamsMethodMatcher from the xml in the list of clas
 Descriptors for method createExactParamsMethodMatcher did not match. Xml descriptor: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;), Method descriptor: (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher; 
 Xml was successfully read. Starting processing.
 Xml was successfully read. Starting processing.
-2023-09-29T18:09:26,706+0000 [65085 1] com.newrelic WARN: Method setAsciiStream has already been added to a point cut and will not be added again.
+2023-10-05T21:40:20,793+0000 [66610 1] com.newrelic WARN: Method setAsciiStream has already been added to a point cut and will not be added again.
 Xml was successfully read. Starting processing.
 Found the method setInstrumentation from the xml in the list of class methods. Checking method parameters.
 Matched Method: setInstrumentation (Lcom/newrelic/agent/extension/beans/Extension$Instrumentation;)V
+Found the method main from the xml in the list of class methods. Checking method parameters.
+Matched Method: main ([Ljava/lang/String;)V
 Found the method initVersion from the xml in the list of class methods. Checking method parameters.
 Matched Method: initVersion ()Ljava/lang/String;
 Found the method continuePremain from the xml in the list of class methods. Checking method parameters.
 Matched Method: continuePremain (Ljava/lang/String;Ljava/lang/instrument/Instrumentation;J)V
-Found the method main from the xml in the list of class methods. Checking method parameters.
-Matched Method: main ([Ljava/lang/String;)V
 </pre>
 </span>
 </div>
@@ -183,7 +183,7 @@ Matched Method: main ([Ljava/lang/String;)V
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Sep 29, 2023 6:12:50 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Oct 5, 2023 9:40:23 PM</p>
 </div>
 </div>
 </body>
