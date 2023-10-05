@@ -3,9 +3,6 @@
 This describes the basic behavior of an async request made using the Jetty Continuations or
 Servlet async API with Jetty as the dispatcher
 
-
-To be clear, we do not instrument the continuations API and we have no idea if undispatch is being called, we simply keep track of state based on what Jetty is doing with the request, what the AsyncContext being passed across threads tells us, and what notifications the AsyncListener we registered gets about the result of the async operation.
-
 ## Request Flow
 
 The basic flow of an async request using continuations/async servlet API and being handled by Jetty is something like this:
