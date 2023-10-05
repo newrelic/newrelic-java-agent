@@ -119,11 +119,11 @@ public class InfiniteTracing implements Consumer<SpanEvent> {
         return new InfiniteTracing(config, aggregator, executorService, new LinkedBlockingDeque<SpanEvent>(config.getMaxQueueSize()));
     }
 
-    private static class DaemonThreadFactory implements ThreadFactory {
+    static class DaemonThreadFactory implements ThreadFactory {
         private final String serviceName;
         private final AtomicInteger counter = new AtomicInteger(0);
 
-        private DaemonThreadFactory(String serviceName) {
+        DaemonThreadFactory(String serviceName) {
             this.serviceName = serviceName;
         }
 

@@ -26,3 +26,9 @@ site {
     title 'Servlet'
     type 'Framework'
 }
+
+test {
+    onlyIf {
+        !project.hasProperty('test8')
+    }
+}

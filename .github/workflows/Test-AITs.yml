@@ -64,7 +64,6 @@ jobs:
           echo "framework/play/play2.py" >> $excluded_tests
           echo "framework/snap/snap.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
-          echo "r2dbc/oracle.py" >> $excluded_tests
           echo "server/mule.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
           # The files below are not tests
@@ -169,19 +168,29 @@ jobs:
           mv appcache3/* apps/
           mv appcache4/* apps/
 
+      # looks like docker is not properly sanitized between runs in GHA
+      # so its disk space may be pilling up and blows up during our tests
+      - name: Clean Docker image data
+        run: docker rmi $(docker images -q)
+
       ## JDK Installs
 
       # Install Zulu
-      - name: Set up Zulu
+      - name: Set up Zulu versions
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: |
+            20
+            17
+            11
 
-      # Set the JDK variable
-      - name: Set the required JDK variable
+      # Set the JDK variables for Zulu
+      - name: Set the JDK variables for Zulu
         run: |
-          echo "ORG_GRADLE_PROJECT_zulu=${JAVA_HOME}" >> $GITHUB_ENV
+          echo "JDK_zulu_11=${JAVA_HOME_11_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_17=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_20=${JAVA_HOME_20_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
         uses: actions/setup-java@v3
@@ -247,8 +256,7 @@ jobs:
       # Replication of steps from ait README
 
       - name: CD to agent-integration-tests dir.
-        run: |
-          cd agent-integration-tests/
+        run: cd agent-integration-tests/
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
@@ -264,7 +272,9 @@ jobs:
           virtualenv -p /usr/bin/python3.8 .
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
-          ZULU=${ORG_GRADLE_PROJECT_zulu} \
+          ZULU11=${JDK_zulu_11} \
+          ZULU17=${JDK_zulu_17} \
+          ZULU20=${JDK_zulu_20} \
           JAVA8JRE=${JAVA_HOME_8_X64} \
           JAVA11JRE=${JAVA_HOME_11_X64} \
           JAVA17JRE=${JAVA_HOME_17_X64} \
