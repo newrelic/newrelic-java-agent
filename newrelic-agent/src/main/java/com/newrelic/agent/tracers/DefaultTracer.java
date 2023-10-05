@@ -67,9 +67,6 @@ public class DefaultTracer extends AbstractTracer {
     public static final int DEFAULT_TRACER_FLAGS = TracerFlags.TRANSACTION_TRACER_SEGMENT
             | TracerFlags.GENERATE_SCOPED_METRIC;
 
-    private static final String COMPONENT_PARAMETER_NAME = "component";
-    private static final String HTTP_METHOD_PARAMETER_NAME = "http.method";
-
     private final long startTime;
     private final long timestamp;
     private long duration;
@@ -290,6 +287,7 @@ public class DefaultTracer extends AbstractTracer {
             }
 
             try {
+                setAgentAttribute(AttributeNames.THREAD_ID, getTransactionActivity().getThreadId());
                 if (classMethodSignature != null && getTransaction() != null &&
                         ServiceFactory.getConfigService().getDefaultAgentConfig().getCodeLevelMetricsConfig().isEnabled()) {
                     String className = classMethodSignature.getClassName();
@@ -712,9 +710,9 @@ public class DefaultTracer extends AbstractTracer {
         String uriStr = uri == null ? ExternalMetrics.UNKNOWN_HOST : uri.toString();
 
         String library = externalParameters.getLibrary();
-        setAgentAttribute(COMPONENT_PARAMETER_NAME, library);
+        setAgentAttribute(AttributeNames.COMPONENT, library);
         String procedure = externalParameters.getProcedure();
-        setAgentAttribute(HTTP_METHOD_PARAMETER_NAME, procedure);
+        setAgentAttribute(AttributeNames.HTTP_METHOD, procedure);
 
         ExternalMetrics.makeExternalComponentTrace(transaction.isWebTransaction(), this, host, library, true,
                 uriStr, procedure);

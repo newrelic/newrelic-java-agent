@@ -113,7 +113,7 @@ public class BootstrapAgent {
         }
 
         checkAndApplyIBMLibertyProfileLogManagerWorkaround();
-        JbossUtils.checkAndApplyJbossAdjustments(inst);
+        new JbossUtils().checkAndApplyJbossAdjustments(inst);
         startAgent(agentArgs, inst);
     }
 
@@ -285,7 +285,7 @@ public class BootstrapAgent {
         System.out.println("----------");
         System.out.println(JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(javaSpecVersion));
         System.out.println("Experimental runtime mode is enabled. Usage of the agent in this mode is for experimenting with early access" +
-                " or upcoming Java releases or at your own risk.");
+                " or upcoming Java releases at your own risk.");
         System.out.println("----------");
     }
 

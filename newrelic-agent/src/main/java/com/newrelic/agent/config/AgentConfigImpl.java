@@ -800,8 +800,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             securityExcludes.add("java/util/zip/InflaterInputStream");
             securityExcludes.add("java/util/zip/ZipFile$ZipFileInputStream");
             securityExcludes.add("java/util/zip/ZipFile$ZipFileInflaterInputStream");
-            securityExcludes.add("com/newrelic/.*");
-            securityExcludes.add("com/nr/.*");
+            securityExcludes.add("com/newrelic/api/agent/security/.*");
+            securityExcludes.add("com/newrelic/agent/security/.*");
 
             Object userProvidedExcludes = props.get(ClassTransformerConfigImpl.EXCLUDES);
             if (userProvidedExcludes instanceof String) {

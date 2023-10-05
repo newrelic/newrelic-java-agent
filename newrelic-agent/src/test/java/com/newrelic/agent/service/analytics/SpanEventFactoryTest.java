@@ -7,21 +7,30 @@
 
 package com.newrelic.agent.service.analytics;
 
+import com.google.common.collect.ImmutableMap;
+import com.newrelic.agent.MockConfigService;
+import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.attributes.AttributeNames;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
+import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
 import static com.newrelic.agent.service.analytics.SpanEventFactory.DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -174,6 +183,36 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
         assertEquals("database name", target.getIntrinsics().get("db.instance"));
+    }
+
+    @Test
+    public void shouldStoreStackTrace() {
+        SpanEventFactory spanEventFactory = new SpanEventFactory("MyApp", new AttributeFilter.PassEverythingAttributeFilter(),
+                DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+        spanEventFactory.setKindFromUserAttributes();
+        MockServiceManager serviceManager = new MockServiceManager();
+        serviceManager.setConfigService(new MockConfigService(mock(AgentConfig.class)));
+        ServiceFactory.setServiceManager(serviceManager);
+        spanEventFactory.setStackTraceAttributes(
+                ImmutableMap.of(DefaultTracer.BACKTRACE_PARAMETER_NAME, Arrays.asList(Thread.currentThread().getStackTrace())));
+
+        final Object stackTrace = spanEventFactory.build().getAgentAttributes().get(AttributeNames.CODE_STACKTRACE);
+        assertNotNull(stackTrace);
+    }
+
+    @Test
+    public void shouldSetCLMParameters() {
+        Map<String, Object> agentAttributes = ImmutableMap.of(
+                AttributeNames.CLM_NAMESPACE, "nr",
+                AttributeNames.CLM_FUNCTION, "process",
+                AttributeNames.THREAD_ID, 666
+        );
+
+        SpanEvent target = spanEventFactory.setClmAttributes(agentAttributes).build();
+
+        assertEquals("nr", target.getAgentAttributes().get(AttributeNames.CLM_NAMESPACE));
+        assertEquals("process", target.getAgentAttributes().get(AttributeNames.CLM_FUNCTION));
+        assertEquals(666, target.getIntrinsics().get(AttributeNames.THREAD_ID));
     }
 
     @Test
