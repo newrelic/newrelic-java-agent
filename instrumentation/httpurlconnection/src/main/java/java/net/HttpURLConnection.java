@@ -57,7 +57,8 @@ public abstract class HttpURLConnection extends URLConnection {
 
     // This can be called to write data over the wire in a fire and forget manner without inspecting the response. There's
     // no guarantee or requirement that another method (e.g. getInputStream) will be called to get the results or response code.
-    // Calling this alone should be considered as a valid external call.
+    // Though it is not guaranteed that a call to this method will fire the external call and if it does there is no correlation
+    // between this method's call to the start or length of the external call.
     @Trace(leaf=true)
     public synchronized OutputStream getOutputStream() throws IOException {
         lazyGetMetricState().nonNetworkPreamble(connected, this);
@@ -130,7 +131,6 @@ public abstract class HttpURLConnection extends URLConnection {
         metricState.inboundPostamble(this, responseCode, responseMessageValue, GET_RESPONSE_MSG, method);
         return responseMessageValue;
     }
-
 
     public abstract String getHeaderField(String name);
 
