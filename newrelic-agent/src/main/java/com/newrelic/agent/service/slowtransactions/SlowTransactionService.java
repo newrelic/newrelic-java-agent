@@ -2,6 +2,7 @@ package com.newrelic.agent.service.slowtransactions;
 
 import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.HarvestListener;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.config.AgentConfig;
@@ -14,6 +15,7 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.util.StackTraces;
+import com.newrelic.api.agent.NewRelic;
 
 import javax.annotation.Nullable;
 import java.lang.management.ManagementFactory;
@@ -50,6 +52,10 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
         this.thresholdMillis = slowTransactionsConfig.getThresholdMillis();
         this.maxStackTraceLines = agentConfig.getMaxStackTraceLines();
         this.threadMXBean = threadMXBean;
+
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(
+                agentConfig.getSlowTransactionsConfig().isEnabled() ?
+                        MetricNames.SUPPORTABILITY_SLOW_TXN_DETECTION_ENABLED : MetricNames.SUPPORTABILITY_SLOW_TXN_DETECTION_DISABLED);
     }
 
     @Override
