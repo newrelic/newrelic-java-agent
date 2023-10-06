@@ -157,6 +157,7 @@ public class SpanEventFactory {
         return this;
     }
 
+
     public SpanEventFactory putAllUserAttributesIfAbsent(Map<String, ?> userAttributes) {
         builder.putAllUserAttributesIfAbsent(filter.filterUserAttributes(appName, userAttributes));
         return this;
@@ -204,6 +205,10 @@ public class SpanEventFactory {
             final URI sanitizedURI = ExternalsUtil.sanitizeURI(uri);
             if (sanitizedURI != null) {
                 builder.putAgentAttribute("http.url", sanitizedURI.toString());
+                setServerAddress(sanitizedURI.getHost());
+                if (sanitizedURI.getPort() > 0) {
+                    setServerPort(sanitizedURI.getPort());
+                }
             }
         }
         return this;
@@ -238,19 +243,13 @@ public class SpanEventFactory {
 
     // datastore parameter
     public SpanEventFactory setDatabaseName(String databaseName) {
-        builder.putIntrinsic("db.instance", databaseName);
+        builder.putAgentAttribute("db.instance", databaseName);
         return this;
     }
 
     // datastore parameter
     public SpanEventFactory setDatastoreComponent(String component) {
-        builder.putIntrinsic("component", component);
-        return this;
-    }
-
-    // datastore parameter
-    public SpanEventFactory setHostName(String host) {
-        builder.putIntrinsic("peer.hostname", host);
+        builder.putAgentAttribute("db.system", component);
         return this;
     }
 
@@ -258,22 +257,39 @@ public class SpanEventFactory {
     public SpanEventFactory setAddress(String hostName, String portPathOrId) {
         if (portPathOrId != null && hostName != null) {
             String address = MessageFormat.format("{0}:{1}", hostName, portPathOrId);
-            builder.putIntrinsic("peer.address", address);
+            builder.putAgentAttribute("peer.address", address);
         }
+        return this;
+    }
+
+    public SpanEventFactory setServerAddress(String host) {
+        builder.putAgentAttribute("server.address", host);
+        builder.putAgentAttribute("peer.hostname", host);
+        return this;
+    }
+
+    public SpanEventFactory setServerPort(int port) {
+        builder.putAgentAttribute("server.port", port);
         return this;
     }
 
     // datastore parameter
     public SpanEventFactory setDatabaseStatement(String query) {
         if (query != null) {
-            builder.putIntrinsic("db.statement", truncateWithEllipsis(query, DB_STATEMENT_TRUNCATE_LENGTH));
+            builder.putAgentAttribute("db.statement", truncateWithEllipsis(query, DB_STATEMENT_TRUNCATE_LENGTH));
         }
         return this;
     }
 
     // datastore parameter
     private SpanEventFactory setDatabaseCollection(String collection) {
-        builder.putIntrinsic("db.collection", collection);
+        builder.putAgentAttribute("db.collection", collection);
+        return this;
+    }
+
+    // datastore parameter
+    private SpanEventFactory setDatabaseOperation(String operation) {
+        builder.putAgentAttribute("db.operation", operation);
         return this;
     }
 
@@ -354,8 +370,12 @@ public class SpanEventFactory {
             setDatastoreComponent(datastoreParameters.getProduct());
             setDatabaseName(datastoreParameters.getDatabaseName());
             setDatabaseCollection(datastoreParameters.getCollection());
-            setHostName(datastoreParameters.getHost());
+            setDatabaseOperation(datastoreParameters.getOperation());
+            setServerAddress(datastoreParameters.getHost());
             setKindFromUserAttributes();
+            if (datastoreParameters.getPort() != null) {
+                setServerPort(datastoreParameters.getPort());
+            }
             if (datastoreParameters instanceof SlowQueryDatastoreParameters) {
                 SlowQueryDatastoreParameters<?> queryDatastoreParameters = (SlowQueryDatastoreParameters<?>) datastoreParameters;
                 setDatabaseStatement(determineObfuscationLevel(queryDatastoreParameters));
@@ -387,4 +407,3 @@ public class SpanEventFactory {
         return builder.build();
     }
 }
-
