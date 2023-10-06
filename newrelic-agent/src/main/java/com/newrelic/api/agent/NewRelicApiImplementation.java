@@ -298,6 +298,7 @@ public class NewRelicApiImplementation implements PublicApi {
      */
     @Override
     public void setUserId(String userId) {
+        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_USER_ID);
         if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
             return;
         }
