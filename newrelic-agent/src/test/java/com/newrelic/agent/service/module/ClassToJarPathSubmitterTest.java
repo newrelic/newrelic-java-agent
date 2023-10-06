@@ -21,23 +21,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-public class ClassNoticingFactoryTest {
+public class ClassToJarPathSubmitterTest {
     @Test
-    public void noticingJunit() throws IOException {
+    public void detectJunitLocation() throws IOException {
         ExecutorService executorService = mock(ExecutorService.class);
 
         JarAnalystFactory factory = mock(JarAnalystFactory.class);
         when(factory.createURLAnalyzer(any(URL.class))).thenReturn(mock(Runnable.class));
 
-        ClassNoticingFactory target = new ClassNoticingFactory(factory, executorService, new TestLogger());
-
-        target.newClassMatchVisitor(
-                Test.class.getClassLoader(),
-                Test.class,
-                new ClassReader("org.junit.Test"),
-                new ClassWriter(0),
-                new InstrumentationContext(null, Test.class, Test.class.getProtectionDomain())
-        );
+        ClassToJarPathSubmitter classToJarPathSubmitter = new ClassToJarPathSubmitterImpl(factory, executorService, new TestLogger());
+        InstrumentationContext ic = new InstrumentationContext(null, Test.class, Test.class.getProtectionDomain());
+        classToJarPathSubmitter.processUrl(ic.getCodeSourceLocation());
 
         ArgumentCaptor<URL> captor = ArgumentCaptor.forClass(URL.class);
         verify(factory, times(1)).createURLAnalyzer(captor.capture());
@@ -47,21 +41,15 @@ public class ClassNoticingFactoryTest {
     }
 
     @Test
-    public void noticingTestClass() throws IOException {
+    public void detectTestClassLocation() throws IOException {
         ExecutorService executorService = mock(ExecutorService.class);
 
         JarAnalystFactory factory = mock(JarAnalystFactory.class);
         when(factory.createURLAnalyzer(any(URL.class))).thenReturn(mock(Runnable.class));
 
-        ClassNoticingFactory target = new ClassNoticingFactory(factory, executorService, new TestLogger());
-
-        target.newClassMatchVisitor(
-                this.getClass().getClassLoader(),
-                this.getClass(),
-                new ClassReader(this.getClass().getName()),
-                new ClassWriter(0),
-                new InstrumentationContext(null, this.getClass(), this.getClass().getProtectionDomain())
-        );
+        ClassToJarPathSubmitter classToJarPathSubmitter = new ClassToJarPathSubmitterImpl(factory, executorService, new TestLogger());
+        InstrumentationContext ic = new InstrumentationContext(null, this.getClass(), this.getClass().getProtectionDomain());
+        classToJarPathSubmitter.processUrl(ic.getCodeSourceLocation());
 
         String codeSourceLocation = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString();
         if (codeSourceLocation.endsWith("/")) {
@@ -80,11 +68,11 @@ public class ClassNoticingFactoryTest {
         JarAnalystFactory factory = mock(JarAnalystFactory.class);
         when(factory.createURLAnalyzer(any(URL.class))).thenReturn(mock(Runnable.class));
 
-        ClassNoticingFactory target = new ClassNoticingFactory(factory, executorService, new TestLogger());
+        ClassToJarPathSubmitter classToJarPathSubmitter = new ClassToJarPathSubmitterImpl(factory, executorService, new TestLogger());
 
-        target.addURL(new URL(
+        classToJarPathSubmitter.processUrl(new URL(
                 "file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.1.jar!/org/apache/commons/httpclient/HttpVersion.class"));
-        target.addURL(new URL(
+        classToJarPathSubmitter.processUrl(new URL(
                 "file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.1.jar!/org/apache/commons/httpclient/Dude.class"));
 
         verify(factory, times(1)).createURLAnalyzer(new URL("file:/Users/roger/webapps/java_test_webapp/WEB-INF/lib/commons-httpclient-3.1.jar"));
@@ -98,10 +86,10 @@ public class ClassNoticingFactoryTest {
         JarAnalystFactory factory = mock(JarAnalystFactory.class);
         when(factory.createURLAnalyzer(any(URL.class))).thenReturn(mock(Runnable.class));
 
-        ClassNoticingFactory target = new ClassNoticingFactory(factory, executorService, new TestLogger());
+        ClassToJarPathSubmitter classToJarPathSubmitter = new ClassToJarPathSubmitterImpl(factory, executorService, new TestLogger());
 
         // jboss sends us complex urls like this
-        target.addURL(new URL(
+        classToJarPathSubmitter.processUrl(new URL(
                 "jar:file:/Users/sdaubin/servers/jboss-as-7.1.1.Final/modules/org/apache/xerces/main/xercesImpl-2.9.1-jbossas-1.jar!/"));
 
         verify(factory, times(1)).createURLAnalyzer(new URL("file:/Users/sdaubin/servers/jboss-as-7.1.1.Final/modules/org/apache/xerces/main/xercesImpl-2.9.1-jbossas-1.jar"));

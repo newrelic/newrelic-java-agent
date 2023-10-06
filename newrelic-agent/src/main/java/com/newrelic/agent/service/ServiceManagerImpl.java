@@ -186,9 +186,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         JarCollectorInputs jarCollectorInputs = JarCollectorInputs.build(jarCollectorEnabled, jarAnalystFactory, executorService, jarCollectorLogger);
 
-        jarCollectorService = new JarCollectorServiceImpl(
-                jarCollectorLogger, jarCollectorEnabled, shouldSendAllJars, analyzedJars, jarCollectorInputs.getClassNoticingFactory()
-        );
+        jarCollectorService = new JarCollectorServiceImpl(jarCollectorLogger, jarCollectorEnabled, shouldSendAllJars, analyzedJars,
+                jarCollectorInputs.getClassToJarPathSubmitter());
 
         extensionService = new ExtensionService(configService, jarCollectorInputs.getExtensionAnalysisProducer());
 

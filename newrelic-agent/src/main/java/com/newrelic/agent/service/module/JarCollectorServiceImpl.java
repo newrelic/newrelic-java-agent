@@ -31,8 +31,7 @@ public class JarCollectorServiceImpl extends AbstractService implements JarColle
     private final boolean enabled;
     private final AtomicBoolean shouldSendAllJars;
     private final TrackedAddSet<JarData> analyzedJars;
-    private final ClassMatchVisitorFactory classMatchVisitorFactory;
-
+    private final ClassToJarPathSubmitter classToJarPathSubmitter;
     private volatile List<JarData> jarsNotSentLastHarvest = Collections.emptyList();
 
     public JarCollectorServiceImpl(
@@ -40,13 +39,13 @@ public class JarCollectorServiceImpl extends AbstractService implements JarColle
             boolean enabled,
             AtomicBoolean shouldSendAllJars,
             TrackedAddSet<JarData> analyzedJars,
-            ClassMatchVisitorFactory classNoticingFactory) {
+            ClassToJarPathSubmitter classToJarPathSubmitter) {
         super(JarCollectorService.class.getSimpleName());
 
         this.shouldSendAllJars = shouldSendAllJars;
         this.analyzedJars = analyzedJars;
         this.logger = logger;
-        this.classMatchVisitorFactory = classNoticingFactory;
+        this.classToJarPathSubmitter = classToJarPathSubmitter;
         this.enabled = enabled;
 
         if (JarCollectorConfigImpl.isUsingDeprecatedConfigSettings()) {
@@ -61,11 +60,6 @@ public class JarCollectorServiceImpl extends AbstractService implements JarColle
     @Override
     public final boolean isEnabled() {
         return enabled;
-    }
-
-    @Override
-    public ClassMatchVisitorFactory getSourceVisitor() {
-        return classMatchVisitorFactory;
     }
 
     @Override
@@ -100,6 +94,10 @@ public class JarCollectorServiceImpl extends AbstractService implements JarColle
         }
     }
 
+    @Override
+    public ClassToJarPathSubmitter getClassToJarPathSubmitter() {
+        return classToJarPathSubmitter;
+    }
 
     private List<JarData> getJars() {
         if (shouldSendAllJars.getAndSet(false)) {

@@ -3,7 +3,6 @@ package com.newrelic.agent.config;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.NewRelic;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -18,6 +17,8 @@ import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_DETECTION_R
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_DETECTION_RXSS_ENABLED_DEFAULT;
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_ENABLED;
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_ENABLED_DEFAULT;
+import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED;
+import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED_DEFAULT;
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_MODE;
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_MODE_DEFAULT;
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_VALIDATOR_SERVICE_URL;
@@ -152,4 +153,14 @@ public class SecurityAgentConfigTest {
         when(mockConfig.getValue(SECURITY_MODE, SECURITY_MODE_DEFAULT)).thenReturn("mode");
         assertEquals("mode", SecurityAgentConfig.getSecurityAgentMode());
     }
+
+    @Test
+    public void isSecurityLowPriorityInstrumentationEnabled_returnsCorrectEnabledFlag() {
+        when(mockConfig.getValue(SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED, SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED_DEFAULT)).thenReturn(true);
+        assertTrue(SecurityAgentConfig.isSecurityLowPriorityInstrumentationEnabled());
+
+        when(mockConfig.getValue(SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED, SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED_DEFAULT)).thenReturn(false);
+        assertFalse(SecurityAgentConfig.isSecurityLowPriorityInstrumentationEnabled());
+    }
+
 }
