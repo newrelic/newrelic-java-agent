@@ -2,6 +2,7 @@ package com.newrelic.agent.util.asm;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
+import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -32,7 +33,10 @@ public class CustomClassLoaderClassWriter extends PatchedClassWriter {
                 Agent.LOG.log(Level.FINEST, "class not found in base classloader: "+type);
                 try {
                     // if all else fails, let's try the hard way
-                    result = getClassReader(type).getClass();
+                    // this case exists because of continued TypeNotPresentExceptions when instrumenting Scala
+                    ClassReader classReader = getClassReader(type);
+                    if (classReader == null) throw new ClassNotFoundException("ClassReader not found for class: "+type);
+                    result = classReader.getClass();
                 } catch (IOException ioe) {
                     Agent.LOG.log(Level.FINEST, ioe.toString(), ioe);
                     throw new ClassNotFoundException("Could not find class via ClassReader: "+type);
