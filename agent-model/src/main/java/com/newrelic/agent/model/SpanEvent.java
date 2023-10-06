@@ -13,16 +13,14 @@ import org.json.simple.JSONStreamAware;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
 
     public static final String SPAN = "Span";
-    static final String SPAN_KIND = "client";
+    static final String CLIENT_SPAN_KIND = "client";
 
     private final String appName;
     private final Map<String, Object> intrinsics;
@@ -120,6 +118,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         private float priority;
         private boolean decider;
         private long timestamp;
+        private Object spanKind;
 
         public Builder appName(String appName) {
             this.appName = appName;
@@ -177,9 +176,19 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             return this;
         }
 
+        public Builder spanKind(Object spanKind) {
+            putIntrinsic("span.kind", spanKind);
+            this.spanKind = spanKind;
+            return this;
+        }
+
+        public boolean isClientSpan() {
+            return CLIENT_SPAN_KIND.equals(spanKind);
+        }
+
         public Object getSpanKindFromUserAttributes() {
             Object result = userAttributes.get("span.kind");
-            return result == null ? SPAN_KIND : result;
+            return result == null ? CLIENT_SPAN_KIND : result;
         }
 
         public Builder decider(boolean decider) {

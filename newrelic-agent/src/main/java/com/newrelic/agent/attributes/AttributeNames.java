@@ -28,6 +28,7 @@ public final class AttributeNames {
     public static final String TIMEOUT_CAUSE = "nr.timeoutCause";
     public static final String ERROR_EXPECTED = "error.expected";
 
+    public static final String CODE_STACKTRACE = "code.stacktrace";
     public static final String COMPONENT = "component";
     public static final String HTTP_METHOD = "http.method";
     public static final String HTTP_STATUS_CODE = "http.statusCode";
