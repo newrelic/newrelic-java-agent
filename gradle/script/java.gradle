@@ -108,9 +108,6 @@ test {
         configuredWithValidTestJDK()
     }
 
-    // mockito uses a version of bytebuddy that does not support Java 21, but allows it with this flag
-    systemProperty("net.bytebuddy.experimental", "true")
-
     ext.configureTest = { String jdkName, Closure configuration ->
         // Add an input property so that we differentiate between JDKs with the same version
         inputs.property("test.jdk", jdkName)
@@ -126,13 +123,17 @@ test {
                     '--add-opens=java.base/java.util=ALL-UNNAMED',
                     '--add-opens=java.base/java.net=ALL-UNNAMED',
                     '--add-opens=java.base/java.io=ALL-UNNAMED',
+                    '--add-opens=java.base/java.nio=ALL-UNNAMED',
                     '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
                     '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
                     '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
             useJUnit {
                 excludeCategories 'com.newrelic.test.marker.Java21IncompatibleTest'
             }
         }
+        // mockito uses a version of bytebuddy that has experimental support for Java 21
+        systemProperty("net.bytebuddy.experimental", "true")
     }
     if (project.hasProperty("test17")) {
         configureTest("jdk17") {
