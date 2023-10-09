@@ -8,30 +8,30 @@ import java.util.concurrent.ExecutorService;
 
 public class JarCollectorInputs {
     private final ExtensionsLoadedListener extensionAnalysisProducer;
-    private final ClassMatchVisitorFactory classNoticingFactory;
+    private final ClassToJarPathSubmitter classToJarPathSubmitter;
 
-    JarCollectorInputs(ExtensionsLoadedListener extensionAnalysisProducer, ClassMatchVisitorFactory classNoticingFactory) {
+    JarCollectorInputs(ExtensionsLoadedListener extensionAnalysisProducer, ClassToJarPathSubmitter classToJarPathSubmitter) {
         this.extensionAnalysisProducer = extensionAnalysisProducer;
-        this.classNoticingFactory = classNoticingFactory;
+        this.classToJarPathSubmitter = classToJarPathSubmitter;
     }
 
     public static JarCollectorInputs build(boolean jarCollectorEnabled, JarAnalystFactory jarAnalystFactory, ExecutorService executorService,
                               Logger jarCollectorLogger) {
-        ClassMatchVisitorFactory classNoticingFactory = jarCollectorEnabled
-                ? new ClassNoticingFactory(jarAnalystFactory, executorService, jarCollectorLogger)
-                : ClassMatchVisitorFactory.NO_OP_FACTORY;
+        ClassToJarPathSubmitter classToJarPathSubmitter = jarCollectorEnabled
+                ? new ClassToJarPathSubmitterImpl(jarAnalystFactory, executorService, jarCollectorLogger)
+                : ClassToJarPathSubmitterImpl.NO_OP_INSTANCE;
 
         ExtensionsLoadedListener extensionAnalysisProducer = jarCollectorEnabled
                 ? new ExtensionAnalysisProducer(jarAnalystFactory, executorService, jarCollectorLogger)
                 : ExtensionsLoadedListener.NOOP;
-        return new JarCollectorInputs(extensionAnalysisProducer, classNoticingFactory);
+        return new JarCollectorInputs(extensionAnalysisProducer, classToJarPathSubmitter);
     }
 
     public ExtensionsLoadedListener getExtensionAnalysisProducer() {
         return extensionAnalysisProducer;
     }
 
-    public ClassMatchVisitorFactory getClassNoticingFactory() {
-        return classNoticingFactory;
+    public ClassToJarPathSubmitter getClassToJarPathSubmitter() {
+        return classToJarPathSubmitter;
     }
 }
