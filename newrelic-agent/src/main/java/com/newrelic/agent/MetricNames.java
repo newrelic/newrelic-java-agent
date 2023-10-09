@@ -359,6 +359,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_API_SET_SERVER_INFO = "SetServerInfo";
     public static final String SUPPORTABILITY_API_SET_USER_NAME = "SetUserName";
     public static final String SUPPORTABILITY_API_SET_ACCOUNT_NAME = "SetAccountName";
+    public static final String SUPPORTABILITY_API_SET_USER_ID = "SetUserId";
 
     //Transaction supportability metrics
     public static final String SUPPORTABILITY_TRANSACTION_STARTED = "Supportability/Transaction/StartedCount";

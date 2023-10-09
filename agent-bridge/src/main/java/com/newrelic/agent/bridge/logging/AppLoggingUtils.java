@@ -6,8 +6,6 @@
  */
 package com.newrelic.agent.bridge.logging;
 
-import com.newrelic.agent.bridge.logging.LogAttributeKey;
-import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.api.agent.NewRelic;
 
 import java.io.UnsupportedEncodingException;
@@ -54,11 +52,32 @@ public class AppLoggingUtils {
      * @return agent linking metadata string blob
      */
     public static String getLinkingMetadataBlob() {
-        Map<String, String> agentLinkingMetadata = NewRelic.getAgent().getLinkingMetadata();
+        return constructLinkingMetadataBlob(NewRelic.getAgent().getLinkingMetadata());
+    }
+
+    /**
+     * Gets a String representing the agent linking metadata in blob format:
+     * NR-LINKING|entity.guid|hostname|trace.id|span.id|entity.name|
+     *
+     * @param agentLinkingMetadata map of linking metadata
+     * @return agent linking metadata string blob
+     */
+    public static String getLinkingMetadataBlobFromMap(Map<String, String> agentLinkingMetadata) {
+        return constructLinkingMetadataBlob(agentLinkingMetadata);
+    }
+
+    /**
+     * Constructs a String representing the agent linking metadata in blob format:
+     * NR-LINKING|entity.guid|hostname|trace.id|span.id|entity.name|
+     *
+     * @param agentLinkingMetadata map of linking metadata
+     * @return agent linking metadata string blob
+     */
+    private static String constructLinkingMetadataBlob(Map<String, String> agentLinkingMetadata) {
         StringBuilder blob = new StringBuilder();
         blob.append(" ").append(BLOB_PREFIX).append(BLOB_DELIMITER);
 
-        if (agentLinkingMetadata != null && agentLinkingMetadata.size() > 0) {
+        if (agentLinkingMetadata != null && !agentLinkingMetadata.isEmpty()) {
             appendAttributeToBlob(agentLinkingMetadata.get(ENTITY_GUID), blob);
             appendAttributeToBlob(agentLinkingMetadata.get(HOSTNAME), blob);
             appendAttributeToBlob(agentLinkingMetadata.get(TRACE_ID), blob);
