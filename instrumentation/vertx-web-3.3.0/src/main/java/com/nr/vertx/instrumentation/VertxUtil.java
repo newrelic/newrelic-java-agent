@@ -29,7 +29,7 @@ public class VertxUtil {
     private static final String FRAMEWORK = "Vertx";
     private static final String NEWRELIC_PATH = "newrelic-path";
 
-    private static final Pattern lambda = Pattern.compile("\\$\\$Lambda\\$.*");
+    private static final Pattern lambda = Pattern.compile("\\$\\$Lambda(\\$[^/]*)?/.*");
     private static final Pattern instance = Pattern.compile("@.*");
 
     private VertxUtil() {
