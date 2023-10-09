@@ -21,7 +21,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-// Log4J1 has a quirk with Java 21.0.0, maybe this will work when 21.0.1 is released
+// Log4J1 has a quirk with Java 21(.0.0), maybe this will work when 21.0.1 is released
 @Category({Java21IncompatibleTest.class})
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"org.apache.log4j"}, configName = "application_logging_context_data_enabled.yml")

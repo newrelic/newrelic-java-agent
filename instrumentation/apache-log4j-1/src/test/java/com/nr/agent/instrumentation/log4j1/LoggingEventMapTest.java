@@ -23,9 +23,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-// Log4J1 has a quirk with Java 21.0.0, maybe this will work when 21.0.1 is released
+// Log4J1 has a quirk with Java 21(.0.0), maybe this will work when 21.0.1 is released
 @org.junit.experimental.categories.Category({ Java21IncompatibleTest.class})
 public class LoggingEventMapTest {
 
