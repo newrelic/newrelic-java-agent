@@ -71,6 +71,7 @@ import com.newrelic.agent.service.module.JarCollectorServiceImpl;
 import com.newrelic.agent.service.module.JarCollectorServiceProcessor;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.service.module.TrackedAddSet;
+import com.newrelic.agent.service.slowtransactions.SlowTransactionService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
 import com.newrelic.agent.stats.StatsEngine;
@@ -147,6 +148,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile SpanEventsService spanEventsService;
     private volatile SourceLanguageService sourceLanguageService;
     private volatile ExpirationService expirationService;
+    private volatile SlowTransactionService slowTransactionService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -230,6 +232,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         rpmConnectionService = new RPMConnectionServiceImpl();
         transactionService = new TransactionService();
 
+
         InfiniteTracing infiniteTracing = buildInfiniteTracing(configService);
         InfiniteTracingEnabledCheck infiniteTracingEnabledCheck = new InfiniteTracingEnabledCheck(configService);
         SpanEventCreationDecider spanEventCreationDecider = new SpanEventCreationDecider(configService);
@@ -276,6 +279,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         harvestService.addHarvestListener(extensionService);
         harvestService.addHarvestListener(jarCollectorHarvestListener);
 
+        slowTransactionService = new SlowTransactionService(config);
+
         asyncTxService.start();
         threadService.start();
         statsService.start();
@@ -308,6 +313,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         circuitBreakerService.start();
         distributedTraceService.start();
         spanEventsService.start();
+        slowTransactionService.start();
 
         startServices();
 
@@ -378,6 +384,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         gcService.stop();
         distributedTraceService.stop();
         spanEventsService.stop();
+        slowTransactionService.stop();
         stopServices();
     }
 
