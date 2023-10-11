@@ -50,7 +50,7 @@ public class SpringDispatcherPointCut extends TracerFactoryPointCut {
 
     @Override
     public Tracer doGetTracer(Transaction transaction, ClassMethodSignature sig, Object dispatcher, Object[] args) {
-        if (RENDER_METHOD_NAME == sig.getMethodName()) {
+        if (RENDER_METHOD_NAME.equals(sig.getMethodName())) {
             StringBuilder metricName = new StringBuilder("SpringView");
             if (canSetTransactionName(transaction)) {
                 try {

@@ -22,7 +22,6 @@ import java.util.logging.Level;
 public final class TomcatServletRequestListener implements ServletRequestListener {
 
     private static final String SERVLET_EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
-    private static final String SPRING6_SERVLET_EXCEPTION_ATTRIBUTE_NAME = "org.springframework.web.servlet.DispatcherServlet.EXCEPTION";
     private static final String REQUEST_FIELD = "request";
 
     private final Field requestField;
@@ -45,7 +44,7 @@ public final class TomcatServletRequestListener implements ServletRequestListene
     @CatchAndLog
     @Override
     public void requestDestroyed(ServletRequestEvent sre) {
-        Throwable exception = retrieveExceptionFromServlet(sre);
+        Throwable exception =(Throwable) sre.getServletRequest().getAttribute(SERVLET_EXCEPTION_ATTRIBUTE_NAME);
         if (exception != null) {
             AgentBridge.privateApi.reportException(exception);
         }
@@ -97,13 +96,5 @@ public final class TomcatServletRequestListener implements ServletRequestListene
             return (Request_Weaved) httpServletRequest;
         }
         return null;
-    }
-
-    private Throwable retrieveExceptionFromServlet(ServletRequestEvent sre) {
-        //As of Spring 6, when controller advice is used for controller exception handling, the caught exception is
-        //now stored in the servlet attribute map with the "org.springframework.web.servlet.DispatcherServlet.EXCEPTION" key.
-        return (Throwable) (sre.getServletRequest().getAttribute(SERVLET_EXCEPTION_ATTRIBUTE_NAME) != null ?
-                sre.getServletRequest().getAttribute(SERVLET_EXCEPTION_ATTRIBUTE_NAME) :
-                sre.getServletRequest().getAttribute(SPRING6_SERVLET_EXCEPTION_ATTRIBUTE_NAME));
     }
 }
