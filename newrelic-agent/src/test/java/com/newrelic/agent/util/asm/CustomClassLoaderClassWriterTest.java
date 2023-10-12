@@ -40,14 +40,16 @@ public class CustomClassLoaderClassWriterTest {
                 api.getCommonSuperClass(String.class.getName(), CustomClassLoaderClassWriterTest.class.getName()));
     }
 
-    @Test (expected = TypeNotPresentException.class)
+    @Test
     public void test_getCommonSuperClass_invalidClass1() {
-        api.getCommonSuperClass("noexist1", CustomClassLoaderClassWriterTest.class.getName());
+        Assert.assertEquals(Object.class.getName().replace('.', '/'),
+                api.getCommonSuperClass("noexist1", CustomClassLoaderClassWriterTest.class.getName()));
     }
 
-    @Test (expected = TypeNotPresentException.class)
+    @Test
     public void test_getCommonSuperClass_invalidClass2() {
-        api.getCommonSuperClass(CustomClassLoaderClassWriterTest.class.getName(), "noexist2");
+        Assert.assertEquals(Object.class.getName().replace('.', '/'),
+                api.getCommonSuperClass(CustomClassLoaderClassWriterTest.class.getName(), "noexist2"));
     }
 
 }

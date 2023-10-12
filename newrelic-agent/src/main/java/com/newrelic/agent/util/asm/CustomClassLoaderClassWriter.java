@@ -35,8 +35,9 @@ public class CustomClassLoaderClassWriter extends PatchedClassWriter {
                     // if all else fails, let's try the hard way
                     // this case exists because of continued TypeNotPresentExceptions when instrumenting Scala
                     ClassReader classReader = getClassReader(type);
-                    if (classReader == null) throw new ClassNotFoundException("ClassReader not found for class: "+type);
-                    result = classReader.getClass();
+                    if (classReader != null) {
+                        result = classReader.getClass();
+                    }
                 } catch (IOException ioe) {
                     Agent.LOG.log(Level.FINEST, ioe.toString(), ioe);
                     throw new ClassNotFoundException("Could not find class via ClassReader: "+type);
@@ -60,6 +61,10 @@ public class CustomClassLoaderClassWriter extends PatchedClassWriter {
             class2 = loadClass(type2);
         } catch (ClassNotFoundException e) {
             throw new TypeNotPresentException(type2, e);
+        }
+
+        if (class1 == null || class2 == null) {
+            return JAVA_LANG_OBJECT;
         }
 
         if (class1.isAssignableFrom(class2)) {
