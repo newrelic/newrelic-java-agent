@@ -15,6 +15,7 @@ import com.newrelic.api.agent.TransportType;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 
+import java.util.Map;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.HeadersUtil.parseAndAcceptDistributedTraceHeaders;
@@ -31,6 +32,7 @@ public class InboundHeaderState {
     private final InboundHeaders inboundHeaders; // this value can be null
     private final CatState catState;
     private final SyntheticsState synState;
+    private final SyntheticsInfoState synInfoState;
 
     /**
      * Create this inbound header state object.
@@ -50,9 +52,11 @@ public class InboundHeaderState {
 
         if (inboundHeaders == null) {
             this.synState = SyntheticsState.NONE;
+            this.synInfoState = SyntheticsInfoState.NONE;
             this.catState = CatState.NONE;
         } else {
             this.synState = parseSyntheticsHeader();
+            this.synInfoState = parseSyntheticsInfoHeader();
             if (tx.getAgentConfig().getDistributedTracingConfig().isEnabled() && tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
                 parseDistributedTraceHeaders();
                 this.catState = CatState.NONE;
@@ -123,6 +127,54 @@ public class InboundHeaderState {
             Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
                     rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
             result = SyntheticsState.NONE;
+        }
+
+        return result;
+    }
+
+    public String getUnparsedSyntheticsInfoHeader() {
+        String result = null;
+        if (inboundHeaders != null) {
+            result = HeadersUtil.getSyntheticsInfoHeader(inboundHeaders);
+        }
+        return result;
+    }
+
+    private SyntheticsInfoState parseSyntheticsInfoHeader() {
+        String synInfoHeader = getUnparsedSyntheticsInfoHeader();
+        if (synInfoHeader == null || synInfoHeader.isEmpty()) {
+            return SyntheticsInfoState.NONE;
+        }
+//TODO: Is it necessary to check for an empty Map?
+//        JSONArray arr = getJSONArray(synHeader);
+//        if (arr == null || arr.size() == 0) {
+////TODO:            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: unable to decode header in transaction {0}.", tx);
+//            return SyntheticsState.NONE;
+//        }
+
+//TODO:        Agent.LOG.log(Level.FINEST, "Decoded synthetics header => {0} in transaction {1}", arr, tx);
+
+        Map jsonMap = getJSONMap(synInfoHeader);
+
+        String type;
+        try {
+            type = jsonMap.get("type").toString();
+        } catch (NumberFormatException nfe) {
+            Agent.LOG.log(Level.FINEST, "Could not determine synthetics-info type.",
+                    jsonMap.get("type"), jsonMap.get("type").getClass());
+            return SyntheticsInfoState.NONE;
+        }
+
+        SyntheticsInfoState result;
+
+        try {
+            // Sample synthetics-info header:
+            // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": {"keyOne":"valueOne", "keyTwo":"valueTwo", "keyThree":"valueThree" }}
+            result = new SyntheticsInfoState(type, (String) jsonMap.get("type"), (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
+        } catch (RuntimeException rex) { // class cast exception, not enough elements in the JSON array, etc.
+//TODO: better logs            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
+//            rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
+            result = SyntheticsInfoState.NONE;
         }
 
         return result;
@@ -323,6 +375,19 @@ public class InboundHeaderState {
         return result;
     }
 
+    private Map getJSONMap(String json) {
+        Map<String, String> result = null;
+        if (json != null) {
+            try {
+                JSONParser parser = new JSONParser();
+                result = (Map) parser.parse(json);
+            } catch (Exception ex) {
+//TODO: add more applicable logging message                Agent.LOG.log(Level.FINER, "Unable to parse header in transaction {0}: {1}", tx, ex);
+            }
+        }
+        return result;
+    }
+
 
     /**
      * Instances of this immutable class represent the CAT header state of this transaction.
@@ -419,4 +484,52 @@ public class InboundHeaderState {
             return syntheticsMonitorId;
         }
     }
+
+    static final class SyntheticsInfoState {
+        /*-
+         * TODO: Update the Class Description - From the spec ("Agent Support for Synthetics" in Confluence)
+         *
+         * version (String) is the protocol version for future improvements (currently 1)
+         * type (String) is the type of the synthetics test. May be one of 'scheduled', 'automatedTest', or additional
+         *                  types that will be introduced in the future (such as load testing)
+         * initiator (String) is the source of the synthetics test. May be 'graphql', 'cli', or specific name of
+         *                  CI integration tools
+         * attributes (map) are the additional attributes that may or may not be present in any specific synthetics
+         *                  event
+         */
+        private final String version;
+        private final String type;
+        private final String initiator;
+        private final Map attributes;
+
+        /**
+         * This object has will appear untrusted, shutting off all synthetics behaviors here.
+         */
+        static final SyntheticsInfoState NONE = new SyntheticsInfoState(null, null, null, null);
+
+        SyntheticsInfoState(String version, String type, String initiator, Map attributes) {
+            this.version = version;
+            this.type = type;
+            this.initiator = initiator;
+            this.attributes = attributes;
+        }
+
+        String getVersion() {
+            return version;
+        }
+
+        String getType() {
+            return type;
+        }
+
+        String getInitiator() {
+            return initiator;
+        }
+
+        Map getAttributes() {
+            return attributes;
+        }
+
+    }
+
 }
