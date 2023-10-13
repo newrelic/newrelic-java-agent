@@ -59,6 +59,12 @@ dependencies {
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
 
+    shadowIntoJar( group: 'commons-codec', name: 'commons-codec') {
+        version {
+            strictly "[1.13]"
+        }
+    }
+
     shadowIntoJar project(":agent-interfaces")
     shadowIntoJar project(":agent-model")
     shadowIntoJar(project(":newrelic-weaver"))
