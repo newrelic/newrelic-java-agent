@@ -81,9 +81,13 @@ public class SpringControllerUtility {
             AgentBridge.getAgent().getLogger().log(Level.FINE, "No path was specified for SpringController {0}", matchedAnnotationClass.getName());
         } else {
             String fullPath = SpringControllerUtility.getPath(rootPath, methodPath, httpMethod);
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "SpringControllerUtility::processAnnotations (4.3.0): calling transaction.setTransactionName to [{0}] " +
-                            "with FRAMEWORK_HIGH and override true, txn {1}, ",
-                    AgentBridge.getAgent().getTransaction().toString());
+            if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+                NewRelic.getAgent()
+                        .getLogger()
+                        .log(Level.FINEST, "SpringControllerUtility::processAnnotations (4.3.0): calling transaction.setTransactionName to [{0}] " +
+                                        "with FRAMEWORK_HIGH and override true, txn {1}, ",
+                                AgentBridge.getAgent().getTransaction().toString());
+            }
             transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
                     fullPath);
         }
