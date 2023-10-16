@@ -738,6 +738,12 @@ public class Transaction {
         synchronized (lock) {
             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_TRANSACTION_NAME);
 
+            if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+                Agent.LOG.log(Level.FINEST, "newrelic.agent.Transaction::conditionalSetPriorityTransactionName: Attempting to set txn name: " +
+                                "TxnNamingPolicy: {0}, name: {1}, category: {2}, TxnNamePriority {3}",
+                        policy.toString(), name, category, priority.toString());
+            }
+
             if (policy.canSetTransactionName(this, priority)) {
                 if (Agent.LOG.isFinestEnabled()) {
                     Agent.LOG.log(Level.FINEST,
