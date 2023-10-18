@@ -30,6 +30,8 @@ import org.mockito.Mockito;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import static org.junit.Assert.assertEquals;
@@ -177,6 +179,27 @@ public class InboundHeaderStateTest {
         } else {
             verify(logger).log(refEq(expectedLevel), contains(expectedLogMsg), any(Object.class), any(Object.class));
         }
+    }
+
+    @Test
+    public void testSyntheticsInfoHeaderSuccess() {
+        String type = "scheduled";
+        String initiator = "cli";
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("key1", "value1");
+        attributes.put("key2", "value2");
+
+        String value = "{\n"+"\"type\":\""+type+"\",\n"+"\"initiator\":\""+initiator+"\",\n"+"\"attributes\":"+attributes+"\n"+"}";
+
+        when(request.getHeader("X-NewRelic-Synthetics-Info")).thenReturn(value);
+        when(request.getHeader("NewRelicSyntheticsInfo")).thenReturn(value);
+
+        ihs = new InboundHeaderState(tx, request);
+
+        assertEquals(type, ihs.getSyntheticsInfoType());
+        assertEquals(initiator, ihs.getSyntheticsInfoInitiator());
+        assertEquals(attributes.get("key1"), ihs.getSyntheticsInfoAttrs().get("key1"));
+        assertEquals(attributes.get("key2"), ihs.getSyntheticsInfoAttrs().get("key2"));
     }
 
     @Test
