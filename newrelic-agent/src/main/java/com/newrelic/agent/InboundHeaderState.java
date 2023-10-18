@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.google.gson.Gson;
 import com.newrelic.agent.service.ServiceUtils;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
@@ -158,7 +159,7 @@ public class InboundHeaderState {
 
         String type;
         try {
-            type = jsonMap.get("type").toString();
+            type = (String) jsonMap.get("type");
         } catch (NumberFormatException nfe) {
             Agent.LOG.log(Level.FINEST, "Could not determine synthetics-info type.",
                     jsonMap.get("type"), jsonMap.get("type").getClass());
@@ -169,7 +170,7 @@ public class InboundHeaderState {
 
         try {
             // Sample synthetics-info header:
-            // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": {"keyOne":"valueOne", "keyTwo":"valueTwo", "keyThree":"valueThree" }}
+            // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": "{"keyOne":"valueOne", "keyTwo":"valueTwo", "keyThree":"valueThree" }"}
             result = new SyntheticsInfoState(type, (String) jsonMap.get("type"), (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
         } catch (RuntimeException rex) { // class cast exception, not enough elements in the JSON array, etc.
 //TODO: better logs            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
@@ -278,6 +279,20 @@ public class InboundHeaderState {
         return synState.getSyntheticsMonitorId();
     }
 
+    public String getSyntheticsInfoType() {
+        return synInfoState.getType();
+    }
+
+    public String getSyntheticsInfoInitiator() {
+        return synInfoState.getInitiator();
+    }
+
+    public Map<String, String> getSyntheticsInfoAttrs() {
+        return synInfoState.getAttributes();
+    }
+
+
+
     /**
      * Return true if this is a trusted cross-process request.
      * <p>
@@ -375,18 +390,22 @@ public class InboundHeaderState {
         return result;
     }
 
-    private Map getJSONMap(String json) {
-        Map<String, String> result = null;
-        if (json != null) {
+    private Map getJSONMap(String string) {
+        Map result = null;
+        if (string != null) {
             try {
-                JSONParser parser = new JSONParser();
-                result = (Map) parser.parse(json);
+//                JSONParser parser = new JSONParser();
+//                result = (JSONObject) parser.parse(string);
+                Gson gson = new Gson();
+                result = gson.fromJson(string, Map.class);
             } catch (Exception ex) {
 //TODO: add more applicable logging message                Agent.LOG.log(Level.FINER, "Unable to parse header in transaction {0}: {1}", tx, ex);
+                Agent.LOG.log(Level.FINER, "Unable to parse header in transaction {0}: {1}", tx, ex);
             }
         }
         return result;
     }
+
 
 
     /**
@@ -515,19 +534,19 @@ public class InboundHeaderState {
         }
 
         String getVersion() {
-            return version;
+            return this.version;
         }
 
         String getType() {
-            return type;
+            return this.type;
         }
 
         String getInitiator() {
-            return initiator;
+            return this.initiator;
         }
 
         Map getAttributes() {
-            return attributes;
+            return this.attributes;
         }
 
     }
