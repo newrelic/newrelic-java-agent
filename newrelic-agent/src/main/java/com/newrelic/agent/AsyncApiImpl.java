@@ -39,34 +39,40 @@ public class AsyncApiImpl implements AsyncApi {
             Transaction currentTxn = Transaction.getTransaction(false);
             if (currentTxn != null) {
                 Transaction preExistingTransaction = asyncTransactions.get(asyncContext);
-                if (preExistingTransaction == null) {
+                if (preExistingTransaction == null || currentTxn == preExistingTransaction) {
+                    // Only one transaction can be suspended and resumed for a given AsyncContext.
                     // If no transaction is mapped to the current AsyncContext instance,
                     // then map the transaction and allow it to be suspended.
+                    // If the current transaction is the same instance as the pre-existing transaction that
+                    // is already mapped to the current AsyncContext instance, then allow it to be suspended again.
                     suspendTransaction(asyncContext, currentTxn);
                 } else {
-                    // A transaction has already been mapped to the current AsyncContext instance.
-                    if (currentTxn == preExistingTransaction) {
-                        // Only one transaction can be suspended and resumed for a given AsyncContext.
-                        // If the current transaction is the same instance as the pre-existing transaction that
-                        // is already mapped to the current AsyncContext instance, then allow it to be suspended again.
-                        suspendTransaction(asyncContext, currentTxn);
-                    } else {
-                        // Avoid suspending any additional transactions that map to the current AsyncContext instance,
-                        // instead letting them complete naturally. This scenario should only occur in rare cases (e.g. Jetty
-                        // ContextHandler.doHandle exhibited such behavior when combined with Karaf and Camel CXF).
-                        // Failing to do so could lead to a memory leak as previously suspended transactions that were
-                        // in the asyncTransactions map would be overwritten and never resumed/completed.
-                        if (logger.isLoggable(Level.FINEST)) {
-                            logger.log(Level.FINEST,
-                                    "Not suspending Transaction: {0} with AsyncContext: {1} because Transaction: {2} is already suspended for that AsyncContext.",
-                                    currentTxn, asyncContext, preExistingTransaction);
-                        }
+                    // Avoid suspending any additional transactions that map to the current AsyncContext instance,
+                    // instead letting them complete naturally. This scenario should only occur in rare cases (e.g. Jetty
+                    // ContextHandler.doHandle exhibited such behavior when combined with Karaf and Camel CXF).
+                    // Failing to do so could lead to a memory leak as previously suspended transactions that were
+                    // in the asyncTransactions map would be overwritten and never resumed/completed.
+                    if (logger.isLoggable(Level.FINEST)) {
+                        logger.log(Level.FINEST,
+                                "Skipped suspending Transaction: {0} with AsyncContext: {1} because Transaction: {2} is already suspended for that AsyncContext.",
+                                currentTxn, asyncContext, preExistingTransaction);
+
+                        ServiceFactory.getStatsService().doStatsWork(
+                                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SKIP_SUSPEND, 1),
+                                MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SKIP_SUSPEND);
                     }
                 }
             }
         }
     }
 
+    /**
+     * This suspends the current Transaction and maps it to the AsyncContext instance of the request,
+     * which can later be used to resume the Transaction on whichever thread the async work executes on.
+     *
+     * @param asyncContext AsyncContext instance for the current request
+     * @param currentTxn Transaction instance to be suspended
+     */
     private void suspendTransaction(Object asyncContext, Transaction currentTxn) {
         TransactionState transactionState = setTransactionState(currentTxn);
         transactionState.suspendRootTracer();
