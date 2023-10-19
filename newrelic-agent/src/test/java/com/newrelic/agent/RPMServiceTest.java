@@ -1217,7 +1217,7 @@ public class RPMServiceTest {
                 int stackFrameCount) {
 
             super(mock(ErrorCollectorConfig.class), mock(ErrorMessageReplacer.class), appName, frontendMetricName, "", error, timestamp, prefixedParams,
-                    userParams, agentParams, errorParams, intrinsics, null, false);
+                    userParams, agentParams, errorParams, intrinsics, null, false, null);
 
             this.stackFrameCount = stackFrameCount;
         }
