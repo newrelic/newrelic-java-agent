@@ -52,14 +52,14 @@ public class AsyncApiImpl implements AsyncApi {
                     // ContextHandler.doHandle exhibited such behavior when combined with Karaf and Camel CXF).
                     // Failing to do so could lead to a memory leak as previously suspended transactions that were
                     // in the asyncTransactions map would be overwritten and never resumed/completed.
+                    ServiceFactory.getStatsService().doStatsWork(
+                            StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SKIP_SUSPEND, 1),
+                            MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SKIP_SUSPEND);
+
                     if (logger.isLoggable(Level.FINEST)) {
                         logger.log(Level.FINEST,
                                 "Skipped suspending Transaction: {0} with AsyncContext: {1} because Transaction: {2} is already suspended for that AsyncContext.",
                                 currentTxn, asyncContext, preExistingTransaction);
-
-                        ServiceFactory.getStatsService().doStatsWork(
-                                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SKIP_SUSPEND, 1),
-                                MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_SKIP_SUSPEND);
                     }
                 }
             }
