@@ -10,8 +10,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.postgresql:r2dbc-postgresql:[0.9.2,1.0.0.RELEASE)'
-    excludeRegex(".*(M1|M2|RC).*")
+    passesOnly 'org.postgresql:r2dbc-postgresql:[0.9.2,)'
+    exclude 'org.postgresql:r2dbc-postgresql:1.0.0.RC1'
 }
 
 site {
