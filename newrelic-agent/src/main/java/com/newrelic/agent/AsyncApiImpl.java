@@ -9,6 +9,7 @@ package com.newrelic.agent;
 
 import com.google.common.collect.MapMaker;
 import com.newrelic.agent.bridge.AsyncApi;
+import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracers.Tracer;
@@ -27,11 +28,15 @@ public class AsyncApiImpl implements AsyncApi {
     // does not permit null keys or values
     private final ConcurrentMap<Object, Transaction> asyncTransactions = new MapMaker().weakKeys().makeMap();
     private final Logger logger;
+    private final ConfigService configService = ServiceFactory.getConfigService();
 
     public AsyncApiImpl(Logger logger) {
         this.logger = logger;
     }
 
+    /**
+     * Suspend the transaction.
+     */
     @Override
     public void suspendAsync(Object asyncContext) {
         logger.log(Level.FINEST, "Suspend async");
@@ -39,7 +44,8 @@ public class AsyncApiImpl implements AsyncApi {
             Transaction currentTxn = Transaction.getTransaction(false);
             if (currentTxn != null) {
                 Transaction preExistingTransaction = asyncTransactions.get(asyncContext);
-                if (preExistingTransaction == null || currentTxn == preExistingTransaction) {
+                if (!configService.getDefaultAgentConfig().legacyAsyncApiSkipSuspend() || preExistingTransaction == null ||
+                        currentTxn == preExistingTransaction) {
                     // Only one transaction can be suspended and resumed for a given AsyncContext.
                     // If no transaction is mapped to the current AsyncContext instance,
                     // then map the transaction and allow it to be suspended.
@@ -71,7 +77,7 @@ public class AsyncApiImpl implements AsyncApi {
      * which can later be used to resume the Transaction on whichever thread the async work executes on.
      *
      * @param asyncContext AsyncContext instance for the current request
-     * @param currentTxn Transaction instance to be suspended
+     * @param currentTxn   Transaction instance to be suspended
      */
     private void suspendTransaction(Object asyncContext, Transaction currentTxn) {
         TransactionState transactionState = setTransactionState(currentTxn);
@@ -107,7 +113,8 @@ public class AsyncApiImpl implements AsyncApi {
         if (asyncContext != null) {
             Transaction suspendedTx = asyncTransactions.get(asyncContext);
             ServiceFactory.getStatsService().doStatsWork(
-                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_RESUME, 1), MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_RESUME);
+                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_RESUME, 1),
+                    MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_RESUME);
             if (logger.isLoggable(Level.FINEST)) {
                 logger.log(Level.FINEST, "Resume async: {0}, for Transaction: {1}", asyncContext, suspendedTx);
             }
@@ -122,11 +129,15 @@ public class AsyncApiImpl implements AsyncApi {
         return TransactionApiImpl.INSTANCE;
     }
 
+    /**
+     * Complete the resumed transaction.
+     */
     @Override
     public void completeAsync(Object asyncContext) {
         logger.log(Level.FINEST, "Complete async");
         ServiceFactory.getStatsService().doStatsWork(
-                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE, 1), MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE );
+                StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE, 1),
+                MetricNames.SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE);
         if (asyncContext == null) {
             logger.log(Level.FINEST, "Complete async context is null");
             return;
@@ -140,6 +151,9 @@ public class AsyncApiImpl implements AsyncApi {
         }
     }
 
+    /**
+     * Record error condition with the resumed transaction.
+     */
     @Override
     public void errorAsync(Object asyncContext, Throwable t) {
         logger.log(Level.FINEST, "Error async");
