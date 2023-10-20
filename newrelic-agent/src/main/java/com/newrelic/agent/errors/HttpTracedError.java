@@ -29,9 +29,9 @@ public class HttpTracedError extends TracedError {
             long timestamp, Map<String, Map<String, String>> prefixedParams,
             Map<String, Object> userParams, Map<String, Object> agentParams,
             Map<String, ?> errorParams, Map<String, Object> intrinsics,
-            TransactionData transactionData, boolean expected) {
+            TransactionData transactionData, boolean expected, String transactionGuid) {
         super(errorCollectorConfig, appName, frontendMetricName, timestamp, requestUri, prefixedParams, userParams,
-                agentParams, errorParams, intrinsics, transactionData, expected);
+                agentParams, errorParams, intrinsics, transactionData, expected, transactionGuid);
 
         this.responseStatus = responseStatus;
         if (errorMessage == null && responseStatus != UNKNOWN_STATUS_CODE) {
@@ -67,7 +67,7 @@ public class HttpTracedError extends TracedError {
         public HttpTracedError build() {
             return new HttpTracedError(errorCollectorConfig, appName, frontendMetricName,
                     requestUri, responseStatus, errorMessage, timestampInMillis, prefixedAttributes, userAttributes,
-                    agentAttributes, errorAttributes, intrinsicAttributes, transactionData, expected);
+                    agentAttributes, errorAttributes, intrinsicAttributes, transactionData, expected, transactionGuid);
         }
 
     }
