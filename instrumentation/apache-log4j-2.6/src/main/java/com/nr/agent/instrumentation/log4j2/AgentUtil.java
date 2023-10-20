@@ -14,7 +14,6 @@ import com.newrelic.agent.bridge.logging.LogAttributeType;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.message.Message;
-import org.apache.logging.log4j.util.ReadOnlyStringMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,9 +44,9 @@ public class AgentUtil {
             Throwable throwable = event.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {
-                ReadOnlyStringMap contextData = event.getContextData();
+                Map<String, String> contextData = event.getContextMap();
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData));
-                logEventMap.put(INSTRUMENTATION, "apache-log4j-2");
+                logEventMap.put(INSTRUMENTATION, "apache-log4j-2.6");
                 if (message != null) {
                     String formattedMessage = message.getFormattedMessage();
                     if (formattedMessage != null && !formattedMessage.isEmpty()) {
@@ -57,7 +56,7 @@ public class AgentUtil {
                 logEventMap.put(TIMESTAMP, event.getTimeMillis());
 
                 if (AppLoggingUtils.isAppLoggingContextDataEnabled() && contextData != null) {
-                    for (Map.Entry<String, String> entry : contextData.toMap().entrySet()) {
+                    for (Map.Entry<String, String> entry : contextData.entrySet()) {
                         String key = entry.getKey();
                         String value = entry.getValue();
                         LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.CONTEXT);
@@ -123,7 +122,7 @@ public class AgentUtil {
         return (message != null) || !ExceptionUtil.isThrowableNull(throwable);
     }
 
-    private static int calculateInitialMapSize(ReadOnlyStringMap mdcPropertyMap) {
+    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
         return AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
                 ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
                 : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
