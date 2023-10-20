@@ -18,12 +18,7 @@ import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
-import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;
-import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
-import org.apache.logging.log4j.core.impl.Log4jContextFactory;
 import org.apache.logging.log4j.core.layout.PatternLayout;
-import org.apache.logging.log4j.spi.LoggerContextFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -582,6 +577,7 @@ public class LoggerConfig_InstrumentationTest extends TestCase {
         LoggerConfig loggerConfig = LoggerConfig.createLogger(additivity, level, name, "true", refs, null, config, null);
         loggerConfig.addAppender(appender, level, null);
         config.addLogger(name, loggerConfig);
+        Configurator.setLevel(name, level);
     }
 
     private Appender createAppender(String name) {
