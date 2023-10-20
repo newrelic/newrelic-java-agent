@@ -146,7 +146,7 @@ public class DefaultSqlTracerTest {
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(5, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id
+        assertEquals(6, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id, thread.id
         assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
@@ -198,7 +198,7 @@ public class DefaultSqlTracerTest {
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(2, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql
+        assertEquals(3, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, thread.id
         assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
@@ -638,11 +638,11 @@ public class DefaultSqlTracerTest {
         assertNotNull(spanEvent);
 
         assertEquals("datastore", spanEvent.getIntrinsics().get("category"));
-        assertEquals("MySQL", spanEvent.getIntrinsics().get("component"));
-        assertEquals("dbserver.nerd.us", spanEvent.getIntrinsics().get("peer.hostname"));
-        assertEquals("dbserver.nerd.us:9945", spanEvent.getIntrinsics().get("peer.address"));
-        assertEquals("SELECT price, name FROM BOOKS WHERE price <= 79.99", spanEvent.getIntrinsics().get("db.statement"));
-        assertEquals("books", spanEvent.getIntrinsics().get("db.collection"));
+        assertEquals("MySQL", spanEvent.getAgentAttributes().get("db.system"));
+        assertEquals("dbserver.nerd.us", spanEvent.getAgentAttributes().get("peer.hostname"));
+        assertEquals("dbserver.nerd.us:9945", spanEvent.getAgentAttributes().get("peer.address"));
+        assertEquals("SELECT price, name FROM BOOKS WHERE price <= 79.99", spanEvent.getAgentAttributes().get("db.statement"));
+        assertEquals("books", spanEvent.getAgentAttributes().get("db.collection"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
@@ -673,12 +673,12 @@ public class DefaultSqlTracerTest {
         assertNotNull(spanEvent);
 
         assertEquals("datastore", spanEvent.getIntrinsics().get("category"));
-        assertEquals("MySQL", spanEvent.getIntrinsics().get("component"));
-        assertEquals("dbserver.nerd.us", spanEvent.getIntrinsics().get("peer.hostname"));
-        assertEquals("dbserver.nerd.us:9945", spanEvent.getIntrinsics().get("peer.address"));
-        assertEquals(2000, spanEvent.getIntrinsics().get("db.statement").toString().length());
-        assertTrue(spanEvent.getIntrinsics().get("db.statement").toString().endsWith("a..."));
-        assertEquals("books", spanEvent.getIntrinsics().get("db.collection"));
+        assertEquals("MySQL", spanEvent.getAgentAttributes().get("db.system"));
+        assertEquals("dbserver.nerd.us", spanEvent.getAgentAttributes().get("peer.hostname"));
+        assertEquals("dbserver.nerd.us:9945", spanEvent.getAgentAttributes().get("peer.address"));
+        assertEquals(2000, spanEvent.getAgentAttributes().get("db.statement").toString().length());
+        assertTrue(spanEvent.getAgentAttributes().get("db.statement").toString().endsWith("a..."));
+        assertEquals("books", spanEvent.getAgentAttributes().get("db.collection"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());
@@ -709,12 +709,12 @@ public class DefaultSqlTracerTest {
         assertNotNull(spanEvent);
 
         assertEquals("datastore", spanEvent.getIntrinsics().get("category"));
-        assertEquals("MySQL", spanEvent.getIntrinsics().get("component"));
-        assertEquals("dbserver.nerd.us", spanEvent.getIntrinsics().get("peer.hostname"));
-        assertEquals("dbserver.nerd.us:9945", spanEvent.getIntrinsics().get("peer.address"));
-        assertEquals(2000, spanEvent.getIntrinsics().get("db.statement").toString().length());
-        assertTrue(spanEvent.getIntrinsics().get("db.statement").toString().endsWith("aaa")); // Should not end with ... since it's exactly at the limit
-        assertEquals("books", spanEvent.getIntrinsics().get("db.collection"));
+        assertEquals("MySQL", spanEvent.getAgentAttributes().get("db.system"));
+        assertEquals("dbserver.nerd.us", spanEvent.getAgentAttributes().get("peer.hostname"));
+        assertEquals("dbserver.nerd.us:9945", spanEvent.getAgentAttributes().get("peer.address"));
+        assertEquals(2000, spanEvent.getAgentAttributes().get("db.statement").toString().length());
+        assertTrue(spanEvent.getAgentAttributes().get("db.statement").toString().endsWith("aaa")); // Should not end with ... since it's exactly at the limit
+        assertEquals("books", spanEvent.getAgentAttributes().get("db.collection"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertEquals("Datastore/statement/MySQL/books/select", spanEvent.getName());
         assertNotNull(spanEvent.getTraceId());

@@ -1,0 +1,57 @@
+name: Release - Update System Config Page
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_number:
+        required: true
+        type: string
+        description: 'The version being released. Eg. 7.11.0'
+
+jobs:
+  update-system-config:
+    name: Set java_agent_version to ${{ inputs.version_number }} in system config
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Update system configuration page
+        run: |
+          PAYLOAD="{
+               \"system_configuration\": {
+                 \"key\":   \"java_agent_version\",
+                 \"value\": \"${{ inputs.version_number }}\"
+              }
+            }"
+          CONTENT_TYPE='Content-Type: application/json'
+          
+          # STAGING
+          curl -X POST 'https://staging-api.newrelic.com/v2/system_configuration.json' \
+            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_STAGING }}" -i \
+            -H "$CONTENT_TYPE" \
+            -d "$PAYLOAD"
+          
+          echo "*Staging Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
+          curl -X GET 'https://staging-api.newrelic.com/v2/system_configuration.json' \
+            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_STAGING }}" -i \
+            -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY
+          
+          # PRODUCTION
+          curl -X POST 'https://api.newrelic.com/v2/system_configuration.json' \
+            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+            -H "$CONTENT_TYPE" \
+            -d "$PAYLOAD"
+
+          echo "*Prod Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
+          curl -X GET 'https://api.newrelic.com/v2/system_configuration.json' \
+            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+            -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY
+          
+          # EU PRODUCTION
+          curl -X POST 'https://api.eu.newrelic.com/v2/system_configuration.json' \
+            -H "X-Api-Key:$ {{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+            -H "$CONTENT_TYPE" \
+            -d "$PAYLOAD"
+
+          echo "*EU Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
+          curl -X GET 'https://api.eu.newrelic.com/v2/system_configuration.json' \
+            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+            -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY
