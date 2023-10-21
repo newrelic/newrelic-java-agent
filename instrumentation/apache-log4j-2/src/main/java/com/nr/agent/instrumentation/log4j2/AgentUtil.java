@@ -14,6 +14,7 @@ import com.newrelic.agent.bridge.logging.LogAttributeType;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.message.Message;
+import org.apache.logging.log4j.util.ReadOnlyStringMap;
 
 import java.util.HashMap;
 import java.util.Map;
