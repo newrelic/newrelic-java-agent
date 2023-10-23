@@ -350,4 +350,7 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     CommandParserConfig getCommandParserConfig();
 
     InfiniteTracingConfig getInfiniteTracingConfig();
+
+    SlowTransactionsConfig getSlowTransactionsConfig();
+
 }

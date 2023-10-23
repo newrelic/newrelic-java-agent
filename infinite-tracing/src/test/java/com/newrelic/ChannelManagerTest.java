@@ -190,4 +190,5 @@ class ChannelManagerTest {
             verify(stub, times(times)).recordSpan(responseObserver);
         }
     }
+
 }

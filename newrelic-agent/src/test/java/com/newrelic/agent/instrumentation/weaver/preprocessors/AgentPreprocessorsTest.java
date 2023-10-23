@@ -275,6 +275,31 @@ public class AgentPreprocessorsTest {
     }
 
     @Test
+    public void testPreprocess() throws Exception {
+        final ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        final String classname = "com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessorsTest$TestPreprocess";
+
+        Map<String, Object> confProps = new HashMap<>();
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(confProps);
+
+        byte[] bytes = getClassBytesFromClassLoaderResource(classname, classloader);
+        Assert.assertNotNull(bytes);
+        ClassNode source = WeaveUtils.convertToClassNode(bytes);
+        ClassNode result = new ClassNode(WeaveUtils.ASM_API_LEVEL);
+        ClassVisitor cv = new CheckClassAdapter(result);
+
+        AgentPreprocessors preprocessors = AgentPreprocessors.createWithInstrumentationTitle(agentConfig, INSTRUMENTATION_TITLE);
+        cv = preprocessors.preprocess(cv, new HashSet<>(), null);
+        source.accept(cv);
+        Assert.assertTrue(cv.getClass().getName().equals("com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessors$InstrumentationPackageNameRewriter"));
+
+        Class<?> clazz = addToClassloader(result, classloader);
+        Assert.assertNotNull(clazz);
+        TestPreprocess testClass = (TestPreprocess) clazz.newInstance();
+        assertNotNull(testClass);
+    }
+
+    @Test
     public void testRewriteSlowQueryNoHighSecurity() throws Exception {
         final ClassLoader classloader = Thread.currentThread().getContextClassLoader();
         final String classname = "com.newrelic.agent.instrumentation.weaver.preprocessors.AgentPreprocessorsTest$ExternalParametersFactoryTestClass1";
@@ -663,6 +688,12 @@ public class AgentPreprocessorsTest {
     @Target({ElementType.TYPE})
     @Retention(RetentionPolicy.RUNTIME)
     private @interface TestAnnotation {
+    }
+
+    // testPreprocess
+    public static class TestPreprocess {
+        public void testMethod() {
+        }
     }
 
     // testRewriteSlowQueryNoHighSecurity

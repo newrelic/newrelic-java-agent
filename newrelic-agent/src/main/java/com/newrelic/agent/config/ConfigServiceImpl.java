@@ -99,8 +99,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
 
         boolean isCrossApplicationTracing = localAgentConfig.getCrossProcessConfig().isCrossApplicationTracing();
         if (isCrossApplicationTracing) {
-            String msg = "Distributed tracing is replacing cross application tracing as the default means of tracing between services. " +
-                    "To continue using cross application tracing, enable it with cross_application_tracer.enabled=true and distributed_tracing.enabled=false. ";
+            String msg = "Cross application tracing (CAT) is deprecated and will be removed in a future agent release. Distributed tracing has replaced CAT " +
+                    "as the default means of tracing between services. To continue using CAT, re-enable it with " +
+                    "cross_application_tracer.enabled=true and distributed_tracing.enabled=false. ";
             getLogger().info(msg);
         }
 

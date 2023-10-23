@@ -8,11 +8,15 @@
 package com.newrelic.api.agent;
 
 import com.newrelic.agent.IRPMService;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.attributes.AgentAttributeSender;
+import com.newrelic.agent.attributes.AttributeSender;
 import com.newrelic.agent.config.ConfigConstant;
+import com.newrelic.agent.dispatchers.Dispatcher;
+import com.newrelic.agent.errors.ErrorGroupCallbackHolder;
 import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -21,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.math.BigDecimal;
@@ -31,6 +36,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.junit.Assert.assertEquals;
 
 public class NewRelicApiImplementationTest {
 
@@ -84,6 +91,381 @@ public class NewRelicApiImplementationTest {
         target.noticeError("errorMessage");
 
         Mockito.verify(errorService).reportError("errorMessage", Collections.emptyMap(), false);
+    }
+
+    @Test
+    public void ignoreTransaction_withValidTxn_setsIgnoreFlag() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            target.ignoreTransaction();
+            Mockito.verify(txn, Mockito.times(1)).setIgnore(true);
+        }
+    }
+
+    @Test
+    public void ignoreTransaction_withNullTxn_setsIgnoreFlag() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            target.ignoreTransaction();
+            Mockito.verify(txn, Mockito.times(0)).setIgnore(true);
+        }
+    }
+
+    @Test
+    public void ignoreApdex_withValidTxn_setsIgnoreFlag() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            target.ignoreApdex();
+            Mockito.verify(txn, Mockito.times(1)).ignoreApdex();
+        }
+    }
+
+    @Test
+    public void ignoreApdex_withNullTxn_setsIgnoreFlag() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            target.ignoreApdex();
+            Mockito.verify(txn, Mockito.times(0)).ignoreApdex();
+        }
+    }
+
+    @Test
+    public void setRequestAndResponse_withValidTxn_setsReqAndResp() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class);
+        Request mockReq = Mockito.mock(Request.class);
+        Response mockResp = Mockito.mock(Response.class);
+
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            target.setRequestAndResponse(mockReq, mockResp);
+            Mockito.verify(txn, Mockito.times(1)).setRequestAndResponse(mockReq, mockResp);
+        }
+    }
+
+    @Test
+    public void setRequestAndResponse_withNullTxn_setsReqAndResp() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class);
+        Request mockReq = Mockito.mock(Request.class);
+        Response mockResp = Mockito.mock(Response.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            target.setRequestAndResponse(mockReq, mockResp);
+            Mockito.verify(txn, Mockito.times(0)).setRequestAndResponse(Mockito.any(), Mockito.any());
+        }
+    }
+
+    @Test
+    public void getBrowserTimingHeaderForContentType_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingHeaderForJsp()).thenReturn("header");
+            assertEquals("header", NewRelicApiImplementation.getBrowserTimingHeaderForContentType("application/json"));
+        }
+    }
+
+    @Test
+    public void getBrowserTimingHeaderForContentType_withNullTxn_returnsEmptyString() {
+        mockOutServices();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            assertEquals("", NewRelicApiImplementation.getBrowserTimingHeaderForContentType("application/json"));
+        }
+    }
+
+    @Test
+    public void getBrowserTimingHeader_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingHeader()).thenReturn("header");
+            assertEquals("header", target.getBrowserTimingHeader());
+        }
+    }
+
+    @Test
+    public void getBrowserTimingHeaderWithNonce_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingHeader("123")).thenReturn("header");
+            assertEquals("header", target.getBrowserTimingHeader("123"));
+        }
+    }
+
+    @Test
+    public void getBrowserTimingHeaderWithoutNonce_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingHeader()).thenReturn("header");
+            assertEquals("header", target.getBrowserTimingHeader());
+        }
+    }
+
+    @Test
+    public void getBrowserTimingHeaderWithoutNonce_withoutTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            assertEquals("", target.getBrowserTimingHeader());
+        }
+    }
+
+    @Test
+    public void getBrowserTimingFooterForContentType_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter()).thenReturn("header");
+            assertEquals("header", NewRelicApiImplementation.getBrowserTimingFooterForContentType("application/json"));
+        }
+    }
+
+    @Test
+    public void getBrowserTimingFooterForContentType_withNullTxn_returnsEmptyString() {
+        mockOutServices();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            assertEquals("", NewRelicApiImplementation.getBrowserTimingFooterForContentType("application/json"));
+        }
+    }
+
+    @Test
+    public void getBrowserTimingFooter_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter()).thenReturn("header");
+            assertEquals("header", target.getBrowserTimingFooter());
+        }
+    }
+
+    @Test
+    public void getBrowserTimingFooterWithNonce_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter("123")).thenReturn("header");
+            assertEquals("header", target.getBrowserTimingFooter("123"));
+        }
+    }
+
+    @Test
+    public void getBrowserTimingFooterWithoutNonce_withTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter()).thenReturn("header");
+            assertEquals("header", target.getBrowserTimingFooter());
+        }
+    }
+
+    @Test
+    public void getBrowserTimingFooterWithoutNonce_withoutTxn_returnsHeader() {
+        mockOutServices();
+        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            assertEquals("", target.getBrowserTimingFooter());
+        }
+    }
+
+    @Test
+    public void setUserId_withValidId_setsAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        target.setUserId("123");
+        Mockito.verify(mockAgentSender).addAttribute("enduser.id", "123", "setUserId");
+    }
+
+    @Test
+    public void setUserId_withInvalidId_doesNotSetAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        target.setUserId(null);
+        Mockito.verify(mockAgentSender, Mockito.times(0)).addAttribute("enduser.id", "123", "setUserId");
+
+        target.setUserId("");
+        Mockito.verify(mockAgentSender, Mockito.times(0)).addAttribute("enduser.id", "123", "setUserId");
+    }
+
+    @Test
+    public void setUserName_withValidName_setsNameAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Dispatcher mockDispatcher = Mockito.mock(Dispatcher.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getDispatcher()).thenReturn(mockDispatcher);
+            Mockito.when(mockDispatcher.isWebTransaction()).thenReturn(true);
+            MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class);
+
+            target.setUserName("name");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_USER_NAME));
+            Mockito.verify(mockSender).addAttribute("user", "name", "setUserName");
+            mockMetricNames.close();
+        }
+    }
+
+    @Test
+    public void setAccountName_withValidName_setsNameAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Dispatcher mockDispatcher = Mockito.mock(Dispatcher.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getDispatcher()).thenReturn(mockDispatcher);
+            Mockito.when(mockDispatcher.isWebTransaction()).thenReturn(true);
+            MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class);
+
+            target.setAccountName("name");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_ACCOUNT_NAME));
+            Mockito.verify(mockSender).addAttribute("account", "name", "setAccountName");
+            mockMetricNames.close();
+        }
+    }
+
+    @Test
+    public void setProductName_withValidName_setsNameAttribute() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = Mockito.mock(AgentAttributeSender.class);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Dispatcher mockDispatcher = Mockito.mock(Dispatcher.class);
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
+            Mockito.when(txn.getDispatcher()).thenReturn(mockDispatcher);
+            Mockito.when(mockDispatcher.isWebTransaction()).thenReturn(true);
+            MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class);
+
+            target.setProductName("name");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_PRODUCT_NAME));
+            Mockito.verify(mockSender).addAttribute("product", "name", "setProductName");
+            mockMetricNames.close();
+        }
+    }
+
+    @Test
+    public void setAppServerPort_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setAppServerPort(8888);
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_APP_SERVER_PORT));
+        }
+    }
+
+    @Test
+    public void setServerInfo_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setServerInfo("dispatcher", "1");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_SERVER_INFO));
+        }
+    }
+
+    @Test
+    public void setInstanceName_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setInstanceName("instance");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_INSTANCE_NAME));
+        }
+    }
+
+    @Test
+    public void setUserId_recordsSupportabilityMetric() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<MetricNames> mockMetricNames = Mockito.mockStatic(MetricNames.class)) {
+            target.setUserId("instance");
+            mockMetricNames.verify(() -> MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_SET_USER_ID));
+        }
+    }
+
+    @Test
+    public void setErrorGroupCallback_setsCallback() {
+        mockOutServices();
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+
+        try(MockedStatic<ErrorGroupCallbackHolder> mockCallbackHandler = Mockito.mockStatic(ErrorGroupCallbackHolder.class)) {
+            target.setErrorGroupCallback(Mockito.mock(ErrorGroupCallback.class));
+            mockCallbackHandler.verify(() -> ErrorGroupCallbackHolder.setErrorGroupCallback(Mockito.any(ErrorGroupCallback.class)));
+        }
     }
 
     @Test

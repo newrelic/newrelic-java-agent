@@ -6,12 +6,13 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation("org.springframework:spring-context:4.3.0.RELEASE")
     implementation("org.springframework:spring-web:4.3.0.RELEASE")
-    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.20")
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.21")
 }
 
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-4.3.0',
-            'Implementation-Title-Alias': 'spring_annotations' }
+            'Implementation-Title-Alias': 'spring_annotations',
+            'Weave-Violation-Filter': 'METHOD_MISSING_REQUIRED_ANNOTATIONS,CLASS_MISSING_REQUIRED_ANNOTATIONS' }
 }
 
 verifyInstrumentation {

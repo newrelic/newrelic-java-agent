@@ -1,0 +1,25 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework:spring-context:3.1.0.RELEASE")
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.21")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-cache-3.1.0',
+            'Implementation-Title-Alias': 'spring_cache' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.springframework:spring-context:[3.1.0.RELEASE,)'
+
+    excludeRegex 'org.springframework:spring-context:.*(RC|SEC|M)[0-9]*$'
+}
+
+site {
+    title 'Spring'
+    type 'Framework'
+}

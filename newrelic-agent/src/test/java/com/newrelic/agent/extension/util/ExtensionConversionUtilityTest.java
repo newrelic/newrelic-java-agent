@@ -20,6 +20,7 @@ import com.newrelic.agent.instrumentation.methodmatchers.MethodMatcher;
 import com.newrelic.agent.instrumentation.tracing.ParameterAttributeName;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.objectweb.asm.Type;
 import org.xml.sax.SAXParseException;
 
@@ -328,5 +329,85 @@ public class ExtensionConversionUtilityTest {
         m.setReturnType(Action.class.getName());
         pointcut.getMethod().add(m);
         ExtensionConversionUtility.createClassMatcher(pointcut, "test");
+    }
+
+    @Test(expected=XmlException.class)
+    public void validateExtensionAttributes_nullExtension_shouldThrow() throws XmlException{
+        ExtensionConversionUtility.validateExtensionAttributes(null);
+    }
+
+    @Test(expected=XmlException.class)
+    public void validateExtensionAttributes_extensionWithNullName_shouldThrow() throws XmlException{
+        Extension mockExt = Mockito.mock(Extension.class);
+        Mockito.when(mockExt.getName()).thenReturn(null);
+        ExtensionConversionUtility.validateExtensionAttributes(mockExt);
+    }
+
+    @Test(expected=XmlException.class)
+    public void validateExtensionAttributes_extensionWithEmptyName_shouldThrow() throws XmlException{
+        Extension mockExt = Mockito.mock(Extension.class);
+        Mockito.when(mockExt.getName()).thenReturn(null);
+        ExtensionConversionUtility.validateExtensionAttributes(mockExt);
+    }
+
+    @Test(expected=XmlException.class)
+    public void validateExtensionAttributes_extensionWithNegativeVersion_shouldThrow() throws XmlException{
+        Extension mockExt = Mockito.mock(Extension.class);
+        Mockito.when(mockExt.getVersion()).thenReturn(-1.0);
+        Mockito.when(mockExt.getName()).thenReturn("foo");
+        ExtensionConversionUtility.validateExtensionAttributes(mockExt);
+    }
+
+    @Test(expected=XmlException.class)
+    public void convertToPointCutsForValidation_nullInstrumentation_shouldThrow() throws XmlException{
+        Extension mockExt = Mockito.mock(Extension.class);
+        Mockito.when(mockExt.getName()).thenReturn("foo");
+        Mockito.when(mockExt.getInstrumentation()).thenReturn(null);
+        ExtensionConversionUtility.convertToPointCutsForValidation(mockExt);
+    }
+
+    @Test(expected=XmlException.class)
+    public void convertToPointCutsForValidation_instrumentationWithoutPointcuts_shouldThrow() throws XmlException{
+        Extension mockExt = Mockito.mock(Extension.class);
+        Extension.Instrumentation mockInst = Mockito.mock(Extension.Instrumentation.class);
+        Mockito.when(mockExt.getInstrumentation()).thenReturn(mockInst);
+        Mockito.when(mockExt.getName()).thenReturn("foo");
+        Mockito.when(mockInst.getPointcut()).thenReturn(null);
+        ExtensionConversionUtility.convertToPointCutsForValidation(mockExt);
+    }
+
+    @Test
+    public void convertToEnabledPointCuts_nullExtensions_returnsEmptyList(){
+        List<ExtensionClassAndMethodMatcher> pointCutsOut = ExtensionConversionUtility.convertToEnabledPointCuts(null, false, null, false);
+        Assert.assertTrue(pointCutsOut.isEmpty());
+    }
+
+    @Test
+    public void convertToEnabledPointCuts_oneDisabledExt_returnsEmptyList(){
+        Extension mockExt = Mockito.mock(Extension.class);
+        Mockito.when(mockExt.isEnabled()).thenReturn(false);
+        List<Extension> extensions = new ArrayList<>();
+        extensions.add(mockExt);
+        Assert.assertTrue(ExtensionConversionUtility.convertToEnabledPointCuts(extensions, false, null, false).isEmpty());
+    }
+
+    @Test
+    public void convertToEnabledPointCuts_oneExtWithNoPointCuts_returnsEmptyList(){
+        Extension mockExt = Mockito.mock(Extension.class);
+        Mockito.when(mockExt.isEnabled()).thenReturn(true);
+        Extension.Instrumentation mockInst = Mockito.mock(Extension.Instrumentation.class);
+        Mockito.when(mockExt.getInstrumentation()).thenReturn(mockInst);
+        List<Extension> extensions = new ArrayList<>();
+        extensions.add(mockExt);
+        Assert.assertTrue(ExtensionConversionUtility.convertToEnabledPointCuts(extensions, false, null, false).isEmpty());
+    }
+
+    @Test(expected=XmlException.class)
+    public void createClassMatcher_emptyClassName_shouldThrow() throws XmlException{
+        Pointcut mockPointcut = Mockito.mock(Pointcut.class);
+        ClassName mockClassName = Mockito.mock(ClassName.class);
+        Mockito.when(mockPointcut.getClassName()).thenReturn(mockClassName);
+        Mockito.when(mockClassName.getValue()).thenReturn("");
+        ExtensionConversionUtility.createClassMatcher(mockPointcut, "bar");
     }
 }

@@ -7,21 +7,30 @@
 
 package com.newrelic.agent.service.analytics;
 
+import com.google.common.collect.ImmutableMap;
+import com.newrelic.agent.MockConfigService;
+import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.attributes.AttributeNames;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
+import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
 import static com.newrelic.agent.service.analytics.SpanEventFactory.DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,13 +59,18 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setUri(URI.create("https://newrelic.com")).build();
 
         assertEquals("https://newrelic.com", target.getAgentAttributes().get("http.url"));
+        assertEquals("newrelic.com", target.getAgentAttributes().get("server.address"));
+        assertEquals("newrelic.com", target.getAgentAttributes().get("peer.hostname"));
+        assertNull(target.getAgentAttributes().get("server.port"));
     }
 
     @Test
     public void addressShouldBeSet() {
-        SpanEvent target = spanEventFactory.setAddress("localhost", "3306").build();
+        SpanEvent target = spanEventFactory.setServerAddress("localhost").setServerPort(3306).build();
 
-        assertEquals("localhost:3306", target.getIntrinsics().get("peer.address"));
+        assertEquals("localhost", target.getAgentAttributes().get("server.address"));
+        assertEquals("localhost", target.getAgentAttributes().get("peer.hostname"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
     }
 
     @Test
@@ -67,7 +81,7 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setDatabaseStatement(threeKStatement).build();
 
         assertEquals(2000,
-                target.getIntrinsics().get("db.statement").toString().length());
+                target.getAgentAttributes().get("db.statement").toString().length());
     }
 
     @Test
@@ -170,10 +184,52 @@ public class SpanEventFactoryTest {
     public void shouldSetDataStoreParameters() {
         DatastoreParameters mockParameters = mock(DatastoreParameters.class);
         when(mockParameters.getDatabaseName()).thenReturn("database name");
+        when(mockParameters.getOperation()).thenReturn("select");
+        when(mockParameters.getCollection()).thenReturn("users");
+        when(mockParameters.getProduct()).thenReturn("MySQL");
+        when(mockParameters.getHost()).thenReturn("dbserver");
+        when(mockParameters.getPort()).thenReturn(3306);
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
-        assertEquals("database name", target.getIntrinsics().get("db.instance"));
+        assertEquals("database name", target.getAgentAttributes().get("db.instance"));
+        assertEquals("select", target.getAgentAttributes().get("db.operation"));
+        assertEquals("users", target.getAgentAttributes().get("db.collection"));
+        assertEquals("MySQL", target.getAgentAttributes().get("db.system"));
+        assertEquals("dbserver", target.getAgentAttributes().get("peer.hostname"));
+        assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
+        assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
+    }
+
+    @Test
+    public void shouldStoreStackTrace() {
+        SpanEventFactory spanEventFactory = new SpanEventFactory("MyApp", new AttributeFilter.PassEverythingAttributeFilter(),
+                DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+        spanEventFactory.setKindFromUserAttributes();
+        MockServiceManager serviceManager = new MockServiceManager();
+        serviceManager.setConfigService(new MockConfigService(mock(AgentConfig.class)));
+        ServiceFactory.setServiceManager(serviceManager);
+        spanEventFactory.setStackTraceAttributes(
+                ImmutableMap.of(DefaultTracer.BACKTRACE_PARAMETER_NAME, Arrays.asList(Thread.currentThread().getStackTrace())));
+
+        final Object stackTrace = spanEventFactory.build().getAgentAttributes().get(AttributeNames.CODE_STACKTRACE);
+        assertNotNull(stackTrace);
+    }
+
+    @Test
+    public void shouldSetCLMParameters() {
+        Map<String, Object> agentAttributes = ImmutableMap.of(
+                AttributeNames.CLM_NAMESPACE, "nr",
+                AttributeNames.CLM_FUNCTION, "process",
+                AttributeNames.THREAD_ID, 666
+        );
+
+        SpanEvent target = spanEventFactory.setClmAttributes(agentAttributes).build();
+
+        assertEquals("nr", target.getAgentAttributes().get(AttributeNames.CLM_NAMESPACE));
+        assertEquals("process", target.getAgentAttributes().get(AttributeNames.CLM_FUNCTION));
+        assertEquals(666, target.getIntrinsics().get(AttributeNames.THREAD_ID));
     }
 
     @Test
@@ -223,7 +279,3 @@ public class SpanEventFactoryTest {
         }
     }
 }
-
-
-
-

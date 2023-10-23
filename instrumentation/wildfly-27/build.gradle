@@ -1,0 +1,30 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
+
+    implementation("io.undertow:undertow-servlet-jakarta:2.2.14.Final")
+    implementation("io.undertow:undertow-core:2.2.14.Final")
+    implementation("org.jboss.logging:jboss-logging:3.4.0.Final")
+
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.wildfly-27', 'Implementation-Title-Alias': 'wildfly' }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.undertow:undertow-servlet-jakarta:[2.2.14.Final,)'
+    excludeRegex '.*(Alpha|Beta|CR).*'
+}
+
+site {
+    title 'Wildfly'
+    type 'Appserver'
+    versionOverride '[27.0.0.Final,)'
+}
