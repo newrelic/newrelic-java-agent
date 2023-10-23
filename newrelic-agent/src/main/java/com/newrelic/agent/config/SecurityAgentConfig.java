@@ -18,6 +18,8 @@ import java.util.Set;
  *
  * security:
  *   enabled: false
+ *   low-priority-instrumentation:
+ *     enabled: false
  *   mode: IAST
  *   validator_service_url: wss://csec.nr-data.net
  *   agent:
@@ -35,6 +37,8 @@ public class SecurityAgentConfig {
     public static final boolean SECURITY_AGENT_ENABLED_DEFAULT = false;
     public static final String SECURITY_ENABLED = "security.enabled";
     public static final boolean SECURITY_ENABLED_DEFAULT = false;
+    public static final String SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED = "security.low-priority-instrumentation.enabled";
+    public static final boolean SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED_DEFAULT = false;
     public static final String SECURITY_MODE = "security.mode";
     public static final String SECURITY_MODE_DEFAULT = "IAST";
     public static final String SECURITY_VALIDATOR_SERVICE_URL = "security.validator_service_url";
@@ -136,4 +140,14 @@ public class SecurityAgentConfig {
     public static String getSecurityAgentMode() {
         return config.getValue(SECURITY_MODE, SECURITY_MODE_DEFAULT);
     }
+
+    /**
+     * Determines whether the security agent low priority attack/vulnerability modules will instrument or not.
+     *
+     * @return True if security agent should instrument low priority attack/vulnerability modules, false if it should not
+     */
+    public static boolean isSecurityLowPriorityInstrumentationEnabled() {
+        return config.getValue(SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED, SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED_DEFAULT);
+    }
+
 }

@@ -85,6 +85,11 @@
 ^com/ibm/ws/security/jaspi/JaspiServletFilter
 # Websphere specific servlet wrapper class
 ^com/ibm/ws/webcontainer/servlet/ServletWrapperImpl
+# Sonarqube9.9 ClassCircularityErrors 
+^java/util/AbstractList\$RandomAccessSpliterator
+^java/util/stream/MatchOps\$MatchOp
+^java/util/stream/MatchOps\$BooleanTerminalSink
+^javax/security/auth/Subject\$SecureSet\$1
 ### All default excludes listed below get ignored when the security agent is enabled
 # exclude java.security and sun.reflect classes from transformation
 ^java/security/.*

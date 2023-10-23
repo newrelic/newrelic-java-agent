@@ -10,17 +10,19 @@ package com.newrelic.agent.introspec.internal;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.logging.IAgentLogger;
+import com.newrelic.agent.service.module.ClassToJarPathSubmitter;
+import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.service.module.JarCollectorService;
 
 public class IgnoringJarCollectorService implements JarCollectorService {
     @Override
-    public ClassMatchVisitorFactory getSourceVisitor() {
-        return null;
+    public void harvest(String appName) {
+
     }
 
     @Override
-    public void harvest(String appName) {
-
+    public ClassToJarPathSubmitter getClassToJarPathSubmitter() {
+        return ClassToJarPathSubmitterImpl.NO_OP_INSTANCE;
     }
 
     @Override

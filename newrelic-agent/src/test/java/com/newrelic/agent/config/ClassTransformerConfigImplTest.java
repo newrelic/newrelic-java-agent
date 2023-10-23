@@ -162,7 +162,6 @@ public class ClassTransformerConfigImplTest {
         MockServiceManager serviceManager = new MockServiceManager(configService);
         ServiceFactory.setServiceManager(serviceManager);
         JarCollectorService mockJarCollector = serviceManager.getJarCollectorService();
-        when(mockJarCollector.getSourceVisitor()).thenReturn(ClassMatchVisitorFactory.NO_OP_FACTORY);
 
         InstrumentationContextManager icm = new InstrumentationContextManager(Mockito.mock(InstrumentationProxy.class));
         Assert.assertFalse(icm.isClassloaderExcluded(new GoodClassLoader()));

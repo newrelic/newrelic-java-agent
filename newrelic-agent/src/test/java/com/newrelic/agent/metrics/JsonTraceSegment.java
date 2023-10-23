@@ -57,8 +57,10 @@ public class JsonTraceSegment {
         seg.className = (String) segmentArray.get(5);
         seg.methodName = (String) segmentArray.get(6);
 
+        // attributes added to all traces
         seg.requestParams.put("code.namespace", seg.className);
         seg.requestParams.put("code.function", seg.methodName);
+        seg.requestParams.put("thread.id", "*");
         return seg;
     }
 

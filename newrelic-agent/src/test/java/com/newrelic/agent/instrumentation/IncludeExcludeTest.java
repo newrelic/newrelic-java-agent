@@ -40,7 +40,6 @@ public class IncludeExcludeTest {
         MockServiceManager serviceManager = new MockServiceManager(configService);
         ServiceFactory.setServiceManager(serviceManager);
         JarCollectorService mockJarCollector = serviceManager.getJarCollectorService();
-        when(mockJarCollector.getSourceVisitor()).thenReturn(ClassMatchVisitorFactory.NO_OP_FACTORY);
     }
 
     private Map<String, Object> createConfigMap() {

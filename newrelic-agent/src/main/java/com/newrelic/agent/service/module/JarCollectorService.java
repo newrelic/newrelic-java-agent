@@ -7,15 +7,13 @@
 
 package com.newrelic.agent.service.module;
 
-import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.service.Service;
 
 /**
  * Interface for collecting and sending jars to RPM.
  */
 public interface JarCollectorService extends Service {
-
-    ClassMatchVisitorFactory getSourceVisitor();
-
     void harvest(String appName);
+
+    ClassToJarPathSubmitter getClassToJarPathSubmitter();
 }

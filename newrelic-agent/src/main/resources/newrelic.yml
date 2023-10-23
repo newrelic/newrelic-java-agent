@@ -385,6 +385,11 @@ common: &default_settings
     # true, the security module will run but data will not be sent. Default is false.
     enabled: false
 
+    # Determines whether the low priority attack/vulnerability modules will instrument or not.
+    # When this is disabled instrumentation of such modules will be skipped and vice versa, default is false.
+    low-priority-instrumentation:
+      enabled: false
+
     # New Relic Security provides two modes: IAST and RASP
     # Default is IAST. Due to the invasive nature of IAST scanning, DO NOT enable this mode in either a
     # production environment or an environment where production data is processed.
@@ -407,6 +412,12 @@ common: &default_settings
         enabled: true
       deserialization:
         enabled: true
+
+  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's time exceeds the threshold value
+  # (in ms). A transaction will only be reported once.
+  slow_transactions:
+    enabled: false
+    threshold: 1000
 
 # Application Environments
 # ------------------------------------------
