@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package io.r2dbc.postgresql;
 
 import com.newrelic.agent.bridge.NoOpTransaction;
