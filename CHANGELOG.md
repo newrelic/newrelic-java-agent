@@ -7,13 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Version 8.7.0
 ## New features and improvements
 
-* Adds support for Java 21 https://github.com/newrelic/newrelic-java-agent/pull/1546
-* Add experimental config option to run the agent with unsupported java versions https://github.com/newrelic/newrelic-java-agent/pull/1480
-* Add intrinsic attribute thread.id to spans to allow for faceting queries by thread ID https://github.com/newrelic/newrelic-java-agent/pull/1513
-* Include stack traces in client spans https://github.com/newrelic/newrelic-java-agent/pull/1507
-* Add new configuration to enable/disable low priority instrumentation `security.low-priority-instrumentation.enabled` for the CSEC agent https://github.com/newrelic/newrelic-java-agent/pull/1515
-* Adds support for getting the containerId from a docker container with Linux cgroup v2. https://github.com/newrelic/newrelic-java-agent/pull/1529
-* Add database and external span attributes to correlate to metric data in accordance with Open Telemetry specs. Certain old attributes are removed. https://github.com/newrelic/newrelic-java-agent/pull/1525
+* Adds support for Java 21 [1546](https://github.com/newrelic/newrelic-java-agent/pull/1546)
+* Add experimental config option to run the agent with unsupported java versions [1480](https://github.com/newrelic/newrelic-java-agent/pull/1480)
+* Add intrinsic attribute thread.id to spans to allow for faceting queries by thread ID [1513](https://github.com/newrelic/newrelic-java-agent/pull/1513)
+* Include stack traces in client spans [1507](https://github.com/newrelic/newrelic-java-agent/pull/1507)
+* Adds support for getting the containerId from a docker container with Linux cgroup v2. [1529](https://github.com/newrelic/newrelic-java-agent/pull/1529)
+* Add database and external span attributes to correlate to metric data in accordance with Open Telemetry specs. Certain old attributes are removed. [1525](https://github.com/newrelic/newrelic-java-agent/pull/1525)
 
   #### New attributes:
   * `db.system`
@@ -25,27 +24,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   #### Removed attributes:
   * `component`
   * `peer.hostname`
-* Add slow transaction detection which can be configured. It is disabled by default. https://github.com/newrelic/newrelic-java-agent/pull/1542
+* Add slow transaction detection which can be configured. It is disabled by default. [1542](https://github.com/newrelic/newrelic-java-agent/pull/1542)
 E.g:
   ```yaml
   slow_transactions:
     enabled: true
     threshold: 1000 # The threshold is measured in milliseconds
   ```
-* Add instrumentation for r2dbc-postgresql-0.9.2 https://github.com/newrelic/newrelic-java-agent/pull/1410
+* Add instrumentation for r2dbc-postgresql-0.9.2 [1410](https://github.com/newrelic/newrelic-java-agent/pull/1410)
+* Security Agent: Add new configuration to enable/disable low priority instrumentation `security.low-priority-instrumentation.enabled` for the CSEC agent. Default value is false. [1515](https://github.com/newrelic/newrelic-java-agent/pull/1515)
+* Security Agent: Cassandra DB v3.0+ Support: The Security agent now supports Cassandra DB version 3.0 and above [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: HttpClient v5.0+ Support: The Security agent now also supports HttpClient version 5.0 and above [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: Support for std-out logging [122](https://github.com/newrelic/csec-java-agent/pull/122) 
+* Security Agent: Added feature for Daily log rollover [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: Support for logger config: log_file_count and log_limit_in_kbytes [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: Relocating all our instrumentation packages under the package `com.newrelic.agent.security.instrumentation.*`  [122](https://github.com/newrelic/csec-java-agent/pull/122) 
+
 
 ## Fixes
 
-* Fixed a bug where a ClassCircularityError was thrown by Sonarqube9.9 https://github.com/newrelic/newrelic-java-agent/pull/1522
-* Fix a bug where the Java agent fails to detect `spring-security-oauth2-client.jar` https://github.com/newrelic/newrelic-java-agent/pull/1462
-* Fix a bug where Spring 6/ Spring Boot3 does not report underlying exception/stacktrace when a @RestControllerAdvice class is used https://github.com/newrelic/newrelic-java-agent/pull/1538
-* Fix HttpUrlConnection instrumentation so segment timing is accurate https://github.com/newrelic/newrelic-java-agent/pull/1537
-* Fixes a bug in Spring 6 instrumentation where transactions are incorrectly named in certain scenarios. https://github.com/newrelic/newrelic-java-agent/pull/1544
+* Fixed a bug where a ClassCircularityError was thrown by Sonarqube9.9 [1522](https://github.com/newrelic/newrelic-java-agent/pull/1522)
+* Fix a bug where the Java agent fails to detect `spring-security-oauth2-client.jar` [1462](https://github.com/newrelic/newrelic-java-agent/pull/1462)
+* Fix a bug where Spring 6/ Spring Boot3 does not report underlying exception/stacktrace when a @RestControllerAdvice class is used [1538](https://github.com/newrelic/newrelic-java-agent/pull/1538)
+* Fix HttpUrlConnection instrumentation so segment timing is accurate [1537](https://github.com/newrelic/newrelic-java-agent/pull/1537)
+* Fixes a bug in Spring 6 instrumentation where transactions are incorrectly named in certain scenarios. [1544](https://github.com/newrelic/newrelic-java-agent/pull/1544)
 Such include: 
   * "built-in" controllers that don't have `@RestController`-like annotations, e.g. /actuator/health (see [Actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#actuator.endpoints))
   * custom controllers that don't use `@RestController `directly (e.g. using custom annotations)
   * requests returning 401s / 404s
-* Add a fix for JBoss EAP / Wildfly where if customers are using the J2EE/Jakarta Management API, the application fails to startup. https://github.com/newrelic/newrelic-java-agent/pull/1549 
+* Add a fix for JBoss EAP / Wildfly where if customers are using the J2EE/Jakarta Management API, the application fails to startup. [1549](https://github.com/newrelic/newrelic-java-agent/pull/1549) 
   This is done by adding the system property `com.newrelic.jboss.jsr77.fix` and setting it to `true`. 
   E.g. 
   ```
@@ -78,12 +85,13 @@ Such include:
       </dependencies>
   </module>
   ```
-* Resolve missing class exception on Scala instrumentation https://github.com/newrelic/newrelic-java-agent/pull/1528
+* Resolve missing class exception on Scala instrumentation [1528](https://github.com/newrelic/newrelic-java-agent/pull/1528)
+* Security Agent: Fixed ClassNotFoundException for IOStreamHelper class with Glassfish [122](https://github.com/newrelic/csec-java-agent/pull/122) 
 
 ## Security
 
-* Update agent dependency commons-codec to v1.13 https://github.com/newrelic/newrelic-java-agent/pull/1548
-* Update JFR daemon to `1.11.0`. This upgrade updates the underlying OkHttp dependency to version `4.12.0` https://github.com/newrelic/newrelic-java-agent/pull/1561
+* Update agent dependency commons-codec to v1.13 [1548](https://github.com/newrelic/newrelic-java-agent/pull/1548)
+* Update JFR daemon to `1.11.0`. This upgrade updates the underlying OkHttp dependency to version `4.12.0` [1561](https://github.com/newrelic/newrelic-java-agent/pull/1561)
 
 
 ## Deprecations
@@ -94,6 +102,7 @@ Such include:
 - `spring-3.0.0`
 - `netty-3.4`
 - `Struts v1`
+
 
 ## Version 8.6.0
 ## New features and improvements
