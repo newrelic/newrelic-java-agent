@@ -106,7 +106,6 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-//        String expectedErrorMessage = "Validation error of type FieldUndefined: Field 'noSuchField' in type 'Query' is undefined @ 'noSuchField'";
         String expectedErrorMessage = "Validation error (FieldUndefined@[noSuchField]) : Field 'noSuchField' in type 'Query' is undefined";
         assertErrorOperation("QUERY/<anonymous>/noSuchField",
                 "GraphQL/operation/QUERY/<anonymous>/noSuchField", "graphql.GraphqlErrorException", expectedErrorMessage, false);
