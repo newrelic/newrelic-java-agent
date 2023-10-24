@@ -1,13 +1,20 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
 package com.nr.instrumentation.graphql;
 
-import graphql.language.*;
+import graphql.language.Document;
+import graphql.language.Field;
+import graphql.language.InlineFragment;
+import graphql.language.OperationDefinition;
+import graphql.language.Selection;
+import graphql.language.SelectionSet;
+import graphql.language.SelectionSetContainer;
+import graphql.language.TypeName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +48,13 @@ public class GraphQLTransactionName {
      * @return a transaction name based on given document
      */
     public static String from(final Document document) {
-        if (document == null) return DEFAULT_TRANSACTION_NAME;
+        if (document == null) {
+            return DEFAULT_TRANSACTION_NAME;
+        }
         List<OperationDefinition> operationDefinitions = document.getDefinitionsOfType(OperationDefinition.class);
-        if (isNullOrEmpty(operationDefinitions)) return DEFAULT_TRANSACTION_NAME;
+        if (isNullOrEmpty(operationDefinitions)) {
+            return DEFAULT_TRANSACTION_NAME;
+        }
         if (operationDefinitions.size() == 1) {
             return getTransactionNameFor(operationDefinitions.get(0));
         }
@@ -53,7 +64,9 @@ public class GraphQLTransactionName {
     }
 
     private static String getTransactionNameFor(OperationDefinition operationDefinition) {
-        if (operationDefinition == null) return DEFAULT_TRANSACTION_NAME;
+        if (operationDefinition == null) {
+            return DEFAULT_TRANSACTION_NAME;
+        }
         return createBeginningOfTransactionNameFrom(operationDefinition) +
                 createEndOfTransactionNameFrom(operationDefinition.getSelectionSet());
     }
@@ -66,7 +79,9 @@ public class GraphQLTransactionName {
 
     private static String createEndOfTransactionNameFrom(final SelectionSet selectionSet) {
         Selection selection = onlyNonFederatedSelectionOrNoneFrom(selectionSet);
-        if (selection == null) return "";
+        if (selection == null) {
+            return "";
+        }
         List<Selection> selections = new ArrayList<>();
         while (selection != null) {
             selections.add(selection);

@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -12,6 +12,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.StaticDataFetcher;
 import graphql.schema.idl.RuntimeWiring;
@@ -21,6 +22,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 
@@ -34,7 +36,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = {"graphql", "com.nr.instrumentation"}, configName = "distributed_tracing.yml")
+@InstrumentationTestConfig(includePrefixes = { "graphql", "com.nr.instrumentation" }, configName = "distributed_tracing.yml")
+@Category({ Java8IncompatibleTest.class })
 public class GraphQL_InstrumentationTest {
     private static final long DEFAULT_TIMEOUT_IN_MILLIS = 10_000;
     private static final String TEST_ARG = "testArg";
@@ -103,7 +106,8 @@ public class GraphQL_InstrumentationTest {
         //when
         trace(createRunnable(query));
         //then
-        String expectedErrorMessage = "Validation error of type FieldUndefined: Field 'noSuchField' in type 'Query' is undefined @ 'noSuchField'";
+//        String expectedErrorMessage = "Validation error of type FieldUndefined: Field 'noSuchField' in type 'Query' is undefined @ 'noSuchField'";
+        String expectedErrorMessage = "Validation error (FieldUndefined@[noSuchField]) : Field 'noSuchField' in type 'Query' is undefined";
         assertErrorOperation("QUERY/<anonymous>/noSuchField",
                 "GraphQL/operation/QUERY/<anonymous>/noSuchField", "graphql.GraphqlErrorException", expectedErrorMessage, false);
     }

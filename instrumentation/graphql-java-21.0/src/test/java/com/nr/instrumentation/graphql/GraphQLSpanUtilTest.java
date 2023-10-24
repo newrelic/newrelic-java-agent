@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -111,7 +111,8 @@ public class GraphQLSpanUtilTest {
                 "'graphql.field.parentType' is not required and should be null here");
     }
 
-    private static ExecutionStrategyParameters mockExecutionStrategyParametersForInvalidClassCastExceptionTest(String graphqlFieldPath, String graphqlFieldName) {
+    private static ExecutionStrategyParameters mockExecutionStrategyParametersForInvalidClassCastExceptionTest(String graphqlFieldPath,
+            String graphqlFieldName) {
         ExecutionStrategyParameters parameters = mock(ExecutionStrategyParameters.class);
         ResultPath resultPath = mock(ResultPath.class);
         MergedField mergedField = mock(MergedField.class);

@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -19,8 +19,8 @@ import graphql.schema.DataFetchingEnvironment;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.nr.instrumentation.graphql.GraphQLSpanUtil.*;
-import static com.nr.instrumentation.graphql.GraphQLErrorHandler.*;
+import static com.nr.instrumentation.graphql.GraphQLErrorHandler.reportNonNullableExceptionToNR;
+import static com.nr.instrumentation.graphql.GraphQLSpanUtil.setResolverAttributes;
 
 @Weave(originalName = "graphql.execution.ExecutionStrategy", type = MatchType.BaseClass)
 public class ExecutionStrategy_Instrumentation {

@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -17,9 +17,12 @@ import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationError;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Predicate;
 
-import static com.nr.instrumentation.graphql.GraphQLSpanUtil.*;
-import static com.nr.instrumentation.graphql.GraphQLErrorHandler.*;
+import static com.nr.instrumentation.graphql.GraphQLErrorHandler.reportGraphQLError;
+import static com.nr.instrumentation.graphql.GraphQLErrorHandler.reportGraphQLException;
+import static com.nr.instrumentation.graphql.GraphQLSpanUtil.setOperationAttributes;
 
 @Weave(originalName = "graphql.ParseAndValidate", type = MatchType.ExactClass)
 public class ParseAndValidate_Instrumentation {
@@ -41,7 +44,7 @@ public class ParseAndValidate_Instrumentation {
         return result;
     }
 
-    public static List<ValidationError> validate(GraphQLSchema graphQLSchema, Document parsedDocument) {
+    public static List<ValidationError> validate(GraphQLSchema graphQLSchema, Document parsedDocument, Predicate<Class<?>> rulePredicate, Locale locale) {
         List<ValidationError> errors = Weaver.callOriginal();
         if (errors != null && !errors.isEmpty()) {
             reportGraphQLError(errors.get(0));
