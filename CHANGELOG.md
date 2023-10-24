@@ -96,6 +96,7 @@ Such include:
 
 ## Deprecations
 
+The following instrumentation modules will be removed in the next major release:
 - `aws-wrap-0.7.0`
 - `java.completable-future-jdk8`
 - `play-2.3`
