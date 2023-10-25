@@ -91,7 +91,7 @@ Such include:
 ## Security
 
 * Update agent dependency commons-codec to v1.13 [1548](https://github.com/newrelic/newrelic-java-agent/pull/1548)
-* Update JFR daemon to `1.11.0`. This upgrade updates the underlying OkHttp dependency to version `4.12.0` [1561](https://github.com/newrelic/newrelic-java-agent/pull/1561)
+* Update JFR daemon to `1.11.1`. This upgrade updates the underlying OkHttp dependency to version `4.12.0` [1561](https://github.com/newrelic/newrelic-java-agent/pull/1561)
 
 
 ## Deprecations
