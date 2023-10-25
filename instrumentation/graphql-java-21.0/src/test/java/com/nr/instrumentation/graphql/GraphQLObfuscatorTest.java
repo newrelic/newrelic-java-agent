@@ -7,12 +7,15 @@
 
 package com.nr.instrumentation.graphql;
 
+import com.newrelic.test.marker.Java8IncompatibleTest;
+import org.junit.experimental.categories.Category;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
 import static com.nr.instrumentation.graphql.helper.GraphQLTestHelper.readText;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Category({ Java8IncompatibleTest.class })
 public class GraphQLObfuscatorTest {
 
     private final static String OBFUSCATE_DATA_DIR = "obfuscateQueryTestData";

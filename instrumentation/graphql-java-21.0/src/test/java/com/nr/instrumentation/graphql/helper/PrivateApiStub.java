@@ -8,6 +8,8 @@
 package com.nr.instrumentation.graphql.helper;
 
 import com.newrelic.agent.bridge.PrivateApi;
+import com.newrelic.test.marker.Java8IncompatibleTest;
+import org.junit.experimental.categories.Category;
 
 import javax.management.MBeanServer;
 import java.io.Closeable;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@Category({ Java8IncompatibleTest.class })
 public class PrivateApiStub implements PrivateApi {
     private final Map<String, String> tracerParameters = new HashMap<>();
 

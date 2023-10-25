@@ -9,6 +9,7 @@ package com.nr.instrumentation.graphql;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.PrivateApi;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import com.nr.instrumentation.graphql.helper.GraphQLTestHelper;
 import com.nr.instrumentation.graphql.helper.PrivateApiStub;
 import graphql.execution.ExecutionStepInfo;
@@ -18,6 +19,7 @@ import graphql.execution.ResultPath;
 import graphql.language.Definition;
 import graphql.language.Document;
 import graphql.schema.GraphQLNonNull;
+import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@Category({ Java8IncompatibleTest.class })
 public class GraphQLSpanUtilTest {
 
     private static final List<Definition> NO_DEFINITIONS = Collections.emptyList();
