@@ -51,4 +51,12 @@ public class ParseAndValidate_Instrumentation {
         }
         return errors;
     }
+
+    public static List<ValidationError> validate(GraphQLSchema graphQLSchema, Document parsedDocument, Predicate<Class<?>> rulePredicate) {
+        List<ValidationError> errors = Weaver.callOriginal();
+        if (errors != null && !errors.isEmpty()) {
+            reportGraphQLError(errors.get(0));
+        }
+        return errors;
+    }
 }
