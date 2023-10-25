@@ -31,7 +31,7 @@ E.g:
     enabled: true
     threshold: 1000 # The threshold is measured in milliseconds
   ```
-* Add instrumentation for r2dbc-postgresql-0.9.2 [1410](https://github.com/newrelic/newrelic-java-agent/pull/1410)
+*  Add instrumentation for r2dbc postgresql 0.9.2 to 0.9.x [1410](https://github.com/newrelic/newrelic-java-agent/pull/1410)
 * Security Agent: Add new configuration to enable/disable low priority instrumentation `security.low-priority-instrumentation.enabled` for the CSEC agent. Default value is false. [1515](https://github.com/newrelic/newrelic-java-agent/pull/1515)
 * Security Agent: Cassandra DB v3.0+ Support: The Security agent now supports Cassandra DB version 3.0 and above [122](https://github.com/newrelic/csec-java-agent/pull/122)
 * Security Agent: HttpClient v5.0+ Support: The Security agent now also supports HttpClient version 5.0 and above [122](https://github.com/newrelic/csec-java-agent/pull/122)
