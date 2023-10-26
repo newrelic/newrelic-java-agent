@@ -1087,6 +1087,18 @@ public class Transaction {
                             this.getInboundHeaderState().getSyntheticsMonitorId());
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_JOB_ID,
                             this.getInboundHeaderState().getSyntheticsJobId());
+                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_TYPE,
+                            this.getInboundHeaderState().getSyntheticsInfoType());
+                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_INITIATOR,
+                            this.getInboundHeaderState().getSyntheticsInfoInitiator());
+
+                    Map attrsMap = this.getInboundHeaderState().getSyntheticsInfoAttrs();
+                    String attrName;
+
+                    for (Object key : attrsMap.keySet()) {
+                        attrName = String.format("synthetics_%s", key);
+                        getIntrinsicAttributes().put(attrName, attrsMap.get(key));
+                    }
                 }
 
                 if (timeoutCause != null && timeoutCause.cause != null) {
@@ -1325,6 +1337,7 @@ public class Transaction {
         }
         return this.inboundHeaderState;
     }
+
 
     /**
      * package visibility for testing only.
