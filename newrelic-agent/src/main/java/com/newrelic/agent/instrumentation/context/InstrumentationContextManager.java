@@ -31,7 +31,6 @@ import org.objectweb.asm.ClassVisitor;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
-import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -218,11 +217,6 @@ public class InstrumentationContextManager {
         }
         if (isClassloaderExcluded(classloader)) {
             Agent.LOG.log(Level.FINEST, "Skipping transform of {0}. Classloader {1} is excluded.", internalClassName, classloader);
-            return false;
-        }
-        if (internalClassName.startsWith("javax/crypto/")) {
-            // crypto classes can cause class circularity errors if they get too far along in the class transformer
-            Agent.LOG.finest(MessageFormat.format("Instrumentation skipped by ''javax crypto'' rule: {0}", internalClassName));
             return false;
         }
         if (classNameFilter.isIncluded(internalClassName)) {
