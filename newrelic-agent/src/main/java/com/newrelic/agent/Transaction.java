@@ -1092,10 +1092,10 @@ public class Transaction {
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_INITIATOR,
                             this.getInboundHeaderState().getSyntheticsInfoInitiator());
 
-                    Map attrsMap = this.getInboundHeaderState().getSyntheticsInfoAttrs();
+                    Map<String, Object> attrsMap = this.getInboundHeaderState().getSyntheticsInfoAttrs();
                     String attrName;
 
-                    for (Object key : attrsMap.keySet()) {
+                    for (String key : attrsMap.keySet()) {
                         attrName = String.format("synthetics_%s", key);
                         getIntrinsicAttributes().put(attrName, attrsMap.get(key));
                     }

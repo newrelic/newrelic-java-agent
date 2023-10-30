@@ -146,16 +146,18 @@ public class InboundHeaderState {
         if (synInfoHeader == null || synInfoHeader.isEmpty()) {
             return SyntheticsInfoState.NONE;
         }
-//TODO: Is it necessary to check for an empty Map?
-//        JSONArray arr = getJSONArray(synHeader);
-//        if (arr == null || arr.size() == 0) {
-////TODO:            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: unable to decode header in transaction {0}.", tx);
-//            return SyntheticsState.NONE;
-//        }
 
-//TODO:        Agent.LOG.log(Level.FINEST, "Decoded synthetics header => {0} in transaction {1}", arr, tx);
 
-        Map jsonMap = getJSONMap(synInfoHeader);
+
+
+        Map<String, Object> jsonMap = getJSONMap(synInfoHeader);
+
+        if (jsonMap == null || synInfoHeader.isEmpty()) {
+            Agent.LOG.log(Level.FINE, "Synthetic Info transaction tracing failed: unable to decode header in transaction {0}.", tx);
+            return SyntheticsInfoState.NONE;
+        }
+
+        Agent.LOG.log(Level.FINEST, "Decoded synthetics header => {0} in transaction {1}", jsonMap, tx);
 
         String type;
         try {
@@ -172,9 +174,9 @@ public class InboundHeaderState {
             // Sample synthetics-info header:
             // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": "{"keyOne":"valueOne", "keyTwo":"valueTwo", "keyThree":"valueThree" }"}
             result = new SyntheticsInfoState(type, (String) jsonMap.get("type"), (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
-        } catch (RuntimeException rex) { // class cast exception, not enough elements in the JSON array, etc.
-//TODO: better logs            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
-//            rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
+        } catch (RuntimeException rex) { // class cast exception, not enough elements in the JSON map, etc.
+            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
+            rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
             result = SyntheticsInfoState.NONE;
         }
 
@@ -287,7 +289,7 @@ public class InboundHeaderState {
         return synInfoState.getInitiator();
     }
 
-    public Map<String, String> getSyntheticsInfoAttrs() {
+    public Map<String, Object> getSyntheticsInfoAttrs() {
         return synInfoState.getAttributes();
     }
 
@@ -390,16 +392,13 @@ public class InboundHeaderState {
         return result;
     }
 
-    private Map getJSONMap(String string) {
-        Map result = null;
+    private Map<String, Object> getJSONMap(String string) {
+        Map<String, Object> result = null;
         if (string != null) {
             try {
-//                JSONParser parser = new JSONParser();
-//                result = (JSONObject) parser.parse(string);
                 Gson gson = new Gson();
                 result = gson.fromJson(string, Map.class);
             } catch (Exception ex) {
-//TODO: add more applicable logging message                Agent.LOG.log(Level.FINER, "Unable to parse header in transaction {0}: {1}", tx, ex);
                 Agent.LOG.log(Level.FINER, "Unable to parse header in transaction {0}: {1}", tx, ex);
             }
         }
@@ -519,14 +518,14 @@ public class InboundHeaderState {
         private final String version;
         private final String type;
         private final String initiator;
-        private final Map attributes;
+        private final Map<String, Object> attributes;
 
         /**
          * This object has will appear untrusted, shutting off all synthetics behaviors here.
          */
         static final SyntheticsInfoState NONE = new SyntheticsInfoState(null, null, null, null);
 
-        SyntheticsInfoState(String version, String type, String initiator, Map attributes) {
+        SyntheticsInfoState(String version, String type, String initiator, Map<String, Object> attributes) {
             this.version = version;
             this.type = type;
             this.initiator = initiator;
@@ -545,7 +544,7 @@ public class InboundHeaderState {
             return this.initiator;
         }
 
-        Map getAttributes() {
+        Map<String, Object> getAttributes() {
             return this.attributes;
         }
 
