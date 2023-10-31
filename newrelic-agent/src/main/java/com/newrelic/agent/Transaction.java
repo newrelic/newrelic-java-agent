@@ -2209,6 +2209,7 @@ public class Transaction {
         getMetricAggregator().incrementCounter(AgentBridge.currentApiSource.get().getSupportabilityMetric(
                 MetricNames.SUPPORTABILITY_API_TOKEN));
 
+        System.out.println("getToken --- " + token);
         return token;
     }
 

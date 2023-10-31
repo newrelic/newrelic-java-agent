@@ -187,6 +187,8 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity, Attrib
 
     private void finish(final Throwable t, boolean async) {
         if (!isFinished.getAndSet(true)) {
+            System.out.println("finish  " + this);
+
             markFinishTime();
 
             final Tracer tracer = parent;
