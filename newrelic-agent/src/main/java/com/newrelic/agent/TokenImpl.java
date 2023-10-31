@@ -58,6 +58,7 @@ public class TokenImpl implements Token {
 
     @Override
     public boolean expire() {
+        System.out.println("expire --- " + this);
         if (active.compareAndSet(Boolean.TRUE, Boolean.FALSE)) {
             Transaction tx = getTransaction().getTransactionIfExists();
             if (tx != null) {
