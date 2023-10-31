@@ -47,7 +47,7 @@ public class AgentUtil {
             if (shouldCreateLogEvent(message, throwable)) {
                 ReadOnlyStringMap contextData = event.getContextData();
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData));
-                logEventMap.put(INSTRUMENTATION, "apache-log4j-2");
+                logEventMap.put(INSTRUMENTATION, "apache-log4j-2.11");
                 if (message != null) {
                     String formattedMessage = message.getFormattedMessage();
                     if (formattedMessage != null && !formattedMessage.isEmpty()) {
