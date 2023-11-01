@@ -18,7 +18,6 @@ public class PromiseHandlerWrapper<T> implements Handler<Promise<T>> {
     private Token token;
 
     public PromiseHandlerWrapper(Handler<Promise<T>> original, Token token) {
-        System.out.println("wrapped constr   " + token);
         this.original = original;
         this.token = token;
     }

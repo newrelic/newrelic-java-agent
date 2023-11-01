@@ -39,45 +39,35 @@ public abstract class HttpClientRequestBase_Instrumentation {
     @NewField
     public Segment segment;
 
-    @NewField
-    public Token token;
-
     public abstract MultiMap headers();
 
-    @Trace(async = true)
-    public HttpClientRequest response(Handler<AsyncResult<HttpClientResponse>> handler) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response  " + handler);
-        if (AgentBridge.getAgent().getTransaction(false) != null) {
-            this.token = NewRelic.getAgent().getTransaction().getToken();
-            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response");
-            segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
-            segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
-        }
-
-        return Weaver.callOriginal();
-    }
+//    @Trace(async = true)
+//    public HttpClientRequest response(Handler<AsyncResult<HttpClientResponse>> handler) {
+//        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response  " + handler);
+//        if (AgentBridge.getAgent().getTransaction(false) != null) {
+//            this.token = NewRelic.getAgent().getTransaction().getToken();
+//            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
+//            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response");
+//            segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
+//            segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
+//        }
+//
+//        return Weaver.callOriginal();
+//    }
 
     @Trace(async = true)
     void handleResponse(Promise<HttpClientResponse> promise, HttpClientResponse resp, long timeoutMs) {
         AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse()");
-        System.out.println("-----------   linkAndExpire  " + this.token.link() + "   " + this.token);
         if (segment != null) {
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse() segment != null");
-            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
-            Token segmentToken = segment.getTransaction().getToken();
-            System.out.println("segment -- " + segment + "    txn: " + segment.getTransaction() + "    token: " + segmentToken);
+            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse() segment != null && this.token != null");
+
+            final Token segmentToken = segment.getTransaction().getToken();
             reportExternal(resp, segment);
-
             segment.end();
-            System.out.println("2222222222222   link  " + segmentToken.link());
-            System.out.println("33333   expire  " + segmentToken.expire());
-        }
-        this.token.expire();
-        this.token =  null;
-        Transaction t1 = AgentBridge.getAgent().getTransaction();
-        Transaction t2 =  NewRelic.getAgent().getTransaction();
+            segmentToken.linkAndExpire();
 
+            AgentBridge.getAgent().getTransaction(false).expireAllTokens();
+        }
         Weaver.callOriginal();
     }
 
@@ -91,6 +81,8 @@ public abstract class HttpClientRequestBase_Instrumentation {
             final Token token = segment.getTransaction().getToken();
             segment.end();
             token.linkAndExpire();
+
+            AgentBridge.getAgent().getTransaction(false).expireAllTokens();
         }
         Weaver.callOriginal();
     }
