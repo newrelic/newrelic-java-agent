@@ -19,11 +19,8 @@ import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
@@ -78,34 +75,30 @@ public class VertxClient {
     }
 
     @Test
-    public void testGet() throws InterruptedException {
-        getCall();
+    public void testGet_withCallbacks() throws InterruptedException {
+        getCall_withCallbacks();
         // Wait for transaction to finish
-        System.out.println("testGet " + NewRelic.getAgent().getTransaction());
         InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(1000);
-        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/getCall", "localhost");
+        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/getCall_withCallbacks", "localhost");
     }
 
     @Trace(dispatcher = true)
-    public void getCall() throws InterruptedException {
-        System.out.println("dispatcher -- " + NewRelic.getAgent().getTransaction());
+    public void getCall_withCallbacks() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         HttpClient httpClient = vertx.createHttpClient();
-        //httpClient.close();
+
         httpClient.request(HttpMethod.GET, port,"localhost", "/", reqAsyncResult -> {
             if (reqAsyncResult.succeeded()) {   //Request object successfully created
                 HttpClientRequest request = reqAsyncResult.result();
-                request.send(respAsyncResult -> {   //Sending the request, waiting for response in ar2
+                request.send(respAsyncResult -> {   //Sending the request
                     if (respAsyncResult.succeeded()) {
-                        System.out.println("respAsyncResult succeed");
+                        NewRelic.addCustomParameter("responseHandler", "true");
                         HttpClientResponse response = respAsyncResult.result();
-                        int statusCode = response.statusCode();
                         latch.countDown();
-                        System.out.println("response: " + response + "  " + statusCode);
-                        response.body(respBufferAsyncResult -> {  //Retriev response
+                        response.body(respBufferAsyncResult -> {  //Retrieve response
                             if (respBufferAsyncResult.succeeded()) {
-                                Buffer body = respBufferAsyncResult.result();
-                                // Handle body entirely
+                                NewRelic.addCustomParameter("bodyHandler", "true");
+                                // Handle body
                             } else {
                                 // Handle server error, for example, connection closed
                             }
@@ -119,23 +112,34 @@ public class VertxClient {
             }
         });
         latch.await();
-
-        System.out.println("testGet " + NewRelic.getAgent().getTransaction());
     }
 
     @Test
-    public void testGetNow() throws InterruptedException {
-        getNowCall();
+    public void testGet_withCallbackAndFutures() throws InterruptedException {
+        getCall_withCallbackAndFutures();
         // Wait for transaction to finish
-        InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(5000);
-        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/getNowCall", "localhost");
+        InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(1000);
+        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/getCall_withCallbackAndFutures", "localhost");
     }
 
     @Trace(dispatcher = true)
-    private void getNowCall() throws InterruptedException {
+    public void getCall_withCallbackAndFutures() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         HttpClient httpClient = vertx.createHttpClient();
-        //httpClient.getNow(port, "localhost", "/", requestHandler(latch));
+
+        httpClient.request(HttpMethod.GET, port, "localhost", "/", ar -> {
+            if (ar.succeeded()) {
+                HttpClientRequest request = ar.result();
+                request.send("foo")
+                        .onSuccess(response -> {
+                            NewRelic.addCustomParameter("responseHandler", "true");
+                            NewRelic.addCustomParameter("bodyHandler", "true");
+                            latch.countDown();
+                        }).onFailure(err -> {
+                            //
+                        });
+            }
+        });
         latch.await();
     }
 
@@ -151,60 +155,25 @@ public class VertxClient {
     private void postCall() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         HttpClient httpClient = vertx.createHttpClient();
-        //httpClient.post(port, "localhost", "/", requestHandler(latch)).end();
-        latch.await();
-    }
 
-    @Test
-    public void testEndMethods() throws InterruptedException {
-        endMethods();
-        assertEquals(1, InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(1000));
-        final ExternalRequest externalRequest = InstrumentationTestRunner.getIntrospector().getExternalRequests(
-                "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/endMethods").iterator().next();
-        assertEquals(4, externalRequest.getCount());
-        assertEquals(4, MetricsHelper.getUnscopedMetricCount("External/localhost/all"));
-        assertEquals(4, MetricsHelper.getUnscopedMetricCount("External/allOther"));
-        assertEquals(4, MetricsHelper.getUnscopedMetricCount("External/all"));
-    }
-
-    @Trace(dispatcher = true)
-    public void endMethods() throws InterruptedException {
-        HttpClient httpClient = vertx.createHttpClient();
-        CountDownLatch latch = new CountDownLatch(4);
-
-        Buffer bufferChunk = Buffer.buffer("buffer chunk!");
-        String stringChunk = "string chunk!";
-        String encoding = "UTF-8";
-
-        // tests the various overloaded versions of the end method
-        //httpClient.request(HttpMethod.GET, port, "localhost", "/hi", requestHandler(latch)).end();
-        //httpClient.request(HttpMethod.GET, port, "localhost", "/hi", requestHandler(latch)).end(bufferChunk);
-        //httpClient.request(HttpMethod.GET, port, "localhost", "/hi", requestHandler(latch)).end(stringChunk, encoding);
-        //httpClient.request(HttpMethod.GET, port, "localhost", "/hi", requestHandler(latch)).end(stringChunk);
-        latch.await();
-    }
-
-    @Test
-    public void testMethods() throws InterruptedException {
-        requestMethods();
-        assertEquals(1, InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(1000));
-        final ExternalRequest externalRequest = InstrumentationTestRunner.getIntrospector().getExternalRequests(
-                "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/requestMethods").iterator().next();
-        assertEquals(5, externalRequest.getCount());
-        assertEquals(5, MetricsHelper.getUnscopedMetricCount("External/localhost/all"));
-        assertEquals(5, MetricsHelper.getUnscopedMetricCount("External/allOther"));
-        assertEquals(5, MetricsHelper.getUnscopedMetricCount("External/all"));
-    }
-
-    @Trace(dispatcher = true)
-    public void requestMethods() throws InterruptedException {
-        HttpClient httpClient = vertx.createHttpClient();
-        CountDownLatch latch = new CountDownLatch(5);
-        //httpClient.request(HttpMethod.GET, port, "localhost", "/hi", requestHandler(latch)).end();
-        //httpClient.request(HttpMethod.POST, port, "localhost", "/hi", requestHandler(latch)).end();
-        //httpClient.request(HttpMethod.PUT, port, "localhost", "/hi", requestHandler(latch)).end();
-        //httpClient.request(HttpMethod.HEAD, port, "localhost", "/hi", requestHandler(latch)).end();
-        //httpClient.request(HttpMethod.DELETE, port, "localhost", "/hi", requestHandler(latch)).end();
+        httpClient.request(HttpMethod.POST, port,"localhost", "/", reqAsyncResult -> {
+            if (reqAsyncResult.succeeded()) {   //Request object successfully created
+                HttpClientRequest request = reqAsyncResult.result();
+                request.send(respAsyncResult -> {   //Sending the request
+                    if (respAsyncResult.succeeded()) {
+                        NewRelic.addCustomParameter("responseHandler", "true");
+                        HttpClientResponse response = respAsyncResult.result();
+                        latch.countDown();
+                        response.body(respBufferAsyncResult -> {  //Retrieve response
+                            if (respBufferAsyncResult.succeeded()) {
+                                NewRelic.addCustomParameter("bodyHandler", "true");
+                                // Handle body
+                            }
+                        });
+                    }
+                });
+            }
+        });
         latch.await();
     }
 
@@ -218,13 +187,27 @@ public class VertxClient {
 
     @Trace(dispatcher = true)
     public void redirect() throws InterruptedException {
-        HttpClient httpClient = vertx.createHttpClient();
         CountDownLatch latch = new CountDownLatch(1);
-        //httpClient.get(port, "localhost", "/redirect")
-        //        .putHeader("statusCode", "301")
-        //        .setFollowRedirects(true)
-        //        .handler(requestHandler(latch))
-        //        .end();
+        HttpClient httpClient = vertx.createHttpClient();
+        httpClient.request(HttpMethod.GET, port,"localhost", "/", reqAsyncResult -> {
+            if (reqAsyncResult.succeeded()) {   //Request object successfully created
+                HttpClientRequest request = reqAsyncResult.result();
+                request.putHeader("statusCode", "301");
+                request.send(respAsyncResult -> {   //Sending the request
+                    if (respAsyncResult.succeeded()) {
+                        NewRelic.addCustomParameter("responseHandler", "true");
+                        HttpClientResponse response = respAsyncResult.result();
+                        latch.countDown();
+                        response.body(respBufferAsyncResult -> {  //Retrieve response
+                            if (respBufferAsyncResult.succeeded()) {
+                                NewRelic.addCustomParameter("bodyHandler", "true");
+                                // Handle body
+                            }
+                        });
+                    }
+                });
+            }
+        });
         latch.await();
     }
 
@@ -278,10 +261,25 @@ public class VertxClient {
         try {
             CountDownLatch latch = new CountDownLatch(1);
             HttpClient httpClient = vertx.createHttpClient();
-            //httpClient.get(httpServer.getEndPoint().getPort(), httpServer.getEndPoint().getHost(), "/")
-            //.putHeader(HttpTestServer.DO_CAT, "true")
-            //        .handler(requestHandler(latch))
-            //        .end();
+            httpClient.request(HttpMethod.GET, httpServer.getEndPoint().getPort(),httpServer.getEndPoint().getHost(), "/", reqAsyncResult -> {
+                if (reqAsyncResult.succeeded()) {   //Request object successfully created
+                    HttpClientRequest request = reqAsyncResult.result();
+                    request.putHeader(HttpTestServer.DO_CAT, "true");
+                    request.send(respAsyncResult -> {   //Sending the request
+                        if (respAsyncResult.succeeded()) {
+                            NewRelic.addCustomParameter("responseHandler", "true");
+                            HttpClientResponse response = respAsyncResult.result();
+                            latch.countDown();
+                            response.body(respBufferAsyncResult -> {  //Retrieve response
+                                if (respBufferAsyncResult.succeeded()) {
+                                    NewRelic.addCustomParameter("bodyHandler", "true");
+                                    // Handle body
+                                }
+                            });
+                        }
+                    });
+                }
+            });
             latch.await();
         } finally {
             httpServer.shutdown();
@@ -289,17 +287,53 @@ public class VertxClient {
     }
 
     @Test
-    public void testUnknownHost() throws Exception {
-        unknownHost();
+    public void testUnknownHost_withCallbacks() throws Exception {
+        unknownHost_withCallbacks();
+        assertUnknownHostExternal();
+    }
 
+    @Trace(dispatcher = true)
+    private void unknownHost_withCallbacks() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        HttpClient httpClient = vertx.createHttpClient();
+        httpClient.request(HttpMethod.GET, port, "notARealHostDuderina.com", "/", ar -> {
+            if (ar.failed()) {
+                NewRelic.addCustomParameter("exceptionHandler", "true");
+                latch.countDown();
+            }
+        });
+        latch.await();
+    }
+
+    @Test
+    public void testUnknownHost_withReturnedFuture() throws Exception {
+        unknownHost_withReturnedFuture();
+        assertUnknownHostExternal();
+    }
+
+    @Trace(dispatcher = true)
+    private void unknownHost_withReturnedFuture() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        HttpClient httpClient = vertx.createHttpClient();
+
+        Future<HttpClientRequest> r = httpClient.request(HttpMethod.GET, port, "notARealHostDuderina.com", "/");
+        r.onFailure(err -> {
+            NewRelic.addCustomParameter("exceptionHandler", "true");
+            latch.countDown();
+        });
+
+        latch.await();
+    }
+
+    private void assertUnknownHostExternal() {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(250));
 
         final String txn = introspector.getTransactionNames().iterator().next();
         assertNotNull("Transaction not found", txn);
 
-        assertEquals(1, MetricsHelper.getScopedMetricCount(txn, "External/UnknownHost/Vertx-Client/end"));
-        assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/UnknownHost/Vertx-Client/end"));
+        assertEquals(1, MetricsHelper.getScopedMetricCount(txn, "External/UnknownHost/Vertx-Client/handleResponse"));
+        assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/UnknownHost/Vertx-Client/handleResponse"));
 
         // Unknown hosts generate no external rollups
         assertEquals(0, MetricsHelper.getUnscopedMetricCount("External/allOther"));
@@ -310,47 +344,19 @@ public class VertxClient {
         assertTrue(event.getAttributes().containsKey("exceptionHandler"));
     }
 
-    @Trace(dispatcher = true)
-    private void unknownHost() throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(1);
-        HttpClient httpClient = vertx.createHttpClient();
-        //httpClient.get(port, "notARealHostDuderina.com", "/")
-        //        .exceptionHandler(exceptionHandler(latch))
-        //        .handler(requestHandler(null))
-        //        .end();
-        latch.await();
-    }
-
-    private Handler<Throwable> exceptionHandler(CountDownLatch latch) {
-        return error -> {
-            NewRelic.addCustomParameter("exceptionHandler", "true");
-            latch.countDown();
-        };
-    }
-
-    private Handler<HttpClientResponse> requestHandler(CountDownLatch latch) {
-        return response -> {
-            NewRelic.addCustomParameter("responseHandler", "true");
-            response.bodyHandler(body -> {
-                NewRelic.addCustomParameter("bodyHandler", "true");
-                latch.countDown();
-            });
-        };
-    }
-
-    public void assertExternal(String transactionName, String host) {
+    private void assertExternal(String transactionName, String host) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Collection<ExternalRequest> externalRequests = introspector.getExternalRequests(transactionName);
         ExternalRequest request = externalRequests.iterator().next();
         assertEquals(host, request.getHostname());
         assertEquals("Vertx-Client", request.getLibrary());
-        assertEquals("end", request.getOperation());
+        assertEquals("handleResponse", request.getOperation());
         Collection<TransactionEvent> events = introspector.getTransactionEvents(transactionName);
         TransactionEvent event = events.iterator().next();
         assertTrue(event.getAttributes().containsKey("responseHandler"));
 
-        assertEquals(1, MetricsHelper.getScopedMetricCount(transactionName, "External/localhost/Vertx-Client/end"));
-        assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/localhost/Vertx-Client/end"));
+        assertEquals(1, MetricsHelper.getScopedMetricCount(transactionName, "External/localhost/Vertx-Client/handleResponse"));
+        assertEquals(1, MetricsHelper.getUnscopedMetricCount("External/localhost/Vertx-Client/handleResponse"));
 
         Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents(transactionName);
         assertEquals(1, transactionEvents.size());

@@ -17,7 +17,6 @@ public class AsyncHandlerWrapper<T> implements Handler<AsyncResult<T>> {
     private Token token;
 
     public AsyncHandlerWrapper(Handler<AsyncResult<T>> original, Token token) {
-        System.out.println("------- Construct AsyncHandlerWrapper   "+ token);
         this.original = original;
         this.token = token;
     }
@@ -26,7 +25,6 @@ public class AsyncHandlerWrapper<T> implements Handler<AsyncResult<T>> {
     @Trace(async = true, excludeFromTransactionTrace = true)
     public void handle(AsyncResult<T> event) {
         if (token != null) {
-            System.out.println("------- Link&Expire  " + this.token);
             token.linkAndExpire();
             token = null;
         }
