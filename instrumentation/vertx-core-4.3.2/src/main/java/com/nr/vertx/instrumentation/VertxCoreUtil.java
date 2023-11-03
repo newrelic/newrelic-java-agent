@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -16,6 +16,7 @@ import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.vertx.core.Handler;
 import io.vertx.core.http.impl.HttpClientResponseImpl;
+import io.vertx.core.impl.future.Listener;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,19 +30,19 @@ public class VertxCoreUtil {
     private static final Map<Object, Token> tokenMap = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
     public static final String VERTX_CLIENT = "Vertx-Client";
-    public static final String END = "end";
+    public static final String END = "handleResponse";
 
-    private static URI UNKNOWN_HOST_URI = URI.create("http://UnknownHost/");
+    private static final URI UNKNOWN_HOST_URI = URI.create("http://UnknownHost/");
 
-    public static void storeToken(Handler handler) {
-        if (handler != null && AgentBridge.getAgent().getTransaction(false) != null) {
-            tokenMap.put(handler, NewRelic.getAgent().getTransaction().getToken());
+    public static void storeToken(Listener listener) {
+        if (listener != null && AgentBridge.getAgent().getTransaction(false) != null) {
+            tokenMap.put(listener, NewRelic.getAgent().getTransaction().getToken());
         }
     }
 
-    public static void linkAndExpireToken(Handler handler) {
-        if (handler != null) {
-            final Token token = tokenMap.remove(handler);
+    public static void linkAndExpireToken(Listener listener) {
+        if (listener != null) {
+            final Token token = tokenMap.remove(listener);
             if (token != null) {
                 token.linkAndExpire();
             }

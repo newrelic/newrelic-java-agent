@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -17,6 +17,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 
+import java.util.logging.Level;
+
 import static com.nr.vertx.instrumentation.VertxCoreUtil.END;
 import static com.nr.vertx.instrumentation.VertxCoreUtil.VERTX_CLIENT;
 
@@ -24,41 +26,37 @@ import static com.nr.vertx.instrumentation.VertxCoreUtil.VERTX_CLIENT;
 public abstract class HttpClientRequestImpl_Instrumentation extends HttpClientRequestBase_Instrumentation {
 
     public Future<Void> end(Buffer chunk) {
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Buffer chunk");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
+            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
+            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Buffer chunk 2");
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
         }
-        Weaver.callOriginal();
-
-        //hack
-        return null;
+        return Weaver.callOriginal();
     }
 
     public void end(Buffer chunk, Handler<AsyncResult<Void>> handler) {
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Buffer chunk, Handler<AsyncResult<Void>> handler");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
+            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
+            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Buffer chunk, Handler<AsyncResult<Void>> handler 2");
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
         }
         Weaver.callOriginal();
-    }
-
-    public Future<Void> end() {
-        if (AgentBridge.getAgent().getTransaction(false) != null) {
-            segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
-            segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
-        }
-        Weaver.callOriginal();
-
-        //hack
-        return null;
     }
 
     public void end(Handler<AsyncResult<Void>> handler) {
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Handler<AsyncResult<Void>> handler)");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
+            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
+            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Handler<AsyncResult<Void>> handler) 2");
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
+            System.out.println("!!!!segment -- " + segment + "    txn: " + segment.getTransaction() + "    token: " + segment.getTransaction().getToken());
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
+            System.out.println("end(Handler<AsyncResult<Void>> Segment -- " + segment);
         }
         Weaver.callOriginal();
     }
-
 }

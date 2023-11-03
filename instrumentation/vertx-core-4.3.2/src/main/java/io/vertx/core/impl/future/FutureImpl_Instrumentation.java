@@ -1,48 +1,43 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
-package io.vertx.core.impl;
+package io.vertx.core.impl.future;
 
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.vertx.instrumentation.VertxCoreUtil;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 
 @Weave(originalName = "io.vertx.core.impl.future.FutureImpl")
 abstract class FutureImpl_Instrumentation {
 
-    //private Handler<AsyncResult> handler = Weaver.callOriginal();
+    private Listener listener;
 
-    //to use concrete method in instrumented class
     public abstract boolean isComplete();
 
-
     @Trace(async = true, excludeFromTransactionTrace = true)
-    public Future onComplete(Handler<AsyncResult> handler) {
+    public void addListener(Listener listener) {
         if (isComplete()) {
-            VertxCoreUtil.linkAndExpireToken(handler);
+            VertxCoreUtil.linkAndExpireToken(listener);
         } else {
-            VertxCoreUtil.storeToken(handler);
+            VertxCoreUtil.storeToken(listener);
         }
-        return Weaver.callOriginal();
+        Weaver.callOriginal();
     }
 
     @Trace(async = true, excludeFromTransactionTrace = true)
     public boolean tryComplete(Object result) {
-        //VertxCoreUtil.linkAndExpireToken(handler);
+        VertxCoreUtil.linkAndExpireToken(this.listener);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, excludeFromTransactionTrace = true)
     public boolean tryFail(Throwable cause) {
-        //VertxCoreUtil.linkAndExpireToken(handler);
+        VertxCoreUtil.linkAndExpireToken(this.listener);
         return Weaver.callOriginal();
     }
 }

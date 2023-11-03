@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 public class VertxBlockingTest {
 
     @Test
-    public void testBlocking() throws InterruptedException {
+    public void executeBlocking_withPromiseAndResult() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
         try {
             executeBlocking(vertx);
@@ -56,5 +56,4 @@ public class VertxBlockingTest {
         });
         countDownLatch.await();
     }
-
 }
