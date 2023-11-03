@@ -1010,6 +1010,8 @@ public class Transaction {
                 // this needs to go before dispatcher.transactionFinished so that all of
                 // the time metrics are correct
                 TransactionStats transactionStats = transactionFinishedActivityMerging();
+                checkTxStatsForLogging(transactionStats);
+
                 transactionTime.markTransactionAsDone();
                 recordFinalGCTime(transactionStats);
                 handleTokenTimeout(transactionStats);
@@ -1126,6 +1128,37 @@ public class Transaction {
             Agent.LOG.log(Level.WARNING, th, "Transaction {0} was not reported because of an internal error.", this);
             ServiceFactory.getTransactionService().transactionCancelled(this);
         }
+    }
+
+    private volatile TransactionStats lastTxStatsGenerated = null;
+    private volatile Set<TransactionActivity> lastFinishedChildren = null;
+    private void checkTxStatsForLogging(TransactionStats transactionStats) {
+        if (lastTxStatsGenerated != null) {
+            StringBuilder sb = new StringBuilder("NR709AbsurdValues: ");
+            sb.append("\nlastFinishedChildren: "+lastFinishedChildren);
+            sb.append("\nlastTxStatsGenerated: "+ lastTxStatsGenerated);
+            sb.append("\nnewFinishedChildren: "+getFinishedChildren());
+            for (TransactionActivity child : getFinishedChildren()) {
+                if (lastFinishedChildren == null || !lastFinishedChildren.contains(child)) {
+                    sb.append("\nNew FinishedChild: "+child);
+                    sb.append("\n  asyncContext: "+child.getAsyncContext());
+                    sb.append("\n  rootTracer: "+child.getRootTracer());
+                    sb.append("\n  rootTracer.metricName: "+child.getRootTracer().getMetricName());
+                    sb.append("\n  rootTracer.txSegmentName: "+child.getRootTracer().getTransactionSegmentName());
+                    sb.append("\n  lastTracer: "+child.getLastTracer());
+                    sb.append("\n  threadId: "+child.getThreadId());
+                    sb.append("\n  numTracers: "+child.getTracers().size());
+                }
+            }
+            sb.append("\nnewTxStats: "+transactionStats);
+            sb.append("\ncurrentStackTrace:");
+            for (StackTraceElement elem : Thread.currentThread().getStackTrace()) {
+                sb.append("\n  "+elem);
+            }
+            Agent.LOG.log(Level.INFO, sb.toString());
+        }
+        lastTxStatsGenerated = transactionStats;
+        lastFinishedChildren = getFinishedChildren();
     }
 
     private TransactionStats transactionFinishedActivityMerging() {
