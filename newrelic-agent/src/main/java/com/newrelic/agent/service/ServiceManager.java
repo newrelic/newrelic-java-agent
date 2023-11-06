@@ -39,6 +39,7 @@ import com.newrelic.agent.service.async.AsyncTransactionService;
 import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
+import com.newrelic.agent.stats.dimensional.DimensionalMetricAggregatorService;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
@@ -101,6 +102,7 @@ public interface ServiceManager extends Service {
     ClassTransformerService getClassTransformerService();
 
     StatsService getStatsService();
+    DimensionalMetricAggregatorService getDimensionalMetricAggregatorService();
 
     NormalizationService getNormalizationService();
 

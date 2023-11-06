@@ -14,6 +14,7 @@ import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.api.agent.DimensionalMetricAggregator;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
@@ -122,6 +123,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
             Agent.LOG.log(Level.FINEST, t, "getMetricAggregator() call failed");
             return NoOpMetricAggregator.INSTANCE;
         }
+    }
+
+    @Override
+    public DimensionalMetricAggregator getDimensionalMetricAggregator() {
+        return ServiceFactory.getServiceManager().getDimensionalMetricAggregatorService();
     }
 
     @Override

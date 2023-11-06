@@ -49,6 +49,7 @@ import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
+import com.newrelic.agent.stats.dimensional.DimensionalMetricAggregatorService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.utilization.UtilizationService;
@@ -70,6 +71,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile ProfilerService profilerService;
     private volatile RPMConnectionService rpmConnectionService;
     private volatile StatsService statsService;
+    private final DimensionalMetricAggregatorService dimensionalMetricAggregatorService = Mockito.mock(DimensionalMetricAggregatorService.class);
     private volatile HarvestService harvestService;
     private volatile SqlTraceService sqlTraceService;
     private volatile CacheService cacheService;
@@ -513,6 +515,11 @@ public class MockServiceManager extends AbstractService implements ServiceManage
 
     public void setStatsService(StatsService statsService) {
         this.statsService = statsService;
+    }
+
+    @Override
+    public DimensionalMetricAggregatorService getDimensionalMetricAggregatorService() {
+        return dimensionalMetricAggregatorService;
     }
 
     @Override

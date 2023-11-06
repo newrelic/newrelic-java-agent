@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge;
 
 import com.newrelic.api.agent.Config;
+import com.newrelic.api.agent.DimensionalMetricAggregator;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
@@ -57,6 +58,11 @@ class NoOpAgent implements Agent {
     @Override
     public MetricAggregator getMetricAggregator() {
         return NoOpMetricAggregator.INSTANCE;
+    }
+
+    @Override
+    public DimensionalMetricAggregator getDimensionalMetricAggregator() {
+        return NoOpDimensionalMetricAggregator.INSTANCE;
     }
 
     @Override

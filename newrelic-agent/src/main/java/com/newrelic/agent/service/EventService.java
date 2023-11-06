@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.service;
 
+import com.newrelic.agent.MetricNames;
+
 /**
  * Defines a service that sends New Relic events. These services can be
  * configured to harvest on a faster interval than other services.
@@ -26,21 +28,27 @@ public interface EventService extends Service {
      *
      * @return harvest interval metric name
      */
-    String getEventHarvestIntervalMetric();
+    default String getEventHarvestIntervalMetric() {
+        return MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_INTERVAL;
+    }
 
     /**
      * Returns the metric name for this service that records the expected report period. This will be the value we get back on connect.
      *
      * @return report period metric name
      */
-    String getReportPeriodInSecondsMetric();
+    default String getReportPeriodInSecondsMetric() {
+        return MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_REPORT_PERIOD_IN_SECONDS;
+    }
 
     /**
      * Returns the metric name for this service that records the harvest limit. This will be the value we get back on connect.
      *
      * @return event harvest limit metric name
      */
-    String getEventHarvestLimitMetric();
+    default String getEventHarvestLimitMetric() {
+        return MetricNames.SUPPORTABILITY_CUSTOM_EVENT_DATA_HARVEST_LIMIT;
+    }
 
     /**
      * Returns the current limit of events to store per harvest interval. For example, if the maximum size for a 60 second harvest is

@@ -55,6 +55,8 @@ public interface Agent {
      */
     MetricAggregator getMetricAggregator();
 
+    DimensionalMetricAggregator getDimensionalMetricAggregator();
+
     /**
      * Provides access to the Insights custom events API.
      *

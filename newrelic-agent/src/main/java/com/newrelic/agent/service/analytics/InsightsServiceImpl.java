@@ -316,21 +316,6 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         }
     }
 
-    @Override
-    public String getEventHarvestIntervalMetric() {
-        return MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_INTERVAL;
-    }
-
-    @Override
-    public String getReportPeriodInSecondsMetric() {
-        return MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_REPORT_PERIOD_IN_SECONDS;
-    }
-
-    @Override
-    public String getEventHarvestLimitMetric() {
-        return MetricNames.SUPPORTABILITY_CUSTOM_EVENT_DATA_HARVEST_LIMIT;
-    }
-
     private void recordSupportabilityMetrics(StatsEngine statsEngine, long durationInNanoseconds,
                                              DistributedSamplingPriorityQueue<CustomInsightsEvent> reservoir) {
         statsEngine.getStats(MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SENT)

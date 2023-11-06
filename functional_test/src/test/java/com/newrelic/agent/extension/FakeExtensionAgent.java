@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.Config;
+import com.newrelic.api.agent.DimensionalMetricAggregator;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
@@ -33,6 +34,9 @@ public class FakeExtensionAgent implements Agent {
 
     @Override
     public MetricAggregator getMetricAggregator() { throw new RuntimeException(); }
+
+    @Override
+    public DimensionalMetricAggregator getDimensionalMetricAggregator() { throw new RuntimeException(); }
 
     @Override
     public Insights getInsights() { throw new RuntimeException(); }

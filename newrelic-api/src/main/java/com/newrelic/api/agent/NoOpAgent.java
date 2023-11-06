@@ -339,6 +339,20 @@ class NoOpAgent implements Agent {
         public void incrementCounter(String name) {
         }
     };
+    private static final DimensionalMetricAggregator DIMENSIONAL_METRIC_AGGREGATOR = new DimensionalMetricAggregator() {
+
+        @Override
+        public void addToSummary(String name, Map<String, Object> attributes, double value) {
+        }
+
+        @Override
+        public void incrementCounter(String name, Map<String, Object> attributes) {
+        }
+
+        @Override
+        public void incrementCounter(String name, Map<String, Object> attributes, int count) {
+        }
+    };
     private static final Insights INSIGHTS = new Insights() {
 
         @Override
@@ -437,6 +451,11 @@ class NoOpAgent implements Agent {
     @Override
     public MetricAggregator getMetricAggregator() {
         return METRIC_AGGREGATOR;
+    }
+
+    @Override
+    public DimensionalMetricAggregator getDimensionalMetricAggregator() {
+        return DIMENSIONAL_METRIC_AGGREGATOR;
     }
 
     @Override
