@@ -77,11 +77,19 @@ public abstract class MethodInvokerPointCut extends TracerFactoryPointCut {
     }
 
     private String getControllerName(String methodName, Class<?> controller) {
-        String controllerName = isUseFullPackageName() ? controller.getName() : controller.getSimpleName();
-        int indexOf = controllerName.indexOf(TO_REMOVE);
-        if (indexOf > 0) {
-            controllerName = controllerName.substring(0, indexOf);
-        }
+        Class<?> originalClass = getOriginalClassIfProxied(controller);
+        String controllerName = isUseFullPackageName() ? originalClass.getName() : originalClass.getSimpleName();
         return '/' + controllerName + '/' + methodName;
+    }
+
+    private Class<?> getOriginalClassIfProxied(Class<?> clazz) {
+        if (clazz.getName().contains("$$")) {
+            Class<?> superclass = clazz.getSuperclass();
+            if (superclass != null && superclass != Object.class) {
+                return superclass;
+            }
+        }
+
+        return clazz;
     }
 }
