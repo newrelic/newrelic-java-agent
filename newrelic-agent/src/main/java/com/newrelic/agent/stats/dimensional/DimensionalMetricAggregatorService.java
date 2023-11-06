@@ -73,14 +73,12 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
 
     @Override
     public void harvestEvents(String appName) {
-        System.err.println("Harvest dimensional metrics " + appName);
-
         final Collection<CustomInsightsEvent> events = harvestEvents();
 
         if (!events.isEmpty()) {
             try {
                 ServiceFactory.getRPMServiceManager()
-                        .getOrCreateRPMService(appName)
+                        .getRPMService()
                         .sendCustomAnalyticsEvents(0, events.size(), events);
             } catch (Exception e) {
                 throw new RuntimeException(e);
