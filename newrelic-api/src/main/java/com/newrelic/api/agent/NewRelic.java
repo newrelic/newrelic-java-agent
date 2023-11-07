@@ -447,7 +447,7 @@ public final class NewRelic {
      * @since 8.10.0
      */
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
-
+        getAgent().getErrorApi().setErrorGroupCallback(errorGroupCallback);
     }
 
 }

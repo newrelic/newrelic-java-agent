@@ -213,6 +213,10 @@ class NoOpAgent implements Agent {
         @Override
         public void noticeError(String message, Map<String, ?> params, boolean expected) {
         }
+
+        @Override
+        public void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
+        }
     };
 
     private static final Logger LOGGER = new Logger() {
