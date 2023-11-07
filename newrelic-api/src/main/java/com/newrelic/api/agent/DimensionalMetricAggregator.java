@@ -2,6 +2,15 @@ package com.newrelic.api.agent;
 
 import java.util.Map;
 
+/**
+ * This API is used to report dimensional metrics.  These metrics can be queried as follows:
+ *     FROM Metric select count(some.metric.name) WHERE ...
+ *
+ * Metric values will either be a `count` or a `summary` depending on the API that is used.
+ * If both {@link #incrementCounter(String, Map)} and {@link #addToSummary(String, Map, double)}
+ * are called with the same metric name, the results will be non-deterministic.  Use one data
+ * type per metric name.
+ */
 public interface DimensionalMetricAggregator {
 
     /**

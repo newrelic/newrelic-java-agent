@@ -1,6 +1,6 @@
 package com.newrelic.agent.stats.dimensional;
 
-public enum MetricType {
+enum MetricType {
     count, summary;
 
     public String attributeName() {

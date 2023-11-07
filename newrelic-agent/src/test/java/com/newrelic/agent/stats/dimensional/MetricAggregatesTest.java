@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -43,12 +44,14 @@ public class MetricAggregatesTest extends TestCase {
     }
 
     @Test
-    public void testCounter() throws IOException, ParseException {
+    public void testCounter() throws IOException {
         DimensionalMetricAggregatorService service = new DimensionalMetricAggregatorService();
 
         for (int i = 0; i < 5; i++) {
             service.incrementCounter("test.metric", ImmutableMap.of("region", "us"));
             service.incrementCounter("test.metric", ImmutableMap.of("region", "eu"));
+            // this will do nothing
+            service.addToSummary("test.metric", Collections.emptyMap(), 66d);
         }
 
         Collection<CustomInsightsEvent> events = service.harvestEvents();
@@ -74,6 +77,8 @@ public class MetricAggregatesTest extends TestCase {
         for (int i = 0; i < 5; i++) {
             service.addToSummary("test.summary", ImmutableMap.of("region", "us"), i);
             service.addToSummary("test.summary", ImmutableMap.of("region", "eu", "shard", i), i);
+            // this will do nothing, wrong type
+            service.incrementCounter("test.summary", Collections.emptyMap());
         }
 
         Collection<CustomInsightsEvent> events = service.harvestEvents();
