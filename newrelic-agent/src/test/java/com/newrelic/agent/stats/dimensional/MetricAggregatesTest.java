@@ -3,17 +3,13 @@ package com.newrelic.agent.stats.dimensional;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import junit.framework.TestCase;
-import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotEquals;
 
@@ -44,50 +40,38 @@ public class MetricAggregatesTest extends TestCase {
     }
 
     @Test
-    public void testCounter() throws IOException {
-        DimensionalMetricAggregatorService service = new DimensionalMetricAggregatorService();
+    public void testMerge() {
+        MetricAggregates aggregates = new MetricAggregates("metric.name", MetricType.summary);
+        MetricAggregates other = new MetricAggregates("metric.name", MetricType.summary);
 
         for (int i = 0; i < 5; i++) {
-            service.incrementCounter("test.metric", ImmutableMap.of("region", "us"));
-            service.incrementCounter("test.metric", ImmutableMap.of("region", "eu"));
-            // this will do nothing
-            service.addToSummary("test.metric", Collections.emptyMap(), 66d);
+            aggregates.getMeasure(ImmutableMap.of("region", "us")).addToSummary(i);
+            other.getMeasure(ImmutableMap.of("region", "us")).addToSummary(i);
+            other.getMeasure(ImmutableMap.of("region", "eu")).addToSummary(100 - i);
         }
+        aggregates.getMeasure(ImmutableMap.of("region", "eu")).addToSummary(88);
 
-        Collection<CustomInsightsEvent> events = service.harvestEvents();
+        MetricAggregates merged = other.merge(aggregates);
+        assertSame(other, merged);
+
+        Collection<CustomInsightsEvent> events = new ArrayList<>();
+        merged.harvest(events);
+
         assertEquals(2, events.size());
-        CustomInsightsEvent event = events.iterator().next();
-        assertEquals("Metric", event.getType());
-        Map<String, Object> intrinsics = event.getIntrinsics();
-        assertEquals("test.metric", intrinsics.get("metric.name"));
-        Number value = (Number) intrinsics.get("metric.count");
-        assertEquals(5l, value.longValue());
 
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (Writer writer = new OutputStreamWriter(out)) {
-            event.writeJSONString(writer);
-        }
-        assertTrue(out.toString().contains("type"));
-    }
+        Map<Object, List<CustomInsightsEvent>> byRegion = events.stream().collect(Collectors.groupingBy(event -> event.getUserAttributesCopy().get("region")));
+        CustomInsightsEvent us = byRegion.get("us").iterator().next();
+        List<Number> summary = (List<Number>) us.getIntrinsics().get("metric.summary");
+        assertEquals(10l, summary.get(0));
+        assertEquals(20d, summary.get(1));
+        assertEquals(0d, summary.get(2));
+        assertEquals(4d, summary.get(3));
 
-    @Test
-    public void testSummary() {
-        DimensionalMetricAggregatorService service = new DimensionalMetricAggregatorService();
-
-        for (int i = 0; i < 5; i++) {
-            service.addToSummary("test.summary", ImmutableMap.of("region", "us"), i);
-            service.addToSummary("test.summary", ImmutableMap.of("region", "eu", "shard", i), i);
-            // this will do nothing, wrong type
-            service.incrementCounter("test.summary", Collections.emptyMap());
-        }
-
-        Collection<CustomInsightsEvent> events = service.harvestEvents();
-        assertEquals(6, events.size());
-        CustomInsightsEvent event = events.iterator().next();
-        assertEquals("Metric", event.getType());
-        Map<String, Object> intrinsics = event.getIntrinsics();
-        assertEquals("test.summary", intrinsics.get("metric.name"));
-        List summary = (List) intrinsics.get("metric.summary");
-        assertEquals(4, summary.size());
+        CustomInsightsEvent eu = byRegion.get("eu").iterator().next();
+        summary = (List<Number>) eu.getIntrinsics().get("metric.summary");
+        assertEquals(6l, summary.get(0));
+        assertEquals(578d, summary.get(1));
+        assertEquals(88d, summary.get(2));
+        assertEquals(100d, summary.get(3));
     }
 }

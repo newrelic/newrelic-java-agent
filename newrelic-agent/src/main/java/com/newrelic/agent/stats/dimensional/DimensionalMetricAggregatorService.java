@@ -7,6 +7,7 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.CollectorMethods;
+import com.newrelic.agent.transport.HttpError;
 import com.newrelic.api.agent.DimensionalMetricAggregator;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 public class DimensionalMetricAggregatorService extends AbstractService implements DimensionalMetricAggregator, EventService {
 
@@ -60,30 +62,45 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
 
     @Override
     public void clearReservoir() {
-
     }
 
-    Collection<CustomInsightsEvent> harvestEvents() {
+    Harvest harvestEvents() {
+        final Collection<CustomInsightsEvent> events = new ArrayList<>();
         final Map<String, MetricAggregates> aggregates = this.aggregatesByMetricName.getAndSet(new ConcurrentHashMap<>());
 
-        final Collection<CustomInsightsEvent> events = new ArrayList<>();
         aggregates.values().forEach(agg -> agg.harvest(events));
-        return events;
+        return new Harvest(events, aggregates);
     }
 
     @Override
     public void harvestEvents(String appName) {
-        final Collection<CustomInsightsEvent> events = harvestEvents();
+        final Harvest harvest = harvestEvents();
+        final Collection<CustomInsightsEvent> events = harvest.events;
 
         if (!events.isEmpty()) {
             try {
                 ServiceFactory.getRPMServiceManager()
                         .getRPMService()
-                        .sendCustomAnalyticsEvents(0, events.size(), events);
+                        .sendCustomAnalyticsEvents(1000, events.size(), events);
+            } catch (HttpError e) {
+                if (e.discardHarvestData()) {
+                    getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
+                } else {
+                    merge(harvest.aggregates);
+                    getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
+                }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
             }
         }
+    }
+
+    private void merge(Map<String, MetricAggregates> aggregates) {
+        aggregates.forEach((name, metricAggregates) -> {
+            aggregatesByMetricName.get().compute(name, (k, existing) -> {
+               return existing == null ? metricAggregates : existing.merge(metricAggregates);
+            });
+        });
     }
 
     @Override
@@ -142,5 +159,15 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
 
     interface Closeable {
         void close();
+    }
+
+    static class Harvest {
+        final Collection<CustomInsightsEvent> events;
+        final Map<String, MetricAggregates> aggregates;
+
+        public Harvest(Collection<CustomInsightsEvent> events, Map<String, MetricAggregates> aggregates) {
+            this.events = events;
+            this.aggregates = aggregates;
+        }
     }
 }

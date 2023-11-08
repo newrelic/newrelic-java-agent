@@ -93,6 +93,14 @@ class MetricAggregates implements Aggregator {
         measuresByHash.values().forEach(measure -> events.add(measure.createEvent(metricType, metricName)));
     }
 
+    MetricAggregates merge(MetricAggregates other) {
+        if (other.metricType.equals(this.metricType)) {
+            other.measuresByHash.forEach((id, measure) -> this.measuresByHash.compute(id,
+                    (key, existing) -> existing == null ? measure : existing.merge(measure)));
+        }
+        return this;
+    }
+
     abstract static class AttributeMeasure implements Measure {
         final Map<String, Object> attributes;
         final long timestamp = System.currentTimeMillis();
@@ -102,12 +110,16 @@ class MetricAggregates implements Aggregator {
         }
 
         CustomInsightsEvent createEvent(MetricType type, String metricName) {
+            final long now = System.currentTimeMillis();
+            final long durationMillis = now - timestamp;
             final Map<String, Object> intrinsics = ImmutableMap.of("metric.name", metricName,
-                    type.attributeName(), getValue());
+                    type.attributeName(), getValue(), "duration.ms", durationMillis);
             return new CustomInsightsEvent("Metric", timestamp, this.attributes, intrinsics, DistributedTraceServiceImpl.nextTruncatedFloat());
         }
 
         abstract Object getValue();
+
+        abstract AttributeMeasure merge(AttributeMeasure other);
     }
 
     static class Summary {
@@ -150,8 +162,20 @@ class MetricAggregates implements Aggregator {
         }
 
         @Override
+        AttributeMeasure merge(AttributeMeasure other) {
+            if (other instanceof SummaryMeasure) {
+                addToSummary(((SummaryMeasure) other).summary.get());
+            }
+            return this;
+        }
+
+        @Override
         public void addToSummary(double value) {
-            summary.accumulateAndGet(new Summary(1, value, value, value),
+            addToSummary(new Summary(1, value, value, value));
+        }
+
+        private void addToSummary(Summary summary) {
+            this.summary.accumulateAndGet(summary,
                     (existing, update) -> update.merge(existing));
         }
 
@@ -170,6 +194,14 @@ class MetricAggregates implements Aggregator {
         @Override
         Object getValue() {
             return count.get();
+        }
+
+        @Override
+        AttributeMeasure merge(AttributeMeasure other) {
+            if (other instanceof CountMeasure) {
+                this.count.addAndGet(((CountMeasure) other).count.get());
+            }
+            return this;
         }
 
         @Override
