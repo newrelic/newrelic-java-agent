@@ -11,42 +11,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertNotEquals;
-
 public class MetricAggregatesTest extends TestCase {
 
     @Test
-    public void testGetHashEmptyMap() {
-        assertEquals(Long.MAX_VALUE, MetricAggregates.getHash(ImmutableMap.of()));
-    }
-
-    @Test
-    public void testGetHashMapOneItem() {
-        assertEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5)), MetricAggregates.getHash(ImmutableMap.of("test", 5)));
-        assertNotEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5)), MetricAggregates.getHash(ImmutableMap.of("test", 7)));
-        assertNotEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5)), MetricAggregates.getHash(ImmutableMap.of("test2", 5)));
-
-        assertEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5L)), MetricAggregates.getHash(ImmutableMap.of("test", 5L)));
-        assertEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5f)), MetricAggregates.getHash(ImmutableMap.of("test", 5f)));
-        assertEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5d)), MetricAggregates.getHash(ImmutableMap.of("test", 5d)));
-
-        assertNotEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5)), MetricAggregates.getHash(ImmutableMap.of("test", 5L)));
-    }
-
-    @Test
-    public void testGetHashMap() {
-        assertEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5, "test2", 8)), MetricAggregates.getHash(ImmutableMap.of("test", 5, "test2", 8)));
-        assertEquals(MetricAggregates.getHash(ImmutableMap.of("test", 5, "test2", 8L)), MetricAggregates.getHash(ImmutableMap.of("test2", 8L, "test", 5)));
-    }
-
-    @Test
     public void testMerge() {
-        MetricAggregates aggregates = new MetricAggregates("metric.name", MetricType.summary);
-        MetricAggregates other = new MetricAggregates("metric.name", MetricType.summary);
+        final CachingMapHasher mapHasher = new CachingMapHasher(SimpleMapHasher.INSTANCE);
+        MetricAggregates aggregates = new MetricAggregates("metric.name", MetricType.summary, mapHasher);
+        MetricAggregates other = new MetricAggregates("metric.name", MetricType.summary, mapHasher);
 
+        Map<String, Object> usRegionMap = ImmutableMap.of("region", "us");
         for (int i = 0; i < 5; i++) {
-            aggregates.getMeasure(ImmutableMap.of("region", "us")).addToSummary(i);
-            other.getMeasure(ImmutableMap.of("region", "us")).addToSummary(i);
+            aggregates.getMeasure(usRegionMap).addToSummary(i);
+            other.getMeasure(usRegionMap).addToSummary(i);
             other.getMeasure(ImmutableMap.of("region", "eu")).addToSummary(100 - i);
         }
         aggregates.getMeasure(ImmutableMap.of("region", "eu")).addToSummary(88);

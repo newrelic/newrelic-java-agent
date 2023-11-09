@@ -24,6 +24,8 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
     private volatile boolean enabled = true;
     private final List<Closeable> closeables = new CopyOnWriteArrayList<>();
     private volatile int maxSamplesStored;
+    // optimize when we cache a single instance of a map multiple times so that we only compute the hash once
+    private final CachingMapHasher mapHasher = new CachingMapHasher(SimpleMapHasher.INSTANCE);
     private final AtomicReference<Map<String, MetricAggregates>> aggregatesByMetricName = new AtomicReference<>(new ConcurrentHashMap<>());
     private final static Aggregator NO_OP_AGGREGATOR = new Aggregator() {
         final Measure NO_OP_MEASURE = new Measure() {};
@@ -67,6 +69,7 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
     Harvest harvestEvents() {
         final Collection<CustomInsightsEvent> events = new ArrayList<>();
         final Map<String, MetricAggregates> aggregates = this.aggregatesByMetricName.getAndSet(new ConcurrentHashMap<>());
+        mapHasher.reset();
 
         aggregates.values().forEach(agg -> agg.harvest(events));
         return new Harvest(events, aggregates);
@@ -97,9 +100,8 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
 
     private void merge(Map<String, MetricAggregates> aggregates) {
         aggregates.forEach((name, metricAggregates) -> {
-            aggregatesByMetricName.get().compute(name, (k, existing) -> {
-               return existing == null ? metricAggregates : existing.merge(metricAggregates);
-            });
+            aggregatesByMetricName.get().compute(name, (k, existing) -> existing == null ?
+                    metricAggregates : existing.merge(metricAggregates));
         });
     }
 
@@ -131,7 +133,7 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
     }
 
     Aggregator getMetricAggregates(String name, MetricType type) {
-        MetricAggregates metricAggregates = aggregatesByMetricName.get().computeIfAbsent(name, n -> new MetricAggregates(name, type));
+        MetricAggregates metricAggregates = aggregatesByMetricName.get().computeIfAbsent(name, n -> new MetricAggregates(name, type, mapHasher));
         if (metricAggregates.getMetricType().equals(type)) {
             return metricAggregates;
         } else {

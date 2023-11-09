@@ -1,32 +1,26 @@
 package com.newrelic.agent.stats.dimensional;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 class MetricAggregates implements Aggregator {
-    private static final Charset CHARSET = Charsets.UTF_8;
     private final String metricName;
     private final MetricType metricType;
     private final Map<Long, AttributeMeasure> measuresByHash = new ConcurrentHashMap<>();
+    private final CachingMapHasher mapHasher;
 
-    MetricAggregates(String metricName, MetricType metricType) {
+    MetricAggregates(String metricName, MetricType metricType, CachingMapHasher mapHasher) {
         this.metricName = metricName;
         this.metricType = metricType;
+        this.mapHasher = mapHasher;
     }
 
     public MetricType getMetricType() {
@@ -35,7 +29,10 @@ class MetricAggregates implements Aggregator {
 
     @Override
     public Measure getMeasure(Map<String, Object> attributes) {
-        return measuresByHash.computeIfAbsent(getHash(attributes), key -> createMeasure(attributes));
+        return measuresByHash.computeIfAbsent(mapHasher.hash(attributes), key -> {
+            mapHasher.addHash(attributes, key);
+            return createMeasure(attributes);
+        });
     }
 
     private AttributeMeasure createMeasure(final Map<String, Object> attributes) {
@@ -44,48 +41,6 @@ class MetricAggregates implements Aggregator {
                 return new CountMeasure(attributes);
             default:
                 return new SummaryMeasure(attributes);
-        }
-    }
-
-    static long getHash(Map<String, Object> attributes) {
-        if (attributes.isEmpty()) {
-            return Long.MAX_VALUE;
-        }
-        final Hasher hasher = Hashing.murmur3_128().newHasher();
-        if (attributes.size() == 1) {
-            attributes.forEach((key, value) -> {
-                hasher.putString(key, CHARSET);
-                putValue(hasher, value);
-            });
-            return hasher.hash().asLong();
-        }
-        final List<String> keys = new ArrayList<>(attributes.keySet());
-        // deterministically order keys
-        keys.sort(Comparator.comparingInt(String::hashCode));
-        keys.forEach(key -> {
-            hasher.putString(key, CHARSET);
-            putValue(hasher, attributes.get(key));
-        });
-        return hasher.hash().asLong();
-    }
-
-    static void putValue(Hasher hasher, Object value) {
-        if (value instanceof Boolean) {
-            hasher.putBoolean(((Boolean) value).booleanValue());
-        } else if (value instanceof Number) {
-            if (value instanceof Integer) {
-                hasher.putInt(((Integer)value).intValue());
-            } else if (value instanceof Long) {
-                hasher.putLong(((Long)value).longValue());
-            } else if (value instanceof Float) {
-                hasher.putFloat(((Float)value).floatValue());
-            } else if (value instanceof Double) {
-                hasher.putDouble(((Double) value).doubleValue());
-            } else {
-                hasher.putString(value.toString(), CHARSET);
-            }
-        } else {
-            hasher.putString(value.toString(), CHARSET);
         }
     }
 
