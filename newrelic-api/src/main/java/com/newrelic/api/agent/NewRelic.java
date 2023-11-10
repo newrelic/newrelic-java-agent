@@ -36,6 +36,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void recordMetric(String name, float value) {
+        getAgent().getMetricAggregator().recordMetric(name, value);
     }
 
     /**
@@ -46,6 +47,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void recordResponseTimeMetric(String name, long millis) {
+        getAgent().getMetricAggregator().recordMetric(name, millis);
     }
 
     /**
@@ -55,6 +57,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void incrementCounter(String name) {
+        getAgent().getMetricAggregator().incrementCounter(name);
     }
 
     /**
@@ -65,6 +68,7 @@ public final class NewRelic {
      * @since 2.21.0
      */
     public static void incrementCounter(String name, int count) {
+        getAgent().getMetricAggregator().incrementCounter(name, count);
     }
 
     // ************************** Error API ***********************************//
@@ -298,6 +302,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void ignoreTransaction() {
+        getAgent().getTransaction().ignore();
     }
 
     /**
@@ -306,6 +311,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void ignoreApdex() {
+        getAgent().getTransaction().ignoreApdex();
     }
 
     /**
