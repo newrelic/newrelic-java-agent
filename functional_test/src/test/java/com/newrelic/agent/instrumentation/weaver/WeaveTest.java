@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 
@@ -58,7 +59,7 @@ public class WeaveTest {
             }
 
             @Override
-            public void noticeError(Throwable throwable) {
+            public void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
                 WeaveTest.this.throwable = throwable;
             }
         };

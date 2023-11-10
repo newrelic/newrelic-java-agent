@@ -16,42 +16,12 @@ import com.newrelic.api.agent.Response;
 class NoOpPublicApi implements PublicApi {
 
     @Override
-    public void noticeError(Throwable throwable, Map<String, ?> params) {
-
-    }
-
-    @Override
-    public void noticeError(Throwable throwable) {
-
-    }
-
-    @Override
-    public void noticeError(String message, Map<String, ?> params) {
-
-    }
-
-    @Override
-    public void noticeError(String message) {
-
-    }
-
-    @Override
     public void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
 
     }
 
     @Override
-    public void noticeError(Throwable throwable, boolean expected) {
-
-    }
-
-    @Override
     public void noticeError(String message, Map<String, ?> params, boolean expected) {
-
-    }
-
-    @Override
-    public void noticeError(String message, boolean expected) {
 
     }
 

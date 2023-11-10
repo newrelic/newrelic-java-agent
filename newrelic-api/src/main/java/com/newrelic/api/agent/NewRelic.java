@@ -86,6 +86,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void noticeError(Throwable throwable, Map<String, ?> params) {
+        getAgent().getErrorApi().noticeError(throwable, params);
     }
 
     /**
@@ -96,6 +97,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void noticeError(Throwable throwable) {
+        getAgent().getErrorApi().noticeError(throwable);
     }
 
     /**
@@ -115,6 +117,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void noticeError(String message, Map<String, ?> params) {
+        getAgent().getErrorApi().noticeError(message, params);
     }
 
     /**
@@ -127,6 +130,7 @@ public final class NewRelic {
      * @since 2.21.0
      */
     public static void noticeError(String message) {
+        getAgent().getErrorApi().noticeError(message);
     }
 
     /**
@@ -149,6 +153,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
+        getAgent().getErrorApi().noticeError(throwable, params, expected);
     }
 
     /**
@@ -162,6 +167,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(Throwable throwable, boolean expected) {
+        getAgent().getErrorApi().noticeError(throwable, expected);
     }
 
     /**
@@ -184,6 +190,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(String message, Map<String, ?> params, boolean expected) {
+        getAgent().getErrorApi().noticeError(message, params, expected);
     }
 
     /**
@@ -199,6 +206,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(String message, boolean expected) {
+        getAgent().getErrorApi().noticeError(message, expected);
     }
 
     // **************************** Transaction APIs ********************************//
@@ -439,7 +447,7 @@ public final class NewRelic {
      * @since 8.10.0
      */
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
-
+        getAgent().getErrorApi().setErrorGroupCallback(errorGroupCallback);
     }
 
 }
