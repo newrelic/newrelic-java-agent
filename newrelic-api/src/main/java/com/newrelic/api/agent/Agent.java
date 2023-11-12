@@ -7,6 +7,8 @@
 
 package com.newrelic.api.agent;
 
+import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
+
 import java.util.Map;
 
 /**

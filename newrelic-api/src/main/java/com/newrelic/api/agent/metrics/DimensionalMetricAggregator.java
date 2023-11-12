@@ -1,4 +1,4 @@
-package com.newrelic.api.agent;
+package com.newrelic.api.agent.metrics;
 
 import java.util.Map;
 

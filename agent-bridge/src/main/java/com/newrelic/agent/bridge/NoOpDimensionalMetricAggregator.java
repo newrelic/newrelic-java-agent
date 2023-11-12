@@ -1,6 +1,6 @@
 package com.newrelic.agent.bridge;
 
-import com.newrelic.api.agent.DimensionalMetricAggregator;
+import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
 
 import java.util.Map;
 

@@ -16,7 +16,7 @@ import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
-import com.newrelic.api.agent.DimensionalMetricAggregator;
+import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
@@ -24,13 +24,11 @@ import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.stream.IntStream;
 
 public class AgentImpl implements com.newrelic.agent.bridge.Agent {
 

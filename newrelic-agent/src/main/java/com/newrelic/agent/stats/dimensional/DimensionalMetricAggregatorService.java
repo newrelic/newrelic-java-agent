@@ -8,7 +8,7 @@ import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.HttpError;
-import com.newrelic.api.agent.DimensionalMetricAggregator;
+import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
 
 import java.util.ArrayList;
 import java.util.Collection;

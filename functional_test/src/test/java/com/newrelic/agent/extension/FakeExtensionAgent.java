@@ -11,7 +11,7 @@ import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.Config;
-import com.newrelic.api.agent.DimensionalMetricAggregator;
+import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
