@@ -26,15 +26,8 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
     private volatile int maxSamplesStored;
     // optimize when we cache a single instance of a map multiple times so that we only compute the hash once
     private final CachingMapHasher mapHasher = new CachingMapHasher(SimpleMapHasher.INSTANCE);
-    private final AtomicReference<Map<String, MetricAggregates>> aggregatesByMetricName = new AtomicReference<>(new ConcurrentHashMap<>());
-    private final static Aggregator NO_OP_AGGREGATOR = new Aggregator() {
-        final Measure NO_OP_MEASURE = new Measure() {};
-
-        @Override
-        public Measure getMeasure(Map<String, Object> attributes) {
-            return NO_OP_MEASURE;
-        }
-    };
+    // hash of attributes to map of metric aggregates
+    private final AtomicReference<Map<Long, AttributeBucket>> bucketByAttributeHash = new AtomicReference<>(new ConcurrentHashMap<>());
 
     public DimensionalMetricAggregatorService() {
         super(DimensionalMetricAggregatorService.class.getName());
@@ -68,11 +61,11 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
 
     Harvest harvestEvents() {
         final Collection<CustomInsightsEvent> events = new ArrayList<>();
-        final Map<String, MetricAggregates> aggregates = this.aggregatesByMetricName.getAndSet(new ConcurrentHashMap<>());
+        final Map<Long, AttributeBucket> buckets = this.bucketByAttributeHash.getAndSet(new ConcurrentHashMap<>());
         mapHasher.reset();
 
-        aggregates.values().forEach(agg -> agg.harvest(events));
-        return new Harvest(events, aggregates);
+        buckets.values().forEach(bucket -> bucket.harvest(events));
+        return new Harvest(events, buckets);
     }
 
     @Override
@@ -80,6 +73,7 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
         final Harvest harvest = harvestEvents();
         final Collection<CustomInsightsEvent> events = harvest.events;
 
+        System.err.println("Harvested metrics: " + events.size());
         if (!events.isEmpty()) {
             try {
                 ServiceFactory.getRPMServiceManager()
@@ -89,7 +83,7 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
                 if (e.discardHarvestData()) {
                     getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
                 } else {
-                    merge(harvest.aggregates);
+                    merge(harvest.buckets);
                     getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
                 }
             } catch (Exception e) {
@@ -98,11 +92,8 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
         }
     }
 
-    private void merge(Map<String, MetricAggregates> aggregates) {
-        aggregates.forEach((name, metricAggregates) -> {
-            aggregatesByMetricName.get().compute(name, (k, existing) -> existing == null ?
-                    metricAggregates : existing.merge(metricAggregates));
-        });
+    private void merge(Map<Long, AttributeBucket> buckets) {
+        buckets.forEach((name, bucket) -> bucketByAttributeHash.get().merge(name, bucket, AttributeBucket::merge));
     }
 
     @Override
@@ -132,31 +123,29 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
         }
     }
 
-    Aggregator getMetricAggregates(String name, MetricType type) {
-        MetricAggregates metricAggregates = aggregatesByMetricName.get().computeIfAbsent(name, n -> new MetricAggregates(name, type, mapHasher));
-        if (metricAggregates.getMetricType().equals(type)) {
-            return metricAggregates;
-        } else {
-            // report error
-            return NO_OP_AGGREGATOR;
-        }
+    AttributeBucket getAttributeBucket(Map<String, ?> attributes) {
+        final long hash = mapHasher.hash(attributes);
+        return bucketByAttributeHash.get().computeIfAbsent(hash, key -> {
+            mapHasher.addHash(attributes, hash);
+            return new AttributeBucket(attributes);
+        });
     }
 
     //**********************  Metric APIs *************************/
 
     @Override
-    public void addToSummary(String name, Map<String, Object> attributes, double value) {
-        getMetricAggregates(name, MetricType.summary).getMeasure(attributes).addToSummary(value);
+    public void addToSummary(String name, Map<String, ?> attributes, double value) {
+        getAttributeBucket(attributes).getMeasure(name, MetricType.summary).addToSummary(value);
     }
 
     @Override
-    public void incrementCounter(String name, Map<String, Object> attributes) {
-        getMetricAggregates(name, MetricType.count).getMeasure(attributes).incrementCount(1);
+    public void incrementCounter(String name, Map<String, ?> attributes) {
+        getAttributeBucket(attributes).getMeasure(name, MetricType.count).incrementCount(1);
     }
 
     @Override
-    public void incrementCounter(String name, Map<String, Object> attributes, int count) {
-        getMetricAggregates(name, MetricType.count).getMeasure(attributes).incrementCount(count);
+    public void incrementCounter(String name, Map<String, ?> attributes, long count) {
+        getAttributeBucket(attributes).getMeasure(name, MetricType.count).incrementCount(count);
     }
 
     interface Closeable {
@@ -165,11 +154,11 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
 
     static class Harvest {
         final Collection<CustomInsightsEvent> events;
-        final Map<String, MetricAggregates> aggregates;
+        final Map<Long, AttributeBucket> buckets;
 
-        public Harvest(Collection<CustomInsightsEvent> events, Map<String, MetricAggregates> aggregates) {
+        public Harvest(Collection<CustomInsightsEvent> events, Map<Long, AttributeBucket> buckets) {
             this.events = events;
-            this.aggregates = aggregates;
+            this.buckets = buckets;
         }
     }
 }

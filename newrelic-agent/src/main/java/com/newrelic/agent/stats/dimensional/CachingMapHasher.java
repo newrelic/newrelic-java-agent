@@ -16,13 +16,13 @@ class CachingMapHasher implements MapHasher {
     }
 
     @Override
-    public long hash(Map<String, Object> map) {
+    public long hash(Map<String, ?> map) {
         final int identityHashCode = System.identityHashCode(map);
         final Long hash = cachedHashesByIdentity.get(identityHashCode);
         return hash == null ? mapHasher.hash(map) : hash;
     }
 
-    public void addHash(Map<String, Object> map, long hash) {
+    public void addHash(Map<String, ?> map, long hash) {
         // empty maps are already special cased, we don't need to add them
         if (!map.isEmpty()) {
             cachedHashesByIdentity.put(System.identityHashCode(map), hash);

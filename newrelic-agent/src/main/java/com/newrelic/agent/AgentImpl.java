@@ -8,6 +8,7 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.NoOpMetricAggregator;
 import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.NoOpTransaction;
@@ -23,8 +24,13 @@ import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.stream.IntStream;
 
 public class AgentImpl implements com.newrelic.agent.bridge.Agent {
 
@@ -32,6 +38,22 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
 
     public AgentImpl(Logger logger) {
         this.logger = logger;
+
+        String[] regions = new String[] {"us","eu","other"};
+        Random random = new Random();
+        Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
+            for (int i = 0; i < 20; i++) {
+                int id = random.nextInt(3);
+                final String region = regions[id];
+                getDimensionalMetricAggregator().incrementCounter("custom.dm.count",
+                        ImmutableMap.of("region", region));
+                double value = random.nextDouble();
+                getDimensionalMetricAggregator().addToSummary("custom.dm.summary",
+                        ImmutableMap.of("region", region), value);
+
+                getMetricAggregator().recordMetric("Custom/Region/" + region, (float)value);
+            }
+        }, 20, 20, TimeUnit.SECONDS);
     }
 
     /**

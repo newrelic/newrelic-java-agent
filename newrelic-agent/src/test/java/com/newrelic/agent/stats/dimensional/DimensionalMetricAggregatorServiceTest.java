@@ -15,6 +15,20 @@ import java.util.List;
 import java.util.Map;
 
 public class DimensionalMetricAggregatorServiceTest extends TestCase {
+    @Test
+    public void testMixedTypes() throws IOException {
+        DimensionalMetricAggregatorService service = new DimensionalMetricAggregatorService();
+
+        for (int i = 0; i < 5; i++) {
+            service.incrementCounter("test.metric", ImmutableMap.of("region", "us"));
+            service.incrementCounter("test.metric", ImmutableMap.of("region", "eu"));
+            // mix types
+            service.addToSummary("test.metric", Collections.emptyMap(), 66d);
+        }
+
+        Collection<CustomInsightsEvent> events = service.harvestEvents().events;
+        assertEquals(3, events.size());
+    }
 
     @Test
     public void testCounter() throws IOException {
@@ -23,8 +37,6 @@ public class DimensionalMetricAggregatorServiceTest extends TestCase {
         for (int i = 0; i < 5; i++) {
             service.incrementCounter("test.metric", ImmutableMap.of("region", "us"));
             service.incrementCounter("test.metric", ImmutableMap.of("region", "eu"));
-            // this will do nothing
-            service.addToSummary("test.metric", Collections.emptyMap(), 66d);
         }
 
         Collection<CustomInsightsEvent> events = service.harvestEvents().events;
@@ -50,8 +62,6 @@ public class DimensionalMetricAggregatorServiceTest extends TestCase {
         for (int i = 0; i < 5; i++) {
             service.addToSummary("test.summary", ImmutableMap.of("region", "us"), i);
             service.addToSummary("test.summary", ImmutableMap.of("region", "eu", "shard", i), i);
-            // this will do nothing, wrong type
-            service.incrementCounter("test.summary", Collections.emptyMap());
         }
 
         Collection<CustomInsightsEvent> events = service.harvestEvents().events;

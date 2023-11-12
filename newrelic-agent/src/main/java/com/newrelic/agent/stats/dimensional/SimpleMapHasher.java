@@ -16,7 +16,7 @@ class SimpleMapHasher implements MapHasher {
 
     private SimpleMapHasher() {}
 
-    public long hash(Map<String, Object> attributes) {
+    public long hash(Map<String, ?> attributes) {
         if (attributes.isEmpty()) {
             return Long.MAX_VALUE;
         }

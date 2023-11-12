@@ -10,14 +10,14 @@ public class NoOpDimensionalMetricAggregator implements DimensionalMetricAggrega
     private NoOpDimensionalMetricAggregator() {}
 
     @Override
-    public void addToSummary(String name, Map<String, Object> attributes, double value) {
+    public void addToSummary(String name, Map<String, ?> attributes, double value) {
     }
 
     @Override
-    public void incrementCounter(String name, Map<String, Object> attributes) {
+    public void incrementCounter(String name, Map<String, ?> attributes) {
     }
 
     @Override
-    public void incrementCounter(String name, Map<String, Object> attributes, int count) {
+    public void incrementCounter(String name, Map<String, ?> attributes, long count) {
     }
 }

@@ -21,7 +21,7 @@ public interface DimensionalMetricAggregator {
      * @param value The value to be added to the summary.
      * @since 3.9.0
      */
-    void addToSummary(String name, Map<String, Object> attributes, double value);
+    void addToSummary(String name, Map<String, ?> attributes, double value);
 
     /**
      * Increment the count of the metric with the given name. The count will be incremented by one each time this method
@@ -30,7 +30,7 @@ public interface DimensionalMetricAggregator {
      * @param name The name of the metric to increment.
      * @since 3.9.0
      */
-    void incrementCounter(String name, Map<String, Object> attributes);
+    void incrementCounter(String name, Map<String, ?> attributes);
 
     /**
      * Increment the count of the metric with the given name. The input count value represents the amount in which the
@@ -41,5 +41,5 @@ public interface DimensionalMetricAggregator {
      * @param count The amount in which the metric should be incremented.
      * @since 3.9.0
      */
-    void incrementCounter(String name, Map<String, Object> attributes, int count);
+    void incrementCounter(String name, Map<String, ?> attributes, long count);
 }
