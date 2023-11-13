@@ -41,26 +41,9 @@ public abstract class HttpClientRequestBase_Instrumentation {
 
     public abstract MultiMap headers();
 
-//    @Trace(async = true)
-//    public HttpClientRequest response(Handler<AsyncResult<HttpClientResponse>> handler) {
-//        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response  " + handler);
-//        if (AgentBridge.getAgent().getTransaction(false) != null) {
-//            this.token = NewRelic.getAgent().getTransaction().getToken();
-//            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
-//            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response");
-//            segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
-//            segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
-//        }
-//
-//        return Weaver.callOriginal();
-//    }
-
     @Trace(async = true)
     void handleResponse(Promise<HttpClientResponse> promise, HttpClientResponse resp, long timeoutMs) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse()");
         if (segment != null) {
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse() segment != null && this.token != null");
-
             final Token segmentToken = segment.getTransaction().getToken();
             reportExternal(resp, segment);
             segment.end();
@@ -73,7 +56,6 @@ public abstract class HttpClientRequestBase_Instrumentation {
 
     @Trace(async = true)
     void handleException(Throwable t) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleException()");
         if (segment != null) {
             if (t instanceof UnknownHostException) {
                 VertxCoreUtil.reportUnknownHost(segment);
@@ -82,6 +64,10 @@ public abstract class HttpClientRequestBase_Instrumentation {
             segment.end();
             token.linkAndExpire();
 
+            // This is required since Vertx seems to create various promises behind the scenes
+            // (specifically on client/server creation) which don't get resolved until the
+            // client/server is closed, which might never happen since they're longed lived instances.
+            // The expireAllTokens insures the transaction doesn't hang because of dangling token instances.
             AgentBridge.getAgent().getTransaction(false).expireAllTokens();
         }
         Weaver.callOriginal();

@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
-public class VertxClient {
+public class VertxClientTest {
 
     private static int port;
     private static Future<HttpServer> server;
@@ -79,7 +79,7 @@ public class VertxClient {
         getCall_withCallbacks();
         // Wait for transaction to finish
         InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(1000);
-        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/getCall_withCallbacks", "localhost");
+        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClientTest/getCall_withCallbacks", "localhost");
     }
 
     @Trace(dispatcher = true)
@@ -119,7 +119,7 @@ public class VertxClient {
         getCall_withCallbackAndFutures();
         // Wait for transaction to finish
         InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(1000);
-        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/getCall_withCallbackAndFutures", "localhost");
+        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClientTest/getCall_withCallbackAndFutures", "localhost");
     }
 
     @Trace(dispatcher = true)
@@ -148,7 +148,7 @@ public class VertxClient {
         postCall();
         // Wait for transaction to finish
         InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(5000);
-        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/postCall", "localhost");
+        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClientTest/postCall", "localhost");
     }
 
     @Trace(dispatcher = true)
@@ -182,7 +182,7 @@ public class VertxClient {
         redirect();
         // Wait for transaction to finish
         InstrumentationTestRunner.getIntrospector().getFinishedTransactionCount(5000);
-        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/redirect", "localhost");
+        assertExternal("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClientTest/redirect", "localhost");
     }
 
     @Trace(dispatcher = true)
@@ -218,7 +218,7 @@ public class VertxClient {
 
             Introspector introspector = InstrumentationTestRunner.getIntrospector();
             String host = httpServer.getEndPoint().getHost();
-            String txName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClient/cat";
+            String txName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxClientTest/cat";
             assertEquals(2, introspector.getFinishedTransactionCount(250));
             Collection<String> names = introspector.getTransactionNames();
             assertEquals(2, names.size());
@@ -229,7 +229,7 @@ public class VertxClient {
             assertEquals(1, MetricsHelper.getScopedMetricCount(txName, "ExternalTransaction/" + host + "/"
                     + httpServer.getCrossProcessId() + "/" + httpServer.getServerTransactionName()));
             assertEquals(1, MetricsHelper.getScopedMetricCount(txName,
-                    "Java/com.nr.vertx.instrumentation.VertxClient/cat"));
+                    "Java/com.nr.vertx.instrumentation.VertxClientTest/cat"));
 
             // unscoped metrics
             assertEquals(1, MetricsHelper.getUnscopedMetricCount("ExternalTransaction/" + host + "/"

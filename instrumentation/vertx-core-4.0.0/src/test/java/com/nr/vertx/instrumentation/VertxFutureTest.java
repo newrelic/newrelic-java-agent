@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
-public class VertxFuture {
+public class VertxFutureTest {
 
     @Test
     public void testCompositeFuture() throws InterruptedException {
@@ -37,7 +37,7 @@ public class VertxFuture {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(500));
 
-        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFuture/compositeFuturesAllFuturesSucceed";
+        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFutureTest/compositeFuturesAllFuturesSucceed";
         TransactionEvent txnEvent = introspector.getTransactionEvents(expectedTxnName).iterator().next();
         Map<String, Object> attributes = txnEvent.getAttributes();
         assertTrue(attributes.containsKey("compositeFuture"));
@@ -72,7 +72,7 @@ public class VertxFuture {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(500));
 
-        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFuture/failFutureWithThrowable";
+        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFutureTest/failFutureWithThrowable";
         TransactionEvent txnEvent = introspector.getTransactionEvents(expectedTxnName).iterator().next();
         Map<String, Object> attributes = txnEvent.getAttributes();
         assertTrue(attributes.containsKey("future"));
@@ -85,7 +85,7 @@ public class VertxFuture {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(500));
 
-        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFuture/failFutureWithString";
+        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFutureTest/failFutureWithString";
         TransactionEvent txnEvent = introspector.getTransactionEvents(expectedTxnName).iterator().next();
         Map<String, Object> attributes = txnEvent.getAttributes();
         assertTrue(attributes.containsKey("future"));
@@ -98,7 +98,7 @@ public class VertxFuture {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(500));
 
-        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFuture/completeFutureSuccessfully";
+        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFutureTest/completeFutureSuccessfully";
         TransactionEvent txnEvent = introspector.getTransactionEvents(expectedTxnName).iterator().next();
         Map<String, Object> attributes = txnEvent.getAttributes();
         assertTrue(attributes.containsKey("future"));
@@ -111,7 +111,7 @@ public class VertxFuture {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(500));
 
-        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFuture/completeFutureSuccessfullyOnlyRegisteringOnCompleteCallback";
+        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxFutureTest/completeFutureSuccessfullyOnlyRegisteringOnCompleteCallback";
         TransactionEvent txnEvent = introspector.getTransactionEvents(expectedTxnName).iterator().next();
         Map<String, Object> attributes = txnEvent.getAttributes();
         assertTrue(attributes.containsKey("future"));
