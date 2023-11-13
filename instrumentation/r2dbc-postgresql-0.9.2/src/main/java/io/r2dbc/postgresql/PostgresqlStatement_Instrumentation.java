@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package io.r2dbc.postgresql;
 
 import com.newrelic.api.agent.weaver.MatchType;
@@ -14,7 +20,7 @@ final class PostgresqlStatement_Instrumentation {
     public Flux<PostgresqlResult> execute() {
         Flux<PostgresqlResult> request = Weaver.callOriginal();
         if(request != null && parsedSql != null && resources != null) {
-            return R2dbcUtils.wrapRequest(request, parsedSql.getSql(), resources.getConfiguration());
+            return R2dbcUtils.wrapRequest(request, parsedSql.getSql(), resources.getClient(), resources.getConfiguration());
         }
         return request;
     }
