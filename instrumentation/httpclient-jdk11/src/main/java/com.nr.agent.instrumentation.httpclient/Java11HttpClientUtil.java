@@ -67,7 +67,6 @@ public class Java11HttpClientUtil {
             if (throwableIsConnectException(e)) {
                 reportUnknownHostExternal(segment);
             } else {
-                NewRelic.noticeError(e);
                 segment.end();
             }
         }

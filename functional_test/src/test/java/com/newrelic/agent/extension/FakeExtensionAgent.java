@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.Config;
+import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
@@ -36,6 +37,9 @@ public class FakeExtensionAgent implements Agent {
 
     @Override
     public Insights getInsights() { throw new RuntimeException(); }
+
+    @Override
+    public ErrorApi getErrorApi() { throw new RuntimeException(); }
 
     @Override
     public TraceMetadata getTraceMetadata() { throw new RuntimeException(); }

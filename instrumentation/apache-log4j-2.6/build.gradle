@@ -1,0 +1,17 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.apache-log4j-2.6' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.logging.log4j:log4j-core:2.10.0")
+}
+
+verifyInstrumentation {
+    passesOnly("org.apache.logging.log4j:log4j-core:[2.6,2.11.0)")
+}
+
+site {
+    title 'Log4j2'
+    type 'Framework'
+}
