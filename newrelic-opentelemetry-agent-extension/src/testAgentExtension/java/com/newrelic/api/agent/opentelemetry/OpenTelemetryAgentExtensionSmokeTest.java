@@ -32,6 +32,7 @@ import java.util.logging.Level;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("deprecation")
 class OpenTelemetryAgentExtensionSmokeTest {
 
     private static final ExtendedRequest DUMMY_REQUEST = new ExtendedRequestImpl();

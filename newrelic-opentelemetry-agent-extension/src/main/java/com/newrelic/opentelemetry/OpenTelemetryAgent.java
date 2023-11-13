@@ -78,6 +78,7 @@ public final class OpenTelemetryAgent implements Agent {
         return Collections.emptyMap();
     }
 
+    @Override
     public OpenTelemetryErrorApi getErrorApi() {
         return OpenTelemetryErrorApi.getInstance();
     }

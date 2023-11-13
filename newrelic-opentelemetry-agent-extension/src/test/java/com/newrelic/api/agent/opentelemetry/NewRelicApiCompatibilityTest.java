@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+@SuppressWarnings("deprecation")
 class NewRelicApiCompatibilityTest {
 
     private static final ExtendedRequest DUMMY_REQUEST = new ExtendedRequestImpl();

@@ -25,10 +25,6 @@ public final class OpenTelemetryNewRelic {
         return AGENT_REF.get();
     }
 
-    static OpenTelemetryAgent getOpenTelemetryAgent() {
-        return AGENT_REF.get();
-    }
-
     // Visible for testing
     public static void resetForTest() {
         AGENT_REF.set(NOOP_AGENT);
@@ -59,35 +55,35 @@ public final class OpenTelemetryNewRelic {
     // ************************** Error API ***********************************//
 
     public static void noticeError(Throwable throwable, Map<String, ?> params) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(throwable, params);
+        getAgent().getErrorApi().noticeError(throwable, params);
     }
 
     public static void noticeError(Throwable throwable) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(throwable);
+        getAgent().getErrorApi().noticeError(throwable);
     }
 
     public static void noticeError(String message, Map<String, ?> params) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(message, params);
+        getAgent().getErrorApi().noticeError(message, params);
     }
 
     public static void noticeError(String message) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(message);
+        getAgent().getErrorApi().noticeError(message);
     }
 
     public static void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(throwable, params, expected);
+        getAgent().getErrorApi().noticeError(throwable, params, expected);
     }
 
     public static void noticeError(Throwable throwable, boolean expected) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(throwable, expected);
+        getAgent().getErrorApi().noticeError(throwable, expected);
     }
 
     public static void noticeError(String message, Map<String, ?> params, boolean expected) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(message, params, expected);
+        getAgent().getErrorApi().noticeError(message, params, expected);
     }
 
     public static void noticeError(String message, boolean expected) {
-        getOpenTelemetryAgent().getErrorApi().noticeError(message, expected);
+        getAgent().getErrorApi().noticeError(message, expected);
     }
 
     // **************************** Transaction APIs ********************************//
@@ -179,7 +175,7 @@ public final class OpenTelemetryNewRelic {
     }
 
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
-        logUnsupportedMethod("NewRelic", "setErrorGroupCallback");
+        getAgent().getErrorApi().setErrorGroupCallback(errorGroupCallback);
     }
 
     static void logUnsupportedMethod(String className, String methodName) {
