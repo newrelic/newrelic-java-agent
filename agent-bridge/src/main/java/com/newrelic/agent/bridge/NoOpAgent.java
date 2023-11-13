@@ -27,12 +27,12 @@ class NoOpAgent implements Agent {
 
     @Override
     public Logger getLogger() {
-        return NoOpLogger.INSTANCE;
+        return com.newrelic.api.agent.Agent.noop().getLogger();
     }
 
     @Override
     public Config getConfig() {
-        return NoOpConfig.Instance;
+        return com.newrelic.api.agent.Agent.noop().getConfig();
     }
 
     @Override
@@ -57,17 +57,17 @@ class NoOpAgent implements Agent {
 
     @Override
     public MetricAggregator getMetricAggregator() {
-        return NoOpMetricAggregator.INSTANCE;
+        return com.newrelic.api.agent.Agent.noop().getMetricAggregator();
     }
 
     @Override
     public Insights getInsights() {
-        return NoOpInsights.INSTANCE;
+        return com.newrelic.api.agent.Agent.noop().getInsights();
     }
 
     @Override
     public ErrorApi getErrorApi() {
-        return NoOpErrorApi.INSTANCE;
+        return com.newrelic.api.agent.Agent.noop().getErrorApi();
     }
 
     @Override

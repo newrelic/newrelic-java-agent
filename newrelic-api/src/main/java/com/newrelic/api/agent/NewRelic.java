@@ -23,7 +23,7 @@ public final class NewRelic {
      * @since 3.9.0
      */
     public static Agent getAgent() {
-        return NoOpAgent.INSTANCE;
+        return Agent.noop();
     }
 
     // ************************** Metric API ****************************************//
