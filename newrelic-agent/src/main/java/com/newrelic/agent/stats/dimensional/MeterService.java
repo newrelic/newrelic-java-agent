@@ -76,13 +76,17 @@ public class MeterService extends AbstractService implements Meter, EventService
         }
         return new Counter() {
             @Override
-            public void add(long value) {
-                getAttributeBucket(Collections.emptyMap()).getCounter(name).add(value);
+            public void add(long increment) {
+                getAttributeBucket(Collections.emptyMap()).getCounter(name).add(increment);
             }
 
             @Override
-            public void add(long value, Map<String, ?> attributes) {
-                getAttributeBucket(attributes).getCounter(name).add(value);
+            public void add(long increment, Map<String, ?> attributes) {
+                if (increment < 0) {
+                    logger.log(Level.FINE, "Ignoring negative increment for metric {0}", name);
+                } else {
+                    getAttributeBucket(attributes).getCounter(name).add(increment);
+                }
             }
         };
     }

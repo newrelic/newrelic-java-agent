@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.Map;
 
 public interface Counter {
-    default void add(long value) {
-        add(value, Collections.emptyMap());
+    default void add(long increment) {
+        add(increment, Collections.emptyMap());
     }
-    void add(long value, Map<String, ?> attributes);
+    void add(long increment, Map<String, ?> attributes);
 }
