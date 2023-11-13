@@ -17,8 +17,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 
-import java.util.logging.Level;
-
 import static com.nr.vertx.instrumentation.VertxCoreUtil.END;
 import static com.nr.vertx.instrumentation.VertxCoreUtil.VERTX_CLIENT;
 
@@ -26,9 +24,7 @@ import static com.nr.vertx.instrumentation.VertxCoreUtil.VERTX_CLIENT;
 public abstract class HttpClientRequestImpl_Instrumentation extends HttpClientRequestBase_Instrumentation {
 
     public Future<Void> end(Buffer chunk) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Buffer chunk");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Buffer chunk 2");
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
         }

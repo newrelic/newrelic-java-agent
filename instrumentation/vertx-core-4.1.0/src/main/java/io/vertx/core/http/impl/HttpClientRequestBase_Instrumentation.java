@@ -8,30 +8,19 @@
 package io.vertx.core.http.impl;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.api.agent.Transaction;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.vertx.instrumentation.AsyncHandlerWrapper;
-import com.nr.vertx.instrumentation.OutboundWrapper;
 import com.nr.vertx.instrumentation.VertxCoreUtil;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-
-import static com.nr.vertx.instrumentation.VertxCoreUtil.END;
-import static com.nr.vertx.instrumentation.VertxCoreUtil.VERTX_CLIENT;
 
 @Weave(type = MatchType.BaseClass, originalName = "io.vertx.core.http.impl.HttpClientRequestBase")
 public abstract class HttpClientRequestBase_Instrumentation {
