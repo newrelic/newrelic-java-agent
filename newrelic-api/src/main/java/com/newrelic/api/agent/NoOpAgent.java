@@ -7,7 +7,9 @@
 
 package com.newrelic.api.agent;
 
-import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
+import com.newrelic.api.agent.metrics.Counter;
+import com.newrelic.api.agent.metrics.Meter;
+import com.newrelic.api.agent.metrics.Summary;
 
 import java.net.URI;
 import java.util.Collections;
@@ -355,18 +357,19 @@ class NoOpAgent implements Agent {
         public void incrementCounter(String name) {
         }
     };
-    private static final DimensionalMetricAggregator DIMENSIONAL_METRIC_AGGREGATOR = new DimensionalMetricAggregator() {
-
+    private static final Meter METER = new Meter() {
+        final Counter counter = (value, attributes) -> {
+        };
+        final Summary summary = (value, attributes) -> {
+        };
         @Override
-        public void addToSummary(String name, Map<String, ?> attributes, double value) {
+        public Counter newCounter(String name) {
+            return counter;
         }
 
         @Override
-        public void incrementCounter(String name, Map<String, ?> attributes) {
-        }
-
-        @Override
-        public void incrementCounter(String name, Map<String, ?> attributes, long count) {
+        public Summary newSummary(String name) {
+            return summary;
         }
     };
     private static final Insights INSIGHTS = new Insights() {
@@ -470,8 +473,8 @@ class NoOpAgent implements Agent {
     }
 
     @Override
-    public DimensionalMetricAggregator getDimensionalMetricAggregator() {
-        return DIMENSIONAL_METRIC_AGGREGATOR;
+    public Meter getMeter() {
+        return METER;
     }
 
     @Override

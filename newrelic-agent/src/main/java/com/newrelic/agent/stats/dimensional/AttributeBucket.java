@@ -7,13 +7,14 @@ import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 class AttributeBucket {
-    private final Map<MeasureKey, BaseMeasure> keyToMeasures =
+    private final Map<String, CountMeasure> nameToCounters =
+            new ConcurrentHashMap<>();
+    private final Map<String, SummaryMeasure> nameToSummaries =
             new ConcurrentHashMap<>();
     private final Map<String, Object> attributes;
 
@@ -21,29 +22,26 @@ class AttributeBucket {
         this.attributes = ImmutableMap.copyOf(attributes);
     }
 
-    public Measure getMeasure(String metricName, MetricType type) {
-        return keyToMeasures.computeIfAbsent(new MeasureKey(metricName, type), key -> createMeasure(metricName, type));
+    public CountMeasure getCounter(String metricName) {
+        return nameToCounters.computeIfAbsent(metricName, key -> new CountMeasure(metricName));
     }
 
-    BaseMeasure createMeasure(String metricName, MetricType type) {
-        switch (type) {
-            case summary:
-                return new SummaryMeasure(metricName);
-            default:
-                return new CountMeasure(metricName);
-        }
+    public SummaryMeasure getSummary(String metricName) {
+        return nameToSummaries.computeIfAbsent(metricName, key -> new SummaryMeasure(metricName));
     }
 
     public AttributeBucket merge(AttributeBucket other) {
-        other.keyToMeasures.forEach((key, measure) -> this.keyToMeasures.merge(key, measure, BaseMeasure::merge));
+        other.nameToSummaries.forEach((key, measure) -> this.nameToSummaries.merge(key, measure, BaseMeasure::merge));
+        other.nameToCounters.forEach((key, measure) -> this.nameToCounters.merge(key, measure, BaseMeasure::merge));
         return this;
     }
 
     public void harvest(Collection<CustomInsightsEvent> events) {
-        keyToMeasures.values().forEach(measure -> events.add(measure.toEvent()));
+        nameToSummaries.values().forEach(measure -> events.add(measure.toEvent()));
+        nameToCounters.values().forEach(measure -> events.add(measure.toEvent()));
     }
 
-    abstract class BaseMeasure implements Measure {
+    abstract class BaseMeasure {
         private final long beginTimestamp = System.currentTimeMillis();
         private final String metricName;
         private final MetricType type;
@@ -63,41 +61,40 @@ class AttributeBucket {
 
         abstract Object getValue();
 
-        abstract BaseMeasure merge(BaseMeasure measure);
+        abstract <T extends BaseMeasure> T merge(T measure);
     }
 
     class SummaryMeasure extends BaseMeasure {
-        private final AtomicReference<Summary> summary = new AtomicReference<>();
+        private final AtomicReference<SummaryValue> summary = new AtomicReference<>();
 
         public SummaryMeasure(String metricName) {
             super(metricName, MetricType.summary);
         }
 
-        @Override
-        public void addToSummary(double value) {
-            addToSummary(new Summary(1, value, value, value));
+        public void add(double value) {
+            add(new SummaryValue(1, value, value, value));
         }
 
-        private void addToSummary(Summary summary) {
-            if (summary != null) {
-                this.summary.accumulateAndGet(summary,
+        private void add(SummaryValue summaryValue) {
+            if (summaryValue != null) {
+                this.summary.accumulateAndGet(summaryValue,
                         (existing, update) -> update.merge(existing));
             }
         }
 
         @Override
         Object getValue() {
-            final Summary summary = this.summary.get();
-            if (summary == null) {
+            final SummaryValue summaryValue = this.summary.get();
+            if (summaryValue == null) {
                 return ImmutableList.of(0, 0d, 0d, 0d);
             }
-            return ImmutableList.of(summary.count, summary.total, summary.min, summary.max);
+            return ImmutableList.of(summaryValue.count, summaryValue.total, summaryValue.min, summaryValue.max);
         }
 
         @Override
-        BaseMeasure merge(BaseMeasure measure) {
+        SummaryMeasure merge(BaseMeasure measure) {
             if (measure.type == MetricType.summary) {
-                addToSummary(((SummaryMeasure)measure).summary.get());
+                add(((SummaryMeasure)measure).summary.get());
             }
             return this;
         }
@@ -123,54 +120,30 @@ class AttributeBucket {
             return this;
         }
 
-        @Override
-        public void incrementCount(long count) {
+        public void add(long count) {
             this.count.addAndGet(count);
         }
     }
 
-    static class Summary {
+    static class SummaryValue {
         final long count;
         final double total;
         final double min;
         final double max;
 
-        public Summary(long count, double total, double min, double max) {
+        public SummaryValue(long count, double total, double min, double max) {
             this.count = count;
             this.total = total;
             this.min = min;
             this.max = max;
         }
 
-        public Summary merge(Summary existing) {
+        public SummaryValue merge(SummaryValue existing) {
             if (existing == null) {
                 return this;
             }
-            return new Summary(count + existing.count, total + existing.total,
+            return new SummaryValue(count + existing.count, total + existing.total,
                     Math.min(min, existing.min), Math.max(max, existing.max));
-        }
-    }
-
-    static class MeasureKey {
-        private final String metricName;
-        private final MetricType type;
-
-        public MeasureKey(String metricName, MetricType type) {
-            this.metricName = metricName;
-            this.type = type;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            MeasureKey that = (MeasureKey) o;
-            return Objects.equals(metricName, that.metricName) && type == that.type;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(metricName, type);
         }
     }
 }

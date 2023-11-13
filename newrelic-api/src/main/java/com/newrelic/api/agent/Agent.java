@@ -7,7 +7,7 @@
 
 package com.newrelic.api.agent;
 
-import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
+import com.newrelic.api.agent.metrics.Meter;
 
 import java.util.Map;
 
@@ -57,7 +57,11 @@ public interface Agent {
      */
     MetricAggregator getMetricAggregator();
 
-    DimensionalMetricAggregator getDimensionalMetricAggregator();
+    /**
+     * Returns the meter used to report dimensional metrics.
+     * @since 8.1
+     */
+    Meter getMeter();
 
     /**
      * Provides access to the Insights custom events API.

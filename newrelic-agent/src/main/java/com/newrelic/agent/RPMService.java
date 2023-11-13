@@ -142,7 +142,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void addHarvestablesToServices() {
         ServiceFactory.getServiceManager().getInsights().addHarvestableToService(appName);
-        ServiceFactory.getServiceManager().getDimensionalMetricAggregatorService().addHarvestableToService(appName);
+        ServiceFactory.getServiceManager().getMeterService().addHarvestableToService(appName);
         ServiceFactory.getServiceManager().getLogSenderService().addHarvestableToService(appName);
         ServiceFactory.getTransactionEventsService().addHarvestableToService(appName);
         errorService.addHarvestableToService();

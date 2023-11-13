@@ -11,13 +11,13 @@ import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.Config;
-import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
+import com.newrelic.api.agent.metrics.Meter;
 
 import java.util.Map;
 
@@ -37,7 +37,7 @@ public class FakeExtensionAgent implements Agent {
     public MetricAggregator getMetricAggregator() { throw new RuntimeException(); }
 
     @Override
-    public DimensionalMetricAggregator getDimensionalMetricAggregator() { throw new RuntimeException(); }
+    public Meter getMeter() { throw new RuntimeException(); }
 
     @Override
     public Insights getInsights() { throw new RuntimeException(); }

@@ -16,13 +16,15 @@ import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
-import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
+import com.newrelic.api.agent.metrics.Counter;
+import com.newrelic.api.agent.metrics.Meter;
+import com.newrelic.api.agent.metrics.Summary;
 
 import java.util.Map;
 import java.util.Random;
@@ -37,19 +39,27 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     public AgentImpl(Logger logger) {
         this.logger = logger;
 
+        System.err.println("Creating metrics");
+        Counter counter = getMeter().newCounter("custom.dm.count");
+        Summary summary = getMeter().newSummary("custom.dm.summary");
+
         String[] regions = new String[] {"us","eu","other"};
         Random random = new Random();
         Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
             for (int i = 0; i < 20; i++) {
-                int id = random.nextInt(3);
-                final String region = regions[id];
-                getDimensionalMetricAggregator().incrementCounter("custom.dm.count",
-                        ImmutableMap.of("region", region));
-                double value = random.nextDouble();
-                getDimensionalMetricAggregator().addToSummary("custom.dm.summary",
-                        ImmutableMap.of("region", region), value);
+                try {
+                    int id = random.nextInt(3);
+                    final String region = regions[id];
+                    counter.add(1,
+                            ImmutableMap.of("region", region));
+                    double value = random.nextDouble();
+                    summary.add(value,
+                            ImmutableMap.of("region", region));
 
-                getMetricAggregator().recordMetric("Custom/Region/" + region, (float)value);
+                    getMetricAggregator().recordMetric("Custom/Region/" + region, (float) value);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }, 20, 20, TimeUnit.SECONDS);
     }
@@ -153,8 +163,8 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     }
 
     @Override
-    public DimensionalMetricAggregator getDimensionalMetricAggregator() {
-        return ServiceFactory.getServiceManager().getDimensionalMetricAggregatorService();
+    public Meter getMeter() {
+        return ServiceFactory.getServiceManager().getMeterService();
     }
 
     @Override

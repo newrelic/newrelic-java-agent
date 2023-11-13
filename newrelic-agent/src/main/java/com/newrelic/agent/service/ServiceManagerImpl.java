@@ -74,7 +74,7 @@ import com.newrelic.agent.service.module.TrackedAddSet;
 import com.newrelic.agent.service.slowtransactions.SlowTransactionService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
-import com.newrelic.agent.stats.dimensional.DimensionalMetricAggregatorService;
+import com.newrelic.agent.stats.dimensional.MeterService;
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
@@ -132,7 +132,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile EnvironmentService environmentService;
     private volatile ClassTransformerService classTransformerService;
     private volatile StatsService statsService = new InitialStatsService();
-    private final DimensionalMetricAggregatorService dimensionalMetricAggregatorService = new DimensionalMetricAggregatorService();
+    private final MeterService meterService = new MeterService();
     private volatile SqlTraceService sqlTraceService;
     private volatile DatabaseService databaseService;
     private volatile BrowserService browserService;
@@ -567,8 +567,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     }
 
     @Override
-    public DimensionalMetricAggregatorService getDimensionalMetricAggregatorService() {
-        return dimensionalMetricAggregatorService;
+    public MeterService getMeterService() {
+        return meterService;
     }
 
     @Override

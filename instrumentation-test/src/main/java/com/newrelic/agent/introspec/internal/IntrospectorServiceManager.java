@@ -43,7 +43,7 @@ import com.newrelic.agent.service.logging.LogSenderService;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.sql.SqlTraceServiceImpl;
-import com.newrelic.agent.stats.dimensional.DimensionalMetricAggregatorService;
+import com.newrelic.agent.stats.dimensional.MeterService;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
@@ -65,7 +65,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile ProfilerService profilerService;
     private volatile RPMConnectionService rpmConnectionService;
     private volatile StatsService statsService;
-    private final DimensionalMetricAggregatorService dimensionalMetricAggregatorService = new DimensionalMetricAggregatorService();
+    private final MeterService meterService = new MeterService();
     private volatile HarvestService harvestService;
     private volatile SqlTraceService sqlTraceService;
     private volatile DatabaseService dbService;
@@ -337,8 +337,8 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     }
 
     @Override
-    public DimensionalMetricAggregatorService getDimensionalMetricAggregatorService() {
-        return dimensionalMetricAggregatorService;
+    public MeterService getMeterService() {
+        return meterService;
     }
 
     @Override

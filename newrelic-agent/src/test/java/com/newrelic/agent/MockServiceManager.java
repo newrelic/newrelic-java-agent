@@ -23,7 +23,6 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
-import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
@@ -49,7 +48,7 @@ import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.service.module.JarCollectorService;
 import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
-import com.newrelic.agent.stats.dimensional.DimensionalMetricAggregatorService;
+import com.newrelic.agent.stats.dimensional.MeterService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.utilization.UtilizationService;
@@ -71,7 +70,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile ProfilerService profilerService;
     private volatile RPMConnectionService rpmConnectionService;
     private volatile StatsService statsService;
-    private final DimensionalMetricAggregatorService dimensionalMetricAggregatorService = Mockito.mock(DimensionalMetricAggregatorService.class);
+    private final MeterService meterService = Mockito.mock(MeterService.class);
     private volatile HarvestService harvestService;
     private volatile SqlTraceService sqlTraceService;
     private volatile CacheService cacheService;
@@ -518,8 +517,8 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     }
 
     @Override
-    public DimensionalMetricAggregatorService getDimensionalMetricAggregatorService() {
-        return dimensionalMetricAggregatorService;
+    public MeterService getMeterService() {
+        return meterService;
     }
 
     @Override

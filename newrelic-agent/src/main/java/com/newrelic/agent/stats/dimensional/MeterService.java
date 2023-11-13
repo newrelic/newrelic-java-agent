@@ -8,10 +8,13 @@ import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.HttpError;
-import com.newrelic.api.agent.metrics.DimensionalMetricAggregator;
+import com.newrelic.api.agent.metrics.Counter;
+import com.newrelic.api.agent.metrics.Meter;
+import com.newrelic.api.agent.metrics.Summary;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-public class DimensionalMetricAggregatorService extends AbstractService implements DimensionalMetricAggregator, EventService {
+public class MeterService extends AbstractService implements Meter, EventService {
 
     private volatile boolean enabled = true;
     private final List<Closeable> closeables = new CopyOnWriteArrayList<>();
@@ -28,9 +31,12 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
     private final CachingMapHasher mapHasher = new CachingMapHasher(SimpleMapHasher.INSTANCE);
     // hash of attributes to map of metric aggregates
     private final AtomicReference<Map<Long, AttributeBucket>> bucketByAttributeHash = new AtomicReference<>(new ConcurrentHashMap<>());
+    private final Map<String, MetricType> nameToMetricType = new ConcurrentHashMap<>();
+    private final Counter noOpCounter = (value, attributes) -> {};
+    private final Summary noOpSummary = (value, attributes) -> {};
 
-    public DimensionalMetricAggregatorService() {
-        super(DimensionalMetricAggregatorService.class.getName());
+    public MeterService() {
+        super(MeterService.class.getName());
     }
 
     @Override
@@ -58,6 +64,50 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
     @Override
     public void clearReservoir() {
     }
+
+    //**********************  Meter APIs *************************/
+
+    @Override
+    public Counter newCounter(String name) {
+        final MetricType existingType = nameToMetricType.computeIfAbsent(name, key -> MetricType.count);
+        if (!MetricType.count.equals(existingType)) {
+            logger.log(Level.SEVERE, "Meter {0} has already been defined as type {1}", name, existingType.name());
+            return noOpCounter;
+        }
+        return new Counter() {
+            @Override
+            public void add(long value) {
+                getAttributeBucket(Collections.emptyMap()).getCounter(name).add(value);
+            }
+
+            @Override
+            public void add(long value, Map<String, ?> attributes) {
+                getAttributeBucket(attributes).getCounter(name).add(value);
+            }
+        };
+    }
+
+    @Override
+    public Summary newSummary(String name) {
+        final MetricType existingType = nameToMetricType.computeIfAbsent(name, key -> MetricType.summary);
+        if (!MetricType.summary.equals(existingType)) {
+            logger.log(Level.SEVERE, "Meter {0} has already been defined as type {1}", name, existingType.name());
+            return noOpSummary;
+        }
+        return new Summary() {
+            @Override
+            public void add(double value) {
+                add(value, Collections.emptyMap());
+            }
+
+            @Override
+            public void add(double value, Map<String, ?> attributes) {
+                getAttributeBucket(attributes).getSummary(name).add(value);
+            }
+        };
+    }
+
+    //********************** End Meter APIs *************************/
 
     Harvest harvestEvents() {
         final Collection<CustomInsightsEvent> events = new ArrayList<>();
@@ -129,23 +179,6 @@ public class DimensionalMetricAggregatorService extends AbstractService implemen
             mapHasher.addHash(attributes, hash);
             return new AttributeBucket(attributes);
         });
-    }
-
-    //**********************  Metric APIs *************************/
-
-    @Override
-    public void addToSummary(String name, Map<String, ?> attributes, double value) {
-        getAttributeBucket(attributes).getMeasure(name, MetricType.summary).addToSummary(value);
-    }
-
-    @Override
-    public void incrementCounter(String name, Map<String, ?> attributes) {
-        getAttributeBucket(attributes).getMeasure(name, MetricType.count).incrementCount(1);
-    }
-
-    @Override
-    public void incrementCounter(String name, Map<String, ?> attributes, long count) {
-        getAttributeBucket(attributes).getMeasure(name, MetricType.count).incrementCount(count);
     }
 
     interface Closeable {

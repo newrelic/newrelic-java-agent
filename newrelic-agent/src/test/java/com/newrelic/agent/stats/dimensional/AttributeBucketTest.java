@@ -20,8 +20,8 @@ public class AttributeBucketTest extends TestCase {
         AttributeBucket otherBucket = new AttributeBucket(usRegionMap);
 
         for (int i = 0; i < 5; i++) {
-            bucket.getMeasure("my.metric", MetricType.summary).addToSummary(i);
-            otherBucket.getMeasure("my.metric", MetricType.summary).addToSummary(100 - i);
+            bucket.getSummary("my.metric").add(i);
+            otherBucket.getSummary("my.metric").add(100 - i);
         }
 
         AttributeBucket merged = otherBucket.merge(bucket);
