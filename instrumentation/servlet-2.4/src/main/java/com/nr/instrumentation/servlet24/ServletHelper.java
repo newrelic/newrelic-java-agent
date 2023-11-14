@@ -184,7 +184,13 @@ public class ServletHelper {
             return false;
         }
         txName = normalizeServletName(txName, servlet);
-        NewRelic.getAgent().getLogger().log(Level.FINER, "Setting transaction name using servlet name: {0}", txName);
+
+        if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Servlet24/ServletHelper::setTxNameUsingServletName: calling transaction.setTransactionName with " +
+                            "priority: SERVLET_NAME and override false, category: Servlet, txn {0}, ",
+                    AgentBridge.getAgent().getTransaction().toString());
+        }
+
         AgentBridge.getAgent().getTransaction().setTransactionName(TransactionNamePriority.SERVLET_NAME, NO_OVERRIDE,
                 SERVLET_NAME_CATEGORY, txName);
         return true;

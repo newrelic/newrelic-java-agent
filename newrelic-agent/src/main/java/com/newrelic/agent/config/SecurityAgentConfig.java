@@ -7,8 +7,12 @@
 
 package com.newrelic.agent.config;
 
+import com.google.common.collect.Sets;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
+
+import java.util.Collections;
+import java.util.Set;
 
 /* Default config should look like:
  *
@@ -48,6 +52,8 @@ public class SecurityAgentConfig {
     private static final Config config = NewRelic.getAgent().getConfig();
     private static final String ENABLED = "enabled";
     private static final String DISABLED = "disabled";
+    public static final Set<String> SECURITY_AGENT_CLASS_TRANSFORMER_EXCLUDES_TO_IGNORE = Collections.unmodifiableSet(
+            Sets.newHashSet("^java/security/.*", "^javax/crypto/.*", "^net/sf/saxon.*"));
 
     /**
      * Create supportability metrics showing the enabled status of the security agent.

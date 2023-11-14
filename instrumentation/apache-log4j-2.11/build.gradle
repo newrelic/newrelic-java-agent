@@ -1,0 +1,23 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.apache-log4j-2.11',
+                // The module was renamed to its current name from the name below. The alias exists so the instrumentation
+                // is still excluded/included for customers who have the old name in their configuration.
+                'Implementation-Title-Alias': 'com.newrelic.instrumentation.apache-log4j-2'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+}
+
+verifyInstrumentation {
+    passesOnly("org.apache.logging.log4j:log4j-core:[2.11.0,)")
+    excludeRegex '.*(alpha|beta|rc).*'
+}
+
+site {
+    title 'Log4j2'
+    type 'Framework'
+}

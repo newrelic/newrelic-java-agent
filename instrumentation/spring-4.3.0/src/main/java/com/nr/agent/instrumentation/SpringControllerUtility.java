@@ -10,6 +10,7 @@ package com.nr.agent.instrumentation;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
+import com.newrelic.api.agent.NewRelic;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -80,6 +81,13 @@ public class SpringControllerUtility {
             AgentBridge.getAgent().getLogger().log(Level.FINE, "No path was specified for SpringController {0}", matchedAnnotationClass.getName());
         } else {
             String fullPath = SpringControllerUtility.getPath(rootPath, methodPath, httpMethod);
+            if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+                NewRelic.getAgent()
+                        .getLogger()
+                        .log(Level.FINEST, "SpringControllerUtility::processAnnotations (4.3.0): calling transaction.setTransactionName to [{0}] " +
+                                        "with FRAMEWORK_HIGH and override true, txn {1}, ",
+                                AgentBridge.getAgent().getTransaction().toString());
+            }
             transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
                     fullPath);
         }

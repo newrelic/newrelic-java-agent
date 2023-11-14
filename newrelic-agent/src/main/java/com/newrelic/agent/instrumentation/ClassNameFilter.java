@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_AGENT_CLASS_TRANSFORMER_EXCLUDES_TO_IGNORE;
+import static com.newrelic.agent.config.SecurityAgentConfig.shouldInitializeSecurityAgent;
+
 /**
  * This filter is used to skip certain classes during the classloading transform callback based on the class name.
  */
@@ -38,8 +41,13 @@ public class ClassNameFilter {
     }
 
     /**
-     * Is the class excluded.
-     * 
+     * Check if a class should be excluded from class transformation based on an excludes rule.
+     * <p>
+     * excludePatterns is a list of exclude rules merged together from user config and the default META-INF/excludes file.
+     * Exclude rules are evaluated when determining whether to transform weaved classes in the InstrumentationContextManager
+     * or pointcuts in the PointCutClassTransformer.
+     *
+     * @param className name of the class to check exclusion rule for
      * @return <code>true</code> if this is an excluded class, <code>false</code> if not
      */
     public boolean isExcluded(String className) {
@@ -53,7 +61,7 @@ public class ClassNameFilter {
 
     /**
      * Is the class included.
-     * 
+     *
      * @return <code>true</code> if this is an included class, <code>false</code> if not
      */
     public boolean isIncluded(String className) {
@@ -79,6 +87,10 @@ public class ClassNameFilter {
             for (String exclude : excludes) {
                 sb.append("\n").append(exclude);
                 addExclude(exclude);
+                if (SECURITY_AGENT_CLASS_TRANSFORMER_EXCLUDES_TO_IGNORE.contains(exclude)) {
+                    logger.finer(exclude + " class_transformer exclude explicitly added by user config. The user configured exclude rule will" +
+                            " take precedence and will not be ignored due to the security agent being enabled.");
+                }
             }
             logger.finer(sb.toString());
         }
@@ -89,7 +101,7 @@ public class ClassNameFilter {
     }
 
     /**
-     * Add excluded classes in the excludes file.
+     * Add excluded classes in the META-INF/excludes file.
      */
     public void addExcludeFileClassFilters() {
         InputStream iStream = this.getClass().getResourceAsStream(EXCLUDES_FILE);
@@ -112,15 +124,34 @@ public class ClassNameFilter {
                 // ignore
             }
         }
+        boolean ignoreExcludeForSecurityAgent = false;
+        String formattedIgnoredExcludes = String.join(",", SECURITY_AGENT_CLASS_TRANSFORMER_EXCLUDES_TO_IGNORE);
+        boolean shouldInitializeSecurityAgent = shouldInitializeSecurityAgent();
+
         for (String exclude : excludeList) {
-            addExclude(exclude);
+            ignoreExcludeForSecurityAgent = shouldInitializeSecurityAgent && SECURITY_AGENT_CLASS_TRANSFORMER_EXCLUDES_TO_IGNORE.contains(exclude);
+            if (ignoreExcludeForSecurityAgent) {
+                logger.finer("Ignored " + exclude + " class_transformer exclude defined in META-INF/excludes because the security agent is enabled. " +
+                        "This can be overridden by explicitly setting newrelic.config.class_transformer.excludes=" + formattedIgnoredExcludes +
+                        " or NEW_RELIC_CLASS_TRANSFORMER_EXCLUDES=" + formattedIgnoredExcludes);
+            } else {
+                addExclude(exclude);
+            }
+        }
+
+        if (ignoreExcludeForSecurityAgent) {
+            for (String exclude : SECURITY_AGENT_CLASS_TRANSFORMER_EXCLUDES_TO_IGNORE) {
+                // Remove the default exclude rule if the security agent is enabled. If a user explicitly adds one of these exclude rules via agent config
+                // then it will be added back to the list via ClassNameFilter.addConfigClassFilters, effectively taking precedence over this removal logic.
+                excludeList.remove(exclude);
+            }
         }
         logger.finer("Excludes initialized: " + excludeList);
     }
 
     /**
      * Include matching classes.
-     * 
+     *
      * @param include either a class name or a regular expression
      */
     public void addInclude(String include) {
@@ -133,7 +164,7 @@ public class ClassNameFilter {
 
     /**
      * Include the given class.
-     * 
+     *
      * @param className the name of the class to include
      */
     public void addIncludeClass(String className) {
@@ -143,7 +174,7 @@ public class ClassNameFilter {
 
     /**
      * Include classes matching the regular expression.
-     * 
+     *
      * @param regex a regular expression matching classes to include
      */
     public void addIncludeRegex(String regex) {
@@ -155,7 +186,7 @@ public class ClassNameFilter {
 
     /**
      * Exclude matching classes.
-     * 
+     *
      * @param exclude either a class name or a regular expression
      */
     public void addExclude(String exclude) {
@@ -168,7 +199,7 @@ public class ClassNameFilter {
 
     /**
      * Exclude the given class.
-     * 
+     *
      * @param className the name of the class to exclude
      */
     public void addExcludeClass(String className) {
@@ -178,7 +209,7 @@ public class ClassNameFilter {
 
     /**
      * Exclude classes matching the regular expression.
-     * 
+     *
      * @param regex a regular expression matching classes to include
      */
     public void addExcludeRegex(String regex) {
@@ -190,7 +221,7 @@ public class ClassNameFilter {
 
     /**
      * Create a regular expression for a class.
-     * 
+     *
      * @return a regular expression that matches only the given class
      */
     private String classNameToRegex(String className) {
@@ -199,7 +230,7 @@ public class ClassNameFilter {
 
     /**
      * Compile a regular expression.
-     * 
+     *
      * @return a pattern or null if the regular expression could not be compiled
      */
     private Pattern regexToPattern(String regex) {
@@ -214,7 +245,7 @@ public class ClassNameFilter {
 
     /**
      * Is the argument a regular expression (rather than a class name).
-     * 
+     *
      * @param value
      * @return <code>true</code> if this is a regular expression, <code>false</code> if not
      */

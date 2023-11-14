@@ -39,6 +39,8 @@ public class HttpURLConnectionTest {
     static final TransactionDataList transactions = new TransactionDataList();
     private static final String GET_OUTPUT_STREAM = "getOutputStream";
     private static final String GET_INPUT_STREAM = "getInputStream";
+    private static final String GET_RESPONSE_CODE = "getResponseCode";
+    private static final String GET_RESPONSE_MSG = "getResponseMessage";
     private static final String URL = "example.com";
     private static final String REAL_HOST = "https://example.com";
     private static final String FAKE_HOST = "http://www.thishostdoesnotexistbro.com"; // Better hope no one buys this domain...
@@ -95,7 +97,7 @@ public class HttpURLConnectionTest {
         doOutputStreamFirstTest();
         String scope = format("OtherTransaction/Custom/{0}/doOutputStreamFirstTest", TEST_CLASS);
 
-        verifyMetrics(URL, scope, true, GET_OUTPUT_STREAM);
+        verifyMetrics(URL, scope, false, GET_OUTPUT_STREAM);
     }
 
     @Trace(dispatcher = true)
@@ -130,7 +132,7 @@ public class HttpURLConnectionTest {
         doConnectFirstTest();
         String scope = format("OtherTransaction/Custom/{0}/doConnectFirstTest", TEST_CLASS);
 
-        verifyMetrics(URL, scope, true, GET_OUTPUT_STREAM);
+        verifyMetrics(URL, scope, false, GET_OUTPUT_STREAM);
     }
 
     @Trace(dispatcher = true)
@@ -255,7 +257,7 @@ public class HttpURLConnectionTest {
         run3();
         String scope = format("OtherTransaction/Custom/{0}/run3", TEST_CLASS);
 
-        verifyMetrics(URL, scope, true, GET_INPUT_STREAM);
+        verifyMetrics(URL, scope, true, GET_RESPONSE_CODE);
     }
 
     @Trace(dispatcher = true)
@@ -330,7 +332,7 @@ public class HttpURLConnectionTest {
         run6();
         String scope = format("OtherTransaction/Custom/{0}/run6", TEST_CLASS);
 
-        verifyMetrics(URL, scope, true, GET_OUTPUT_STREAM);
+        verifyMetrics(URL, scope, false, GET_OUTPUT_STREAM);
     }
 
     @Trace(dispatcher = true)
@@ -355,7 +357,7 @@ public class HttpURLConnectionTest {
         run7();
         String scope = format("OtherTransaction/Custom/{0}/run7", TEST_CLASS);
 
-        verifyMetrics(URL, scope, true, GET_OUTPUT_STREAM);
+        verifyMetrics(URL, scope, true, GET_RESPONSE_CODE);
     }
 
     @Trace(dispatcher = true)
@@ -383,7 +385,7 @@ public class HttpURLConnectionTest {
         run8();
         String scope = format("OtherTransaction/Custom/{0}/run8", TEST_CLASS);
 
-        verifyMetrics(URL, scope, true, GET_OUTPUT_STREAM);
+        verifyMetrics(URL, scope, true, GET_RESPONSE_CODE);
     }
 
     @Trace(dispatcher = true)
@@ -410,7 +412,7 @@ public class HttpURLConnectionTest {
         run9();
         String scope = format("OtherTransaction/Custom/{0}/run9", TEST_CLASS);
 
-        verifyMetrics(URL, scope, true, GET_INPUT_STREAM);
+        verifyMetrics(URL, scope, true, GET_RESPONSE_CODE);
     }
 
     @Trace(dispatcher = true)
@@ -421,6 +423,31 @@ public class HttpURLConnectionTest {
             connection = getHttpsExampleComConnection();
             // GETs URL and reads response code (Network I/O)
             System.out.println("Response code: " + connection.getResponseCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    @Test
+    public void testHttpURLConnectionMetrics10() {
+        run10();
+        String scope = format("OtherTransaction/Custom/{0}/run10", TEST_CLASS);
+
+        verifyMetrics(URL, scope, true, GET_RESPONSE_MSG);
+    }
+
+    @Trace(dispatcher = true)
+    private void run10() {
+        HttpURLConnection connection = null;
+        try {
+            // Test 9: getResponseMessage()
+            connection = getHttpsExampleComConnection();
+            // GETs URL and reads response message (Network I/O)
+            System.out.println("Response message: " + connection.getResponseMessage());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -475,7 +502,8 @@ public class HttpURLConnectionTest {
         Set<String> metrics = AgentHelper.getMetrics();
         // Scoped external metrics
         String httpURLConnectionGetInputStreamMetric = format("External/{0}/HttpURLConnection/getInputStream", url);
-        String httpURLConnectionGetOutputStreamMetric = format("External/{0}/HttpURLConnection/getOutputStream", url);
+        String httpURLConnectionGetResponseCodeMetric = format("External/{0}/HttpURLConnection/getResponseCode", url);
+        String httpURLConnectionGetResponseMessageMetric = format("External/{0}/HttpURLConnection/getResponseMessage", url);
         // Unscoped external metrics
         String externalHostAllMetric = format("External/{0}/all", url);
         String externalAllMetric = "External/all";
@@ -488,8 +516,7 @@ public class HttpURLConnectionTest {
             scopedMetricCount = 1;
             // One of these scoped metrics should be generated when an external call is reported
             Assert.assertTrue(metrics.toString(),
-                    metrics.contains(httpURLConnectionGetOutputStreamMetric) ||
-                            metrics.contains(httpURLConnectionGetInputStreamMetric));
+                    metrics.contains(format("External/{0}/HttpURLConnection/" + methodInExternalMetric, url)));
 
             unscopedMetricCount = 3;
             // All three of these unscoped metrics should be generated when an external call is reported
@@ -498,8 +525,7 @@ public class HttpURLConnectionTest {
             Assert.assertTrue(metrics.toString(), metrics.contains(externalAllOtherMetric));
         } else {
             Assert.assertFalse(metrics.toString(),
-                    metrics.contains(httpURLConnectionGetOutputStreamMetric) ||
-                            metrics.contains(httpURLConnectionGetInputStreamMetric));
+                    metrics.contains(format("External/{0}/HttpURLConnection/" + methodInExternalMetric, url)));
 
             Assert.assertFalse(metrics.toString(), metrics.contains(externalHostAllMetric));
             Assert.assertFalse(metrics.toString(), metrics.contains(externalAllMetric));
@@ -507,16 +533,19 @@ public class HttpURLConnectionTest {
         }
 
         Map<String, Integer> scopedMetricCounts = getMetricCounts(
-                MetricName.create(httpURLConnectionGetOutputStreamMetric, scope),
-                MetricName.create(httpURLConnectionGetInputStreamMetric, scope));
+                MetricName.create(httpURLConnectionGetInputStreamMetric, scope),
+                MetricName.create(httpURLConnectionGetResponseCodeMetric, scope),
+                MetricName.create(httpURLConnectionGetResponseMessageMetric, scope)
+        );
 
         Map<String, Integer> unscopedMetricCounts = getMetricCounts(
                 MetricName.create(externalHostAllMetric),
                 MetricName.create(externalAllMetric),
                 MetricName.create(externalAllOtherMetric));
 
-        int actualHttpURLConnectionScopedMetricCount = scopedMetricCounts.get(httpURLConnectionGetOutputStreamMetric) +
-                scopedMetricCounts.get(httpURLConnectionGetInputStreamMetric);
+        int actualHttpURLConnectionScopedMetricCount = scopedMetricCounts.get(httpURLConnectionGetInputStreamMetric) +
+                scopedMetricCounts.get(httpURLConnectionGetResponseCodeMetric) +
+                scopedMetricCounts.get(httpURLConnectionGetResponseMessageMetric);
 
         int actualHttpURLConnectionUnscopedMetricCount = unscopedMetricCounts.get(externalHostAllMetric) +
                 unscopedMetricCounts.get(externalAllMetric) +
@@ -525,15 +554,17 @@ public class HttpURLConnectionTest {
         assertEquals(scopedMetricCount, actualHttpURLConnectionScopedMetricCount);
 
         if (scopedMetricCount == 0) {
-            assertEquals(0, (int) scopedMetricCounts.get(httpURLConnectionGetOutputStreamMetric));
             assertEquals(0, (int) scopedMetricCounts.get(httpURLConnectionGetInputStreamMetric));
         } else {
             if (methodInExternalMetric != null) {
                 if (methodInExternalMetric.equals(GET_INPUT_STREAM)) {
                     assertEquals(1, (int) scopedMetricCounts.get(httpURLConnectionGetInputStreamMetric));
                 }
-                if (methodInExternalMetric.equals(GET_OUTPUT_STREAM)) {
-                    assertEquals(1, (int) scopedMetricCounts.get(httpURLConnectionGetOutputStreamMetric));
+                if (methodInExternalMetric.equals(GET_RESPONSE_CODE)) {
+                    assertEquals(1, (int) scopedMetricCounts.get(httpURLConnectionGetResponseCodeMetric));
+                }
+                if (methodInExternalMetric.equals(GET_RESPONSE_MSG)) {
+                    assertEquals(1, (int) scopedMetricCounts.get(httpURLConnectionGetResponseMessageMetric));
                 }
             }
         }
