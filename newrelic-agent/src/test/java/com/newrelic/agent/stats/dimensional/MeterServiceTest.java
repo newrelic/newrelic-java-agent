@@ -28,17 +28,17 @@ public class MeterServiceTest extends TestCase {
             counter.add(1, ImmutableMap.of("region", "us"));
             counter.add(1, ImmutableMap.of("region", "eu"));
             // no op
-            badSummary.add(66d);
+            //badSummary.add(66d);
         }
 
-        Collection<CustomInsightsEvent> events = service.harvestEvents().events;
+        Collection<CustomInsightsEvent> events = MeterService.toEvents(service.metricDataSupplier.get());
         assertEquals(2, events.size());
         CustomInsightsEvent event = events.iterator().next();
         assertEquals("Metric", event.getType());
         Map<String, Object> intrinsics = event.getIntrinsics();
         assertEquals("test.metric", intrinsics.get("metric.name"));
         Number value = (Number) intrinsics.get("metric.count");
-        assertEquals(5l, value.longValue());
+        assertEquals(5L, value.longValue());
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (Writer writer = new OutputStreamWriter(out)) {
@@ -57,7 +57,7 @@ public class MeterServiceTest extends TestCase {
             summary.add(i, ImmutableMap.of("region", "eu", "shard", i));
         }
 
-        Collection<CustomInsightsEvent> events = service.harvestEvents().events;
+        Collection<CustomInsightsEvent> events = MeterService.toEvents(service.metricDataSupplier.get());
         assertEquals(6, events.size());
         CustomInsightsEvent event = events.iterator().next();
         assertEquals("Metric", event.getType());

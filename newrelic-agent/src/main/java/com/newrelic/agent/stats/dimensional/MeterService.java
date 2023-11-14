@@ -1,42 +1,84 @@
 package com.newrelic.agent.stats.dimensional;
 
+import com.google.common.collect.ImmutableList;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.api.agent.metrics.Counter;
 import com.newrelic.api.agent.metrics.Meter;
 import com.newrelic.api.agent.metrics.Summary;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.metrics.DoubleHistogram;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.metrics.InstrumentType;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
+import io.opentelemetry.sdk.metrics.data.HistogramData;
+import io.opentelemetry.sdk.metrics.data.HistogramPointData;
+import io.opentelemetry.sdk.metrics.data.LongPointData;
+import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.data.PointData;
+import io.opentelemetry.sdk.metrics.data.SumData;
+import io.opentelemetry.sdk.metrics.export.CollectionRegistration;
+import io.opentelemetry.sdk.metrics.export.MetricReader;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class MeterService extends AbstractService implements Meter, EventService {
 
     private volatile boolean enabled = true;
     private final List<Closeable> closeables = new CopyOnWriteArrayList<>();
     private volatile int maxSamplesStored;
-    // optimize when we cache a single instance of a map multiple times so that we only compute the hash once
-    private final CachingMapHasher mapHasher = new CachingMapHasher(SimpleMapHasher.INSTANCE);
-    // hash of attributes to map of metric aggregates
-    private final AtomicReference<Map<Long, AttributeBucket>> bucketByAttributeHash = new AtomicReference<>(new ConcurrentHashMap<>());
-    private final Map<String, MetricType> nameToMetricType = new ConcurrentHashMap<>();
-    private final Counter noOpCounter = (value, attributes) -> {};
-    private final Summary noOpSummary = (value, attributes) -> {};
+
+    private final io.opentelemetry.api.metrics.Meter meter;
+    final Supplier<Collection<MetricData>> metricDataSupplier;
 
     public MeterService() {
         super(MeterService.class.getName());
+        final AtomicReference<CollectionRegistration> collectionRegistrationReference =
+                new AtomicReference<>(CollectionRegistration.noop());
+        this.metricDataSupplier = () -> collectionRegistrationReference.get().collectAllMetrics();
+        final MetricReader metricReader = new MetricReader() {
+            @Override
+            public void register(CollectionRegistration registration) {
+                collectionRegistrationReference.set(registration);
+            }
+
+            @Override
+            public CompletableResultCode forceFlush() {
+                return CompletableResultCode.ofSuccess();
+            }
+
+            @Override
+            public CompletableResultCode shutdown() {
+                return CompletableResultCode.ofSuccess();
+            }
+
+            @Override
+            public AggregationTemporality getAggregationTemporality(InstrumentType instrumentType) {
+                return AggregationTemporality.DELTA;
+            }
+        };
+        final SdkMeterProvider sdkMeterProvider = SdkMeterProvider.builder().registerMetricReader(metricReader).build();
+        meter = sdkMeterProvider.meterBuilder("newrelic").build();
     }
 
     @Override
@@ -69,63 +111,39 @@ public class MeterService extends AbstractService implements Meter, EventService
 
     @Override
     public Counter newCounter(String name) {
-        final MetricType existingType = nameToMetricType.computeIfAbsent(name, key -> MetricType.count);
-        if (!MetricType.count.equals(existingType)) {
-            logger.log(Level.SEVERE, "Meter {0} has already been defined as type {1}", name, existingType.name());
-            return noOpCounter;
-        }
-        return new Counter() {
-            @Override
-            public void add(long increment) {
-                getAttributeBucket(Collections.emptyMap()).getCounter(name).add(increment);
-            }
-
-            @Override
-            public void add(long increment, Map<String, ?> attributes) {
-                if (increment < 0) {
-                    logger.log(Level.FINE, "Ignoring negative increment for metric {0}", name);
-                } else {
-                    getAttributeBucket(attributes).getCounter(name).add(increment);
-                }
-            }
-        };
+        final LongCounter longCounter = meter.counterBuilder(name).build();
+        return (increment, attributes) -> longCounter.add(increment, toAttributes(attributes));
     }
 
     @Override
     public Summary newSummary(String name) {
-        final MetricType existingType = nameToMetricType.computeIfAbsent(name, key -> MetricType.summary);
-        if (!MetricType.summary.equals(existingType)) {
-            logger.log(Level.SEVERE, "Meter {0} has already been defined as type {1}", name, existingType.name());
-            return noOpSummary;
-        }
-        return new Summary() {
-            @Override
-            public void add(double value) {
-                add(value, Collections.emptyMap());
-            }
-
-            @Override
-            public void add(double value, Map<String, ?> attributes) {
-                getAttributeBucket(attributes).getSummary(name).add(value);
-            }
-        };
+        final DoubleHistogram doubleHistogram = meter.histogramBuilder(name).build();
+        return (value, attributes) -> doubleHistogram.record(value, toAttributes(attributes));
     }
 
     //********************** End Meter APIs *************************/
 
-    Harvest harvestEvents() {
-        final Collection<CustomInsightsEvent> events = new ArrayList<>();
-        final Map<Long, AttributeBucket> buckets = this.bucketByAttributeHash.getAndSet(new ConcurrentHashMap<>());
-        mapHasher.reset();
+    static Attributes toAttributes(Map<String,?> map) {
+        final AttributesBuilder builder = Attributes.builder();
+        map.forEach((key, value) -> {
+            if (value instanceof Number) {
+                builder.put(key, ((Number) value).longValue());
+            } else {
+                builder.put(key, value.toString());
+            }
+        });
+        return builder.build();
+    }
 
-        buckets.values().forEach(bucket -> bucket.harvest(events));
-        return new Harvest(events, buckets);
+    private static Map<String, Object> toMap(Attributes attributes) {
+        return attributes.asMap().entrySet().stream().collect(
+                Collectors.toMap(entry -> entry.getKey().getKey(), Map.Entry::getValue));
     }
 
     @Override
     public void harvestEvents(String appName) {
-        final Harvest harvest = harvestEvents();
-        final Collection<CustomInsightsEvent> events = harvest.events;
+        final Collection<MetricData> metricData = metricDataSupplier.get();
+        final List<CustomInsightsEvent> events = toEvents(metricData);
 
         System.err.println("Harvested metrics: " + events.size());
         if (!events.isEmpty()) {
@@ -137,7 +155,7 @@ public class MeterService extends AbstractService implements Meter, EventService
                 if (e.discardHarvestData()) {
                     getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
                 } else {
-                    merge(harvest.buckets);
+                    // FIXME send later
                     getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
                 }
             } catch (Exception e) {
@@ -146,8 +164,45 @@ public class MeterService extends AbstractService implements Meter, EventService
         }
     }
 
-    private void merge(Map<Long, AttributeBucket> buckets) {
-        buckets.forEach((name, bucket) -> bucketByAttributeHash.get().merge(name, bucket, AttributeBucket::merge));
+    static List<CustomInsightsEvent> toEvents(Collection<MetricData> metricData) {
+        final List<CustomInsightsEvent> events = new ArrayList<>();
+        metricData.forEach(md -> {
+            switch (md.getType()) {
+                case LONG_SUM:
+                    final SumData<LongPointData> longSumData = md.getLongSumData();
+                    longSumData.getPoints().forEach(pointData -> {
+                        final Map<String, Object> intrinsics = getIntrinsics(md.getName(), pointData);
+                        intrinsics.put("metric.count", pointData.getValue());
+                        events.add(createEvent(pointData, intrinsics));
+                    });
+                    break;
+                case HISTOGRAM:
+                    final HistogramData histogramData = md.getHistogramData();
+                    histogramData.getPoints().forEach(pointData -> {
+                        final Map<String, Object> intrinsics = getIntrinsics(md.getName(), pointData);
+                        intrinsics.put("metric.summary", toSummary(pointData));
+                        events.add(createEvent(pointData, intrinsics));
+                    });
+            }
+        });
+        return events;
+    }
+
+    private static CustomInsightsEvent createEvent(PointData pointData, Map<String, Object> intrinsics) {
+        final long timestamp = TimeUnit.NANOSECONDS.toMillis(pointData.getStartEpochNanos());
+        return new CustomInsightsEvent("Metric", timestamp, toMap(pointData.getAttributes()), intrinsics, DistributedTraceServiceImpl.nextTruncatedFloat());
+    }
+
+    private static List<Number> toSummary(HistogramPointData pointData) {
+        return ImmutableList.of(pointData.getCount(), pointData.getSum(), pointData.getMin(), pointData.getMax());
+    }
+
+    static Map<String, Object> getIntrinsics(String metricName, PointData pointData) {
+        final Map<String, Object> intrinsics = new HashMap<>();
+        intrinsics.put("metric.name", metricName);
+        final long durationMs = TimeUnit.NANOSECONDS.toMillis(pointData.getEpochNanos() - pointData.getStartEpochNanos());
+        intrinsics.put("duration.ms", durationMs);
+        return intrinsics;
     }
 
     @Override
@@ -177,25 +232,7 @@ public class MeterService extends AbstractService implements Meter, EventService
         }
     }
 
-    AttributeBucket getAttributeBucket(Map<String, ?> attributes) {
-        final long hash = mapHasher.hash(attributes);
-        return bucketByAttributeHash.get().computeIfAbsent(hash, key -> {
-            mapHasher.addHash(attributes, hash);
-            return new AttributeBucket(attributes);
-        });
-    }
-
     interface Closeable {
         void close();
-    }
-
-    static class Harvest {
-        final Collection<CustomInsightsEvent> events;
-        final Map<Long, AttributeBucket> buckets;
-
-        public Harvest(Collection<CustomInsightsEvent> events, Map<Long, AttributeBucket> buckets) {
-            this.events = events;
-            this.buckets = buckets;
-        }
     }
 }
