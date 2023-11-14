@@ -157,7 +157,6 @@ public class MeterService extends AbstractService implements Meter, EventService
         final Collection<MetricData> metricData = metricDataSupplier.get();
         final List<CustomInsightsEvent> events = toEvents(metricData);
 
-        System.err.println("Harvested metrics: " + events.size());
         if (!events.isEmpty()) {
             try {
                 ServiceFactory.getRPMServiceManager()
