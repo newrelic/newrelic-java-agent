@@ -1088,11 +1088,13 @@ public class Transaction {
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_JOB_ID,
                             this.getInboundHeaderState().getSyntheticsJobId());
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_TYPE,
-                            this.getInboundHeaderState().getSyntheticsInfoType());
+                            this.getInboundHeaderState().getSyntheticsType());
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_INITIATOR,
-                            this.getInboundHeaderState().getSyntheticsInfoInitiator());
+                            this.getInboundHeaderState().getSyntheticsInitiator());
+                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_VERSION,
+                            this.getInboundHeaderState().getSyntheticsVersion());
 
-                    Map<String, Object> attrsMap = this.getInboundHeaderState().getSyntheticsInfoAttrs();
+                    Map<String, String> attrsMap = this.getInboundHeaderState().getSyntheticsAttrs();
                     String attrName;
 
                     for (String key : attrsMap.keySet()) {
