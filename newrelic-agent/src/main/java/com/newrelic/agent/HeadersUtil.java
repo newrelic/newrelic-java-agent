@@ -61,7 +61,8 @@ public class HeadersUtil {
     public static final String NEWRELIC_SYNTHETICS_MESSAGE_HEADER = "NewRelicSynthetics";
 
     /**
-     * This request header contains additional information about the synthetics test associated with the
+     * This request header contains additional information about the transaction
+     * created by New Relic Synthetics
      */
     public static final String NEWRELIC_SYNTHETICS_INFO_HEADER = "X-NewRelic-Synthetics-Info";
     public static final String NEWRELIC_SYNTHETICS_INFO_MESSAGE_HEADER = "NewRelicSyntheticsInfo";
@@ -225,6 +226,12 @@ public class HeadersUtil {
     public static void setSyntheticsHeader(OutboundHeaders headers, String value) {
         String key = getTypedHeaderKey(headers.getHeaderType(), NEWRELIC_SYNTHETICS_HEADER,
                 NEWRELIC_SYNTHETICS_MESSAGE_HEADER);
+        headers.setHeader(key, value);
+    }
+
+    public static void setSyntheticsInfoHeader(OutboundHeaders headers, String value) {
+        String key = getTypedHeaderKey(headers.getHeaderType(), NEWRELIC_SYNTHETICS_INFO_HEADER,
+                NEWRELIC_SYNTHETICS_INFO_MESSAGE_HEADER);
         headers.setHeader(key, value);
     }
 
