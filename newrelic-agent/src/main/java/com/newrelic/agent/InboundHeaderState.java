@@ -173,7 +173,7 @@ public class InboundHeaderState {
         try {
             // Sample synthetics-info header:
             // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": "{"keyOne":"valueOne", "keyTwo":"valueTwo", "keyThree":"valueThree" }"}
-            result = new SyntheticsInfoState(type, (String) jsonMap.get("type"), (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
+            result = new SyntheticsInfoState((String) jsonMap.get("version"), (String) jsonMap.get("type"), (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
         } catch (RuntimeException rex) { // class cast exception, not enough elements in the JSON map, etc.
             Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
             rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
@@ -281,16 +281,16 @@ public class InboundHeaderState {
         return synState.getSyntheticsMonitorId();
     }
 
-    public String getSyntheticsInfoType() {
-        return synInfoState.getType();
+    public String getSyntheticsType() {
+        return synInfoState.getSyntheticsType();
     }
 
-    public String getSyntheticsInfoInitiator() {
-        return synInfoState.getInitiator();
+    public String getSyntheticsInitiator() {
+        return synInfoState.getSyntheticsInitiator();
     }
 
-    public Map<String, Object> getSyntheticsInfoAttrs() {
-        return synInfoState.getAttributes();
+    public Map<String, String> getSyntheticsAttrs() {
+        return synInfoState.getSyntheticsAttributes();
     }
 
 
@@ -515,37 +515,37 @@ public class InboundHeaderState {
          * attributes (map) are the additional attributes that may or may not be present in any specific synthetics
          *                  event
          */
-        private final String version;
-        private final String type;
-        private final String initiator;
-        private final Map<String, Object> attributes;
+        private final String syntheticsVersion;
+        private final String syntheticsType;
+        private final String syntheticsInitiator;
+        private final Map<String, String> syntheticsAttributes;
 
         /**
          * This object has will appear untrusted, shutting off all synthetics behaviors here.
          */
         static final SyntheticsInfoState NONE = new SyntheticsInfoState(null, null, null, null);
 
-        SyntheticsInfoState(String version, String type, String initiator, Map<String, Object> attributes) {
-            this.version = version;
-            this.type = type;
-            this.initiator = initiator;
-            this.attributes = attributes;
+        SyntheticsInfoState(String syntheticsVersion, String syntheticsType, String syntheticsInitiator, Map<String, String> syntheticsAttributes) {
+            this.syntheticsVersion = syntheticsVersion;
+            this.syntheticsType = syntheticsType;
+            this.syntheticsInitiator = syntheticsInitiator;
+            this.syntheticsAttributes = syntheticsAttributes;
         }
 
-        String getVersion() {
-            return this.version;
+        String getSyntheticsVersion() {
+            return this.syntheticsVersion;
         }
 
-        String getType() {
-            return this.type;
+        String getSyntheticsType() {
+            return this.syntheticsType;
         }
 
-        String getInitiator() {
-            return this.initiator;
+        String getSyntheticsInitiator() {
+            return this.syntheticsInitiator;
         }
 
-        Map<String, Object> getAttributes() {
-            return this.attributes;
+        Map<String, String> getSyntheticsAttributes() {
+            return this.syntheticsAttributes;
         }
 
     }
