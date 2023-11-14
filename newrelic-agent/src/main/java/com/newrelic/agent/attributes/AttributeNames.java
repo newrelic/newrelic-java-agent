@@ -27,6 +27,7 @@ public final class AttributeNames {
     public static final String SYNTHETICS_JOB_ID = "synthetics_job_id";
     public static final String SYNTHETICS_TYPE = "synthetics_type";
     public static final String SYNTHETICS_INITIATOR = "synthetics_initiator";
+    public static final String SYNTHETICS_VERSION = "synthetics_version";
     public static final String TIMEOUT_CAUSE = "nr.timeoutCause";
     public static final String ERROR_EXPECTED = "error.expected";
 
