@@ -32,6 +32,7 @@ import io.opentelemetry.sdk.metrics.export.MetricReader;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,7 +118,9 @@ public class MeterService extends AbstractService implements Meter, EventService
 
     @Override
     public Summary newSummary(String name) {
-        final DoubleHistogram doubleHistogram = meter.histogramBuilder(name).build();
+        // we want a summary, so we call setExplicitBucketBoundariesAdvice with an empty list
+        final DoubleHistogram doubleHistogram = meter.histogramBuilder(name)
+                .setExplicitBucketBoundariesAdvice(Collections.emptyList()).build();
         return (value, attributes) -> doubleHistogram.record(value, toAttributes(attributes));
     }
 
@@ -126,8 +129,17 @@ public class MeterService extends AbstractService implements Meter, EventService
     static Attributes toAttributes(Map<String,?> map) {
         final AttributesBuilder builder = Attributes.builder();
         map.forEach((key, value) -> {
-            if (value instanceof Number) {
-                builder.put(key, ((Number) value).longValue());
+            if (value instanceof String) {
+                builder.put(key, value.toString());
+            } else if (value instanceof Number) {
+                final Number number = (Number) value;
+                if (value instanceof Float | value instanceof Double) {
+                    builder.put(key, number.doubleValue());
+                } else {
+                    builder.put(key, number.longValue());
+                }
+            } else if (value instanceof Boolean) {
+                builder.put(key, ((Boolean) value).booleanValue());
             } else {
                 builder.put(key, value.toString());
             }
