@@ -1,6 +1,7 @@
 package com.newrelic.agent.stats.dimensional;
 
 import com.google.common.collect.ImmutableList;
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.CustomInsightsEvent;
@@ -29,6 +30,7 @@ import io.opentelemetry.sdk.metrics.data.PointData;
 import io.opentelemetry.sdk.metrics.data.SumData;
 import io.opentelemetry.sdk.metrics.export.CollectionRegistration;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
+import org.apache.http.NoHttpResponseException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +53,7 @@ public class MeterService extends AbstractService implements Meter, EventService
 
     private final io.opentelemetry.api.metrics.Meter meter;
     final Supplier<Collection<MetricData>> metricDataSupplier;
+    private final List<MetricData> deferredMetricData = new ArrayList<>();
 
     public MeterService() {
         super(MeterService.class.getName());
@@ -154,24 +157,56 @@ public class MeterService extends AbstractService implements Meter, EventService
 
     @Override
     public void harvestEvents(String appName) {
-        final Collection<MetricData> metricData = metricDataSupplier.get();
+        try {
+            Collection<MetricData> metricData = metricDataSupplier.get();
+            synchronized (deferredMetricData) {
+                if (!deferredMetricData.isEmpty()) {
+                    metricData = new ArrayList<>(metricData);
+                    metricData.addAll(deferredMetricData);
+                    deferredMetricData.clear();
+                }
+            }
+            sendMetricData(metricData);
+        } catch (Throwable t) {
+            logger.log(Level.FINE, t, "Dimensional metric harvest failed");
+        }
+    }
+
+    /**
+     * Returns true if the send should be retried later.
+     */
+    private void sendMetricData(final Collection<MetricData> metricData) {
+        if (metricData.isEmpty()) {
+            return;
+        }
         final List<CustomInsightsEvent> events = toEvents(metricData);
 
-        if (!events.isEmpty()) {
-            try {
-                ServiceFactory.getRPMServiceManager()
-                        .getRPMService()
-                        .sendCustomAnalyticsEvents(1000, events.size(), events);
-            } catch (HttpError e) {
-                if (e.discardHarvestData()) {
-                    getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
-                } else {
-                    // FIXME send later
-                    getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
-                }
-            } catch (Exception e) {
+
+        logger.log(Level.FINE, "Harvesting {0} dimensional metric events", events.size());
+        try {
+            final int reservoirSize = Math.max(maxSamplesStored, events.size());
+            ServiceFactory.getRPMServiceManager()
+                    .getRPMService()
+                    .sendCustomAnalyticsEvents(reservoirSize, events.size(), events);
+        } catch (HttpError e) {
+            if (e.discardHarvestData()) {
                 getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
+            } else {
+                getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
+                resendLater(metricData);
             }
+        } catch (NoHttpResponseException e) {
+            getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
+            resendLater(metricData);
+        } catch (Exception e) {
+            getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
+        }
+    }
+
+    private void resendLater(Collection<MetricData> metricData) {
+        logger.log(Level.FINE, "Defer sending {0} metric data instances", metricData.size());
+        synchronized (deferredMetricData) {
+            deferredMetricData.addAll(metricData);
         }
     }
 
@@ -180,16 +215,14 @@ public class MeterService extends AbstractService implements Meter, EventService
         metricData.forEach(md -> {
             switch (md.getType()) {
                 case LONG_SUM:
-                    final SumData<LongPointData> longSumData = md.getLongSumData();
-                    longSumData.getPoints().forEach(pointData -> {
+                    md.getLongSumData().getPoints().forEach(pointData -> {
                         final Map<String, Object> intrinsics = getIntrinsics(md.getName(), pointData);
                         intrinsics.put("metric.count", pointData.getValue());
                         events.add(createEvent(pointData, intrinsics));
                     });
                     break;
                 case HISTOGRAM:
-                    final HistogramData histogramData = md.getHistogramData();
-                    histogramData.getPoints().forEach(pointData -> {
+                    md.getHistogramData().getPoints().forEach(pointData -> {
                         final Map<String, Object> intrinsics = getIntrinsics(md.getName(), pointData);
                         intrinsics.put("metric.summary", toSummary(pointData));
                         events.add(createEvent(pointData, intrinsics));
