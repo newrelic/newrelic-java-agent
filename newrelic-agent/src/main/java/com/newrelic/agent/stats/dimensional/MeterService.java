@@ -55,6 +55,10 @@ public class MeterService extends AbstractService implements Meter, EventService
     private final List<MetricData> deferredMetricData = new ArrayList<>();
 
     public MeterService() {
+        this(instrumentType -> 2000);
+    }
+
+    MeterService(final CardinalityLimitSelector cardinalityLimitSelector) {
         super(MeterService.class.getName());
         final AtomicReference<CollectionRegistration> collectionRegistrationReference =
                 new AtomicReference<>(CollectionRegistration.noop());
@@ -83,7 +87,6 @@ public class MeterService extends AbstractService implements Meter, EventService
         final SdkMeterProviderBuilder meterProviderBuilder = SdkMeterProvider.builder();
         // FIXME cardinality limit should be configurable
         //agentConfig.getAttributesConfig()
-        final CardinalityLimitSelector cardinalityLimitSelector = instrumentType -> 2000;
         SdkMeterProviderUtil.registerMetricReaderWithCardinalitySelector(meterProviderBuilder, metricReader, cardinalityLimitSelector);
         final SdkMeterProvider sdkMeterProvider = meterProviderBuilder.build();
         meter = sdkMeterProvider.meterBuilder("newrelic").build();

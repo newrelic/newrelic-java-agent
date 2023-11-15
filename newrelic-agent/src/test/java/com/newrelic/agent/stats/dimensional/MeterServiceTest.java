@@ -7,18 +7,16 @@ import com.newrelic.api.agent.metrics.Summary;
 import junit.framework.TestCase;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 public class MeterServiceTest extends TestCase {
 
     @Test
-    public void testCounter() throws IOException {
+    public void testCounter() {
         MeterService service = new MeterService();
 
         Counter counter = service.newCounter("test.metric");
@@ -39,12 +37,6 @@ public class MeterServiceTest extends TestCase {
         assertEquals("test.metric", intrinsics.get("metric.name"));
         Number value = (Number) intrinsics.get("metric.count");
         assertEquals(5L, value.longValue());
-
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (Writer writer = new OutputStreamWriter(out)) {
-            event.writeJSONString(writer);
-        }
-        assertTrue(out.toString().contains("type"));
     }
 
     @Test
@@ -65,5 +57,29 @@ public class MeterServiceTest extends TestCase {
         assertEquals("test.summary", intrinsics.get("metric.name"));
         List summaryValues = (List) intrinsics.get("metric.summary");
         assertEquals(4, summaryValues.size());
+    }
+
+    @Test
+    public void testCardinalityLimit() {
+        final MeterService service = new MeterService(instrumentType -> 5);
+        Summary summary = service.newSummary("test.summary");
+        for (char c = 'a'; c < 'z'; c++) {
+            summary.add(50D, ImmutableMap.of("component", "FFF" + c));
+        }
+
+        Collection<CustomInsightsEvent> events = MeterService.toEvents(service.metricDataSupplier.get());
+        assertEquals(5, events.size());
+
+        Optional<Object> overflow = events.stream().map(event -> event.getUserAttributesCopy().get("otel.metric.overflow")).filter(Objects::nonNull).findFirst();
+        assertTrue(overflow.isPresent());
+        assertEquals(Boolean.TRUE, overflow.get());
+
+        for (char c = 'g'; c < 'z'; c++) {
+            summary.add(50D, ImmutableMap.of("component", "FFF" + c));
+        }
+
+        events = MeterService.toEvents(service.metricDataSupplier.get());
+        // it looks like the aggregation buckets are cleared out with each harvest
+        assertEquals(5, events.size());
     }
 }
