@@ -85,7 +85,7 @@ public class MeterService extends AbstractService implements Meter, EventService
         //agentConfig.getAttributesConfig()
         final CardinalityLimitSelector cardinalityLimitSelector = instrumentType -> 2000;
         SdkMeterProviderUtil.registerMetricReaderWithCardinalitySelector(meterProviderBuilder, metricReader, cardinalityLimitSelector);
-        final SdkMeterProvider sdkMeterProvider = meterProviderBuilder.registerMetricReader(metricReader).build();
+        final SdkMeterProvider sdkMeterProvider = meterProviderBuilder.build();
         meter = sdkMeterProvider.meterBuilder("newrelic").build();
     }
 
