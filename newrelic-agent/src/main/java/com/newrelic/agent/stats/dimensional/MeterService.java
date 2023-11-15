@@ -1,7 +1,6 @@
 package com.newrelic.agent.stats.dimensional;
 
 import com.google.common.collect.ImmutableList;
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.CustomInsightsEvent;
@@ -9,7 +8,6 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
-import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.api.agent.metrics.Counter;
 import com.newrelic.api.agent.metrics.Meter;
@@ -21,17 +19,18 @@ import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
-import io.opentelemetry.sdk.metrics.data.HistogramData;
 import io.opentelemetry.sdk.metrics.data.HistogramPointData;
-import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.data.PointData;
-import io.opentelemetry.sdk.metrics.data.SumData;
 import io.opentelemetry.sdk.metrics.export.CollectionRegistration;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
+import io.opentelemetry.sdk.metrics.internal.SdkMeterProviderUtil;
+import io.opentelemetry.sdk.metrics.internal.export.CardinalityLimitSelector;
 import org.apache.http.NoHttpResponseException;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -81,7 +80,12 @@ public class MeterService extends AbstractService implements Meter, EventService
                 return AggregationTemporality.DELTA;
             }
         };
-        final SdkMeterProvider sdkMeterProvider = SdkMeterProvider.builder().registerMetricReader(metricReader).build();
+        final SdkMeterProviderBuilder meterProviderBuilder = SdkMeterProvider.builder();
+        // FIXME cardinality limit should be configurable
+        //agentConfig.getAttributesConfig()
+        final CardinalityLimitSelector cardinalityLimitSelector = instrumentType -> 2000;
+        SdkMeterProviderUtil.registerMetricReaderWithCardinalitySelector(meterProviderBuilder, metricReader, cardinalityLimitSelector);
+        final SdkMeterProvider sdkMeterProvider = meterProviderBuilder.registerMetricReader(metricReader).build();
         meter = sdkMeterProvider.meterBuilder("newrelic").build();
     }
 
@@ -195,7 +199,7 @@ public class MeterService extends AbstractService implements Meter, EventService
                 getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
                 resendLater(metricData);
             }
-        } catch (NoHttpResponseException e) {
+        } catch (NoHttpResponseException | UnknownHostException e) {
             getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Unsent metrics will be included in the next harvest.");
             resendLater(metricData);
         } catch (Exception e) {
@@ -263,7 +267,7 @@ public class MeterService extends AbstractService implements Meter, EventService
             final Harvestable harvestable = new Harvestable(this, appName) {
                 @Override
                 public String getEndpointMethodName() {
-                    return CollectorMethods.CUSTOM_EVENT_DATA;
+                    return "dimensional_metric_data";
                 }
 
                 @Override
