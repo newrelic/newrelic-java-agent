@@ -1347,8 +1347,10 @@ public class Transaction {
     static InboundHeaders getRequestHeaders(Transaction tx) {
         if (tx.dispatcher != null) {
             if (tx.dispatcher.getRequest() != null) {
-                return new DeobfuscatedInboundHeaders(tx.dispatcher.getRequest(),
-                        tx.getCrossProcessConfig().getEncodingKey());
+                String encodingKey = tx.getCrossProcessConfig().isCrossApplicationTracing()
+                        ? tx.getCrossProcessConfig().getEncodingKey()
+                        : tx.getCrossProcessConfig().getSyntheticsEncodingKey();
+                return new DeobfuscatedInboundHeaders(tx.dispatcher.getRequest(), encodingKey);
             }
         }
         return null;
