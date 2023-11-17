@@ -117,8 +117,8 @@ jobs:
     name: ${{ matrix.tests }}
     needs: [build-agent, list-tests]
     timeout-minutes: 120
-    outputs:
-      has_negative_value: ${{ steps.run_tests_basic_features/external.py.outputs.has_negative_value }}
+#    outputs:
+#      has_negative_value: ${{ steps.run_tests_basic_features/external.py.outputs.has_negative_value }}
     runs-on: ubuntu-20.04
     # Determine if easier to make the env strings below part of the matrix
     strategy:
@@ -281,7 +281,6 @@ jobs:
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run ${{ matrix.tests }}
-        id: run_tests_${{ matrix.tests }}
         if: ${{ failure() || success() }}
         run: |
           cd agent-integration-tests
@@ -331,12 +330,18 @@ jobs:
           path: |
             agent-integration-tests/testing-artifacts/*
 
-      - name: Check output
+      - name: Echo output
         run: echo "The output is ${{ steps.run_tests }}"
 
-  notify-failure:
+      - name: Check output for negative values
+        if: ${{ steps.run_tests == 'true' }}
+        run: |
+          echo ${{ matrix.tests }} > ${{ github.workspace }}/negative_values.txt
+          echo $'\n' > ${{ github.workspace }}/negative_values.txt
+
+  notify-failure: 
     needs: [tests]
-    if: ${{ needs.tests.outputs.has_negative_value == 'true' }}
+    if: ${{ hashFiles('${{ github.workspace }}/negative_values.txt') != '' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Send failure message to Slack
