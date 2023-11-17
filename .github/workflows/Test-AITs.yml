@@ -333,9 +333,21 @@ jobs:
       - name: Echo output
         run: echo "The output is ${{ steps.run_tests }}"
 
+      - name: Create artifact if negative values
+        if: ${{ steps.run_tests == 'true' }}
+        run: |
+          echo "true" > ${{ github.workspace }}/negative_values_${{ matrix.tests }}.txt
+
+      - name: Upload negative value artifact
+        if: ${{ steps.run_tests == 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: negative_values_${{ matrix.tests }}.txt
+          path: ${{ github.workspace }}
+
   notify-failure:
     needs: [tests]
-    if: ${{ hashFiles('negative_values_*.txt') != '' }}
+    if: ${{ always() && hashFiles('negative_values_*.txt') != '' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Send failure message to Slack
