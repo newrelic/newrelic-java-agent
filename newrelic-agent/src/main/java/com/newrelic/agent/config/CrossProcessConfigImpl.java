@@ -84,6 +84,7 @@ public final class CrossProcessConfigImpl extends BaseConfig implements CrossPro
         return isCrossApplicationTracing ? encodingKey : null;
     }
 
+    @Override
     public String getSyntheticsEncodingKey() {
         return encodingKey;
     }
