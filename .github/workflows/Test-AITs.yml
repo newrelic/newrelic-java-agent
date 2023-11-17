@@ -117,8 +117,6 @@ jobs:
     name: ${{ matrix.tests }}
     needs: [build-agent, list-tests]
     timeout-minutes: 120
-#    outputs:
-#      has_negative_value: ${{ steps.run_tests_basic_features/external.py.outputs.has_negative_value }}
     runs-on: ubuntu-20.04
     # Determine if easier to make the env strings below part of the matrix
     strategy:
@@ -330,19 +328,11 @@ jobs:
           path: |
             agent-integration-tests/testing-artifacts/*
 
-      - name: Echo output
-        run: echo "The output is ${{ steps.run_tests }}"
-
-      - name: Create artifact if negative values
-        if: ${{ steps.run_tests == 'true' }}
-        run: |
-          echo "true" > ${{ github.workspace }}/negative_values_${{ matrix.tests }}.txt
-
       - name: Upload negative value artifact
-        if: ${{ steps.run_tests == 'true' }}
+        if: ${{ always() && hashFiles('negative_value.txt') != '' }}
         uses: actions/upload-artifact@v3
         with:
-          name: negative_values_${{ matrix.tests }}.txt
+          name: negative_value.txt
           path: ${{ github.workspace }}
 
 #  notify-failure:
