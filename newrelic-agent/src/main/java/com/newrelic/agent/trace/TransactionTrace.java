@@ -62,6 +62,9 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
     private final String guid;
     private final Map<String, Map<String, String>> prefixedAttributes;
     private String syntheticsResourceId;
+    private String syntheticsType;
+    private String syntheticsInitiator;
+    private Map<String, String> syntheticsAttributes;
     private final String applicationName;
 
     private TransactionTrace(TransactionData transactionData, SqlObfuscator sqlObfuscator) {
@@ -139,6 +142,18 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
         if (cpuTime != null) {
             float cpuTimeInSecs = (float) cpuTime / TimeConversion.NANOSECONDS_PER_SECOND_FLOAT;
             intrinsicAttributes.put(AttributeNames.CPU_TIME_PARAMETER_NAME, cpuTimeInSecs);
+        }
+        if (transactionData.isSyntheticTransaction()) {
+            intrinsicAttributes.put("nr.syntheticsType", transactionData.getSyntheticsType());
+            intrinsicAttributes.put("nr.syntheticsInitiator", transactionData.getSyntheticsInitiator());
+
+            Map<String, String> attrsMap = transactionData.getSyntheticsAttributes();
+            String attrName;
+
+            for (String key : attrsMap.keySet()) {
+                attrName = String.format("nr.synthetics%s", Character.toUpperCase(key.charAt(0)) + key.substring(1));
+                intrinsicAttributes.put(attrName, attrsMap.get(key));
+            }
         }
         return intrinsicAttributes;
     }
