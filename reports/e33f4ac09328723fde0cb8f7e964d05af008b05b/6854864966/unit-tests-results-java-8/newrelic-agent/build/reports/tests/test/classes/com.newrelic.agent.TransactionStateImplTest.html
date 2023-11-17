@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.917s</div>
+<div class="counter">2.459s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,37 +79,37 @@
 </thead>
 <tr>
 <td class="success">defaultTransactionState</td>
-<td class="success">0.002s</td>
+<td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">finish</td>
-<td class="success">0.001s</td>
+<td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getSqlTracer_withDispatcherFlag_returnsOtherRootTracer</td>
-<td class="success">0.148s</td>
+<td class="success">0.136s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getSqlTracer_withTxnIgnoreOrTracerStartLocked_returnsNull</td>
-<td class="success">0.006s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getTracer</td>
-<td class="success">0.004s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getTracer_withDispatcherFlag_returnsOtherRootTracer</td>
-<td class="success">1.503s</td>
+<td class="success">1.994s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getTracer_withTxnIgnoreOrTracerStartLocked_returnsNull</td>
-<td class="success">0.006s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -124,27 +124,27 @@
 </tr>
 <tr>
 <td class="success">tracerGeneration_segmentClampInPlace_afterRoot</td>
-<td class="success">0.003s</td>
+<td class="success">0.006s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">tracerMetricName</td>
-<td class="success">0.002s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">tracerMetricName_Null</td>
-<td class="success">0.004s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">tracerMetricName_NullCustom</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">tracerMetricName_NullCustom</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">tracerMetricName_NullInvocationTarget</td>
-<td class="success">0.236s</td>
+<td class="success">0.309s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -152,14 +152,14 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2023-11-13T20:19:33,977+0000 [36729 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-11-13T20:19:34,028+0000 [36729 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T20:19:34,030+0000 [36729 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-11-13T20:19:41,174+0000 [36729 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-11-13T20:19:41,348+0000 [36729 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
-2023-11-13T20:19:41,348+0000 [36729 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T20:19:41,349+0000 [36729 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-11-13T20:19:41,447+0000 [36729 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+<pre>2023-11-17T17:27:01,329+0000 [36489 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-17T17:27:01,363+0000 [36489 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:27:01,373+0000 [36489 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:27:09,476+0000 [36489 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-11-17T17:27:09,753+0000 [36489 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-17T17:27:09,753+0000 [36489 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:27:09,754+0000 [36489 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:27:09,905+0000 [36489 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
 </pre>
 </span>
 </div>
@@ -171,7 +171,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 13, 2023 8:36:09 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 17, 2023 5:43:01 PM</p>
 </div>
 </div>
 </body>
