@@ -336,7 +336,7 @@ jobs:
       - name: Create artifact if negative values
         if: ${{ steps.run_tests == 'true' }}
         run: |
-          echo 'true' > ${{ github.workspace }}/negative_values_${{ matrix.tests }}.txt
+          echo "true" > ${{ github.workspace }}/negative_values_${{ matrix.tests }}.txt
           echo $'\n' > ${{ github.workspace }}/negative_values_${{ matrix.tests }}.txt
 
       - name: Upload negative value artifact
