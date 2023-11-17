@@ -331,6 +331,9 @@ jobs:
           path: |
             agent-integration-tests/testing-artifacts/*
 
+      - name: Check output
+        run: echo "The output is ${{ needs.tests.outputs.has_negative_value }}"
+
   notify-failure:
     needs: [tests]
     if: ${{ needs.tests.outputs.has_negative_value == 'true' }}
