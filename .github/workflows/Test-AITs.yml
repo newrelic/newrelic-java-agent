@@ -117,6 +117,8 @@ jobs:
     name: ${{ matrix.tests }}
     needs: [build-agent, list-tests]
     timeout-minutes: 120
+    outputs:
+      has_negative_value: ${{ steps.run_tests.outputs.has_negative_value }}
     runs-on: ubuntu-20.04
     # Determine if easier to make the env strings below part of the matrix
     strategy:
@@ -279,6 +281,7 @@ jobs:
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run ${{ matrix.tests }}
+        id: run_tests
         if: ${{ failure() || success() }}
         run: |
           cd agent-integration-tests
@@ -327,3 +330,20 @@ jobs:
           name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
           path: |
             agent-integration-tests/testing-artifacts/*
+
+  notify-failure:
+    needs: [tests]
+    if: ${{ needs.tests.outputs.has_negative_value == 'true' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Send failure message to Slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "test": "Negative value detected in AIT run (Not really this time, just testing alerts)",
+              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
