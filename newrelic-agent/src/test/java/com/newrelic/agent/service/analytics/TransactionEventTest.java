@@ -17,11 +17,7 @@ import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.config.TransactionTracerConfigImpl;
-import com.newrelic.agent.model.AnalyticsEvent;
-import com.newrelic.agent.model.ApdexPerfZone;
-import com.newrelic.agent.model.PathHashes;
-import com.newrelic.agent.model.SyntheticsIds;
-import com.newrelic.agent.model.TimeoutCause;
+import com.newrelic.agent.model.*;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
 import org.json.simple.JSONArray;
@@ -421,6 +417,22 @@ public class TransactionEventTest {
         assertEquals("101", jsonObject.get("nr.syntheticsResourceId"));
         assertEquals("102", jsonObject.get("nr.syntheticsMonitorId"));
         assertEquals("103", jsonObject.get("nr.syntheticsJobId"));
+    }
+
+    @Test
+    public void testJsonWithSyntheticsInfo() throws Exception {
+        float duration = 0.001931f;
+        Map<String, String> mapAttrs = new HashMap<>();
+        mapAttrs.put("key1", "val1");
+        TransactionEvent event = baseBuilder(duration)
+                .setSyntheticsInfo(new SyntheticsInfo("cli", "scheduled", mapAttrs))
+                .build();
+        JSONArray jsonArray = (JSONArray) AgentHelper.serializeJSON(event);
+        JSONObject jsonObject = (JSONObject) jsonArray.get(0);
+        assertEquals(12, jsonObject.size());
+        assertEquals("cli", jsonObject.get("nr.syntheticsInitiator"));
+        assertEquals("scheduled", jsonObject.get("nr.syntheticsType"));
+        assertEquals("val1", jsonObject.get("nr.syntheticsKey1"));
     }
 
     private TransactionEventBuilder baseBuilder(float duration) {
