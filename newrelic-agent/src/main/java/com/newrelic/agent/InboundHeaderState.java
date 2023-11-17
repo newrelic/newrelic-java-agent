@@ -147,17 +147,15 @@ public class InboundHeaderState {
             return SyntheticsInfoState.NONE;
         }
 
-
-
-
         Map<String, Object> jsonMap = getJSONMap(synInfoHeader);
 
         if (jsonMap == null || synInfoHeader.isEmpty()) {
-            Agent.LOG.log(Level.FINE, "Synthetic Info transaction tracing failed: unable to decode header in transaction {0}.", tx);
+            Agent.LOG.log(Level.FINE, "Synthetic Info transaction tracing failed: unable to decode header " +
+                    "in transaction {0}.", tx);
             return SyntheticsInfoState.NONE;
         }
 
-        Agent.LOG.log(Level.FINEST, "Decoded synthetics header => {0} in transaction {1}", jsonMap, tx);
+        Agent.LOG.log(Level.FINEST, "Decoded synthetics info header => {0} in transaction {1}", jsonMap, tx);
 
         String type;
         try {
@@ -505,7 +503,7 @@ public class InboundHeaderState {
 
     static final class SyntheticsInfoState {
         /*-
-         * TODO: Update the Class Description - From the spec ("Agent Support for Synthetics" in Confluence)
+         * From the spec ("Agent Support for Synthetics" in Confluence)
          *
          * version (String) is the protocol version for future improvements (currently 1)
          * type (String) is the type of the synthetics test. May be one of 'scheduled', 'automatedTest', or additional
@@ -521,7 +519,7 @@ public class InboundHeaderState {
         private final Map<String, String> syntheticsAttributes;
 
         /**
-         * This object has will appear untrusted, shutting off all synthetics behaviors here.
+         * This object will appear untrusted, shutting off all synthetics behaviors here.
          */
         static final SyntheticsInfoState NONE = new SyntheticsInfoState(null, null, null, null);
 
