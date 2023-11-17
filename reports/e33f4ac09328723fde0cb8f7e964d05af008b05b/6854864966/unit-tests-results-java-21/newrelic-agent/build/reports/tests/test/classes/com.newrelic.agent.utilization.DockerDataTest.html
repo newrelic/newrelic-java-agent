@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">11.525s</div>
+<div class="counter">17.674s</div>
 <p>duration</p>
 </div>
 </td>
@@ -87,37 +87,37 @@
 </tr>
 <tr>
 <td class="success">testCheckLineAndGetIdInValidV2</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testCheckLineAndGetIdValidV1</td>
-<td class="success">0.009s</td>
+<td class="success">0.020s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testCheckLineAndGetIdValidV2</td>
-<td class="success">0s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testDockerError</td>
-<td class="success">0.160s</td>
+<td class="success">0.202s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testDockerGCPError</td>
-<td class="success">0.178s</td>
+<td class="success">0.265s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testGetDockerIdFromFilesV1</td>
-<td class="success">1.457s</td>
+<td class="success">2.512s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testGetDockerIdFromFilesV2</td>
-<td class="success">0.009s</td>
+<td class="success">0.012s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -142,12 +142,12 @@
 </tr>
 <tr>
 <td class="success">testInvalidDockerValueNull</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testNoDockerError</td>
-<td class="success">9.709s</td>
+<td class="success">14.653s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -176,7 +176,7 @@ Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/new
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/cross_agent_tests/docker_container_id/ubuntu-14.04-lxc-container.txt
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/cross_agent_tests/docker_container_id/invalid-length.txt
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/cross_agent_tests/docker_container_id/docker-too-long.txt
-2023-11-13T21:10:35,817+0000 [68503 1] com.newrelic WARN: Failed to validate Docker value 3ccfa00432798ff38f85839de1e396f771b4acbe9f4ddea0a761c39b9790a7821
+2023-11-17T17:50:12,696+0000 [71922 1] com.newrelic WARN: Failed to validate Docker value 3ccfa00432798ff38f85839de1e396f771b4acbe9f4ddea0a761c39b9790a7821
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/cross_agent_tests/docker_container_id/ubuntu-14.04-no-container.txt
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/uncross_agent_tests/cgroup_v2_docker_container_id/docker_id_invalid_characters.txt
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/uncross_agent_tests/cgroup_v2_docker_container_id/docker_linux2.6.26_v1_enabled.txt
@@ -185,46 +185,46 @@ Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/new
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/uncross_agent_tests/cgroup_v2_docker_container_id/linux_prefix.txt
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/uncross_agent_tests/cgroup_v2_docker_container_id/cgroup_v2_expected.txt
 Current test file: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/uncross_agent_tests/cgroup_v2_docker_container_id/docker_id_too_long.txt
-2023-11-13T21:10:35,847+0000 [68503 1] com.newrelic WARN: Failed to validate Docker value f37a7e4d17017e7bf994656b19ca4360c6cdc4951c86700a464101d0d9ce97ef6
-2023-11-13T21:10:40,299+0000 [68503 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-11-13T21:10:40,305+0000 [68503 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T21:10:40,306+0000 [68503 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-11-13T21:10:41,367+0000 [68503 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-11-13T21:10:41,451+0000 [68503 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
-2023-11-13T21:10:41,657+0000 [68503 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
-2023-11-13T21:10:42,077+0000 [68503 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
-2023-11-13T21:10:42,648+0000 [68503 1] com.newrelic INFO: Setting audit_mode to false
-2023-11-13T21:10:43,152+0000 [68503 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
-2023-11-13T21:10:43,153+0000 [68503 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
-2023-11-13T21:10:43,175+0000 [68503 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-11-13T21:10:43,176+0000 [68503 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T21:10:43,176+0000 [68503 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-11-13T21:10:45,606+0000 [68503 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-11-13T21:10:45,606+0000 [68503 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T21:10:45,607+0000 [68503 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-11-13T21:10:45,645+0000 [68503 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-11-13T21:10:45,647+0000 [68503 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
-2023-11-13T21:10:45,649+0000 [68503 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
-2023-11-13T21:10:45,691+0000 [68503 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
-2023-11-13T21:10:45,692+0000 [68503 1] com.newrelic INFO: Setting audit_mode to false
-2023-11-13T21:10:45,708+0000 [68503 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
-2023-11-13T21:10:45,709+0000 [68503 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
-2023-11-13T21:10:45,713+0000 [68503 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-11-13T21:10:45,714+0000 [68503 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T21:10:45,714+0000 [68503 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-11-13T21:10:45,767+0000 [68503 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
-2023-11-13T21:10:45,768+0000 [68503 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T21:10:45,772+0000 [68503 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-2023-11-13T21:10:45,802+0000 [68503 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
-2023-11-13T21:10:45,812+0000 [68503 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
-2023-11-13T21:10:45,814+0000 [68503 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
-2023-11-13T21:10:45,849+0000 [68503 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
-2023-11-13T21:10:45,850+0000 [68503 1] com.newrelic INFO: Setting audit_mode to false
-2023-11-13T21:10:45,876+0000 [68503 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
-2023-11-13T21:10:45,877+0000 [68503 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
-2023-11-13T21:10:45,885+0000 [68503 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
-2023-11-13T21:10:45,885+0000 [68503 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
-2023-11-13T21:10:45,885+0000 [68503 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:50:12,753+0000 [71922 1] com.newrelic WARN: Failed to validate Docker value f37a7e4d17017e7bf994656b19ca4360c6cdc4951c86700a464101d0d9ce97ef6
+2023-11-17T17:50:19,688+0000 [71922 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-17T17:50:19,691+0000 [71922 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:50:19,693+0000 [71922 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:50:21,289+0000 [71922 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-11-17T17:50:21,418+0000 [71922 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
+2023-11-17T17:50:21,679+0000 [71922 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
+2023-11-17T17:50:22,248+0000 [71922 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
+2023-11-17T17:50:23,103+0000 [71922 1] com.newrelic INFO: Setting audit_mode to false
+2023-11-17T17:50:23,956+0000 [71922 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
+2023-11-17T17:50:23,956+0000 [71922 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+2023-11-17T17:50:24,050+0000 [71922 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-17T17:50:24,053+0000 [71922 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:50:24,054+0000 [71922 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:50:27,449+0000 [71922 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-17T17:50:27,457+0000 [71922 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:50:27,458+0000 [71922 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:50:27,507+0000 [71922 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-11-17T17:50:27,510+0000 [71922 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
+2023-11-17T17:50:27,518+0000 [71922 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
+2023-11-17T17:50:27,595+0000 [71922 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
+2023-11-17T17:50:27,597+0000 [71922 1] com.newrelic INFO: Setting audit_mode to false
+2023-11-17T17:50:27,647+0000 [71922 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
+2023-11-17T17:50:27,648+0000 [71922 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+2023-11-17T17:50:27,662+0000 [71922 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-17T17:50:27,663+0000 [71922 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:50:27,663+0000 [71922 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:50:27,708+0000 [71922 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-17T17:50:27,709+0000 [71922 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:50:27,712+0000 [71922 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-17T17:50:27,733+0000 [71922 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-11-17T17:50:27,738+0000 [71922 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
+2023-11-17T17:50:27,744+0000 [71922 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
+2023-11-17T17:50:27,784+0000 [71922 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
+2023-11-17T17:50:27,786+0000 [71922 1] com.newrelic INFO: Setting audit_mode to false
+2023-11-17T17:50:27,839+0000 [71922 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
+2023-11-17T17:50:27,839+0000 [71922 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+2023-11-17T17:50:27,847+0000 [71922 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-17T17:50:27,848+0000 [71922 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-17T17:50:27,848+0000 [71922 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
 </pre>
 </span>
 </div>
@@ -246,7 +246,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 13, 2023 9:11:35 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 17, 2023 5:52:24 PM</p>
 </div>
 </div>
 </body>

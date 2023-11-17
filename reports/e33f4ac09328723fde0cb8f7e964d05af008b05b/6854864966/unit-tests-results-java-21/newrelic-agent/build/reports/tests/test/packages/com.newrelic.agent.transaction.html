@@ -28,7 +28,7 @@
 </td>
 <td>
 <div class="infoBox" id="failures">
-<div class="counter">0</div>
+<div class="counter">3</div>
 <p>failures</p>
 </div>
 </td>
@@ -40,7 +40,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">2m2.73s</div>
+<div class="counter">2m35.55s</div>
 <p>duration</p>
 </div>
 </td>
@@ -49,8 +49,8 @@
 </div>
 </td>
 <td>
-<div class="infoBox success" id="successRate">
-<div class="percent">100%</div>
+<div class="infoBox failures" id="successRate">
+<div class="percent">97%</div>
 <p>successful</p>
 </div>
 </td>
@@ -60,10 +60,30 @@
 <div id="tabs">
 <ul class="tabLinks">
 <li>
-<a href="#tab0">Classes</a>
+<a href="#tab0">Failed tests</a>
+</li>
+<li>
+<a href="#tab1">Classes</a>
 </li>
 </ul>
 <div id="tab0" class="tab">
+<h2>Failed tests</h2>
+<ul class="linkList">
+<li>
+<a href="../classes/com.newrelic.agent.transaction.AsyncTransactionTest.html">AsyncTransactionTest</a>.
+<a href="../classes/com.newrelic.agent.transaction.AsyncTransactionTest.html#testOnlyFirstRegisterOnKeyWins">testOnlyFirstRegisterOnKeyWins</a>
+</li>
+<li>
+<a href="../classes/com.newrelic.agent.transaction.AsyncTransactionTest.html">AsyncTransactionTest</a>.
+<a href="../classes/com.newrelic.agent.transaction.AsyncTransactionTest.html#testStartTwice">testStartTwice</a>
+</li>
+<li>
+<a href="../classes/com.newrelic.agent.transaction.TransactionAsyncRootFirstTest.html">TransactionAsyncRootFirstTest</a>.
+<a href="../classes/com.newrelic.agent.transaction.TransactionAsyncRootFirstTest.html#testStartAndThenLinkExpireAllFromToken">testStartAndThenLinkExpireAllFromToken</a>
+</li>
+</ul>
+</div>
+<div id="tab1" class="tab">
 <h2>Classes</h2>
 <table>
 <thread>
@@ -83,7 +103,7 @@
 <td>8</td>
 <td>0</td>
 <td>0</td>
-<td>9.473s</td>
+<td>14.254s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -93,18 +113,18 @@
 <td>6</td>
 <td>0</td>
 <td>0</td>
-<td>17.713s</td>
+<td>22.595s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
-<td class="success">
+<td class="failures">
 <a href="../classes/com.newrelic.agent.transaction.AsyncTransactionTest.html">AsyncTransactionTest</a>
 </td>
 <td>9</td>
+<td>2</td>
 <td>0</td>
-<td>0</td>
-<td>2.465s</td>
-<td class="success">100%</td>
+<td>3.169s</td>
+<td class="failures">77%</td>
 </tr>
 <tr>
 <td class="success">
@@ -113,7 +133,7 @@
 <td>6</td>
 <td>0</td>
 <td>0</td>
-<td>8.085s</td>
+<td>12.530s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -123,7 +143,7 @@
 <td>3</td>
 <td>0</td>
 <td>0</td>
-<td>0.070s</td>
+<td>0.108s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -133,7 +153,7 @@
 <td>3</td>
 <td>0</td>
 <td>0</td>
-<td>0.015s</td>
+<td>0.025s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -143,7 +163,7 @@
 <td>6</td>
 <td>0</td>
 <td>0</td>
-<td>9.769s</td>
+<td>10.519s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -153,7 +173,7 @@
 <td>2</td>
 <td>0</td>
 <td>0</td>
-<td>0.592s</td>
+<td>1.196s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -163,7 +183,7 @@
 <td>1</td>
 <td>0</td>
 <td>0</td>
-<td>11.422s</td>
+<td>18.708s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -173,7 +193,7 @@
 <td>6</td>
 <td>0</td>
 <td>0</td>
-<td>20.523s</td>
+<td>24.177s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -183,72 +203,22 @@
 <td>1</td>
 <td>0</td>
 <td>0</td>
-<td>9.277s</td>
+<td>9.511s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
-<td class="success">
+<td class="failures">
 <a href="../classes/com.newrelic.agent.transaction.TransactionAsyncRootFirstTest.html">TransactionAsyncRootFirstTest</a>
 </td>
 <td>11</td>
+<td>1</td>
 <td>0</td>
-<td>0</td>
-<td>1.269s</td>
-<td class="success">100%</td>
+<td>2.037s</td>
+<td class="failures">90%</td>
 </tr>
 <tr>
 <td class="success">
 <a href="../classes/com.newrelic.agent.transaction.TransactionAsyncRootLastTest.html">TransactionAsyncRootLastTest</a>
-</td>
-<td>9</td>
-<td>0</td>
-<td>0</td>
-<td>1.125s</td>
-<td class="success">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="../classes/com.newrelic.agent.transaction.TransactionAsyncStartThenLinkTest.html">TransactionAsyncStartThenLinkTest</a>
-</td>
-<td>11</td>
-<td>0</td>
-<td>0</td>
-<td>1.111s</td>
-<td class="success">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="../classes/com.newrelic.agent.transaction.TransactionAsyncTimeoutTest.html">TransactionAsyncTimeoutTest</a>
-</td>
-<td>4</td>
-<td>0</td>
-<td>0</td>
-<td>14.520s</td>
-<td class="success">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="../classes/com.newrelic.agent.transaction.TransactionCountsTest.html">TransactionCountsTest</a>
-</td>
-<td>2</td>
-<td>0</td>
-<td>0</td>
-<td>1.768s</td>
-<td class="success">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="../classes/com.newrelic.agent.transaction.TransactionDispatcherTest.html">TransactionDispatcherTest</a>
-</td>
-<td>4</td>
-<td>0</td>
-<td>0</td>
-<td>0.432s</td>
-<td class="success">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="../classes/com.newrelic.agent.transaction.TransactionErrorTrackerImplTest.html">TransactionErrorTrackerImplTest</a>
 </td>
 <td>9</td>
 <td>0</td>
@@ -258,12 +228,62 @@
 </tr>
 <tr>
 <td class="success">
+<a href="../classes/com.newrelic.agent.transaction.TransactionAsyncStartThenLinkTest.html">TransactionAsyncStartThenLinkTest</a>
+</td>
+<td>11</td>
+<td>0</td>
+<td>0</td>
+<td>1.686s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="../classes/com.newrelic.agent.transaction.TransactionAsyncTimeoutTest.html">TransactionAsyncTimeoutTest</a>
+</td>
+<td>4</td>
+<td>0</td>
+<td>0</td>
+<td>12.573s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="../classes/com.newrelic.agent.transaction.TransactionCountsTest.html">TransactionCountsTest</a>
+</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>2.312s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="../classes/com.newrelic.agent.transaction.TransactionDispatcherTest.html">TransactionDispatcherTest</a>
+</td>
+<td>4</td>
+<td>0</td>
+<td>0</td>
+<td>0.590s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="../classes/com.newrelic.agent.transaction.TransactionErrorTrackerImplTest.html">TransactionErrorTrackerImplTest</a>
+</td>
+<td>9</td>
+<td>0</td>
+<td>0</td>
+<td>2.222s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
 <a href="../classes/com.newrelic.agent.transaction.TransactionNamingUtilityTest.html">TransactionNamingUtilityTest</a>
 </td>
 <td>6</td>
 <td>0</td>
 <td>0</td>
-<td>0.087s</td>
+<td>0.029s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -273,7 +293,7 @@
 <td>13</td>
 <td>0</td>
 <td>0</td>
-<td>1.417s</td>
+<td>1.763s</td>
 <td class="success">100%</td>
 </tr>
 <tr>
@@ -283,7 +303,7 @@
 <td>1</td>
 <td>0</td>
 <td>0</td>
-<td>10.087s</td>
+<td>14.030s</td>
 <td class="success">100%</td>
 </tr>
 </table>
@@ -296,7 +316,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 13, 2023 9:11:35 PM</p>
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 17, 2023 5:52:24 PM</p>
 </div>
 </div>
 </body>
