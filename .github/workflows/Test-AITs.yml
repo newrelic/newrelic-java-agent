@@ -338,13 +338,6 @@ jobs:
         run: |
           echo "true" > ${{ github.workspace }}/negative_values_${{ matrix.tests }}.txt
 
-      - name: Upload negative value artifact
-        if: ${{ steps.run_tests == 'true' }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: negative_values_${{ matrix.tests }}.txt
-          path: ${{ github.workspace }}
-
   notify-failure:
     needs: [tests]
     if: ${{ hashFiles('negative_values_*.txt') != '' }}
