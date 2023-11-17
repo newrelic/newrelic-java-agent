@@ -84,6 +84,10 @@ public final class CrossProcessConfigImpl extends BaseConfig implements CrossPro
         return isCrossApplicationTracing ? encodingKey : null;
     }
 
+    public String getSyntheticsEncodingKey() {
+        return encodingKey;
+    }
+
     @Override
     public boolean isTrustedAccountId(String accountId) {
         return trustedIds.contains(accountId);
