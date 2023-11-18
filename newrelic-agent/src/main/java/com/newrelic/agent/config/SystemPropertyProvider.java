@@ -137,10 +137,6 @@ public class SystemPropertyProvider {
     }
 
     private String getenv(String key) {
-        String val = environmentFacade.getenv(key);
-        if (val != null) {
-            return val;
-        }
         //check if current key needs to be converted from NR config prop to NR env var
 
         return environmentFacade.getenv(formatNewRelicEnvVarPrefix(key));
