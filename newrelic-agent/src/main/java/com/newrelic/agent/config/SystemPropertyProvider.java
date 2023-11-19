@@ -119,22 +119,6 @@ public class SystemPropertyProvider {
     }
 
     public String getEnvironmentVariable(String key) {
-        // compatibility: map NEW_RELIC_LOG to newrelic.config.log_file_name
-        // The latter is the general name. NEW_RELIC_LOG_FILE_NAME, which
-        // also works, will be checked below.
-        if (LOG_FILE_NAME.equals(key)) {
-            String logFileVal = environmentFacade.getenv(LOG_ENV);
-            if (logFileVal != null) {
-                return logFileVal;
-            }
-        }
-
-        return getenv(key);
-    }
-
-    private String getenv(String key) {
-        //check if current key needs to be converted from NR config prop to NR env var
-
         return environmentFacade.getenv(formatNewRelicEnvVarPrefix(key));
     }
 
