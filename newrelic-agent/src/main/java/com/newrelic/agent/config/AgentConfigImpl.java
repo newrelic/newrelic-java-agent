@@ -1165,6 +1165,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     @Override
     public String getLogFileName() {
+        String classicVarValue = SystemPropertyFactory.getSystemPropertyProvider().getEnvironmentVariable("NEW_RELIC_LOG");
+        if (classicVarValue != null) {
+            return classicVarValue;
+        }
+
         return getProperty(LOG_FILE_NAME, DEFAULT_LOG_FILE_NAME);
     }
 
