@@ -24,7 +24,6 @@ public class SystemPropertyProvider {
     private static final String LOG_FILE_NAME = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.LOG_FILE_NAME;
     private static final String NEW_RELIC_SYSTEM_PROPERTY_ROOT = "newrelic.";
 
-    private final Map<String, String> envVarToSystemPropKeyMap;
     private final Map<String, String> newRelicSystemProps;
     private final Map<String, Object> newRelicPropsWithoutPrefix;
     private final Map<String, Object> newRelicEnvVarsWithoutPrefix;
@@ -38,17 +37,9 @@ public class SystemPropertyProvider {
     public SystemPropertyProvider(SystemProps sysProps, EnvironmentFacade environmentFacade) {
         systemProps = sysProps;
         this.environmentFacade = environmentFacade;
-        envVarToSystemPropKeyMap = initEnvVarToSystemPropMap();
         newRelicSystemProps = initNewRelicSystemProperties();
         newRelicPropsWithoutPrefix = createNewRelicSystemPropertiesWithoutPrefix();
         newRelicEnvVarsWithoutPrefix = createNewRelicEnvVarsWithoutPrefix();
-    }
-
-    private Map<String, String> initEnvVarToSystemPropMap() {
-        // general environment variables, originally added for Heroku
-        Map<String, String> envVars = new HashMap<>();
-        envVars.put(LOG_ENV, LOG_FILE_NAME);
-        return envVars;
     }
 
     /**
@@ -95,9 +86,8 @@ public class SystemPropertyProvider {
         for (Map.Entry<String, String> entry : allEnvVars.entrySet()) {
             String envVar = entry.getKey();
             if (envVar.startsWith(NEW_RELIC_PREFIX_ENV)) {
-                String envVarNameToReplace = envVarToSystemPropKeyMap.get(envVar);
-                if (envVarNameToReplace != null) {
-                    addPropertyWithoutSystemPropRoot(nrProps, envVarNameToReplace, entry.getValue());
+                if (envVar.equals(LOG_ENV)) {
+                    addPropertyWithoutSystemPropRoot(nrProps, LOG_FILE_NAME, entry.getValue());
                 } else {
                     addPropertyWithoutEnvPrefix(nrProps, envVar.toLowerCase(), entry.getValue());
                 }
