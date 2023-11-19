@@ -24,7 +24,6 @@ public class SystemPropertyProvider {
     private static final String LOG_FILE_NAME = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.LOG_FILE_NAME;
     private static final String NEW_RELIC_SYSTEM_PROPERTY_ROOT = "newrelic.";
 
-    private final Map<String, String> envVars;
     private final Map<String, String> envVarToSystemPropKeyMap;
     private final Map<String, String> newRelicSystemProps;
     private final Map<String, Object> newRelicPropsWithoutPrefix;
@@ -39,18 +38,10 @@ public class SystemPropertyProvider {
     public SystemPropertyProvider(SystemProps sysProps, EnvironmentFacade environmentFacade) {
         systemProps = sysProps;
         this.environmentFacade = environmentFacade;
-        envVars = initEnvVariables();
         envVarToSystemPropKeyMap = initEnvVarToSystemPropMap();
         newRelicSystemProps = initNewRelicSystemProperties();
         newRelicPropsWithoutPrefix = createNewRelicSystemPropertiesWithoutPrefix();
         newRelicEnvVarsWithoutPrefix = createNewRelicEnvVarsWithoutPrefix();
-    }
-
-    private Map<String, String> initEnvVariables() {
-        // general environment variables, originally added for Heroku
-        Map<String, String> envVars = new HashMap<>();
-        envVars.put(LOG_FILE_NAME, getenv(LOG_ENV));
-        return envVars;
     }
 
     private Map<String, String> initEnvVarToSystemPropMap() {
@@ -128,9 +119,14 @@ public class SystemPropertyProvider {
     }
 
     public String getEnvironmentVariable(String key) {
-        String propVal = envVars.get(key);
-        if (propVal != null) {
-            return propVal;
+        // compatibility: map NEW_RELIC_LOG to newrelic.config.log_file_name
+        // The latter is the general name. NEW_RELIC_LOG_FILE_NAME, which
+        // also works, will be checked below.
+        if (LOG_FILE_NAME.equals(key)) {
+            String logFileVal = environmentFacade.getenv(LOG_ENV);
+            if (logFileVal != null) {
+                return logFileVal;
+            }
         }
 
         return getenv(key);
