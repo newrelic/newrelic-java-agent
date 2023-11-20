@@ -4,6 +4,7 @@ import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.ErrorGroupCallback;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
+import com.newrelic.api.agent.TransactionNamePriority;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributesBuilder;
 
@@ -86,6 +87,10 @@ public final class OpenTelemetryNewRelic {
         getAgent().getErrorApi().noticeError(message, expected);
     }
 
+    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
+        getAgent().getErrorApi().setErrorGroupCallback(errorGroupCallback);
+    }
+
     // **************************** Transaction APIs ********************************//
 
     public static void addCustomParameter(String key, Number value) {
@@ -109,11 +114,11 @@ public final class OpenTelemetryNewRelic {
     }
 
     public static void setTransactionName(String category, String name) {
-        logUnsupportedMethod("NewRelic", "setTransactionName");
+        getAgent().getTransaction().setTransactionName(TransactionNamePriority.CUSTOM_LOW, true, category, name);
     }
 
     public static void ignoreTransaction() {
-        logUnsupportedMethod("NewRelic", "ignoreTransaction");
+        getAgent().getTransaction().ignore();
     }
 
     public static void ignoreApdex() {
@@ -174,9 +179,7 @@ public final class OpenTelemetryNewRelic {
         logUnsupportedMethod("NewRelic", "setInstanceName");
     }
 
-    public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
-        getAgent().getErrorApi().setErrorGroupCallback(errorGroupCallback);
-    }
+    // Internal helpers
 
     static void logUnsupportedMethod(String className, String methodName) {
         // If FINER or FINEST is enabled, indicate that an unsupported method was called.

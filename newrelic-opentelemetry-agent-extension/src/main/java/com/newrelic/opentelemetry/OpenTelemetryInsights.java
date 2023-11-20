@@ -10,6 +10,7 @@ import java.util.Map;
 
 final class OpenTelemetryInsights implements Insights {
 
+    private static final String NEW_RELIC_AGENT_API_DOMAIN = "newrelic.agent_api";
     private final io.opentelemetry.api.logs.Logger logger;
 
     private OpenTelemetryInsights(OpenTelemetry openTelemetry) {
@@ -24,7 +25,7 @@ final class OpenTelemetryInsights implements Insights {
     public void recordCustomEvent(String eventType, Map<String, ?> attributesMap) {
         Attributes attributes = OpenTelemetryNewRelic.toAttributes(attributesMap)
                 // TODO: is this the right domain?
-                .put(SemanticAttributes.EVENT_DOMAIN, "newrelic.api")
+                .put(SemanticAttributes.EVENT_DOMAIN, NEW_RELIC_AGENT_API_DOMAIN)
                 .put(SemanticAttributes.EVENT_NAME, eventType)
                 .build();
         // TODO: use event API when stable. For now, its not possible to without taking

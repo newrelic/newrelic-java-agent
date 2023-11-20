@@ -52,7 +52,7 @@ class OpenTelemetryInsightsTest {
         assertThat(exporter.getFinishedLogRecordItems())
                 .satisfiesExactly(logRecordData -> assertThat(logRecordData)
                         .hasAttributesSatisfying(
-                                equalTo(AttributeKey.stringKey("event.domain"), "newrelic.api"),
+                                equalTo(AttributeKey.stringKey("event.domain"), "newrelic.agent_api"),
                                 equalTo(AttributeKey.stringKey("event.name"), "eventType"),
                                 satisfies(AttributeKey.doubleKey("double_key"), value -> value.isCloseTo(1.1, Offset.offset(0.01))),
                                 equalTo(AttributeKey.longKey("long_key"), 1),
