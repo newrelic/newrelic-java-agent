@@ -45,3 +45,11 @@ jobs:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew $GRADLE_OPTIONS :agent-bridge:publish :agent-bridge-datastore:publish :newrelic-weaver:publish :newrelic-weaver-api:publish :newrelic-weaver-scala:publish :newrelic-weaver-scala-api:publish -Prelease=true
+      - name: Publish New Relic OpenTelemetry API Extension
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+        run: ./gradlew $GRADLE_OPTIONS :newrelic-opentelemetry-agent-extension:publish -Prelease=true
