@@ -29,13 +29,6 @@ verifyInstrumentation {
     passes('org.mule:mule-core:[3.4.0,3.5.2)')
     passes('org.mule:mule-core:[3.6.0,3.6.2)')
 
-    // these versions cause problems getting artifacts
-    exclude 'org.mule:mule-core:[0,3.4.0)'
-    exclude 'org.mule:mule-core:3.5.4'
-    exclude 'org.mule:mule-core:[3.6.2,3.7.0)'
-    exclude 'org.mule:mule-core:[3.7.1,3.8.0)'
-    exclude 'org.mule:mule-core:[3.8.2,)'
-
     excludeRegex 'org.mule:mule-core:.*-(EA|HF|RC|M|rc|bighorn|cascade).*[0-9]*.*'
 }
 
