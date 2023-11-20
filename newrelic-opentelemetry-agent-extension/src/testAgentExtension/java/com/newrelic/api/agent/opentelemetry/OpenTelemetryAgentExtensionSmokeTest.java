@@ -28,6 +28,13 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+/*
+ *
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 import java.util.logging.Level;
 
 import static org.assertj.core.api.Assertions.assertThat;
