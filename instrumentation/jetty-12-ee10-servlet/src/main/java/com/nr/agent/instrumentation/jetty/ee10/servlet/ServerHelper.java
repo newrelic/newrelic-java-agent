@@ -37,7 +37,7 @@ public class ServerHelper {
             AgentBridge.getAgent().getLogger().log(Level.FINE, "AsyncContextEvent is null for request: {0}.", request);
             return;
         }
-        AgentBridge.asyncApi.resumeAsync(request.getAsyncContext());
+        AgentBridge.asyncApi.resumeAsync(asyncContextEvent.getAsyncContext());
     }
 
     public static void postHandleDispatch(ServletContextRequest servletContextRequest) {
