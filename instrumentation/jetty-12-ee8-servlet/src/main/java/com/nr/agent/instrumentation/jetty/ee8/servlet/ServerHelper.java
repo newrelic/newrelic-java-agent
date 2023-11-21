@@ -1,6 +1,9 @@
 package com.nr.agent.instrumentation.jetty.ee8.servlet;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import org.eclipse.jetty.ee8.nested.AsyncContextEvent;
+import org.eclipse.jetty.ee8.nested.Request;
+
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,9 +24,14 @@ public class ServerHelper {
         }
     }
 
-    public static void preHandle(HttpServletRequest request, HttpServletResponse response) {
+    public static void preHandle(Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         if (request.getDispatcherType() == DispatcherType.ASYNC) {
-            AgentBridge.asyncApi.resumeAsync(request.getAsyncContext());
+            AsyncContextEvent asyncContextEvent = baseRequest.getHttpChannelState().getAsyncContextEvent();
+            if (asyncContextEvent == null) {
+                AgentBridge.getAgent().getLogger().log(Level.FINE, "AsyncContextEvent is null for request: {0}.", request);
+                return;
+            }
+            AgentBridge.asyncApi.resumeAsync(asyncContextEvent.getAsyncContext());
         } else {
             AgentBridge.getAgent().getTransaction(true).requestInitialized(new JettyRequest(request),
                     new JettyResponse(response));

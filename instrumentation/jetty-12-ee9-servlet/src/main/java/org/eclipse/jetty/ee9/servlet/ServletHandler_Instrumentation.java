@@ -17,7 +17,7 @@ public class ServletHandler_Instrumentation {
         boolean startTransaction = request != null && !isStarted;
 
         if (startTransaction) {
-            ServerHelper.preHandle(request, response);
+            ServerHelper.preHandle(baseRequest, request, response);
         }
         try {
             Weaver.callOriginal();
