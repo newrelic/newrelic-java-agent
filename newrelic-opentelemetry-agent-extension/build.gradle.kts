@@ -17,6 +17,11 @@ val shadowJar = tasks.getByName<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 PublishConfig.config(
         project,
         "New Relic OpenTelemetry Java Agent Extension",
