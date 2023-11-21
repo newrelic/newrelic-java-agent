@@ -27,20 +27,20 @@ PublishConfig.config(
     // Update artifact version to include "-alpha" suffix
     var artifactVersion = version
     val snapshotSuffix = "-SNAPSHOT"
-    if (artifactVersion.endsWith(snapshotSuffix)) {
-        artifactVersion = artifactVersion.removeSuffix(snapshotSuffix) + "-alpha" + snapshotSuffix
+    artifactVersion = if (artifactVersion.endsWith(snapshotSuffix)) {
+        artifactVersion.removeSuffix(snapshotSuffix) + "-alpha" + snapshotSuffix
     } else {
-        artifactVersion = artifactVersion + "-alpha"
+        "$artifactVersion-alpha"
     }
     version = artifactVersion
 }
 
 var agent = configurations.create("agent")
 
-var openTelemetryAgentVersion = "1.31.0";
-var openTelemetryInstrumentationVersion = "1.31.0-alpha";
-var openTelemetrySemConvVersion = "1.22.0-alpha";
-var openTelemetryProtoVersion = "1.0.0-alpha";
+var openTelemetryAgentVersion = "1.31.0"
+var openTelemetryInstrumentationVersion = "1.31.0-alpha"
+var openTelemetrySemConvVersion = "1.22.0-alpha"
+var openTelemetryProtoVersion = "1.0.0-alpha"
 
 dependencies {
     implementation(project(":newrelic-api"))
@@ -82,7 +82,7 @@ testing {
             targets {
                 all {
                     testTask {
-                        var extensionJar = shadowJar.archiveFile.get().toString()
+                        val extensionJar = shadowJar.archiveFile.get().toString()
                         jvmArgs("-javaagent:${agent.singleFile}",
                                 "-Dotel.javaagent.extensions=${extensionJar}",
                                 "-Dotel.javaagent.logging=none", // Disable logging to avoid connect error logs which occur when the agent has started but the mock server is not yet receiving requests. Set to "simple" to debug.
