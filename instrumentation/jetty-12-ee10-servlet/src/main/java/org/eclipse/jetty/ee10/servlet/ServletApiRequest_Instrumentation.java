@@ -9,12 +9,10 @@ import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.internal.HttpChannelState;
 
 import java.util.logging.Level;
 
-@Weave(type = MatchType.BaseClass, originalName = "org.eclipse.jetty.ee10.servlet.ServletApiRequest")
+@Weave(type = MatchType.ExactClass, originalName = "org.eclipse.jetty.ee10.servlet.ServletApiRequest")
 public abstract class ServletApiRequest_Instrumentation implements HttpServletRequest {
     @Override
     public AsyncContext startAsync(ServletRequest request, ServletResponse response) {
@@ -37,7 +35,4 @@ public abstract class ServletApiRequest_Instrumentation implements HttpServletRe
         return asyncContext;
     }
 
-    public abstract HttpChannelState getHttpChannelState();
-
-    public abstract Response getResponse();
 }
