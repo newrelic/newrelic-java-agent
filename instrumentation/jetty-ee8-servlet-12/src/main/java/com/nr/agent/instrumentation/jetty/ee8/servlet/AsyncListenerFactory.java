@@ -5,12 +5,12 @@
  *
  */
 
-package com.nr.agent.instrumentation.jetty.ee8.nested;
+package com.nr.agent.instrumentation.jetty.ee8.servlet;
 
 import com.newrelic.agent.bridge.AgentBridge;
+
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
-
 import java.io.IOException;
 
 public final class AsyncListenerFactory {
