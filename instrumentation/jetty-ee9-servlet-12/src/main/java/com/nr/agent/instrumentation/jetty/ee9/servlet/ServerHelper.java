@@ -7,11 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.ee9.nested.AsyncContextEvent;
 import org.eclipse.jetty.ee9.nested.Request;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class ServerHelper {
-    private static final AtomicBoolean HAS_CONTEXT_HANDLER = new AtomicBoolean(false);
 
     public static void preHandle(Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         if (request.getDispatcherType() == DispatcherType.ASYNC) {

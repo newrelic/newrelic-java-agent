@@ -7,7 +7,6 @@ import org.eclipse.jetty.ee10.servlet.AsyncContextEvent;
 import org.eclipse.jetty.ee10.servlet.ServletChannelState;
 import org.eclipse.jetty.ee10.servlet.ServletContextRequest;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class ServerHelper {
