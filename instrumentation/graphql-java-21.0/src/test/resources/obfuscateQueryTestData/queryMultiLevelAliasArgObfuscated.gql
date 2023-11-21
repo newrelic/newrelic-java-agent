@@ -1,0 +1,24 @@
+query {
+    FIRST: libraries (id: ***, name: ***) {
+        branch
+        booksInStock (password: ***) {
+            title (id: ***),
+            author
+        }
+        bathroomReading: magazinesInStock (password: ***) {
+            magissue,
+            magtitle
+        }
+    }
+    SECOND: Slibraries (id: ***, name: ***) {
+        Sbranch
+        profitCenter: SbooksInStock (password: ***) {
+            Sisbn,
+            Stitle,
+        }
+        SmagazinesInStock (password: ***) {
+            Smagissue,
+            Smagtitle
+        }
+    }
+}

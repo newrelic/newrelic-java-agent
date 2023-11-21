@@ -483,6 +483,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .errorAttributes(td.getErrorAttributes())
                     .intrinsicAttributes(joinedIntrinsics)
                     .expected(markedExpected)
+                    .transactionGuid(td.getGuid())
                     .build();
         } else {
             error = HttpTracedError
@@ -496,6 +497,7 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
                     .errorAttributes(td.getErrorAttributes())
                     .intrinsicAttributes(joinedIntrinsics)
                     .expected(markedExpected)
+                    .transactionGuid(td.getGuid())
                     .build();
         }
         return error;

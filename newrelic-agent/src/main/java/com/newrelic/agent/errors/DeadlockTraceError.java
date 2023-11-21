@@ -25,7 +25,7 @@ public class DeadlockTraceError extends TracedError {
             long timestampInMillis, String message, String exceptionClass, Map<String, StackTraceElement[]> stackTraces,
             Map<String, ?> errorAttributes) {
         super(errorCollectorConfig, appName, frontendMetricName, timestampInMillis, "", null, null, null,
-                errorAttributes, null, null, false);
+                errorAttributes, null, null, false, null);
         this.stackTraces = stackTraces;
         this.message = message;
         this.exceptionClass = exceptionClass;

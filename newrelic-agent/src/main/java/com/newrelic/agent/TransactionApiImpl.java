@@ -97,6 +97,10 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     public boolean setTransactionName(TransactionNamePriority namePriority, boolean override, String category,
             String... parts) {
         Transaction tx = getTransactionIfExists();
+        if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+            Agent.LOG.log(Level.FINEST, "newrelic.agent.TransactionApiImpl::setTransactionName (1) - txn: {0}, override: {1}, category: {2}, parts: {3}",
+                    (tx != null ? tx.toString() : "N/A"), override, category, String.join("/", parts));
+        }
         return (tx != null) ? tx.setTransactionName(namePriority, override, category, parts) : false;
     }
 
@@ -160,6 +164,10 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     public boolean setTransactionName(com.newrelic.agent.bridge.TransactionNamePriority namePriority, boolean override,
             String category, String... parts) {
         Transaction tx = getTransactionIfExists();
+        if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+            Agent.LOG.log(Level.FINEST, "newrelic.agent.TransactionApiImpl::setTransactionName (2) - txn: {0}, override: {1}, category: {2}, parts: {3}",
+                    (tx != null ? tx.toString() : "N/A"), override, category, String.join("/", parts));
+        }
         return (tx != null) ? tx.setTransactionName(namePriority, override, category, parts) : false;
     }
 

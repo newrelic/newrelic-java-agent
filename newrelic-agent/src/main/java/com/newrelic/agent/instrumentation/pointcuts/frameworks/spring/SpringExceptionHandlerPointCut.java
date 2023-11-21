@@ -30,7 +30,13 @@ public class SpringExceptionHandlerPointCut extends AbstractExceptionHandlerPoin
                                 "(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Ljava/lang/Object;Ljava/lang/Exception;)Lorg/springframework/web/servlet/ModelAndView;"),
                         new ExactMethodMatcher(
                                 "triggerAfterCompletion",
-                                "(Lorg/springframework/web/servlet/HandlerExecutionChain;ILjavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Ljava/lang/Exception;)V")));
+                                "(Lorg/springframework/web/servlet/HandlerExecutionChain;ILjavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Ljava/lang/Exception;)V"),
+                        new ExactMethodMatcher(
+                                PROCESS_HANDLER_EXCEPTION_METHOD_NAME,
+                                "(Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Ljava/lang/Object;Ljava/lang/Exception;)Lorg/springframework/web/servlet/ModelAndView;"),
+                        new ExactMethodMatcher(
+                                "triggerAfterCompletion",
+                                "(Lorg/springframework/web/servlet/HandlerExecutionChain;ILjakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Ljava/lang/Exception;)V")));
     }
 
     @Override

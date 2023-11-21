@@ -20,8 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jre: [8, 11, 17, 20]
-    name: Java ${{ matrix.jre }}
+        java-version: [8, 11, 17, 21]
+    name: Java ${{ matrix.java-version }}
     timeout-minutes: 120
     # needs: install-all-java
     runs-on: ubuntu-20.04
@@ -55,29 +55,29 @@ jobs:
 
       # GHA run instrumentation tests
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 1)
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 1)
         id: run_tests_1
         continue-on-error: true
         timeout-minutes: 35
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 2)
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 2)
         id: run_tests_2
         continue-on-error: true
         timeout-minutes: 35
         if: steps.run_tests_1.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
 
-      - name: Run instrumentation tests for Java ${{ matrix.jre }} (attempt 3)
+      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 3)
         timeout-minutes: 35
         if: steps.run_tests_2.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.jre }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
 
       # Capture HTML build result in artifacts
       - name: Capture build reports
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: instrumentation-tests-results-java-${{ matrix.jre }}
+          name: instrumentation-tests-results-java-${{ matrix.java-version }}
           path: |
             instrumentation/**/build/reports/tests/*

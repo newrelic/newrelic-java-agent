@@ -7,9 +7,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '00 15 * * 1'
-  push:
-    branches:
-      - main
 
 jobs:
   security:
@@ -33,4 +30,4 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          args: --all-sub-projects --org=java-agent --configuration-matching='(includeInJar)|(shadowIntoJar)'
+          args: --all-sub-projects --org=java-agent --debug --configuration-matching='(includeInJar)|(shadowIntoJar)'

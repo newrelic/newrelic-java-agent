@@ -29,7 +29,7 @@ import java.util.logging.Level;
  * structure without actually loading any classes.
  */
 public class PatchedClassWriter extends ClassWriter {
-    private static final String JAVA_LANG_OBJECT = "java/lang/Object";
+    static final String JAVA_LANG_OBJECT = "java/lang/Object";
     protected final ClassResolver classResolver;
 
     public PatchedClassWriter(int flags, ClassLoader classLoader) {

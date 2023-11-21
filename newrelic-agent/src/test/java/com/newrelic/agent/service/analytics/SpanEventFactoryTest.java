@@ -59,13 +59,18 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setUri(URI.create("https://newrelic.com")).build();
 
         assertEquals("https://newrelic.com", target.getAgentAttributes().get("http.url"));
+        assertEquals("newrelic.com", target.getAgentAttributes().get("server.address"));
+        assertEquals("newrelic.com", target.getAgentAttributes().get("peer.hostname"));
+        assertNull(target.getAgentAttributes().get("server.port"));
     }
 
     @Test
     public void addressShouldBeSet() {
-        SpanEvent target = spanEventFactory.setAddress("localhost", "3306").build();
+        SpanEvent target = spanEventFactory.setServerAddress("localhost").setServerPort(3306).build();
 
-        assertEquals("localhost:3306", target.getIntrinsics().get("peer.address"));
+        assertEquals("localhost", target.getAgentAttributes().get("server.address"));
+        assertEquals("localhost", target.getAgentAttributes().get("peer.hostname"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
     }
 
     @Test
@@ -76,7 +81,7 @@ public class SpanEventFactoryTest {
         SpanEvent target = spanEventFactory.setDatabaseStatement(threeKStatement).build();
 
         assertEquals(2000,
-                target.getIntrinsics().get("db.statement").toString().length());
+                target.getAgentAttributes().get("db.statement").toString().length());
     }
 
     @Test
@@ -179,10 +184,22 @@ public class SpanEventFactoryTest {
     public void shouldSetDataStoreParameters() {
         DatastoreParameters mockParameters = mock(DatastoreParameters.class);
         when(mockParameters.getDatabaseName()).thenReturn("database name");
+        when(mockParameters.getOperation()).thenReturn("select");
+        when(mockParameters.getCollection()).thenReturn("users");
+        when(mockParameters.getProduct()).thenReturn("MySQL");
+        when(mockParameters.getHost()).thenReturn("dbserver");
+        when(mockParameters.getPort()).thenReturn(3306);
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
-        assertEquals("database name", target.getIntrinsics().get("db.instance"));
+        assertEquals("database name", target.getAgentAttributes().get("db.instance"));
+        assertEquals("select", target.getAgentAttributes().get("db.operation"));
+        assertEquals("users", target.getAgentAttributes().get("db.collection"));
+        assertEquals("MySQL", target.getAgentAttributes().get("db.system"));
+        assertEquals("dbserver", target.getAgentAttributes().get("peer.hostname"));
+        assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
+        assertEquals(3306, target.getAgentAttributes().get("server.port"));
+        assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
     }
 
     @Test
@@ -262,7 +279,3 @@ public class SpanEventFactoryTest {
         }
     }
 }
-
-
-
-

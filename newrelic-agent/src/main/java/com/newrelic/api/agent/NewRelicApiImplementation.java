@@ -76,40 +76,6 @@ public class NewRelicApiImplementation implements PublicApi {
     public void noticeError(Throwable throwable) {
         Map<String, String> params = Collections.emptyMap();
         noticeError(throwable, params, isExpectedErrorConfigured(throwable));
-
-    }
-
-    /**
-     * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
-     * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
-     * be created and reported to New Relic.
-     * Expecting Errors via configuration is not supported from the APIs that do not accept a Throwable as an attribute.
-     * To mark an Error that accepts a String as expected use the API that accepts a boolean.
-     * @param message the error message
-     * @param params  Custom parameters to include in the traced error. May be null. Map is copied to avoid side effects.
-     */
-    @Override
-    public void noticeError(String message, Map<String, ?> params) {
-        noticeError(message, params, false);
-    }
-
-    /**
-     * Report an error to New Relic.
-     * Expecting Errors via configuration is not supported from the APIs that do not accept a Throwable as an attribute.
-     * To mark an Error that accepts a String as expected use the API that accepts a boolean.
-     * @param message the error message
-     * @see #noticeError(String, Map)
-     */
-    @Override
-    public void noticeError(String message) {
-        Map<String, String> params = Collections.emptyMap();
-        noticeError(message, params, false);
-    }
-
-    @Override
-    public void noticeError(Throwable throwable, boolean expected) {
-        Map<String, String> params = Collections.emptyMap();
-        noticeError(throwable, params, expected);
     }
 
     public void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
@@ -152,12 +118,6 @@ public class NewRelicApiImplementation implements PublicApi {
             String msg = MessageFormat.format("Exception reporting exception \"{0}\": {1}", message, t);
             logException(msg, t);
         }
-    }
-
-    @Override
-    public void noticeError(String message, boolean expected) {
-        Map<String, String> params = Collections.emptyMap();
-        noticeError(message, params, expected);
     }
 
     private boolean isExpectedErrorConfigured(Throwable throwable) {

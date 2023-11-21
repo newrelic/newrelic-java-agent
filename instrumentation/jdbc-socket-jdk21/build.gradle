@@ -1,0 +1,11 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-socket-jdk21' }
+}
+
+verifyInstrumentation {
+}

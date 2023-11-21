@@ -717,10 +717,10 @@ public class DefaultTracerTest {
         assertNotNull(spanEvent);
 
         assertNull(spanEvent.getParentId());
-        assertEquals("YourSQL", spanEvent.getIntrinsics().get("component"));
-        assertEquals("databaseServer", spanEvent.getIntrinsics().get("peer.hostname"));
-        assertEquals("dbName", spanEvent.getIntrinsics().get("db.instance"));
-        assertEquals("databaseServer:1234", spanEvent.getIntrinsics().get("peer.address"));
+        assertEquals("YourSQL", spanEvent.getAgentAttributes().get("db.system"));
+        assertEquals("databaseServer", spanEvent.getAgentAttributes().get("peer.hostname"));
+        assertEquals("dbName", spanEvent.getAgentAttributes().get("db.instance"));
+        assertEquals("databaseServer:1234", spanEvent.getAgentAttributes().get("peer.address"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
         assertClmAbsent(spanEvent);
     }
@@ -860,10 +860,10 @@ public class DefaultTracerTest {
         assertEquals(rootSpan.getGuid(), siblingSpan.getParentId());
         assertNull(siblingSpan.getIntrinsics().get("nr.entryPoint"));
 
-        assertEquals("YourSQL", child2Span.getIntrinsics().get("component"));
-        assertEquals("databaseServer", child2Span.getIntrinsics().get("peer.hostname"));
-        assertEquals("dbName", child2Span.getIntrinsics().get("db.instance"));
-        assertEquals("databaseServer:1234", child2Span.getIntrinsics().get("peer.address"));
+        assertEquals("YourSQL", child2Span.getAgentAttributes().get("db.system"));
+        assertEquals("databaseServer", child2Span.getAgentAttributes().get("peer.hostname"));
+        assertEquals("dbName", child2Span.getAgentAttributes().get("db.instance"));
+        assertEquals("databaseServer:1234", child2Span.getAgentAttributes().get("peer.address"));
         assertEquals("client", child2Span.getIntrinsics().get("span.kind"));
 
         assertEquals("library", siblingSpan.getIntrinsics().get("component"));

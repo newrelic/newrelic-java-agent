@@ -57,10 +57,6 @@
 # adding exclusions for obfuscated jar - see ticket 197106
 ^asposewobfuscated/.*
 ^com/aspose/words/.*
-# saxon xlst classes - see ticket 195949
-^net/sf/saxon.*
-# exclude java.security and sun.reflect classes from transformation
-^java/security/.*
 ^sun/reflect/.*
 # exclude lambdas by excluding java.lang.invoke.* classes
 ^java/lang/invoke/.*
@@ -94,3 +90,10 @@
 ^java/util/stream/MatchOps\$MatchOp
 ^java/util/stream/MatchOps\$BooleanTerminalSink
 ^javax/security/auth/Subject\$SecureSet\$1
+### All default excludes listed below get ignored when the security agent is enabled
+# exclude java.security and sun.reflect classes from transformation
+^java/security/.*
+# crypto classes can cause class circularity errors if they get too far along in the class transformer
+^javax/crypto/.*
+# saxon xlst classes - see ticket 195949
+^net/sf/saxon.*

@@ -21,7 +21,7 @@ import java.util.logging.Level;
 
 public final class TomcatServletRequestListener implements ServletRequestListener {
 
-    private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
+    private static final String SERVLET_EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
     private static final String REQUEST_FIELD = "request";
 
     private final Field requestField;
@@ -44,8 +44,7 @@ public final class TomcatServletRequestListener implements ServletRequestListene
     @CatchAndLog
     @Override
     public void requestDestroyed(ServletRequestEvent sre) {
-
-        Throwable exception = (Throwable) sre.getServletRequest().getAttribute(EXCEPTION_ATTRIBUTE_NAME);
+        Throwable exception =(Throwable) sre.getServletRequest().getAttribute(SERVLET_EXCEPTION_ATTRIBUTE_NAME);
         if (exception != null) {
             AgentBridge.privateApi.reportException(exception);
         }

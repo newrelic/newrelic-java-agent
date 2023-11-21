@@ -127,6 +127,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String TRANSACTION_EVENTS = "transaction_events"; // replaces analytics_events
     public static final String TRANSACTION_SEGMENTS = "transaction_segments";
     public static final String TRANSACTION_TRACER = "transaction_tracer";
+    public static final String SLOW_TRANSACTIONS = "slow_transactions";
 
     // defaults (alphabetized)
     public static final double DEFAULT_APDEX_T = 1.0; // 1 second
@@ -265,6 +266,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final OpenTracingConfig openTracingConfig;
     private final ReinstrumentConfig reinstrumentConfig;
     private final TransactionTracerConfigImpl requestTransactionTracerConfig;
+    private final SlowTransactionsConfig slowTransactionsConfig;
     private final SpanEventsConfig spanEventsConfig;
     private final SqlTraceConfig sqlTraceConfig;
     private final StripExceptionConfig stripExceptionConfig;
@@ -367,6 +369,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         transactionEventsConfig = initTransactionEvents();
         commandParserConfig = initCommandParserConfig();
         normalizationRuleConfig = new NormalizationRuleConfig(props);
+        slowTransactionsConfig = initSlowTransactionsConfig();
 
         Map<String, Object> flattenedProps = new HashMap<>();
         flatten("", props, flattenedProps);
@@ -856,6 +859,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return new CommandParserConfigImpl(nestedProps(CommandParserConfigImpl.ROOT));
     }
 
+    private SlowTransactionsConfig initSlowTransactionsConfig() {
+        Map<String, Object> props = nestedProps(SLOW_TRANSACTIONS);
+        return new SlowTransactionsConfigImpl(props);
+    }
+
     @Override
     public long getApdexTInMillis() {
         return apdexTInMillis;
@@ -1065,6 +1073,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public InfiniteTracingConfig getInfiniteTracingConfig() {
         return infiniteTracingConfig;
+    }
+
+    @Override
+    public SlowTransactionsConfig getSlowTransactionsConfig() {
+        return slowTransactionsConfig;
     }
 
     private Object findPropertyInMap(String[] property, Map<String, Object> map) {

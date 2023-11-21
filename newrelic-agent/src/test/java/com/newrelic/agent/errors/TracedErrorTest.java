@@ -9,6 +9,7 @@ package com.newrelic.agent.errors;
 
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.MockCoreService;
+import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.config.ErrorCollectorConfig;
 import com.newrelic.agent.config.StripExceptionConfigImpl;
@@ -16,12 +17,16 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -380,6 +385,64 @@ public class TracedErrorTest {
         assertNotNull(serializedError);
         JSONObject params = (JSONObject) serializedError.get(4);
         assertNotNull(params.get("stack_trace"));
+    }
+
+    @Test
+    public void writeJsonString_whenTraceIsWithinTxn_reportsTxnGuid() {
+        Throwable throwable = new Throwable();
+        ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
+                .getErrorCollectorConfig();
+        TracedError error = ThrowableError
+                .builder(errorCollectorConfig, "appName", "metricName", throwable, 100)
+                .requestUri("requestUri")
+                .transactionGuid("123456")
+                .build();
+
+        JSONArray errorAsJson = convertTracedErrorToJsonArray(error);
+
+        assertEquals(6, errorAsJson.size());
+        assertEquals(100L, errorAsJson.get(0));
+        assertEquals("metricName", errorAsJson.get(1));
+        assertEquals("", errorAsJson.get(2));
+        assertEquals("java.lang.Throwable", errorAsJson.get(3));
+        assertTrue(errorAsJson.get(4) instanceof JSONObject);
+        assertEquals("123456", errorAsJson.get(5));
+    }
+
+    @Test
+    public void writeJsonString_whenTraceIsNotWithinTxn_reportsTxnGuid() {
+        Throwable throwable = new Throwable();
+        ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
+                .getErrorCollectorConfig();
+        TracedError error = ThrowableError
+                .builder(errorCollectorConfig, "appName", "metricName", throwable, 100)
+                .requestUri("requestUri")
+                .transactionData(null)
+                .build();
+
+        JSONArray errorAsJson = convertTracedErrorToJsonArray(error);
+
+        assertEquals(5, errorAsJson.size());
+        assertEquals(100L, errorAsJson.get(0));
+        assertEquals("metricName", errorAsJson.get(1));
+        assertEquals("", errorAsJson.get(2));
+        assertEquals("java.lang.Throwable", errorAsJson.get(3));
+        assertTrue(errorAsJson.get(4) instanceof JSONObject);
+    }
+
+    private JSONArray convertTracedErrorToJsonArray(TracedError tracedError) {
+        // Write out the error to a String then convert back to JSONArray to do asserts
+        JSONArray result = null;
+        try {
+            StringWriter sw = new StringWriter();
+            tracedError.writeJSONString(sw);
+            JSONParser parser = new JSONParser();
+            result = (JSONArray) parser.parse(sw.toString());
+        } catch (Exception e) {
+            // Eat it
+        }
+
+        return result;
     }
 
     private String findNextCausedBy(Iterator<String> it) {

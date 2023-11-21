@@ -4,6 +4,159 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.7.0
+## New features and improvements
+
+* Adds support for Java 21 [1546](https://github.com/newrelic/newrelic-java-agent/pull/1546)
+* Add experimental config option to run the agent with unsupported java versions [1480](https://github.com/newrelic/newrelic-java-agent/pull/1480)
+* Add intrinsic attribute thread.id to spans to allow for faceting queries by thread ID [1513](https://github.com/newrelic/newrelic-java-agent/pull/1513)
+* Include stack traces in client spans [1507](https://github.com/newrelic/newrelic-java-agent/pull/1507)
+* Adds support for getting the containerId from a docker container with Linux cgroup v2. [1529](https://github.com/newrelic/newrelic-java-agent/pull/1529)
+* Add database and external span attributes to correlate to metric data in accordance with Open Telemetry specs. Certain old attributes are removed. [1525](https://github.com/newrelic/newrelic-java-agent/pull/1525)
+
+  #### New attributes:
+  * `db.system`
+  * `db.operation`
+  * `db.collection`
+  * `server.address`
+  * `server.port`
+ 
+  #### Removed attributes:
+  * `component`
+  * `peer.hostname`
+* Add slow transaction detection which can be configured. It is disabled by default. [1542](https://github.com/newrelic/newrelic-java-agent/pull/1542)
+E.g:
+  ```yaml
+  slow_transactions:
+    enabled: true
+    threshold: 1000 # The threshold is measured in milliseconds
+  ```
+*  Add instrumentation for r2dbc postgresql 0.9.2 to 0.9.x [1410](https://github.com/newrelic/newrelic-java-agent/pull/1410)
+* Security Agent: Add new configuration to enable/disable low priority instrumentation `security.low-priority-instrumentation.enabled` for the CSEC agent. Default value is false. [1515](https://github.com/newrelic/newrelic-java-agent/pull/1515)
+* Security Agent: Cassandra DB v3.0+ Support: The Security agent now supports Cassandra DB version 3.0 and above [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: HttpClient v5.0+ Support: The Security agent now also supports HttpClient version 5.0 and above [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: Support for std-out logging [122](https://github.com/newrelic/csec-java-agent/pull/122) 
+* Security Agent: Added feature for Daily log rollover [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: Support for logger config: log_file_count and log_limit_in_kbytes [122](https://github.com/newrelic/csec-java-agent/pull/122)
+* Security Agent: Relocating all our instrumentation packages under the package `com.newrelic.agent.security.instrumentation.*`  [122](https://github.com/newrelic/csec-java-agent/pull/122) 
+
+
+## Fixes
+
+* Fixed a bug where a ClassCircularityError was thrown by Sonarqube9.9 [1522](https://github.com/newrelic/newrelic-java-agent/pull/1522)
+* Fix a bug where the Java agent fails to detect `spring-security-oauth2-client.jar` [1462](https://github.com/newrelic/newrelic-java-agent/pull/1462)
+* Fix a bug where Spring 6/ Spring Boot3 does not report underlying exception/stacktrace when a @RestControllerAdvice class is used [1538](https://github.com/newrelic/newrelic-java-agent/pull/1538)
+* Fix HttpUrlConnection instrumentation so segment timing is accurate [1537](https://github.com/newrelic/newrelic-java-agent/pull/1537)
+* Fixes a bug in Spring 6 instrumentation where transactions are incorrectly named in certain scenarios. [1544](https://github.com/newrelic/newrelic-java-agent/pull/1544)
+Such include: 
+  * "built-in" controllers that don't have `@RestController`-like annotations, e.g. /actuator/health (see [Actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#actuator.endpoints))
+  * custom controllers that don't use `@RestController `directly (e.g. using custom annotations)
+  * requests returning 401s / 404s
+* Add a fix for JBoss EAP / Wildfly where if customers are using the J2EE/Jakarta Management API, the application fails to startup. [1549](https://github.com/newrelic/newrelic-java-agent/pull/1549) 
+  This is done by adding the system property `com.newrelic.jboss.jsr77.fix` and setting it to `true`. 
+  E.g. 
+  ```
+  -Dcom.newrelic.jboss.jsr77.fix=true
+  ``` 
+  Customers using JBoss EAP 7.4+ or Wildfly 23+ will need to manually configure the `io.undertow.servlet` module and add 
+  `java.management` as a dependency. 
+  This translates to doing the following steps: 
+  1. Opening the file `modules/system/layers/base/io/undertow/servlet/main/module.xml` 
+  2. Adding the XML element `<module name="java.management"/>` inside the body of the `<dependencies>` tag
+  
+  Here is what the configured XML file may look like:
+  ```xml
+  <module name="io.undertow.servlet" xmlns="urn:jboss:module:1.9">
+      <resources>
+          <resource-root path="undertow-servlet-2.2.5.Final-redhat-00001.jar"/>
+      </resources>
+
+      <dependencies>
+          <module name="javax.annotation.api"/>
+          <module name="sun.jdk"/>
+          <module name="javax.servlet.api"/>
+          <module name="javax.servlet.jsp.api"/>
+          <module name="javax.servlet.jstl.api"/>
+          <module name="org.jboss.logging"/>
+          <module name="io.undertow.core"/>
+          <module name="org.jboss.xnio"/>
+          <module name="jdk.unsupported"/>
+          <module name="java.management"/>
+      </dependencies>
+  </module>
+  ```
+* Resolve missing class exception on Scala instrumentation [1528](https://github.com/newrelic/newrelic-java-agent/pull/1528)
+* Security Agent: Fixed ClassNotFoundException for IOStreamHelper class with Glassfish [122](https://github.com/newrelic/csec-java-agent/pull/122) 
+
+## Security
+
+* Update agent dependency commons-codec to v1.13 [1548](https://github.com/newrelic/newrelic-java-agent/pull/1548)
+* Update JFR daemon to `1.11.1`. This upgrade updates the underlying OkHttp dependency to version `4.12.0` [1561](https://github.com/newrelic/newrelic-java-agent/pull/1561)
+
+
+## Deprecations
+
+The following instrumentation modules will be removed in the next major release:
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
+
+## Version 8.6.0
+## New features and improvements
+- Support latest Wildfly [#1373](https://github.com/newrelic/newrelic-java-agent/issues/1373)
+
+- Support latest JBoss EAP [#1336](https://github.com/newrelic/newrelic-java-agent/issues/1336)
+
+- Spring Cache instrumentation [#1458](https://github.com/newrelic/newrelic-java-agent/issues/1458)
+
+This new instrumentation module allows you to see how your caches are performing. It provides hit/miss metrics as well as clear and evict.
+Search "Metrics Explorer" for the new metrics:
+```
+Cache/Spring/<cache-provider>/<cache-name>/hits
+Cache/Spring/<cache-provider>/<cache-name>/misses
+Cache/Spring/<cache-provider>/<cache-name>/clear
+Cache/Spring/<cache-provider>/<cache-name>/evict
+```
+
+- Kafka client node metrics [#1338](https://github.com/newrelic/newrelic-java-agent/issues/1338)
+
+This is a new instrumentation for Kafka clients. It provides metrics similar to the existing instrumentation module, but this provides them by node/topic, whereas the existing one only uses topic. This module is disabled by default, check its documentation for more information.
+
+- Kafka client config events [#1338](https://github.com/newrelic/newrelic-java-agent/issues/1338)
+
+This new instrumentation module sends the Kafka configuration as events periodically.
+
+- Improved Struts 2 instrumentation [#1457](https://github.com/newrelic/newrelic-java-agent/issues/1457)
+
+The Struts 2 instrumentation has been refactored to use a newer instrumentation technique, which allows it to be disabled.
+
+- Improved code-level metrics for Servlets. [#1394](https://github.com/newrelic/newrelic-java-agent/issues/1394)
+- Security Agent: Support for Apache log4j 3.0.0-alpha1.
+- Security Agent: Support for Commons.jxpath.
+- Security Agent: Add agent monitoring details and matrix to health check.
+- Security Agent: Limiting the supported version range for Jetty.
+
+## Fixes
+
+- Fixed a bug in the Spring instrumentation when OpenFeign was used. [#1197](https://github.com/newrelic/newrelic-java-agent/issues/1197)
+- Fixed a bug where utility classes were not weaved. [#1073](https://github.com/newrelic/newrelic-java-agent/issues/1073)
+- Fixed a bug where the agent would not properly send its dependencies. [#1340](https://github.com/newrelic/newrelic-java-agent/issues/1340)
+- Security Agent: Issue with HealthChecking having empty process stats issue
+
+
+## Deprecations
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+  
 ## Version 8.5.0
 ## New features and improvements
 - Kafka Connect instrumentation: Adds [metrics](https://docs.newrelic.com/docs/apm/agents/java-agent/instrumentation/java-agent-instrument-kafka-message-queues/#view-kafka-metrics) and [transaction tracing](https://docs.newrelic.com/docs/apm/agents/java-agent/instrumentation/java-agent-instrument-kafka-message-queues/#collect-kafka-connect-transactions) for version 2.0.0+ [#1324](https://github.com/newrelic/newrelic-java-agent/pull/1324)

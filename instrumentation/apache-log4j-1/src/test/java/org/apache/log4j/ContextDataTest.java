@@ -10,8 +10,10 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.model.LogEvent;
+import com.newrelic.test.marker.Java21IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Collection;
@@ -19,6 +21,8 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
+// Log4J1 has a quirk with Java 21(.0.0), maybe this will work when 21.0.1 is released
+@Category({Java21IncompatibleTest.class})
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"org.apache.log4j"}, configName = "application_logging_context_data_enabled.yml")
 public class ContextDataTest {

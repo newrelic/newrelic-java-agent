@@ -63,6 +63,8 @@ public interface Agent {
      */
     Insights getInsights();
 
+    ErrorApi getErrorApi();
+
     /**
      * Provides access to the Trace Metadata API for details about the currently executing distributed trace.
      *

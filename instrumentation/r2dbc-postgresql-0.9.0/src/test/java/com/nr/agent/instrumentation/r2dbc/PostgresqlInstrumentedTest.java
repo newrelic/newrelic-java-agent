@@ -16,6 +16,7 @@ import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
 
 import static org.junit.Assert.assertEquals;
 import static ru.yandex.qatools.embed.postgresql.distribution.Version.Main.V9_6;
+import static ru.yandex.qatools.embed.postgresql.util.SocketUtil.findFreePort;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "io.r2dbc.postgresql")
@@ -27,7 +28,7 @@ public class PostgresqlInstrumentedTest {
     @Before
     public void setup() throws Exception {
         String databaseName = "Postgres" + System.currentTimeMillis();
-        final String url = postgres.start("localhost", 5432, databaseName, "user", "password");
+        final String url = postgres.start("localhost", findFreePort(), databaseName, "user", "password");
         final String updatedUrl = url.replace("jdbc", "r2dbc").replace("localhost", "user:password@localhost").replace("?user=user&password=password", "");
         ConnectionFactory connectionFactory = ConnectionFactories.get(updatedUrl);
         connection = Mono.from(connectionFactory.create()).block();

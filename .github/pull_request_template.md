@@ -14,6 +14,6 @@ Github Actions when a pull request is made. More details on running the tests lo
 
 ### Checks
 
-[ ] Are your contributions backwards compatible with relevant frameworks and APIs?
-[ ] Does your code contain any breaking changes? Please describe. 
-[ ] Does your code introduce any new dependencies? Please describe.
+- [ ] Your contributions are backwards compatible with relevant frameworks and APIs.
+- [ ] Your code does not contain any breaking changes. Otherwise please describe. 
+- [ ] Your code does not introduce any new dependencies. Otherwise please describe.

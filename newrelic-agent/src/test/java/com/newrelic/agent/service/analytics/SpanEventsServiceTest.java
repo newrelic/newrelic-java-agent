@@ -125,7 +125,7 @@ public class SpanEventsServiceTest {
                 .setDecider(true)
                 .setPriority(1.23f)
                 .setDurationInSeconds(1.3f)
-                .setHostName("yourHost")
+                .setServerAddress("yourHost")
                 .setTraceId("gnisnacirema")
                 .setGuid("globallyuniqueidentifier")
                 .setSampled(true)

@@ -59,6 +59,12 @@ dependencies {
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
 
+    shadowIntoJar( group: 'commons-codec', name: 'commons-codec') {
+        version {
+            strictly "[1.13]"
+        }
+    }
+
     shadowIntoJar project(":agent-interfaces")
     shadowIntoJar project(":agent-model")
     shadowIntoJar(project(":newrelic-weaver"))
@@ -67,7 +73,7 @@ dependencies {
         transitive = false
     }
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
-    shadowIntoJar("com.newrelic:jfr-daemon:1.9.1")
+    shadowIntoJar("com.newrelic:jfr-daemon:1.11.1")
     shadowIntoJar "org.ow2.asm:asm:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-tree:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-commons:$asmVersion"

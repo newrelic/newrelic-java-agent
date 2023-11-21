@@ -38,9 +38,10 @@ public class ThrowableError extends TracedError {
             Map<String, ?> errorParams,
             Map<String, ?> intrinsics,
             TransactionData transactionData,
-            boolean expected) {
+            boolean expected,
+            String transactionGuid) {
         super(errorCollectorConfig, appName, frontendMetricName, timestamp, requestUri, prefixedParams, userParams,
-                agentParams, errorParams, intrinsics, transactionData, expected);
+                agentParams, errorParams, intrinsics, transactionData, expected, transactionGuid);
 
         this.errorMessageReplacer = errorMessageReplacer;
         this.throwable = error;
@@ -64,7 +65,7 @@ public class ThrowableError extends TracedError {
         public ThrowableError build() {
             return new ThrowableError(errorCollectorConfig, errorMessageReplacer, appName, frontendMetricName, requestUri, throwable,
                     timestampInMillis, prefixedAttributes, userAttributes, agentAttributes, errorAttributes,
-                    intrinsicAttributes, transactionData, expected);
+                    intrinsicAttributes, transactionData, expected, transactionGuid);
         }
     }
 

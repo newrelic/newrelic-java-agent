@@ -205,6 +205,20 @@ class NoOpAgent implements Agent {
         }
     };
 
+    private static final ErrorApi ERROR_API = new ErrorApi() {
+        @Override
+        public void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
+        }
+
+        @Override
+        public void noticeError(String message, Map<String, ?> params, boolean expected) {
+        }
+
+        @Override
+        public void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {
+        }
+    };
+
     private static final Logger LOGGER = new Logger() {
 
         @Override
@@ -442,6 +456,11 @@ class NoOpAgent implements Agent {
     @Override
     public Insights getInsights() {
         return INSIGHTS;
+    }
+
+    @Override
+    public ErrorApi getErrorApi() {
+        return ERROR_API;
     }
 
     @Override

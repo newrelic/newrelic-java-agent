@@ -36,6 +36,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void recordMetric(String name, float value) {
+        getAgent().getMetricAggregator().recordMetric(name, value);
     }
 
     /**
@@ -46,6 +47,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void recordResponseTimeMetric(String name, long millis) {
+        getAgent().getMetricAggregator().recordMetric(name, millis);
     }
 
     /**
@@ -55,6 +57,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void incrementCounter(String name) {
+        getAgent().getMetricAggregator().incrementCounter(name);
     }
 
     /**
@@ -65,6 +68,7 @@ public final class NewRelic {
      * @since 2.21.0
      */
     public static void incrementCounter(String name, int count) {
+        getAgent().getMetricAggregator().incrementCounter(name, count);
     }
 
     // ************************** Error API ***********************************//
@@ -86,6 +90,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void noticeError(Throwable throwable, Map<String, ?> params) {
+        getAgent().getErrorApi().noticeError(throwable, params);
     }
 
     /**
@@ -96,6 +101,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void noticeError(Throwable throwable) {
+        getAgent().getErrorApi().noticeError(throwable);
     }
 
     /**
@@ -115,6 +121,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void noticeError(String message, Map<String, ?> params) {
+        getAgent().getErrorApi().noticeError(message, params);
     }
 
     /**
@@ -127,6 +134,7 @@ public final class NewRelic {
      * @since 2.21.0
      */
     public static void noticeError(String message) {
+        getAgent().getErrorApi().noticeError(message);
     }
 
     /**
@@ -149,6 +157,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(Throwable throwable, Map<String, ?> params, boolean expected) {
+        getAgent().getErrorApi().noticeError(throwable, params, expected);
     }
 
     /**
@@ -162,6 +171,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(Throwable throwable, boolean expected) {
+        getAgent().getErrorApi().noticeError(throwable, expected);
     }
 
     /**
@@ -184,6 +194,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(String message, Map<String, ?> params, boolean expected) {
+        getAgent().getErrorApi().noticeError(message, params, expected);
     }
 
     /**
@@ -199,6 +210,7 @@ public final class NewRelic {
      * @since 3.38.0
      */
     public static void noticeError(String message, boolean expected) {
+        getAgent().getErrorApi().noticeError(message, expected);
     }
 
     // **************************** Transaction APIs ********************************//
@@ -290,6 +302,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void ignoreTransaction() {
+        getAgent().getTransaction().ignore();
     }
 
     /**
@@ -298,6 +311,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void ignoreApdex() {
+        getAgent().getTransaction().ignoreApdex();
     }
 
     /**
@@ -439,7 +453,7 @@ public final class NewRelic {
      * @since 8.10.0
      */
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback){
-
+        getAgent().getErrorApi().setErrorGroupCallback(errorGroupCallback);
     }
 
 }

@@ -14,10 +14,10 @@ import java.util.regex.Pattern;
  */
 public class JavaVersionUtils {
     // For Java 21 - 29, the regex should be updated to utilize a range like the 10-19 version check does
-    private static final Pattern SUPPORTED_JAVA_VERSION_PATTERN = Pattern.compile("^(1\\.8|9|1[0-9]|20)$");
+    private static final Pattern SUPPORTED_JAVA_VERSION_PATTERN = Pattern.compile("^(1\\.8|9|1[0-9]|2[0-1])$");
     private static final Pattern EXCLUSIVE_MIN_JAVA_VERSION_PATTERN = Pattern.compile("^1\\.7$");
-    private static final Pattern EXCLUSIVE_MAX_JAVA_VERSION_PATTERN = Pattern.compile("^21$");
-    private static final String MAX_SUPPORTED_VERSION = "20";
+    private static final Pattern EXCLUSIVE_MAX_JAVA_VERSION_PATTERN = Pattern.compile("^22$");
+    private static final String MAX_SUPPORTED_VERSION = "21";
 
     public static final String JAVA_7 = "1.7";
     public static final String JAVA_8 = "1.8";
@@ -34,6 +34,7 @@ public class JavaVersionUtils {
     public static final String JAVA_19 = "19";
     public static final String JAVA_20 = "20";
     public static final String JAVA_21 = "21";
+    public static final String JAVA_22 = "22";
 
 
     public static String getJavaSpecificationVersion() {

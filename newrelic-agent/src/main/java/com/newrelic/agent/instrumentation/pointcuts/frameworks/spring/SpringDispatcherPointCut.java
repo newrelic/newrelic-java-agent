@@ -40,12 +40,17 @@ public class SpringDispatcherPointCut extends TracerFactoryPointCut {
                                 RENDER_METHOD_NAME,
                                 "(Lorg/springframework/web/servlet/ModelAndView;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V"),
                         new ExactMethodMatcher("doDispatch",
-                                "(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V")));
+                                "(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V"),
+                        new ExactMethodMatcher(
+                                RENDER_METHOD_NAME,
+                                "(Lorg/springframework/web/servlet/ModelAndView;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V"),
+                        new ExactMethodMatcher("doDispatch",
+                                "(Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V")));
     }
 
     @Override
     public Tracer doGetTracer(Transaction transaction, ClassMethodSignature sig, Object dispatcher, Object[] args) {
-        if (RENDER_METHOD_NAME == sig.getMethodName()) {
+        if (RENDER_METHOD_NAME.equals(sig.getMethodName())) {
             StringBuilder metricName = new StringBuilder("SpringView");
             if (canSetTransactionName(transaction)) {
                 try {

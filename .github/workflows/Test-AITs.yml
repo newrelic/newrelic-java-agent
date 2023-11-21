@@ -70,6 +70,7 @@ jobs:
           echo "r2dbc/mssql.py" >> $excluded_tests
           echo "server/mule.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
+          echo "basic_features/inf_tracing_test.py" >> $excluded_tests
           # The files below are not tests
           echo "trace/client.py" >> $excluded_tests
           echo "trace/server.py" >> $excluded_tests
@@ -198,7 +199,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: |
-            20
+            21
             17
             11
 
@@ -207,14 +208,14 @@ jobs:
         run: |
           echo "JDK_zulu_11=${JAVA_HOME_11_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_17=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
-          echo "JDK_zulu_20=${JAVA_HOME_20_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_21=${JAVA_HOME_21_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: |
-            20
+            21
             17
             11
             8
@@ -257,10 +258,10 @@ jobs:
             <toolchain>
             <type>jdk</type>
             <provides>
-                    <version>20</version>
+                    <version>21</version>
             </provides>
             <configuration>
-                    <jdkHome>${JAVA_HOME_20_X64}</jdkHome>
+                    <jdkHome>${JAVA_HOME_21_X64}</jdkHome>
             </configuration>
             </toolchain>
           </toolchains>
@@ -291,11 +292,11 @@ jobs:
           bin/pip3 install -r conf/requirements.txt
           ZULU11=${JDK_zulu_11} \
           ZULU17=${JDK_zulu_17} \
-          ZULU20=${JDK_zulu_20} \
+          ZULU21=${JDK_zulu_21} \
           JAVA8JRE=${JAVA_HOME_8_X64} \
           JAVA11JRE=${JAVA_HOME_11_X64} \
           JAVA17JRE=${JAVA_HOME_17_X64} \
-          JAVA20JRE=${JAVA_HOME_20_X64} \
+          JAVA21JRE=${JAVA_HOME_21_X64} \
           conf/autoconfigure
           . conf/testenv java
           cat conf/java_local_config.yml
