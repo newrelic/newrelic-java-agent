@@ -37,8 +37,4 @@ public abstract class Request_Instrumentation implements HttpServletRequest {
         return asyncContext;
     }
 
-    public abstract HttpChannelState getHttpChannelState();
-
-    public abstract Response getResponse();
-
 }

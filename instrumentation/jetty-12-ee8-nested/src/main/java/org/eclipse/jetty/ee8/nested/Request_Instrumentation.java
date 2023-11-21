@@ -1,19 +1,17 @@
-package org.eclipse.jetty.ee9.nested;
+package org.eclipse.jetty.ee8.nested;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.jetty.ee9.nested.AsyncListenerFactory;
+import com.nr.agent.instrumentation.jetty.ee8.nested.AsyncListenerFactory;
+
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.internal.HttpChannelState;
-
 import java.util.logging.Level;
 
-@Weave(originalName = "org.eclipse.jetty.ee9.nested.Request")
+@Weave(originalName = "org.eclipse.jetty.ee8.nested.Request")
 public abstract class Request_Instrumentation implements HttpServletRequest {
 
     @Override
@@ -36,9 +34,5 @@ public abstract class Request_Instrumentation implements HttpServletRequest {
 
         return asyncContext;
     }
-
-    public abstract HttpChannelState getHttpChannelState();
-
-    public abstract Response getResponse();
 
 }

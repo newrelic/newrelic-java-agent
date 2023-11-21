@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.jetty.ee9.nested;
+package com.nr.agent.instrumentation.jetty.ee8.nested;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import javax.servlet.AsyncEvent;
