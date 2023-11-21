@@ -28,7 +28,6 @@ public abstract class Server_Instrumentation {
         return Weaver.callOriginal();
     }
 
-
     public Connector[] getConnectors() {
         return Weaver.callOriginal();
     }

@@ -25,7 +25,7 @@ public class JettySampler implements Runnable {
     public JettySampler(Server_Instrumentation server) {
         this.server = server;
 
-        AgentBridge.publicApi.setServerInfo("jetty", Server.getVersion());
+        AgentBridge.publicApi.setServerInfo("jetty", Server_Instrumentation.getVersion());
 
         reportServerPort(server);
     }
