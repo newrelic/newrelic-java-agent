@@ -325,7 +325,7 @@ The following previously deprecated instrumentation modules were removed:
 - `okhttp-3.4.0`
 - `okhttp-3.5.0`
 
-The previously deprecated `http.responseCode`, `response.status` and `response.statusMessage` transaction/span attributes were removed. These have been replaced by `http.statusCode` and `http.statusText`. If you have any custom dashboards or alerts that query the `http.responseCode`, `response.status`, and `response.statusMessage` attributes then they will need to be updated to instead use `http.statusCode` and `http.statusText`.
+The previously deprecated `httpResponseCode`, `response.status` and `response.statusMessage` transaction/span attributes were removed. These have been replaced by `http.statusCode` and `http.statusText`. If you have any custom dashboards or alerts that query the `http.responseCode`, `response.status`, and `response.statusMessage` attributes then they will need to be updated to instead use `http.statusCode` and `http.statusText`.
 
 ## Version 7.11.1 (2022-11-15)
 
@@ -512,7 +512,7 @@ New Relic recommends that you upgrade the agent regularly to ensure that you're 
 * Support CSP nonce parameter for RUM header and footer [591](https://github.com/newrelic/newrelic-java-agent/pull/591)
 * Fixed an issue with auto app naming and distributed tracing transactions [566](https://github.com/newrelic/newrelic-java-agent/pull/566)
 * Increased maximum `TransactionError` message size [581](https://github.com/newrelic/newrelic-java-agent/issues/581)
-* The `http.responseCode`, `response.status` and `response.statusMessage` transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by `http.statusCode` and `http.statusText` [513](https://github.com/newrelic/newrelic-java-agent/pull/513):
+* The `httpResponseCode`, `response.status` and `response.statusMessage` transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by `http.statusCode` and `http.statusText` [513](https://github.com/newrelic/newrelic-java-agent/pull/513):
 
 ### Support statement:
 * New Relic recommends that you upgrade the agent regularly to ensure that you're getting the latest features and
