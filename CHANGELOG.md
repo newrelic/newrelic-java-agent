@@ -325,7 +325,7 @@ The following previously deprecated instrumentation modules were removed:
 - `okhttp-3.4.0`
 - `okhttp-3.5.0`
 
-The previously deprecated `httpResponseCode`, `response.status` and `response.statusMessage` transaction/span attributes were removed. These have been replaced by `http.statusCode` and `http.statusText`. If you have any custom dashboards or alerts that query the `http.responseCode`, `response.status`, and `response.statusMessage` attributes then they will need to be updated to instead use `http.statusCode` and `http.statusText`.
+The previously deprecated `httpResponseCode`, `response.status` and `response.statusMessage` transaction/span attributes were removed. These have been replaced by `http.statusCode` and `http.statusText`. If you have any custom dashboards or alerts that query the `httpResponseCode`, `response.status`, and `response.statusMessage` attributes then they will need to be updated to instead use `http.statusCode` and `http.statusText`.
 
 ## Version 7.11.1 (2022-11-15)
 
@@ -353,7 +353,7 @@ The following instrumentation modules have been deprecated for removal:
 - okhttp-3.4.0
 - okhttp-3.5.0
 
-The http.responseCode, response.status and response.statusMessage transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by http.statusCode and http.statusText.
+The httpResponseCode, response.status and response.statusMessage transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by http.statusCode and http.statusText.
 
 **Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v7.11.0...v7.11.1
 
@@ -402,7 +402,7 @@ The following instrumentation modules are being deprecated for removal:
 * okhttp-3.4.0
 * okhttp-3.5.0
 
-The http.responseCode, response.status and response.statusMessage transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by http.statusCode and http.statusText 513
+The httpResponseCode, response.status and response.statusMessage transaction/span attributes are deprecated and will be removed in a future release. These have been replaced by http.statusCode and http.statusText 513
 
 **Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v7.10.0...v7.11.0
 
