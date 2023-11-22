@@ -170,10 +170,13 @@ public class InboundHeaderState {
 
         try {
             // Sample synthetics-info header:
-            // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": "{"keyOne":"valueOne", "keyTwo":"valueTwo", "keyThree":"valueThree" }"}
-            result = new SyntheticsInfoState((String) jsonMap.get("version"), (String) jsonMap.get("type"), (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
+            // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": "{"keyOne":"valueOne",
+            // "keyTwo":"valueTwo", "keyThree":"valueThree" }"}
+            result = new SyntheticsInfoState((String) jsonMap.get("version"), (String) jsonMap.get("type"),
+                    (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
         } catch (RuntimeException rex) { // class cast exception, not enough elements in the JSON map, etc.
-            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
+            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: " +
+                            "{1} in transaction {2}",
             rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
             result = SyntheticsInfoState.NONE;
         }
