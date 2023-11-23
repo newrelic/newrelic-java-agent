@@ -18,8 +18,7 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.util.SafeWrappers;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -45,12 +44,13 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
     public static final long APP_SERVER_PORT_TIMEOUT = 120L;
     // interval between connection attempts
     public static final long MIN_CONNECT_ATTEMPT_INTERVAL = 5L;
-    private final ScheduledExecutorService scheduledExecutor;
+    private static final int MAX_QUEUED_CONNECT_TASKS = 5000;
+    private final ScheduledThreadPoolExecutor scheduledExecutor;
 
     public RPMConnectionServiceImpl() {
         super(RPMConnectionService.class.getSimpleName());
         ThreadFactory threadFactory = new DefaultThreadFactory(RPM_CONNECTION_THREAD_NAME, true);
-        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
+        scheduledExecutor = new ScheduledThreadPoolExecutor(1, threadFactory);
     }
 
     @Override
@@ -97,6 +97,14 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
      */
     public long getAppServerPortTimeout() {
         return APP_SERVER_PORT_TIMEOUT;
+    }
+
+    /**
+     * Checks whether tasks have begun piling up in the scheduled executor's work queue.
+     * Used to prevent repeated reconnect attempts in the event of a LicenseException.
+     */
+    public boolean shouldPreventNewConnectionTask(){
+        return scheduledExecutor.getQueue().size() > MAX_QUEUED_CONNECT_TASKS;
     }
 
     /**
