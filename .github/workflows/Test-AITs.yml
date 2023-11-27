@@ -328,22 +328,28 @@ jobs:
           path: |
             agent-integration-tests/testing-artifacts/*
 
-      # we can skip this, I think
       - name: Upload negative value artifact
         uses: actions/upload-artifact@v3
         with:
-          name: negative_value.txt
-          path: ${{ github.workspace }}/negative_value.txt
+          path: ${{ github.workspace }}/negative_value_*.txt
           if-no-files-found: ignore
 
-      - name: Notify Slack if negative value
-        if: ${{ hashFiles('**/negative_value.txt') != '' }}
+  notify-failure:
+    needs: [tests]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download artifact(s) # surely there is a way to only download the negative_value_*.txt artifacts?
+        uses: actions/download-artifact@master
+        with:
+          if-no-files-found: ignore
+      - name: Send failure message to Slack
+        if: ${{ hashFiles('**/negative_value_*.txt') != '' }}
         id: slack
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |
             {
-              "test": "Negative value detected in AIT: ${MATRIX_ITEM} (Not really this time, just testing alerts)",
+              "test": "Negative value detected in AIT run.  Check the artifacts for which test had it.  (Not really this time, just testing alerts)",
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
