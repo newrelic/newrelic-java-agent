@@ -340,7 +340,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Send failure message to Slack
-        if: ${{ hashFiles('negative_value.txt') != '' }}
+        if: ${{ hashFiles('**/negative_value.txt') != '' }}
         id: slack
         uses: slackapi/slack-github-action@v1.23.0
         with:
