@@ -158,7 +158,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
 
     @Override
     public Map<String, String> getLinkingMetadata() {
-        return AgentLinkingMetadata.getLinkingMetadata(getTraceMetadata(), ServiceFactory.getConfigService(), ServiceFactory.getRPMService());
+        return AgentLinkingMetadata.getLinkingMetadata(
+                getTraceMetadata(),
+                ServiceFactory.getConfigService(),
+                ServiceFactory.getRPMServiceManager() != null ? ServiceFactory.getRPMServiceManager().getRPMService() : null
+        );
     }
 
 }
