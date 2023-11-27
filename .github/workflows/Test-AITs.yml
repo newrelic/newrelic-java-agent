@@ -354,8 +354,8 @@ jobs:
         with:
           payload: |
             {
-              "test": "Negative value detected in AIT run.  Check the artifacts for which test had it.  (Not really this time, just testing alerts)",
+              "message": "Negative value detected in AIT run.  Check the artifacts for which test had it.  (Not really this time, just testing alerts)",
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.NEGATIVE_VALUE_SLACK_WEBHOOK_URL }}
