@@ -276,6 +276,11 @@ jobs:
       - name: CD to agent-integration-tests dir.
         run: cd agent-integration-tests/
 
+      - name: Set Test Name Env Var
+        run: |
+          TEST_NAME=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
+          echo "TEST_NAME="${TEST_NAME}"" >> $GITHUB_ENV
+
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run ${{ matrix.tests }}
@@ -314,7 +319,7 @@ jobs:
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
           ./bin/runtest.sh tests/java/functionality/${{ matrix.tests }}
 
-      # Rename matrix item to remove problem characers
+      # Rename matrix item to remove problem characters
       - name: Rename Matrix item
         run: |
           MATRIX_ITEM=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
