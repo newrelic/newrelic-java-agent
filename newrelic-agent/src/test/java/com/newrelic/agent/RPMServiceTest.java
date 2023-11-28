@@ -93,6 +93,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 /**
  * This integration test runs against a mock collector running in embedded jetty, to test the protocol between the Java
@@ -1154,6 +1156,53 @@ public class RPMServiceTest {
         createServiceManager(map);
 
         doTestBadLicense();
+    }
+
+    @Test()
+    public void testBadLicenseWithPreventReconnectFlagStopsReconnect(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("host", "localhost");
+        map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
+        map.put("license_key", "xxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        map.put("ca_bundle_path", "src/test/resources/server.cer");
+        map.put(AgentConfigImpl.APP_NAME, "MyApplication");
+        createServiceManager(map);
+
+        RPMConnectionServiceImpl mockConnectionService = mock(RPMConnectionServiceImpl.class);
+        when(mockConnectionService.shouldPreventNewConnectionTask()).thenReturn(true);
+        ((MockServiceManager) ServiceFactory.getServiceManager()).setRPMConnectionService(mockConnectionService);
+
+        try {
+            doTestBadLicense();
+            fail();
+        } catch(Exception e){
+            assertTrue(e instanceof LicenseException);
+            verify(mockConnectionService, times(0)).connectImmediate(any());
+        }
+    }
+
+    @Test
+    public void testBadLicenseWithoutPreventReconnectFlagAllowsReconnect(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("host", "localhost");
+        map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
+        map.put("license_key", "xxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        map.put("ca_bundle_path", "src/test/resources/server.cer");
+        map.put(AgentConfigImpl.APP_NAME, "MyApplication");
+        createServiceManager(map);
+
+        RPMConnectionServiceImpl mockConnectionService = mock(RPMConnectionServiceImpl.class);
+        when(mockConnectionService.shouldPreventNewConnectionTask()).thenReturn(false);
+        ((MockServiceManager) ServiceFactory.getServiceManager()).setRPMConnectionService(mockConnectionService);
+
+        try {
+            doTestBadLicense();
+            fail();
+        } catch(Exception e){
+            assertTrue(e instanceof LicenseException);
+            verify(mockConnectionService, times(1)).connectImmediate(any());
+        }
+
     }
 
     private void doTestBadLicense() throws Exception {
