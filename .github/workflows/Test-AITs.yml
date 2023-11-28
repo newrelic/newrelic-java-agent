@@ -339,7 +339,7 @@ jobs:
           path: ${{ github.workspace }}/negative_value_*.txt
           if-no-files-found: ignore
 
-  notify-failure:
+  notify-if-negative-values:
     needs: [tests]
     runs-on: ubuntu-20.04
     steps:
@@ -354,7 +354,7 @@ jobs:
         with:
           payload: |
             {
-              "message": "(Not really this time, just testing alerts)... Negative value detected in AIT run.  Check the artifacts named 'negative_value_*.txt'.  This will tell you which test had the negative value, and the contents will list the events.  And, of course, more details can be found in the lost.",
+              "message": "Negative value detected in AIT run.  Check the artifacts named 'negative_value_*.txt'.  This will tell you which test had the negative value, and the contents will list the events.  And, of course, more details can be found in the logs.",
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
