@@ -19,6 +19,7 @@ import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.util.SafeWrappers;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +46,7 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
     // interval between connection attempts
     public static final long MIN_CONNECT_ATTEMPT_INTERVAL = 5L;
     private static final int MAX_QUEUED_CONNECT_TASKS = 5000;
-    private final ScheduledThreadPoolExecutor scheduledExecutor;
+    private final ScheduledExecutorService scheduledExecutor;
 
     public RPMConnectionServiceImpl() {
         super(RPMConnectionService.class.getSimpleName());
@@ -104,7 +105,7 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
      * Used to prevent repeated reconnect attempts in the event of a LicenseException.
      */
     public boolean shouldPreventNewConnectionTask(){
-        return scheduledExecutor.getQueue().size() > MAX_QUEUED_CONNECT_TASKS;
+        return ((ScheduledThreadPoolExecutor) scheduledExecutor).getQueue().size() > MAX_QUEUED_CONNECT_TASKS;
     }
 
     /**
