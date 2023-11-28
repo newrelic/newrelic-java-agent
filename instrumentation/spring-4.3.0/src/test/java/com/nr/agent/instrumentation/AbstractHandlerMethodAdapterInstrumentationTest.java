@@ -2,6 +2,7 @@ package com.nr.agent.instrumentation;
 
 import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.Logger;
@@ -25,6 +26,7 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
     Agent originalAgent = AgentBridge.getAgent();
     Agent mockAgent = mock(Agent.class);
     Logger mockLogger = mock(Logger.class);
+    TracedMethod mockTracedMethod = mock(TracedMethod.class);
 
 
     @Before
@@ -49,11 +51,14 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
         Transaction mockTxn = mock(Transaction.class);
 
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
+        when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockReq.getMethod()).thenReturn("GET");
 
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController", "/root/get (GET)");
+        verify(mockTxn).getTracedMethod();
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get (GET)");
+        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.AbstractHandlerMethodAdapterInstrumentationTest$ControllerClassWithInterface/get");
     }
 
     @Test
@@ -66,11 +71,15 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
         Transaction mockTxn = mock(Transaction.class);
 
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
+        when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockReq.getMethod()).thenReturn("GET");
 
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController", "/root/get/{id} (GET)");
+        verify(mockTxn).getTracedMethod();
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get/{id} (GET)");
+        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.AbstractHandlerMethodAdapterInstrumentationTest$ControllerClassWithInterface/getParam");
+
     }
 
     @Test
@@ -84,11 +93,14 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
         Transaction mockTxn = mock(Transaction.class);
 
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
+        when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockReq.getMethod()).thenReturn("GET");
 
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController", "/root/get (GET)");
+        verify(mockTxn).getTracedMethod();
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get (GET)");
+        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.AbstractHandlerMethodAdapterInstrumentationTest$ControllerNoInterfaceWithRequestMappings/get");
     }
 
     @Test
@@ -102,11 +114,14 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
         Transaction mockTxn = mock(Transaction.class);
 
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
+        when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockReq.getMethod()).thenReturn("GET");
 
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController", "/root/get/{id} (GET)");
+        verify(mockTxn).getTracedMethod();
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get/{id} (GET)");
+        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.AbstractHandlerMethodAdapterInstrumentationTest$ControllerNoInterfaceWithRequestMappings/getParam");
     }
 
     @Test
@@ -120,11 +135,14 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
         Transaction mockTxn = mock(Transaction.class);
 
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
+        when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockReq.getMethod()).thenReturn("POST");
 
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController", "/post (POST)");
+        verify(mockTxn).getTracedMethod();
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/post (POST)");
+        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.AbstractHandlerMethodAdapterInstrumentationTest$ControllerNoInterfaceGetPostMappings/post");
     }
 
     @Test
@@ -138,12 +156,15 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
         Transaction mockTxn = mock(Transaction.class);
 
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
+        when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockReq.getMethod()).thenReturn("GET");
 
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
+        verify(mockTxn).getTracedMethod();
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController",
                 "/NoAnnotationController/get");
+        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.AbstractHandlerMethodAdapterInstrumentationTest$NoAnnotationController/get");
     }
 
     @Test
@@ -157,12 +178,15 @@ public class AbstractHandlerMethodAdapterInstrumentationTest {
         Transaction mockTxn = mock(Transaction.class);
 
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
+        when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockReq.getMethod()).thenReturn("GET");
 
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "SpringController",
+        verify(mockTxn).getTracedMethod();
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController",
                 "/extend (GET)");
+        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.AbstractHandlerMethodAdapterInstrumentationTest$ControllerExtendingAbstractClass/extend");
     }
 
     //Interfaces/classes used to test various mapping annotation scenarios

@@ -33,6 +33,9 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
             String rootPath = null;
             String methodPath = null;
 
+            //Set the metric name for this @Trace to the target controller method
+            SpringControllerUtility.setTracedMethodMetricName(transaction, controllerClass, controllerMethod);
+
             //Handle typical controller methods with class and method annotations. Those annotations
             //can come from implemented interfaces, extended controller classes or be on the controller class itself.
             //Note that only RequestMapping mapping annotations can apply to a class (not Get/Post/etc)
@@ -42,7 +45,7 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
             methodPath = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(controllerMethod);
 
             if (rootPath != null || methodPath != null) {
-                SpringControllerUtility.assignTransactionNameFromControllerAndMethodRoute(transaction, httpMethod, rootPath, methodPath);
+                SpringControllerUtility.assignTransactionNameFromControllerAndMethodRoutes(transaction, httpMethod, rootPath, methodPath);
             } else {
                 //Name based on class + method
                 SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
