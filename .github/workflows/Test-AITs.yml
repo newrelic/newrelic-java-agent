@@ -354,7 +354,7 @@ jobs:
         with:
           payload: |
             {
-              "message": "Negative value detected in AIT run.  Check the artifacts for which test had it.  (Not really this time, just testing alerts)",
+              "message": "(Not really this time, just testing alerts)... Negative value detected in AIT run.  Check the artifacts named 'negative_value_*.txt'.  This will tell you which test had the negative value, and the contents will list the events.  And, of course, more details can be found in the lost.",
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
