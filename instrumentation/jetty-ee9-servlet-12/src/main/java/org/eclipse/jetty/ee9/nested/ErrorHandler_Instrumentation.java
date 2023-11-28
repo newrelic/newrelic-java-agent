@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Weave(type = MatchType.ExactClass, originalName = "org.eclipse.jetty.ee9.nested.ErrorHandler")
 public abstract class ErrorHandler_Instrumentation {
     @NewField
-    private static final String EXCEPTION_ATTRIBUTE_NAME = "javax.servlet.error.exception";
+    private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
 
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         final Throwable throwable = (Throwable) request.getAttribute(EXCEPTION_ATTRIBUTE_NAME);

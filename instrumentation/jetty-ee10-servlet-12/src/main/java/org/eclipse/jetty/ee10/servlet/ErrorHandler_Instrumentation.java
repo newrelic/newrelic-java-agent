@@ -19,7 +19,7 @@ import org.eclipse.jetty.util.Callback;
 @Weave(type = MatchType.ExactClass, originalName = "org.eclipse.jetty.ee10.servlet.ErrorHandler")
 public abstract class ErrorHandler_Instrumentation {
     @NewField
-    private static final String EXCEPTION_ATTRIBUTE_NAME = "javax.servlet.error.exception";
+    private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
 
     public boolean handle(Request request, Response response, Callback callback) {
         final Throwable throwable = (Throwable) request.getAttribute(EXCEPTION_ATTRIBUTE_NAME);
