@@ -12,6 +12,7 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.agent.instrumentation.jetty.ee10.servlet.ServerHelper;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
@@ -22,7 +23,7 @@ public abstract class ErrorHandler_Instrumentation {
     private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
 
     public boolean handle(Request request, Response response, Callback callback) {
-        final Throwable throwable = (Throwable) request.getAttribute(EXCEPTION_ATTRIBUTE_NAME);
+        final Throwable throwable = ServerHelper.getRequestError(request);
 
         // call the original implementation
         try {

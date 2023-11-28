@@ -12,8 +12,15 @@ public class ServletChannel_Instrumentation {
     private final ServletRequestState _state = Weaver.callOriginal();
 
     public void sendResponseAndComplete() {
-        NewRelic.getAgent().getTransaction().addOutboundResponseHeaders();
-        Weaver.callOriginal();
+        ServletContextRequest servletContextRequest = getServletContextRequest();
+        Throwable throwable = ServerHelper.getRequestError(servletContextRequest);
+        try {
+            Weaver.callOriginal();
+        } finally {
+            if (throwable != null) {
+                NewRelic.noticeError(throwable);
+            }
+        }
     }
 
     private class RequestDispatchable implements ServletChannel.Dispatchable {
