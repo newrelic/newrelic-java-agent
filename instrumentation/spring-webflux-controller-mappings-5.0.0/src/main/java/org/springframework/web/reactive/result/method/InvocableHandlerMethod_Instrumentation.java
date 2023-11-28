@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.agent.instrumentation;
+package org.springframework.web.reactive.result.method;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
@@ -12,24 +12,30 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.ModelAndView;
+import com.nr.agent.instrumentation.web.reactive.SpringControllerUtility;
+import org.springframework.web.reactive.BindingContext;
+import org.springframework.web.reactive.HandlerResult;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 
-@Weave(type = MatchType.BaseClass, originalName = "org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter")
-public class AbstractHandlerMethodAdapter_Instrumentation {
+@Weave(type = MatchType.ExactClass, originalName = "org.springframework.web.reactive.result.method.InvocableHandlerMethod")
+public abstract class InvocableHandlerMethod_Instrumentation {
+
+    abstract protected Method getBridgedMethod();
+
+    abstract public Class<?> getBeanType();
+
     @Trace
-    protected ModelAndView handleInternal(HttpServletRequest request,
-            HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
+    public Mono<HandlerResult> invoke(
+            ServerWebExchange exchange, BindingContext bindingContext, Object... providedArgs) {
         Transaction transaction = AgentBridge.getAgent().getTransaction(false);
 
         if (transaction != null) {
-            Class<?> controllerClass = handlerMethod.getBeanType();
-            Method controllerMethod = handlerMethod.getMethod();
-            String httpMethod = request.getMethod();
+            Class<?> controllerClass = getBeanType();
+            Method controllerMethod = getBridgedMethod();
+            String httpMethod = exchange.getRequest().getMethodValue();
             String rootPath = null;
             String methodPath = null;
 
