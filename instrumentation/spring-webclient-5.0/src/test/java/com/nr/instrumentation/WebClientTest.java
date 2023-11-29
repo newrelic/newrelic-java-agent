@@ -285,7 +285,7 @@ public class WebClientTest {
         assertEquals(1, introspector.getFinishedTransactionCount(TIMEOUT));
         assertTrue(introspector.getTransactionNames().contains(txnName));
 
-        Collection<ExternalExternalRequestRequest> externalRequests = introspector.getExternalRequests(txnName);
+        Collection<ExternalRequest> externalRequests = introspector.getExternalRequests(txnName);
         Assert.assertEquals(1, externalRequests.size());
         ExternalRequest externalRequest = externalRequests.iterator().next();
         Assert.assertEquals("Spring-WebClient", externalRequest.getLibrary());
