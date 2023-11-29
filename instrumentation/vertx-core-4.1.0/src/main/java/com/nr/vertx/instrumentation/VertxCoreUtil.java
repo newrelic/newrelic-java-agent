@@ -41,9 +41,9 @@ public class VertxCoreUtil {
         }
     }
 
-    public static void linkAndExpireToken(Listener handler) {
-        if (handler != null) {
-            final Token token = tokenMap.remove(handler);
+    public static void linkAndExpireToken(Listener listener) {
+        if (listener != null) {
+            final Token token = tokenMap.remove(listener);
             if (token != null) {
                 token.linkAndExpire();
             }

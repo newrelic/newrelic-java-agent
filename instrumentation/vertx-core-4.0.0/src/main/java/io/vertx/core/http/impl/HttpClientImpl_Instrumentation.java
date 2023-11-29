@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.vertx.core.http.impl;
 
 import com.newrelic.api.agent.NewRelic;

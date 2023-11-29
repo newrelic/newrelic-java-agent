@@ -31,20 +31,6 @@ public abstract class HttpClientRequestBase_Instrumentation {
 
     public abstract MultiMap headers();
 
-//    @Trace(async = true)
-//    public HttpClientRequest response(Handler<AsyncResult<HttpClientResponse>> handler) {
-//        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response  " + handler);
-//        if (AgentBridge.getAgent().getTransaction(false) != null) {
-//            this.token = NewRelic.getAgent().getTransaction().getToken();
-//            System.out.println("agent txn: " + NewRelic.getAgent().getTransaction());
-//            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in HttpClientRequest response");
-//            segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
-//            segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
-//        }
-//
-//        return Weaver.callOriginal();
-//    }
-
     @Trace(async = true)
     void handleResponse(Promise<HttpClientResponse> promise, HttpClientResponse resp, long timeoutMs) {
         AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse()");

@@ -27,7 +27,6 @@ public abstract class HttpClientRequestImpl_Instrumentation extends HttpClientRe
 
     public Future<Void> end(Buffer chunk) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in end(Buffer chunk 2");
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
         }
