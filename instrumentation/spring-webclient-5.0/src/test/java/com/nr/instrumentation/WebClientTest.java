@@ -8,7 +8,7 @@
 package com.nr.instrumentation;
 
 import com.newrelic.agent.introspec.CatHelper;
-import com.newrelic.agent.introspec.ExternalRequest;
+import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.agent.introspec.ExternalRequest;
 import com.newrelic.agent.introspec.HttpTestServer;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
