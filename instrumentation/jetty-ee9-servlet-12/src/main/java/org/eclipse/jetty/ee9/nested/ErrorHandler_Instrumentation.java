@@ -13,6 +13,7 @@ import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
+import com.nr.agent.instrumentation.jetty.ee9.servlet.ServerHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -22,7 +23,7 @@ public abstract class ErrorHandler_Instrumentation {
     private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
 
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
-        final Throwable throwable = (Throwable) request.getAttribute(EXCEPTION_ATTRIBUTE_NAME);
+        final Throwable throwable = ServerHelper.getRequestError(request);
 
         // call the original implementation
         Weaver.callOriginal();

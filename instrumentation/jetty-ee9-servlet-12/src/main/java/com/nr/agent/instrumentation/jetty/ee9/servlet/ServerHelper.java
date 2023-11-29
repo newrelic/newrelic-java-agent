@@ -1,35 +1,36 @@
 package com.nr.agent.instrumentation.jetty.ee9.servlet;
 
-import com.newrelic.agent.bridge.AgentBridge;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.ee9.nested.AsyncContextEvent;
+import jakarta.servlet.ServletRequest;
 import org.eclipse.jetty.ee9.nested.Request;
-
-import java.util.logging.Level;
 
 public class ServerHelper {
 
-    public static void preHandle(Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
-        if (request.getDispatcherType() == DispatcherType.ASYNC) {
-            AsyncContextEvent asyncContextEvent = baseRequest.getHttpChannelState().getAsyncContextEvent();
-            if (asyncContextEvent == null) {
-                AgentBridge.getAgent().getLogger().log(Level.FINE, "AsyncContextEvent is null for request: {0}.", request);
-                return;
-            }
-            AgentBridge.asyncApi.resumeAsync(asyncContextEvent.getAsyncContext());
-        } else {
-            AgentBridge.getAgent().getTransaction(true).requestInitialized(new JettyRequest(request),
-                    new JettyResponse(response));
+    public static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
+
+    public static Throwable getRequestError(ServletRequest request) {
+        if (request == null) {
+            return null;
         }
+
+        final Object obj = request.getAttribute(ServerHelper.EXCEPTION_ATTRIBUTE_NAME);
+
+        return castObjectToThrowable(obj);
     }
 
-    public static void postHandle(HttpServletRequest request) {
-        if (request.isAsyncStarted()) {
-            AgentBridge.asyncApi.suspendAsync(request.getAsyncContext());
+    public static Throwable getRequestError(Request request) {
+        if (request == null) {
+            return null;
         }
-        AgentBridge.getAgent().getTransaction().requestDestroyed();
+
+        final Object obj = request.getAttribute(ServerHelper.EXCEPTION_ATTRIBUTE_NAME);
+        return castObjectToThrowable(obj);
+    }
+
+    private static Throwable castObjectToThrowable(Object obj) {
+        if (obj instanceof Throwable) {
+            return (Throwable) obj;
+        }
+        return null;
     }
 
 }

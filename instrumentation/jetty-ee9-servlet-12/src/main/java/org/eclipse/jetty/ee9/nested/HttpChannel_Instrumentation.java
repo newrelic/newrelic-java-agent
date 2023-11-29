@@ -19,14 +19,14 @@ import java.nio.ByteBuffer;
 @Weave(type = MatchType.ExactClass, originalName = "org.eclipse.jetty.ee9.nested.HttpChannel")
 public abstract class HttpChannel_Instrumentation {
 
-    protected boolean sendResponse(MetaData.Response response, ByteBuffer content, boolean complete, final Callback callback) {
-        NewRelic.getAgent().getTransaction().addOutboundResponseHeaders();
-        return Weaver.callOriginal();
-    }
-
-    public boolean sendResponse(MetaData.Response info, ByteBuffer content, boolean complete) {
-        NewRelic.getAgent().getTransaction().addOutboundResponseHeaders();
-        return Weaver.callOriginal();
-    }
+//    protected boolean sendResponse(MetaData.Response response, ByteBuffer content, boolean complete, final Callback callback) {
+//        NewRelic.getAgent().getTransaction().addOutboundResponseHeaders();
+//        return Weaver.callOriginal();
+//    }
+//
+//    public boolean sendResponse(MetaData.Response info, ByteBuffer content, boolean complete) {
+//        NewRelic.getAgent().getTransaction().addOutboundResponseHeaders();
+//        return Weaver.callOriginal();
+//    }
 
 }
