@@ -33,10 +33,7 @@ public abstract class HttpClientRequestBase_Instrumentation {
 
     @Trace(async = true)
     void handleResponse(Promise<HttpClientResponse> promise, HttpClientResponse resp, long timeoutMs) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse()");
         if (segment != null) {
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleResponse() segment != null && this.token != null");
-
             final Token segmentToken = segment.getTransaction().getToken();
             reportExternal(resp, segment);
             segment.end();
@@ -49,7 +46,6 @@ public abstract class HttpClientRequestBase_Instrumentation {
 
     @Trace(async = true)
     void handleException(Throwable t) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "vertx4 in handleException()");
         if (segment != null) {
             if (t instanceof UnknownHostException) {
                 VertxCoreUtil.reportUnknownHost(segment);
