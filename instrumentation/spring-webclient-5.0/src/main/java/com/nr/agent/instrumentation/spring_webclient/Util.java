@@ -62,7 +62,7 @@ public class Util {
                             .uri(uri)
                             .procedure("exchange")
                             .inboundHeaders(new InboundResponseWrapper(clientResponse))
-                            .status(clientResponse.statusCode().value())
+                            .status(clientResponse.statusCode().value(), "" + clientResponse.statusCode().value())
                             .build());
                     segment.end();
                 } catch (Throwable e) {
