@@ -29,9 +29,16 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
         if (transaction != null) {
             Class<?> controllerClass = handlerMethod.getBeanType();
             Method controllerMethod = handlerMethod.getMethod();
+
             String httpMethod = request.getMethod();
-            String rootPath = null;
-            String methodPath = null;
+            if (httpMethod != null) {
+                httpMethod = httpMethod.toUpperCase();
+            } else {
+                httpMethod = "Unknown";
+            }
+
+            String rootPath;
+            String methodPath;
 
             //Set the metric name for this @Trace to the target controller method
             SpringControllerUtility.setTracedMethodMetricName(transaction, controllerClass, controllerMethod);
@@ -42,7 +49,7 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
             rootPath = SpringControllerUtility.retrieveRootMappingPathFromController(controllerClass);
 
             //Retrieve the mapping that applies to the target method
-            methodPath = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(controllerMethod);
+            methodPath = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(controllerMethod, httpMethod);
 
             if (rootPath != null || methodPath != null) {
                 SpringControllerUtility.assignTransactionNameFromControllerAndMethodRoutes(transaction, httpMethod, rootPath, methodPath);

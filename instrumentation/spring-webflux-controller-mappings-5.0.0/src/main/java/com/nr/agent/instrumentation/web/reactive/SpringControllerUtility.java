@@ -38,15 +38,17 @@ public class SpringControllerUtility {
     }
 
     /**
-     * Return the mapping path for the target method by looking for any of the XXXXMapping annotations on the method (this
-     * includes annotations present on implemented interface methods or methods implemented/overridden from extended classes).
-     * The order searched is: @RequestMapping, @PutMapping, @DeleteMapping, @PostMapping, @PatchMapping, @GetMapping. First
-     * one wins.
+     * Return the mapping path for the target method by looking for the XXXXMapping annotation on the method based on the
+     * supplied httpMethod value. These include annotations present on implemented interface methods or methods
+     * implemented/overridden from extended classes.
      *
      * @param method the method to search
+     * @param httpMethod the HTTP method (verb) being invoked (GET, POST, etc)
      * @return the path if available; null otherwise
      */
-    public static String retrieveMappingPathFromHandlerMethod(Method method) {
+    public static String retrieveMappingPathFromHandlerMethod(Method method, String httpMethod) {
+        //Check for a generic RequestMapping annotation. If nothing is found, do a targeted search for the annotation
+        //based on the httpMethod value.
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
         if (requestMapping != null) {
             String pathValue = getPathValue(requestMapping.value(), requestMapping.path());
@@ -54,40 +56,38 @@ public class SpringControllerUtility {
                 return pathValue;
             }
         }
-        PutMapping putMapping = AnnotationUtils.findAnnotation(method, PutMapping.class);
-        if (putMapping != null) {
-            String pathValue = getPathValue(putMapping.value(), putMapping.path());
-            if (pathValue != null) {
-                return pathValue;
-            }
-        }
-        DeleteMapping deleteMapping = AnnotationUtils.findAnnotation(method, DeleteMapping.class);
-        if (deleteMapping != null) {
-            String pathValue = getPathValue(deleteMapping.value(), deleteMapping.path());
-            if (pathValue != null) {
-                return pathValue;
-            }
-        }
-        PostMapping postMapping = AnnotationUtils.findAnnotation(method, PostMapping.class);
-        if (postMapping != null) {
-            String pathValue = getPathValue(postMapping.value(), postMapping.path());
-            if (pathValue != null) {
-                return pathValue;
-            }
-        }
-        PatchMapping patchMapping = AnnotationUtils.findAnnotation(method, PatchMapping.class);
-        if (patchMapping != null) {
-            String pathValue = getPathValue(patchMapping.value(), patchMapping.path());
-            if (pathValue != null) {
-                return pathValue;
-            }
-        }
-        GetMapping getMapping = AnnotationUtils.findAnnotation(method, GetMapping.class);
-        if (getMapping != null) {
-            String pathValue = getPathValue(getMapping.value(), getMapping.path());
-            if (pathValue != null) {
-                return pathValue;
-            }
+
+        switch (httpMethod) {
+            case "PUT":
+                PutMapping putMapping = AnnotationUtils.findAnnotation(method, PutMapping.class);
+                if (putMapping != null) {
+                    return getPathValue(putMapping.value(), putMapping.path());
+                }
+                break;
+            case "DELETE":
+                DeleteMapping deleteMapping = AnnotationUtils.findAnnotation(method, DeleteMapping.class);
+                if (deleteMapping != null) {
+                    return getPathValue(deleteMapping.value(), deleteMapping.path());
+                }
+                break;
+            case "POST":
+                PostMapping postMapping = AnnotationUtils.findAnnotation(method, PostMapping.class);
+                if (postMapping != null) {
+                    return getPathValue(postMapping.value(), postMapping.path());
+                }
+                break;
+            case "PATCH":
+                PatchMapping patchMapping = AnnotationUtils.findAnnotation(method, PatchMapping.class);
+                if (patchMapping != null) {
+                    return getPathValue(patchMapping.value(), patchMapping.path());
+                }
+                break;
+            case "GET":
+                GetMapping getMapping = AnnotationUtils.findAnnotation(method, GetMapping.class);
+                if (getMapping != null) {
+                    return getPathValue(getMapping.value(), getMapping.path());
+                }
+                break;
         }
 
         return null;

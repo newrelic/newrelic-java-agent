@@ -70,6 +70,26 @@ public class MyController extends MyCommonController {
 }
 ```
 
+- A Spring controller annotated with a custom annotation which itself is annotated with `@Controller` or `@RestController` and methods annotated
+  with `@RequestMapping`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` or `@PatchMapping`.
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE})
+@RestController
+public @interface CustomRestControllerAnnotation {
+    //....
+}
+
+@CustomRestControllerAnnotation
+public class TestControllerWithCustomAnnotation {
+    @GetMapping("/custom")
+    public String doGet() {
+        //Do something
+    }
+}
+
+```
+
 The resulting transaction name will be the defined mapping route plus the HTTP method. For example: `root/doGet/{id} (GET)`.
 
 ### Other Controllers Invoked via DispatcherServlet
