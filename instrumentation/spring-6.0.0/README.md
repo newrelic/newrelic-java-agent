@@ -1,6 +1,7 @@
-# spring-4.3.0 Instrumentation Module
+# spring-6.0.0 Instrumentation Module
 
-This module provides instrumentation for Spring Controllers utilizing Spring Web-MVC v6.0.0 to latest.
+This module provides instrumentation for Spring Controllers utilizing Spring Web-MVC v6.0.0 to latest. It is identical to the spring-4.3.0
+module aside from the `javax` to `jakarta` namespace change.
 
 ### Traditional Spring Controllers
 The module will name transactions based on the controller mapping and HTTP method under the following scenarios:
@@ -51,8 +52,8 @@ public class MyController implements MyControllerInterface {
 ```
 
 - A Spring controller class that extends another controller class with/without a class level `@RequestMapping` annotation and methods annotated
-    with `@RequestMapping`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` or `@PatchMapping`. In addition, the controller class
-    can also implement methods not on the parent controller with the same annotations.
+  with `@RequestMapping`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` or `@PatchMapping`. In addition, the controller class
+  can also implement methods not on the parent controller with the same annotations.
 ```java
 @RequestMapping("/root")
 public abstract class MyCommonController {
@@ -69,9 +70,29 @@ public class MyController extends MyCommonController {
 }
 ```
 
+- A Spring controller annotated with a custom annotation which itself is annotated with `@Controller` or `@RestController` and methods annotated
+  with `@RequestMapping`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` or `@PatchMapping`.
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE})
+@RestController
+public @interface CustomRestControllerAnnotation {
+    //....
+}
+
+@CustomRestControllerAnnotation
+public class TestControllerWithCustomAnnotation {
+    @GetMapping("/custom")
+    public String doGet() {
+        //Do something
+    }
+}
+
+```
+
 The resulting transaction name will be the defined mapping route plus the HTTP method. For example: `root/doGet/{id} (GET)`.
 
 ### Other Controllers Invoked via DispatcherServlet
 
-For any other controllers invoked via the `DispatcherServlet` ([Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.enabling) 
-endpoints, for example) will be named based on the controller class name and the executed method. For example: `NonStandardController/someMethod`.
+For any other controllers invoked via the `DispatcherServlet` ([Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.enabling) endpoints, for example)
+will be named based on the controller class name and the executed method. For example: `NonStandardController/myMethod`.
