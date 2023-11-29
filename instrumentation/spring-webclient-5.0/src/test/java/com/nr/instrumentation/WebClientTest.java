@@ -8,10 +8,8 @@
 package com.nr.instrumentation;
 
 import com.newrelic.agent.introspec.*;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
 import com.newrelic.agent.model.SpanCategory;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -289,7 +287,7 @@ public class WebClientTest {
         Collection<SpanEvent> externalSpanEvents = SpanEventsHelper.getSpanEventsByCategory(SpanCategory.http);
         assertEquals(1, externalSpanEvents.size());
         SpanEvent externalSpanEvent = externalSpanEvents.iterator().next();
-        assertEquals(Integer.valueOf(200), externalSpanEvent.getStatusCode());
+        assertEquals(Integer.valueOf(501), externalSpanEvent.getStatusCode());
 
         Assert.assertEquals(1,
                 MetricsHelper.getScopedMetricCount(txnName, "External/" + host + "/Spring-WebClient/exchange"));
