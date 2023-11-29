@@ -7,17 +7,11 @@
 
 package com.nr.instrumentation;
 
-import com.newrelic.agent.introspec.CatHelper;
-import com.newrelic.agent.introspec.SpanEvent;
-import com.newrelic.agent.introspec.ExternalRequest;
-import com.newrelic.agent.introspec.HttpTestServer;
-import com.newrelic.agent.introspec.InstrumentationTestConfig;
-import com.newrelic.agent.introspec.InstrumentationTestRunner;
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TransactionEvent;
+import com.newrelic.agent.introspec.*;
 import com.newrelic.agent.introspec.internal.HttpServerLocator;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
+import com.newrelic.agent.model.SpanCategory;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.junit.AfterClass;
 import org.junit.Assert;
