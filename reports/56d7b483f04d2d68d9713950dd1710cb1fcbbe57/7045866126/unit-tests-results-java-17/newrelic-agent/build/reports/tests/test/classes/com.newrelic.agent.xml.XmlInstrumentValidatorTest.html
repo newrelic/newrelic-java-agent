@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.xml.XmlInstrumentValidatorTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.xml.XmlInstrumentValidatorTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.xml.html">com.newrelic.agent.xml</a> &gt; XmlInstrumentValidatorTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">11</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">6.424s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testValidateFileInDistributedZIP</td>
+<td class="success">2.271s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testValidateInstrumentationClasses</td>
+<td class="success">0.033s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testValidateInstrumentationConstructor</td>
+<td class="success">0.050s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testValidateInstrumentationDuplicates</td>
+<td class="success">0.075s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testValidateInstrumentationInnerClass</td>
+<td class="success">0.042s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testValidateInstrumentationInterfaces</td>
+<td class="success">0.024s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testValidateInstrumentationStatic</td>
+<td class="success">0.089s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">validateInstrumentation_shouldCatch_Exceptions</td>
+<td class="success">0.032s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">validateInstrumentation_shouldFail_noCmdLineParams</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">validateInstrumentation_shouldFail_noFileInCmdLineParams</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">validateInstrumentation_shouldPass_validCmdLineParams</td>
+<td class="success">3.802s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>Matched Method: validateAndAddParameter (Lcom/newrelic/agent/xml/XmlInstrumentParams;[Ljava/lang/String;Ljava/lang/String;)V
+Matched Method: isArgRequired ()Z
+Matched Method: getFlagName ()Ljava/lang/String;
+Matched Method: matches (ILjava/lang/String;Ljava/lang/String;Ljava/util/Set;)Z
+Matched Method: createExactParamsMethodMatcher (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher;
+Xml was successfully read. Starting processing.
+Found the method startElement from the xml in the list of class methods. Checking method parameters.
+Matched Method: startElement (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V
+Found the method getPrefix from the xml in the list of class methods. Checking method parameters.
+Matched Method: getPrefix ()Ljava/lang/String;
+Found the method getMarker from the xml in the list of class methods. Checking method parameters.
+Matched Method: getMarker ()Ljava/lang/String;
+Found the method startDocument from the xml in the list of class methods. Checking method parameters.
+Matched Method: startDocument ()V
+Found the method characters from the xml in the list of class methods. Checking method parameters.
+Matched Method: characters ([CII)V
+Found the method endDocument from the xml in the list of class methods. Checking method parameters.
+Matched Method: endDocument ()V
+Found the method convertParamToDescriptorFormat from the xml in the list of class methods. Checking method parameters.
+Matched Method: convertParamToDescriptorFormat (Ljava/lang/String;)Ljava/lang/String;
+Xml was successfully read. Starting processing.
+Found the method createExactParamsMethodMatcher from the xml in the list of class methods. Checking method parameters.
+Descriptors for method createExactParamsMethodMatcher did not match. Xml descriptor: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;), Method descriptor: (Ljava/lang/String;Ljava/lang/String;)Lcom/newrelic/agent/instrumentation/methodmatchers/ExactParamsMethodMatcher; 
+Xml was successfully read. Starting processing.
+Xml was successfully read. Starting processing.
+2023-11-30T12:43:06,382+0000 [74896 1] com.newrelic WARN: Method setAsciiStream has already been added to a point cut and will not be added again.
+Xml was successfully read. Starting processing.
+Found the method setInstrumentation from the xml in the list of class methods. Checking method parameters.
+Matched Method: setInstrumentation (Lcom/newrelic/agent/extension/beans/Extension$Instrumentation;)V
+Found the method main from the xml in the list of class methods. Checking method parameters.
+Matched Method: main ([Ljava/lang/String;)V
+Found the method continuePremain from the xml in the list of class methods. Checking method parameters.
+Matched Method: continuePremain (Ljava/lang/String;Ljava/lang/instrument/Instrumentation;J)V
+Found the method initVersion from the xml in the list of class methods. Checking method parameters.
+Matched Method: initVersion ()Ljava/lang/String;
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 30, 2023 12:43:59 PM</p>
+</div>
+</div>
+</body>
+</html>
