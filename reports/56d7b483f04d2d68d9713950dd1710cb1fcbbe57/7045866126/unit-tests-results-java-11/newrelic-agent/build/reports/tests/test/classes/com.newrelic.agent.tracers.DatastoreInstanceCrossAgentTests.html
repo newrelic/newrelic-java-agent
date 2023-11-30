@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.tracers.DatastoreInstanceCrossAgentTests</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.tracers.DatastoreInstanceCrossAgentTests</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.tracers.html">com.newrelic.agent.tracers</a> &gt; DatastoreInstanceCrossAgentTests</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">9</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">18.714s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">runTest[0:instance metric uses system hostname when db reports localhost]</td>
+<td class="success">17.747s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[1:instance metric uses system hostname when db reports host as loopback adapter IPv4]</td>
+<td class="success">0.193s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[2:instance metric uses system hostname when db reports host as loopback adapter IPv6]</td>
+<td class="success">0.130s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[3:instance metric uses system hostname when db reports host as loopback adapter IPv6 shorthand]</td>
+<td class="success">0.138s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[4:instance metric uses system hostname when db reports default host IPv6 shorthand]</td>
+<td class="success">0.104s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[5:instance metric uses db host when not local]</td>
+<td class="success">0.091s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[6:instance metric uses unix socket path if provided]</td>
+<td class="success">0.090s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[7:instance metric with ip v6 host]</td>
+<td class="success">0.108s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[8:instance metric for filesystem database]</td>
+<td class="success">0.113s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-11-30T12:39:02,781+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:02,815+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:02,821+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:16,381+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:16,392+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:16,397+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:17,664+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:17,665+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:17,666+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:17,829+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:17,836+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:17,837+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:17,863+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:17,863+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:17,864+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:17,946+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:17,964+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:17,967+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,000+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:18,001+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,001+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,089+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:18,104+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,105+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,134+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:18,134+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,135+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,205+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:18,212+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,213+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,239+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:18,241+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,242+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,295+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:18,312+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,313+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,330+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:18,331+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,331+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,390+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:18,404+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,405+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,422+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:18,424+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,424+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,487+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:18,500+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,502+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,535+0000 [67554 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:39:18,541+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,542+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:39:18,618+0000 [67554 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-11-30T12:39:18,623+0000 [67554 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:39:18,624+0000 [67554 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 30, 2023 12:43:40 PM</p>
+</div>
+</div>
+</body>
+</html>
