@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.profile.ProfilerServiceTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.profile.ProfilerServiceTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.profile.html">com.newrelic.agent.profile</a> &gt; ProfilerServiceTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">8</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">16.206s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">disabled</td>
+<td class="success">0.096s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">enabled</td>
+<td class="success">12.865s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">enabledByDefault</td>
+<td class="success">0.078s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">startProfiler</td>
+<td class="success">0.585s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">stopProfiler</td>
+<td class="success">1.132s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">stopProfilerAndReportData</td>
+<td class="success">1.084s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testAgentInstrumentationSample</td>
+<td class="success">0.110s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testOneSampleProfile</td>
+<td class="success">0.256s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-11-30T22:42:14,780+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:14,817+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:14,818+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:24,973+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:24,977+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:24,980+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:25,027+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:25,028+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:25,031+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:25,093+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:25,099+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:25,100+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:25,197+0000 [64165 1] com.newrelic.agent.profile.ProfilerService INFO: Starting single sample profiling session
+2023-11-30T22:42:25,271+0000 [64165 25] com.newrelic INFO: Profile size is 107 stack elements
+2023-11-30T22:42:25,274+0000 [64165 25] com.newrelic.agent.profile.ProfilerService INFO: Profiler finished with 1 samples
+2023-11-30T22:42:25,277+0000 [64165 25] com.newrelic.agent.profile.ProfilerService INFO: Server profile ids: []
+2023-11-30T22:42:25,282+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:25,283+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:25,283+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:25,327+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:25,333+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:25,334+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:25,355+0000 [64165 1] com.newrelic.agent.profile.ProfilerServiceTest$1 INFO: Starting profiling session. Duration: 500 ms, sample period: 50 ms
+2023-11-30T22:42:25,864+0000 [64165 28] com.newrelic INFO: Profile size is 114 stack elements
+2023-11-30T22:42:25,866+0000 [64165 28] com.newrelic.agent.profile.ProfilerServiceTest$1 INFO: Profiler finished with 10 samples
+2023-11-30T22:42:25,866+0000 [64165 28] com.newrelic.agent.profile.ProfilerServiceTest$1 INFO: Server profile ids: []
+2023-11-30T22:42:25,867+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:25,868+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:25,868+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:25,904+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:25,921+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:25,922+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:25,940+0000 [64165 1] com.newrelic.agent.profile.ProfilerService INFO: Starting single sample profiling session
+2023-11-30T22:42:25,971+0000 [64165 31] com.newrelic INFO: Profile size is 122 stack elements
+2023-11-30T22:42:25,973+0000 [64165 31] com.newrelic.agent.profile.ProfilerService INFO: Profiler finished with 1 samples
+2023-11-30T22:42:25,976+0000 [64165 31] com.newrelic.agent.profile.ProfilerService INFO: Server profile ids: []
+2023-11-30T22:42:25,978+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:25,978+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:25,978+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:26,016+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:26,016+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:26,021+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:26,056+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:26,057+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:26,057+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:26,111+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:26,122+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:26,122+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:26,155+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:26,156+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:26,157+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:26,200+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:26,202+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:26,202+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:26,222+0000 [64165 1] com.newrelic.agent.profile.ProfilerService INFO: Starting profiling session. Duration: 200,000 ms, sample period: 100 ms
+2023-11-30T22:42:27,231+0000 [64165 1] com.newrelic.agent.profile.ProfilerService INFO: Stopping profiling session
+2023-11-30T22:42:27,235+0000 [64165 38] com.newrelic INFO: Profile size is 114 stack elements
+2023-11-30T22:42:27,236+0000 [64165 38] com.newrelic.agent.profile.ProfilerService INFO: Profiler finished with 10 samples
+2023-11-30T22:42:27,236+0000 [64165 38] com.newrelic.agent.profile.ProfilerService INFO: Server profile ids: []
+2023-11-30T22:42:27,238+0000 [64165 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T22:42:27,238+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:27,238+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:27,316+0000 [64165 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:42:27,323+0000 [64165 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:42:27,325+0000 [64165 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:42:27,353+0000 [64165 1] com.newrelic.agent.profile.ProfilerService INFO: Starting profiling session. Duration: 200,000 ms, sample period: 100 ms
+2023-11-30T22:42:28,368+0000 [64165 1] com.newrelic.agent.profile.ProfilerService INFO: Stopping profiling session
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 30, 2023 10:54:20 PM</p>
+</div>
+</div>
+</body>
+</html>

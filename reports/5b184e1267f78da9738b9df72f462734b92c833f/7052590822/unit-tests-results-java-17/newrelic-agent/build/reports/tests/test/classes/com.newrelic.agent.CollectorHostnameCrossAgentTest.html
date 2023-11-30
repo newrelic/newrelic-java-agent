@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.CollectorHostnameCrossAgentTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.CollectorHostnameCrossAgentTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.html">com.newrelic.agent</a> &gt; CollectorHostnameCrossAgentTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">13</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">17.833s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">runTest[0:normal license key]</td>
+<td class="success">14.961s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[10:env var host override with env key]</td>
+<td class="success">0.418s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[11:env var host override default with default env key]</td>
+<td class="success">0.314s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[12:No specified key defaults to collector.newrelic.com]</td>
+<td class="success">0.055s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[1:region aware key with four character identifier]</td>
+<td class="success">0.102s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[2:region aware key with five character identifier]</td>
+<td class="success">0.075s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[3:region aware key with seven character identifier]</td>
+<td class="success">0.070s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[4:region aware key with abnormal identifier]</td>
+<td class="success">0.086s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[5:region aware key with more than one identifier]</td>
+<td class="success">0.097s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[6:environment variable specified license key]</td>
+<td class="success">0.848s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[7:env var host override]</td>
+<td class="success">0.385s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[8:local config host override]</td>
+<td class="success">0.080s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[9:local config host override with env key]</td>
+<td class="success">0.342s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-11-30T22:31:40,684+0000 [52578 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:31:40,742+0000 [52578 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:31:40,743+0000 [52578 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:31:53,152+0000 [52578 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
+2023-11-30T22:31:53,153+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:53,153+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:53,252+0000 [52578 1] com.newrelic INFO: Using region aware collector host: collector.gov01.nr-data.net
+2023-11-30T22:31:53,252+0000 [52578 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:31:53,253+0000 [52578 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:31:53,332+0000 [52578 1] com.newrelic INFO: Using region aware collector host: collector.foo1234.nr-data.net
+2023-11-30T22:31:53,333+0000 [52578 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:31:53,334+0000 [52578 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:31:53,405+0000 [52578 1] com.newrelic INFO: Using region aware collector host: collector.20foo.nr-data.net
+2023-11-30T22:31:53,406+0000 [52578 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the metric_ingest_uri property. Currently using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:31:53,407+0000 [52578 1] com.newrelic INFO: Unrecognized region parsed from license_key, please explicitly set the event_ingest_uri property. Currently using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T22:31:53,493+0000 [52578 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
+2023-11-30T22:31:53,504+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:53,504+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:53,873+0000 [52578 1] com.newrelic INFO: Using region aware collector host: collector.eu01.nr-data.net
+2023-11-30T22:31:53,904+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:53,906+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:54,446+0000 [52578 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-11-30T22:31:54,461+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:54,471+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:54,829+0000 [52578 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-11-30T22:31:54,830+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:54,831+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:54,917+0000 [52578 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-11-30T22:31:54,935+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:54,937+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:55,281+0000 [52578 1] com.newrelic INFO: Using configured collector host: other-collector.newrelic.com
+2023-11-30T22:31:55,282+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:55,283+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:55,700+0000 [52578 1] com.newrelic INFO: Using configured collector host: collector.newrelic.com
+2023-11-30T22:31:55,702+0000 [52578 1] com.newrelic INFO: Using region aware metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+2023-11-30T22:31:55,706+0000 [52578 1] com.newrelic INFO: Using region aware event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+2023-11-30T22:31:56,006+0000 [52578 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T22:31:56,008+0000 [52578 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T22:31:56,016+0000 [52578 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 30, 2023 10:54:20 PM</p>
+</div>
+</div>
+</body>
+</html>
