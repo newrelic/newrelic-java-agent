@@ -7,7 +7,13 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.newrelic.agent.model.*;
+import com.newrelic.agent.model.ApdexPerfZone;
+import com.newrelic.agent.model.CountedDuration;
+import com.newrelic.agent.model.PathHashes;
+import com.newrelic.agent.model.SyntheticsIds;
+import com.newrelic.agent.model.TimeoutCause;
+import com.newrelic.agent.model.TransactionTiming;
+import com.newrelic.agent.model.SyntheticsInfo;
 
 import java.util.HashMap;
 import java.util.Map;

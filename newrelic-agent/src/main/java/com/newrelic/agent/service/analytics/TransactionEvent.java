@@ -9,7 +9,13 @@ package com.newrelic.agent.service.analytics;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.config.DistributedTracingConfig;
-import com.newrelic.agent.model.*;
+import com.newrelic.agent.model.AnalyticsEvent;
+import com.newrelic.agent.model.ApdexPerfZone;
+import com.newrelic.agent.model.PathHashes;
+import com.newrelic.agent.model.SyntheticsIds;
+import com.newrelic.agent.model.TimeoutCause;
+import com.newrelic.agent.model.TransactionTiming;
+import com.newrelic.agent.model.SyntheticsInfo;
 import com.newrelic.agent.service.ServiceFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
