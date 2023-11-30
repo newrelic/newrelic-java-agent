@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.profile.ProfilerServiceV2Test</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.profile.ProfilerServiceV2Test</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.profile.html">com.newrelic.agent.profile</a> &gt; ProfilerServiceV2Test</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">8</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">25.509s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+<li>
+<a href="#tab2">Standard error</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">disabled</td>
+<td class="success">0.044s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">enabled</td>
+<td class="success">12.789s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">enabledByDefault</td>
+<td class="success">0.044s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">startProfiler</td>
+<td class="success">10.083s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">stopProfiler</td>
+<td class="success">1.075s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">stopProfilerAndReportData</td>
+<td class="success">1.068s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testAgentInstrumentationSample</td>
+<td class="success">0.086s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testOneSampleProfile</td>
+<td class="success">0.320s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-11-30T12:33:38,681+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:33:38,717+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:38,730+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:48,826+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:33:48,827+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:48,827+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:48,870+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:33:48,870+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:48,871+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:48,946+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:33:48,947+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:48,947+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:49,125+0000 [68460 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting single sample profiling session
+2023-11-30T12:33:49,162+0000 [68460 34] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,178+0000 [68460 34] com.newrelic INFO: Profile size is 0 stack elements
+2023-11-30T12:33:49,187+0000 [68460 34] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 1 samples
+2023-11-30T12:33:49,188+0000 [68460 34] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2023-11-30T12:33:49,190+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:33:49,191+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:49,191+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:49,226+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:33:49,226+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:49,228+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:49,246+0000 [68460 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting profiling session. Duration: 500 ms, sample period: 50 ms
+2023-11-30T12:33:49,273+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,326+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,378+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,429+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,482+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,533+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,585+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,637+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,689+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,741+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:49,772+0000 [68460 37] com.newrelic INFO: Profile size is 0 stack elements
+2023-11-30T12:33:49,773+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 10 samples
+2023-11-30T12:33:49,774+0000 [68460 37] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2023-11-30T12:33:59,273+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:33:59,274+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,274+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,321+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:33:59,322+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,322+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,339+0000 [68460 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting single sample profiling session
+2023-11-30T12:33:59,348+0000 [68460 40] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:59,350+0000 [68460 40] com.newrelic INFO: Profile size is 0 stack elements
+2023-11-30T12:33:59,353+0000 [68460 40] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 1 samples
+2023-11-30T12:33:59,354+0000 [68460 40] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2023-11-30T12:33:59,359+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:33:59,359+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,359+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,385+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:33:59,387+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,387+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,404+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:33:59,404+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,404+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,427+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:33:59,434+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,435+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,448+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:33:59,449+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,449+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,486+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:33:59,488+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:33:59,489+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:33:59,501+0000 [68460 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting profiling session. Duration: 200,000 ms, sample period: 100 ms
+2023-11-30T12:33:59,513+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:59,616+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:59,720+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:59,821+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:33:59,923+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,025+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,127+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,230+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,332+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,434+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,511+0000 [68460 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Stopping profiling session
+2023-11-30T12:34:00,515+0000 [68460 47] com.newrelic INFO: Profile size is 0 stack elements
+2023-11-30T12:34:00,516+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 10 samples
+2023-11-30T12:34:00,516+0000 [68460 47] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2023-11-30T12:34:00,517+0000 [68460 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-11-30T12:34:00,518+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:34:00,519+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:34:00,563+0000 [68460 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-11-30T12:34:00,570+0000 [68460 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-11-30T12:34:00,575+0000 [68460 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-11-30T12:34:00,584+0000 [68460 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting profiling session. Duration: 200,000 ms, sample period: 100 ms
+2023-11-30T12:34:00,597+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,699+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,802+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:00,907+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:01,009+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:01,112+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:01,215+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:01,317+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:01,419+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:01,521+0000 [68460 50] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException: Cannot invoke &quot;com.newrelic.agent.threads.ThreadNameNormalizer.getNormalizedThreadName(com.newrelic.agent.threads.BasicThreadInfo)&quot; because &quot;this.threadNameNormalizer&quot; is null
+2023-11-30T12:34:01,591+0000 [68460 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Stopping profiling session
+</pre>
+</span>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>WARNING: A Java agent has been loaded dynamically (/home/runner/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.12.19/450917cf3b358b691a824acf4c67aa89c826f67e/byte-buddy-agent-1.12.19.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Nov 30, 2023 12:39:35 PM</p>
+</div>
+</div>
+</body>
+</html>
