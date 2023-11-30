@@ -7,16 +7,9 @@
 
 package com.nr.instrumentation;
 
-import com.newrelic.agent.introspec.CatHelper;
-import com.newrelic.agent.introspec.ExternalRequest;
-import com.newrelic.agent.introspec.HttpTestServer;
-import com.newrelic.agent.introspec.InstrumentationTestConfig;
-import com.newrelic.agent.introspec.InstrumentationTestRunner;
-import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.agent.introspec.internal.HttpServerLocator;
+import com.newrelic.agent.introspec.*;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
+import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.api.agent.Trace;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -38,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "org.springframework" })
+@InstrumentationTestConfig(includePrefixes = { "org.springframework" }, configName = "spans.yml")
 public class WebClientTest {
 
     private static final int TIMEOUT = 3000;
@@ -177,6 +170,13 @@ public class WebClientTest {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         assertEquals(1, externalRequest.getCount());
         assertEquals(host, externalRequest.getHostname());
+
+        // span
+        Collection<SpanEvent> externalSpanEvents = SpanEventsHelper.getSpanEventsByCategory(SpanCategory.http);
+        assertEquals(1, externalSpanEvents.size());
+        SpanEvent externalSpanEvent = externalSpanEvents.iterator().next();
+        assertEquals(Integer.valueOf(200), externalSpanEvent.getStatusCode());
+
     }
 
     @Test
@@ -276,6 +276,12 @@ public class WebClientTest {
         ExternalRequest externalRequest = externalRequests.iterator().next();
         Assert.assertEquals("Spring-WebClient", externalRequest.getLibrary());
         Assert.assertEquals("exchange", externalRequest.getOperation());
+
+        // span
+        Collection<SpanEvent> externalSpanEvents = SpanEventsHelper.getSpanEventsByCategory(SpanCategory.http);
+        assertEquals(1, externalSpanEvents.size());
+        SpanEvent externalSpanEvent = externalSpanEvents.iterator().next();
+        assertEquals(Integer.valueOf(200), externalSpanEvent.getStatusCode());
 
         Assert.assertEquals(1,
                 MetricsHelper.getScopedMetricCount(txnName, "External/" + host + "/Spring-WebClient/exchange"));
