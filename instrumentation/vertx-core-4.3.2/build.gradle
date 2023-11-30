@@ -1,0 +1,22 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.vertx-core-4.3.2'
+    }
+}
+
+
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.vertx:vertx-core:4.3.2")
+    testImplementation("io.vertx:vertx-core:4.3.2")
+}
+
+verifyInstrumentation {
+    passesOnly 'io.vertx:vertx-core:[4.3.2,)'
+}
+
+site {
+    title 'Vertx'
+    type 'Framework'
+}
