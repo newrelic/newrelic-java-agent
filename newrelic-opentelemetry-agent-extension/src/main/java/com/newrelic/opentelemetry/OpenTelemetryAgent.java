@@ -15,6 +15,7 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 import com.newrelic.api.agent.TracedMethod;
 import com.newrelic.api.agent.Transaction;
+import com.newrelic.api.agent.metrics.Meter;
 import io.opentelemetry.api.OpenTelemetry;
 
 import java.util.Collections;
@@ -30,9 +31,11 @@ public final class OpenTelemetryAgent implements Agent {
 
     private final OpenTelemetryMetricsAggregator openTelemetryMetricsAggregator;
     private final OpenTelemetryInsights openTelemetryInsights;
+    private final OpenTelemetryMeter openTelemetryMeter;
 
     private OpenTelemetryAgent(OpenTelemetry openTelemetry) {
         this.openTelemetryMetricsAggregator = OpenTelemetryMetricsAggregator.create(openTelemetry);
+        this.openTelemetryMeter = OpenTelemetryMeter.create(openTelemetry);
         this.openTelemetryInsights = OpenTelemetryInsights.create(openTelemetry);
     }
 
@@ -66,6 +69,11 @@ public final class OpenTelemetryAgent implements Agent {
     @Override
     public MetricAggregator getMetricAggregator() {
         return openTelemetryMetricsAggregator;
+    }
+
+    @Override
+    public Meter getMeter() {
+        return openTelemetryMeter;
     }
 
     @Override
