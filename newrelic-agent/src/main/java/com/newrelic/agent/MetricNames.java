@@ -381,6 +381,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_ASYNC_API_LEGACY_RESUME = "Supportability/API/LegacyAsync/Resume";
     public static final String SUPPORTABILITY_ASYNC_API_LEGACY_COMPLETE = "Supportability/API/LegacyAsync/Complete";
     public static final String SUPPORTABILITY_ASYNC_API_LEGACY_ERROR = "Supportability/API/LegacyAsync/Error";
+    public static final String SUPPORTABILITY_ASYNC_API_LEGACY_SKIP_SUSPEND = "Supportability/API/LegacyAsync/SkipSuspend";
 
     //This times the transform method in InstrumentationContextmanager to indicate classloading overhead
     public static final String SUPPORTABILITY_CLASSLOADER_TRANSFORM_TIME = "Supportability/Classloader/TransformTime";

@@ -33,7 +33,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passes('org.mule:mule-core:[3.4.0,3.8.2)') {
+    passes('org.mule:mule-core:[3.4.0,)') {
         implementation("org.mule.transports:mule-transport-http:3.4.0")
         implementation("org.mule.modules:mule-module-launcher:3.4.0")
         implementation("org.mule.modules:mule-module-client:3.4.0")
@@ -45,7 +45,8 @@ verifyInstrumentation {
     exclude 'org.mule:mule-core:3.5.4'
     exclude 'org.mule:mule-core:[3.6.2,3.7.0)'
     exclude 'org.mule:mule-core:[3.7.1,3.8.0)'
-    exclude 'org.mule:mule-core:[3.8.2,)'
+    exclude 'org.mule:mule-core:3.8.2'
+    exclude 'org.mule:mule-core:3.9.5'
 
     excludeRegex 'org.mule:mule-core:.*-(EA|HF|RC|M|rc|bighorn|cascade).*[0-9]*.*'
 }
