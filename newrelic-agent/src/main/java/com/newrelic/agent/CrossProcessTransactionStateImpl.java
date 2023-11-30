@@ -239,6 +239,10 @@ public class CrossProcessTransactionStateImpl implements CrossProcessTransaction
                 if (synHeader != null) {
                     HeadersUtil.setSyntheticsHeader(headers, synHeader);
                 }
+                String synInfoHeader = tx.getInboundHeaderState().getUnparsedSyntheticsInfoHeader();
+                if (synInfoHeader != null) {
+                    HeadersUtil.setSyntheticsInfoHeader(headers, synInfoHeader);
+                }
             }
         }
 

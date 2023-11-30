@@ -23,6 +23,7 @@ import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.model.CountedDuration;
 import com.newrelic.agent.model.PathHashes;
 import com.newrelic.agent.model.SyntheticsIds;
+import com.newrelic.agent.model.SyntheticsInfo;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -376,6 +377,10 @@ public class TransactionEventsService extends AbstractService implements EventSe
         String syntheticsMonitorId = transactionData.getSyntheticsMonitorId();
         String syntheticsJobId = transactionData.getSyntheticsJobId();
         SyntheticsIds syntheticsIds = new SyntheticsIds(syntheticsResourceId, syntheticsMonitorId, syntheticsJobId);
+        String syntheticsType = transactionData.getSyntheticsType();
+        String syntheticsInitiator = transactionData.getSyntheticsInitiator();
+        Map<String, String> syntheticsAttributes = transactionData.getSyntheticsAttributes();
+        SyntheticsInfo syntheticsInfo = new SyntheticsInfo(syntheticsInitiator, syntheticsType, syntheticsAttributes);
         TransactionEventBuilder eventBuilder = new TransactionEventBuilder()
                 .setAppName(transactionData.getApplicationName())
                 .setTimestamp(startTime)
@@ -387,6 +392,7 @@ public class TransactionEventsService extends AbstractService implements EventSe
                 .setTripId(transactionData.getTripId())
                 .setApdexPerfZone(transactionData.getApdexPerfZone())
                 .setSyntheticsIds(syntheticsIds)
+                .setSyntheticsInfo(syntheticsInfo)
                 .setError(transactionData.hasReportableErrorThatIsNotIgnored())
                 .setpTotalTime((float) transactionData.getTransactionTime().getTotalSumTimeInNanos() / TimeConversion.NANOSECONDS_PER_SECOND)
                 .setTimeoutCause(transactionData.getTransaction().getTimeoutCause())

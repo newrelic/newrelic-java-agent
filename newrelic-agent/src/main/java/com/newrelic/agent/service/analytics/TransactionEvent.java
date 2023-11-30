@@ -15,6 +15,7 @@ import com.newrelic.agent.model.PathHashes;
 import com.newrelic.agent.model.SyntheticsIds;
 import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.model.TransactionTiming;
+import com.newrelic.agent.model.SyntheticsInfo;
 import com.newrelic.agent.service.ServiceFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -42,6 +43,7 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
 
     private final ApdexPerfZone apdexPerfZone;
     private final SyntheticsIds syntheticsIds;
+    private final SyntheticsInfo syntheticsInfo;
     private final TransactionTiming timing;
 
     private final int port;
@@ -68,11 +70,12 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
 
     public TransactionEvent(String appName, Map<String, Object> userAttributes, long timestamp, String name, TransactionTiming timing,
                             String guid, String referringGuid, Integer port, String tripId, PathHashes pathHashes,
-                            ApdexPerfZone apdexPerfZone, SyntheticsIds syntheticsIds, boolean error, TimeoutCause timeoutCause,
+                            ApdexPerfZone apdexPerfZone, SyntheticsIds syntheticsIds, SyntheticsInfo syntheticsInfo, boolean error, TimeoutCause timeoutCause,
                             float priority, Map<String, Object> distributedTraceIntrinsics, boolean decider) {
         super(TYPE, timestamp, priority, userAttributes);
         if (pathHashes == null) throw new NullPointerException("pathHashes must not be null");
         if (syntheticsIds == null) throw new NullPointerException("syntheticsIds must not be null");
+        if (syntheticsInfo == null) throw new NullPointerException("syntheticsInfo must not be null");
         if (timing == null) throw new NullPointerException("timing must not be null");
         this.name = name;
         this.timing = timing;
@@ -84,6 +87,7 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
         this.appName = appName;
         this.apdexPerfZone = apdexPerfZone;
         this.syntheticsIds = syntheticsIds;
+        this.syntheticsInfo = syntheticsInfo;
         this.error = error;
         this.timeoutCause = timeoutCause;
         this.decider = decider;
@@ -243,6 +247,22 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
         }
         if (this.syntheticsIds.getJobId() != null) {
             obj.put("nr.syntheticsJobId", this.syntheticsIds.getJobId());
+        }
+        if (this.syntheticsInfo.getType() != null) {
+            obj.put("nr.syntheticsType", this.syntheticsInfo.getType());
+        }
+        if (this.syntheticsInfo.getInitiator() != null) {
+            obj.put("nr.syntheticsInitiator", this.syntheticsInfo.getInitiator());
+        }
+        if (this.syntheticsInfo.getAttributeMap() != null) {
+            Map<String, String> attrMap = this.syntheticsInfo.getAttributeMap();
+            String attrName, upperCaseKey;
+
+            for (String key : attrMap.keySet()) {
+                upperCaseKey = Character.toUpperCase(key.charAt(0)) + key.substring(1);
+                attrName = String.format("nr.synthetics%s", upperCaseKey);
+                obj.put(attrName, attrMap.get(key));
+            }
         }
         if (port != UNASSIGNED_INT) {
             obj.put("port", port);

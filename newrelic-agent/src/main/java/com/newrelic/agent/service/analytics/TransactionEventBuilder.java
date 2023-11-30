@@ -13,6 +13,7 @@ import com.newrelic.agent.model.PathHashes;
 import com.newrelic.agent.model.SyntheticsIds;
 import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.model.TransactionTiming;
+import com.newrelic.agent.model.SyntheticsInfo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class TransactionEventBuilder {
     private String tripId;
     private ApdexPerfZone apdexPerfZone;
     private SyntheticsIds syntheticsIds;
+    private SyntheticsInfo syntheticsInfo;
     private boolean error;
     private float pTotalTime;
     private TimeoutCause timeoutCause;
@@ -143,6 +145,11 @@ public class TransactionEventBuilder {
         return this;
     }
 
+    public TransactionEventBuilder setSyntheticsInfo(SyntheticsInfo syntheticsInfo) {
+        this.syntheticsInfo = syntheticsInfo;
+        return this;
+    }
+
     public TransactionEventBuilder setPathHashes(PathHashes pathHashes) {
         this.pathHashes = pathHashes;
         return this;
@@ -172,6 +179,9 @@ public class TransactionEventBuilder {
         if (syntheticsIds == null) {
             syntheticsIds = new SyntheticsIds(null, null, null);
         }
+        if (syntheticsInfo == null) {
+            syntheticsInfo = new SyntheticsInfo(null, null, null);
+        }
         if (pathHashes == null) {
             pathHashes = new PathHashes(null, null, null);
         }
@@ -187,7 +197,7 @@ public class TransactionEventBuilder {
                 .build();
 
         return new TransactionEvent(appName, userAttributes, timestamp, name, timing, guid, referringGuid, port, tripId,
-                pathHashes, apdexPerfZone, syntheticsIds, error, timeoutCause,
+                pathHashes, apdexPerfZone, syntheticsIds, syntheticsInfo, error, timeoutCause,
                 priority, distributedTraceIntrinsics, decider);
     }
 }
