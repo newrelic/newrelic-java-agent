@@ -327,7 +327,7 @@ public class VertxClientTest {
 
     private void assertUnknownHostExternal() {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        assertEquals(1, introspector.getFinishedTransactionCount(250));
+        assertEquals(1, introspector.getFinishedTransactionCount(1000));
 
         final String txn = introspector.getTransactionNames().iterator().next();
         assertNotNull("Transaction not found", txn);

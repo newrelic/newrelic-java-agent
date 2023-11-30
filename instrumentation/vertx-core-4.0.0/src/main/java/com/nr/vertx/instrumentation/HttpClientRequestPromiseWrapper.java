@@ -48,13 +48,16 @@ public class HttpClientRequestPromiseWrapper implements PromiseInternal<HttpClie
 
     @Trace(async = true, excludeFromTransactionTrace = true)
     public boolean tryFail(Throwable t) {
+        if (token != null) {
+            token.link();
+        }
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
         if (t.toString().contains("UnknownHostException") && txn != null) {
             Segment segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             VertxCoreUtil.reportUnknownHost(segment);
             segment.end();
             if (token != null) {
-                token.linkAndExpire();
+                token.expire();
                 token = null;
             }
             AgentBridge.getAgent().getTransaction(false).expireAllTokens();
