@@ -13,11 +13,12 @@ managed through the servlet implementations. As a result the Jetty 12 instrument
 
 ### jetty-12 
 This module instruments the core Jetty server that handles tasks that does not require the Servlet API.
-That includes but is not limited to:
+The tasks of this module includes but is not limited to:
 
-- Reporting threadpool metrics.
+- Reporting threadpool metrics
 - Reporting the dispatcher name and version as well as the port number for the server.
-- Adding outbound CAT headers for outgoing requests. CAT however is deprecated during the time this module is made (i.e. December 2023).
+- Adding outbound CAT headers for outgoing requests. CAT however is deprecated during the time this module is made (i.e. December 2023)
+- Reporting errors
 
 ### jetty-ee*-servlet-12 
 This refers to our current module and any module named based on the same pattern, `jetty-ee*-servlet-12`.
@@ -26,4 +27,4 @@ As a result, the instrumentation works with tasks that require us to work with t
 
 - Start and ending web transactions
 - Linking transactions to async activity
-- Handling errors.
+- Reporting errors
