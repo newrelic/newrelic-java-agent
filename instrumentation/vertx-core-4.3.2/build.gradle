@@ -13,7 +13,10 @@ dependencies {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.vertx:vertx-core:[4.3.2,)'
+    passesOnly 'io.vertx:vertx-core:[4.3.2,4.5.0)'
+    excludeRegex '.*CR[0-9]*'
+    excludeRegex '.*-milestone[0-9]'
+    excludeRegex '.*Beta[0-9]'
 }
 
 site {
