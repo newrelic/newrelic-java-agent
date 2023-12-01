@@ -31,7 +31,6 @@ import com.newrelic.agent.util.TimeConversion;
 import com.newrelic.api.agent.NewRelic;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +47,7 @@ public class ErrorEventFactory {
         return new ErrorEvent(appName, tracedError.getTimestampInMillis(), priority, new HashMap<>(tracedError.getErrorAtts()),
                 tracedError.getExceptionClass(), truncateIfNecessary(tracedError.getMessage()), isErrorExpected(tracedError),
                 UNKNOWN, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, null,
-                null, null, null, null, getPortUsingServiceManagerIfPossible(), null, null, Collections.<String, Object>emptyMap(),
+                null, null, null, null, null, null, null, getPortUsingServiceManagerIfPossible(), null, null, Collections.<String, Object>emptyMap(),
                 buildAgentAttributes(null, null, tracedError), ERROR_EVENTS_ATTRIBUTE_FILTER);
     }
 
@@ -66,7 +65,8 @@ public class ErrorEventFactory {
                 getMetricTotal(transactionStats, DatastoreMetrics.ALL), getMetricTotal(transactionStats, MetricNames.GC_CUMULATIVE),
                 getMetricCount(transactionStats, DatastoreMetrics.ALL), getMetricCount(transactionStats, MetricNames.EXTERNAL_ALL),
                 transactionData.getGuid(), transactionData.getReferrerGuid(), transactionData.getSyntheticsResourceId(),
-                transactionData.getSyntheticsMonitorId(), transactionData.getSyntheticsJobId(), getPortUsingServiceManagerIfPossible(),
+                transactionData.getSyntheticsMonitorId(), transactionData.getSyntheticsJobId(), transactionData.getSyntheticsType(),
+                transactionData.getSyntheticsInitiator(), transactionData.getSyntheticsAttributes(), getPortUsingServiceManagerIfPossible(),
                 transactionData.getTimeoutCause() == null ? null : transactionData.getTimeoutCause().cause, getTripId(transactionData),
                 getDistributedTraceIntrinsics(transactionData), buildAgentAttributes(appName, transactionData, tracedError), ERROR_EVENTS_ATTRIBUTE_FILTER);
     }

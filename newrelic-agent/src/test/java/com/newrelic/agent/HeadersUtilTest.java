@@ -28,10 +28,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class HeadersUtilTest {
     @Test
@@ -87,6 +84,22 @@ public class HeadersUtilTest {
 
         assertEquals("ghi",
                 HeadersUtil.getNewRelicTraceHeader(createInboundHeaders(ImmutableMap.of("Newrelic", "ghi"), HeaderType.HTTP)));
+    }
+
+    @Test
+    public void testGetSyntheticsInfoHeader() {
+        String synthInfoValue = "{\n" +
+                "       \"version\": \"1\",\n" +
+                "       \"type\": \"scheduled\",\n" +
+                "       \"initiator\": \"cli\",\n" +
+                "       \"attributes\": {\n" +
+                "           \"example1\": \"Value1\",\n" +
+                "           \"example2\": \"Value2\"\n" +
+                "           }\n" +
+                "}";
+
+        assertEquals(synthInfoValue, HeadersUtil.getSyntheticsInfoHeader(createInboundHeaders
+                (ImmutableMap.of("X-NewRelic-Synthetics-Info", synthInfoValue), HeaderType.HTTP)));
     }
 
     private InboundHeaders createInboundHeaders(final Map<String, String> map, final HeaderType type) {

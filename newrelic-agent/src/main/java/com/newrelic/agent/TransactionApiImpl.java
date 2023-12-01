@@ -468,6 +468,7 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
         }
 
         Segment segment = tx.startSegment(category, segmentName);
+
         return segment == null ? NoOpSegment.INSTANCE : segment;
     }
 
