@@ -23,6 +23,10 @@ public class JettyRequestListener implements ServletRequestListener  {
         if (startTransaction) {
             if (request.getDispatcherType() == DispatcherType.ASYNC) {
 
+                /*
+                 * We have to go through the ServletRequestInfo and ServletChannelState here to get the AsyncContext because calling
+                 * request.getAsyncContext() when the dispatcherType is ASYNC throws an IllegalStateException (Boo, Jetty!)
+                 */
                 AsyncContextEvent asyncContextEvent = request.getServletRequestInfo().getState().getAsyncContextEvent();
                 if (asyncContextEvent == null) {
                     AgentBridge.getAgent().getLogger().log(Level.FINE, "AsyncContextEvent is null for request: {0}.", request);
