@@ -58,7 +58,7 @@ public class JettySampler implements Runnable {
             int threadCount = threadPool.getThreads();
             int idleCount = threadPool.getIdleThreads();
 
-            // Jetty12 ExecutorThreadPool doesn't expose getMaxThreads(), so just approximate usage
+            // Jetty 12 ExecutorThreadPool doesn't expose getMaxThreads(), so just approximate usage
             int maxThreadCount = threadCount;
 
             totalThreads = maxThreadCount;
