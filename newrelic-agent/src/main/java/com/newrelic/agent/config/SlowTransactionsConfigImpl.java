@@ -16,8 +16,8 @@ public class SlowTransactionsConfigImpl extends BaseConfig implements SlowTransa
     public static final String ENABLED = "enabled";
     public static final String THRESHOLD = "threshold";
 
-    public static final boolean DEFAULT_ENABLED = false;
-    public static final int DEFAULT_THRESHOLD_MILLIS = 1000;
+    public static final boolean DEFAULT_ENABLED = true;
+    public static final int DEFAULT_THRESHOLD_MILLIS = 600000;
 
     private final boolean isEnabled;
     private final int thresholdMillis;
