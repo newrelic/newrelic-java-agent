@@ -12,7 +12,6 @@ import com.newrelic.api.agent.NewRelic;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Server_Instrumentation;
 import org.eclipse.jetty.util.thread.ThreadPool;
 
@@ -59,7 +58,7 @@ public class JettySampler implements Runnable {
             int threadCount = threadPool.getThreads();
             int idleCount = threadPool.getIdleThreads();
 
-            // Jetty 9+ ExecutorThreadPool doesn't expose getMaxThreads(), so just approximate usage
+            // Jetty12 ExecutorThreadPool doesn't expose getMaxThreads(), so just approximate usage
             int maxThreadCount = threadCount;
 
             totalThreads = maxThreadCount;
