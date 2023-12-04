@@ -36,11 +36,11 @@ jobs:
           
           # EU
           curl -X POST 'https://api.eu.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:$ {{ secrets.NEW_RELIC_API_KEY_EU }}" -i \
+            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
             -H "$CONTENT_TYPE" \
             -d "$PAYLOAD"
 
           echo "*EU Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
           curl -X GET 'https://api.eu.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_EU }}" -i \
+            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
             -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY
