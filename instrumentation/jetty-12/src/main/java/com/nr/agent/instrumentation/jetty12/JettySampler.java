@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -59,7 +59,7 @@ public class JettySampler implements Runnable {
             int threadCount = threadPool.getThreads();
             int idleCount = threadPool.getIdleThreads();
 
-            // Jetty9 ExecutorThreadPool doesn't expose getMaxThreads(), so just approximate usage
+            // Jetty 9+ ExecutorThreadPool doesn't expose getMaxThreads(), so just approximate usage
             int maxThreadCount = threadCount;
 
             totalThreads = maxThreadCount;

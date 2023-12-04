@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package org.eclipse.jetty.server;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -20,19 +27,13 @@ public abstract class Server_Instrumentation {
 
     // Required so that earlier jetty versions do not apply.
     // Transactions are managed in the jetty-12-ee* modules.
-    public boolean handle(Request request, Response response, Callback callback) {
-        return Weaver.callOriginal();
-    }
+    public  abstract boolean handle(Request request, Response response, Callback callback);
 
     public static String getVersion() {
         return Weaver.callOriginal();
     }
 
-    public Connector[] getConnectors() {
-        return Weaver.callOriginal();
-    }
+    public abstract Connector[] getConnectors();
 
-    public ThreadPool getThreadPool() {
-        return Weaver.callOriginal();
-    }
+    public abstract ThreadPool getThreadPool();
 }

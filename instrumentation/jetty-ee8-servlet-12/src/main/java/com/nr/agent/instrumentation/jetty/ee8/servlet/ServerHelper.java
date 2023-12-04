@@ -3,6 +3,12 @@ package com.nr.agent.instrumentation.jetty.ee8.servlet;
 import org.eclipse.jetty.ee8.nested.Request;
 
 import javax.servlet.ServletRequest;
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 
 public class ServerHelper {
 
