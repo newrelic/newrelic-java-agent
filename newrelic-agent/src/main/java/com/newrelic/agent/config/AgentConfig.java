@@ -318,6 +318,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     boolean liteMode();
 
+    boolean legacyAsyncApiSkipSuspend();
+
     int getSegmentTimeoutInSec();
 
     int getTokenTimeoutInSec();

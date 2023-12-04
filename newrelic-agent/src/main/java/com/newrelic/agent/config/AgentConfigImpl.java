@@ -61,6 +61,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JDBC_SUPPORT = "jdbc_support";
     public static final String LABELS = "labels";
     public static final String LANGUAGE = "language";
+    public static final String LEGACY_ASYNC_API_SKIP_SUSPEND = "legacy_async_api_skip_suspend";
     public static final String LICENSE_KEY = "license_key";
     public static final String LITE_MODE = "lite_mode";
     public static final String LOG_DAILY = "log_daily";
@@ -213,6 +214,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final HashSet<String> jdbcSupport;
     private final String licenseKey;
     private final boolean litemode;
+    private final boolean legacyAsyncApiSkipSuspend;
     private final boolean logDaily;
     private final String logLevel;
     private final int maxStackTraceLines;
@@ -324,6 +326,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         startupTimingEnabled = getProperty(STARTUP_TIMING, DEFAULT_STARTUP_TIMING);
         sendJvmProps = getProperty(SEND_JVM_PROPS, true);
         litemode = getProperty(LITE_MODE, false);
+        legacyAsyncApiSkipSuspend = getProperty(LEGACY_ASYNC_API_SKIP_SUSPEND, false);
         caBundlePath = initSSLConfig();
         trimStats = getProperty(TRIM_STATS, DEFAULT_TRIM_STATS);
         platformInformationEnabled = getProperty(PLATFORM_INFORMATION_ENABLED, DEFAULT_PLATFORM_INFORMATION_ENABLED);
@@ -1013,6 +1016,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public boolean liteMode() {
         return litemode;
+    }
+
+    @Override
+    public boolean legacyAsyncApiSkipSuspend() {
+        return legacyAsyncApiSkipSuspend;
     }
 
     @Override

@@ -29,6 +29,7 @@ import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.Normalizer;
 import com.newrelic.agent.profile.ProfileData;
+import com.newrelic.agent.rpm.RPMConnectionServiceImpl;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.analytics.TransactionEvent;
@@ -289,7 +290,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             return dataSender.connect(getStartOptions());
         } catch (LicenseException e) {
             logLicenseException(e);
-            reconnect();
+            if (!((RPMConnectionServiceImpl) ServiceFactory.getRPMConnectionService()).shouldPreventNewConnectionTask()){
+                reconnect();
+            }
             throw e;
         } catch (ForceDisconnectException e) {
             logForceDisconnectException(e);

@@ -52,6 +52,7 @@ jobs:
     needs: read-modules
     strategy:
       fail-fast: false
+      max-parallel: 7
       # GHA's IDE think the line below is broken. It is not.
       matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
     steps:

@@ -1,6 +1,7 @@
 package com.newrelic.agent.model;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
@@ -53,12 +54,17 @@ public class ErrorEventTest {
         assertTrue(json.contains("\"nr.syntheticsResourceId\":\"ghi\""));
         assertTrue(json.contains("\"nr.syntheticsMonitorId\":\"jkl\""));
         assertTrue(json.contains("\"nr.syntheticsJobId\":\"mno\""));
+        assertTrue(json.contains("\"nr.syntheticsType\":\"scheduled\""));
+        assertTrue(json.contains("\"nr.syntheticsInitiator\":\"cli\""));
         assertTrue(json.contains("\"nr.timeoutCause\":\"none\""));
         assertTrue(json.contains("\"nr.tripId\":\"wxyz\""));
 
         JSONParser parser = new JSONParser();
         JSONArray jsonArray = (JSONArray) parser.parse(json);
+        JSONObject jsonObj = (JSONObject) jsonArray.get(0);
         assertEquals(3, jsonArray.size());
+        assertEquals("val1", jsonObj.get("nr.syntheticsKey1"));
+
 
     }
 
@@ -106,6 +112,8 @@ public class ErrorEventTest {
         assertFalse(json.contains("\"nr.syntheticsResourceId\":"));
         assertFalse(json.contains("\"nr.syntheticsMonitorId\":"));
         assertFalse(json.contains("\"nr.syntheticsJobId\":"));
+        assertFalse(json.contains("\"nr.syntheticsType\":"));
+        assertFalse(json.contains("\"nr.syntheticsInitiator\":"));
         assertFalse(json.contains("\"nr.timeoutCause\":"));
         assertFalse(json.contains("\"nr.tripId\":"));
     }
@@ -120,7 +128,8 @@ public class ErrorEventTest {
                 Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY,
                 0, Float.NEGATIVE_INFINITY, 0, 0, null,
                 null, null, null, null,
-                Integer.MIN_VALUE, null, null, null, emptyAgentAttributes, attributeFilter
+                null, null, null, Integer.MIN_VALUE, null,
+                null, null, emptyAgentAttributes, attributeFilter
         );
     }
     private ErrorEvent baseErrorEvent(){
@@ -131,13 +140,15 @@ public class ErrorEventTest {
         Map<String, Object> agentAttributes = new HashMap<>();
         agentAttributes.put("agent", "c");
         AttributeFilter attributeFilter = new AttributeFilter.PassEverythingAttributeFilter();
+        Map<String, String> synthAttrs = new HashMap<>();
+        synthAttrs.put("key1", "val1");
         return new ErrorEvent(
                 "test", 1, 1, userAttributes,
                 "e", "check out this error", false,
                 "buzzbuzz", 10, 11, 12, 13,
                 14, 15, 16,
                 "abc", "def", "ghi", "jkl",
-                "mno", 2020, "none", "wxyz",
+                "mno", "scheduled", "cli", synthAttrs,2020, "none", "wxyz",
                 distributedTraceIntrinsics, agentAttributes, attributeFilter
         );
     }

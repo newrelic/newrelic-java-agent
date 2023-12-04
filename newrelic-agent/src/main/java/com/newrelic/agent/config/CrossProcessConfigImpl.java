@@ -85,6 +85,11 @@ public final class CrossProcessConfigImpl extends BaseConfig implements CrossPro
     }
 
     @Override
+    public String getSyntheticsEncodingKey() {
+        return encodingKey;
+    }
+
+    @Override
     public boolean isTrustedAccountId(String accountId) {
         return trustedIds.contains(accountId);
     }

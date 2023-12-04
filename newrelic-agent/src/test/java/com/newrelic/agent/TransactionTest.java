@@ -41,6 +41,9 @@ import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.SegmentTest;
+import com.newrelic.agent.util.Obfuscator;
+import com.newrelic.api.agent.HeaderType;
+import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.TransportType;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -102,6 +105,7 @@ public class TransactionTest {
         serverData.put(CrossProcessConfigImpl.CROSS_PROCESS_ID, "12345#56789");
         serverData.put(CrossProcessConfigImpl.APPLICATION_ID, "56789");
         serverData.put(CrossProcessConfigImpl.TRUSTED_ACCOUNT_IDS, "12345,9123");
+        serverData.put(CrossProcessConfigImpl.ENCODING_KEY, "anotherExampleKey");
         AgentConfig agentConfig = AgentHelper.createAgentConfig(true, map, serverData);
 
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, map);
@@ -1461,6 +1465,103 @@ public class TransactionTest {
                         "}";
         transaction.acceptDistributedTracePayload(inboundPayload);
         assertEquals(0, transaction.getTransportDurationInMillis());
+    }
+
+    public Map<String, String> createHeaderMap() {
+        Map<String, String> headerMap = new HashMap<>();
+
+        String synthVal = "[\n" +
+                "   1,\n" +
+                "   417446,\n" +
+                "   \"fd09bfa1-bd85-4f8a-9bee-8d51582f5a54\",\n" +
+                "   \"77cbc5dc-327b-4542-90f0-335644134bed\",\n" +
+                "   \"3e5c28ac-7cf3-4faf-ae52-ff36bc93504a\"\n" +
+                "]";
+        String obfuscatedSynthVal = Obfuscator.obfuscateNameUsingKey(synthVal, "anotherExampleKey");
+
+        String synthInfoVal = "{\n" +
+                "       \"version\": \"1\",\n" +
+                "       \"type\": \"scheduled\",\n" +
+                "       \"initiator\": \"cli\",\n" +
+                "       \"attributes\": {\n" +
+                "           \"example1\": \"Value1\",\n" +
+                "           \"example2\": \"Value2\"\n" +
+                "           }\n" +
+                "}";
+        String obfuscatedSynthInfoVal = Obfuscator.obfuscateNameUsingKey(synthInfoVal, "anotherExampleKey");
+
+        headerMap.put("X-NewRelic-Synthetics-Info", obfuscatedSynthInfoVal);
+        headerMap.put("X-NewRelic-Synthetics", obfuscatedSynthVal);
+
+        return headerMap;
+    }
+
+    public InboundHeaders createInboundHeaders(Map<String, String> map) {
+        Map<String, String> headerMap = createHeaderMap();
+
+        return new InboundHeaders() {
+            @Override
+            public HeaderType getHeaderType() {
+                return HeaderType.HTTP;
+            }
+            @Override
+            public String getHeader(String name) {
+
+                if (headerMap.containsKey(name)) {
+                    return headerMap.get(name);
+                }
+                return null;
+            }
+        };
+    }
+
+    private Transaction createTxWithSyntheticsHeaders() throws Exception {
+        Map<String, Object> configMap = createConfigMap();
+        createServiceManager(configMap);
+        InboundHeaders inboundHeaders = createInboundHeaders(createHeaderMap());
+        Transaction tx = Transaction.getTransaction(true);
+        Tracer dispatcherTracer = createDispatcherTracer(false);
+        tx.getTransactionActivity().tracerStarted(dispatcherTracer);
+        MockHttpRequest httpRequest = new MockHttpRequest();
+        MockHttpResponse httpResponse = new MockHttpResponse();
+        httpRequest.setHeader("X-NewRelic-Synthetics-Info", inboundHeaders.getHeader("X-NewRelic-Synthetics-Info"));
+        httpRequest.setHeader("X-NewRelic-Synthetics", inboundHeaders.getHeader("X-NewRelic-Synthetics"));
+        tx.setRequestAndResponse(httpRequest, httpResponse);
+        tx.getTransactionActivity().tracerFinished(dispatcherTracer, 0);
+        return tx;
+    }
+
+    @Test
+    public void testInboundHeaderStateForSyntheticsInformation() throws Exception {
+
+        Transaction tx = createTxWithSyntheticsHeaders();
+
+        InboundHeaderState ihs = tx.getInboundHeaderState();
+        assertNotNull(tx.getInboundHeaderState());
+        assertEquals("77cbc5dc-327b-4542-90f0-335644134bed", tx.getInboundHeaderState().getSyntheticsJobId());
+        assertEquals("fd09bfa1-bd85-4f8a-9bee-8d51582f5a54", ihs.getSyntheticsResourceId());
+        assertEquals("3e5c28ac-7cf3-4faf-ae52-ff36bc93504a", ihs.getSyntheticsMonitorId());
+        assertEquals(1, ihs.getSyntheticsVersion());
+        assertEquals("cli", ihs.getSyntheticsInitiator());
+        assertEquals("scheduled", ihs.getSyntheticsType());
+        assertEquals("Value1", ihs.getSyntheticsAttrs().get("example1"));
+        assertEquals("Value2", ihs.getSyntheticsAttrs().get("example2"));
+    }
+
+    @Test
+    public void testTransactionIntrinsicAttrsForSyntheticsInformation() throws Exception {
+
+        Transaction tx = createTxWithSyntheticsHeaders();
+
+        assertNotNull(tx.getIntrinsicAttributes());
+        assertEquals("77cbc5dc-327b-4542-90f0-335644134bed", tx.getIntrinsicAttributes().get("synthetics_job_id"));
+        assertEquals("fd09bfa1-bd85-4f8a-9bee-8d51582f5a54", tx.getIntrinsicAttributes().get("synthetics_resource_id"));
+        assertEquals("3e5c28ac-7cf3-4faf-ae52-ff36bc93504a", tx.getIntrinsicAttributes().get("synthetics_monitor_id"));
+        assertEquals("cli", tx.getIntrinsicAttributes().get("synthetics_initiator"));
+        assertEquals("scheduled", tx.getIntrinsicAttributes().get("synthetics_type"));
+        assertEquals("Value1", tx.getIntrinsicAttributes().get("synthetics_example1"));
+        assertEquals("Value2", tx.getIntrinsicAttributes().get("synthetics_example2"));
+        assertEquals(1, tx.getIntrinsicAttributes().get("synthetics_version"));
     }
 
     private Map<String, Object> createNRDTConfigMap(boolean excludeNewRelicHeader) {

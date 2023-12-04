@@ -106,6 +106,21 @@ public class ErrorEvent extends AnalyticsEvent implements JSONStreamAware {
     final String syntheticsJobId;
 
     /**
+     * Optional, requires Transaction
+     */
+    final String syntheticsType;
+
+    /**
+     * Optional, requires Transaction
+     */
+    final String syntheticsInitiator;
+
+    /**
+     * Optional, requires Transaction
+     */
+    final Map<String, String> syntheticsAttributes;
+
+    /**
      * Optional.
      */
     final int port;
@@ -141,7 +156,7 @@ public class ErrorEvent extends AnalyticsEvent implements JSONStreamAware {
                       float duration, float queueDuration, float externalDuration, float databaseDuration,
                       float gcCumulative, float databaseCallCount, float externalCallCount, String transactionGuid,
                       String referringTransactionGuid, String syntheticsResourceId, String syntheticsMonitorId,
-                      String syntheticsJobId, int port, String timeoutCause, String tripId, Map<String, Object>
+                      String syntheticsJobId, String syntheticsType, String syntheticsInitiator, Map<String, String> syntheticsAttributes, int port, String timeoutCause, String tripId, Map<String, Object>
                               distributedTraceIntrinsics, Map<String, Object> agentAttributes, AttributeFilter attributeFilter) {
         super(TYPE, timestamp, priority, new HashMap<>(userAttributes));
         this.errorClass = errorClass;
@@ -160,6 +175,9 @@ public class ErrorEvent extends AnalyticsEvent implements JSONStreamAware {
         this.syntheticsResourceId = syntheticsResourceId;
         this.syntheticsMonitorId = syntheticsMonitorId;
         this.syntheticsJobId = syntheticsJobId;
+        this.syntheticsType = syntheticsType;
+        this.syntheticsInitiator = syntheticsInitiator;
+        this.syntheticsAttributes = syntheticsAttributes;
         this.port = port;
         this.timeoutCause = timeoutCause;
         this.tripId = tripId;
@@ -241,6 +259,21 @@ public class ErrorEvent extends AnalyticsEvent implements JSONStreamAware {
         }
         if (this.syntheticsJobId != null) {
             obj.put("nr.syntheticsJobId", this.syntheticsJobId);
+        }
+        if (this.syntheticsType != null) {
+            obj.put("nr.syntheticsType", this.syntheticsType);
+        }
+        if (this.syntheticsInitiator != null) {
+            obj.put("nr.syntheticsInitiator", this.syntheticsInitiator);
+        }
+        if (this.syntheticsAttributes != null) {
+            String attrName, upperCaseKey;
+
+            for (String key : this.syntheticsAttributes.keySet()) {
+                upperCaseKey = Character.toUpperCase(key.charAt(0)) + key.substring(1);
+                attrName = String.format("nr.synthetics%s", upperCaseKey);
+                obj.put(attrName, this.syntheticsAttributes.get(key));
+            }
         }
         if (port != UNASSIGNED_INT) {
             obj.put("port", port);

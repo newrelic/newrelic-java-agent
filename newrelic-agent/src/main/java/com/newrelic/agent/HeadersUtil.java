@@ -61,6 +61,13 @@ public class HeadersUtil {
     public static final String NEWRELIC_SYNTHETICS_MESSAGE_HEADER = "NewRelicSynthetics";
 
     /**
+     * This request header contains additional information about the transaction
+     * created by New Relic Synthetics
+     */
+    public static final String NEWRELIC_SYNTHETICS_INFO_HEADER = "X-NewRelic-Synthetics-Info";
+    public static final String NEWRELIC_SYNTHETICS_INFO_MESSAGE_HEADER = "NewRelicSyntheticsInfo";
+
+    /**
      * The request header for storing our distributed trace payloads.
      */
     public static final String NEWRELIC_TRACE_HEADER = "newrelic";
@@ -103,7 +110,8 @@ public class HeadersUtil {
     // Note - For now we do *not* want NEWRELIC_TRACE_* here because it is not an obfuscated header
     public static final Set<String> NEWRELIC_HEADERS = ImmutableSet.of(NEWRELIC_ID_HEADER, NEWRELIC_ID_MESSAGE_HEADER,
             NEWRELIC_TRANSACTION_HEADER, NEWRELIC_TRANSACTION_MESSAGE_HEADER, NEWRELIC_APP_DATA_HEADER,
-            NEWRELIC_APP_DATA_MESSAGE_HEADER, NEWRELIC_SYNTHETICS_HEADER, NEWRELIC_SYNTHETICS_MESSAGE_HEADER);
+            NEWRELIC_APP_DATA_MESSAGE_HEADER, NEWRELIC_SYNTHETICS_HEADER, NEWRELIC_SYNTHETICS_MESSAGE_HEADER,
+            NEWRELIC_SYNTHETICS_INFO_HEADER, NEWRELIC_SYNTHETICS_INFO_MESSAGE_HEADER);
 
     public static String getIdHeader(InboundHeaders headers) {
         String key = getTypedHeaderKey(headers.getHeaderType(), NEWRELIC_ID_HEADER, NEWRELIC_ID_MESSAGE_HEADER);
@@ -125,6 +133,12 @@ public class HeadersUtil {
     public static String getSyntheticsHeader(InboundHeaders headers) {
         String key = getTypedHeaderKey(headers.getHeaderType(), NEWRELIC_SYNTHETICS_HEADER,
                 NEWRELIC_SYNTHETICS_MESSAGE_HEADER);
+        return (key == null) ? null : headers.getHeader(key);
+    }
+
+    public static String getSyntheticsInfoHeader(InboundHeaders headers) {
+        String key = getTypedHeaderKey(headers.getHeaderType(), NEWRELIC_SYNTHETICS_INFO_HEADER,
+                NEWRELIC_SYNTHETICS_INFO_MESSAGE_HEADER);
         return (key == null) ? null : headers.getHeader(key);
     }
 
@@ -212,6 +226,12 @@ public class HeadersUtil {
     public static void setSyntheticsHeader(OutboundHeaders headers, String value) {
         String key = getTypedHeaderKey(headers.getHeaderType(), NEWRELIC_SYNTHETICS_HEADER,
                 NEWRELIC_SYNTHETICS_MESSAGE_HEADER);
+        headers.setHeader(key, value);
+    }
+
+    public static void setSyntheticsInfoHeader(OutboundHeaders headers, String value) {
+        String key = getTypedHeaderKey(headers.getHeaderType(), NEWRELIC_SYNTHETICS_INFO_HEADER,
+                NEWRELIC_SYNTHETICS_INFO_MESSAGE_HEADER);
         headers.setHeader(key, value);
     }
 

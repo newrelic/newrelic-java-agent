@@ -1093,6 +1093,20 @@ public class Transaction {
                             this.getInboundHeaderState().getSyntheticsMonitorId());
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_JOB_ID,
                             this.getInboundHeaderState().getSyntheticsJobId());
+                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_TYPE,
+                            this.getInboundHeaderState().getSyntheticsType());
+                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_INITIATOR,
+                            this.getInboundHeaderState().getSyntheticsInitiator());
+                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_VERSION,
+                            this.getInboundHeaderState().getSyntheticsVersion());
+
+                    Map<String, String> attrsMap = this.getInboundHeaderState().getSyntheticsAttrs();
+                    String attrName;
+
+                    for (String key : attrsMap.keySet()) {
+                        attrName = String.format("synthetics_%s", key);
+                        getIntrinsicAttributes().put(attrName, attrsMap.get(key));
+                    }
                 }
 
                 if (timeoutCause != null && timeoutCause.cause != null) {
@@ -1332,14 +1346,17 @@ public class Transaction {
         return this.inboundHeaderState;
     }
 
+
     /**
      * package visibility for testing only.
      */
     static InboundHeaders getRequestHeaders(Transaction tx) {
         if (tx.dispatcher != null) {
             if (tx.dispatcher.getRequest() != null) {
-                return new DeobfuscatedInboundHeaders(tx.dispatcher.getRequest(),
-                        tx.getCrossProcessConfig().getEncodingKey());
+                String encodingKey = tx.getCrossProcessConfig().isCrossApplicationTracing()
+                        ? tx.getCrossProcessConfig().getEncodingKey()
+                        : tx.getCrossProcessConfig().getSyntheticsEncodingKey();
+                return new DeobfuscatedInboundHeaders(tx.dispatcher.getRequest(), encodingKey);
             }
         }
         return null;

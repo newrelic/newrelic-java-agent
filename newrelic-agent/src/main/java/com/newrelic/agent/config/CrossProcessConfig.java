@@ -17,6 +17,8 @@ public interface CrossProcessConfig {
 
     String getEncodingKey();
 
+    String getSyntheticsEncodingKey();
+
     boolean isTrustedAccountId(String accountId);
 
     /**

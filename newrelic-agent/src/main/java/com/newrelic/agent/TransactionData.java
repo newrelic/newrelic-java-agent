@@ -247,6 +247,12 @@ public class TransactionData {
         return tx.getInboundHeaderState().getSyntheticsMonitorId();
     }
 
+    public String getSyntheticsType() { return tx.getInboundHeaderState().getSyntheticsType(); }
+
+    public String getSyntheticsInitiator() { return tx.getInboundHeaderState().getSyntheticsInitiator(); }
+
+    public Map<String, String> getSyntheticsAttributes() { return tx.getInboundHeaderState().getSyntheticsAttrs(); }
+
     public ApdexPerfZone getApdexPerfZone() {
         if (!isWebTransaction() && !tx.getAgentConfig().isApdexTSet(getPriorityTransactionName().getName())) {
             return null;

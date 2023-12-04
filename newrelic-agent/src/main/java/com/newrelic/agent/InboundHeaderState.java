@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.google.gson.Gson;
 import com.newrelic.agent.service.ServiceUtils;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
@@ -15,6 +16,7 @@ import com.newrelic.api.agent.TransportType;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 
+import java.util.Map;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.HeadersUtil.parseAndAcceptDistributedTraceHeaders;
@@ -31,6 +33,7 @@ public class InboundHeaderState {
     private final InboundHeaders inboundHeaders; // this value can be null
     private final CatState catState;
     private final SyntheticsState synState;
+    private final SyntheticsInfoState synInfoState;
 
     /**
      * Create this inbound header state object.
@@ -50,9 +53,11 @@ public class InboundHeaderState {
 
         if (inboundHeaders == null) {
             this.synState = SyntheticsState.NONE;
+            this.synInfoState = SyntheticsInfoState.NONE;
             this.catState = CatState.NONE;
         } else {
             this.synState = parseSyntheticsHeader();
+            this.synInfoState = parseSyntheticsInfoHeader();
             if (tx.getAgentConfig().getDistributedTracingConfig().isEnabled() && tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
                 parseDistributedTraceHeaders();
                 this.catState = CatState.NONE;
@@ -123,6 +128,57 @@ public class InboundHeaderState {
             Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: {1} in transaction {2}",
                     rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
             result = SyntheticsState.NONE;
+        }
+
+        return result;
+    }
+
+    public String getUnparsedSyntheticsInfoHeader() {
+        String result = null;
+        if (inboundHeaders != null) {
+            result = HeadersUtil.getSyntheticsInfoHeader(inboundHeaders);
+        }
+        return result;
+    }
+
+    private SyntheticsInfoState parseSyntheticsInfoHeader() {
+        String synInfoHeader = getUnparsedSyntheticsInfoHeader();
+        if (synInfoHeader == null || synInfoHeader.isEmpty()) {
+            return SyntheticsInfoState.NONE;
+        }
+
+        Map<String, Object> jsonMap = getJSONMap(synInfoHeader);
+
+        if (jsonMap == null || synInfoHeader.isEmpty()) {
+            Agent.LOG.log(Level.FINE, "Synthetic Info transaction tracing failed: unable to decode header " +
+                    "in transaction {0}.", tx);
+            return SyntheticsInfoState.NONE;
+        }
+
+        Agent.LOG.log(Level.FINEST, "Decoded synthetics info header => {0} in transaction {1}", jsonMap, tx);
+
+        String type;
+        try {
+            type = (String) jsonMap.get("type");
+        } catch (NumberFormatException nfe) {
+            Agent.LOG.log(Level.FINEST, "Could not determine synthetics-info type.",
+                    jsonMap.get("type"), jsonMap.get("type").getClass());
+            return SyntheticsInfoState.NONE;
+        }
+
+        SyntheticsInfoState result;
+
+        try {
+            // Sample synthetics-info header:
+            // {"version":"1", "type":"scheduled", "initiator":"cli", "attributes": "{"keyOne":"valueOne",
+            // "keyTwo":"valueTwo", "keyThree":"valueThree" }"}
+            result = new SyntheticsInfoState((String) jsonMap.get("version"), (String) jsonMap.get("type"),
+                    (String) jsonMap.get("initiator"), (Map) jsonMap.get("attributes"));
+        } catch (RuntimeException rex) { // class cast exception, not enough elements in the JSON map, etc.
+            Agent.LOG.log(Level.FINE, "Synthetic transaction tracing failed: while parsing header: {0}: " +
+                            "{1} in transaction {2}",
+            rex.getClass().getSimpleName(), rex.getLocalizedMessage(), tx);
+            result = SyntheticsInfoState.NONE;
         }
 
         return result;
@@ -226,6 +282,20 @@ public class InboundHeaderState {
         return synState.getSyntheticsMonitorId();
     }
 
+    public String getSyntheticsType() {
+        return synInfoState.getSyntheticsType();
+    }
+
+    public String getSyntheticsInitiator() {
+        return synInfoState.getSyntheticsInitiator();
+    }
+
+    public Map<String, String> getSyntheticsAttrs() {
+        return synInfoState.getSyntheticsAttributes();
+    }
+
+
+
     /**
      * Return true if this is a trusted cross-process request.
      * <p>
@@ -323,6 +393,20 @@ public class InboundHeaderState {
         return result;
     }
 
+    private Map<String, Object> getJSONMap(String string) {
+        Map<String, Object> result = null;
+        if (string != null) {
+            try {
+                Gson gson = new Gson();
+                result = gson.fromJson(string, Map.class);
+            } catch (Exception ex) {
+                Agent.LOG.log(Level.FINER, "Unable to parse header in transaction {0}: {1}", tx, ex);
+            }
+        }
+        return result;
+    }
+
+
 
     /**
      * Instances of this immutable class represent the CAT header state of this transaction.
@@ -419,4 +503,52 @@ public class InboundHeaderState {
             return syntheticsMonitorId;
         }
     }
+
+    static final class SyntheticsInfoState {
+        /*-
+         * From the spec ("Agent Support for Synthetics" in Confluence)
+         *
+         * version (String) is the protocol version for future improvements (currently 1)
+         * type (String) is the type of the synthetics test. May be one of 'scheduled', 'automatedTest', or additional
+         *                  types that will be introduced in the future (such as load testing)
+         * initiator (String) is the source of the synthetics test. May be 'graphql', 'cli', or specific name of
+         *                  CI integration tools
+         * attributes (map) are the additional attributes that may or may not be present in any specific synthetics
+         *                  event
+         */
+        private final String syntheticsVersion;
+        private final String syntheticsType;
+        private final String syntheticsInitiator;
+        private final Map<String, String> syntheticsAttributes;
+
+        /**
+         * This object will appear untrusted, shutting off all synthetics behaviors here.
+         */
+        static final SyntheticsInfoState NONE = new SyntheticsInfoState(null, null, null, null);
+
+        SyntheticsInfoState(String syntheticsVersion, String syntheticsType, String syntheticsInitiator, Map<String, String> syntheticsAttributes) {
+            this.syntheticsVersion = syntheticsVersion;
+            this.syntheticsType = syntheticsType;
+            this.syntheticsInitiator = syntheticsInitiator;
+            this.syntheticsAttributes = syntheticsAttributes;
+        }
+
+        String getSyntheticsVersion() {
+            return this.syntheticsVersion;
+        }
+
+        String getSyntheticsType() {
+            return this.syntheticsType;
+        }
+
+        String getSyntheticsInitiator() {
+            return this.syntheticsInitiator;
+        }
+
+        Map<String, String> getSyntheticsAttributes() {
+            return this.syntheticsAttributes;
+        }
+
+    }
+
 }
