@@ -23,17 +23,6 @@ jobs:
             }"
           CONTENT_TYPE='Content-Type: application/json'
           
-          # STAGING
-          curl -X POST 'https://staging-api.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_STAGING }}" -i \
-            -H "$CONTENT_TYPE" \
-            -d "$PAYLOAD"
-          
-          echo "*Staging Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
-          curl -X GET 'https://staging-api.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_STAGING }}" -i \
-            -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY
-          
           # PRODUCTION
           curl -X POST 'https://api.newrelic.com/v2/system_configuration.json' \
             -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
@@ -42,16 +31,5 @@ jobs:
 
           echo "*Prod Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
           curl -X GET 'https://api.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
-            -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY
-          
-          # EU PRODUCTION
-          curl -X POST 'https://api.eu.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:$ {{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
-            -H "$CONTENT_TYPE" \
-            -d "$PAYLOAD"
-
-          echo "*EU Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
-          curl -X GET 'https://api.eu.newrelic.com/v2/system_configuration.json' \
             -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
             -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY
