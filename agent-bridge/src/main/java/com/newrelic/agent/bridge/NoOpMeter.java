@@ -4,8 +4,6 @@ import com.newrelic.api.agent.metrics.Counter;
 import com.newrelic.api.agent.metrics.Meter;
 import com.newrelic.api.agent.metrics.Summary;
 
-import java.util.Map;
-
 public class NoOpMeter implements Meter {
     static final Meter INSTANCE = new NoOpMeter();
     private static final Counter COUNTER = (value, attributes) -> {

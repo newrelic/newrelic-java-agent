@@ -45,8 +45,8 @@ public class MeterServiceTest extends TestCase {
 
         Summary summary = service.newSummary("test.summary");
         for (int i = 0; i < 5; i++) {
-            summary.add(i, ImmutableMap.of("region", "us"));
-            summary.add(i, ImmutableMap.of("region", "eu", "shard", i));
+            summary.record(i, ImmutableMap.of("region", "us"));
+            summary.record(i, ImmutableMap.of("region", "eu", "shard", i));
         }
 
         Collection<CustomInsightsEvent> events = MeterService.toEvents(service.metricDataSupplier.get());
@@ -64,7 +64,7 @@ public class MeterServiceTest extends TestCase {
         final MeterService service = new MeterService(instrumentType -> 5);
         Summary summary = service.newSummary("test.summary");
         for (char c = 'a'; c < 'z'; c++) {
-            summary.add(50D, ImmutableMap.of("component", "FFF" + c));
+            summary.record(50D, ImmutableMap.of("component", "FFF" + c));
         }
 
         Collection<CustomInsightsEvent> events = MeterService.toEvents(service.metricDataSupplier.get());
@@ -75,7 +75,7 @@ public class MeterServiceTest extends TestCase {
         assertEquals(Boolean.TRUE, overflow.get());
 
         for (char c = 'g'; c < 'z'; c++) {
-            summary.add(50D, ImmutableMap.of("component", "FFF" + c));
+            summary.record(50D, ImmutableMap.of("component", "FFF" + c));
         }
 
         events = MeterService.toEvents(service.metricDataSupplier.get());

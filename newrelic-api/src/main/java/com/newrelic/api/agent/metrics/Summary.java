@@ -10,12 +10,12 @@ public interface Summary {
     /**
      * Records a value.
      */
-    default void add(double value) {
-        add(value, Collections.emptyMap());
+    default void record(double value) {
+        record(value, Collections.emptyMap());
     }
 
     /**
      * Records a value with the given attributes.
      */
-    void add(double value, Map<String, ?> attributes);
+    void record(double value, Map<String, ?> attributes);
 }

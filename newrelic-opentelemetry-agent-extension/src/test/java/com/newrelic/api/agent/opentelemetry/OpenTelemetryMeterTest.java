@@ -50,8 +50,8 @@ class OpenTelemetryMeterTest {
     public void newSummary() {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("region", "EU");
-        OpenTelemetryNewRelic.getAgent().getMeter().newSummary("custom.test.sum").add(5.0, attributes);
-        OpenTelemetryNewRelic.getAgent().getMeter().newSummary("custom.test.sum").add(8.0, attributes);
+        OpenTelemetryNewRelic.getAgent().getMeter().newSummary("custom.test.sum").record(5.0, attributes);
+        OpenTelemetryNewRelic.getAgent().getMeter().newSummary("custom.test.sum").record(8.0, attributes);
 
         assertThat(openTelemetry.getMetrics())
                 .satisfiesExactlyInAnyOrder(
