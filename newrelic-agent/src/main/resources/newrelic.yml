@@ -413,11 +413,11 @@ common: &default_settings
       deserialization:
         enabled: true
 
-  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's time exceeds the threshold value
-  # (in ms). A transaction will only be reported once.
+  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's
+  # time exceeds the threshold value (in ms). A transaction will only be reported once.
   slow_transactions:
-    enabled: false
-    threshold: 1000
+    enabled: true
+    threshold: 600000
 
 # Application Environments
 # ------------------------------------------
