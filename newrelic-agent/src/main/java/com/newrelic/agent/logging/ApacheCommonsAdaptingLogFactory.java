@@ -8,14 +8,13 @@
 package com.newrelic.agent.logging;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.util.LicenseKeyUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogConfigurationException;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.logging.Level;
 
-import static com.newrelic.agent.util.LicenseKeyUtil.*;
+import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
 
 public class ApacheCommonsAdaptingLogFactory extends LogFactory {
 
