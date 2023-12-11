@@ -62,6 +62,7 @@ public class Util {
                             .uri(uri)
                             .procedure("exchange")
                             .inboundHeaders(new InboundResponseWrapper(clientResponse))
+                            .status(clientResponse.statusCode().value(), null)
                             .build());
                     segment.end();
                 } catch (Throwable e) {
