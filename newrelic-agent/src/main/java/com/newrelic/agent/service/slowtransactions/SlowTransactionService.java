@@ -107,10 +107,10 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
         if (getLogger().isLoggable(Level.FINEST)) {
             getLogger().finest("Transaction finished with guid " + transactionData.getGuid());
         }
-        openTransactions.remove(transactionData.getGuid());
+        Transaction txn = openTransactions.remove(transactionData.getGuid());
 
-        if (evalCompletedTransactions) {
-            Transaction txn = transactionData.getTransaction();
+        // txn will be null if it's been reported as part of the harvest cycle.
+        if (txn != null && evalCompletedTransactions) {
             long txnExecutionTimeInMs = System.currentTimeMillis() - txn.getWallClockStartTimeMs();
             if (txnExecutionTimeInMs > this.thresholdMillis) {
                 reportSlowTransaction(txn, txnExecutionTimeInMs, true);
