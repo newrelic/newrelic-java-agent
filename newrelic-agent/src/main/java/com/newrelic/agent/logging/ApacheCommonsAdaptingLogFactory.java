@@ -16,6 +16,9 @@ import java.util.logging.Level;
 
 import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
 
+/**
+ * SSL/TLS debug logging is handled by this class when using -Dnewrelic.debug=true
+ */
 public class ApacheCommonsAdaptingLogFactory extends LogFactory {
 
     public static final IAgentLogger LOG = AgentLogManager.getLogger();
