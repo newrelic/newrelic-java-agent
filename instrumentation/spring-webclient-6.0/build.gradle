@@ -1,0 +1,23 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework:spring-webflux:6.1.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-webclient-6.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.springframework:spring-webflux:[6.0.0,)'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+site {
+    title 'Spring webclient'
+    type 'Messaging'
+}
