@@ -61,6 +61,8 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
+import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
+
 /**
  * A class for sending and receiving New Relic data.
  *
@@ -592,7 +594,8 @@ public class DataSenderImpl implements DataSender {
         String payloadJsonSent = DataSenderWriter.toJSONString(params);
 
         if (auditMode && methodShouldBeAudited(method)) {
-            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, url, payloadJsonSent);
+
+            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, obfuscateLicenseKey(url.toString()), obfuscateLicenseKey(payloadJsonSent));
             logger.info(msg);
         }
 
