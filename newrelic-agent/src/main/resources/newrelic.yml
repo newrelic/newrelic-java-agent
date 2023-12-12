@@ -421,6 +421,11 @@ common: &default_settings
     enabled: true
     threshold: 600000
 
+    # If this is set to true, every transaction will be checked for exceeding the defined threshold on
+    # transaction completion. Note that this can be computationally expensive since a stack trace is sent
+    # with every SlowTransaction event, if a large number of transaction exceed the threshold.
+    evaluate_completed_transactions: false
+
 # Application Environments
 # ------------------------------------------
 # Environment specific settings are in this section.
