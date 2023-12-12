@@ -38,6 +38,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
@@ -80,6 +81,7 @@ public class SlowTransactionServiceTest {
         when(agentConfig.getMaxStackTraceLines()).thenReturn(5);
         when(slowTransactionsConfig.isEnabled()).thenReturn(true);
         when(slowTransactionsConfig.getThresholdMillis()).thenReturn(1000L);
+        when(slowTransactionsConfig.evaluateCompletedTransactions()).thenReturn(true);
 
         when(serviceManager.getTransactionService()).thenReturn(transactionService);
         when(serviceManager.getHarvestService()).thenReturn(harvestService);
@@ -208,6 +210,46 @@ public class SlowTransactionServiceTest {
         assertTrue(event.getTimestamp() > 0);
         assertEquals(expectedAttributes, event.getUserAttributesCopy());
         assertTrue(event.getPriority() >= 0);
+    }
+
+    @Test
+    public void dispatcherTransactionFinished_withTxnThatExceedsThresholdAndNotPreviouslyReported_reportsAsSlow() {
+        String t1Guid = UUID.randomUUID().toString();
+        Transaction t1 = mockTransaction(t1Guid, 2000);
+        service.dispatcherTransactionStarted(t1);
+
+        Map<String, Object> expectedAttributes = new HashMap<>();
+        expectedAttributes.put("guid", t1Guid);
+        doReturn(expectedAttributes).when(service).extractMetadata(same(t1), anyLong());
+
+        TransactionData mockTxnData = mock(TransactionData.class);
+        when(mockTxnData.getGuid()).thenReturn(t1Guid);
+
+        service.dispatcherTransactionFinished(mockTxnData, mock(TransactionStats.class));
+
+        ArgumentCaptor<CustomInsightsEvent> eventCaptor = ArgumentCaptor.forClass(CustomInsightsEvent.class);
+        verify(insightsService).storeEvent(eq("App name"), eventCaptor.capture());
+        CustomInsightsEvent event = eventCaptor.getValue();
+        assertEquals("SlowTransaction", event.getType());
+        assertTrue(event.getTimestamp() > 0);
+        assertEquals(expectedAttributes, event.getUserAttributesCopy());
+        assertTrue(event.getPriority() >= 0);
+    }
+
+    @Test
+    public void dispatcherTransactionFinished_withTxnThatExceedsThresholdAndPreviouslyReported_doesNotReportAgain() {
+        String t1Guid = UUID.randomUUID().toString();
+
+        // Simulate the transaction being reported via the harvest cycle by not calling
+        // dispatcherTransactionStarted(..) which means the transaction never exists
+        // in the transaction collection.
+
+        TransactionData mockTxnData = mock(TransactionData.class);
+        when(mockTxnData.getGuid()).thenReturn(t1Guid);
+
+        service.dispatcherTransactionFinished(mockTxnData, mock(TransactionStats.class));
+
+        verify(insightsService, times(0)).storeEvent(anyString(), any());
     }
 
     @Test
