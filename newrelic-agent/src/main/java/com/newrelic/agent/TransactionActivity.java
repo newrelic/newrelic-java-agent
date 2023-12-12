@@ -338,7 +338,7 @@ public class TransactionActivity {
         } else {
             if (tracer.getParentTracer() != null) {
                 lastTracer = tracer;
-                Agent.LOG.log(Level.FINEST, "Tracer Debug: called addTracerToStack, lastTracer (pointer to top of stack) set to {0}", tracer);
+                Agent.LOG.log(Level.FINEST, "Tracer Debug: called addTracerToStack, lastTracer (pointer to top of stack) set to {0} - {1}", tracer, getDebugOutput(tracer));
                 addTracer(tracer);
             } else {
                 if (Agent.LOG.isFinestEnabled()) {
@@ -356,7 +356,7 @@ public class TransactionActivity {
      */
     public void tracerFinished(Tracer tracer, int opcode) {
         if (tracer instanceof SkipTracer) {
-            Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, ignoring SkipTracer tracer = {0}", tracer);
+            Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, ignoring SkipTracer tracer = {0} - {1}", tracer, getDebugOutput(tracer));
             return;
         }
         if (tracer != lastTracer) {
@@ -365,7 +365,7 @@ public class TransactionActivity {
             finished(rootTracer, opcode);
         } else {
             lastTracer = tracer.getParentTracer();
-            Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, lastTracer (pointer to top of stack) set to {0}, tracer (actual tracer popped off stack) = {1}", lastTracer, tracer);
+            Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, lastTracer (pointer to top of stack) set to {0}, tracer (actual tracer popped off stack) = {1} - {2}", lastTracer, tracer, getDebugOutput(tracer));
         }
     }
 
@@ -376,8 +376,8 @@ public class TransactionActivity {
      * @param opcode
      */
     private void failedDueToInconsistentTracerState(Tracer tracer, int opcode) {
-        Agent.LOG.log(Level.SEVERE, "Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for {0} ({1} != {2})", this, tracer,
-                lastTracer);
+        Agent.LOG.log(Level.SEVERE, "Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for {0} ({1} != {2}) - {3}", this, tracer,
+                lastTracer, getDebugOutput(tracer));
         StringBuilder sb = new StringBuilder("Tracer chain, (child -> parent): "+tracer);
         int maxChainSize = 2000;
         int count = 0;
@@ -386,6 +386,10 @@ public class TransactionActivity {
             sb.append(" -> "+temp);
             temp = temp.getParentTracer();
             count++;
+        }
+        sb.append("\n--------\ncurrentStackTrace:");
+        for (StackTraceElement elem : Thread.currentThread().getStackTrace()) {
+            sb.append("\n  "+elem);
         }
         Agent.LOG.log(Level.SEVERE, sb.toString());
         try {
@@ -475,7 +479,7 @@ public class TransactionActivity {
     private void setRootTracer(Tracer tracer) {
         rootTracer = tracer;
         lastTracer = tracer;
-        Agent.LOG.log(Level.FINEST, "Tracer Debug: called setRootTracer, lastTracer (pointer to top of stack) and rootTracer set to {0}", tracer);
+        Agent.LOG.log(Level.FINEST, "Tracer Debug: called setRootTracer, lastTracer (pointer to top of stack) and rootTracer set to {0} - {1}", tracer, getDebugOutput(tracer));
 
         if (tracer instanceof DefaultTracer) {
             DefaultTracer dt = (DefaultTracer) tracer;
@@ -695,4 +699,14 @@ public class TransactionActivity {
         return activityId;
     }
 
+    private String getDebugOutput(Tracer tracer) {
+        StringBuilder sb = new StringBuilder("NR709AbsurdValues: [");
+        sb.append("TransactionActivity@"+this.activityId);
+        sb.append("; notInThreadLocal="+this.notInThreadLocal);
+        sb.append("; segment="+this.segment);
+        sb.append("; metricName="+(tracer == null ? "null" : tracer.getMetricName()));
+        sb.append("; isAsync="+(tracer == null ? "null" : tracer.isAsync()));
+        sb.append("]");
+        return sb.toString();
+    }
 }
