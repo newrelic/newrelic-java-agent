@@ -17,6 +17,12 @@ val shadowJar = tasks.getByName<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
 }
 
+// Todo: add sources and javadoc jar to publish release
+//java {
+//    withSourcesJar()
+//    withJavadocJar()
+//}
+
 PublishConfig.config(
         project,
         "New Relic OpenTelemetry Java Agent Extension",
