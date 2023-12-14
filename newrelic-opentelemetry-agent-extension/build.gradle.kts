@@ -17,10 +17,11 @@ val shadowJar = tasks.getByName<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
+// Todo: add sources and javadoc jar to publish release
+//java {
+//    withSourcesJar()
+//    withJavadocJar()
+//}
 
 PublishConfig.config(
         project,
