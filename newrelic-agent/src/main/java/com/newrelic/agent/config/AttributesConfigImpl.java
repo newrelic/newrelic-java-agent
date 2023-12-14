@@ -8,7 +8,7 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.attributes.AttributeNames;
+import com.newrelic.agent.bridge.AgentBridge;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -29,15 +29,37 @@ public class AttributesConfigImpl extends BaseConfig implements AttributesConfig
     public static final String ATTS_EXCLUDE = "attributes.exclude";
     public static final String ATTS_INCLUDE = "attributes.include";
 
+    private static final String HTTP_ATTR_MODE = "http_attribute_mode";
+    private static final String HTTP_ATTR_MODE_LEGACY = "legacy";
+    private static final String HTTP_ATTR_MODE_STANDARD = "standard";
+    private static final String HTTP_ATTR_MODE_BOTH = "both";
+
     private final boolean enabledRoot;
     private final List<String> attributesInclude;
     private final List<String> attributeExclude;
+    private final boolean legacyHttpAttr;
+    private final boolean standardHttpAttr;
 
     public AttributesConfigImpl(Map<String, Object> pProps) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
         enabledRoot = initEnabled();
         attributesInclude = initAttributesInclude();
         attributeExclude = initAttributesExclude();
+        String httpAttributeMode = getProperty(HTTP_ATTR_MODE);
+        if (HTTP_ATTR_MODE_LEGACY.equalsIgnoreCase(httpAttributeMode)) {
+            legacyHttpAttr = true;
+            standardHttpAttr = false;
+        } else if (HTTP_ATTR_MODE_STANDARD.equalsIgnoreCase(httpAttributeMode)) {
+            legacyHttpAttr = false;
+            standardHttpAttr = true;
+        } else { // defaults to all
+            if (httpAttributeMode != null && !HTTP_ATTR_MODE_BOTH.equalsIgnoreCase(httpAttributeMode)) {
+                AgentBridge.getAgent().getLogger().log(Level.WARNING, "Invalid " + HTTP_ATTR_MODE + " config" +
+                        " encountered: " + httpAttributeMode + ". Using default :" + HTTP_ATTR_MODE_BOTH + ".");
+            }
+            legacyHttpAttr = true;
+            standardHttpAttr = true;
+        }
     }
 
     private boolean initEnabled() {
@@ -88,6 +110,16 @@ public class AttributesConfigImpl extends BaseConfig implements AttributesConfig
 
         // the root property is not used unless it is false
         return (toEnable || defaultProp);
+    }
+
+    @Override
+    public boolean isLegacyHttpAttr() {
+        return legacyHttpAttr;
+    }
+
+    @Override
+    public boolean isStandardHttpAttr() {
+        return standardHttpAttr;
     }
 
     private static Boolean getBooleanValue(AgentConfig config, String value) {

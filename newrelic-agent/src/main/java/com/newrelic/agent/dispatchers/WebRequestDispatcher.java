@@ -16,8 +16,10 @@ import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.WebResponse;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
+import com.newrelic.agent.config.AttributesConfig;
 import com.newrelic.agent.config.CustomRequestHeaderConfig;
 import com.newrelic.agent.config.HiddenProperties;
+import com.newrelic.agent.config.TransactionEventsConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.servlet.ServletUtils;
@@ -27,7 +29,6 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.ExternalTimeTracker;
 import com.newrelic.agent.transaction.TransactionNamer;
 import com.newrelic.agent.transaction.WebTransactionNamer;
-import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
@@ -104,16 +105,25 @@ public class WebRequestDispatcher extends DefaultDispatcher implements WebRespon
                 storeMethod();
                 storeResponseContentType();
 
+                AttributesConfig attributesConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getAttributesConfig();
                 if (getStatus() > 0) {
-                    // http status is now being recorded as a string
-                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS, String.valueOf(getStatus()));
-                    // http.statusCode is supposed to be an int
-                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_CODE, getStatus());
+                    if (attributesConfig.isLegacyHttpAttr()) {
+                        // http status is now being recorded as a string
+                        getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS, String.valueOf(getStatus()));
+                    }
+                    if (attributesConfig.isStandardHttpAttr()) {
+                        // http.statusCode is supposed to be an int
+                        getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_CODE, getStatus());
+                    }
                 }
 
                 if (getStatusMessage() != null) {
-                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_MESSAGE, getStatusMessage());
-                    getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_TEXT, getStatusMessage());
+                    if (attributesConfig.isLegacyHttpAttr()) {
+                        getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_MESSAGE, getStatusMessage());
+                    }
+                    if (attributesConfig.isStandardHttpAttr()) {
+                        getTransaction().getAgentAttributes().put(AttributeNames.HTTP_STATUS_TEXT, getStatusMessage());
+                    }
                 }
 
                 // adding request.uri here includes it in the Transaction event, which also propagates to any Transaction error events
