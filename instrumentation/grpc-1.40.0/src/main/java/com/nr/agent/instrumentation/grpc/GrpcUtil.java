@@ -34,14 +34,14 @@ public class GrpcUtil {
     }
 
     /**
-     * Set the http.statusCode attribute and error cause (if applicable) on the transaction
+     * Set the response.status attribute and error cause (if applicable) on the transaction
      * when the ServerStream is closed or cancelled.
      *
      * @param status The {@link Status} of the completed/cancelled operation
      */
     public static void setServerStreamResponseStatus(Status status) {
         if (status != null) {
-            NewRelic.addCustomParameter("http.statusCode", status.getCode().value());
+            NewRelic.addCustomParameter("response.status", status.getCode().value());
             if (GrpcConfig.errorsEnabled && status.getCause() != null) {
                 // If an error occurred during the close of this server call we should record it
                 NewRelic.noticeError(status.getCause());

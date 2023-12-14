@@ -1646,7 +1646,7 @@ public class AkkaHttpRoutesTest {
         Assert.assertNotNull(transactionEvents);
         Assert.assertEquals(expectedSize, transactionEvents.size());
         for (TransactionEvent transactionEvent : transactionEvents) {
-            String httpResponseCode = String.valueOf(transactionEvent.getAttributes().get("http.statusCode"));
+            String httpResponseCode = String.valueOf(transactionEvent.getAttributes().get("httpResponseCode"));
             Assert.assertNotNull(httpResponseCode);
             Assert.assertEquals(expectedResponseCode, httpResponseCode);
         }

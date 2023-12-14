@@ -60,6 +60,7 @@ class ValidationHelper {
         assertTrue(rootSegment.getName().endsWith(fullMethod));
         assertEquals(1, rootSegment.getCallCount());
         assertEquals(fullMethod, rootSegment.getTracerAttributes().get("request.method"));
+        assertEquals(0, rootSegment.getTracerAttributes().get("response.status"));
         assertEquals(grpcType, rootSegment.getTracerAttributes().get("grpc.type"));
 
         // Custom attributes (to test tracing into customer code)
@@ -75,6 +76,7 @@ class ValidationHelper {
             assertEquals(name, serverTxEvent.getAttributes().get("sayHelloAfter"));
         }
 
+        assertEquals(0, serverTxEvent.getAttributes().get("response.status"));
         assertEquals("grpc://localhost:" + server.getPort() + "/" + fullMethod, serverTxEvent.getAttributes().get("request.uri"));
     }
 
@@ -114,6 +116,7 @@ class ValidationHelper {
         assertTrue(rootSegment.getName().endsWith(fullMethod));
         assertEquals(1, rootSegment.getCallCount());
         assertEquals(fullMethod, rootSegment.getTracerAttributes().get("request.method"));
+        assertEquals(status, rootSegment.getTracerAttributes().get("response.status"));
         assertEquals(grpcType, rootSegment.getTracerAttributes().get("grpc.type"));
 
         // Custom attributes (to test tracing into customer code)
@@ -121,6 +124,7 @@ class ValidationHelper {
         assertEquals(1, serverTxEvents.size());
         TransactionEvent serverTxEvent = serverTxEvents.iterator().next();
         assertNotNull(serverTxEvent);
+        assertEquals(status, serverTxEvent.getAttributes().get("response.status"));
         assertEquals("grpc://localhost:" + server.getPort() + "/" + fullMethod, serverTxEvent.getAttributes().get("request.uri"));
     }
 
