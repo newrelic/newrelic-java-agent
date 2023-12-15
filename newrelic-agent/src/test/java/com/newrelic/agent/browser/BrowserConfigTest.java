@@ -56,7 +56,7 @@ public class BrowserConfigTest {
             "\"theString\":\"abc123\"", "\"theShort\":1" };
 
     @Test
-    public void getBrowserAgentScript_withNonce_returnsValidScript() throws Exception {
+    public void getBrowserAgentHeaderScript_withNonce_returnsValidScript() throws Exception {
         setupServiceManager(true, true);
         Transaction tx = createTransaction();
 
@@ -64,7 +64,7 @@ public class BrowserConfigTest {
         BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
         BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
 
-        String value = beaconConfig.getBrowserAgentScript(bts, "ABC123");
+        String value = beaconConfig.getBrowserAgentHeaderScript(bts, "ABC123");
 
         Assert.assertTrue(value.contains("nonce=\"ABC123\""));
         Assert.assertTrue(value.startsWith(SCRIPT_START));
@@ -75,7 +75,7 @@ public class BrowserConfigTest {
     }
 
     @Test
-    public void getBrowserAgentScript_withoutNonce_returnsValidScript() throws Exception {
+    public void getBrowserAgentHeaderScript_withoutNonce_returnsValidScript() throws Exception {
         setupServiceManager(true, true);
         Transaction tx = createTransaction();
 
@@ -83,7 +83,7 @@ public class BrowserConfigTest {
         BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
         BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
 
-        String value = beaconConfig.getBrowserAgentScript(bts);
+        String value = beaconConfig.getBrowserAgentHeaderScript(bts);
 
         Assert.assertFalse(value.contains("nonce=\""));
         Assert.assertTrue(value.startsWith(SCRIPT_START));
@@ -94,7 +94,7 @@ public class BrowserConfigTest {
     }
 
     @Test(expected = Exception.class)
-    public void getBrowserAgentScript_withRumDisabled_throwsException() throws Exception {
+    public void getBrowserAgentHeaderScript_withRumDisabled_throwsException() throws Exception {
         BrowserConfig.createBrowserConfig("appName", createBrowserConfig(false));
     }
 

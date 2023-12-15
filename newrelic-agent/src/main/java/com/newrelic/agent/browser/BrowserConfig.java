@@ -57,11 +57,11 @@ public class BrowserConfig extends BaseConfig {
         return new BrowserConfig(appName, settings);
     }
 
-    public String getBrowserAgentScript(BrowserTransactionState state) {
-        return getBrowserAgentScript(state, null);
+    public String getBrowserAgentHeaderScript(BrowserTransactionState state) {
+        return getBrowserAgentHeaderScript(state, null);
     }
 
-    public String getBrowserAgentScript(BrowserTransactionState state, String nonce) {
+    public String getBrowserAgentHeaderScript(BrowserTransactionState state, String nonce) {
         return SCRIPT_BEGIN + (nonce != null ? " nonce=\"" + nonce + "\">" : ">")
                 + JS_AGENT_CONFIG_STR_PREFIX
                 + javaScriptAgentConfig.getConfigString(state)

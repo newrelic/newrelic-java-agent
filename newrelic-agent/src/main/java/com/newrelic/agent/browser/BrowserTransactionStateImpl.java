@@ -75,7 +75,7 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
         }
         onBrowserHeaderObtained();
         tx.freezeTransactionName();
-        return config.getBrowserAgentScript(this);
+        return config.getBrowserAgentHeaderScript(this);
     }
 
     private String getBrowserTimingHeader2(String nonce) {
@@ -84,7 +84,7 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
             return onNoBrowserConfig();
         }
         onBrowserHeaderObtained();
-        return config.getBrowserAgentScript(this, nonce);
+        return config.getBrowserAgentHeaderScript(this, nonce);
     }
 
     private void onBrowserHeaderObtained() {
