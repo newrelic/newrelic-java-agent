@@ -248,8 +248,8 @@ public class SpanEventFactory {
                 filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_TEXT)) {
             builder.putAgentAttribute(AttributeNames.HTTP_STATUS_TEXT, statusText);
         }
-        if (attributesConfig.isStandardHttpAttr() &&
-                filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_TEXT)) {
+        if (attributesConfig.isLegacyHttpAttr() &&
+                filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_MESSAGE)) {
             builder.putAgentAttribute(AttributeNames.HTTP_STATUS_MESSAGE, statusText);
         }
         return this;

@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,6 +114,7 @@ public class SpanEventFactoryTest {
 
     @Test
     public void shouldSetHttpParameters() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         HttpParameters mockParameters = mock(HttpParameters.class);
         when(mockParameters.getLibrary()).thenReturn("library");
         when(mockParameters.getProcedure()).thenReturn("procedure");
@@ -138,13 +140,34 @@ public class SpanEventFactoryTest {
 
     @Test
     public void shouldSetStatusCode() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(418).build();
 
         assertEquals(418, spanEvent.getAgentAttributes().get("http.statusCode"));
+        assertEquals(418, spanEvent.getAgentAttributes().get("httpResponseCode"));
+    }
+
+    @Test
+    public void shouldSetStandardStatusCode() {
+        mockAttributeConfig(HttpAttrMode.STANDARD);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(418).build();
+
+        assertEquals(418, spanEvent.getAgentAttributes().get("http.statusCode"));
+        assertNull(spanEvent.getAgentAttributes().get("httpResponseCode"));
+    }
+
+    @Test
+    public void shouldSetLegacyStatusCode() {
+        mockAttributeConfig(HttpAttrMode.LEGACY);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(418).build();
+
+        assertNull(spanEvent.getAgentAttributes().get("http.statusCode"));
+        assertEquals(418, spanEvent.getAgentAttributes().get("httpResponseCode"));
     }
 
     @Test
     public void shouldNotSetStatusCodeWhenFiltering() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEventFactory factory = new SpanEventFactory("blerb", new PassNothingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
         SpanEvent spanEvent = factory.setHttpStatusCode(418).build();
 
@@ -160,17 +183,39 @@ public class SpanEventFactoryTest {
 
     @Test
     public void shouldSetStatusText() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEvent spanEvent = spanEventFactory.setHttpStatusText("I'm a teapot.").build();
 
         assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("http.statusText"));
+        assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("httpResponseMessage"));
+    }
+
+    @Test
+    public void shouldSetStandardStatusText() {
+        mockAttributeConfig(HttpAttrMode.STANDARD);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusText("I'm a teapot.").build();
+
+        assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("http.statusText"));
+        assertNull(spanEvent.getAgentAttributes().get("httpResponseMessage"));
+    }
+
+    @Test
+    public void shouldSetLegacyStatusText() {
+        mockAttributeConfig(HttpAttrMode.LEGACY);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusText("I'm a teapot.").build();
+
+        assertNull(spanEvent.getAgentAttributes().get("http.statusText"));
+        assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("httpResponseMessage"));
     }
 
     @Test
     public void shouldNotSetStatusTextWhenFiltering() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEventFactory factory = new SpanEventFactory("blerb", new PassNothingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
         SpanEvent spanEvent = factory.setHttpStatusText("I'm a teapot.").build();
 
         assertNull(spanEvent.getAgentAttributes().get("http.statusText"));
+        assertNull(spanEvent.getAgentAttributes().get("httpResponseMessage"));
     }
 
     @Test
@@ -178,6 +223,7 @@ public class SpanEventFactoryTest {
         SpanEvent spanEvent = spanEventFactory.setHttpStatusText(null).build();
 
         assertFalse(spanEvent.getAgentAttributes().containsKey("http.statusText"));
+        assertFalse(spanEvent.getAgentAttributes().containsKey("httpResponseMessage"));
     }
 
     @Test
@@ -277,5 +323,26 @@ public class SpanEventFactoryTest {
         public Map<String, ?> filterUserAttributes(String appName, Map<String, ?> userAttributes) {
             return Collections.emptyMap();
         }
+    }
+
+    /**
+     * These should never be both false.
+     */
+    private void mockAttributeConfig(HttpAttrMode httpAttrMode) {
+        MockServiceManager serviceManager = new MockServiceManager();
+        AgentConfig agentConfig = mock(AgentConfig.class, RETURNS_DEEP_STUBS);
+        serviceManager.setConfigService(new MockConfigService(agentConfig));
+
+        when(agentConfig.getAttributesConfig().isStandardHttpAttr())
+                .thenReturn(httpAttrMode != HttpAttrMode.LEGACY);
+
+        when(agentConfig.getAttributesConfig().isLegacyHttpAttr())
+                .thenReturn(httpAttrMode != HttpAttrMode.STANDARD);
+    }
+
+    private enum HttpAttrMode {
+        BOTH,
+        STANDARD,
+        LEGACY,
     }
 }
