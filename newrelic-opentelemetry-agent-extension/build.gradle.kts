@@ -17,11 +17,13 @@ val shadowJar = tasks.getByName<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
 }
 
-// Todo: add sources and javadoc jar to publish release
-//java {
-//    withSourcesJar()
-//    withJavadocJar()
-//}
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+val javadocJar by tasks
+val sourcesJar by tasks
 
 PublishConfig.config(
         project,
@@ -29,6 +31,8 @@ PublishConfig.config(
         "Extension for OpenTelemetry Java Agent") {
     artifactId = "newrelic-opentelemetry-agent-extension"
     artifact(shadowJar)
+    artifact(javadocJar)
+    artifact(sourcesJar)
 
     // Update artifact version to include "-alpha" suffix
     var artifactVersion = version
