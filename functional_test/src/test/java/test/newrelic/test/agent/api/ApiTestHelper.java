@@ -53,7 +53,11 @@ public class ApiTestHelper {
             + "var f=a(\"handle\"),g=window,h=g.document,i=\"readystatechange\",j=\"addEventListener\",k=\"attachEvent\",l=(\"\"+location).split(\"?\")[0],"
             + "m=b.exports={offset:e(),origin:l};h[j]?(h[j](i,d,!1),g[j](\"load\",c,!1)):(h[k](\"on\"+i,d),g[k](\"onload\",c)),"
             + "f(\"mark\",[\"firstbyte\",e()])},{handle:\"4O2Y62\"}],loader:[function(a,b){b.exports=a(\"YLUGVp\")},{}]},{},[\"YLUGVp\"]);";
-    static final String HEADER = "\n<script type=\"text/javascript\">" + LOADER + "</script>";
+    static final String JAVASCRIPT_AGENT_SCRIPT = "\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info={\"errorBeacon\":" +
+            "\"staging-jserror.newrelic.com\",\"licenseKey\":\"abcd\",\"agent\":\"js-agent.newrelic.com\\nr-248.min.js\"," +
+            "\"beacon\":\"staging-beacon-2.newrelic.com\",,\"applicationID\":\"100\"," +
+            "\"transactionName\":\"MwADMBAECxUCAhIMDQpKNBYLSjAICA8JEgw=\",\"queueTime\":0};\n" +
+            LOADER + "</script>";
     // From BeaconConfiguration
     public static final String BROWSER_KEY = "browser_key";
     public static final String BROWSER_LOADER_VERSION = "browser_monitoring.loader_version";
