@@ -46,19 +46,20 @@ public class AttributesConfigImpl extends BaseConfig implements AttributesConfig
         attributesInclude = initAttributesInclude();
         attributeExclude = initAttributesExclude();
         String httpAttributeMode = getProperty(HTTP_ATTR_MODE);
-        if (HTTP_ATTR_MODE_LEGACY.equalsIgnoreCase(httpAttributeMode)) {
-            legacyHttpAttr = true;
-            standardHttpAttr = false;
-        } else if (HTTP_ATTR_MODE_STANDARD.equalsIgnoreCase(httpAttributeMode)) {
-            legacyHttpAttr = false;
-            standardHttpAttr = true;
-        } else { // defaults to all
-            if (httpAttributeMode != null && !HTTP_ATTR_MODE_BOTH.equalsIgnoreCase(httpAttributeMode)) {
-                AgentBridge.getAgent().getLogger().log(Level.WARNING, "Invalid " + HTTP_ATTR_MODE + " config" +
-                        " encountered: " + httpAttributeMode + ". Using default :" + HTTP_ATTR_MODE_BOTH + ".");
-            }
-            legacyHttpAttr = true;
-            standardHttpAttr = true;
+
+        boolean standardMode = HTTP_ATTR_MODE_STANDARD.equalsIgnoreCase(httpAttributeMode);
+        boolean legacyMode = HTTP_ATTR_MODE_LEGACY.equalsIgnoreCase(httpAttributeMode);
+
+        // legacy is only disabled when mode is standard
+        legacyHttpAttr = !standardMode;
+        // standard is only disabled when mode is legacy
+        standardHttpAttr = !legacyMode;
+
+        // logging invalid http attr mode
+        if (httpAttributeMode != null && !legacyMode && !standardMode &&
+                !HTTP_ATTR_MODE_BOTH.equalsIgnoreCase(httpAttributeMode)) {
+            AgentBridge.getAgent().getLogger().log(Level.WARNING, "Invalid " + HTTP_ATTR_MODE + " config" +
+                    " encountered: " + httpAttributeMode + ". Using default :" + HTTP_ATTR_MODE_BOTH + ".");
         }
     }
 

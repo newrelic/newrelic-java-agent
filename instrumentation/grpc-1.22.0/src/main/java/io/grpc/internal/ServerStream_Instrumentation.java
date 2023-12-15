@@ -70,9 +70,15 @@ public abstract class ServerStream_Instrumentation {
 
         if (status != null) {
             int statusCode = status.getCode().value();
-            NewRelic.addCustomParameter("response.status", statusCode);
-            NewRelic.addCustomParameter("http.statusCode", statusCode);
-            NewRelic.addCustomParameter("http.statusText", status.getDescription());
+            String statusMessage = status.getDescription();
+            if (GrpcConfig.HTTP_ATTR_LEGACY) {
+                NewRelic.addCustomParameter("response.status", statusCode);
+                NewRelic.addCustomParameter("response.statusMessage", statusMessage);
+            }
+            if (GrpcConfig.HTTP_ATTR_STANDARD) {
+                NewRelic.addCustomParameter("http.statusCode", statusCode);
+                NewRelic.addCustomParameter("http.statusText", statusMessage);
+            }
             if (GrpcConfig.errorsEnabled && status.getCause() != null) {
                 // If an error occurred during the close of this server call we should record it
                 NewRelic.noticeError(status.getCause());
