@@ -36,6 +36,8 @@ import java.util.function.Supplier;
 
 import static com.newrelic.agent.MetricNames.QUEUE_TIME;
 import static com.newrelic.agent.attributes.AttributeNames.HTTP_REQUEST_PREFIX;
+import static com.newrelic.agent.attributes.AttributeNames.HTTP_STATUS;
+import static com.newrelic.agent.attributes.AttributeNames.HTTP_STATUS_MESSAGE;
 import static com.newrelic.agent.attributes.AttributeNames.MESSAGE_REQUEST_PREFIX;
 import static com.newrelic.agent.attributes.AttributeNames.PORT;
 import static com.newrelic.agent.attributes.AttributeNames.QUEUE_DURATION;
@@ -335,10 +337,14 @@ public class TracerToSpanEventTest {
         int httpResponseCode = 404;
         String httpResponseMessage = "I cannot find that page, silly";
         String contentType = "application/vnd.ms-powerpoint ";
+        expectedAgentAttributes.put("httpResponseCode", httpResponseCode);
+        expectedAgentAttributes.put("httpResponseMessage", httpResponseMessage);
         expectedAgentAttributes.put(RESPONSE_CONTENT_TYPE_PARAMETER_NAME, contentType);
 
         SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
 
+        transactionAgentAttributes.put(HTTP_STATUS, httpResponseCode);
+        transactionAgentAttributes.put(HTTP_STATUS_MESSAGE, httpResponseMessage);
         transactionAgentAttributes.put(RESPONSE_CONTENT_TYPE_PARAMETER_NAME, contentType);
 
         when(txnData.getAgentAttributes()).thenReturn(transactionAgentAttributes);

@@ -15,6 +15,16 @@ public class GrpcConfig {
 
     public static final boolean errorsEnabled = NewRelic.getAgent().getConfig().getValue("grpc.errors.enabled", true);
 
+    public static final boolean HTTP_ATTR_LEGACY;
+    public static final boolean HTTP_ATTR_STANDARD;
+
+    static {
+        String attrMode = NewRelic.getAgent().getConfig().getValue("attributes.http_attribute_mode", "both");
+        // legacy is only disabled when standard is selected.
+        HTTP_ATTR_LEGACY = !"standard".equalsIgnoreCase(attrMode);
+        // standard is only disabled when legacy is selected.
+        HTTP_ATTR_STANDARD = !"legacy".equalsIgnoreCase(attrMode);
+    }
     private GrpcConfig() {
     }
 

@@ -172,6 +172,12 @@ common: &default_settings
     # not be sent to New Relic.
     #exclude:
 
+
+    # Defines which sets of http attributes the agent will send: standard, legacy or both (default).
+    # Having the agent send both sets will increase ingestion.
+    # Having the agent send only legacy may impact current or future functionality.
+    http_attribute_mode: both
+
   # Transaction tracer captures deep information about slow
   # transactions and sends this to the New Relic service once a
   # minute. Included in the transaction is the exact call sequence of
