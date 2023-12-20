@@ -238,6 +238,7 @@ public class MetricNames {
 
     public static final String SUPPORTABILITY_ERROR_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/ErrorEventData/HarvestLimit";
     public static final String SUPPORTABILITY_CUSTOM_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/CustomEventData/HarvestLimit";
+    public static final String SUPPORTABILITY_DIMENSIONAL_METRIC_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/DimensionalMetricData/HarvestLimit";
     public static final String SUPPORTABILITY_LOG_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/LogEventData/HarvestLimit";
     public static final String SUPPORTABILITY_ANALYTIC_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/AnalyticEventData/HarvestLimit";
     public static final String SUPPORTABILITY_SPAN_EVENT_DATA_HARVEST_LIMIT = "Supportability/EventHarvest/SpanEventData/HarvestLimit";

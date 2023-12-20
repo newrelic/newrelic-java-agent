@@ -2,6 +2,7 @@ package com.newrelic.agent.stats.dimensional;
 
 import com.google.common.collect.ImmutableList;
 import com.newrelic.agent.Harvestable;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.CustomInsightsEvent;
 import com.newrelic.agent.service.AbstractService;
@@ -102,6 +103,11 @@ public class MeterService extends AbstractService implements Meter, EventService
     protected void doStop() throws Exception {
         closeables.forEach(Closeable::close);
         closeables.clear();
+    }
+
+    @Override
+    public String getEventHarvestLimitMetric() {
+        return MetricNames.SUPPORTABILITY_DIMENSIONAL_METRIC_DATA_HARVEST_LIMIT;
     }
 
     @Override
