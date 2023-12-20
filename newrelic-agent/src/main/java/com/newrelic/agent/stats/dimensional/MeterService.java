@@ -8,7 +8,6 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.EventService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
-import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.api.agent.metrics.Counter;
 import com.newrelic.api.agent.metrics.Meter;
@@ -271,7 +270,7 @@ public class MeterService extends AbstractService implements Meter, EventService
             final Harvestable harvestable = new Harvestable(this, appName) {
                 @Override
                 public String getEndpointMethodName() {
-                    return CollectorMethods.DIMENSIONAL_METRIC_DATA;
+                    return "dimensional_metric_data";
                 }
 
                 @Override
