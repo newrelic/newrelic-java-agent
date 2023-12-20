@@ -37,6 +37,8 @@ import java.util.logging.Level;
 
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_LIMIT;
+import static com.newrelic.agent.transport.CollectorMethods.CUSTOM_EVENT_DATA;
+import static com.newrelic.agent.transport.CollectorMethods.DIMENSIONAL_METRIC_DATA;
 import static com.newrelic.agent.transport.CollectorMethods.SPAN_EVENT_DATA;
 
 /**
@@ -110,8 +112,15 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
                     Agent.LOG.log(Level.FINE, "event_harvest_config from collector for {0} is: {1} max samples stored per minute",
                             tracker.harvestable.getEndpointMethodName(), maxSamplesStored);
                     Map<String, Object> harvestLimits = (Map<String, Object>) eventHarvestConfig.get(HARVEST_LIMITS);
-
-                    Long harvestLimit = (Long) harvestLimits.get(tracker.harvestable.getEndpointMethodName());
+                    Long harvestLimit;
+                    boolean isDimensionalMetricDataEndpoint = tracker.harvestable.getEndpointMethodName().equals(DIMENSIONAL_METRIC_DATA);
+                    // The dimensional_metric_data endpoint uses the same limits as the custom_event_data endpoint, as
+                    // dimensional metrics are stored in custom insights events.
+                    if (isDimensionalMetricDataEndpoint) {
+                        harvestLimit = (Long) harvestLimits.get(CUSTOM_EVENT_DATA);
+                    } else {
+                        harvestLimit = (Long) harvestLimits.get(tracker.harvestable.getEndpointMethodName());
+                    }
                     if (harvestLimit != null) {
                         maxSamplesStored = harvestLimit.intValue();
                         reportPeriodInMillis = (long) eventHarvestConfig.get(REPORT_PERIOD_MS); // faster event harvest report period
