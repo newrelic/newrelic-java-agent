@@ -11,12 +11,14 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.NewRelic;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Method;
 import java.util.logging.Level;
@@ -29,10 +31,16 @@ public class SpringControllerUtility {
      * This includes any @RequestMapping annotations present on an implemented interface or extended controller class.
      *
      * @param controllerClass the controller class to search for a @RequestMapping annotation
+     * @param checkInheritanceChain if true, the controller inheritance chain will be checked for the @RequestMapping
+     * annotation
+     *
      * @return the path if available; null otherwise
      */
-    public static String retrieveRootMappingPathFromController(Class<?> controllerClass) {
-        RequestMapping rootPathMapping = AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class);
+    public static String retrieveRootMappingPathFromController(Class<?> controllerClass, boolean checkInheritanceChain) {
+        RequestMapping rootPathMapping = checkInheritanceChain ?
+                AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class):
+                controllerClass.getAnnotation(RequestMapping.class);
+
         return rootPathMapping != null ? SpringControllerUtility.getPathValue(rootPathMapping.value(), rootPathMapping.path()) : null;
     }
 
@@ -43,12 +51,18 @@ public class SpringControllerUtility {
      *
      * @param method the method to search
      * @param httpMethod the HTTP method (verb) being invoked (GET, POST, etc)
+     * @param checkInheritanceChain if true, the inheritance chain will be checked for the @XXXXMapping
+     * annotations
+     *
      * @return the path if available; null otherwise
      */
-    public static String retrieveMappingPathFromHandlerMethod(Method method, String httpMethod) {
+    public static String retrieveMappingPathFromHandlerMethod(Method method, String httpMethod, boolean checkInheritanceChain) {
         //Check for a generic RequestMapping annotation. If nothing is found, do a targeted search for the annotation
         //based on the httpMethod value.
-        RequestMapping requestMapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
+        RequestMapping requestMapping = checkInheritanceChain ?
+                AnnotationUtils.findAnnotation(method, RequestMapping.class) :
+                method.getAnnotation(RequestMapping.class);
+
         if (requestMapping != null) {
             String pathValue = getPathValue(requestMapping.value(), requestMapping.path());
             if (pathValue != null) {
@@ -58,31 +72,45 @@ public class SpringControllerUtility {
 
         switch (httpMethod) {
             case "PUT":
-                PutMapping putMapping = AnnotationUtils.findAnnotation(method, PutMapping.class);
+                PutMapping putMapping = checkInheritanceChain ?
+                        AnnotationUtils.findAnnotation(method, PutMapping.class) :
+                        method.getAnnotation(PutMapping.class);
+
                 if (putMapping != null) {
                     return getPathValue(putMapping.value(), putMapping.path());
                 }
                 break;
             case "DELETE":
-                DeleteMapping deleteMapping = AnnotationUtils.findAnnotation(method, DeleteMapping.class);
+                DeleteMapping deleteMapping = checkInheritanceChain ?
+                        AnnotationUtils.findAnnotation(method, DeleteMapping.class) :
+                        method.getAnnotation(DeleteMapping.class);
                 if (deleteMapping != null) {
                     return getPathValue(deleteMapping.value(), deleteMapping.path());
                 }
                 break;
             case "POST":
-                PostMapping postMapping = AnnotationUtils.findAnnotation(method, PostMapping.class);
+                PostMapping postMapping = checkInheritanceChain ?
+                        AnnotationUtils.findAnnotation(method, PostMapping.class) :
+                        method.getAnnotation(PostMapping.class);
+
                 if (postMapping != null) {
                     return getPathValue(postMapping.value(), postMapping.path());
                 }
                 break;
             case "PATCH":
-                PatchMapping patchMapping = AnnotationUtils.findAnnotation(method, PatchMapping.class);
+                PatchMapping patchMapping = checkInheritanceChain ?
+                        AnnotationUtils.findAnnotation(method, PatchMapping.class) :
+                        method.getAnnotation(PatchMapping.class);
+
                 if (patchMapping != null) {
                     return getPathValue(patchMapping.value(), patchMapping.path());
                 }
                 break;
             case "GET":
-                GetMapping getMapping = AnnotationUtils.findAnnotation(method, GetMapping.class);
+                GetMapping getMapping = checkInheritanceChain ?
+                        AnnotationUtils.findAnnotation(method, GetMapping.class) :
+                        method.getAnnotation(GetMapping.class);
+
                 if (getMapping != null) {
                     return getPathValue(getMapping.value(), getMapping.path());
                 }
@@ -90,6 +118,25 @@ public class SpringControllerUtility {
         }
 
         return null;
+    }
+
+    /**
+     * Check if the supplied controller class has the @Controller or @RestController annotation present.
+     *
+     * @param controllerClass the controller class to check
+     * @param checkInheritanceChain if true, the controller inheritance chain will be checked for the target mapping
+     * annotation
+     *
+     * @return true if the class has the @Controller or @RestController annotation present
+     */
+    public static boolean doesClassContainControllerAnnotations(Class<?> controllerClass, boolean checkInheritanceChain) {
+        if (checkInheritanceChain) {
+            return AnnotationUtils.findAnnotation(controllerClass, RestController.class) != null ||
+                    AnnotationUtils.findAnnotation(controllerClass, Controller.class) != null;
+        } else {
+            return controllerClass.getAnnotation(RestController.class) != null ||
+                    controllerClass.getAnnotation(Controller.class) != null;
+        }
     }
 
     /**
@@ -125,17 +172,42 @@ public class SpringControllerUtility {
      * @param method the method being invoked on the controller
      */
     public static void assignTransactionNameFromControllerAndMethod(Transaction transaction, Class<?> controllerClass, Method method) {
-        String txnName = '/' + getClassAndControllerString(controllerClass, method, false);
+        String txnName = '/' + getControllerClassAndMethodString(controllerClass, method, false);
 
         if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
             NewRelic.getAgent()
                     .getLogger()
                     .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethod (6.0.0): " +
-                                    "calling transaction.setTransactionName to [{0}] " +
-                                    "with FRAMEWORK_HIGH and override false, txn {1}, ", txnName, transaction.toString());
+                            "calling transaction.setTransactionName to [{0}] " +
+                            "with FRAMEWORK_HIGH and override false, txn {1}, ", txnName, transaction.toString());
         }
 
         transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
+    }
+
+    /**
+     * Return a String composed of the Controller class name + "/" + method name
+     *
+     * @param controllerClass the target controller class
+     * @param method the target method
+     * @param includePackagePrefix if true, keep the controller class package prefix on the resulting String
+     *
+     * @return the String composed of controller class + "/" + method
+     */
+    public static String getControllerClassAndMethodString(Class<?> controllerClass, Method method, boolean includePackagePrefix) {
+        String result;
+        if (controllerClass != null && method != null) {
+            String controllerName = includePackagePrefix ? controllerClass.getName() : controllerClass.getSimpleName();
+            int indexOf = controllerName.indexOf(CGLIB_CLASS_SUFFIX);
+            if (indexOf > 0) {
+                controllerName = controllerName.substring(0, indexOf);
+            }
+            result = controllerName + '/' + method.getName();
+        } else {
+            result = "Unknown";
+        }
+
+        return result;
     }
 
     /**
@@ -195,26 +267,6 @@ public class SpringControllerUtility {
                     result = path[0];
                 }
             }
-        }
-
-        return result;
-    }
-
-    public static void setTracedMethodMetricName(Transaction transaction, Class<?> controllerClass, Method method) {
-        transaction.getTracedMethod().setMetricName("Java", getClassAndControllerString(controllerClass, method, true));
-    }
-
-    private static String getClassAndControllerString(Class<?> controllerClass, Method method, boolean includePackagePrefix) {
-        String result;
-        if (controllerClass != null && method != null) {
-            String controllerName = includePackagePrefix ? controllerClass.getName() : controllerClass.getSimpleName();
-            int indexOf = controllerName.indexOf(CGLIB_CLASS_SUFFIX);
-            if (indexOf > 0) {
-                controllerName = controllerName.substring(0, indexOf);
-            }
-            result = controllerName + '/' + method.getName();
-        } else {
-            result = "Unknown";
         }
 
         return result;

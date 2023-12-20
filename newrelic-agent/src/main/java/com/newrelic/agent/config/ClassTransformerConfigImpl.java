@@ -45,6 +45,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final String COMPUTE_FRAMES = "compute_frames";
     public static final String SHUTDOWN_DELAY = "shutdown_delay";
     public static final String GRANT_PACKAGE_ACCESS = "grant_package_access";
+    public static final String ENHANCED_SPRING_TRANSACTION_NAMING = "enhanced_spring_transaction_naming";
     public static final boolean DEFAULT_COMPUTE_FRAMES = true;
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_DISABLED = false;
@@ -53,6 +54,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final int DEFAULT_MAX_PREVALIDATED_CLASSLOADERS = 10;
     public static final boolean DEFAULT_PREVALIDATE_WEAVE_PACKAGES = true;
     public static final boolean DEFAULT_PREMATCH_WEAVE_METHODS = true;
+    public static final boolean DEFAULT_ENHANCED_SPRING_TRANSACTION_NAMING = false;
 
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.class_transformer.";
 
@@ -90,6 +92,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private final int maxPreValidatedClassLoaders;
     private final boolean preValidateWeavePackages;
     private final boolean preMatchWeaveMethods;
+    private final boolean isEnhancedSpringTransactionNaming;
 
     private final AnnotationMatcher ignoreTransactionAnnotationMatcher;
     private final AnnotationMatcher ignoreApdexAnnotationMatcher;
@@ -119,6 +122,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         preMatchWeaveMethods = getProperty(PREMATCH_WEAVE_METHODS, DEFAULT_PREMATCH_WEAVE_METHODS);
         defaultMethodTracingEnabled = getProperty("default_method_tracing_enabled", true);
         autoAsyncLinkRateLimit = getProperty("auto_async_link_rate_limit", TimeUnit.SECONDS.toMillis(1));
+        isEnhancedSpringTransactionNaming = getProperty(ENHANCED_SPRING_TRANSACTION_NAMING, DEFAULT_ENHANCED_SPRING_TRANSACTION_NAMING);
 
         this.traceAnnotationMatcher = customTracingEnabled ? initializeTraceAnnotationMatcher(props) : new NoMatchAnnotationMatcher();
         this.ignoreTransactionAnnotationMatcher = new ClassNameAnnotationMatcher(AnnotationNames.NEW_RELIC_IGNORE_TRANSACTION, false);
@@ -302,6 +306,11 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     @Override
     public long getAutoAsyncLinkRateLimit() {
         return autoAsyncLinkRateLimit;
+    }
+
+    @Override
+    public boolean isEnhancedSpringTransactionNaming() {
+        return isEnhancedSpringTransactionNaming;
     }
 
     public static final String JDBC_STATEMENTS_PROPERTY = "jdbc_statements";

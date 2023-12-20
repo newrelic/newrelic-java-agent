@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @RunWith(value = Parameterized.class)
-public class SpringControllerUtilityTest {
+public class SpringControllerUtilityRetrieveMappingTest {
     private final String httpMethod;
     private final String expectedPath;
 
@@ -31,22 +31,22 @@ public class SpringControllerUtilityTest {
         });
     }
 
-    public SpringControllerUtilityTest(String httpMethod, String expectedPath) {
+    public SpringControllerUtilityRetrieveMappingTest(String httpMethod, String expectedPath) {
         this.httpMethod = httpMethod;
         this.expectedPath = expectedPath;
     }
 
     @Test
     public void retrieveMappingPathFromHandlerMethod_withValidHttpMethodStrings() throws NoSuchMethodException {
-        Method method = MyController.class.getMethod(httpMethod.toLowerCase());
-        String path = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(method, httpMethod);
+        Method method = TestControllerClasses.StandardController.class.getMethod(httpMethod.toLowerCase());
+        String path = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(method, httpMethod, true);
         Assert.assertEquals(expectedPath, path);
     }
 
     @Test
     public void retrieveMappingPathFromHandlerMethod_withUnknownHttpMethod_returnsNullPath()  throws NoSuchMethodException {
-        Method method = MyController.class.getMethod(this.httpMethod.toLowerCase());
-        Assert.assertNull(SpringControllerUtility.retrieveMappingPathFromHandlerMethod(method, "Unknown"));
+        Method method = TestControllerClasses.StandardController.class.getMethod(this.httpMethod.toLowerCase());
+        Assert.assertNull(SpringControllerUtility.retrieveMappingPathFromHandlerMethod(method, "Unknown", true));
     }
 
     @RequestMapping("/root")

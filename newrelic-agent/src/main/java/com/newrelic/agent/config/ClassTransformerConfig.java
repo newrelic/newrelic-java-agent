@@ -106,4 +106,6 @@ public interface ClassTransformerConfig extends Config {
     boolean isWeavePackageEnabled(WeavePackageConfig weavePackageConfig);
 
     boolean isDefaultMethodTracingEnabled();
+
+    boolean isEnhancedSpringTransactionNaming();
 }

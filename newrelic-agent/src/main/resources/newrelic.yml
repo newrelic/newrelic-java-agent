@@ -354,6 +354,17 @@ common: &default_settings
       org.mvel2.optimizers.impl.asm.ASMAccessorOptimizer$ContextClassLoader,
       gw.internal.gosu.compiler.SingleServingGosuClassLoader,
 
+    # Enhanced Spring transaction naming.
+    # This feature will name any transaction that originates from a Spring controller after
+    # the defined route and HTTP method. For example: "/customer/v1/edit (POST)".
+    # This includes controllers that implement or extend interfaces/classes with WebMVC related
+    # annotations (@RestController, @Controller, @RequestMapping, etc). By default, this is configured
+    # to false, which will name transactions for those types of controllers based on the controller
+    # class name and method. For example; "CustomerController/edit". This is the naming logic carried
+    # over from previous agent versions. "Standard" controllers, with all relevant annotations
+    # present on the actual class, will still get named based on route and HTTP method.
+    enhanced_spring_transaction_naming: false
+
   # Real-time profiling using Java Flight Recorder (JFR).
   # This feature reports dimensional metrics to the ingest endpoint configured by
   # metric_ingest_uri and events to the ingest endpoint configured by event_ingest_uri.
