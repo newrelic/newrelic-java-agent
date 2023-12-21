@@ -44,7 +44,7 @@ public abstract class InvocableHandlerMethod_Instrumentation {
             //named them
             boolean isEnhancedNaming = NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
 
-            String httpMethod = exchange.getRequest().getMethodValue();
+            String httpMethod = exchange.getRequest().getMethod().name();
             if (httpMethod != null) {
                 httpMethod = httpMethod.toUpperCase();
             } else {

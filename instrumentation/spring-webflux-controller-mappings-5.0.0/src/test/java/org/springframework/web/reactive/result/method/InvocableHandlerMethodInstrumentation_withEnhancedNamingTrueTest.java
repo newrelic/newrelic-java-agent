@@ -11,6 +11,7 @@ import com.nr.agent.instrumentation.web.reactive.TestControllerClasses;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.server.ServerWebExchange;
@@ -56,7 +57,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
         when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockExchange.getRequest()).thenReturn(mockReq);
-        when(mockReq.getMethodValue()).thenReturn("GET");
+        when(mockReq.getMethod()).thenReturn(HttpMethod.GET);
 
         //cut.handleInternal(mockReq, mockResp, handlerMethod);
         cut.invoke(mockExchange, mock(BindingContext.class));
@@ -78,7 +79,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
         when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockExchange.getRequest()).thenReturn(mockReq);
-        when(mockReq.getMethodValue()).thenReturn("GET");
+        when(mockReq.getMethod()).thenReturn(HttpMethod.GET);
 
         //cut.handleInternal(mockReq, mockResp, handlerMethod);
         cut.invoke(mockExchange, mock(BindingContext.class));
@@ -100,7 +101,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
         when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockExchange.getRequest()).thenReturn(mockReq);
-        when(mockReq.getMethodValue()).thenReturn("GET");
+        when(mockReq.getMethod()).thenReturn(HttpMethod.GET);
 
         //cut.handleInternal(mockReq, mockResp, handlerMethod);
         cut.invoke(mockExchange, mock(BindingContext.class));
@@ -122,7 +123,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
         when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockExchange.getRequest()).thenReturn(mockReq);
-        when(mockReq.getMethodValue()).thenReturn("GET");
+        when(mockReq.getMethod()).thenReturn(HttpMethod.GET);
 
         //cut.handleInternal(mockReq, mockResp, handlerMethod);
         cut.invoke(mockExchange, mock(BindingContext.class));
@@ -144,7 +145,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
         when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockExchange.getRequest()).thenReturn(mockReq);
-        when(mockReq.getMethodValue()).thenReturn("POST");
+        when(mockReq.getMethod()).thenReturn(HttpMethod.POST);
 
         //cut.handleInternal(mockReq, mockResp, handlerMethod);
         cut.invoke(mockExchange, mock(BindingContext.class));
@@ -166,7 +167,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
         when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockExchange.getRequest()).thenReturn(mockReq);
-        when(mockReq.getMethodValue()).thenReturn("GET");
+        when(mockReq.getMethod()).thenReturn(HttpMethod.GET);
 
         //cut.handleInternal(mockReq, mockResp, handlerMethod);
         cut.invoke(mockExchange, mock(BindingContext.class));
@@ -188,7 +189,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
         when(mockAgent.getTransaction(false)).thenReturn(mockTxn);
         when(mockTxn.getTracedMethod()).thenReturn(mockTracedMethod);
         when(mockExchange.getRequest()).thenReturn(mockReq);
-        when(mockReq.getMethodValue()).thenReturn("GET");
+        when(mockReq.getMethod()).thenReturn(HttpMethod.GET);
 
         //cut.handleInternal(mockReq, mockResp, handlerMethod);
         cut.invoke(mockExchange, mock(BindingContext.class));
