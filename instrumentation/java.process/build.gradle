@@ -1,0 +1,20 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+// This instrumentation module should not use the bootstrap classpath
+
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java.process' }
+}
+
+verifyInstrumentation {
+    verifyClasspath = false // We don't want to verify classpath since these are JDK classes
+}
+
+site {
+    title 'Java Process'
+    type 'Other'
+    versionOverride '[8,)'
+}

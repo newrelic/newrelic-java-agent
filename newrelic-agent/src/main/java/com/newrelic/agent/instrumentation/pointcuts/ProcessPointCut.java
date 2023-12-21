@@ -16,7 +16,7 @@ import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.metricname.ClassMethodMetricNameFormat;
 
-@PointCut
+//@PointCut
 public class ProcessPointCut extends TracerFactoryPointCut {
     public static final String UNIXPROCESS_CLASS_NAME = "java/lang/UNIXProcess";
     public static final String PROCESS_IMPL_CLASS_NAME = "java/lang/ProcessImpl";
