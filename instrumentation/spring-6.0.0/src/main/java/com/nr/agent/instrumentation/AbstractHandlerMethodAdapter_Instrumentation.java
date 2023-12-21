@@ -34,7 +34,7 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
             Class<?> controllerClass = handlerMethod.getBeanType();
             Method controllerMethod = handlerMethod.getMethod();
 
-            //If this setting is true, attempt to name transactions the way the legacy point cut
+            //If this setting is false, attempt to name transactions the way the legacy point cut
             //named them
             boolean isEnhancedNaming = NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
 
@@ -51,40 +51,39 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
                 transaction.getTracedMethod().setMetricName("Spring", "Java",
                         SpringControllerUtility.getControllerClassAndMethodString(controllerClass, controllerMethod, true));
                 SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
-                return Weaver.callOriginal();
+            } else {    //Normal flow to check for annotations based on enhanced naming config flag
+                String rootPath;
+                String methodPath;
+
+                //The list of elements to be used to set the traced method name. For point cut naming an element will be inserted at
+                //the beginning of the list later
+                List<String> tracedMethodElements = new ArrayList<>(Arrays.asList("Java",
+                        SpringControllerUtility.getControllerClassAndMethodString(controllerClass, controllerMethod, true)));
+
+                //From this point, look for annotations on the class/method, respecting the config flag that controls if the
+                //annotation has to exist directly on the class/method or can be inherited.
+
+                //Handle typical controller methods with class and method annotations. Those annotations
+                //can come from implemented interfaces, extended controller classes or be on the controller class itself.
+                //Note that only RequestMapping mapping annotations can apply to a class (not Get/Post/etc)
+                rootPath = SpringControllerUtility.retrieveRootMappingPathFromController(controllerClass, isEnhancedNaming);
+
+                //Retrieve the mapping that applies to the target method
+                methodPath = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(controllerMethod, httpMethod, isEnhancedNaming);
+
+                if (rootPath != null || methodPath != null) {
+                    SpringControllerUtility.assignTransactionNameFromControllerAndMethodRoutes(transaction, httpMethod, rootPath, methodPath);
+                } else {
+                    //Name based on class + method
+                    SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
+                }
+
+                //Prefix "Spring" on the trace method metric if we're in point cut naming mode
+                if (!isEnhancedNaming) {
+                    tracedMethodElements.add(0, "Spring");
+                }
+                transaction.getTracedMethod().setMetricName(tracedMethodElements.toArray(new String[0]));
             }
-
-            String rootPath;
-            String methodPath;
-
-            //The list of elements to be used to set the traced method name. For point cut naming an element will be inserted at
-            //the beginning later
-            List<String> tracedMethodElements = new ArrayList<>(Arrays.asList("Java",
-                    SpringControllerUtility.getControllerClassAndMethodString(controllerClass, controllerMethod, true)));
-
-            //From this point, look for annotations on the class/method, respecting the config flag that controls if the
-            //annotation has to exist directly on the class/method or can be inherited.
-
-            //Handle typical controller methods with class and method annotations. Those annotations
-            //can come from implemented interfaces, extended controller classes or be on the controller class itself.
-            //Note that only RequestMapping mapping annotations can apply to a class (not Get/Post/etc)
-            rootPath = SpringControllerUtility.retrieveRootMappingPathFromController(controllerClass, isEnhancedNaming);
-
-            //Retrieve the mapping that applies to the target method
-            methodPath = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(controllerMethod, httpMethod, isEnhancedNaming);
-
-            if (rootPath != null || methodPath != null) {
-                SpringControllerUtility.assignTransactionNameFromControllerAndMethodRoutes(transaction, httpMethod, rootPath, methodPath);
-            } else {
-                //Name based on class + method
-                SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
-            }
-
-            //Prefix "Spring" on the trace method metric if we're in point cut naming mode
-            if (!isEnhancedNaming) {
-                tracedMethodElements.add(0, "Spring");
-            }
-            transaction.getTracedMethod().setMetricName(tracedMethodElements.toArray(new String[0]));
         }
 
         return Weaver.callOriginal();

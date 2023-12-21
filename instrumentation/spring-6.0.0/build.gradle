@@ -15,7 +15,9 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.springframework:spring-webmvc:[6.0.0,)'
+    passesOnly('org.springframework:spring-webmvc:[6.0.0,)') {
+        implementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
+    }
     excludeRegex 'org.springframework:spring-webmvc:.*(RC|SEC|M)[0-9]*$'
 }
 

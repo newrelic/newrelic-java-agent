@@ -1,6 +1,8 @@
 dependencies {
     implementation(project(":agent-bridge"))
     implementation("org.springframework:spring-webflux:5.0.0.RELEASE")
+    implementation("org.springframework:spring-web:5.0.0.RELEASE")
+    implementation("org.springframework:spring-context:5.0.0.RELEASE")
     implementation project(path: ':newrelic-weaver-api')
 
     testImplementation("org.springframework:spring-context:5.0.0.RELEASE")
@@ -9,14 +11,15 @@ dependencies {
     testImplementation(project(":instrumentation:spring-webclient-5.0"))
 }
 
-
-
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-webflux-controller-mappings-5.0.0' }
 }
 
 verifyInstrumentation {
-    passesOnly('org.springframework:spring-webflux:[5.0.0.RELEASE,)')
+    passesOnly('org.springframework:spring-webflux:[5.0.0.RELEASE,6.1.0)') {
+        implementation('org.springframework:spring-web:5.0.0.RELEASE')
+        implementation("org.springframework:spring-context:5.0.0.RELEASE")
+    }
     excludeRegex '.*.M[0-9]'
     excludeRegex '.*.RC[0-9]'
 }

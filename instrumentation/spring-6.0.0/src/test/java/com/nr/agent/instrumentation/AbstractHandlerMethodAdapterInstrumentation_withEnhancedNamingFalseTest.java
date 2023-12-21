@@ -19,7 +19,7 @@ import java.util.logging.Level;
 
 import static org.mockito.Mockito.*;
 
-public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueTest {
+public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingFalseTest {
     Agent originalAgent = AgentBridge.getAgent();
     Agent mockAgent = mock(Agent.class);
     Logger mockLogger = mock(Logger.class);
@@ -31,7 +31,7 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
     public void before() {
         AgentBridge.agent = mockAgent;
         when(mockAgent.getConfig()).thenReturn(mockConfig);
-        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         when(mockAgent.getLogger()).thenReturn(mockLogger);
         when(mockLogger.isLoggable(Level.FINEST)).thenReturn(false);
     }
@@ -58,8 +58,8 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
         verify(mockTxn).getTracedMethod();
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerClassWithInterface/get");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/ControllerClassWithInterface/get");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerClassWithInterface/get");
     }
 
     @Test
@@ -79,8 +79,8 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
         verify(mockTxn).getTracedMethod();
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get/{id} (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerClassWithInterface/getParam");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/ControllerClassWithInterface/getParam");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerClassWithInterface/getParam");
 
     }
 
@@ -102,7 +102,7 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get");
     }
 
     @Test
@@ -123,7 +123,7 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get/{id} (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get2");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get2");
     }
 
     @Test
@@ -144,7 +144,7 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/post (POST)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/post");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/post");
     }
 
     @Test
@@ -166,7 +166,7 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController",
                 "/NoAnnotationController/get");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.TestControllerClasses$NoAnnotationController/get");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$NoAnnotationController/get");
     }
 
     @Test
@@ -187,7 +187,7 @@ public class AbstractHandlerMethodAdapterInstrumentation_withEnhancedNamingTrueT
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController",
-                "/root/extend (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerExtendingAbstractClass/extend");
+                "/ControllerExtendingAbstractClass/extend");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerExtendingAbstractClass/extend");
     }
 }
