@@ -706,6 +706,12 @@ public class TransactionActivity {
         sb.append("; segment="+this.segment);
         sb.append("; metricName="+(tracer == null ? "null" : tracer.getMetricName()));
         sb.append("; isAsync="+(tracer == null ? "null" : tracer.isAsync()));
+        if ("Java/java.lang.ProcessImpl/waitFor".equals(tracer.getMetricName())) {
+            sb.append("\n--------\ncurrentStackTrace because we're in waitFor:");
+            for (StackTraceElement elem : Thread.currentThread().getStackTrace()) {
+                sb.append("\n  "+elem);
+            }
+        }
         sb.append("]");
         return sb.toString();
     }

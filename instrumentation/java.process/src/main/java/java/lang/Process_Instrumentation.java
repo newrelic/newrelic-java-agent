@@ -11,7 +11,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 public class Process_Instrumentation {
     @Trace
     public int waitFor() {
-        System.out.println("java.lang.Process is da bomb");
+        //System.out.println("java.lang.Process is da bomb");
         Transaction transaction = AgentBridge.getAgent().getTransaction(false);
         if (transaction != null) {
             transaction.getTracedMethod().setMetricName("Java", "Process", "waitFor");

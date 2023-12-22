@@ -15,6 +15,9 @@ import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.metricname.ClassMethodMetricNameFormat;
+import com.newrelic.api.agent.NewRelic;
+
+import java.util.logging.Level;
 
 //@PointCut
 public class ProcessPointCut extends TracerFactoryPointCut {
@@ -30,6 +33,8 @@ public class ProcessPointCut extends TracerFactoryPointCut {
 
     @Override
     public Tracer doGetTracer(Transaction transaction, ClassMethodSignature sig, Object object, Object[] args) {
+        NewRelic.getAgent().getLogger().log(Level.FINEST,
+                "NR709AbsurdValues: inside ProcessPointCut.doGetTracer. tx="+transaction+"; tx.ta="+(transaction == null ? null : transaction.getTransactionActivity()));
         return new DefaultTracer(transaction, sig, object, new ClassMethodMetricNameFormat(sig, object));
     }
 
