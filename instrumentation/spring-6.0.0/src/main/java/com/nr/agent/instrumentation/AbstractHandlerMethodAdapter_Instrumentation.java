@@ -48,17 +48,10 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
             //Optimization - If a class doesn't have @Controller/@RestController directly on the controller class
             //the transaction is named in point cut style (with enhanced naming set to false)
             if (!isEnhancedNaming && !SpringControllerUtility.doesClassContainControllerAnnotations(controllerClass, false)) {
-                transaction.getTracedMethod().setMetricName("Spring", "Java",
-                        SpringControllerUtility.getControllerClassAndMethodString(controllerClass, controllerMethod, true));
                 SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
             } else {    //Normal flow to check for annotations based on enhanced naming config flag
                 String rootPath;
                 String methodPath;
-
-                //The list of elements to be used to set the traced method name. For point cut naming an element will be inserted at
-                //the beginning of the list later
-                List<String> tracedMethodElements = new ArrayList<>(Arrays.asList("Java",
-                        SpringControllerUtility.getControllerClassAndMethodString(controllerClass, controllerMethod, true)));
 
                 //From this point, look for annotations on the class/method, respecting the config flag that controls if the
                 //annotation has to exist directly on the class/method or can be inherited.
@@ -77,13 +70,9 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
                     //Name based on class + method
                     SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
                 }
-
-                //Prefix "Spring" on the trace method metric if we're in point cut naming mode
-                if (!isEnhancedNaming) {
-                    tracedMethodElements.add(0, "Spring");
-                }
-                transaction.getTracedMethod().setMetricName(tracedMethodElements.toArray(new String[0]));
             }
+            transaction.getTracedMethod().setMetricName("Spring", "Java",
+                    SpringControllerUtility.getControllerClassAndMethodString(controllerClass, controllerMethod, true));
         }
 
         return Weaver.callOriginal();

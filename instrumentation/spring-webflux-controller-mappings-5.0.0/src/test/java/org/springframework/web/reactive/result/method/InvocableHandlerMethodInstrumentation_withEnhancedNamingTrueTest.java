@@ -64,7 +64,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$ControllerClassWithInterface/get");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$ControllerClassWithInterface/get");
     }
 
     @Test
@@ -86,7 +86,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get/{id} (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$ControllerClassWithInterface/getParam");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$ControllerClassWithInterface/getParam");
     }
 
     @Test
@@ -108,7 +108,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$StandardControllerWithAllRequestMappings/get");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$StandardControllerWithAllRequestMappings/get");
     }
 
     @Test
@@ -130,7 +130,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/get/{id} (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$StandardControllerWithAllRequestMappings/get2");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$StandardControllerWithAllRequestMappings/get2");
     }
 
     @Test
@@ -152,7 +152,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/post (POST)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$StandardControllerWithAllRequestMappings/post");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$StandardControllerWithAllRequestMappings/post");
     }
 
     @Test
@@ -174,7 +174,7 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/NoAnnotationController/get");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$NoAnnotationController/get");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$NoAnnotationController/get");
     }
 
     @Test
@@ -196,6 +196,6 @@ public class InvocableHandlerMethodInstrumentation_withEnhancedNamingTrueTest {
 
         verify(mockTxn).getTracedMethod();
         verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/root/extend (GET)");
-        verify(mockTracedMethod).setMetricName("Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$ControllerExtendingAbstractClass/extend");
+        verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.web.reactive.TestControllerClasses$ControllerExtendingAbstractClass/extend");
     }
 }
