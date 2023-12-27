@@ -153,6 +153,10 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
+    public void sendDimensionalMetricData(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> metricData) {
+    }
+
+    @Override
     public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
         if (exception != null) {
             throw exception;

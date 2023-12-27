@@ -164,6 +164,10 @@ public abstract class BaseRPMService implements IRPMService {
     }
 
     @Override
+    public void sendDimensionalMetricData(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> metricData) throws Exception {
+    }
+
+    @Override
     public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
     }
 

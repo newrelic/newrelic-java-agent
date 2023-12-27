@@ -515,6 +515,27 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
+    public void sendDimensionalMetricData(int reservoirSize, int eventsSeen, final Collection<? extends CustomInsightsEvent> metricData) throws Exception {
+        Agent.LOG.log(Level.FINE, "Sending {0} dimensional metric data points", metricData.size());
+        try {
+            sendDimensionalMetricDataSyncRestart(reservoirSize, eventsSeen, metricData);
+        } catch (HttpError e) {
+            // We don't want to resend the data for certain response codes, retry for all others
+            if (e.isRetryableError()) {
+                throw e;
+            }
+        } catch (ForceRestartException e) {
+            logForceRestartException(e);
+            reconnectAsync();
+            throw e;
+        } catch (ForceDisconnectException e) {
+            logForceDisconnectException(e);
+            shutdownAsync();
+            throw e;
+        }
+    }
+
+    @Override
     public void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, final Collection<? extends CustomInsightsEvent> events) throws Exception {
         Agent.LOG.log(Level.FINE, "Sending {0} analytics event(s)", events.size());
         try {
@@ -595,6 +616,17 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             logForceRestartException(e);
             reconnectSync();
             dataSender.sendCustomAnalyticsEvents(reservoirSize, eventsSeen, events);
+        }
+    }
+
+    private void sendDimensionalMetricDataSyncRestart(int reservoirSize, int eventsSeen, final Collection<? extends CustomInsightsEvent> metricData)
+            throws Exception {
+        try {
+            dataSender.sendDimensionalMetricData(reservoirSize, eventsSeen, metricData);
+        } catch (ForceRestartException e) {
+            logForceRestartException(e);
+            reconnectSync();
+            dataSender.sendDimensionalMetricData(reservoirSize, eventsSeen, metricData);
         }
     }
 

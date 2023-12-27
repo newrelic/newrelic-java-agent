@@ -45,6 +45,8 @@ public interface DataSender {
      */
     void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception;
 
+    void sendDimensionalMetricData(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> metricData) throws Exception;
+
     /**
      * Send non-aggregated Log events
      */

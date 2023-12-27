@@ -151,6 +151,10 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     }
 
     @Override
+    public void sendDimensionalMetricData(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> metricData) {
+    }
+
+    @Override
     public void sendLogEvents(Collection<? extends LogEvent> events) {
     }
 

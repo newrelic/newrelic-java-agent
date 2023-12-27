@@ -336,6 +336,11 @@ public class DataSenderImpl implements DataSender {
     }
 
     @Override
+    public void sendDimensionalMetricData(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> metricData) throws Exception {
+        sendAnalyticEventsForReservoir(CollectorMethods.DIMENSIONAL_METRIC_DATA, compressedEncoding, reservoirSize, eventsSeen, metricData);
+    }
+
+    @Override
     public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
         sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events);
     }

@@ -82,6 +82,7 @@ public interface IRPMService extends Service {
     void sendAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<TransactionEvent> events) throws Exception;
 
     void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception;
+    void sendDimensionalMetricData(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> metricData) throws Exception;
 
     void sendLogEvents(Collection<? extends LogEvent> events) throws Exception;
 

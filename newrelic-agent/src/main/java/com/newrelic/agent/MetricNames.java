@@ -255,7 +255,7 @@ public class MetricNames {
 
     public static final String SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/TransactionEvent/interval";
     public static final String SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/TransactionEvent/transmit";
-
+    public static final String SUPPORTABILITY_METER_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/Meter/interval";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_INTERVAL = "Supportability/EventHarvest/Customer/interval";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_EVENT_HARVEST_TRANSMIT = "Supportability/EventHarvest/Customer/transmit";
 

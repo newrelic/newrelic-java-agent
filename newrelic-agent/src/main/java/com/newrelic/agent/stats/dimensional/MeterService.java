@@ -112,6 +112,11 @@ public class MeterService extends AbstractService implements Meter, EventService
     }
 
     @Override
+    public String getEventHarvestIntervalMetric() {
+        return MetricNames.SUPPORTABILITY_METER_SERVICE_EVENT_HARVEST_INTERVAL;
+    }
+
+    @Override
     public int getMaxSamplesStored() {
         return maxSamplesStored;
     }
@@ -201,7 +206,7 @@ public class MeterService extends AbstractService implements Meter, EventService
             final int reservoirSize = Math.max(maxSamplesStored, events.size());
             ServiceFactory.getRPMServiceManager()
                     .getRPMService()
-                    .sendCustomAnalyticsEvents(reservoirSize, events.size(), events);
+                    .sendDimensionalMetricData(reservoirSize, events.size(), events);
         } catch (HttpError e) {
             if (e.discardHarvestData()) {
                 getLogger().log(Level.FINE, "Unable to send dimensional metrics.  Dropping data.");
