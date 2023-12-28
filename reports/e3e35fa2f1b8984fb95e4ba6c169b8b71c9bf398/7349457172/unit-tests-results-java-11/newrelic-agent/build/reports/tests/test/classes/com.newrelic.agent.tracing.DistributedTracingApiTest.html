@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.tracing.DistributedTracingApiTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.tracing.DistributedTracingApiTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.tracing.html">com.newrelic.agent.tracing</a> &gt; DistributedTracingApiTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">4</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">15.975s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testAccept</td>
+<td class="success">0.090s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testAcceptThenInsert</td>
+<td class="success">15.690s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testInsert</td>
+<td class="success">0.088s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testInsertExcludeNewRelicHeader</td>
+<td class="success">0.107s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-12-28T17:39:10,416+0000 [69349 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-28T17:39:10,463+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:10,464+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:22,249+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:22,249+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:22,250+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:22,477+0000 [69349 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-12-28T17:39:22,622+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:22,623+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:22,624+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:22,643+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:22,644+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:22,647+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,241+0000 [69349 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-28T17:39:23,241+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,245+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,284+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,285+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,286+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,310+0000 [69349 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-12-28T17:39:23,312+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,313+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,314+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,323+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,325+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,325+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,329+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,330+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,330+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,358+0000 [69349 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-28T17:39:23,358+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,358+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,391+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,395+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,396+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,417+0000 [69349 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-12-28T17:39:23,424+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,424+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,425+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,427+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,429+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,429+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,448+0000 [69349 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-28T17:39:23,450+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,450+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,490+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,491+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,491+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,509+0000 [69349 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-12-28T17:39:23,512+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,515+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,515+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T17:39:23,518+0000 [69349 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T17:39:23,519+0000 [69349 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T17:39:23,520+0000 [69349 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Dec 28, 2023 5:42:20 PM</p>
+</div>
+</div>
+</body>
+</html>
