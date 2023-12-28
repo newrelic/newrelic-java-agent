@@ -20,6 +20,7 @@ public class CustomAttributeSender extends AttributeSender {
 
     public CustomAttributeSender() {
         super(new AttributeValidator(ATTRIBUTE_TYPE));
+        super.setTransactional(false);
     }
 
     @Override
