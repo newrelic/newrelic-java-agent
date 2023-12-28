@@ -1,4 +1,4 @@
-version: '3'
+version: "3.6"
 services:
   jboss6:
     build:
@@ -18,6 +18,19 @@ services:
       - ./newrelic-agent/build/newrelicJar:/newrelic
     ports:
       - "8080:8080"
+  wildfly:
+    image: quay.io/wildfly/wildfly
+    volumes:
+      - ./newrelic-agent/build/newrelicJar:/newrelic
+    ports:
+      - "8080:8080"
+      - "9990:9990"
+    command: /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0
+    environment:
+      - JAVA_OPTS=-javaagent:/newrelic/newrelic.jar -Dorg.wildfly.logging.skipLogManagerCheck=true
+      - NEW_RELIC_APP_NAME=MyWildflyApp
+      - NEW_RELIC_LICENSE_KEY
+      - NEW_RELIC_HOST
   wildfly20:
     build:
       context: ./test
@@ -28,9 +41,12 @@ services:
     ports:
       - "8080:8080"
       - "9990:9990"
-    command: /opt/jboss/wildfly/bin/standalone.sh
+    command: /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0
     environment:
-      JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.252.b09-2.el7_8.x86_64
+      - JAVA_OPTS=-javaagent:/newrelic/newrelic.jar -Dorg.wildfly.logging.skipLogManagerCheck=true -server -Xms64m -Xmx512m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true
+      - NEW_RELIC_APP_NAME=MyWildflyApp
+      - NEW_RELIC_LICENSE_KEY
+      - NEW_RELIC_HOST
   jetty9:
     build:
       context: ./test

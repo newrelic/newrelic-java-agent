@@ -1,0 +1,10 @@
+FROM jboss/wildfly:20.0.1.Final
+
+USER root
+
+RUN yum install -y wget java-1.8.0-openjdk-devel
+
+USER jboss
+
+RUN wget --no-check-certificate -P /opt/jboss/wildfly/standalone/deployments/ \
+    https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war
