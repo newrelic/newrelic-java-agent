@@ -1,5 +1,6 @@
 package com.newrelic.agent.stats.dimensional;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.MetricNames;
@@ -52,19 +53,23 @@ public class MeterService extends AbstractService implements Meter, EventService
     private final List<Closeable> closeables = new CopyOnWriteArrayList<>();
     private volatile int maxSamplesStored;
 
-    private final io.opentelemetry.api.metrics.Meter meter;
+    /**
+     * Returns an OTel meter.  We defer the initialization of the Meter because it can
+     * have a side effect of initializing the java.util.logging.LogManager too early.
+     */
+    private final Supplier<io.opentelemetry.api.metrics.Meter> meter;
     final Supplier<Collection<MetricData>> metricDataSupplier;
     private final List<MetricData> deferredMetricData = new ArrayList<>();
 
-    public MeterService() {
-        this(instrumentType -> 2000);
+    public static MeterService create() {
+        // FIXME cardinality limit should be configurable
+        //agentConfig.getAttributesConfig()
+        return create(instrumentType -> 2000);
     }
 
-    MeterService(final CardinalityLimitSelector cardinalityLimitSelector) {
-        super(MeterService.class.getName());
+    static MeterService create(final CardinalityLimitSelector cardinalityLimitSelector) {
         final AtomicReference<CollectionRegistration> collectionRegistrationReference =
                 new AtomicReference<>(CollectionRegistration.noop());
-        this.metricDataSupplier = () -> collectionRegistrationReference.get().collectAllMetrics();
         final MetricReader metricReader = new MetricReader() {
             @Override
             public void register(CollectionRegistration registration) {
@@ -86,12 +91,20 @@ public class MeterService extends AbstractService implements Meter, EventService
                 return AggregationTemporality.DELTA;
             }
         };
-        final SdkMeterProviderBuilder meterProviderBuilder = SdkMeterProvider.builder();
-        // FIXME cardinality limit should be configurable
-        //agentConfig.getAttributesConfig()
-        SdkMeterProviderUtil.registerMetricReaderWithCardinalitySelector(meterProviderBuilder, metricReader, cardinalityLimitSelector);
-        final SdkMeterProvider sdkMeterProvider = meterProviderBuilder.build();
-        meter = sdkMeterProvider.meterBuilder("newrelic").build();
+        final Supplier<io.opentelemetry.api.metrics.Meter> meterSupplier = Suppliers.memoize(() -> {
+            final SdkMeterProviderBuilder meterProviderBuilder = SdkMeterProvider.builder();
+            SdkMeterProviderUtil.registerMetricReaderWithCardinalitySelector(meterProviderBuilder, metricReader, cardinalityLimitSelector);
+            final SdkMeterProvider sdkMeterProvider = meterProviderBuilder.build();
+            return sdkMeterProvider.meterBuilder("newrelic").build();
+        });
+        return new MeterService(() -> collectionRegistrationReference.get().collectAllMetrics(), meterSupplier);
+    }
+
+    private MeterService(final Supplier<Collection<MetricData>> metricDataSupplier,
+                         Supplier<io.opentelemetry.api.metrics.Meter> meter) {
+        super(MeterService.class.getName());
+        this.metricDataSupplier = metricDataSupplier;
+        this.meter = meter;
     }
 
     @Override
@@ -134,14 +147,14 @@ public class MeterService extends AbstractService implements Meter, EventService
 
     @Override
     public Counter newCounter(String name) {
-        final LongCounter longCounter = meter.counterBuilder(name).build();
+        final LongCounter longCounter = meter.get().counterBuilder(name).build();
         return (increment, attributes) -> longCounter.add(increment, toAttributes(attributes));
     }
 
     @Override
     public Summary newSummary(String name) {
         // we want a summary, so we call setExplicitBucketBoundariesAdvice with an empty list
-        final DoubleHistogram doubleHistogram = meter.histogramBuilder(name)
+        final DoubleHistogram doubleHistogram = meter.get().histogramBuilder(name)
                 .setExplicitBucketBoundariesAdvice(Collections.emptyList()).build();
         return (value, attributes) -> doubleHistogram.record(value, toAttributes(attributes));
     }

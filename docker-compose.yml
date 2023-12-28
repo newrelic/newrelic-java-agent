@@ -27,7 +27,7 @@ services:
       - "9990:9990"
     command: /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0
     environment:
-      - JAVA_OPTS=-javaagent:/newrelic/newrelic.jar -Dorg.wildfly.logging.skipLogManagerCheck=true
+      - JAVA_OPTS=-javaagent:/newrelic/newrelic.jar
       - NEW_RELIC_APP_NAME=MyWildflyApp
       - NEW_RELIC_LICENSE_KEY
       - NEW_RELIC_HOST
@@ -43,7 +43,7 @@ services:
       - "9990:9990"
     command: /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0
     environment:
-      - JAVA_OPTS=-javaagent:/newrelic/newrelic.jar -Dorg.wildfly.logging.skipLogManagerCheck=true -server -Xms64m -Xmx512m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true
+      - JAVA_OPTS=-javaagent:/newrelic/newrelic.jar -server -Xms64m -Xmx512m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true
       - NEW_RELIC_APP_NAME=MyWildflyApp
       - NEW_RELIC_LICENSE_KEY
       - NEW_RELIC_HOST

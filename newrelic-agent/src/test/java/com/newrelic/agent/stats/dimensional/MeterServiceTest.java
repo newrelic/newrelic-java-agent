@@ -17,7 +17,7 @@ public class MeterServiceTest extends TestCase {
 
     @Test
     public void testCounter() {
-        MeterService service = new MeterService();
+        MeterService service = MeterService.create();
 
         Counter counter = service.newCounter("test.metric");
         Summary badSummary = service.newSummary("test.metric");
@@ -41,7 +41,7 @@ public class MeterServiceTest extends TestCase {
 
     @Test
     public void testSummary() {
-        MeterService service = new MeterService();
+        MeterService service = MeterService.create();
 
         Summary summary = service.newSummary("test.summary");
         for (int i = 0; i < 5; i++) {
@@ -61,7 +61,7 @@ public class MeterServiceTest extends TestCase {
 
     @Test
     public void testCardinalityLimit() {
-        final MeterService service = new MeterService(instrumentType -> 5);
+        final MeterService service = MeterService.create(instrumentType -> 5);
         Summary summary = service.newSummary("test.summary");
         for (char c = 'a'; c < 'z'; c++) {
             summary.record(50D, ImmutableMap.of("component", "FFF" + c));

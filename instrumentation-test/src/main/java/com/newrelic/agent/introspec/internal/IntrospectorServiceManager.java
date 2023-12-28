@@ -65,7 +65,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile ProfilerService profilerService;
     private volatile RPMConnectionService rpmConnectionService;
     private volatile StatsService statsService;
-    private final MeterService meterService = new MeterService();
+    private final MeterService meterService = MeterService.create();
     private volatile HarvestService harvestService;
     private volatile SqlTraceService sqlTraceService;
     private volatile DatabaseService dbService;

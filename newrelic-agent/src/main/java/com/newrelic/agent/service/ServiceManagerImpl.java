@@ -132,7 +132,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile EnvironmentService environmentService;
     private volatile ClassTransformerService classTransformerService;
     private volatile StatsService statsService = new InitialStatsService();
-    private final MeterService meterService = new MeterService();
+    private final MeterService meterService = MeterService.create();
     private volatile SqlTraceService sqlTraceService;
     private volatile DatabaseService databaseService;
     private volatile BrowserService browserService;
