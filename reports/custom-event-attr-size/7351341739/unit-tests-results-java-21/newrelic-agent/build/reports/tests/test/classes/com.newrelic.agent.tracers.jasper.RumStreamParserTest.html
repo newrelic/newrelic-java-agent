@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.tracers.jasper.RumStreamParserTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.tracers.jasper.RumStreamParserTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.tracers.jasper.html">com.newrelic.agent.tracers.jasper</a> &gt; RumStreamParserTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.621s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+<li>
+<a href="#tab2">Standard error</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">checkAllFiles</td>
+<td class="success">0.621s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-12-28T22:22:33,177+0000 [69727 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-28T22:22:33,210+0000 [69727 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T22:22:33,212+0000 [69727 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T22:22:43,179+0000 [69727 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-12-28T22:22:43,404+0000 [69727 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2023-12-28T22:22:43,406+0000 [69727 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-28T22:22:43,407+0000 [69727 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-28T22:22:43,539+0000 [69727 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+Processing File: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/tracers/jasper/chuncktestfiles/function_with_end_body_tag.html
+Actual:
+&lt;script&gt;	var messages = [];	function issueInHere(cmsId, previewSelector) {		var html = $.ajax({			timeout : 1000,		});		if ((html != undefined) &amp;&amp; (html.responseText != undefined)) {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&quot; + html.responseText					+ &quot;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		} else {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&amp;nbsp;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		}	}&lt;/script&gt;&lt;div class=&quot;css-stuff&quot;&gt;	&lt;div class=&quot;title bla&quot;&gt;Messages&lt;/div&gt;	&lt;div class=&quot;subtitle bla&quot;&gt;Message Here&lt;/div&gt;&lt;/div&gt;
+try {
+  java.lang.Class __nrClass = Class.forName(&quot;com.newrelic.api.agent.NewRelicApiImplementation&quot;);
+  java.lang.reflect.Method __nrMethod = __nrClass.getMethod(&quot;getBrowserTimingFooterForContentType&quot;, new Class[]{ String.class });
+  out.write((String) __nrMethod.invoke(null, new Object[]{ null }));
+} catch (Throwable __t) {
+}
+&lt;/body&gt;&lt;/html&gt;
+Processing File: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/tracers/jasper/chuncktestfiles/verybasic.html
+Actual:
+&lt;html&gt;&lt;head&gt;&lt;title&gt;im a title&lt;/title&gt;&lt;meta some-thing=&quot;1&quot; /&gt;&lt;meta some-thing=&quot;2&quot; /&gt;&lt;meta some-thing=&quot;3&quot; /&gt;&lt;meta some-thing=&quot;4&quot; /&gt;&lt;meta some-thing=&quot;5&quot; /&gt;&lt;meta some-thing=&quot;6&quot; /&gt;
+try {
+  java.lang.Class __nrClass = Class.forName(&quot;com.newrelic.api.agent.NewRelicApiImplementation&quot;);
+  java.lang.reflect.Method __nrMethod = __nrClass.getMethod(&quot;getBrowserTimingHeaderForContentType&quot;, new Class[]{ String.class });
+  out.write((String) __nrMethod.invoke(null, new Object[]{ null }));
+} catch (Throwable __t) {
+}
+&lt;/head&gt;&lt;body&gt;	&lt;p&gt;im some body text&lt;/p&gt;	&lt;p&gt;im some more body text&lt;/p&gt;	&lt;p&gt;im some more body text&lt;/p&gt;	&lt;p&gt;im some more body text&lt;/p&gt;	&lt;p&gt;im some more body text&lt;/p&gt;	
+try {
+  java.lang.Class __nrClass = Class.forName(&quot;com.newrelic.api.agent.NewRelicApiImplementation&quot;);
+  java.lang.reflect.Method __nrMethod = __nrClass.getMethod(&quot;getBrowserTimingFooterForContentType&quot;, new Class[]{ String.class });
+  out.write((String) __nrMethod.invoke(null, new Object[]{ null }));
+} catch (Throwable __t) {
+}
+&lt;/body&gt;&lt;/html&gt;
+Processing File: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/resources/test/com/newrelic/agent/tracers/jasper/chuncktestfiles/script_before_head.html
+Actual:
+&lt;script&gt;	var messages = [];	function issueInHere(cmsId, previewSelector) {		var html = $.ajax({			timeout : 1000,		});		if ((html != undefined) &amp;&amp; (html.responseText != undefined)) {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&quot; + html.responseText					+ &quot;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		} else {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&amp;nbsp;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		}	}	function issueInThere(cmsId, previewSelector) {		var html = $.ajax({			timeout : 1000,		});		if ((html != undefined) &amp;&amp; (html.responseText != undefined)) {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&quot; + html.responseText					+ &quot;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		} else {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&amp;nbsp;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		}	}	function whereIsIssue(cmsId, previewSelector) {		var html = $.ajax({			timeout : 1000,		});		if ((html != undefined) &amp;&amp; (html.responseText != undefined)) {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&quot; + html.responseText					+ &quot;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		} else {			var doc = document.getElementById(name).contentWindow.document;			doc.open();			doc.write(&quot;&lt;html&gt;&lt;body&gt;&lt;div id='theid'&gt;&amp;nbsp;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;);			doc.close();		}	}&lt;/script&gt;&lt;div class=&quot;css-stuff&quot;&gt;	&lt;div class=&quot;title bla&quot;&gt;Messages&lt;/div&gt;	&lt;div class=&quot;subtitle bla&quot;&gt;Message Here&lt;/div&gt;&lt;/div&gt;&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot; &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;&lt;title&gt;Insert title here&lt;/title&gt;
+try {
+  java.lang.Class __nrClass = Class.forName(&quot;com.newrelic.api.agent.NewRelicApiImplementation&quot;);
+  java.lang.reflect.Method __nrMethod = __nrClass.getMethod(&quot;getBrowserTimingHeaderForContentType&quot;, new Class[]{ String.class });
+  out.write((String) __nrMethod.invoke(null, new Object[]{ null }));
+} catch (Throwable __t) {
+}
+&lt;/head&gt;&lt;body&gt;
+try {
+  java.lang.Class __nrClass = Class.forName(&quot;com.newrelic.api.agent.NewRelicApiImplementation&quot;);
+  java.lang.reflect.Method __nrMethod = __nrClass.getMethod(&quot;getBrowserTimingFooterForContentType&quot;, new Class[]{ String.class });
+  out.write((String) __nrMethod.invoke(null, new Object[]{ null }));
+} catch (Throwable __t) {
+}
+&lt;/body&gt;&lt;/html&gt;
+</pre>
+</span>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>WARNING: A Java agent has been loaded dynamically (/home/runner/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.12.19/450917cf3b358b691a824acf4c67aa89c826f67e/byte-buddy-agent-1.12.19.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Dec 28, 2023 10:27:23 PM</p>
+</div>
+</div>
+</body>
+</html>
