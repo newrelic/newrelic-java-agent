@@ -91,13 +91,13 @@ public class MeterService extends AbstractService implements Meter, EventService
                 return AggregationTemporality.DELTA;
             }
         };
-        final Supplier<io.opentelemetry.api.metrics.Meter> meterSupplier = Suppliers.memoize(() -> {
+        final com.google.common.base.Supplier<io.opentelemetry.api.metrics.Meter> meterSupplier = Suppliers.memoize(() -> {
             final SdkMeterProviderBuilder meterProviderBuilder = SdkMeterProvider.builder();
             SdkMeterProviderUtil.registerMetricReaderWithCardinalitySelector(meterProviderBuilder, metricReader, cardinalityLimitSelector);
             final SdkMeterProvider sdkMeterProvider = meterProviderBuilder.build();
             return sdkMeterProvider.meterBuilder("newrelic").build();
         });
-        return new MeterService(() -> collectionRegistrationReference.get().collectAllMetrics(), meterSupplier);
+        return new MeterService(() -> collectionRegistrationReference.get().collectAllMetrics(), () -> meterSupplier.get());
     }
 
     private MeterService(final Supplier<Collection<MetricData>> metricDataSupplier,
