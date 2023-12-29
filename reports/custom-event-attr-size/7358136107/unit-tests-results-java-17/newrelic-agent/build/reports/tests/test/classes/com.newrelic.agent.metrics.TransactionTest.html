@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.metrics.TransactionTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.metrics.TransactionTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.metrics.html">com.newrelic.agent.metrics</a> &gt; TransactionTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">28</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">2.114s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">runTest[1: Two threads - first registers the second and second ends before the first]</td>
+<td class="success">0.052s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[2: Two threads - first registers the second with large gap between first end and second start]</td>
+<td class="success">0.043s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[3: Two threads - first registers the second and then ends before second ends]</td>
+<td class="success">0.044s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[4: Two threads - web transaction - first registers the second and then ends before second ends]</td>
+<td class="success">0.034s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[5: Two threads - web transaction - ends on second]</td>
+<td class="success">0.043s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[6: Two threads - web transaction - ends at end of second]</td>
+<td class="success">0.039s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[7: Two threads - web transaction - ends at end of first thread]</td>
+<td class="success">0.042s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[8: finish first thread early]</td>
+<td class="success">0.051s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[9: finish first thread early with no first byte]</td>
+<td class="success">0.038s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Background Eight threads - all registered by the first thread]</td>
+<td class="success">0.095s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Background Eight threads - all registered by the previous thread]</td>
+<td class="success">0.128s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Blocking - Same method names]</td>
+<td class="success">0.061s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Blocking - Two Threads - same metric names - end early]</td>
+<td class="success">0.043s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Blocking - Two Threads - same metric names]</td>
+<td class="success">0.045s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Blocking - Two deeply nested threads]</td>
+<td class="success">0.041s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Blocking - Two threads - first registers the second and second ends before the first]</td>
+<td class="success">0.061s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Blocking - not really blocking]</td>
+<td class="success">0.074s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Eight threads - all registered by the previous thread different times]</td>
+<td class="success">0.115s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Four threads - first registers the other three and blocks on each till they finish]</td>
+<td class="success">0.084s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Single thread background 1]</td>
+<td class="success">0.423s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Single thread background 2]</td>
+<td class="success">0.049s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Single web thread - end early]</td>
+<td class="success">0.044s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Single web thread - end tx more nested]</td>
+<td class="success">0.030s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Single web thread - end tx nested]</td>
+<td class="success">0.035s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Single web thread - some tracers not in critical path]</td>
+<td class="success">0.007s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Single web thread]</td>
+<td class="success">0.173s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Web Eight threads - all registered by the first thread]</td>
+<td class="success">0.081s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">runTest[Web Eight threads - all registered by the previous thread]</td>
+<td class="success">0.139s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-12-29T17:14:19,866+0000 [65415 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2023-12-29T17:14:19,933+0000 [65415 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-29T17:14:19,948+0000 [65415 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-29T17:14:21,536+0000 [65415 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2023-12-29T17:14:21,656+0000 [65415 1] com.newrelic INFO: Instrumenting exception handler signature test.newrelic.test.agent.ExceptionHandlerTest$ExceptionHandler.handleException2(Ljava/lang/String;Ljava/lang/Throwable;)V
+2023-12-29T17:14:21,877+0000 [65415 1] com.newrelic ERROR: No instrumentation packages were found in the agent.
+2023-12-29T17:14:22,395+0000 [65415 1] com.newrelic.agent.RPMServiceManagerImpl INFO: Configured to connect to New Relic at nope.example.invalid:80
+2023-12-29T17:14:23,107+0000 [65415 1] com.newrelic INFO: Setting audit_mode to false
+2023-12-29T17:14:23,793+0000 [65415 1] com.newrelic.agent.config.ConfigServiceImpl INFO: Configuration file is /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/test/resources/com/newrelic/agent/config/newrelic.yml
+2023-12-29T17:14:23,793+0000 [65415 1] com.newrelic.agent.config.ConfigServiceImpl WARN: The apdex_t setting is obsolete and is ignored! Set the apdex_t value for an application in New Relic UI
+Running test Single thread background 1
+Running test Single thread background 2
+Running test Single web thread
+Running test Single web thread - end early
+Running test Single web thread - end tx nested
+Running test Single web thread - end tx more nested
+Running test Single web thread - some tracers not in critical path
+Running test Background Eight threads - all registered by the first thread
+Running test Web Eight threads - all registered by the first thread
+Running test Background Eight threads - all registered by the previous thread
+Running test Web Eight threads - all registered by the previous thread
+Running test Eight threads - all registered by the previous thread different times
+Running test Blocking - Two threads - first registers the second and second ends before the first
+Running test Four threads - first registers the other three and blocks on each till they finish
+Running test Blocking - Two deeply nested threads
+Running test Blocking - Same method names
+Running test Blocking - not really blocking
+Running test Blocking - Two Threads - same metric names
+Running test Blocking - Two Threads - same metric names - end early
+Running test 1: Two threads - first registers the second and second ends before the first
+Running test 2: Two threads - first registers the second with large gap between first end and second start
+Running test 3: Two threads - first registers the second and then ends before second ends
+Running test 4: Two threads - web transaction - first registers the second and then ends before second ends
+Running test 5: Two threads - web transaction - ends on second
+Running test 6: Two threads - web transaction - ends at end of second
+Running test 7: Two threads - web transaction - ends at end of first thread
+Running test 8: finish first thread early
+Running test 9: finish first thread early with no first byte
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Dec 29, 2023 5:25:09 PM</p>
+</div>
+</div>
+</body>
+</html>

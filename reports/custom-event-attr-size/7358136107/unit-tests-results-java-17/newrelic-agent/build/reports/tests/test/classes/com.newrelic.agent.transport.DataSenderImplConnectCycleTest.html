@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.transport.DataSenderImplConnectCycleTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.transport.DataSenderImplConnectCycleTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.transport.html">com.newrelic.agent.transport</a> &gt; DataSenderImplConnectCycleTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">3</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">13.224s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testFullPreconnectConnectCycleNoSecurity</td>
+<td class="success">0.096s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFullPreconnectConnectCycleWithLasp</td>
+<td class="success">13.046s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testReconnectCycleNoSecurity</td>
+<td class="success">0.082s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2023-12-29T17:22:24,614+0000 [73186 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-29T17:22:24,677+0000 [73186 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-29T17:22:24,690+0000 [73186 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-29T17:22:29,405+0000 [73186 1] com.newrelic INFO: Setting audit_mode to false
+2023-12-29T17:22:29,406+0000 [73186 1] com.newrelic INFO: Agent run id: agent run id
+2023-12-29T17:22:29,486+0000 [73186 1] com.newrelic INFO: LASP Policies received from server side: {&quot;record_sql&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;allow_raw_exception_messages&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;custom_events&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;message_parameters&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;job_arguments&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:false},&quot;custom_instrumentation_editor&quot;:{&quot;enabled&quot;:true,&quot;required&quot;:true},&quot;custom_parameters&quot;:{&quot;enabled&quot;:false,&quot;required&quot;:true},&quot;attributes_include&quot;:{&quot;enabled&quot;:false,&quot;required&quot;:true}}
+2023-12-29T17:22:29,488+0000 [73186 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-12-29T17:22:29,503+0000 [73186 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-12-29T17:22:29,503+0000 [73186 1] com.newrelic INFO: Agent run id: my-run-id
+2023-12-29T17:22:29,519+0000 [73186 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-29T17:22:29,538+0000 [73186 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-29T17:22:29,539+0000 [73186 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-29T17:22:29,594+0000 [73186 1] com.newrelic INFO: Setting audit_mode to false
+2023-12-29T17:22:29,596+0000 [73186 1] com.newrelic INFO: Agent run id: agent run id
+2023-12-29T17:22:29,599+0000 [73186 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-12-29T17:22:29,604+0000 [73186 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-12-29T17:22:29,605+0000 [73186 1] com.newrelic INFO: Agent run id: my-run-id
+2023-12-29T17:22:29,609+0000 [73186 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2023-12-29T17:22:29,618+0000 [73186 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2023-12-29T17:22:29,619+0000 [73186 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2023-12-29T17:22:29,669+0000 [73186 1] com.newrelic INFO: Setting audit_mode to false
+2023-12-29T17:22:29,670+0000 [73186 1] com.newrelic INFO: Agent run id: agent run id
+2023-12-29T17:22:29,679+0000 [73186 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-12-29T17:22:29,680+0000 [73186 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-12-29T17:22:29,682+0000 [73186 1] com.newrelic INFO: Agent run id: my-run-id
+2023-12-29T17:22:29,683+0000 [73186 1] com.newrelic INFO: Collector redirection to new_host.example.com:443
+2023-12-29T17:22:29,686+0000 [73186 1] com.newrelic WARN: Did not receive requestMetadata on connect
+2023-12-29T17:22:29,688+0000 [73186 1] com.newrelic INFO: Agent run id: my-run-id
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Dec 29, 2023 5:25:09 PM</p>
+</div>
+</div>
+</body>
+</html>
