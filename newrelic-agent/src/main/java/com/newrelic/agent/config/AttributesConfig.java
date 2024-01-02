@@ -21,13 +21,13 @@ public interface AttributesConfig {
 
     /**
      * Whether the old http attributes (httpResponseCode, httpResponseMessage) should be sent.
-     * @since 8.8.1
+     * @since 8.8.0
      */
     boolean isLegacyHttpAttr();
 
     /**
      * Whether the new http attributes (http.statusCode, http.statusText) should be sent.
-     * @since 8.8.1
+     * @since 8.8.0
      */
     boolean isStandardHttpAttr();
 }
