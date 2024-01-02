@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.profile.ProfilerServiceV2Test</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.profile.ProfilerServiceV2Test</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.profile.html">com.newrelic.agent.profile</a> &gt; ProfilerServiceV2Test</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">8</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">23.376s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">disabled</td>
+<td class="success">0.048s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">enabled</td>
+<td class="success">10.578s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">enabledByDefault</td>
+<td class="success">0.058s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">startProfiler</td>
+<td class="success">10.064s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">stopProfiler</td>
+<td class="success">1.064s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">stopProfilerAndReportData</td>
+<td class="success">1.110s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testAgentInstrumentationSample</td>
+<td class="success">0.077s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testOneSampleProfile</td>
+<td class="success">0.377s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2024-01-02T19:00:23,494+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:23,521+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:23,531+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:32,821+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:32,821+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:32,825+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:32,892+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:32,893+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:32,893+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:32,955+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:32,963+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:32,964+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:33,181+0000 [63669 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting single sample profiling session
+2024-01-02T19:00:33,228+0000 [63669 23] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,244+0000 [63669 23] com.newrelic INFO: Profile size is 0 stack elements
+2024-01-02T19:00:33,251+0000 [63669 23] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 1 samples
+2024-01-02T19:00:33,256+0000 [63669 23] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2024-01-02T19:00:33,258+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:33,258+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:33,259+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:33,292+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:33,295+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:33,296+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:33,308+0000 [63669 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting profiling session. Duration: 500 ms, sample period: 50 ms
+2024-01-02T19:00:33,322+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,375+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,426+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,478+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,531+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,583+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,634+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,686+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,738+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,789+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:33,821+0000 [63669 26] com.newrelic INFO: Profile size is 0 stack elements
+2024-01-02T19:00:33,823+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 10 samples
+2024-01-02T19:00:33,823+0000 [63669 26] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2024-01-02T19:00:43,322+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:43,322+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,322+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,361+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:43,362+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,362+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,370+0000 [63669 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting single sample profiling session
+2024-01-02T19:00:43,378+0000 [63669 29] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:43,382+0000 [63669 29] com.newrelic INFO: Profile size is 0 stack elements
+2024-01-02T19:00:43,383+0000 [63669 29] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 1 samples
+2024-01-02T19:00:43,390+0000 [63669 29] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2024-01-02T19:00:43,400+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:43,400+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,400+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,435+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:43,436+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,436+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,458+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:43,460+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,461+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,493+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:43,494+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,495+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,506+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:43,507+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,507+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,551+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:43,551+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:43,554+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:43,578+0000 [63669 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting profiling session. Duration: 200,000 ms, sample period: 100 ms
+2024-01-02T19:00:43,609+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:43,711+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:43,813+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:43,915+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,017+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,119+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,221+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,324+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,426+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,528+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,603+0000 [63669 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Stopping profiling session
+2024-01-02T19:00:44,609+0000 [63669 36] com.newrelic INFO: Profile size is 0 stack elements
+2024-01-02T19:00:44,615+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService INFO: Profiler finished with 10 samples
+2024-01-02T19:00:44,615+0000 [63669 36] com.newrelic.agent.profile.v2.ProfilerService INFO: Server profile ids: []
+2024-01-02T19:00:44,616+0000 [63669 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-02T19:00:44,616+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:44,616+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:44,642+0000 [63669 1] com.newrelic INFO: Using default collector host: collector.newrelic.com
+2024-01-02T19:00:44,643+0000 [63669 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-02T19:00:44,643+0000 [63669 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-02T19:00:44,651+0000 [63669 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Starting profiling session. Duration: 200,000 ms, sample period: 100 ms
+2024-01-02T19:00:44,680+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,787+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,889+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:44,991+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:45,092+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:45,195+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:45,297+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:45,399+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:45,500+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:45,603+0000 [63669 39] com.newrelic.agent.profile.v2.ProfilerService ERROR: An error occurred collecting a thread sample: java.lang.NullPointerException
+2024-01-02T19:00:45,677+0000 [63669 1] com.newrelic.agent.profile.v2.ProfilerService INFO: Stopping profiling session
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jan 2, 2024 7:09:11 PM</p>
+</div>
+</div>
+</body>
+</html>
