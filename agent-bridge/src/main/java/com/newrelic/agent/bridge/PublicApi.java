@@ -107,7 +107,7 @@ public interface PublicApi extends ErrorApi {
     /**
      * Get the RUM JavaScript footer for the current web transaction.
      *
-     * @deprecated The full browser script is not included when calling {@link PublicApi#getBrowserTimingHeader}
+     * @deprecated The full browser script is now included when calling {@link PublicApi#getBrowserTimingHeader}
      * or {@link PublicApi#getBrowserTimingHeader(String)}
      *
      * @return RUM JavaScript footer for the current web transaction.
