@@ -19,14 +19,17 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.api.agent.ApplicationNamePriority;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Category(RequiresFork.class)
 public class TransactionAppNamingTest {
 
     private static final String APP_NAME = "TransactionAppNamingTest";
