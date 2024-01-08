@@ -196,7 +196,6 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
             attributes.put("code.stacktrace", stackTraceString(scrubbedStackTraceElements));
         }
 
-        new IllegalArgumentException().printStackTrace();
         return attributes;
     }
 
