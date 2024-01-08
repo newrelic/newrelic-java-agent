@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.newrelic.agent.sql.BoundedConcurrentCacheTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.newrelic.agent.sql.BoundedConcurrentCacheTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.newrelic.agent.sql.html">com.newrelic.agent.sql</a> &gt; BoundedConcurrentCacheTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">5</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">26.272s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testKeepSlowerSql</td>
+<td class="success">10.418s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testMultithreadedBehavior</td>
+<td class="success">1.037s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testPutIfAbsent</td>
+<td class="success">10.975s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testPutReplace</td>
+<td class="success">0.152s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testUpperBound</td>
+<td class="success">3.690s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2024-01-08T16:27:59,530+0000 [67974 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2024-01-08T16:27:59,551+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:27:59,552+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:27:59,841+0000 [67974 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-08T16:27:59,842+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:27:59,843+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:04,357+0000 [67974 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2024-01-08T16:28:08,058+0000 [67974 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2024-01-08T16:28:08,059+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:08,059+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:08,080+0000 [67974 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-08T16:28:08,080+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:08,080+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:08,125+0000 [67974 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2024-01-08T16:28:08,211+0000 [67974 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2024-01-08T16:28:08,211+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:08,211+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:08,218+0000 [67974 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-08T16:28:08,218+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:08,219+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:08,266+0000 [67974 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2024-01-08T16:28:09,249+0000 [67974 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2024-01-08T16:28:09,250+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:09,250+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:09,254+0000 [67974 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-08T16:28:09,254+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:09,254+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:09,328+0000 [67974 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+2024-01-08T16:28:19,673+0000 [67974 1] com.newrelic INFO: Using configured collector host: nope.example.invalid
+2024-01-08T16:28:19,674+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:19,674+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:19,685+0000 [67974 1] com.newrelic INFO: Using configured collector host: no-collector.example.com
+2024-01-08T16:28:19,688+0000 [67974 1] com.newrelic INFO: Using default metric ingest URI: https://metric-api.newrelic.com/metric/v1
+2024-01-08T16:28:19,688+0000 [67974 1] com.newrelic INFO: Using default event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
+2024-01-08T16:28:19,731+0000 [67974 1] com.newrelic.agent.extension.ExtensionService ERROR: Unable to read extensions from the agent jar : java.io.FileNotFoundException: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main (Is a directory)
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 7.5.1</a> at Jan 8, 2024 4:36:17 PM</p>
+</div>
+</div>
+</body>
+</html>
