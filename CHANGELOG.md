@@ -4,6 +4,130 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.8.0
+## New features and improvements
+
+* Add support for Jetty 12, including Jetty’s implementation of the Jakarta EE 8, 9, and 10 specs. [1621](https://github.com/newrelic/newrelic-java-agent/pull/1621)
+* Add support for Vert.x versions 4.0.0 through 4.4.x [1588](https://github.com/newrelic/newrelic-java-agent/pull/1588)
+* Add instrumentation for graphql-java 21 [1454](https://github.com/newrelic/newrelic-java-agent/pull/1565)
+* Instrument r2dbc-postgresql 0.9.2 till latest [1413](https://github.com/newrelic/newrelic-java-agent/pull/1556) 
+* Reintroduce the legacy HTTP Attributes that were removed in *v8.0.0* to support customers with alerts and dashboards that require them [1671](https://github.com/newrelic/newrelic-java-agent/pull/1671)
+  The attributes are:
+  * `httpResponseCode`
+  * `httpResponseMessage`
+  * `response.status`
+  * `response.statusMessage`
+
+  Attribute reporting is configurable via the following means.
+
+  YAML:
+  ```
+  attributes:
+    http_attribute_mode: both
+  ```
+
+  System property:
+  ```properties
+  -Dnewrelic.config.attributes.http_attribute_mode=both
+  ```
+
+  Environment variable:
+  ```properties
+  NEW_RELIC_ATTRIBUTES_HTTP_ATTRIBUTE=both 
+  ```
+
+  The configuration options are:
+  * `standard` : The agent will send new standard attributes. This configuration is recommended but requires that any alerts or dashboards using attributes be updated to use these new attributes. This setting will reduce the amount of ingest used for attribute reporting.
+  * `legacy` : The agent will send the legacy attributes referenced above. Customers with alerts or dashboard requiring these attributes can continue to be used as-is.  This setting will reduce the amount of ingest used for attribute reporting.
+  * `both` : This is the default configuration, the agent will send BOTH legacy AND standard HTTP attributes. This configuration was intended to support customers that are unable to modify their alerts or dashboards but this configuration will increase data ingest.
+
+* Add an interface for our error API. Our error API can now be called via the code `NewRelic.getAgent().getErrorApi()` [1577](https://github.com/newrelic/newrelic-java-agent/pull/1579)
+* Add log4j2 JsonLayout support and support log4j2 till latest. [1545](https://github.com/newrelic/newrelic-java-agent/pull/1559)
+* Add httpstatus in the external segment for Spring Webclient [1610](https://github.com/newrelic/newrelic-java-agent/pull/1610)
+* Enable slow transaction detection by default and bump the threshold to 10 minutes [1629](https://github.com/newrelic/newrelic-java-agent/pull/1629)
+* Add support for string formatting with JBoss Logging. [1650](https://github.com/newrelic/newrelic-java-agent/pull/1650) 
+* Add logic to remove specific classes from being excluded from being weaved if the IAST security feature is enabled. [1453](https://github.com/newrelic/newrelic-java-agent/pull/1453)
+
+  The affected classes belong in the following formats:
+  * `^java/security/.*` 
+  * `^javax/crypto/.*` These are crypto classes which can cause class circularity errors if they get too far along in the class transformer.
+  * `^net/sf/saxon.*` 
+
+  If you wish to re-include these excluded rules, you can do so via the following means.
+
+  YAML:
+  ```yaml
+    class_transformer:
+      excludes: ^javax/crypto/.*,^java/security/.*,^net/sf/saxon.*
+  ```
+
+  System property:
+  ```properties
+  -Dnewrelic.config.class_transformer.excludes=^javax/crypto/.*,^java/security/.*,^net/sf/saxon.*
+  ```
+
+  Environment variable:
+  ```properties
+  NEW_RELIC_CLASS_TRANSFORMER_EXCLUDES=^javax/crypto/.*,^java/security/.*,^net/sf/saxon.*
+  ```
+
+* Prevent license_key value from being written to the agent logs when using debug and/or audit_mode logging [1653](https://github.com/newrelic/newrelic-java-agent/pull/1653)
+
+#### IAST 
+
+* The IAST feature now also supports Async HTTP client version 2 and above [142](https://github.com/newrelic/csec-java-agent/pull/142)
+* Added support for Sun Net HTTP Server [142](https://github.com/newrelic/csec-java-agent/pull/142)
+* JSON version bump to 1.1.1 [142](https://github.com/newrelic/csec-java-agent/pull/142)
+* Add critical error logging via LogMessage event [142](https://github.com/newrelic/csec-java-agent/pull/142)
+
+## Fixes
+
+* Fix transaction naming in Spring controllers with a CGLIB proxy. Transactions now use the actual class name as opposed to the proxied class name.  [1574](https://github.com/newrelic/newrelic-java-agent/pull/1575)
+* Fix a `NullPointerException` caused by ServletContext in servlet instrumentation modules. [1636](https://github.com/newrelic/newrelic-java-agent/pull/1636)
+* Fix a memory leak caused by Lettuce instrumentation. Duplicate code for  transaction linking has been removed from the Lettuce instrumentation and is handled by netty-reactor instead. [1608](https://github.com/newrelic/newrelic-java-agent/pull/1608)
+* Fix a bug where invalidating a license key causes a memory leak. Reconnection tasks are now capped in the event of a `LicenseException`.   [1606](https://github.com/newrelic/newrelic-java-agent/pull/1606)
+* Fix a `NullPointerException` caused by RPMServiceManager [1604](https://github.com/newrelic/newrelic-java-agent/pull/1604)
+* Add a workaround for a memory leak that may occur in rare scenarios with instrumentation using the legacy async API in the Java Agent (which async servlets and Jetty Continuations use). [1555](https://github.com/newrelic/newrelic-java-agent/pull/1555)
+
+  The option can be configured via the following means:
+
+  Agent config file (this will update dynamically if the config file is changed)
+  ```yaml
+  common: &default_settings
+    legacy_async_api_skip_suspend: true
+  ```
+
+  System Property
+  ```properties
+  -Dnewrelic.config.legacy_async_api_skip_suspend=true
+  ```
+
+  Environment Variable
+  ```properties
+  NEW_RELIC_LEGACY_ASYNC_API_SKIP_SUSPEND=true
+  ```
+
+#### IAST
+
+* DynamoDB v2 issue: missing attribute values for conditionCheck method in case of transactWriteItems operation on DynamoDB [142](https://github.com/newrelic/csec-java-agent/pull/142)
+
+* Fixed an Insecure cookie attack vulnerability.  [142](https://github.com/newrelic/csec-java-agent/pull/142)
+* Never print LicenseKey [142](https://github.com/newrelic/csec-java-agent/pull/142)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.7.0...v8.8.0
+
+
 ## Version 8.7.0
 ## New features and improvements
 
