@@ -22,10 +22,12 @@ import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -39,6 +41,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.*;
 
+@Category(RequiresFork.class)
 public class InboundHeaderStateTest {
 
     private final MockServiceManager serviceManager = new MockServiceManager();

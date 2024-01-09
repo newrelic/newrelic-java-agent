@@ -51,12 +51,14 @@ import com.newrelic.agent.transaction.TransactionCounts;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.OutboundHeaders;
 import com.newrelic.api.agent.TransactionNamePriority;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
@@ -75,6 +77,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+@Category(RequiresFork.class)
 public class SegmentTest implements ExtendedTransactionListener {
 
     private static InlineExpirationService inlineExpirationService;

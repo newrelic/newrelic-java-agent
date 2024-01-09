@@ -21,7 +21,9 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.util.MockDistributedTraceService;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -30,6 +32,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+@Category(RequiresFork.class)
 public class HeadersUtilTest {
     @Test
     public void createDTHeadersSetsSpanIdEvenIfTxNotSampled() {

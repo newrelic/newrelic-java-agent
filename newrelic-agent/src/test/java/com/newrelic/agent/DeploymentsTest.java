@@ -9,6 +9,7 @@ package com.newrelic.agent;
 
 import java.util.Map;
 
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 
 import org.apache.commons.cli.CommandLine;
@@ -21,7 +22,9 @@ import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.AgentConfigFactoryTest;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.AgentConfig;
+import org.junit.experimental.categories.Category;
 
+@Category(RequiresFork.class)
 public class DeploymentsTest {
 
     private MockServiceManager serviceManager;
