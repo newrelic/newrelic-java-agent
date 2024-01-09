@@ -378,6 +378,31 @@ public class TransactionActivity {
     /**
      * A serious internal error occurred. All data associated with this activity will be lost.
      *
+     * Note: We started seeing this error while investigating absurd metric values
+     * (e.g. - negative durations, or call counts in the hundreds of millions)
+     * The fix was to remove the ProcessPointCut and replace it with
+     * a weaver instrumentation module.
+     * We've left this code in place just in case we see the problem in other places.
+     *
+     * The offending code that produced this error looked something like this:
+     * It may be worth noting that myServiceMethod() was being called by another service method
+     * that was also annotated with @Trace(dispatcher = true) and that method was also
+     * called the same way.  And that 3rd method was being called every 1 second
+     * by a ScheduledThreadPoolExecutor.  And the mapOfStringToListOfStrings should have at least 2 entries.
+     *
+     *  @Trace(dispatcher = true, metricName = "myMetricName")
+     *  public void myServiceMethod () {
+     *      ...
+     *      CompletableFuture.allOf(
+     *          mapOfStringToListOfStrings.entrySet().stream().map(entry -> CompletableFuture.runAsync(() -> {
+     *              ...
+     *              callSomeMethodThatUsesProcessWaitFor();
+     *              ...
+ *              })).toArray(CompletableFuture[]::new)
+     *      ).join();
+     *      ...
+     *  }
+     *
      * @param tracer the tracer that completed, leading to the internal error detection.
      * @param opcode
      */
