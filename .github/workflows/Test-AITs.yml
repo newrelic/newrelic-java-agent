@@ -344,9 +344,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Download artifact(s) # surely there is a way to only download the negative_value_*.txt artifacts?
-        uses: actions/download-artifact@master
-        with:
-          if-no-files-found: ignore
+        uses: actions/download-artifact@v3 #swap to v3 because v4 fails the step if no files are present
       - name: Send failure message to Slack
         if: ${{ hashFiles('**/negative_value_*.txt') != '' }}
         id: slack

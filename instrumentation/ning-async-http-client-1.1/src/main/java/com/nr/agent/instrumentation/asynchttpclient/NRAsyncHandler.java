@@ -73,6 +73,7 @@ public class NRAsyncHandler<T> {
             segment = null;
             uri = null;
             inboundHeaders = null;
+            responseStatus = null;
             userAbortedOnStatusReceived = null;
         }
         Weaver.callOriginal();
@@ -108,6 +109,7 @@ public class NRAsyncHandler<T> {
             segment = null;
             uri = null;
             inboundHeaders = null;
+            responseStatus = null;
             userAbortedOnStatusReceived = null;
         }
 

@@ -39,7 +39,7 @@ public class AgentUtil {
      */
     public static void recordNewRelicLogEvent(ExtLogRecord record) {
         if (record != null) {
-            String message = record.getMessage();
+            String message = record.getFormattedMessage();
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {

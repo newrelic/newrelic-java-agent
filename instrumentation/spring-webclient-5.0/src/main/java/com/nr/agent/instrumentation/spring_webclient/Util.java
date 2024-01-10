@@ -64,9 +64,10 @@ public class Util {
                             .inboundHeaders(new InboundResponseWrapper(clientResponse))
                             .status(clientResponse.statusCode().value(), null)
                             .build());
-                    segment.end();
                 } catch (Throwable e) {
                     reportInstrumentationError(e);
+                } finally {
+                    segment.end();
                 }
             }
         };
@@ -84,9 +85,10 @@ public class Util {
                                 .procedure("failed")
                                 .build());
                     }
-                    segment.end();
                 } catch (Throwable e) {
                     reportInstrumentationError(e);
+                } finally {
+                    segment.end();
                 }
             }
         };
@@ -103,9 +105,10 @@ public class Util {
                             .procedure("exchange")
                             .noInboundHeaders()
                             .build());
-                    segment.end();
                 } catch (Throwable e) {
                     reportInstrumentationError(e);
+                } finally {
+                    segment.end();
                 }
             }
         };

@@ -28,7 +28,7 @@ See the following documentation for specific use cases of the Java agent:
 - [Java agent API guides](https://docs.newrelic.com/docs/apm/agents/java-agent/api-guides/guide-using-java-agent-api)
 - [Java agent async instrumentation API guides](https://docs.newrelic.com/docs/apm/agents/java-agent/async-instrumentation/introduction-java-async-instrumentation)
 - [Troubleshooting](https://docs.newrelic.com/docs/agents/java-agent/troubleshooting)
-- [Java agent Javadocs](http://newrelic.github.io/java-agent-api/javadoc/index.html?com/newrelic/api/agent/package-summary.html)
+- [Java agent Javadocs](https://newrelic.github.io/java-agent-api/javadoc/index.html?com/newrelic/api/agent/package-summary.html)
 
 ## Building
 
@@ -248,6 +248,6 @@ As noted in our [security policy](https://github.com/newrelic/newrelic-java-agen
 If you believe you have found a security vulnerability in this project or any of New Relic's products or websites, we welcome and greatly appreciate you reporting it to New Relic through [HackerOne](https://hackerone.com/newrelic).
 
 ## License
-`newrelic-java-agent` is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
+`newrelic-java-agent` is licensed under the [Apache 2.0](https://apache.org/licenses/LICENSE-2.0.txt) License.
 
 The `newrelic-java-agent` also uses source code from third-party libraries. You can find full details on which libraries are used and the terms under which they are licensed in the third-party notices document and our [Java agent licenses public documentation](https://docs.newrelic.com/docs/licenses/product-or-service-licenses/new-relic-apm/java-agent-licenses).

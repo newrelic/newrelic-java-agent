@@ -61,12 +61,14 @@ import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
+import com.newrelic.test.marker.RequiresFork;
 import org.json.simple.JSONArray;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.objectweb.asm.Opcodes;
 
 import java.net.InetAddress;
@@ -82,6 +84,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+@Category(RequiresFork.class)
 public class DefaultTracerTest {
 
     private String APP_NAME;

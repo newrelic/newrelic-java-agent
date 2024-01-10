@@ -172,6 +172,12 @@ common: &default_settings
     # not be sent to New Relic.
     #exclude:
 
+
+    # Defines which sets of http attributes the agent will send: standard, legacy or both (default).
+    # Having the agent send both sets will increase ingestion.
+    # Having the agent send only legacy may impact current or future functionality.
+    http_attribute_mode: both
+
   # Transaction tracer captures deep information about slow
   # transactions and sends this to the New Relic service once a
   # minute. Included in the transaction is the exact call sequence of
@@ -413,11 +419,11 @@ common: &default_settings
       deserialization:
         enabled: true
 
-  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's time exceeds the threshold value
-  # (in ms). A transaction will only be reported once.
+  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's
+  # time exceeds the threshold value (in ms). A transaction will only be reported once.
   slow_transactions:
-    enabled: false
-    threshold: 1000
+    enabled: true
+    threshold: 600000
 
 # Application Environments
 # ------------------------------------------
