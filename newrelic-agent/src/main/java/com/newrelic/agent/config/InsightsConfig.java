@@ -13,4 +13,10 @@ public interface InsightsConfig {
 
     int getMaxSamplesStored();
 
+    /**
+     * Returns the max attribute size.
+     * @since 9.0.0
+     */
+    int getMaxAttributeValue();
+
 }

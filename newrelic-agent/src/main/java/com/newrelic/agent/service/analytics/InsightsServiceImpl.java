@@ -17,7 +17,7 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeSender;
-import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.attributes.CustomEventAttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.model.AnalyticsEvent;
@@ -389,7 +389,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
                 continue;
             }
 
-            mapInternString(key);
+            key = mapInternString(key);
 
             if (value instanceof String) {
                 sender.addAttribute(key, mapInternString((String) value), method);
@@ -413,7 +413,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         private final Map<String, Object> userAttributes;
 
         public CustomEventAttributeSender(Map<String, Object> userAttributes) {
-            super(new AttributeValidator(ATTRIBUTE_TYPE));
+            super(new CustomEventAttributeValidator(ATTRIBUTE_TYPE));
             this.userAttributes = userAttributes;
             setTransactional(false);
         }
