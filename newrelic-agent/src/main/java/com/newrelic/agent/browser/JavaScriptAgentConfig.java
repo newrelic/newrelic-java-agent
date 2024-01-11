@@ -1,10 +1,9 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-
 package com.newrelic.agent.browser;
 
 import com.newrelic.agent.Agent;
@@ -22,36 +21,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-public class BrowserFooter {
-    // location of the beacon (hostname[:port]) (always present)
+public class JavaScriptAgentConfig {
     private static final String BEACON_KEY = "beacon";
-    // JS error beacon location (always present)
     private static final String ERROR_BEACON_KEY = "errorBeacon";
-    // license key (always present)
     private static final String LICENSE_KEY = "licenseKey";
-    // id(s) of the application (always present)
     private static final String APPLICATION_ID_KEY = "applicationID";
-    // name of the transaction (always present)
     private static final String TRANSACTION_NAME_KEY = "transactionName";
-    // Queue time in milliseconds (always present)
     private static final String QUEUE_TIME_KEY = "queueTime";
-    // Application time in milliseconds (always present)
     private static final String APP_TIME_KEY = "applicationTime";
-    // when there is an agentToken and applicationTime is above the transaction trace threshold (optional)
-    private static final String TRAN_TRACE_GUID_KEY = "ttGuid";
-    // when it is present in an "NRAGENT" cookie (and has valid format) - optional
-    private static final String AGENT_TOKEN_KEY = "agentToken";
-    // user and agent parameters (user, account, product, etc)
     private static final String ATTS_KEY = "atts";
-    // True or false to force the use or non-use of HTTPS instrumentation on HTTP pages (only when explicitly set)
     private static final String SSL_FOR_HTTP_KEY = "sslForHttp";
-    // the JS agent payload script (always present)
     private static final String AGENT_PAYLOAD_SCRIPT_KEY = "agent";
-
-    // Used by functional tests
-    static final String FOOTER_JS_START = "window.NREUM||(NREUM={});NREUM.info=";
-    public static final String FOOTER_START_SCRIPT = "\n<script type=\"text/javascript\">" + FOOTER_JS_START;
-    public static final String FOOTER_END = "</script>";
 
     private final String beacon;
     private final String browserKey;
@@ -60,45 +40,22 @@ public class BrowserFooter {
     private final String appId;
     private final Boolean isSslForHttp;
 
-    public BrowserFooter(String appName, String pBeacon, String pBrowserKey, String pErrorBeacon, String pPayloadScript,
-            String pAppId) {
-        beacon = pBeacon;
-        browserKey = pBrowserKey;
-        errorBeacon = pErrorBeacon;
-        payloadScript = pPayloadScript;
-        appId = pAppId;
+    public JavaScriptAgentConfig(String appName, String beacon, String browserKey, String errorBeacon, String payloadScript,
+            String appId) {
+        this.beacon = beacon;
+        this.browserKey = browserKey;
+        this.errorBeacon = errorBeacon;
+        this.payloadScript = payloadScript;
+        this.appId = appId;
         BrowserMonitoringConfig config = ServiceFactory.getConfigService().getAgentConfig(appName).getBrowserMonitoringConfig();
-        if (config.isSslForHttpSet()) {
-            isSslForHttp = config.isSslForHttp();
-        } else {
-            isSslForHttp = null;
-        }
+        isSslForHttp = config.isSslForHttpSet() ? config.isSslForHttp() : null;
     }
 
-    public String getFooter(BrowserTransactionState state) {
-        String jsonString = jsonToString(createMapWithData(state));
-        if (jsonString != null) {
-            return FOOTER_START_SCRIPT + jsonString + FOOTER_END;
-        } else {
-            return "";
-        }
+    public String getConfigString(BrowserTransactionState state) {
+        return mapToJsonString(createJavaScriptAgentConfigMap(state));
     }
 
-    String getFooter(BrowserTransactionState state, String nonce) {
-        String jsonString = jsonToString(createMapWithData(state));
-        if (jsonString != null) {
-            return "\n<script type=\"text/javascript\" nonce=\""
-                    + nonce
-                    + "\">"
-                    + FOOTER_JS_START
-                    + jsonString
-                    + FOOTER_END;
-        } else {
-            return "";
-        }
-    }
-
-    private String jsonToString(Map<String, ?> map) {
+    private String mapToJsonString(Map<String, ?> map) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); Writer out = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
             JSONObject.writeJSONString(map, out);
             out.flush();
@@ -112,7 +69,7 @@ public class BrowserFooter {
         }
     }
 
-    private Map<String, Object> createMapWithData(BrowserTransactionState state) {
+    private Map<String, Object> createJavaScriptAgentConfigMap(BrowserTransactionState state) {
         Map<String, Object> output = new HashMap<>();
         // these come from the collector
         output.put(BEACON_KEY, beacon);
@@ -155,12 +112,6 @@ public class BrowserFooter {
         return atts;
     }
 
-    private void addToMapIfNotNullOrEmpty(Map<String, Object> map, String key, String value) {
-        if (value != null && !value.isEmpty()) {
-            map.put(key, value);
-        }
-    }
-
     private void addToMapIfNotNullOrEmpty(Map<String, Object> map, String key, Boolean value) {
         if (value != null) {
             map.put(key, value);
@@ -169,7 +120,7 @@ public class BrowserFooter {
 
     private void addToMapIfNotNullAndObfuscate(Map<String, Object> map, String key, Map<String, ?> value) {
         if (value != null && !value.isEmpty()) {
-            String output = jsonToString(value);
+            String output = mapToJsonString(value);
             if (output != null && !output.isEmpty()) {
                 map.put(key, obfuscate(output));
             }
@@ -187,5 +138,4 @@ public class BrowserFooter {
 
         return Obfuscator.obfuscateNameUsingKey(name, licenseKey.substring(0, 13));
     }
-
 }

@@ -48,31 +48,77 @@ public class BrowserConfigTest {
     private static final String HEADER = "\n<script type=\"text/javascript\">" + LOADER + "</script>";
     private static final String APP_NAME = "daApp";
     private static final String LICENSE_KEY = "asdfghjkloiuytrewq1234567890zxcvbnm";
+    private static final String SCRIPT_START = "\n<script type=\"text/javascript\"";
+    private static final String JAVASCRIPT_AGENT_CONFIG_PREFIX = "window.NREUM||(NREUM={});NREUM.info=";
+    private static final String END_SCRIPT = "</script>";
 
-    final String[] EXPECTED_FOOTER_PROPERTIES = { "\"applicationID\":\"45047\"", "\"applicationTime\":[0-9]+",
-            "\"beacon\":\"staging-beacon-2.newrelic.com\"", "\"queueTime\":[0-9]+", "\"licenseKey\":\"3969ca217b\"",
-            "\"transactionName\":\"DxIJAw==\"", "\"agent\":\"js-agent.newrelic.com\\\\nr-248.min.js\"",
-            "\"errorBeacon\":\"staging-jserror.newrelic.com\"", };
+    private static final String[] USER_ATTRIBUTES = { "\"theInt\":11", "\"theDouble\":11.22", "\"theLong\":22",
+            "\"theString\":\"abc123\"", "\"theShort\":1" };
 
-    final String[] EXPECTED_FOOTER_PROPERTIES_EMPTY_AGENT = { "\"applicationID\":\"45047\"",
-            "\"applicationTime\":[0-9]+", "\"beacon\":\"staging-beacon-2.newrelic.com\"", "\"queueTime\":[0-9]+",
-            "\"licenseKey\":\"3969ca217b\"", "\"transactionName\":\"DxIJAw==\"", "\"agent\":\"\"",
-            "\"errorBeacon\":\"staging-jserror.newrelic.com\"", };
+    @Test
+    public void getBrowserAgentHeaderScript_withNonce_returnsValidScript() throws Exception {
+        setupServiceManager(true, true);
+        Transaction tx = createTransaction();
 
-    // Check the start and end sequences of the RUM footer and add the matched strings to the
-    // list of all matched strings for this test.
-    public static void checkFooter(String toCheck, List<String> matched) {
-        Assert.assertTrue(toCheck.startsWith(BrowserFooter.FOOTER_START_SCRIPT));
-        matched.add(BrowserFooter.FOOTER_START_SCRIPT);
-        Assert.assertTrue(toCheck.endsWith(BrowserFooter.FOOTER_END));
-        matched.add(BrowserFooter.FOOTER_END);
+        Map<String, Object> beaconSettings = createBrowserConfig(true);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
+        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
+
+        String value = beaconConfig.getBrowserAgentHeaderScript(bts, "ABC123");
+
+        Assert.assertTrue(value.contains("nonce=\"ABC123\""));
+        Assert.assertTrue(value.startsWith(SCRIPT_START));
+        Assert.assertTrue(value.endsWith(END_SCRIPT));
+        Assert.assertTrue(value.contains(JAVASCRIPT_AGENT_CONFIG_PREFIX));
+
+        checkStringsAndUserParams(value, Arrays.asList(USER_ATTRIBUTES), null);
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_withoutNonce_returnsValidScript() throws Exception {
+        setupServiceManager(true, true);
+        Transaction tx = createTransaction();
+
+        Map<String, Object> beaconSettings = createBrowserConfig(true);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
+        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
+
+        String value = beaconConfig.getBrowserAgentHeaderScript(bts);
+
+        Assert.assertFalse(value.contains("nonce=\""));
+        Assert.assertTrue(value.startsWith(SCRIPT_START));
+        Assert.assertTrue(value.endsWith(END_SCRIPT));
+        Assert.assertTrue(value.contains(JAVASCRIPT_AGENT_CONFIG_PREFIX));
+
+        checkStringsAndUserParams(value, Arrays.asList(USER_ATTRIBUTES), null);
+    }
+
+    @Test(expected = Exception.class)
+    public void getBrowserAgentHeaderScript_withRumDisabled_throwsException() throws Exception {
+        BrowserConfig.createBrowserConfig("appName", createBrowserConfig(false));
+    }
+
+    private Transaction createTransaction() {
+        Transaction tx = Transaction.getTransaction();
+        BasicRequestRootTracer tracer = createDispatcherTracer();
+        tx.getTransactionActivity().tracerStarted(tracer);
+        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
+        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
+        tx.setPriorityTransactionName(ptn);
+        tx.getUserAttributes().put("theInt", 11);
+        tx.getUserAttributes().put("theDouble", 11.22);
+        tx.getUserAttributes().put("theLong", 22L);
+        tx.getUserAttributes().put("theString", "abc123");
+        tx.getUserAttributes().put("theShort", Short.parseShort("1"));
+
+        return tx;
     }
 
     // Check that value contains the JSON specified in the found in the array of expected strings,
     // plus the RUM footer start and end strings, and nothing else.
-    public static void checkStrings(String toCheck, List<String> expectedFooterProperties, List<String> matched) {
+    public static void checkStrings(String toCheck, List<String> expectedProperties, List<String> matched) {
 
-        for (String toMatch : expectedFooterProperties) {
+        for (String toMatch : expectedProperties) {
             Pattern p = Pattern.compile(toMatch);
             Matcher m = p.matcher(toCheck);
             Assert.assertTrue("Not found: " + toMatch, m.find());
@@ -94,13 +140,13 @@ public class BrowserConfigTest {
         // the elements in the javascript. But we don't want to make a pattern that always makes all
         // commas optional. So we choose a distinct pattern when the number of expected footer properties
         // was one (so there were no commas).
-        Pattern expect = Pattern.compile(expectedFooterProperties.size() == 1 ? "\\{\\}" : "\\{[,]+\\}");
+        Pattern expect = Pattern.compile(expectedProperties.size() == 1 ? "\\{\\}" : "\\{[,]+\\}");
         Assert.assertTrue("Unexpected content: " + toCheck, expect.matcher(toCheck).matches());
     }
 
     // Validate the userParams in the value, then call checkStrings on the *remaining* values.
-    public static void checkStringsAndUserParams(String toCheck, List<String> expectedFooterProperties,
-            List<String> expectedUserAttributes, List<String> expectedAgentAttributes, List<String> matched) {
+    private static void checkStringsAndUserParams(String toCheck, List<String> expectedUserAttributes,
+            List<String> expectedAgentAttributes) {
 
         // Validate the attributes by grabbing the attribute, deobfuscating the string, and
         // then checking for expected values in the JSON.
@@ -116,7 +162,6 @@ public class BrowserConfigTest {
         Matcher m = p.matcher(toCheck);
         Assert.assertTrue(m.find());
         String attributes = m.group(0).trim();
-        toCheck = toCheck.replace(attributes, "");
 
         attributes = attributes.replace("\"atts\":\"", "");
         attributes = attributes.replace("\"", "");
@@ -152,12 +197,9 @@ public class BrowserConfigTest {
             // We don't need to accumulate matches, so the third arguments is throwaway.
             checkStrings(aList, expectedAgentAttributes, new ArrayList<String>());
         }
-
-        // Finally we can checkStrings on the non-attribute key, value pairs.
-        checkStrings(toCheck, expectedFooterProperties, matched);
     }
 
-    public void setupManager(boolean captureParams, boolean setSslForHttpToTrue) {
+    private void setupServiceManager(boolean captureParams, boolean setSslForHttpToTrue) {
         MockServiceManager manager = new MockServiceManager();
         ServiceFactory.setServiceManager(manager);
 
@@ -203,251 +245,8 @@ public class BrowserConfigTest {
         Transaction.clearTransaction();
     }
 
-    @Test
-    public void testHeader() throws Exception {
-        setupManager(false, false);
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-    }
-
-    @Test
-    public void testHeaderWithNonce() throws Exception {
-        setupManager(false, false);
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        String expectedValue = "\n<script type=\"text/javascript\" nonce=\"123ABC\">" + LOADER + "</script>";
-        Assert.assertEquals(expectedValue, beaconConfig.getBrowserTimingHeader("123ABC"));
-    }
-
-    @Test
-    public void testFooterWithNonce() throws Exception {
-        setupManager(true, false);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-        tx.getUserAttributes().put("theInt", 11);
-        tx.getUserAttributes().put("theDouble", 11.22);
-        tx.getUserAttributes().put("theLong", 22L);
-        tx.getUserAttributes().put("theString", "abc123");
-        tx.getUserAttributes().put("theShort", Short.parseShort("1"));
-
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-
-        String value = beaconConfig.getBrowserTimingFooter(bts, "ABC123");
-        List<String> matched = new ArrayList<>(2);
-
-        String expectedStartScript = "\n<script type=\"text/javascript\" nonce=\"ABC123\">" + BrowserFooter.FOOTER_JS_START;
-
-        Assert.assertTrue(value.startsWith(expectedStartScript));
-        matched.add(expectedStartScript);
-        Assert.assertTrue(value.endsWith(BrowserFooter.FOOTER_END));
-        matched.add(BrowserFooter.FOOTER_END);
-
-        final List<String> expectedFooterProperties = Arrays.asList(EXPECTED_FOOTER_PROPERTIES);
-        // The whole point to the tricky code in checkStrings(), above, is that these key:value
-        // pairs do not have to come back in the same order that they were added in, above.
-        final String[] USER_ATTRIBUTES = { "\"theInt\":11", "\"theDouble\":11.22", "\"theLong\":22",
-                "\"theString\":\"abc123\"", "\"theShort\":1" };
-        final List<String> expectedUserAttributes = Arrays.asList(USER_ATTRIBUTES);
-        checkStringsAndUserParams(value, expectedFooterProperties, expectedUserAttributes, null, matched);
-    }
-
-    @Test
-    public void testRumDisabled() throws Exception {
-        setupManager(false, false);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-
-        // off
-        try {
-            Map<String, Object> beaconSettings = createBeaconSettings(false);
-            BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-            beaconConfig.getBrowserTimingHeader();
-            Assert.fail("An exception should have been thrown when rum is disabled");
-        } catch (Exception e) {
-            // we should go into here
-        }
-
-        // back on
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-        Assert.assertTrue(beaconConfig.getBrowserTimingFooter(bts).startsWith(
-                "\n<script type=\"text/javascript\">window.NREUM||"));
-    }
-
-    @Test
-    public void testFooterNoCaptureParams() throws Exception {
-        setupManager(false, false);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-        tx.getUserAttributes().put("theInt", 11);
-        tx.getUserAttributes().put("theDouble", 11.22);
-        tx.getUserAttributes().put("theLong", 22L);
-        tx.getUserAttributes().put("theString", "abc123");
-        tx.getUserAttributes().put("theShort", Short.parseShort("1"));
-
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-
-        // The value looks something like this but with no line breaks:
-        // <script type="text/javascript">window.NREUM||(NREUM={});NREUM.info={
-        // "applicationID":"45047","applicationTime":4045,"beacon":"staging-beacon-2.newrelic.com","queueTime":0,
-        // "licenseKey":"3969ca217b","transactionName":"DxIJAw==","agent":"js-agent.newrelic.com\nr-248.min.js",
-        // "errorBeacon":"staging-jserror.newrelic.com"}</script>
-
-        String value = beaconConfig.getBrowserTimingFooter(bts);
-
-        List<String> matched = new ArrayList<>(15);
-        checkFooter(value, matched);
-        List<String> expectedFooterProperties = Arrays.asList(EXPECTED_FOOTER_PROPERTIES);
-        checkStrings(value, expectedFooterProperties, matched);
-    }
-
-    @Test
-    public void testFooterCaptureAtts() throws Exception {
-        setupManager(true, false);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-        tx.getUserAttributes().put("theInt", 11);
-        tx.getUserAttributes().put("theDouble", 11.22);
-        tx.getUserAttributes().put("theLong", 22L);
-        tx.getUserAttributes().put("theString", "abc123");
-        tx.getUserAttributes().put("theShort", Short.parseShort("1"));
-
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-
-        String value = beaconConfig.getBrowserTimingFooter(bts);
-        List<String> matched = new ArrayList<>(15);
-        checkFooter(value, matched);
-
-        final List<String> expectedFooterProperties = Arrays.asList(EXPECTED_FOOTER_PROPERTIES);
-        // The whole point to the tricky code in checkStrings(), above, is that these key:value
-        // pairs do not have to come back in the same order that they were added in, above.
-        final String[] USER_ATTRIBUTES = { "\"theInt\":11", "\"theDouble\":11.22", "\"theLong\":22",
-                "\"theString\":\"abc123\"", "\"theShort\":1" };
-        final List<String> expectedUserAttributes = Arrays.asList(USER_ATTRIBUTES);
-        checkStringsAndUserParams(value, expectedFooterProperties, expectedUserAttributes, null, matched);
-    }
-
-    @Test
-    public void testFooterCaptureAttsOneAndSsl() throws Exception {
-        setupManager(true, true);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-        tx.getUserAttributes().put("product", "daProduct");
-
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-
-        String value = beaconConfig.getBrowserTimingFooter(bts);
-        List<String> matched = new ArrayList<>(15);
-        checkFooter(value, matched);
-
-        final ArrayList<String> expectedFooterProperties = new ArrayList<>();
-        expectedFooterProperties.addAll(Arrays.asList(EXPECTED_FOOTER_PROPERTIES));
-        expectedFooterProperties.add("\"sslForHttp\":true");
-        final String[] USER_ATTRIBUTES = { "\"product\":\"daProduct\"" };
-        final List<String> expectedUserAttributes = Arrays.asList(USER_ATTRIBUTES);
-        checkStringsAndUserParams(value, expectedFooterProperties, expectedUserAttributes, null, matched);
-    }
-
-    @Test
-    public void testFooterCaptureAgnetAndUserAttsOneAndSsl() throws Exception {
-        setupManager(true, true);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-        tx.getUserAttributes().put("product", "daProduct");
-        tx.getAgentAttributes().put("jvmbb.thread", "123abc");
-        // this one will get ignored
-        tx.getAgentAttributes().put("jvm.thread", "123abc");
-
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-
-        String value = beaconConfig.getBrowserTimingFooter(bts);
-        List<String> matched = new ArrayList<>(15);
-        checkFooter(value, matched);
-
-        ArrayList<String> expectedFooterProperties = new ArrayList<>();
-        expectedFooterProperties.addAll(Arrays.asList(EXPECTED_FOOTER_PROPERTIES));
-        expectedFooterProperties.add("\"sslForHttp\":true");
-
-        String[] USER_ATTRIBUTES = { "\"product\":\"daProduct\"" };
-        List<String> expectedUserAttributes = Arrays.asList(USER_ATTRIBUTES);
-
-        String[] AGENT_ATTRIBUTES = { "\"jvmbb.thread\":\"123abc\"" };
-        List<String> expectedAgentAttributes = Arrays.asList(AGENT_ATTRIBUTES);
-
-        checkStringsAndUserParams(value, expectedFooterProperties, expectedUserAttributes, expectedAgentAttributes,
-                matched);
-    }
-
-    @Test
-    public void testFooterCaptureParamsNoParams() throws Exception {
-        setupManager(true, false);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-
-        Map<String, Object> beaconSettings = createBeaconSettings(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-
-        String value = beaconConfig.getBrowserTimingFooter(bts);
-        List<String> matched = new ArrayList<>(15);
-        checkFooter(value, matched);
-
-        List<String> expectedFooterProperties = Arrays.asList(EXPECTED_FOOTER_PROPERTIES);
-        checkStrings(value, expectedFooterProperties, matched);
-    }
-
-    private Map<String, Object> createMap() {
-        return new HashMap<>();
-    }
-
-    private Map<String, Object> createBeaconSettings(boolean isRumEnabled) {
-        Map<String, Object> beaconSettings = createMap();
+    private Map<String, Object> createBrowserConfig(boolean isRumEnabled) {
+        Map<String, Object> beaconSettings = new HashMap<>();
         beaconSettings.put(BrowserConfig.BROWSER_KEY, "3969ca217b");
         beaconSettings.put(BrowserConfig.BROWSER_LOADER_VERSION, "248");
         if (isRumEnabled) {
@@ -467,90 +266,4 @@ public class BrowserConfigTest {
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
         return new BasicRequestRootTracer(tx, sig, this, httpRequest, httpResponse);
     }
-
-    private Map<String, Object> createBeaconSettingsEmtpyAgentFile(boolean isRumEnabled) {
-        Map<String, Object> beaconSettings = createMap();
-        beaconSettings.put(BrowserConfig.BROWSER_KEY, "3969ca217b");
-        beaconSettings.put(BrowserConfig.BROWSER_LOADER_VERSION, "248");
-        if (isRumEnabled) {
-            beaconSettings.put(BrowserConfig.JS_AGENT_LOADER, LOADER);
-            beaconSettings.put(BrowserConfig.JS_AGENT_FILE, "");
-        }
-        beaconSettings.put(BrowserConfig.BEACON, "staging-beacon-2.newrelic.com");
-        beaconSettings.put(BrowserConfig.ERROR_BEACON, "staging-jserror.newrelic.com");
-        beaconSettings.put(BrowserConfig.APPLICATION_ID, "45047");
-        return beaconSettings;
-    }
-
-    @Test
-    public void testHeaderNoAgentFile() throws Exception {
-        setupManager(false, false);
-        Map<String, Object> beaconSettings = createBeaconSettingsEmtpyAgentFile(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-    }
-
-    @Test
-    public void testRumDisableNoAgentFile() throws Exception {
-        setupManager(false, false);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-
-        // off
-        try {
-            Map<String, Object> beaconSettings = createBeaconSettingsEmtpyAgentFile(false);
-            BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-            beaconConfig.getBrowserTimingHeader();
-            Assert.fail("An exception should have been thrown when rum is disabled");
-        } catch (Exception e) {
-            // we should go into here
-        }
-
-        // back on
-        Map<String, Object> beaconSettings = createBeaconSettingsEmtpyAgentFile(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-        Assert.assertTrue(beaconConfig.getBrowserTimingFooter(bts).startsWith(
-                "\n<script type=\"text/javascript\">window.NREUM||"));
-    }
-
-    @Test
-    public void testFooterNoCaptureParamsNoAgentFile() throws Exception {
-        setupManager(false, false);
-        Transaction tx = Transaction.getTransaction();
-        BasicRequestRootTracer tracer = createDispatcherTracer();
-        tx.getTransactionActivity().tracerStarted(tracer);
-        TransactionNamePriority expectedPriority = TransactionNamePriority.FILTER_NAME;
-        PriorityTransactionName ptn = PriorityTransactionName.create("name", null, expectedPriority);
-        tx.setPriorityTransactionName(ptn);
-        tx.getUserAttributes().put("theInt", 11);
-        tx.getUserAttributes().put("theDouble", 11.22);
-        tx.getUserAttributes().put("theLong", 22L);
-        tx.getUserAttributes().put("theString", "abc123");
-        tx.getUserAttributes().put("theShort", Short.parseShort("1"));
-
-        Map<String, Object> beaconSettings = createBeaconSettingsEmtpyAgentFile(true);
-        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
-        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Assert.assertEquals(HEADER, beaconConfig.getBrowserTimingHeader());
-
-        // The value looks something like this but with no line breaks:
-        // <script type="text/javascript">window.NREUM||(NREUM={});NREUM.info={
-        // "applicationID":"45047","applicationTime":4045,"beacon":"staging-beacon-2.newrelic.com","queueTime":0,
-        // "licenseKey":"3969ca217b","transactionName":"DxIJAw==","agent":"",
-        // "errorBeacon":"staging-jserror.newrelic.com"}</script>
-
-        String value = beaconConfig.getBrowserTimingFooter(bts);
-
-        List<String> matched = new ArrayList<>(15);
-        checkFooter(value, matched);
-        List<String> expectedFooterProperties = Arrays.asList(EXPECTED_FOOTER_PROPERTIES_EMPTY_AGENT);
-        checkStrings(value, expectedFooterProperties, matched);
-    }
-
 }
