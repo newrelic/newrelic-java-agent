@@ -36,6 +36,8 @@ public final class AttributeNames {
     public static final String HTTP_METHOD = "http.method";
     public static final String HTTP_STATUS_CODE = "http.statusCode";
     public static final String HTTP_STATUS_TEXT = "http.statusText";
+    public static final String HTTP_STATUS = "httpResponseCode";
+    public static final String HTTP_STATUS_MESSAGE = "httpResponseMessage";
 
     public static final String LOCK_THREAD_NAME = "jvm.lock_thread_name";
     public static final String THREAD_NAME = "jvm.thread_name";

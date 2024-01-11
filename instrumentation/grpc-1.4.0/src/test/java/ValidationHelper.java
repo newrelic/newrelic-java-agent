@@ -69,6 +69,7 @@ class ValidationHelper {
         assertTrue(rootSegment.getName().endsWith(fullMethod));
         assertEquals(1, rootSegment.getCallCount());
         assertEquals(fullMethod, rootSegment.getTracerAttributes().get("request.method"));
+        assertEquals(0, rootSegment.getTracerAttributes().get("response.status"));
         assertEquals(0, rootSegment.getTracerAttributes().get("http.statusCode"));
         assertNull(rootSegment.getTracerAttributes().get("http.statusText"));
         assertEquals(grpcType, rootSegment.getTracerAttributes().get("grpc.type"));
@@ -86,6 +87,7 @@ class ValidationHelper {
             assertEquals(name, serverTxEvent.getAttributes().get("sayHelloAfter"));
         }
 
+        assertEquals(0, serverTxEvent.getAttributes().get("response.status"));
         assertEquals(0, serverTxEvent.getAttributes().get(AttributeNames.HTTP_STATUS_CODE));
         assertEquals("grpc://localhost:" + server.getPort() + "/" + fullMethod, serverTxEvent.getAttributes().get("request.uri"));
     }
@@ -126,6 +128,7 @@ class ValidationHelper {
         assertTrue(rootSegment.getName().endsWith(fullMethod));
         assertEquals(1, rootSegment.getCallCount());
         assertEquals(fullMethod, rootSegment.getTracerAttributes().get("request.method"));
+        assertEquals(status, rootSegment.getTracerAttributes().get("response.status"));
         assertEquals(status, rootSegment.getTracerAttributes().get(AttributeNames.HTTP_STATUS_CODE));
         assertEquals(grpcType, rootSegment.getTracerAttributes().get("grpc.type"));
 
@@ -134,6 +137,7 @@ class ValidationHelper {
         assertEquals(1, serverTxEvents.size());
         TransactionEvent serverTxEvent = serverTxEvents.iterator().next();
         assertNotNull(serverTxEvent);
+        assertEquals(status, serverTxEvent.getAttributes().get("response.status"));
         assertEquals(status, serverTxEvent.getAttributes().get(AttributeNames.HTTP_STATUS_CODE));
         assertEquals("grpc://localhost:" + server.getPort() + "/" + fullMethod, serverTxEvent.getAttributes().get("request.uri"));
     }

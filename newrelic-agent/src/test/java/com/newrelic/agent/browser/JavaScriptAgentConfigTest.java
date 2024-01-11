@@ -1,10 +1,9 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-
 package com.newrelic.agent.browser;
 
 import com.google.common.collect.Sets;
@@ -16,7 +15,23 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BrowserFooterTest {
+
+public class JavaScriptAgentConfigTest {
+    @Test
+    public void getConfigString_returnsValidJsonString() throws Exception {
+        BrowserTransactionStateTest.createServiceManager();
+        JavaScriptAgentConfig javaScriptAgentConfig = new JavaScriptAgentConfig("appName", "beacon", "browserKey",
+                "errorBeacon", "payloadScript", "appId");
+
+        Transaction tx = Transaction.getTransaction();
+        Transaction.clearTransaction();
+
+        BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
+        String json = javaScriptAgentConfig.getConfigString(bts);
+
+        Assert.assertEquals("{\"errorBeacon\":\"errorBeacon\",\"licenseKey\":\"browserKey\",\"agent\":\"payloadScript\"," +
+                "\"beacon\":\"beacon\",\"applicationTime\":0,\"applicationID\":\"appId\",\"transactionName\":\"\",\"queueTime\":0}", json);
+    }
 
     @Test
     public void testUserAttributes() throws Exception {
@@ -24,11 +39,11 @@ public class BrowserFooterTest {
         Transaction tx = Transaction.getTransaction();
         Transaction.clearTransaction();
         BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Map<String, Object> atts = BrowserFooter.getAttributes(bts);
+        Map<String, Object> atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(0, atts.size());
 
         tx.getUserAttributes().put("one", 1L);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         Map<String, Object> user = (Map<String, Object>) atts.get("u");
         Assert.assertNotNull(user);
@@ -36,7 +51,7 @@ public class BrowserFooterTest {
         Assert.assertEquals(1L, user.get("one"));
 
         tx.getUserAttributes().put("two", 5.44);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         user = (Map<String, Object>) atts.get("u");
         Assert.assertEquals(1, atts.size());
         Assert.assertNotNull(user);
@@ -46,11 +61,11 @@ public class BrowserFooterTest {
         Transaction.clearTransaction();
         tx = Transaction.getTransaction();
         bts = BrowserTransactionStateImpl.create(tx);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(0, atts.size());
 
         tx.getUserAttributes().put("one", "abc123");
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         user = (Map<String, Object>) atts.get("u");
         Assert.assertNotNull(user);
@@ -58,7 +73,7 @@ public class BrowserFooterTest {
         Assert.assertEquals("abc123", user.get("one"));
 
         tx.getUserAttributes().put("two", 989);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         user = (Map<String, Object>) atts.get("u");
         Assert.assertNotNull(user);
@@ -66,7 +81,7 @@ public class BrowserFooterTest {
         Assert.assertEquals(989, user.get("two"));
 
         tx.getUserAttributes().put("three", "hello");
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         user = (Map<String, Object>) atts.get("u");
         Assert.assertNotNull(user);
@@ -82,11 +97,11 @@ public class BrowserFooterTest {
         Transaction tx = Transaction.getTransaction();
         Transaction.clearTransaction();
         BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Map<String, Object> atts = BrowserFooter.getAttributes(bts);
+        Map<String, Object> atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(0, atts.size());
 
         tx.getAgentAttributes().put("one", 1L);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         Map<String, Object> agentAtts = (Map<String, Object>) atts.get("a");
         Assert.assertNotNull(agentAtts);
@@ -94,7 +109,7 @@ public class BrowserFooterTest {
         Assert.assertEquals(1L, agentAtts.get("one"));
 
         tx.getAgentAttributes().put("two", 5.44);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         agentAtts = (Map<String, Object>) atts.get("a");
         Assert.assertNotNull(agentAtts);
@@ -104,11 +119,11 @@ public class BrowserFooterTest {
         Transaction.clearTransaction();
         tx = Transaction.getTransaction();
         bts = BrowserTransactionStateImpl.create(tx);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(0, atts.size());
 
         tx.getAgentAttributes().put("one", "abc123");
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         agentAtts = (Map<String, Object>) atts.get("a");
         Assert.assertNotNull(agentAtts);
@@ -116,7 +131,7 @@ public class BrowserFooterTest {
         Assert.assertEquals("abc123", agentAtts.get("one"));
 
         tx.getAgentAttributes().put("two", 989);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         agentAtts = (Map<String, Object>) atts.get("a");
         Assert.assertNotNull(agentAtts);
@@ -124,7 +139,7 @@ public class BrowserFooterTest {
         Assert.assertEquals(989, agentAtts.get("two"));
 
         tx.getAgentAttributes().put("three", "hello");
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         agentAtts = (Map<String, Object>) atts.get("a");
         Assert.assertNotNull(agentAtts);
@@ -141,7 +156,7 @@ public class BrowserFooterTest {
         requests.put("two", "333");
         tx.getPrefixedAgentAttributes().put("request.parameters.", requests);
         tx.getAgentAttributes().put("three", 44);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         agentAtts = (Map<String, Object>) atts.get("a");
         Assert.assertNotNull(agentAtts);
@@ -160,7 +175,7 @@ public class BrowserFooterTest {
         Transaction tx = Transaction.getTransaction();
         Transaction.clearTransaction();
         BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Map<String, Object> atts = BrowserFooter.getAttributes(bts);
+        Map<String, Object> atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(0, atts.size());
 
         Map<String, String> requests = new HashMap<>();
@@ -168,7 +183,7 @@ public class BrowserFooterTest {
         requests.put("two", "333");
         tx.getPrefixedAgentAttributes().put("request.parameters.", requests);
         tx.getAgentAttributes().put("three", 44);
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(1, atts.size());
         Map<String, Object> agentAtts = (Map<String, Object>) atts.get("a");
         Assert.assertNotNull(agentAtts);
@@ -188,7 +203,7 @@ public class BrowserFooterTest {
         Transaction tx = Transaction.getTransaction();
         Transaction.clearTransaction();
         BrowserTransactionState bts = BrowserTransactionStateImpl.create(tx);
-        Map<String, Object> atts = BrowserFooter.getAttributes(bts);
+        Map<String, Object> atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(0, atts.size());
 
         // user
@@ -205,7 +220,7 @@ public class BrowserFooterTest {
         tx.getAgentAttributes().put("one", 44);
         tx.getAgentAttributes().put("two", 44.44);
 
-        atts = BrowserFooter.getAttributes(bts);
+        atts = JavaScriptAgentConfig.getAttributes(bts);
         Assert.assertEquals(2, atts.size());
         Map<String, Object> userAtts = (Map<String, Object>) atts.get("u");
         Map<String, Object> agentAtts = (Map<String, Object>) atts.get("a");
@@ -224,5 +239,4 @@ public class BrowserFooterTest {
 
         Transaction.clearTransaction();
     }
-
 }

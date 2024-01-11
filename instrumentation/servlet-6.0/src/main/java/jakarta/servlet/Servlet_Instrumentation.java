@@ -24,7 +24,10 @@ public abstract class Servlet_Instrumentation {
 
     @Trace(dispatcher = true)
     public void init(ServletConfig config) {
-        AgentBridge.privateApi.setServerInfo(config.getServletContext().getServerInfo());
+        ServletContext ctx = config.getServletContext();
+        if (ctx != null && ctx.getServerInfo() != null) {
+            AgentBridge.privateApi.setServerInfo(ctx.getServerInfo());
+        }
 
         Weaver.callOriginal();
     }

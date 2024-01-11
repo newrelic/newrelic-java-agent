@@ -11,6 +11,8 @@ import com.google.common.base.Joiner;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AttributesConfig;
+import com.newrelic.agent.config.TransactionEventsConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
@@ -228,15 +230,27 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setHttpStatusCode(Integer statusCode) {
-        if (filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_CODE)) {
+        AttributesConfig attributesConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getAttributesConfig();
+        if (attributesConfig.isStandardHttpAttr() &&
+                filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_CODE)) {
             builder.putAgentAttribute(AttributeNames.HTTP_STATUS_CODE, statusCode);
+        }
+        if (attributesConfig.isLegacyHttpAttr() &&
+                filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS)) {
+            builder.putAgentAttribute(AttributeNames.HTTP_STATUS, statusCode);
         }
         return this;
     }
 
     public SpanEventFactory setHttpStatusText(String statusText) {
-        if (filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_TEXT)) {
+        AttributesConfig attributesConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getAttributesConfig();
+        if (attributesConfig.isStandardHttpAttr() &&
+                filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_TEXT)) {
             builder.putAgentAttribute(AttributeNames.HTTP_STATUS_TEXT, statusText);
+        }
+        if (attributesConfig.isLegacyHttpAttr() &&
+                filter.shouldIncludeAgentAttribute(appName, AttributeNames.HTTP_STATUS_MESSAGE)) {
+            builder.putAgentAttribute(AttributeNames.HTTP_STATUS_MESSAGE, statusText);
         }
         return this;
     }

@@ -320,6 +320,14 @@ jar {
 test {
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
+    useJUnit {
+        if (project.hasProperty("forkedTests")) {
+            includeCategories("com.newrelic.test.marker.RequiresFork")
+        } else if (project.hasProperty("nonForkedTests")) {
+            forkEvery = 10
+            excludeCategories("com.newrelic.test.marker.RequiresFork")
+        }
+    }
 
     minHeapSize = "256m"
     maxHeapSize = "768m"

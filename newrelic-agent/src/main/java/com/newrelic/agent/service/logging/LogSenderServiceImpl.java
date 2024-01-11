@@ -19,17 +19,15 @@ import com.newrelic.agent.TraceMetadataImpl;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeSender;
-import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.attributes.DisabledExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
+import com.newrelic.agent.attributes.LogAttributeValidator;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.ApplicationLoggingConfig;
-import com.newrelic.agent.config.ApplicationLoggingContextDataConfig;
-import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -560,7 +558,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         private final Map<String, Object> logEventAttributes;
 
         public LogEventAttributeSender(Map<String, Object> logEventAttributes) {
-            super(new AttributeValidator(ATTRIBUTE_TYPE));
+            super(new LogAttributeValidator(ATTRIBUTE_TYPE));
             this.logEventAttributes = logEventAttributes;
             setTransactional(false);
         }
