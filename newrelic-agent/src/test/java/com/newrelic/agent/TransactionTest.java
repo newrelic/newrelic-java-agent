@@ -1496,6 +1496,23 @@ public class TransactionTest {
         return headerMap;
     }
 
+    public Map<String, String> createHeaderMapWithoutSynthInfo() {
+        Map<String, String> headerMap = new HashMap<>();
+
+        String synthVal = "[\n" +
+                "   1,\n" +
+                "   417446,\n" +
+                "   \"fd09bfa1-bd85-4f8a-9bee-8d51582f5a54\",\n" +
+                "   \"77cbc5dc-327b-4542-90f0-335644134bed\",\n" +
+                "   \"3e5c28ac-7cf3-4faf-ae52-ff36bc93504a\"\n" +
+                "]";
+        String obfuscatedSynthVal = Obfuscator.obfuscateNameUsingKey(synthVal, "anotherExampleKey");
+
+        headerMap.put("X-NewRelic-Synthetics", obfuscatedSynthVal);
+
+        return headerMap;
+    }
+
     public InboundHeaders createInboundHeaders(Map<String, String> map) {
         Map<String, String> headerMap = createHeaderMap();
 
@@ -1515,6 +1532,27 @@ public class TransactionTest {
         };
     }
 
+
+
+    public InboundHeaders createInboundHeadersWithoutSyntheticsInfoHeader(Map<String, String> map) {
+        Map<String, String> headerMap = createHeaderMapWithoutSynthInfo();
+
+        return new InboundHeaders() {
+            @Override
+            public HeaderType getHeaderType() {
+                return HeaderType.HTTP;
+            }
+
+            @Override
+            public String getHeader(String name) {
+                if (headerMap.containsKey(name)) {
+                    return headerMap.get(name);
+                }
+                return null;
+            }
+        };
+    }
+
     private Transaction createTxWithSyntheticsHeaders() throws Exception {
         Map<String, Object> configMap = createConfigMap();
         createServiceManager(configMap);
@@ -1525,6 +1563,21 @@ public class TransactionTest {
         MockHttpRequest httpRequest = new MockHttpRequest();
         MockHttpResponse httpResponse = new MockHttpResponse();
         httpRequest.setHeader("X-NewRelic-Synthetics-Info", inboundHeaders.getHeader("X-NewRelic-Synthetics-Info"));
+        httpRequest.setHeader("X-NewRelic-Synthetics", inboundHeaders.getHeader("X-NewRelic-Synthetics"));
+        tx.setRequestAndResponse(httpRequest, httpResponse);
+        tx.getTransactionActivity().tracerFinished(dispatcherTracer, 0);
+        return tx;
+    }
+
+    private Transaction createTxWithSyntheticsHeaderWithoutSyntheticsInfoHeader() throws Exception {
+        Map<String, Object> configMap = createConfigMap();
+        createServiceManager(configMap);
+        InboundHeaders inboundHeaders = createInboundHeadersWithoutSyntheticsInfoHeader(createHeaderMapWithoutSynthInfo());
+        Transaction tx = Transaction.getTransaction(true);
+        Tracer dispatcherTracer = createDispatcherTracer(false);
+        tx.getTransactionActivity().tracerStarted(dispatcherTracer);
+        MockHttpRequest httpRequest = new MockHttpRequest();
+        MockHttpResponse httpResponse = new MockHttpResponse();
         httpRequest.setHeader("X-NewRelic-Synthetics", inboundHeaders.getHeader("X-NewRelic-Synthetics"));
         tx.setRequestAndResponse(httpRequest, httpResponse);
         tx.getTransactionActivity().tracerFinished(dispatcherTracer, 0);
@@ -1562,6 +1615,22 @@ public class TransactionTest {
         assertEquals("Value1", tx.getIntrinsicAttributes().get("synthetics_example1"));
         assertEquals("Value2", tx.getIntrinsicAttributes().get("synthetics_example2"));
         assertEquals(1, tx.getIntrinsicAttributes().get("synthetics_version"));
+    }
+
+    @Test
+    public void testTransactionIntrinsicAttrsWhenNoSyntheticsInfoHeaderIsReceived() throws Exception {
+
+        Transaction tx = createTxWithSyntheticsHeaderWithoutSyntheticsInfoHeader();
+
+        assertNotNull(tx.getIntrinsicAttributes());
+        assertEquals("77cbc5dc-327b-4542-90f0-335644134bed", tx.getIntrinsicAttributes().get("synthetics_job_id"));
+        assertEquals("fd09bfa1-bd85-4f8a-9bee-8d51582f5a54", tx.getIntrinsicAttributes().get("synthetics_resource_id"));
+        assertEquals("3e5c28ac-7cf3-4faf-ae52-ff36bc93504a", tx.getIntrinsicAttributes().get("synthetics_monitor_id"));
+        assertEquals(1, tx.getIntrinsicAttributes().get("synthetics_version"));
+        assertNull(tx.getIntrinsicAttributes().get("synthetics_initiator"));
+        assertNull(tx.getIntrinsicAttributes().get("synthetics_type"));
+        assertNull(tx.getIntrinsicAttributes().get("synthetics_example1"));
+        assertNull(tx.getIntrinsicAttributes().get("synthetics_example2"));
     }
 
     private Map<String, Object> createNRDTConfigMap(boolean excludeNewRelicHeader) {
