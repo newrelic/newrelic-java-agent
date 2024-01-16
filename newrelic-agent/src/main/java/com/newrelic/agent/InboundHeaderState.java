@@ -57,7 +57,11 @@ public class InboundHeaderState {
             this.catState = CatState.NONE;
         } else {
             this.synState = parseSyntheticsHeader();
-            this.synInfoState = parseSyntheticsInfoHeader();
+            if (inboundHeaders.getHeader("X-NewRelic-Synthetics-Info") == null) {
+                this.synInfoState = SyntheticsInfoState.NONE;
+            } else {
+                this.synInfoState = parseSyntheticsInfoHeader();
+            }
             if (tx.getAgentConfig().getDistributedTracingConfig().isEnabled() && tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
                 parseDistributedTraceHeaders();
                 this.catState = CatState.NONE;
