@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.nr.agent.instrumentation;
 
 import com.newrelic.agent.bridge.Transaction;

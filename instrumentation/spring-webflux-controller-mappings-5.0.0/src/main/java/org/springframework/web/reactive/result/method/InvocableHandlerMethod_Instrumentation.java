@@ -42,7 +42,7 @@ public abstract class InvocableHandlerMethod_Instrumentation {
 
             //If this setting is false, attempt to name transactions the way the legacy point cut
             //named them
-            boolean isEnhancedNaming = NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
+            boolean isEnhancedNaming = SpringControllerUtility.ENHANCED_NAMING_ENABLED;
 
             String httpMethod = exchange.getRequest().getMethod().name();
             if (httpMethod != null) {

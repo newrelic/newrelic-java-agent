@@ -26,6 +26,8 @@ import java.util.logging.Level;
 public class SpringControllerUtility {
     private static final String CGLIB_CLASS_SUFFIX = "$$EnhancerBy";
 
+    public static final boolean ENHANCED_NAMING_ENABLED =
+            NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
 
     /**
      * Return the top level path String on the target controller class, determined by a @RequestMapping annotation.
@@ -156,8 +158,8 @@ public class SpringControllerUtility {
         if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
             NewRelic.getAgent()
                     .getLogger()
-                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethodRoutes (6.0.0): calling transaction.setTransactionName to [{0}] " +
-                            "with FRAMEWORK_HIGH and override false, txn {1}, ", txnName, AgentBridge.getAgent().getTransaction().toString());
+                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethodRoutes (webflux-5.0.0): calling transaction.setTransactionName to [{0}] " +
+                            "with FRAMEWORK_HIGH and override false, txn {1}.", txnName, transaction.toString());
         }
 
         transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController",
@@ -178,9 +180,9 @@ public class SpringControllerUtility {
         if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
             NewRelic.getAgent()
                     .getLogger()
-                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethod (6.0.0): " +
+                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethod (webflux-5.0.0): " +
                             "calling transaction.setTransactionName to [{0}] " +
-                            "with FRAMEWORK_HIGH and override false, txn {1}, ", txnName, transaction.toString());
+                            "with FRAMEWORK_HIGH and override false, txn {1}.", txnName, transaction.toString());
         }
 
         transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
