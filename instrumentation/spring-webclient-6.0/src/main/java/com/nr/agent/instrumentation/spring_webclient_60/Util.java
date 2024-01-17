@@ -29,7 +29,6 @@ public class Util {
 
     public static Segment startSegment() {
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
-        System.out.println(txn);
         return txn == null ? null : txn.startSegment("WebClient.exchange");
     }
 
