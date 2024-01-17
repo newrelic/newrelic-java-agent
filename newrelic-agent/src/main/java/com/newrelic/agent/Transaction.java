@@ -1094,7 +1094,7 @@ public class Transaction {
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_JOB_ID,
                             this.getInboundHeaderState().getSyntheticsJobId());
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_VERSION,
-                            this.getInboundHeaderState().getSyntheticsVersion());
+                            String.valueOf(this.getInboundHeaderState().getSyntheticsVersion()));
                     if (this.getInboundHeaderState().getSyntheticsType() != null) {
                         getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_TYPE,
                                 this.getInboundHeaderState().getSyntheticsType());
