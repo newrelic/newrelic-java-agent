@@ -1614,7 +1614,7 @@ public class TransactionTest {
         assertEquals("scheduled", tx.getIntrinsicAttributes().get("synthetics_type"));
         assertEquals("Value1", tx.getIntrinsicAttributes().get("synthetics_example1"));
         assertEquals("Value2", tx.getIntrinsicAttributes().get("synthetics_example2"));
-        assertEquals(1, tx.getIntrinsicAttributes().get("synthetics_version"));
+        assertEquals("1", tx.getIntrinsicAttributes().get("synthetics_version"));
     }
 
     @Test
@@ -1626,7 +1626,7 @@ public class TransactionTest {
         assertEquals("77cbc5dc-327b-4542-90f0-335644134bed", tx.getIntrinsicAttributes().get("synthetics_job_id"));
         assertEquals("fd09bfa1-bd85-4f8a-9bee-8d51582f5a54", tx.getIntrinsicAttributes().get("synthetics_resource_id"));
         assertEquals("3e5c28ac-7cf3-4faf-ae52-ff36bc93504a", tx.getIntrinsicAttributes().get("synthetics_monitor_id"));
-        assertEquals(1, tx.getIntrinsicAttributes().get("synthetics_version"));
+        assertEquals("1", tx.getIntrinsicAttributes().get("synthetics_version"));
         assertNull(tx.getIntrinsicAttributes().get("synthetics_initiator"));
         assertNull(tx.getIntrinsicAttributes().get("synthetics_type"));
         assertNull(tx.getIntrinsicAttributes().get("synthetics_example1"));
