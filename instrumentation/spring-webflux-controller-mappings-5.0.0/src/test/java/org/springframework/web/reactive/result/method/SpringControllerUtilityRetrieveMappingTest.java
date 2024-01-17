@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.agent.instrumentation.web.reactive;
+package org.springframework.web.reactive.result.method;
 
 import org.junit.Assert;
 import org.junit.Test;

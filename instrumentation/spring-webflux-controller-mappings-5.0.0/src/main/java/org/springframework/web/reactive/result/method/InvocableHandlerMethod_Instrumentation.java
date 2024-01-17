@@ -8,21 +8,16 @@ package org.springframework.web.reactive.result.method;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.web.reactive.SpringControllerUtility;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.HandlerResult;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Weave(type = MatchType.ExactClass, originalName = "org.springframework.web.reactive.result.method.InvocableHandlerMethod")
 public abstract class InvocableHandlerMethod_Instrumentation {

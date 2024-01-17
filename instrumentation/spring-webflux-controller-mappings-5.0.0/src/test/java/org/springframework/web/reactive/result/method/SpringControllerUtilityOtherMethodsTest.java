@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.agent.instrumentation.web.reactive;
+package org.springframework.web.reactive.result.method;
 
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
@@ -81,7 +81,7 @@ public class SpringControllerUtilityOtherMethodsTest {
 
     @Test
     public void getControllerClassAndMethodString_includingPrefix_returnsProperName() throws NoSuchMethodException {
-        assertEquals("com.nr.agent.instrumentation.web.reactive.TestControllerClasses$StandardController/get", SpringControllerUtility.getControllerClassAndMethodString(TestControllerClasses.StandardController.class,
+        assertEquals("org.springframework.web.reactive.result.method.TestControllerClasses$StandardController/get", SpringControllerUtility.getControllerClassAndMethodString(TestControllerClasses.StandardController.class,
                 TestControllerClasses.StandardController.class.getMethod("get"), true));
     }
 

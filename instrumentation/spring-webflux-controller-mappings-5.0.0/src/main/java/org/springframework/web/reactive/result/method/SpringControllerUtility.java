@@ -4,9 +4,8 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.agent.instrumentation.web.reactive;
+package org.springframework.web.reactive.result.method;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.NewRelic;
@@ -26,7 +25,8 @@ import java.util.logging.Level;
 public class SpringControllerUtility {
     private static final String CGLIB_CLASS_SUFFIX = "$$EnhancerBy";
 
-    public static final boolean ENHANCED_NAMING_ENABLED =
+    // Package visibility for unit tests
+    static boolean ENHANCED_NAMING_ENABLED =
             NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
 
     /**
