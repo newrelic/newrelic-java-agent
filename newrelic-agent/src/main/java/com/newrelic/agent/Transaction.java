@@ -1093,19 +1093,24 @@ public class Transaction {
                             this.getInboundHeaderState().getSyntheticsMonitorId());
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_JOB_ID,
                             this.getInboundHeaderState().getSyntheticsJobId());
-                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_TYPE,
-                            this.getInboundHeaderState().getSyntheticsType());
-                    getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_INITIATOR,
-                            this.getInboundHeaderState().getSyntheticsInitiator());
                     getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_VERSION,
-                            this.getInboundHeaderState().getSyntheticsVersion());
+                            String.valueOf(this.getInboundHeaderState().getSyntheticsVersion()));
+                    if (this.getInboundHeaderState().getSyntheticsType() != null) {
+                        getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_TYPE,
+                                this.getInboundHeaderState().getSyntheticsType());
+                    }
+                    if (this.getInboundHeaderState().getSyntheticsInitiator() != null) {
+                        getIntrinsicAttributes().put(AttributeNames.SYNTHETICS_INITIATOR,
+                                this.getInboundHeaderState().getSyntheticsInitiator());
+                    }
+                    if (this.getInboundHeaderState().getSyntheticsAttrs() != null) {
+                        Map<String, String> attrsMap = this.getInboundHeaderState().getSyntheticsAttrs();
+                        String attrName;
 
-                    Map<String, String> attrsMap = this.getInboundHeaderState().getSyntheticsAttrs();
-                    String attrName;
-
-                    for (String key : attrsMap.keySet()) {
-                        attrName = String.format("synthetics_%s", key);
-                        getIntrinsicAttributes().put(attrName, attrsMap.get(key));
+                        for (String key : attrsMap.keySet()) {
+                            attrName = String.format("synthetics_%s", key);
+                            getIntrinsicAttributes().put(attrName, attrsMap.get(key));
+                        }
                     }
                 }
 
