@@ -8,6 +8,7 @@ package org.springframework.web.reactive.result.method;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -37,7 +38,8 @@ public abstract class InvocableHandlerMethod_Instrumentation {
 
             //If this setting is false, attempt to name transactions the way the legacy point cut
             //named them
-            boolean isEnhancedNaming = SpringControllerUtility.ENHANCED_NAMING_ENABLED;
+            boolean isEnhancedNaming =
+                    NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
 
             String httpMethod = exchange.getRequest().getMethod().name();
             if (httpMethod != null) {

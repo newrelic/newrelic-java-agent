@@ -37,7 +37,6 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
     public void before() throws Exception {
         AgentBridge.agent = mockAgent;
         when(mockAgent.getConfig()).thenReturn(mockConfig);
-        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         when(mockAgent.getLogger()).thenReturn(mockLogger);
         when(mockLogger.isLoggable(Level.FINEST)).thenReturn(false);
     }
@@ -53,7 +52,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_findsAnnotationsFromInterfaceAndMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.ControllerClassWithInterface(),
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("get"));
@@ -75,7 +74,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_findsAnnotationsWithUrlParamFromInterfaceAndMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.ControllerClassWithInterface(),
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("getParam"));
@@ -98,7 +97,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_withRequestMappings_findsAnnotationsWithoutInterface_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.StandardControllerWithAllRequestMappings(),
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get"));
@@ -120,7 +119,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_withRequestMappingsAndUrlParam_findsAnnotationsWithoutInterface_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.StandardControllerWithAllRequestMappings(),
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get2"));
@@ -142,7 +141,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_withPostMappings_findsAnnotationsWithoutInterface_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.StandardControllerWithAllRequestMappings(),
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("post"));
@@ -164,7 +163,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_whenNoAnnotationPresent_namesTxnBasedOnControllerClassAndMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.NoAnnotationController(),
                 TestControllerClasses.NoAnnotationController.class.getMethod("get"));
@@ -187,7 +186,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_whenExtendingAbstractController_namesTxnBasedOnRouteAndHttpMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.ControllerExtendingAbstractClass(),
                 TestControllerClasses.ControllerExtendingAbstractClass.class.getMethod("extend"));
@@ -214,7 +213,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_findsAnnotationsFromInterfaceAndMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.ControllerClassWithInterface(),
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("get"));
@@ -236,7 +235,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_findsAnnotationsWithUrlParamFromInterfaceAndMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.ControllerClassWithInterface(),
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("getParam"));
@@ -259,7 +258,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_withRequestMappings_findsAnnotationsWithoutInterface_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.StandardControllerWithAllRequestMappings(),
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get"));
@@ -281,7 +280,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_withRequestMappingsAndUrlParam_findsAnnotationsWithoutInterface_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.StandardControllerWithAllRequestMappings(),
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get2"));
@@ -303,7 +302,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_withPostMappings_findsAnnotationsWithoutInterface_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.StandardControllerWithAllRequestMappings(),
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("post"));
@@ -325,7 +324,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_whenNoAnnotationPresent_namesTxnBasedOnControllerClassAndMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.NoAnnotationController(),
                 TestControllerClasses.NoAnnotationController.class.getMethod("get"));
@@ -348,7 +347,7 @@ public class AbstractHandlerMethodAdapterInstrumentationEnhancedNamingConfigTest
 
     @Test
     public void handleInternal_whenExtendingAbstractController_namesTxnBasedOnRouteAndHttpMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
         HandlerMethod handlerMethod = new HandlerMethod(new TestControllerClasses.ControllerExtendingAbstractClass(),
                 TestControllerClasses.ControllerExtendingAbstractClass.class.getMethod("extend"));

@@ -40,7 +40,6 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
     public void before() {
         AgentBridge.agent = mockAgent;
         when(mockAgent.getConfig()).thenReturn(mockConfig);
-        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         when(mockAgent.getLogger()).thenReturn(mockLogger);
         when(mockLogger.isLoggable(Level.FINEST)).thenReturn(false);
     }
@@ -55,7 +54,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
     //
     @Test
     public void handleInternal_findsAnnotationsFromInterfaceAndMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.ControllerClassWithInterface.class,
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("get"));
@@ -78,7 +77,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_findsAnnotationsWithUrlParamFromInterfaceAndMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.ControllerClassWithInterface.class,
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("getParam"));
@@ -101,7 +100,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_withRequestMappings_findsAnnotationsWithoutInterface_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class,
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get"));
@@ -124,7 +123,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_withRequestMappingsAndUrlParam_findsAnnotationsWithoutInterface_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class,
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get2"));
@@ -147,7 +146,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_withPostMappings_findsAnnotationsWithoutInterface_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class,
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("post"));
@@ -170,7 +169,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_whenNoAnnotationPresent_namesTxnBasedOnControllerClassAndMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.NoAnnotationController.class,
                 TestControllerClasses.NoAnnotationController.class.getMethod("get"));
@@ -193,7 +192,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_whenExtendingAbstractController_namesTxnBasedOnRouteAndHttpMethod_false() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = false;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.ControllerExtendingAbstractClass.class,
                 TestControllerClasses.ControllerExtendingAbstractClass.class.getMethod("extend"));
@@ -220,7 +219,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_findsAnnotationsFromInterfaceAndMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.ControllerClassWithInterface.class,
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("get"));
@@ -243,7 +242,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_findsAnnotationsWithUrlParamFromInterfaceAndMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.ControllerClassWithInterface.class,
                 TestControllerClasses.ControllerClassWithInterface.class.getMethod("getParam"));
@@ -266,7 +265,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_withRequestMappings_findsAnnotationsWithoutInterface_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class,
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get"));
@@ -289,7 +288,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_withRequestMappingsAndUrlParam_findsAnnotationsWithoutInterface_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class,
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("get2"));
@@ -312,7 +311,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_withPostMappings_findsAnnotationsWithoutInterface_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class,
                 TestControllerClasses.StandardControllerWithAllRequestMappings.class.getMethod("post"));
@@ -335,7 +334,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_whenNoAnnotationPresent_namesTxnBasedOnControllerClassAndMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.NoAnnotationController.class,
                 TestControllerClasses.NoAnnotationController.class.getMethod("get"));
@@ -358,7 +357,7 @@ public class InvocableHandlerMethodInstrumentationEnhancedNamingConfigTest_webfl
 
     @Test
     public void handleInternal_whenExtendingAbstractController_namesTxnBasedOnRouteAndHttpMethod_true() throws Exception {
-        SpringControllerUtility.ENHANCED_NAMING_ENABLED = true;
+        when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
         InvocableHandlerMethod_Instrumentation cut = new InvocableHandlerMethod_InstrumentationTestImpl(
                 TestControllerClasses.ControllerExtendingAbstractClass.class,
                 TestControllerClasses.ControllerExtendingAbstractClass.class.getMethod("extend"));

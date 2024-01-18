@@ -36,7 +36,8 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
 
             //If this setting is false, attempt to name transactions the way the legacy point cut
             //named them
-            boolean isEnhancedNaming = SpringControllerUtility.ENHANCED_NAMING_ENABLED;
+            boolean isEnhancedNaming =
+                    NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
 
             String httpMethod = request.getMethod();
             if (httpMethod != null) {

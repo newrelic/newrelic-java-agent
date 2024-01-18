@@ -25,10 +25,6 @@ import java.util.logging.Level;
 public class SpringControllerUtility {
     private static final String CGLIB_CLASS_SUFFIX = "$$EnhancerBy";
 
-    // Package visibility for unit tests
-    static boolean ENHANCED_NAMING_ENABLED =
-            NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
-
     /**
      * Return the top level path String on the target controller class, determined by a @RequestMapping annotation.
      * This includes any @RequestMapping annotations present on an implemented interface or extended controller class.
