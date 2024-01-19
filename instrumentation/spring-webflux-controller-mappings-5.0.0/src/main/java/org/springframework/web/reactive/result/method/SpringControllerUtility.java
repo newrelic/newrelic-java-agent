@@ -1,12 +1,11 @@
 /*
  *
- *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.agent.instrumentation;
+package org.springframework.web.reactive.result.method;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.NewRelic;
@@ -155,7 +154,7 @@ public class SpringControllerUtility {
         if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
             NewRelic.getAgent()
                     .getLogger()
-                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethodRoutes (4.3.0): calling transaction.setTransactionName to [{0}] " +
+                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethodRoutes (webflux-5.0.0): calling transaction.setTransactionName to [{0}] " +
                             "with FRAMEWORK_HIGH and override false, txn {1}.", txnName, transaction.toString());
         }
 
@@ -177,7 +176,7 @@ public class SpringControllerUtility {
         if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
             NewRelic.getAgent()
                     .getLogger()
-                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethod (4.3.0): " +
+                    .log(Level.FINEST, "SpringControllerUtility::assignTransactionNameFromControllerAndMethod (webflux-5.0.0): " +
                             "calling transaction.setTransactionName to [{0}] " +
                             "with FRAMEWORK_HIGH and override false, txn {1}.", txnName, transaction.toString());
         }
