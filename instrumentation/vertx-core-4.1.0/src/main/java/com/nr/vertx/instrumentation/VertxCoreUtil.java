@@ -58,6 +58,7 @@ public class VertxCoreUtil {
                                                    .uri(uri)
                                                    .procedure(END)
                                                    .inboundHeaders(new InboundWrapper(resp))
+                                                   .status(resp.statusCode(), resp.statusMessage())
                                                    .build());
         } catch (URISyntaxException e) {
             AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());
