@@ -23,7 +23,9 @@ public class CustomClassLoaderClassWriter extends PatchedClassWriter {
         Class result = null;
         try {
             // try the custom classloader first
-            result = classLoader.loadClass(type);
+            // With some Scala classloaders, the type (class name) is presented with
+            // forward slash delimiters rather than dots; this normalizes the class names
+            result = classLoader.loadClass(type.replace("/", "."));
         } catch (ClassNotFoundException e) {
             Agent.LOG.log(Level.FINEST, "class not found in custom classloader: "+type);
             try {
