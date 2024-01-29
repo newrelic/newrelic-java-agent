@@ -6,7 +6,7 @@
 //To resolve class circularity error
 ^javax/crypto/BadPaddingException
 ^javax/crypto/SecretKey
-//This is to avoid vulnerabilities flagged in NR APM code
+//Remove ThreadLocal Weak Random Class Instrumentation
 ^java/util/concurrent/ThreadLocalRandom
 ^(org/objectweb/asm/|javax/xml/|org/apache/juli/)(.*)
 # Don't instrument agent threads
