@@ -4,6 +4,38 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\
 
+## Version 8.9.0
+## New features and improvements
+
+- Instrumentation for Spring Webclient 5/6 now captures http status code and http status message [1658](https://github.com/newrelic/newrelic-java-agent/pull/1658)
+- Add status code to `grpc-1.40.0` client instrumentation  [1673](https://github.com/newrelic/newrelic-java-agent/pull/1673)
+- Add config to set the size limit of attributes on custom events (i.e. `newrelic.config.custom_insights_events.max_attribute_value`). Default size is `255` characters and the max is `4095`. [1683](https://github.com/newrelic/newrelic-java-agent/pull/1683)
+- Add Spring instrumentation modules to support proper transaction naming (route + HTTP method) of traditional annotated spring controllers as well as controllers that inherit annotations from interfaces, super classes or custom annotations. Note that because the new instrumentation can change transaction names, enabling this "enhanced transaction naming" is gated by the `newrelic.config.class_transformer.enhanced_spring_transaction_naming` agent configuration option, which is `false` by default. Thanks to @mgr32 for their help with validating the naming changes. [1675](https://github.com/newrelic/newrelic-java-agent/pull/1675)
+- Add instrumentation for Vert.x 4.5.x web client and futures [1704](https://github.com/newrelic/newrelic-java-agent/pull/1704)
+- Update Security Agent to Public Release version `1.1.0` [1710](https://github.com/newrelic/newrelic-java-agent/pull/1710)
+
+## Fixes
+
+- Remove erroneous printing of stack trace in `SlowTransactionManager` [1684](https://github.com/newrelic/newrelic-java-agent/pull/1684)
+- Convert the `ProcessPointCut` over to a weaver instrumentation module to better handle cases where it is used in a multi-threaded environment. [1685](https://github.com/newrelic/newrelic-java-agent/pull/1685)
+
+## Removals
+
+- Remove support for setting agent config with rarely used lower-case, dotted environment variable names (e.g. `newrelic.config.labels`). Customers relying on lower-case, dotted environment variables should switch to the standard upper-case, underscore names (e.g. `NEW_RELIC_CONFIG_LABELS`). There are no changes to documented system property behavior (via `newrelic.config.`, server-side config, YAML, or standard environment variable (via `NEW_RELIC_`). [1598](https://github.com/newrelic/newrelic-java-agent/pull/1598)
+
+## Deprecations
+
+- The browser footer injection APIs have been deprecated and will be removed in a future agent release. The header injection API now adds both the header and footer scripts. [1679](https://github.com/newrelic/newrelic-java-agent/pull/1679)
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
 ## Version 8.8.1
 ## Fixes
 
