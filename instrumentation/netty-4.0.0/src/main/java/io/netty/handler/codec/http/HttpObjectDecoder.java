@@ -7,14 +7,16 @@
 
 package io.netty.handler.codec.http;
 
-import java.util.List;
-
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.netty.bootstrap.NettyDispatcher;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
+
+import java.util.List;
+import java.util.logging.Level;
 
 @Weave(type = MatchType.BaseClass)
 public class HttpObjectDecoder {
@@ -23,6 +25,14 @@ public class HttpObjectDecoder {
     protected void decode(ChannelHandlerContext_Instrumentation ctx, ByteBuf buffer, List<Object> out) {
         Weaver.callOriginal();
         for (Object msg : out) {
+
+            AgentBridge.getAgent()
+                    .getLogger()
+                    .log(Level.INFO,
+                            "Netty Debug: Called HttpObjectDecoder.decode with msg of type: " + msg.getClass() + " for transaction: " +
+                                    AgentBridge.getAgent().getTransaction() + ". Token: " +
+                                    ctx.pipeline().token);
+
             if (msg instanceof HttpRequest && ctx.pipeline().token == null) {
                 NettyDispatcher.channelRead(ctx, msg);
             }

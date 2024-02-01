@@ -7,8 +7,6 @@
 
 package org.jboss.netty.bootstrap;
 
-import java.util.logging.Level;
-
 import com.agent.instrumentation.netty38.RequestWrapper;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
@@ -19,6 +17,8 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.api.agent.weaver.internal.WeavePackageType;
 import org.jboss.netty.channel.ChannelHandlerContext_Instrumentation;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
+
+import java.util.logging.Level;
 
 /**
  * This isn't a netty class. This is an agent ChannelUpstreamHandler which will start a transaction on i/o read. It's
@@ -58,9 +58,18 @@ public class NettyDispatcher {
                 AgentBridge.currentApiSource.set(WeavePackageType.INTERNAL);
                 AgentBridge.getAgent().getTransaction().setTransactionName(TransactionNamePriority.SERVLET_NAME, true,
                         "NettyDispatcher", "NettyDispatcher");
+
+                AgentBridge.getAgent()
+                        .getLogger()
+                        .log(Level.INFO, "Netty Debug: Set transaction name to NettyDispatcher for transaction: " + AgentBridge.getAgent().getTransaction());
             }
 
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
+
+            AgentBridge.getAgent()
+                    .getLogger()
+                    .log(Level.INFO, "Netty Debug: Called: NettyDispatcher.channelRead for transaction: " + tx + ". Token: " + ctx.getPipeline().token);
+
             if (tx != null) {
                 tx.setWebRequest(new RequestWrapper((DefaultHttpRequest) msg));
             }

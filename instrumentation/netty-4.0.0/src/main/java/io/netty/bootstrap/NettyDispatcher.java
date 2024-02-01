@@ -20,7 +20,7 @@ import java.util.logging.Level;
 
 /**
  * This isn't a netty class. This is an agent class which will start a transaction on i/o read.
- *
+ * <p>
  * Since this class creates a tracer, its class+method name will show in the TT, hence the class name.
  */
 public class NettyDispatcher {
@@ -53,9 +53,19 @@ public class NettyDispatcher {
             tracer.setMetricName("NettyUpstreamDispatcher");
             AgentBridge.getAgent().getTransaction().setTransactionName(TransactionNamePriority.SERVLET_NAME, true,
                     "NettyDispatcher", "NettyDispatcher");
+
+            AgentBridge.getAgent()
+                    .getLogger()
+                    .log(Level.INFO, "Netty Debug: Set transaction name to NettyDispatcher for transaction: " + AgentBridge.getAgent().getTransaction());
+
         }
 
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
+
+        AgentBridge.getAgent()
+                .getLogger()
+                .log(Level.INFO, "Netty Debug: Called: NettyDispatcher.channelRead for transaction: " + tx + ". Token: " + ctx.pipeline().token);
+
         if (tx != null) {
             tx.setWebRequest(new RequestWrapper((DefaultHttpRequest) msg));
         }
