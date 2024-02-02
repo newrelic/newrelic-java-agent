@@ -73,7 +73,7 @@ public class HttpClient5Test {
 
     @Test
     public void testErrorAsyncWithMessage() throws Exception {
-        testError(true, false);
+        testError(true, true);
     }
 
     private void testError(boolean async, boolean withMessage) throws Exception {
