@@ -29,8 +29,17 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.nio.AsyncRequestProducer;
+import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
+import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
+import org.apache.hc.core5.io.CloseMode;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +47,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -55,19 +63,28 @@ public class HttpClient5Test {
 
     @Test
     public void testErrorClassic() throws Exception {
-        testError(false);
+        testError(false, false);
     }
 
     @Test
     public void testErrorAsync() throws Exception {
-        testError(true);
+        testError(true, false);
     }
 
-    private void testError(boolean async) throws Exception {
+    @Test
+    public void testErrorAsyncWithMessage() throws Exception {
+        testError(true, false);
+    }
+
+    private void testError(boolean async, boolean withMessage) throws Exception {
         final String host2 = "www.notarealhostbrosef.bro";
         try {
             if (async) {
-                httpClientExternalAsync("http://" + host2, true);
+                if (withMessage) {
+                    httpClientExternalAsyncWithMessage("http://" + host2, true);
+                } else {
+                    httpClientExternalAsync("http://" + host2, true);
+                }
             } else {
                 httpClientExternalClassic("http://" + host2, true);
             }
@@ -89,20 +106,29 @@ public class HttpClient5Test {
 
     @Test
     public void testExternalClassic() throws Exception {
-        testExternal(false);
+        testExternal(false, false);
     }
 
     @Test
     public void testExternalAsync() throws Exception {
-        testExternal(true);
+        testExternal(true, false);
     }
 
-    private void testExternal(boolean async) throws Exception {
+    @Test
+    public void testExternalAsyncWithMessage() throws Exception {
+        testExternal(true, true);
+    }
+
+    private void testExternal(boolean async, boolean withMessage) throws Exception {
         URI endpoint = server.getEndPoint();
         String host1 = endpoint.getHost();
 
         if (async) {
-            httpClientExternalAsync(endpoint.toString(), false);
+            if (withMessage) {
+                httpClientExternalAsyncWithMessage(endpoint.toString(), false);
+            } else {
+                httpClientExternalAsync(endpoint.toString(), false);
+            }
         } else {
             httpClientExternalClassic(endpoint.toString(), false);
         }
@@ -141,20 +167,31 @@ public class HttpClient5Test {
 
     @Test
     public void testRollupsClassic() throws Exception {
-        testRollups(false);
+        testRollups(false, false);
     }
 
     @Test
     public void testRollupsAsync() throws Exception {
-        testRollups(true);
+        testRollups(true, false);
     }
 
-    private  void testRollups(boolean async) throws Exception {
+    @Test
+    public void testRollupsAsyncWithMessage() throws Exception {
+        testRollups(true, true);
+    }
+
+    private  void testRollups(boolean async, boolean withMessage) throws Exception {
         // manually set host and port here in order to get 2 unique endpoints
         if (async) {
-            httpClientExternalAsync("http://localhost:" + server.getEndPoint().getPort(), false);
-            httpClientExternalAsync("http://localhost:" + server.getEndPoint().getPort(), false);
-            httpClientExternalAsync("http://127.0.0.1:" + server.getEndPoint().getPort(), false);
+            if (withMessage) {
+                httpClientExternalAsyncWithMessage("http://localhost:" + server.getEndPoint().getPort(), false);
+                httpClientExternalAsyncWithMessage("http://localhost:" + server.getEndPoint().getPort(), false);
+                httpClientExternalAsyncWithMessage("http://127.0.0.1:" + server.getEndPoint().getPort(), false);
+            } else {
+                httpClientExternalAsync("http://localhost:" + server.getEndPoint().getPort(), false);
+                httpClientExternalAsync("http://localhost:" + server.getEndPoint().getPort(), false);
+                httpClientExternalAsync("http://127.0.0.1:" + server.getEndPoint().getPort(), false);
+            }
         } else {
             httpClientExternalClassic("http://localhost:" + server.getEndPoint().getPort(), false);
             httpClientExternalClassic("http://localhost:" + server.getEndPoint().getPort(), false);
@@ -179,23 +216,33 @@ public class HttpClient5Test {
 
     @Test
     public void testCatClassic() throws Exception {
-        testCat(false);
+        testCat(false, false);
     }
 
     @Test
     public void testCatAsync() throws Exception {
-        testCat(true);
+        testCat(true, false);
     }
 
-    private void testCat(boolean async) throws Exception {
+    @Test
+    public void testCatAsyncWithMessage() throws Exception {
+        testCat(true, true);
+    }
+
+    private void testCat(boolean async, boolean withMessage) throws Exception {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         URI endpoint = server.getEndPoint();
         String host = endpoint.getHost();
 
         String methodName = "httpClientExternalClassic";
         if (async) {
-            httpClientExternalAsync(endpoint.toURL().toString(), true);
-            methodName = "httpClientExternalAsync";
+            if (withMessage) {
+                httpClientExternalAsyncWithMessage(endpoint.toURL().toString(), true);
+                methodName = "httpClientExternalAsyncWithMessage";
+            } else {
+                httpClientExternalAsync(endpoint.toURL().toString(), true);
+                methodName = "httpClientExternalAsync";
+            }
         } else {
             httpClientExternalClassic(endpoint.toURL().toString(), true);
         }
@@ -274,6 +321,26 @@ public class HttpClient5Test {
             SimpleHttpResponse response = future.get();
         } catch (ExecutionException ee) {
             if (ee.getCause() instanceof UnknownHostException) throw new UnknownHostException ();
+        }
+    }
+
+    @Trace(dispatcher = true)
+    private void httpClientExternalAsyncWithMessage(String host, boolean doCat) throws Exception {
+        try (CloseableHttpAsyncClient httpAsyncClient = HttpAsyncClients.createDefault()) {
+            httpAsyncClient.start();
+            SimpleHttpRequest request = SimpleRequestBuilder.get(host).build();
+            request.addHeader(HttpTestServer.DO_CAT, String.valueOf(doCat));
+            final AsyncRequestProducer requestProducer = new BasicRequestProducer(request,
+                    AsyncEntityProducers.create("", ContentType.TEXT_PLAIN));
+            Future<Message<HttpResponse, String>> response = httpAsyncClient.execute(
+                    requestProducer,
+                    new BasicResponseConsumer<String>(new StringAsyncEntityConsumer()),
+                    null);
+            Message msg = response.get();
+
+            httpAsyncClient.close(CloseMode.GRACEFUL);
+        } catch (ExecutionException ee) {
+            if (ee.getCause() instanceof UnknownHostException) throw new UnknownHostException();
         }
     }
 

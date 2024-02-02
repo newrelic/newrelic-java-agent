@@ -11,6 +11,8 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Segment;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 
 import java.net.URISyntaxException;
@@ -33,7 +35,14 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
     @Override
     public void completed(T response) {
         try {
-            InstrumentationUtils.processResponse(request.getUri(), (BasicHttpResponse)response, segment);
+            if (response instanceof HttpResponse) {
+                InstrumentationUtils.processResponse(request.getUri(), (HttpResponse) response, segment);
+            } else if (response instanceof Message && ((Message)response).getHead() instanceof HttpResponse) {
+                HttpResponse resp2 = (HttpResponse)(((Message)response).getHead());
+                InstrumentationUtils.processResponse(request.getUri(), resp2, segment);
+            } else {
+                AgentBridge.getAgent().getLogger().log(Level.FINER, "Unhandled response type: "+response.getClass());
+            }
         } catch (URISyntaxException e) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, "Exception with uri: " + e.getMessage());
         }
