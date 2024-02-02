@@ -12,12 +12,11 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.FileManager;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
 import org.apache.logging.log4j.core.appender.rolling.CompositeTriggeringPolicy;
-import org.apache.logging.log4j.core.appender.rolling.CronTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy;
 import org.apache.logging.log4j.core.appender.rolling.NoOpTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.TriggeringPolicy;
-import org.apache.logging.log4j.core.config.DefaultConfiguration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import static com.newrelic.agent.logging.Log4jLogger.CONVERSION_PATTERN;
@@ -115,7 +114,7 @@ public class FileAppenderFactory {
     }
 
     private TriggeringPolicy buildRollingAppenderTriggeringPolicy() {
-        TriggeringPolicy timeBasedTriggeringPolicy = CronTriggeringPolicy.createPolicy(new DefaultConfiguration(), "true", DAILY_CRON);
+        TimeBasedTriggeringPolicy timeBasedTriggeringPolicy = TimeBasedTriggeringPolicy.newBuilder().withInterval(1).withModulate(true).build();
         TriggeringPolicy sizeBasedTriggeringPolicy = sizeBasedPolicy();
         return CompositeTriggeringPolicy.createPolicy(timeBasedTriggeringPolicy, sizeBasedTriggeringPolicy);
     }
