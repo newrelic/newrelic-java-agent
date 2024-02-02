@@ -8,8 +8,6 @@
 package com.newrelic.agent.bridge;
 
 import com.newrelic.agent.bridge.ExtensionHolderFactory.NoOpExtensionHolderFactory;
-import com.newrelic.api.agent.DistributedTraceParser;
-import com.newrelic.api.agent.DistributedTracePayload;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.weaver.internal.WeavePackageType;
 
@@ -45,18 +43,6 @@ public final class AgentBridge {
     public static volatile InvocationHandler agentHandler;
 
     public static volatile Agent agent = NoOpAgent.INSTANCE;
-
-    /**
-     * @deprecated  functionality was removed.
-     */
-    @Deprecated
-    public static DistributedTraceParser distributedTraceParser = new DistributedTraceParser() {
-        @Override
-        public DistributedTracePayload parseDistributedTracePayload(String payload) {
-            // The default case returns null until the agent is hooked up and opentracing is enabled, then it will be overridden with a call to the agent
-            return null;
-        }
-    };
 
     public static Agent getAgent() {
         return agent;
