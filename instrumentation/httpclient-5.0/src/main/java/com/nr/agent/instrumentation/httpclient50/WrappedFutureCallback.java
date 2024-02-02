@@ -41,7 +41,7 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
                 HttpResponse resp2 = (HttpResponse)(((Message)response).getHead());
                 InstrumentationUtils.processResponse(request.getUri(), resp2, segment);
             } else {
-                AgentBridge.getAgent().getLogger().log(Level.FINER, "Unhandled response type: {0}", response.getClass());
+                AgentBridge.getAgent().getLogger().log(Level.FINER, "Unhandled response type: {0}", (response == null ? "null" : response.getClass()));
             }
         } catch (URISyntaxException e) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, "Exception with uri: {0}", e.getMessage());
