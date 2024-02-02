@@ -26,12 +26,15 @@ public class HttpObjectDecoder {
         Weaver.callOriginal();
         for (Object msg : out) {
 
+            boolean typeCheck = (msg instanceof HttpRequest);
+
             AgentBridge.getAgent()
                     .getLogger()
                     .log(Level.INFO,
                             "Netty Debug: Called HttpObjectDecoder.decode with msg of type: " + msg.getClass() + " for transaction: " +
                                     AgentBridge.getAgent().getTransaction() + ". Token: " +
-                                    ctx.pipeline().token);
+                                    ctx.pipeline().token + ". ctx: " +
+                                    ctx + ". instanceof HttpRequest = " + typeCheck);
 
             if (msg instanceof HttpRequest && ctx.pipeline().token == null) {
                 NettyDispatcher.channelRead(ctx, msg);

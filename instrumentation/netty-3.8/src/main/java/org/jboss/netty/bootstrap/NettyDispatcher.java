@@ -23,7 +23,7 @@ import java.util.logging.Level;
 /**
  * This isn't a netty class. This is an agent ChannelUpstreamHandler which will start a transaction on i/o read. It's
  * best to put this handler in front of "interesting" (e.g. ServerBootstrap) pipelines.
- * 
+ * <p>
  * Since this class creates a tracer, its class+method name will show in the TT, hence the class name.
  */
 public class NettyDispatcher {
@@ -68,13 +68,15 @@ public class NettyDispatcher {
 
             AgentBridge.getAgent()
                     .getLogger()
-                    .log(Level.INFO, "Netty Debug: Called: NettyDispatcher.channelRead for transaction: " + tx + ". Token: " + ctx.getPipeline().token);
+                    .log(Level.INFO,
+                            "Netty Debug: Called: NettyDispatcher.channelRead for transaction: " + tx + ". Token: " + ctx.getPipeline().token + ". ctx: " +
+                                    ctx);
 
             if (tx != null) {
                 tx.setWebRequest(new RequestWrapper((DefaultHttpRequest) msg));
             }
-            
-        } catch(Throwable t) {
+
+        } catch (Throwable t) {
             AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
         } finally {
             AgentBridge.currentApiSource.remove();

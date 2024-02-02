@@ -66,7 +66,8 @@ public class NettyDispatcher {
 
         AgentBridge.getAgent()
                 .getLogger()
-                .log(Level.INFO, "Netty Debug: Called: NettyDispatcher.channelRead for transaction: " + tx + ". Token: " + ctx.pipeline().token);
+                .log(Level.INFO, "Netty Debug: Called: NettyDispatcher.channelRead for transaction: " + tx + ". Token: " + ctx.pipeline().token + ". ctx: " +
+                        ctx);
 
         if (tx != null) {
             tx.setWebRequest(new RequestWrapper((HttpRequest) msg));
