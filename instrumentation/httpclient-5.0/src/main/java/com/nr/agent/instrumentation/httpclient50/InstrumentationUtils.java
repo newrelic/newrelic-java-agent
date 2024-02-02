@@ -58,6 +58,7 @@ public class InstrumentationUtils {
     }
 
     public static void processResponse(URI requestURI, HttpResponse response, Segment segment) {
+        if (response == null) return;
         HttpParameters params = createInboundParams(requestURI, response);
         if (segment != null) {
             segment.reportAsExternal(params);
