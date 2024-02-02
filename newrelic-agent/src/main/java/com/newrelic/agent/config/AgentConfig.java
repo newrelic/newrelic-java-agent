@@ -324,8 +324,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     int getTokenTimeoutInSec();
 
-    boolean openTracingEnabled();
-
     /**
      * How long to wait (in milliseconds) for all transactions to finish before allowing the application to shutdown
      */
