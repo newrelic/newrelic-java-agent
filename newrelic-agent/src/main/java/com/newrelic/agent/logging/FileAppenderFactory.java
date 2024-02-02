@@ -100,10 +100,10 @@ public class FileAppenderFactory {
         TriggeringPolicy policy = buildRollingAppenderTriggeringPolicy();
         DefaultRolloverStrategy rolloverStrategy = DefaultRolloverStrategy.newBuilder().withMax(String.valueOf(fileCount)).build();
 
-        String filePattern = fileName + ".%d{yyyy-MM-dd}";
+        String filePattern = fileName + ".%d{yyyy-MM-dd-HH-mm}.%i";
         if (logLimitBytes > 0) {
             // If we might roll within a day, use a number ordering suffix
-            filePattern = fileName + ".%d{yyyy-MM-dd}.%i";
+            filePattern = fileName + ".%d{yyyy-MM-dd-HH-mm}.%i";
         }
 
         return initializeRollingFileAppender()
