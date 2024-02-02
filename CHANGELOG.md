@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add config to set the size limit of attributes on custom events (i.e. `newrelic.config.custom_insights_events.max_attribute_value`). Default size is `255` characters and the max is `4095`. [1683](https://github.com/newrelic/newrelic-java-agent/pull/1683)
 - Add Spring instrumentation modules to support proper transaction naming (route + HTTP method) of traditional annotated spring controllers as well as controllers that inherit annotations from interfaces, super classes or custom annotations. Note that because the new instrumentation can change transaction names, enabling this "enhanced transaction naming" is gated by the `newrelic.config.class_transformer.enhanced_spring_transaction_naming` agent configuration option, which is `false` by default. Thanks to @mgr32 for their help with validating the naming changes. [1675](https://github.com/newrelic/newrelic-java-agent/pull/1675)
 - Add instrumentation for Vert.x 4.5.x web client and futures [1704](https://github.com/newrelic/newrelic-java-agent/pull/1704)
-- Update Security Agent to Public Release version `1.1.0` [1710](https://github.com/newrelic/newrelic-java-agent/pull/1710)
 
 ## Fixes
 
@@ -35,6 +34,10 @@ The following instrumentation modules are deprecated and will be removed in the 
 - `spring-3.0.0`
 - `netty-3.4`
 - `Struts v1`
+
+## IAST
+- Update Security Agent to Public Release version `1.1.0` [1710](https://github.com/newrelic/newrelic-java-agent/pull/1710)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.1.0
 
 ## Version 8.8.1
 ## Fixes
