@@ -58,7 +58,10 @@ public class InstrumentationUtils {
     }
 
     public static void processResponse(URI requestURI, HttpResponse response, Segment segment) {
-        if (response == null) return;
+        if (response == null) {
+            NewRelic.getAgent().getLogger().log(Level.INFO,"httpclient-5.0: null response received. No external recorded.");
+            return;
+        }
         HttpParameters params = createInboundParams(requestURI, response);
         if (segment != null) {
             segment.reportAsExternal(params);
