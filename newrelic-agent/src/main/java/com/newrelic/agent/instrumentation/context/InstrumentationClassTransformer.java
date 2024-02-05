@@ -145,13 +145,13 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
                 }
             }
 
-            if(context.isModified() && !context.getScalaFinalFields().isEmpty()) {
-              byte[] bytes = scalaTraitFinalFieldTransformer.transform(loader, className, classBeingRedefined,
-                                                                       protectionDomain, classfileBuffer, context, null);
-              if(bytes != null) {
-                classfileBuffer = bytes;
-              }
-            }
+//            if(context.isModified() && !context.getScalaFinalFields().isEmpty()) {
+//              byte[] bytes = scalaTraitFinalFieldTransformer.transform(loader, className, classBeingRedefined,
+//                                                                       protectionDomain, classfileBuffer, context, null);
+//              if(bytes != null) {
+//                classfileBuffer = bytes;
+//              }
+//            }
 
             if (context.isModified()) {
                 byte[] transformation = finalClassTransformer.transform(loader, className,
