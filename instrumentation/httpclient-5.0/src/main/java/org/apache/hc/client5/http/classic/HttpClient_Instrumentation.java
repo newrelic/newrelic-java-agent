@@ -7,6 +7,7 @@
 
 package org.apache.hc.client5.http.classic;
 
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -24,6 +25,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.logging.Level;
 
 @Weave(type = MatchType.Interface, originalName = "org.apache.hc.client5.http.classic.HttpClient")
 public class HttpClient_Instrumentation {
@@ -181,9 +183,17 @@ public class HttpClient_Instrumentation {
     }
 
     private static URI getUri(HttpHost target, HttpRequest request) throws URISyntaxException {
-        URI requestURI = new URI(request.getRequestUri());
-        String scheme = requestURI.getScheme() == null ? target.getSchemeName() : requestURI.getScheme();
-        return new URI(scheme, null, target.getHostName(), target.getPort(), requestURI.getPath(), null, null);
-    }
+        String path = request.getPath();
 
+        // Prefer pulling the remainder of the host info from the HttpPost instance
+        if (target != null) {
+            return new URI(target.getSchemeName(), null, target.getHostName(), target.getPort(), path, null, null);
+        } else {    // Pull from the HttpRequest object
+            URI requestURI = new URI(request.getUri().toString());
+            String scheme = request.getScheme();
+            int port = requestURI.getPort() != -1 ? requestURI.getPort() :
+                    ("http".equals(scheme) ? 80 : 443);
+            return new URI(scheme, null, requestURI.getHost(), port, path, null, null);
+        }
+    }
 }
