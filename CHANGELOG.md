@@ -4,6 +4,26 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\
 
+## Version 8.9.1
+## Fixes
+
+- Check `HttpHost` instance for null prior to dereferencing it when certain execute() methods are called [1722](https://github.com/newrelic/newrelic-java-agent/pull/1722)
+- Do an `instanceof` check in the `complete()` method prior to class cast  [1719](https://github.com/newrelic/newrelic-java-agent/pull/1719)
+- Null check on the response object prior to trying to report an external call [1719](https://github.com/newrelic/newrelic-java-agent/pull/1719)
+
+## Deprecations
+
+- The browser footer injection APIs have been deprecated and will be removed in a future agent release. The header injection API now adds both the header and footer scripts. [1679](https://github.com/newrelic/newrelic-java-agent/pull/1679)
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
 ## Version 8.9.0
 ## New features and improvements
 
