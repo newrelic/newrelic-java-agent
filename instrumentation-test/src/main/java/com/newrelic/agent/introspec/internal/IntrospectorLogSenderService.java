@@ -87,7 +87,7 @@ class IntrospectorLogSenderService implements LogSenderService {
     }
 
     @Override
-    public Logs getTransactionLogs(AgentConfig config) {
+    public Logs getTransactionLogs() {
         return this;
     }
 

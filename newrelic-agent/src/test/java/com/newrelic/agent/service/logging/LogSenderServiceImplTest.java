@@ -40,6 +40,7 @@ public class LogSenderServiceImplTest {
     private static final HarvestService harvestService = Mockito.mock(HarvestService.class);
     private static final TransactionService txService = Mockito.mock(TransactionService.class);
     private static final StatsService statsService = Mockito.mock(StatsService.class);
+    private static final int LOG_FORWARDING_MAX_SAMPLES_STORED = 100; // should be enough for testing
 
     private static LogSenderServiceImpl createService() throws Exception {
         return createService(createConfig());
@@ -89,7 +90,7 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
+                LOG_FORWARDING_MAX_SAMPLES_STORED, allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
@@ -145,7 +146,7 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
+                LOG_FORWARDING_MAX_SAMPLES_STORED, allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
@@ -173,7 +174,7 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
+                LOG_FORWARDING_MAX_SAMPLES_STORED, allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
