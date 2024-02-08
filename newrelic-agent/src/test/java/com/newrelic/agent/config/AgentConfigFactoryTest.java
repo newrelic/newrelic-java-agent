@@ -7,7 +7,9 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.HarvestServiceImpl;
 import com.newrelic.agent.database.SqlObfuscator;
+import com.newrelic.agent.transport.CollectorMethods;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -218,4 +220,48 @@ public class AgentConfigFactoryTest {
         Assert.assertEquals(expected, settings.get("one"));
     }
 
+    @Test
+    public void loggingDisabledServerSideOverride() {
+        Map<String, Object> localSettings = logForwardingSettingsEnabled(true);
+        Map<String, Object> serverSettings = loggingHarvestLimit(0);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
+        Assert.assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
+    }
+
+    @Test
+    public void loggingEnabledServerSideOverride() {
+        Map<String, Object> localSettings = logForwardingSettingsEnabled(true);
+        Map<String, Object> serverSettings = loggingHarvestLimit(10);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
+        Assert.assertTrue(config.getApplicationLoggingConfig().isForwardingEnabled());
+    }
+
+    @Test
+    public void loggingDisabledLocally() {
+        Map<String, Object> localSettings = logForwardingSettingsEnabled(false);
+        Map<String, Object> serverSettings = loggingHarvestLimit(10);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
+        Assert.assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
+    }
+
+    private Map<String, Object> logForwardingSettingsEnabled(boolean enabled) {
+        Map<String, Object> localSettings = createMap();
+        Map<String, Object> loggingSettings = createMap();
+        Map<String, Object> forwardingSettings = createMap();
+
+        localSettings.put(AgentConfigImpl.APPLICATION_LOGGING, loggingSettings);
+        loggingSettings.put(ApplicationLoggingConfigImpl.FORWARDING, forwardingSettings);
+        forwardingSettings.put(ApplicationLoggingForwardingConfig.ENABLED, enabled);
+        return localSettings;
+    }
+
+    private Map<String, Object> loggingHarvestLimit(int limit) {
+        Map<String, Object> serverSettings = createMap();
+        Map<String, Object> harvestConfig = createMap();
+        Map<String, Object> harvestLimits = createMap();
+        serverSettings.put(AgentConfigFactory.EVENT_HARVEST_CONFIG, harvestConfig);
+        harvestConfig.put(HarvestServiceImpl.HARVEST_LIMITS, harvestLimits);
+        harvestLimits.put(CollectorMethods.LOG_EVENT_DATA, limit);
+        return serverSettings;
+    }
 }
