@@ -5,9 +5,9 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.FileManager;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
 import org.apache.logging.log4j.core.appender.rolling.CompositeTriggeringPolicy;
-import org.apache.logging.log4j.core.appender.rolling.CronTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.NoOpTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,9 +30,9 @@ public class FileAppenderFactoryTest {
         Assert.assertEquals(FILENAME + "0", rollingFileAppender.getFileName());
 
         CompositeTriggeringPolicy policy = rollingFileAppender.getTriggeringPolicy();
-        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[0] instanceof SizeBasedTriggeringPolicy));
-        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[1] instanceof SizeBasedTriggeringPolicy));
     }
 
@@ -47,9 +47,9 @@ public class FileAppenderFactoryTest {
         Assert.assertEquals(FILENAME + "1", rollingFileAppender.getFileName());
 
         CompositeTriggeringPolicy policy = rollingFileAppender.getTriggeringPolicy();
-        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[0] instanceof NoOpTriggeringPolicy));
-        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[1] instanceof NoOpTriggeringPolicy));
     }
 
@@ -75,6 +75,13 @@ public class FileAppenderFactoryTest {
 
         Assert.assertEquals(FileAppender.class, fileAppender.getClass());
         Assert.assertEquals(FILENAME + "3", rollingFileAppender.getFileName());
+    }
+
+    @Test
+    public void testingFilePath() {
+        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "0", true);
+        AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
+        RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
     }
 
     @AfterClass
