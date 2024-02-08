@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.logging;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import org.apache.logging.log4j.core.appender.AbstractOutputStreamAppender;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.FileManager;
@@ -18,6 +19,10 @@ import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.TriggeringPolicy;
 import org.apache.logging.log4j.core.layout.PatternLayout;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.newrelic.agent.logging.Log4jLogger.CONVERSION_PATTERN;
 
@@ -98,7 +103,9 @@ public class FileAppenderFactory {
     private RollingFileAppender buildDailyRollingAppender() {
 
         TriggeringPolicy policy = buildRollingAppenderTriggeringPolicy();
-        DefaultRolloverStrategy rolloverStrategy = DefaultRolloverStrategy.newBuilder().withMax(String.valueOf(fileCount)).build();
+        DefaultRolloverStrategy rolloverStrategy = DefaultRolloverStrategy.newBuilder()
+                .withMax(String.valueOf(fileCount))
+                .build();
 
         String filePattern = fileName + ".%d{yyyy-MM-dd-HH-mm}.%i";
         if (logLimitBytes > 0) {
@@ -106,11 +113,17 @@ public class FileAppenderFactory {
             filePattern = fileName + ".%d{yyyy-MM-dd-HH-mm}.%i";
         }
 
+        String filePath = AgentBridge.getAgent().getConfig().getValue("log_file_path").toString();
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleWithFixedDelay(new DeleteLogFileRunnable(filePath, fileCount),
+                 60, (long) fileCount * 24 * 60 * 60, TimeUnit.SECONDS);
+
         return initializeRollingFileAppender()
                 .withPolicy(policy)
                 .withFilePattern(filePattern)
                 .withStrategy(rolloverStrategy)
                 .build();
+
     }
 
     private TriggeringPolicy buildRollingAppenderTriggeringPolicy() {
