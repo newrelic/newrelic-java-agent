@@ -11,14 +11,10 @@ public class Utils {
 
   public static AgentBridge.TokenAndRefCount getThreadTokenAndRefCount() {
     AgentBridge.TokenAndRefCount tokenAndRefCount = AgentBridge.activeToken.get();
-    if (tokenAndRefCount == null) {
-      Transaction tx = AgentBridge.getAgent().getTransaction(false);
-      if (tx != null) {
-        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
-                                                            AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
-      }
-    } else {
-      tokenAndRefCount.refCount.incrementAndGet();
+    Transaction tx = AgentBridge.getAgent().getTransaction(false);
+    if (tx != null) {
+      tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
+                                                          AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
     }
     return tokenAndRefCount;
   }
