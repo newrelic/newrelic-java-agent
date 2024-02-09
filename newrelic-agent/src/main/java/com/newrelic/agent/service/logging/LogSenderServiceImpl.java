@@ -578,8 +578,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     }
 
     @Override
-    public Logs getTransactionLogs(AgentConfig config) {
-        return new TransactionLogs(config, contextDataKeyFilter);
+    public Logs getTransactionLogs() {
+        return new TransactionLogs(maxSamplesStored, contextDataKeyFilter);
     }
 
     /**
@@ -589,8 +589,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         private final LinkedBlockingQueue<LogEvent> events;
         private final ExcludeIncludeFilter contextDataKeyFilter;
 
-        TransactionLogs(AgentConfig config, ExcludeIncludeFilter contextDataKeyFilter) {
-            int maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
+        TransactionLogs(int maxSamplesStored, ExcludeIncludeFilter contextDataKeyFilter) {
             events = new LinkedBlockingQueue<>(maxSamplesStored);
             this.contextDataKeyFilter = contextDataKeyFilter;
         }
