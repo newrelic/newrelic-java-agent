@@ -9,7 +9,6 @@ package com.newrelic.agent.config;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.HarvestServiceImpl;
 import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
@@ -24,7 +23,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 
@@ -242,7 +240,6 @@ public class AgentConfigFactory {
             if (harvestLimits instanceof Map) {
                 Object logLimit = ((Map<?,?>) harvestLimits).get(CollectorMethods.LOG_EVENT_DATA);
                 if (logLimit instanceof Number && ((Number) logLimit).intValue() == 0) {
-                    Agent.LOG.log(Level.WARNING, "Application logging forwarding is disabled in the account.");
                     String loggingForwardingEnabled = AgentConfigImpl.APPLICATION_LOGGING + "." + ApplicationLoggingConfigImpl.FORWARDING + "." +
                             ApplicationLoggingForwardingConfig.ENABLED;
                     addServerProp(loggingForwardingEnabled, false, settings);
