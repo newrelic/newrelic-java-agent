@@ -50,7 +50,7 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
     private static final long INITIAL_DELAY_IN_MILLISECONDS = TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
     private static final long REPORTING_PERIOD_IN_MILLISECONDS = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
     private static final long MIN_HARVEST_INTERVAL_IN_NANOSECONDS = TimeUnit.NANOSECONDS.convert(55, TimeUnit.SECONDS);
-    private static final String HARVEST_LIMITS = "harvest_limits";
+    public static final String HARVEST_LIMITS = "harvest_limits";
     private static final String REPORT_PERIOD_MS = "report_period_ms";
 
     /**
