@@ -6,6 +6,7 @@ import com.newrelic.zio.api.TraceOps._
 import org.junit.runner.RunWith
 import org.junit.{After, Assert, Ignore, Test}
 import zio.Exit.{Failure, Success}
+import zio.clock.Clock
 
 import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
@@ -197,6 +198,47 @@ class ZIOTraceOpsTests {
       Assert.assertTrue(s"$i segment exists", segments.exists(_.getName == s"Custom/segment $i"))
     )
     Assert.assertTrue(s"sum segments exists", segments.exists(_.getName == s"Custom/sum segments"))
+  }
+
+  /*
+  Added in response to a bug discovered with ZIO instrumentation where back-to-back
+  transactions with thread hops leaked into each other (resulting in 1 transaction instead of several).
+  This was found to primarily affect transactions that started and ended on different threads (eg,
+  because of a .join operation).
+   */
+  @Test
+  def multipleTransactionsWithThreadHopsDoNotBleed(): Unit = {
+    val delayMillis = 500
+    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
+
+    //When
+    def txnBlock(i: Int): ZIO[Clock, Nothing, Int] = txn{
+      for {
+        one <- asyncTrace(s"loop $i: one")(UIO(1))
+        _ <- asyncTrace(s"loop $i: sleep")(ZIO.sleep(delayMillis.millis)) //thread hop
+        forkedFiber <- asyncTrace(s"loop $i: forked fiber")(UIO(5).fork) //thread hop
+        five <- forkedFiber.join //thread hop
+        eight <- asyncTrace(s"loop $i: eight")(UIO(one + five + 2))
+      } yield eight + i
+    }
+    val result = Runtime.default.unsafeRunSync(
+      ZIO.loop(0)(i => i < 5, i => i + 1)(i => txnBlock(i))
+    )
+
+    val txnCount = introspector.getFinishedTransactionCount()
+    val traces = getTraces(introspector)
+    val segments = getSegments(traces)
+
+    Assert.assertEquals("Result correct", Success(List(8, 9, 10, 11, 12)), result)
+    Assert.assertEquals("Correct number of transactions", 5, txnCount)
+    Assert.assertEquals("Correct number of traces", 5, traces.size)
+    List(0, 1, 2, 3, 4).foreach(i => {
+      Assert.assertTrue("one segment exists", segments.exists(_.getName == s"Custom/loop $i: one"))
+      Assert.assertTrue("sleep segment exists", segments.exists(_.getName == s"Custom/loop $i: sleep"))
+      Assert.assertTrue("forked segment exists", segments.exists(_.getName == s"Custom/loop $i: forked fiber"))
+      Assert.assertTrue("eight segment exists", segments.exists(_.getName == s"Custom/loop $i: eight"))
+    })
+
   }
 
 
