@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.logging;
 
-import com.newrelic.api.agent.NewRelic;
 import org.apache.logging.log4j.core.appender.AbstractOutputStreamAppender;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.FileManager;
@@ -49,7 +48,6 @@ public class FileAppenderFactory {
     private final long logLimitBytes;
     private final String fileName;
     private final boolean isDaily;
-
     private final String path;
 
     /**
@@ -57,6 +55,7 @@ public class FileAppenderFactory {
      * @param logLimitBytes maximum size of a given log file
      * @param fileName prefix for log file names
      * @param isDaily if the logs are to be rolled over daily
+     * @param path directory path for log files
      */
     public FileAppenderFactory(int fileCount, long logLimitBytes, String fileName, boolean isDaily, String path) {
         this.fileCount = fileCount;
@@ -112,7 +111,6 @@ public class FileAppenderFactory {
                 .withMax(String.valueOf(fileCount))
                 .build();
 
-        //TODO remove int counter
         String filePattern = fileName + ".%d{yyyy-MM-dd}";
         if (logLimitBytes > 0) {
             // If we might roll within a day, use a number ordering suffix
@@ -121,16 +119,11 @@ public class FileAppenderFactory {
 
         long initialDelaySeconds = 60;
         int repeatIntervalSeconds = fileCount * 24 * 60 * 60;
-        //TODO this is not needed  "newrelic.log"   "agent.log"   "foo.txt" ---> foo.txt.2022-01-01    foo.txt.2022-01-01.1
-        String fileNamePrefix = NewRelic.getAgent().getConfig().getValue("log_file_name");
 
-        //TODO you have the path from construction of object
-        String filePath = NewRelic.getAgent().getConfig().getValue("log_file_path");
         Path directory = new File(this.path).toPath();
-
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleWithFixedDelay(
-                new DeleteLogFilesRunnable(directory, fileCount, fileNamePrefix),
+                new DeleteLogFilesRunnable(directory, fileCount, fileName),
                 initialDelaySeconds,
                 repeatIntervalSeconds,
                 TimeUnit.SECONDS
