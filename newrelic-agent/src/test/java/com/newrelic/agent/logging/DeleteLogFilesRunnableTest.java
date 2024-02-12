@@ -73,7 +73,7 @@ public class DeleteLogFilesRunnableTest {
         deleteTempDirAndContents(tempDir);
     }
 
-    private void addOldLogFiles(Path directory, int daysAgo, String fileNamePrefix) throws IOException {
+    private void addOldLogFiles(Path directory, int daysAgo, String fileNamePrefix) {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, -daysAgo);
         Date date = calendar.getTime();

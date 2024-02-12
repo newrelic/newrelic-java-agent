@@ -21,7 +21,7 @@ public class FileAppenderFactoryTest {
 
     @Test
     public void build_withLogDailyTrueAndByteLimitGreaterThanZero_createsDailyRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "0", true);
+        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "0", true, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
 
@@ -38,7 +38,7 @@ public class FileAppenderFactoryTest {
 
     @Test
     public void build_withLogDailyTrueAndByteLimitEqualZero_createsDailyRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "1", true);
+        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "1", true, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
 
@@ -55,7 +55,7 @@ public class FileAppenderFactoryTest {
 
     @Test
     public void build_withLogDailyFalseAndByteLimitGreaterThanZero_createsSizeBasedRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "2", false);
+        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "2", false, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
 
@@ -69,7 +69,7 @@ public class FileAppenderFactoryTest {
 
     @Test
     public void build_withLogDailyFalseAndByteLimitEqualZero_createsSizeBasedRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "3", false);
+        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "3", false, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         FileAppender rollingFileAppender = (FileAppender) fileAppender;
 
