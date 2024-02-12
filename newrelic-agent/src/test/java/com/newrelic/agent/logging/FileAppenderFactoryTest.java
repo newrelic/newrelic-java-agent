@@ -77,13 +77,6 @@ public class FileAppenderFactoryTest {
         Assert.assertEquals(FILENAME + "3", rollingFileAppender.getFileName());
     }
 
-    @Test
-    public void testingFilePath() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "0", true);
-        AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
-        RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
-    }
-
     @AfterClass
     public static void afterTests() {
         for (int idx = 0; idx < 4; idx++) {
