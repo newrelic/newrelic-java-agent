@@ -7,7 +7,7 @@
 
 package com.newrelic.agent.logging;
 
-import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
 import org.apache.logging.log4j.core.appender.AbstractOutputStreamAppender;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.FileManager;
@@ -20,6 +20,8 @@ import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.TriggeringPolicy;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -107,16 +109,25 @@ public class FileAppenderFactory {
                 .withMax(String.valueOf(fileCount))
                 .build();
 
-        String filePattern = fileName + ".%d{yyyy-MM-dd-HH-mm}.%i";
+        String filePattern = fileName + ".%d{yyyy-MM-dd}.%i";
         if (logLimitBytes > 0) {
             // If we might roll within a day, use a number ordering suffix
-            filePattern = fileName + ".%d{yyyy-MM-dd-HH-mm}.%i";
+            filePattern = fileName + ".%d{yyyy-MM-dd}.%i";
         }
 
-        String filePath = AgentBridge.getAgent().getConfig().getValue("log_file_path").toString();
+        long initialDelaySeconds = 60;
+        int repeatIntervalSeconds = fileCount * 24 * 60 * 60;
+        String fileNamePrefix = NewRelic.getAgent().getConfig().getValue("log_file_name");
+        String filePath = NewRelic.getAgent().getConfig().getValue("log_file_path");
+        Path directory = new File(filePath).toPath();
+
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleWithFixedDelay(new DeleteLogFileRunnable(filePath, fileCount),
-                 60, (long) fileCount * 24 * 60 * 60, TimeUnit.SECONDS);
+        executorService.scheduleWithFixedDelay(
+                new DeleteLogFilesRunnable(directory, fileCount, fileNamePrefix),
+                initialDelaySeconds,
+                repeatIntervalSeconds,
+                TimeUnit.SECONDS
+        );
 
         return initializeRollingFileAppender()
                 .withPolicy(policy)
