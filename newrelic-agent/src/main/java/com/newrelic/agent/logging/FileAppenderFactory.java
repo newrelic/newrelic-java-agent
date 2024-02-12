@@ -50,17 +50,20 @@ public class FileAppenderFactory {
     private final String fileName;
     private final boolean isDaily;
 
+    private final String path;
+
     /**
      * @param fileCount maximum number of log files
      * @param logLimitBytes maximum size of a given log file
      * @param fileName prefix for log file names
      * @param isDaily if the logs are to be rolled over daily
      */
-    public FileAppenderFactory(int fileCount, long logLimitBytes, String fileName, boolean isDaily) {
+    public FileAppenderFactory(int fileCount, long logLimitBytes, String fileName, boolean isDaily, String path) {
         this.fileCount = fileCount;
         this.logLimitBytes = logLimitBytes;
         this.fileName = fileName;
         this.isDaily = isDaily;
+        this.path = path;
     }
 
     /**
@@ -109,7 +112,8 @@ public class FileAppenderFactory {
                 .withMax(String.valueOf(fileCount))
                 .build();
 
-        String filePattern = fileName + ".%d{yyyy-MM-dd}.%i";
+        //TODO remove int counter
+        String filePattern = fileName + ".%d{yyyy-MM-dd}";
         if (logLimitBytes > 0) {
             // If we might roll within a day, use a number ordering suffix
             filePattern = fileName + ".%d{yyyy-MM-dd}.%i";
@@ -117,9 +121,12 @@ public class FileAppenderFactory {
 
         long initialDelaySeconds = 60;
         int repeatIntervalSeconds = fileCount * 24 * 60 * 60;
+        //TODO this is not needed  "newrelic.log"   "agent.log"   "foo.txt" ---> foo.txt.2022-01-01    foo.txt.2022-01-01.1
         String fileNamePrefix = NewRelic.getAgent().getConfig().getValue("log_file_name");
+
+        //TODO you have the path from construction of object
         String filePath = NewRelic.getAgent().getConfig().getValue("log_file_path");
-        Path directory = new File(filePath).toPath();
+        Path directory = new File(this.path).toPath();
 
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleWithFixedDelay(

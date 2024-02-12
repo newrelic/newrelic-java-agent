@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -26,10 +27,12 @@ public class DeleteLogFilesRunnable implements Runnable {
     private final String fileNamePrefix;
 
 
+
     public DeleteLogFilesRunnable(Path logDirectoryPath, int fileCount, String fileNamePrefix) {
         this.logDirectoryPath = logDirectoryPath;
         this.daysToKeepFiles = fileCount;
         this.fileNamePrefix = fileNamePrefix;
+        //TODO init the pattern object here
     }
 
     @Override
@@ -43,6 +46,7 @@ public class DeleteLogFilesRunnable implements Runnable {
             paths.forEach(path -> {
                 String fileName = path.getFileName().toString();
                 if (isValidLogFileName(fileName)) {
+                    //TODO not needed
                     try {
                         deleteIfOlderThanThreshold(path, fileName, dateFormat);
                     } catch (IOException | ParseException e) {
@@ -59,10 +63,16 @@ public class DeleteLogFilesRunnable implements Runnable {
         }
     }
 
-    private void deleteIfOlderThanThreshold(Path filePath, String fileName, SimpleDateFormat dateFormat) throws ParseException, IOException {
+    private void deleteIfOlderThanThreshold(Path filePath, String fileName, SimpleDateFormat dateFormat) {
 
         String dateString = extractDateString(fileName);
-        Date fileDate = dateFormat.parse(dateString);
+        //TODO wrap in try/catch... catch ParseException
+        Date fileDate;
+        if (dateString != null) {
+            fileDate = dateFormat.parse(dateString);
+        } else {
+            return;
+        }
 
         Calendar threshold = Calendar.getInstance();
         threshold.setTime(fileDate);
@@ -71,10 +81,11 @@ public class DeleteLogFilesRunnable implements Runnable {
         if (threshold.getTime().before(new Date())) {
             try {
                 Files.delete(filePath);
-                if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
-                    logger.error("Daily log file deleted: " + filePath); //TODO: Not necessary to log file deletion
-                }
+//                if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
+//                    logger.log(Level.FINEST, "Daily log file deleted: " + filePath); //TODO: Not necessary to log file deletion
+//                }
             } catch (IOException e) {
+                //TODO always log it
                 if (NewRelic.getAgent().getLogger().isLoggable(Level.FINEST)) {
                     logger.error("Error deleting expired log file: " + filePath, e);
                 }
@@ -87,14 +98,8 @@ public class DeleteLogFilesRunnable implements Runnable {
     }
 
     private String extractDateString(String fileName) {
-    //TODO: unable to use matcher method outside of instrumentation package
-        pattern = Pattern.compile(fileNamePrefix.replace(".", "\\.") + "\\.(\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]))$");
-//        if (matcher.find()) {
-//            System.out.println(matcher.group(0));
-//            return matcher.group(1);
-//        }
-        int startIndex = fileNamePrefix.length();
-        int endIndex = Math.min(startIndex + "yyyy-MM-dd".length(), fileName.length());
-        return fileName.substring(startIndex, endIndex);
+        pattern = Pattern.compile(fileNamePrefix.replace(".", "\\.") + "(\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]))(\\.\\d)?$");
+        Matcher matcher = pattern.matcher(fileName);
+        return matcher.find() ? matcher.group(1) : null;
     }
 }
