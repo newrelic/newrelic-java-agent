@@ -1,0 +1,39 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework:spring-webflux:6.1.0")
+
+    testImplementation('org.springframework:spring-context:6.1.0')
+    testImplementation("io.projectreactor.netty:reactor-netty:1.1.0")
+    testImplementation('org.springframework:spring-test:6.1.0')
+    testRuntimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.87.Final:osx-aarch_64")
+
+    testImplementation(project(":instrumentation:spring-webclient-6.0"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-webflux-6.1.0'}
+}
+
+verifyInstrumentation {
+    passesOnly('org.springframework:spring-webflux:[6.1.0,)')
+    excludeRegex '.*.M[0-9]'
+    excludeRegex '.*.RC[0-9]'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Spring webclient'
+    type 'Messaging'
+}
