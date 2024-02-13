@@ -4,8 +4,9 @@ import com.newrelic.agent.introspec._
 import com.newrelic.api.agent.Trace
 import com.newrelic.zio.api.TraceOps._
 import org.junit.runner.RunWith
-import org.junit.{After, Assert, Ignore, Test}
-import zio.Exit.{Failure, Success}
+import org.junit.runners.MethodSorters
+import org.junit.{After, Assert, Before, FixMethodOrder, Test}
+import zio.Exit.Success
 import zio.clock.Clock
 
 import java.util.concurrent.Executors
@@ -16,7 +17,10 @@ import zio.duration.durationInt
 
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("none"))
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZIOTraceOpsTests {
+
+  val introspector: Introspector = InstrumentationTestRunner.getIntrospector
 
   def executorService(nThreads: Int) = {
     ExecutionContext.fromExecutor(Executors.newFixedThreadPool(nThreads))
@@ -26,16 +30,19 @@ class ZIOTraceOpsTests {
   val threadPoolTwo: ExecutionContext = executorService(3)
   val threadPoolThree: ExecutionContext = executorService(3)
 
+  @Before
+  def setup() = {
+    com.newrelic.agent.Transaction.clearTransaction
+    introspector.clear()
+  }
   @After
   def resetTxn() = {
     com.newrelic.agent.Transaction.clearTransaction
+    introspector.clear()
   }
 
   @Test
   def asyncTraceProducesOneSegment(): Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-
     //When
     val txnBlock: UIO[Int] = txn {
       asyncTrace("getNumber")(UIO(1))
@@ -56,9 +63,6 @@ class ZIOTraceOpsTests {
 
   @Test
   def chainedSyncAndAsyncTraceSegmentsCaptured(): Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
-
     //When
     val txnBlock: UIO[Int] = txn(
       asyncTrace("getNumber")(UIO(1))
@@ -81,8 +85,6 @@ class ZIOTraceOpsTests {
 
   @Test
   def asyncForComprehensionSegments: Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
 
     //When
     val txnBlock: UIO[Int] = txn {
@@ -114,8 +116,6 @@ class ZIOTraceOpsTests {
   @Test
   def sequentialAsyncTraceSegmentTimeCaptured(): Unit = {
     val delayMillis = 1500
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
 
     //When
     val txnBlock = txn(
@@ -143,8 +143,6 @@ class ZIOTraceOpsTests {
 
   @Test
   def segmentCompletedIfIOErrors(): Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
 
     //When
     val txnBlock: Task[Int] = txn(
@@ -174,8 +172,6 @@ class ZIOTraceOpsTests {
 
   @Test
   def parallelTraverse(): Unit = {
-    //Given
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
 
     //When
     val txnBlock: UIO[Int] = txn(
@@ -205,21 +201,24 @@ class ZIOTraceOpsTests {
   transactions with thread hops leaked into each other (resulting in 1 transaction instead of several).
   This was found to primarily affect transactions that started and ended on different threads (eg,
   because of a .join operation).
+
+  This test is named to be evaluated last alphabetically due to side effects from the ZIO Runtime environment.
    */
   @Test
-  def multipleTransactionsWithThreadHopsDoNotBleed(): Unit = {
+  def z_multipleTransactionsWithThreadHopsDoNotBleed(): Unit = {
     val delayMillis = 500
-    val introspector: Introspector = InstrumentationTestRunner.getIntrospector
 
     //When
-    def txnBlock(i: Int): ZIO[Clock, Nothing, Int] = txn{
-      for {
-        one <- asyncTrace(s"loop $i: one")(UIO(1))
-        _ <- asyncTrace(s"loop $i: sleep")(ZIO.sleep(delayMillis.millis)) //thread hop
-        forkedFiber <- asyncTrace(s"loop $i: forked fiber")(UIO(5).fork) //thread hop
-        five <- forkedFiber.join //thread hop
-        eight <- asyncTrace(s"loop $i: eight")(UIO(one + five + 2))
-      } yield eight + i
+    def txnBlock(i: Int): ZIO[Clock, Nothing, Int] = {
+      txn(
+        for {
+          one <- asyncTrace(s"loop $i: one")(UIO(1))
+          _ <- asyncTrace(s"loop $i: sleep")(ZIO.sleep(delayMillis.millis))//thread hop
+          forkedFiber <- asyncTrace(s"loop $i: forked fiber")(UIO(5).fork) //thread hop
+          five <- forkedFiber.join //thread hop
+          eight <- asyncTrace(s"loop $i: eight")(UIO(one + five + 2))
+        } yield eight + i
+      )
     }
     val result = Runtime.default.unsafeRunSync(
       ZIO.loop(0)(i => i < 5, i => i + 1)(i => txnBlock(i))
@@ -240,7 +239,6 @@ class ZIOTraceOpsTests {
     })
 
   }
-
 
   @Trace(async = true)
   private def getThree = 3
