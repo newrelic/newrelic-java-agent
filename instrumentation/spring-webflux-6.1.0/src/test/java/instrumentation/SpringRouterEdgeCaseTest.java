@@ -78,7 +78,7 @@ public class SpringRouterEdgeCaseTest {
 
     @Test
     public void badResponseCode() {
-        final int statusCode = webClient.get().uri("/bad-status-code").exchange().block().rawStatusCode();
+        final int statusCode = webClient.get().uri("/bad-status-code").exchange().block().statusCode().value();
         final Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount(3000));
         assertEquals(463, statusCode);
