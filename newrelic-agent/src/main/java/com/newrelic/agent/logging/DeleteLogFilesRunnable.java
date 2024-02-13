@@ -43,11 +43,7 @@ public class DeleteLogFilesRunnable implements Runnable {
             paths.forEach(path -> {
                 String fileName = path.getFileName().toString();
                 if (isValidLogFileName(fileName)) {
-                    try {
-                        deleteIfOlderThanThreshold(path, fileName, dateFormat);
-                    } catch (ParseException e) {
-                            logger.error("Error deleting log file: " + logDirectoryPath + fileName, e);
-                    }
+                    deleteIfOlderThanThreshold(path, fileName, dateFormat);
                 }
             });
         } catch (IOException e) {
@@ -55,7 +51,7 @@ public class DeleteLogFilesRunnable implements Runnable {
         }
     }
 
-    private void deleteIfOlderThanThreshold(Path filePath, String fileName, SimpleDateFormat dateFormat) throws ParseException {
+    private void deleteIfOlderThanThreshold(Path filePath, String fileName, SimpleDateFormat dateFormat) {
 
         String dateString = extractDateString(fileName);
         Calendar threshold = Calendar.getInstance();
