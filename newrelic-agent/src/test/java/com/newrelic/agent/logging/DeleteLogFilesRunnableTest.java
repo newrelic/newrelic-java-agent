@@ -1,13 +1,12 @@
 package com.newrelic.agent.logging;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,63 +16,83 @@ import static org.junit.Assert.*;
 public class DeleteLogFilesRunnableTest {
 
     private DeleteLogFilesRunnable deleteLogFilesRunnable;
+    private Path tempDir;
+
+    @Before
+    public void setUp() throws IOException {
+        String fileNamePrefix = "testLogDir.";
+        tempDir = Files.createTempDirectory(fileNamePrefix);
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        if (tempDir != null && Files.exists(tempDir)) {
+            Files.walk(tempDir)
+                    .sorted((a, b) -> -a.compareTo(b))
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+            Files.deleteIfExists(tempDir);
+        }
+    }
 
     @Test
     public void testDeleteOldFiles() throws Exception {
+        addOldLogFiles(5, "testLogDir.");
 
-        long expectedLogFileCount;
-        long actualLogFileCount;
-        String fileNamePrefix = "testLogDir.";
-        Path tempDir = Files.createTempDirectory(fileNamePrefix);
-        addOldLogFiles(tempDir, 5, fileNamePrefix); // Add files created 5 days ago
-
-        expectedLogFileCount = 5;
-        actualLogFileCount = Files.list(tempDir).count();
+        long expectedLogFileCount = 5;
+        long actualLogFileCount = Files.list(tempDir).count();
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 3, fileNamePrefix); // Keep files for 3 days
+        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 3, "testLogDir.");
         deleteLogFilesRunnable.run();
 
         expectedLogFileCount = 0;
         actualLogFileCount = Files.list(tempDir).count();
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
-
-        Files.deleteIfExists(tempDir);
     }
 
     @Test
     public void testSkipInvalidLogFiles() throws Exception {
-        long expectedLogFileCount;
-        long actualLogFileCount;
-        String fileNamePrefix = "testLogDir.";
-        Path tempDir = Files.createTempDirectory(fileNamePrefix);
         Files.createFile(tempDir.resolve("invalid_log_file.txt"));
         Files.createFile(tempDir.resolve("invalid.txt"));
         Files.createFile(tempDir.resolve("2024-02-04"));
-        addOldLogFiles(tempDir, 10, fileNamePrefix);
+        addOldLogFiles(10, "testLogDir.");
 
-        expectedLogFileCount = 8;
-        actualLogFileCount = Files.list(tempDir).count();
-
+        long expectedLogFileCount = 8;
+        long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 1, fileNamePrefix);
+        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 1, "testLogDir.");
         deleteLogFilesRunnable.run();
 
         expectedLogFileCount = 3;
         actualLogFileCount = Files.list(tempDir).count();
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
-        // Check if invalid log files are skipped
         assertTrue("Invalid log file should be skipped", Files.exists(tempDir.resolve("invalid_log_file.txt")));
         assertTrue("Invalid log file should be skipped", Files.exists(tempDir.resolve("invalid.txt")));
         assertTrue("Invalid log file should be skipped", Files.exists(tempDir.resolve("2024-02-04")));
-        deleteTempDirAndContents(tempDir);
     }
 
-    private void addOldLogFiles(Path directory, int daysAgo, String fileNamePrefix) {
+    @Test
+    public void testNoPermissionToDeleteFiles() throws IOException {
+        Path readOnlyFile = Files.createFile(tempDir.resolve("readonly.log"));
+        readOnlyFile.toFile().setReadOnly();
+
+        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 3, "testLogDir.");
+        deleteLogFilesRunnable.run();
+
+        assertTrue("Read-only file should still exist", Files.exists(readOnlyFile));
+    }
+
+    private void addOldLogFiles(int daysAgo, String fileNamePrefix) throws IOException {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, -daysAgo);
         Date date = calendar.getTime();
@@ -81,24 +100,9 @@ public class DeleteLogFilesRunnableTest {
 
         for (int i = 0; i < 5; i++) {
             String fileName = fileNamePrefix + dateFormat.format(date) + "." + (i + 1);
-            try {
-                Files.createFile(directory.resolve(fileName));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            Files.createFile(tempDir.resolve(fileName));
             calendar.add(Calendar.MINUTE, 1);
             date = calendar.getTime();
         }
-    }
-
-    private void deleteTempDirAndContents(Path tempDir) throws IOException {
-            Files.walkFileTree(tempDir, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-            Files.delete(tempDir);
     }
 }
