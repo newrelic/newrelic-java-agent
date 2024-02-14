@@ -36,14 +36,23 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
     @NewField
     private InboundWrapper inboundHeaders;
     @NewField
-    private HttpResponse httpResponse;
+    private Integer statusCode;
+    @NewField
+    private String reasonMessage;
 
     /**
      * Invoked when a HTTP response message is received.
      */
     public void responseReceived(HttpResponse response) throws IOException, HttpException {
         inboundHeaders = new InboundWrapper(response);
-        httpResponse = response;
+
+        statusCode = null;
+        reasonMessage = null;
+        if (response != null && response.getStatusLine() != null) {
+            statusCode = response.getStatusLine().getStatusCode();
+            reasonMessage = response.getStatusLine().getReasonPhrase();
+        }
+
         Weaver.callOriginal();
     }
 
@@ -64,6 +73,8 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
         segment = null;
         uri = null;
         inboundHeaders = null;
+        statusCode = null;
+        reasonMessage = null;
         Weaver.callOriginal();
     }
 
@@ -90,16 +101,10 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
     }
 
     private Integer getStatusCode() {
-        if (httpResponse != null && httpResponse.getStatusLine() != null) {
-            return httpResponse.getStatusLine().getStatusCode();
-        }
-        return null;
+        return statusCode;
     }
 
     private String getReasonMessage() {
-        if (httpResponse != null && httpResponse.getStatusLine() != null) {
-            return httpResponse.getStatusLine().getReasonPhrase();
-        }
-        return null;
+        return reasonMessage;
     }
 }

@@ -12,17 +12,18 @@ import com.newrelic.api.agent.ExtendedInboundHeaders;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Wraps Apache http async client's inbound response headers for CAT.
  */
 public class InboundWrapper extends ExtendedInboundHeaders {
-    private final HttpResponse response;
+    private final Header[] headers;
 
     public InboundWrapper(HttpResponse response) {
-        this.response = response;
+        this.headers = response == null ? null : response.getAllHeaders();
     }
 
     @Override
@@ -32,25 +33,25 @@ public class InboundWrapper extends ExtendedInboundHeaders {
 
     @Override
     public String getHeader(String name) {
-        // getHeaders always returns an array of length >= 0
-        Header[] headers = response.getHeaders(name);
-        if (headers.length > 0) {
-            return headers[0].getValue();
-        }
-        return null;
+        if (headers == null || name == null) return null;
+
+        return Arrays.stream(headers)
+                .filter(h -> name.equals(h.getName()))
+                .map(h -> h.getValue())
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public List<String> getHeaders(String name) {
-        // getHeaders always returns an array of length >= 0
-        Header[] headers = response.getHeaders(name);
-        if (headers.length > 0) {
-            List<String> result = new ArrayList<>(headers.length);
-            for (Header header : headers) {
-                result.add(header.getValue());
-            }
-            return result;
-        }
-        return null;
+        if (headers == null  || name == null) return null;
+
+        List<String> result = Arrays.stream(headers)
+                .filter(h -> name.equals(h.getName()))
+                .map(h -> h.getValue())
+                .collect(Collectors.toList());
+
+        return result.isEmpty() ? null : result;
     }
+
 }
