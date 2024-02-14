@@ -119,7 +119,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
-    public static final String OPEN_TRACING = "open_tracing";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
@@ -265,7 +264,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
-    private final OpenTracingConfig openTracingConfig;
     private final ReinstrumentConfig reinstrumentConfig;
     private final TransactionTracerConfigImpl requestTransactionTracerConfig;
     private final SlowTransactionsConfig slowTransactionsConfig;
@@ -366,7 +364,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         circuitBreakerConfig = initCircuitBreakerConfig();
         segmentTimeoutInSec = initSegmentTimeout();
         tokenTimeoutInSec = initTokenTimeout();
-        openTracingConfig = initOpenTracingConfig();
         distributedTracingConfig = initDistributedTracing();
         spanEventsConfig = initSpanEventsConfig(distributedTracingConfig.isEnabled());
         transactionEventsConfig = initTransactionEvents();
@@ -503,11 +500,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
                 "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}",
                 EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
         return DEFAULT_EVENT_INGEST_URI;
-    }
-
-    private OpenTracingConfig initOpenTracingConfig() {
-        Map<String, Object> openTracing = nestedProps(OPEN_TRACING);
-        return new OpenTracingConfig(openTracing);
     }
 
     private DistributedTracingConfig initDistributedTracing() {
@@ -1412,11 +1404,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public ExternalTracerConfig getExternalTracerConfig() {
         return externalTracerConfig;
-    }
-
-    @Override
-    public boolean openTracingEnabled() {
-        return openTracingConfig.isEnabled();
     }
 
     @Override
