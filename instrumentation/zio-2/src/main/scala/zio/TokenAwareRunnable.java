@@ -2,10 +2,10 @@ package zio.internal;
 
 import com.newrelic.agent.bridge.AgentBridge;
 
-import static zio.internal.Utils.getThreadTokenAndRefCount;
-import static zio.internal.Utils.clearThreadTokenAndRefCountAndTxn;
-import static zio.internal.Utils.setThreadTokenAndRefCount;
-import static zio.internal.Utils.logTokenInfo;
+import static zio.Utils.getThreadTokenAndRefCount;
+import static zio.Utils.clearThreadTokenAndRefCountAndTxn;
+import static zio.Utils.setThreadTokenAndRefCount;
+import static zio.Utils.logTokenInfo;
 
 
 public final class TokenAwareRunnable implements Runnable {
