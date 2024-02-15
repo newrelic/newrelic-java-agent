@@ -28,7 +28,7 @@ public class Utils {
 
   public static void clearThreadTokenAndRefCountAndTxn(AgentBridge.TokenAndRefCount tokenAndRefCount) {
     AgentBridge.activeToken.remove();
-    if (tokenAndRefCount != null && tokenAndRefCount.refCount.decrementAndGet() == 0) {
+    if (tokenAndRefCount != null) { //removed a call to decrement the ref count as it is no longer being used
       tokenAndRefCount.token.expire();
       tokenAndRefCount.token = null;
     }
