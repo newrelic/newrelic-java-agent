@@ -73,8 +73,8 @@ public class BedrockRuntimeUtil {
         eventAttributes.put("ingest_source", getIngestSource());
 //        eventAttributes.put("duration", "NOT POSSIBLE"); // TODO Total time taken for the chat completion or embedding call to complete
         if (invokeModelResponseWrapper.isErrorResponse()) {
-            eventAttributes.put("error", true); // TODO Bool set to True if an error occurred during creation call - omitted if no error occurred
-//            NewRelic.noticeError(invokeModelResponseWrapper.getStatusText());
+            eventAttributes.put("error", true);
+            invokeModelResponseWrapper.reportLlmError();
         }
 //        eventAttributes.put("llm.<user_defined_metadata>", ""); // TODO Optional metadata attributes that can be added to a transaction by a customer via add_custom_attribute API. Done internally when event is created?
 
@@ -107,8 +107,8 @@ public class BedrockRuntimeUtil {
         eventAttributes.put("ingest_source", getIngestSource());
 //        eventAttributes.put("duration", "NOT POSSIBLE"); // TODO Total time taken for the chat completion or embedding call to complete
         if (invokeModelResponseWrapper.isErrorResponse()) {
-            eventAttributes.put("error", true); // TODO Bool set to True if an error occurred during creation call - omitted if no error occurred
-//            NewRelic.noticeError(invokeModelResponseWrapper.getStatusText());
+            eventAttributes.put("error", true);
+            invokeModelResponseWrapper.reportLlmError();
         }
 //        eventAttributes.put("llm.<user_defined_metadata>", ""); // TODO Optional metadata attributes that can be added to a transaction by a customer via add_custom_attribute API. Done internally when event is created?
 //        eventAttributes.put("llm.conversation_id", "NEW API"); // TODO Optional attribute that can be added to a transaction by a customer via add_custom_attribute API. Should just be added and prefixed along with the other user attributes?

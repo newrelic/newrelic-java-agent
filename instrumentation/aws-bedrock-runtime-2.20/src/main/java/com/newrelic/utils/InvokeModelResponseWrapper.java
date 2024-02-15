@@ -13,6 +13,7 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -247,5 +248,18 @@ public class InvokeModelResponseWrapper {
 
     public String getLlmEmbeddingId() {
         return llmEmbeddingId;
+    }
+
+    public void reportLlmError() {
+        Map<String, Object> errorParams = new HashMap<>();
+        errorParams.put("http.statusCode", statusCode);
+        errorParams.put("error.code", statusCode);
+        if (!llmChatCompletionSummaryId.isEmpty()) {
+            errorParams.put("completion_id", llmChatCompletionSummaryId);
+        }
+        if (!llmEmbeddingId.isEmpty()) {
+            errorParams.put("embedding_id", llmEmbeddingId);
+        }
+        NewRelic.noticeError("LlmError: " + statusText, errorParams);
     }
 }
