@@ -11,6 +11,7 @@ public class Utils {
 
   public static AgentBridge.TokenAndRefCount getThreadTokenAndRefCount() {
     AgentBridge.TokenAndRefCount tokenAndRefCount = AgentBridge.activeToken.get();
+    // Used to be that if the tokenAndRefCount is not null, we increment the counter and then return the tokenAndRefCount
     Transaction tx = AgentBridge.getAgent().getTransaction(false);
     if (tx != null) {
       tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
