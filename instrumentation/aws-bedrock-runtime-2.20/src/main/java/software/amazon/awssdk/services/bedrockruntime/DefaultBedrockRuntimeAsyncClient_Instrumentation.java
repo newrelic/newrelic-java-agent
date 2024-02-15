@@ -7,6 +7,9 @@
 
 package software.amazon.awssdk.services.bedrockruntime;
 
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -53,15 +56,28 @@ final class DefaultBedrockRuntimeAsyncClient_Instrumentation {
 
     @Trace
     public CompletableFuture<InvokeModelResponse> invokeModel(InvokeModelRequest invokeModelRequest) {
+        // TODO name "Llm/" + operationType + "/Bedrock/InvokeModelAsync" ????
+        Segment segment = NewRelic.getAgent().getTransaction().startSegment("LLM", "InvokeModelAsync");
         CompletableFuture<InvokeModelResponse> invokeModelResponseFuture = Weaver.callOriginal();
 
-        // FIXME needs to be incremented constantly for UI
         incrementBedrockInstrumentedMetric();
 
-        System.out.println("Request: " + invokeModelRequest);
-        System.out.println("Request Body: " + invokeModelRequest.body());
+        // this should never happen, but protecting against bad implementations
+        if (invokeModelResponseFuture == null) {
+            segment.end();
+        } else {
+            invokeModelResponseFuture.whenComplete((invokeModelResponse, throwable) -> {
+                try {
+                    // TODO do all the stuff
+                    segment.end();
+                } catch (Throwable t) {
+                    AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
+                }
+            });
+        }
 
         return invokeModelResponseFuture;
+
     }
 
 }

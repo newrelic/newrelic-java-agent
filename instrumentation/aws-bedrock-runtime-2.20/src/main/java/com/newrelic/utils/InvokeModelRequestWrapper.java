@@ -22,28 +22,38 @@ import java.util.logging.Level;
  * but doesn't hold a reference to the actual request object.
  */
 public class InvokeModelRequestWrapper {
-    private final String invokeModelRequestBody;
-    private final String modelId;
-    private Map<String, JsonNode> requestBodyJsonMap = null;
-
     // Request body (for Claude, how about other models?)
     private static final String STOP_SEQUENCES = "stop_sequences";
     private static final String MAX_TOKENS_TO_SAMPLE = "max_tokens_to_sample";
     private static final String TEMPERATURE = "temperature";
     private static final String PROMPT = "prompt";
+    private static final String INPUT_TEXT = "inputText";
+    private static final String ESCAPED_NEWLINES = "\\n\\n";
+    private static final String SYSTEM = "system";
+    private static final String ASSISTANT = "assistant";
+    private static final String USER = "user";
+
+    private String invokeModelRequestBody = "";
+    private String modelId = "";
+    private Map<String, JsonNode> requestBodyJsonMap = null;
+
 
     public InvokeModelRequestWrapper(InvokeModelRequest invokeModelRequest) {
         if (invokeModelRequest != null) {
             invokeModelRequestBody = invokeModelRequest.body().asUtf8String();
             modelId = invokeModelRequest.modelId();
         } else {
-            invokeModelRequestBody = "";
-            modelId = "";
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Received null InvokeModelRequest");
         }
     }
 
-    // Lazy init and only parse map once
+    /**
+     * Get a map of the Request body contents.
+     * <p>
+     * Use this method to obtain the Request body contents so that the map is lazily initialized and only parsed once.
+     *
+     * @return map of String to JsonNode
+     */
     public Map<String, JsonNode> getRequestBodyJsonMap() {
         if (requestBodyJsonMap == null) {
             requestBodyJsonMap = parseInvokeModelRequestBodyMap();
@@ -51,6 +61,11 @@ public class InvokeModelRequestWrapper {
         return requestBodyJsonMap;
     }
 
+    /**
+     * Convert JSON Request body string into a map.
+     *
+     * @return map of String to JsonNode
+     */
     private Map<String, JsonNode> parseInvokeModelRequestBodyMap() {
         // Use AWS SDK JSON parsing to parse request body
         JsonNodeParser jsonNodeParser = JsonNodeParser.create();
@@ -69,7 +84,7 @@ public class InvokeModelRequestWrapper {
 
     // TODO do we potentially expect more than one entry in the stop sequence? Or is it sufficient
     //  to just check if it contains Human?
-    public String parseStopSequences() {
+    public String getStopSequences() {
         StringBuilder stopSequences = new StringBuilder();
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
@@ -94,7 +109,7 @@ public class InvokeModelRequestWrapper {
         return stopSequences.toString().replaceAll("[\n:]", "");
     }
 
-    public String parseMaxTokensToSample() {
+    public String getMaxTokensToSample() {
         String maxTokensToSample = "";
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
@@ -109,7 +124,7 @@ public class InvokeModelRequestWrapper {
         return maxTokensToSample;
     }
 
-    public String parseTemperature() {
+    public String getTemperature() {
         String temperature = "";
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
@@ -124,7 +139,7 @@ public class InvokeModelRequestWrapper {
         return temperature;
     }
 
-    public String parsePrompt() {
+    public String getPrompt() {
         String prompt = "";
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
@@ -136,7 +151,41 @@ public class InvokeModelRequestWrapper {
         } catch (Exception e) {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + PROMPT);
         }
-        return prompt.replace("Human: ", "").replace("\n\nAssistant:", "");
+        return prompt;
+//        return prompt.replace("Human: ", "").replace("\n\nAssistant:", "");
+    }
+
+    public String getRole() {
+        try {
+            if (!invokeModelRequestBody.isEmpty()) {
+                String invokeModelRequestBodyLowerCase = invokeModelRequestBody.toLowerCase();
+                if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + SYSTEM)) {
+                    return SYSTEM;
+                } else if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + USER)) {
+                    return USER;
+                } else if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + ASSISTANT)) {
+                    return ASSISTANT;
+                }
+            }
+        } catch (Exception e) {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse role from InvokeModelRequest");
+        }
+        return "";
+    }
+
+    public String getInputText() {
+        String inputText = "";
+        try {
+            if (!getRequestBodyJsonMap().isEmpty()) {
+                JsonNode jsonNode = getRequestBodyJsonMap().get(INPUT_TEXT);
+                if (jsonNode.isString()) {
+                    inputText = jsonNode.asString();
+                }
+            }
+        } catch (Exception e) {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + INPUT_TEXT);
+        }
+        return inputText;
     }
 
     public String getModelId() {
