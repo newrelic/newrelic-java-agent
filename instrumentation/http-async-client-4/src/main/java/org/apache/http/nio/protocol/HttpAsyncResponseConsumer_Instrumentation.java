@@ -46,8 +46,6 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
     public void responseReceived(HttpResponse response) throws IOException, HttpException {
         inboundHeaders = new InboundWrapper(response);
 
-        statusCode = null;
-        reasonMessage = null;
         if (response != null && response.getStatusLine() != null) {
             statusCode = response.getStatusLine().getStatusCode();
             reasonMessage = response.getStatusLine().getReasonPhrase();
