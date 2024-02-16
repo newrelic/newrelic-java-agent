@@ -241,7 +241,7 @@ class Log4jLogManager implements IAgentLogManager {
         rootLogger.removeConsoleAppender();
         int limit = agentConfig.getLogLimit() * 1024;
         int fileCount = Math.max(1, agentConfig.getLogFileCount());
-        String path = agentConfig.getLogFilePath();
+        String path = LogFileHelper.getLogFile(agentConfig).getParent();
         boolean isDaily = agentConfig.isLogDaily();
 
         rootLogger.addFileAppender(logFileName, limit, fileCount, isDaily, path);
