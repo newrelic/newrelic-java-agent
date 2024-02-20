@@ -8,7 +8,7 @@ import zio.internal.TokenAwareRunnable;
 @Weave(originalName = "zio.Executor", type = MatchType.BaseClass)
 public class ZIOExecutor_Instrumentation {
 
-  public boolean submit(Runnable runnable) {
+  public boolean submit(Runnable runnable, Unsafe unsafe) {
     runnable = new TokenAwareRunnable(runnable);
     return Weaver.callOriginal();
   }
