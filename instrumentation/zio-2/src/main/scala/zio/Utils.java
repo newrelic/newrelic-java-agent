@@ -12,11 +12,16 @@ public class Utils {
   public static AgentBridge.TokenAndRefCount getThreadTokenAndRefCount() {
     AgentBridge.TokenAndRefCount tokenAndRefCount = AgentBridge.activeToken.get();
     // Used to be that if the tokenAndRefCount is not null, we increment the counter and then return the tokenAndRefCount
-    Transaction tx = AgentBridge.getAgent().getTransaction(false);
-    if (tx != null) {
-      tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
-              AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
+    if (tokenAndRefCount == null) {
+      Transaction tx = AgentBridge.getAgent().getTransaction(false);
+      if (tx != null) {
+        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
+                AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
+      }
+    } else {
+      tokenAndRefCount.refCount.incrementAndGet();
     }
+
     return tokenAndRefCount;
   }
 
@@ -29,7 +34,7 @@ public class Utils {
 
   public static void clearThreadTokenAndRefCountAndTxn(AgentBridge.TokenAndRefCount tokenAndRefCount) {
     AgentBridge.activeToken.remove();
-    if (tokenAndRefCount != null) { //removed a call to decrement the ref count as it is no longer being used
+    if (tokenAndRefCount != null && tokenAndRefCount.refCount.decrementAndGet() <= 0) {
       tokenAndRefCount.token.expire();
       tokenAndRefCount.token = null;
     }

@@ -12,12 +12,10 @@ object Util {
          } else {
            body.mapBoth(
              error => {
-               AgentBridge.activeToken.remove()
                tracer.finish(new Throwable("ZIO txn body fail"))
                error
              },
              success => {
-               AgentBridge.activeToken.remove()
                tracer.finish(172, null)
                success
              })
