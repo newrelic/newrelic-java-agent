@@ -5,7 +5,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import scala.Boolean;
 import scala.Function0;
-import zio.internal.TokenAwareRunnable;
+import zio.TokenAwareRunnable;
 
 import java.time.Duration;
 

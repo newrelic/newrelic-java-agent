@@ -1,4 +1,4 @@
-package zio.internal;
+package zio;
 
 import com.newrelic.agent.bridge.AgentBridge;
 

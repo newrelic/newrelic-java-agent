@@ -3,7 +3,7 @@ package zio;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import zio.internal.TokenAwareRunnable;
+import zio.TokenAwareRunnable;
 
 @Weave(originalName = "zio.Executor", type = MatchType.BaseClass)
 public class ZIOExecutor_Instrumentation {
