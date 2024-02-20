@@ -118,7 +118,7 @@ public class FileAppenderFactory {
         }
 
         long initialDelaySeconds = 60;
-        int repeatIntervalSeconds = fileCount * 24 * 60 * 60;
+        int repeatIntervalSeconds = 24 * 60 * 60;
 
         Path directory = new File(this.path).toPath();
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
