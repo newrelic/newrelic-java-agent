@@ -37,7 +37,6 @@ public class InvokeModelRequestWrapper {
     private String modelId = "";
     private Map<String, JsonNode> requestBodyJsonMap = null;
 
-
     public InvokeModelRequestWrapper(InvokeModelRequest invokeModelRequest) {
         if (invokeModelRequest != null) {
             invokeModelRequestBody = invokeModelRequest.body().asUtf8String();
@@ -54,7 +53,7 @@ public class InvokeModelRequestWrapper {
      *
      * @return map of String to JsonNode
      */
-    public Map<String, JsonNode> getRequestBodyJsonMap() {
+    private Map<String, JsonNode> getRequestBodyJsonMap() {
         if (requestBodyJsonMap == null) {
             requestBodyJsonMap = parseInvokeModelRequestBodyMap();
         }
@@ -73,6 +72,7 @@ public class InvokeModelRequestWrapper {
 
         Map<String, JsonNode> requestBodyJsonMap = null;
         // TODO check for other types? Or will it always be Object?
+        //  add try/catch?
         if (requestBodyJsonNode != null && requestBodyJsonNode.isObject()) {
             requestBodyJsonMap = requestBodyJsonNode.asObject();
         } else {
@@ -83,7 +83,7 @@ public class InvokeModelRequestWrapper {
     }
 
     // TODO do we potentially expect more than one entry in the stop sequence? Or is it sufficient
-    //  to just check if it contains Human?
+    //  to just check if it contains Human? DO we even need this at all? Doesn't look like we do
     public String getStopSequences() {
         StringBuilder stopSequences = new StringBuilder();
         try {
@@ -139,7 +139,7 @@ public class InvokeModelRequestWrapper {
         return temperature;
     }
 
-    public String getPrompt() {
+    public String getRequestMessage() {
         String prompt = "";
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
@@ -152,8 +152,30 @@ public class InvokeModelRequestWrapper {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + PROMPT);
         }
         return prompt;
-//        return prompt.replace("Human: ", "").replace("\n\nAssistant:", "");
     }
+
+//    /**
+//     * Represents the user prompt messages
+//     *
+//     * @return
+//     */
+//    public List<String> getUserRequestMessages() {
+//        // FIXME shouldn't parse the request, just send the whole content
+//        List<String> messageList = null;
+//        try {
+//            if (!getRequestBodyJsonMap().isEmpty()) {
+//                JsonNode jsonNode = getRequestBodyJsonMap().get(PROMPT);
+//                if (jsonNode.isString()) {
+//                    String[] messages = jsonNode.asString().split(ESCAPED_NEWLINES);
+//                    messageList = new ArrayList<>(Arrays.asList(messages));
+//                    messageList.remove("Assistant:");
+//                }
+//            }
+//        } catch (Exception e) {
+//            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + PROMPT);
+//        }
+//        return messageList;
+//    }
 
     public String getRole() {
         try {

@@ -56,6 +56,7 @@ final class DefaultBedrockRuntimeAsyncClient_Instrumentation {
 
     @Trace
     public CompletableFuture<InvokeModelResponse> invokeModel(InvokeModelRequest invokeModelRequest) {
+        long startTime = System.currentTimeMillis();
         // TODO name "Llm/" + operationType + "/Bedrock/InvokeModelAsync" ????
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("LLM", "InvokeModelAsync");
         CompletableFuture<InvokeModelResponse> invokeModelResponseFuture = Weaver.callOriginal();

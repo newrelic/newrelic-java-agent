@@ -17,8 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.logging.Level;
+
+import static com.newrelic.utils.BedrockRuntimeUtil.getRandomGuid;
 
 /**
  * Stores the required info from the Bedrock InvokeModelResponse
@@ -50,7 +51,7 @@ public class InvokeModelResponseWrapper {
     private String statusText = "";
 
     // Random GUID for response
-    private String llmChatCompletionMessageId = "";
+//    private String llmChatCompletionMessageId = "";
     private String llmChatCompletionSummaryId = "";
     private String llmEmbeddingId = "";
 
@@ -68,9 +69,9 @@ public class InvokeModelResponseWrapper {
             statusTextOptional.ifPresent(s -> statusText = s);
             setOperationType(invokeModelResponseBody);
             setHeaderFields(invokeModelResponse);
-            llmChatCompletionMessageId = UUID.randomUUID().toString();
-            llmChatCompletionSummaryId = UUID.randomUUID().toString();
-            llmEmbeddingId = UUID.randomUUID().toString();
+//            llmChatCompletionMessageId = BedrockRuntimeUtil.getRandomGuid();
+            llmChatCompletionSummaryId = getRandomGuid();
+            llmEmbeddingId = getRandomGuid();
         } else {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Received null InvokeModelResponse");
         }
@@ -156,7 +157,12 @@ public class InvokeModelResponseWrapper {
         }
     }
 
-    public String getCompletion() {
+    /**
+     * Represents the response message
+     *
+     * @return
+     */
+    public String getResponseMessage() {
         String completion = "";
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
@@ -225,7 +231,21 @@ public class InvokeModelResponseWrapper {
         return operationType;
     }
 
-    // TODO create errors with below info
+    // TODO stop saving these GUIDS, instead just create a Util method to generate a random one each call??
+//    public String getLlmChatCompletionMessageId() {
+//        return llmChatCompletionMessageId;
+//    }
+
+    // hmmm this one needs to be stored as it's used for completion_id in the message events
+    public String getLlmChatCompletionSummaryId() {
+        return llmChatCompletionSummaryId;
+    }
+
+    // hmmm also needs to be stored to be used for embedding_id in errors
+    public String getLlmEmbeddingId() {
+        return llmEmbeddingId;
+    }
+
     public boolean isErrorResponse() {
         return !isSuccessfulResponse;
     }
@@ -238,28 +258,16 @@ public class InvokeModelResponseWrapper {
         return statusText;
     }
 
-    public String getLlmChatCompletionMessageId() {
-        return llmChatCompletionMessageId;
-    }
-
-    public String getLlmChatCompletionSummaryId() {
-        return llmChatCompletionSummaryId;
-    }
-
-    public String getLlmEmbeddingId() {
-        return llmEmbeddingId;
-    }
-
     public void reportLlmError() {
         Map<String, Object> errorParams = new HashMap<>();
-        errorParams.put("http.statusCode", statusCode);
-        errorParams.put("error.code", statusCode);
-        if (!llmChatCompletionSummaryId.isEmpty()) {
-            errorParams.put("completion_id", llmChatCompletionSummaryId);
+        errorParams.put("http.statusCode", getStatusCode());
+        errorParams.put("error.code", getStatusCode());
+        if (!getLlmChatCompletionSummaryId().isEmpty()) {
+            errorParams.put("completion_id", getLlmChatCompletionSummaryId());
         }
-        if (!llmEmbeddingId.isEmpty()) {
-            errorParams.put("embedding_id", llmEmbeddingId);
+        if (!getLlmEmbeddingId().isEmpty()) {
+            errorParams.put("embedding_id", getLlmEmbeddingId());
         }
-        NewRelic.noticeError("LlmError: " + statusText, errorParams);
+        NewRelic.noticeError("LlmError: " + getStatusText(), errorParams);
     }
 }

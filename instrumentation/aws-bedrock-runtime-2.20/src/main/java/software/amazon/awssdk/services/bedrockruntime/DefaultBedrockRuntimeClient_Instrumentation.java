@@ -26,8 +26,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static com.newrelic.utils.BedrockRuntimeUtil.incrementBedrockInstrumentedMetric;
-import static com.newrelic.utils.BedrockRuntimeUtil.recordLlmChatCompletionMessageEvent;
-import static com.newrelic.utils.BedrockRuntimeUtil.recordLlmChatCompletionSummaryEvent;
+import static com.newrelic.utils.BedrockRuntimeUtil.recordLlmChatCompletionEvents;
 import static com.newrelic.utils.BedrockRuntimeUtil.recordLlmEmbeddingEvent;
 import static com.newrelic.utils.BedrockRuntimeUtil.setLlmOperationMetricName;
 import static com.newrelic.utils.InvokeModelResponseWrapper.COMPLETION;
@@ -61,14 +60,15 @@ final class DefaultBedrockRuntimeClient_Instrumentation {
 
     @Trace
     public InvokeModelResponse invokeModel(InvokeModelRequest invokeModelRequest) {
+        long startTime = System.currentTimeMillis();
         InvokeModelResponse invokeModelResponse = Weaver.callOriginal();
 
         incrementBedrockInstrumentedMetric();
 
         Transaction txn = NewRelic.getAgent().getTransaction();
+//        Transaction txn = AgentBridge.getAgent().getTransaction();
         // TODO check AIM config
         if (txn != null && !(txn instanceof NoOpTransaction)) {
-
             Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
             InvokeModelRequestWrapper requestWrapper = new InvokeModelRequestWrapper(invokeModelRequest);
             InvokeModelResponseWrapper responseWrapper = new InvokeModelResponseWrapper(invokeModelResponse);
@@ -79,10 +79,9 @@ final class DefaultBedrockRuntimeClient_Instrumentation {
 
             // Report LLM events
             if (operationType.equals(COMPLETION)) {
-                recordLlmChatCompletionMessageEvent(txn, linkingMetadata, requestWrapper, responseWrapper);
-                recordLlmChatCompletionSummaryEvent(txn, linkingMetadata, requestWrapper, responseWrapper);
+                recordLlmChatCompletionEvents(startTime, linkingMetadata, requestWrapper, responseWrapper);
             } else if (operationType.equals(EMBEDDING)) {
-                recordLlmEmbeddingEvent(txn, linkingMetadata, requestWrapper, responseWrapper);
+                recordLlmEmbeddingEvent(startTime, linkingMetadata, requestWrapper, responseWrapper);
             } else {
                 NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unexpected operation type");
             }
