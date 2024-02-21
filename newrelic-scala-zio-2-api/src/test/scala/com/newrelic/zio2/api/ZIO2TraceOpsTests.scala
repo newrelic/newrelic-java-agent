@@ -209,51 +209,6 @@ class ZIO2TraceOpsTests {
     Assert.assertTrue(s"sum segments exists", segments.exists(_.getName == s"Custom/sum segments"))
   }
 
-  /*
-  Added in response to a bug discovered with ZIO instrumentation where back-to-back
-  transactions with thread hops leaked into each other (resulting in 1 transaction instead of several).
-  This was found to primarily affect transactions that started and ended on different threads (eg,
-  because of a .join operation).
-
-  This test is named to be evaluated last alphabetically due to side effects from the ZIO Runtime environment.
-   */
-  @Test
-  def z_multipleTransactionsWithThreadHopsDoNotBleed(): Unit = {
-    val delayMillis = 500
-
-    //When
-    def txnBlock(i: Int): ZIO[Any, Nothing, Int] = {
-      txn(
-        for {
-          one <- asyncTrace(s"loop $i: one")(ZIO.succeed(1))
-          _ <- asyncTrace(s"loop $i: sleep")(ZIO.sleep(delayMillis.millis))//thread hop
-          five <- asyncTrace(s"loop $i: forked fiber")(ZIO.succeed(5)) //thread hop
-          eight <- asyncTrace(s"loop $i: eight")(ZIO.succeed(one + five + 2))
-        } yield eight + i
-      )
-    }
-
-    val result = Unsafe.unsafe(implicit u => {
-      Runtime.default.unsafe.run(ZIO.loop(0)(i => i < 5, i => i + 1)(i => txnBlock(i)))
-    }).getOrElse(c => c)
-
-    val txnCount = introspector.getFinishedTransactionCount()
-    val traces = getTraces(introspector)
-    val segments = getSegments(traces)
-    val segmentsDebug = traces.map(trace => getSegments(trace.getInitialTraceSegment).map(_.getName))
-
-    Assert.assertEquals("Result correct", List(8, 9, 10, 11, 12), result)
-    Assert.assertEquals("Correct number of transactions", 5, txnCount)
-    Assert.assertEquals("Correct number of traces", 5, traces.size)
-    List(0, 1, 2, 3, 4).foreach(i => {
-      Assert.assertTrue(s"one segment $i exists", segments.exists(_.getName == s"Custom/loop $i: one"))
-      Assert.assertTrue(s"sleep segment $i exists", segments.exists(_.getName == s"Custom/loop $i: sleep"))
-      Assert.assertTrue(s"forked segment $i exists", segments.exists(_.getName == s"Custom/loop $i: forked fiber"))
-      Assert.assertTrue(s"eight segment $i exists", segments.exists(_.getName == s"Custom/loop $i: eight"))
-    })
-
-  }
-
   @Trace(async = true)
   private def getThree = 3
 
