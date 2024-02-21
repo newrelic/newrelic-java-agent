@@ -44,6 +44,17 @@ public class FileAppenderFactory {
      */
     static final String FILE_APPENDER_NAME = "File";
 
+    /**
+     * Initial delay for scheduling log files cleanup task (in seconds).
+     */
+    private static final long INITIAL_DELAY_SECONDS = 60;
+
+    /**
+     * Repeat interval for scheduling log files cleanup task (in seconds).
+     */
+    private static final int REPEAT_INTERVAL_SECONDS = 24 * 60 * 60;
+
+
     private final int fileCount;
     private final long logLimitBytes;
     private final String fileName;
@@ -117,15 +128,12 @@ public class FileAppenderFactory {
             filePattern = fileName + ".%d{yyyy-MM-dd}.%i";
         }
 
-        long initialDelaySeconds = 60;
-        int repeatIntervalSeconds = 24 * 60 * 60;
-
         Path directory = new File(this.path).toPath();
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleWithFixedDelay(
                 new DeleteLogFilesRunnable(directory, fileCount, fileName),
-                initialDelaySeconds,
-                repeatIntervalSeconds,
+                INITIAL_DELAY_SECONDS,
+                REPEAT_INTERVAL_SECONDS,
                 TimeUnit.SECONDS
         );
 
