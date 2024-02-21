@@ -4,9 +4,8 @@ plugins {
 
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("org.springframework:spring-context:4.3.0.RELEASE")
-    implementation("org.springframework:spring-web:4.3.0.RELEASE")
-    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.21")
+    implementation("org.springframework:spring-webmvc:4.3.0.RELEASE")
+    implementation('jakarta.servlet:jakarta.servlet-api:4.0.4')
 }
 
 jar {
@@ -16,9 +15,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.springframework:spring-web:[4.3.0.RELEASE,)'
-
-    excludeRegex 'org.springframework:spring-web:.*(RC|SEC|M)[0-9]*$'
+    passesOnly 'org.springframework:spring-webmvc:[4.3.0.RELEASE,6.0.0)'
+    excludeRegex 'org.springframework:spring-webmvc:.*(RC|SEC|M)[0-9]*$'
 }
 
 site {

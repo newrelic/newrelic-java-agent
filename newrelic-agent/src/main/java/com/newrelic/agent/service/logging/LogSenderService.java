@@ -24,7 +24,7 @@ public interface LogSenderService extends EventService, Logs {
      * Returns an insights instance used to track events created during a transaction. The events will be reported to
      * the Transaction's application, or to the default application if not in a transaction.
      */
-    Logs getTransactionLogs(AgentConfig config);
+    Logs getTransactionLogs();
 
     /**
      * Store event into Reservoir following usual sampling using the given appName. Preference should be given to
