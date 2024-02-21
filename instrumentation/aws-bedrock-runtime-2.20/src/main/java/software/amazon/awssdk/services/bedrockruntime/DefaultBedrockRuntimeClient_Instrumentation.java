@@ -24,11 +24,8 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 
 import java.util.Map;
-import java.util.logging.Level;
 
 import static llm.models.ModelInvocation.ANTHROPIC_CLAUDE;
-import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.COMPLETION;
-import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.EMBEDDING;
 
 /**
  * Service client for accessing Amazon Bedrock Runtime.
@@ -73,7 +70,7 @@ final class DefaultBedrockRuntimeClient_Instrumentation {
 
             String modelId = invokeModelRequest.modelId();
             if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
-                AnthropicClaudeModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(invokeModelRequest,
+                ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(invokeModelRequest,
                         invokeModelResponse);
                 // Set traced method name based on LLM operation
                 anthropicClaudeModelInvocation.setLlmOperationMetricName(txn, "invokeModel");

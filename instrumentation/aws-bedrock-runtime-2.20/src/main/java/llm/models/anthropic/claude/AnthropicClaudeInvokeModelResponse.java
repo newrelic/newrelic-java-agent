@@ -25,23 +25,17 @@ import static llm.models.ModelInvocation.getRandomGuid;
  * Stores the required info from the Bedrock InvokeModelResponse
  * but doesn't hold a reference to the actual response object.
  */
-// TODO create an interface
-public class AnthropicClaudeInvokeModelResponse {
-    // Response body (for Claude, how about other models?)
-    public static final String COMPLETION = "completion";
-    public static final String EMBEDDING = "embedding";
+public class AnthropicClaudeInvokeModelResponse implements llm.models.ModelResponse {
     private static final String STOP_REASON = "stop_reason";
-//    private static final String STOP = "stop";
 
     // Response headers
     private static final String X_AMZN_BEDROCK_INPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Input-Token-Count";
     private static final String X_AMZN_BEDROCK_OUTPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Output-Token-Count";
     private static final String X_AMZN_REQUEST_ID = "x-amzn-RequestId";
-//    private static final String X_AMZN_BEDROCK_INVOCATION_LATENCY = "X-Amzn-Bedrock-Invocation-Latency";
+
     private int inputTokenCount = 0;
     private int outputTokenCount = 0;
     private String amznRequestId = "";
-//    private String invocationLatency = "";
 
     // LLM operation type
     private String operationType = "";
@@ -51,8 +45,6 @@ public class AnthropicClaudeInvokeModelResponse {
     private int statusCode = 0;
     private String statusText = "";
 
-    // Random GUID for response
-//    private String llmChatCompletionMessageId = "";
     private String llmChatCompletionSummaryId = "";
     private String llmEmbeddingId = "";
 
@@ -70,7 +62,6 @@ public class AnthropicClaudeInvokeModelResponse {
             statusTextOptional.ifPresent(s -> statusText = s);
             setOperationType(invokeModelResponseBody);
             setHeaderFields(invokeModelResponse);
-//            llmChatCompletionMessageId = BedrockRuntimeUtil.getRandomGuid();
             llmChatCompletionSummaryId = getRandomGuid();
             llmEmbeddingId = getRandomGuid();
         } else {
@@ -146,12 +137,8 @@ public class AnthropicClaudeInvokeModelResponse {
                 }
                 List<String> amznRequestIdHeaders = headers.get(X_AMZN_REQUEST_ID);
                 if (amznRequestIdHeaders != null && !amznRequestIdHeaders.isEmpty()) {
-                    amznRequestId = amznRequestIdHeaders.get(0); // TODO does this differ from invokeModelResponse.responseMetadata().requestId()
+                    amznRequestId = amznRequestIdHeaders.get(0);
                 }
-//                List<String> invocationLatencyHeaders = headers.get(X_AMZN_BEDROCK_INVOCATION_LATENCY);
-//                if (invocationLatencyHeaders != null && !invocationLatencyHeaders.isEmpty()) {
-//                    invocationLatency = invocationLatencyHeaders.get(0);
-//                }
             }
         } catch (Exception e) {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse InvokeModelResponse headers");
@@ -163,6 +150,7 @@ public class AnthropicClaudeInvokeModelResponse {
      *
      * @return
      */
+    @Override
     public String getResponseMessage() {
         String completion = "";
         try {
@@ -178,6 +166,7 @@ public class AnthropicClaudeInvokeModelResponse {
         return completion;
     }
 
+    @Override
     public String getStopReason() {
         String stopReason = "";
         try {
@@ -193,72 +182,57 @@ public class AnthropicClaudeInvokeModelResponse {
         return stopReason;
     }
 
-//    public String getStop() {
-//        String stop = "";
-//        try {
-//            if (!getResponseBodyJsonMap().isEmpty()) {
-//                JsonNode jsonNode = getResponseBodyJsonMap().get(STOP);
-//                if (jsonNode.isString()) {
-//                    stop = jsonNode.asString();
-//                }
-//            }
-//        } catch (Exception e) {
-//            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + STOP);
-//        }
-//        return stop.replaceAll("[\n:]", "");
-//    }
-
+    @Override
     public int getInputTokenCount() {
         return inputTokenCount;
     }
 
+    @Override
     public int getOutputTokenCount() {
         return outputTokenCount;
     }
 
+    @Override
     public int getTotalTokenCount() {
         return inputTokenCount + outputTokenCount;
     }
 
+    @Override
     public String getAmznRequestId() {
         return amznRequestId;
     }
 
-//    public String getInvocationLatency() {
-//        return invocationLatency;
-//    }
-
+    @Override
     public String getOperationType() {
         return operationType;
     }
 
-    // TODO stop saving these GUIDS, instead just create a Util method to generate a random one each call??
-//    public String getLlmChatCompletionMessageId() {
-//        return llmChatCompletionMessageId;
-//    }
-
-    // hmmm this one needs to be stored as it's used for completion_id in the message events
+    @Override
     public String getLlmChatCompletionSummaryId() {
         return llmChatCompletionSummaryId;
     }
 
-    // hmmm also needs to be stored to be used for embedding_id in errors
+    @Override
     public String getLlmEmbeddingId() {
         return llmEmbeddingId;
     }
 
+    @Override
     public boolean isErrorResponse() {
         return !isSuccessfulResponse;
     }
 
+    @Override
     public int getStatusCode() {
         return statusCode;
     }
 
+    @Override
     public String getStatusText() {
         return statusText;
     }
 
+    @Override
     public void reportLlmError() {
         Map<String, Object> errorParams = new HashMap<>();
         errorParams.put("http.statusCode", getStatusCode());

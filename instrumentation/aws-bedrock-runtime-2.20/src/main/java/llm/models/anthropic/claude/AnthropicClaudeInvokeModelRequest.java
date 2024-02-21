@@ -13,7 +13,6 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -21,10 +20,9 @@ import java.util.logging.Level;
  * Stores the required info from the Bedrock InvokeModelRequest
  * but doesn't hold a reference to the actual request object.
  */
-// TODO create an interface
-public class AnthropicClaudeInvokeModelRequest {
-    // Request body (for Claude, how about other models?)
-//    private static final String STOP_SEQUENCES = "stop_sequences";
+public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelRequest {
+    // TODO might be able to move some of these constants to the ModelRequest interface
+    //  need to figure out if they are consistent across all models
     private static final String MAX_TOKENS_TO_SAMPLE = "max_tokens_to_sample";
     private static final String TEMPERATURE = "temperature";
     private static final String PROMPT = "prompt";
@@ -83,33 +81,7 @@ public class AnthropicClaudeInvokeModelRequest {
         return requestBodyJsonMap != null ? requestBodyJsonMap : Collections.emptyMap();
     }
 
-    // TODO do we potentially expect more than one entry in the stop sequence? Or is it sufficient
-    //  to just check if it contains Human? DO we even need this at all? Doesn't look like we do
-//    public String getStopSequences() {
-//        StringBuilder stopSequences = new StringBuilder();
-//        try {
-//            if (!getRequestBodyJsonMap().isEmpty()) {
-//                JsonNode jsonNode = getRequestBodyJsonMap().get(STOP_SEQUENCES);
-//                if (jsonNode.isArray()) {
-//                    List<JsonNode> jsonNodeArray = jsonNode.asArray();
-//                    for (JsonNode node : jsonNodeArray) {
-//                        if (node.isString()) {
-//                            // Don't add comma for first node
-//                            if (stopSequences.length() <= 0) {
-//                                stopSequences.append(node.asString());
-//                            } else {
-//                                stopSequences.append(",").append(node.asString());
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        } catch (Exception e) {
-//            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + STOP_SEQUENCES);
-//        }
-//        return stopSequences.toString().replaceAll("[\n:]", "");
-//    }
-
+    @Override
     public String getMaxTokensToSample() {
         String maxTokensToSample = "";
         try {
@@ -125,6 +97,7 @@ public class AnthropicClaudeInvokeModelRequest {
         return maxTokensToSample;
     }
 
+    @Override
     public String getTemperature() {
         String temperature = "";
         try {
@@ -140,6 +113,7 @@ public class AnthropicClaudeInvokeModelRequest {
         return temperature;
     }
 
+    @Override
     public String getRequestMessage() {
         String prompt = "";
         try {
@@ -155,29 +129,7 @@ public class AnthropicClaudeInvokeModelRequest {
         return prompt;
     }
 
-//    /**
-//     * Represents the user prompt messages
-//     *
-//     * @return
-//     */
-//    public List<String> getUserRequestMessages() {
-//        // FIXME shouldn't parse the request, just send the whole content
-//        List<String> messageList = null;
-//        try {
-//            if (!getRequestBodyJsonMap().isEmpty()) {
-//                JsonNode jsonNode = getRequestBodyJsonMap().get(PROMPT);
-//                if (jsonNode.isString()) {
-//                    String[] messages = jsonNode.asString().split(ESCAPED_NEWLINES);
-//                    messageList = new ArrayList<>(Arrays.asList(messages));
-//                    messageList.remove("Assistant:");
-//                }
-//            }
-//        } catch (Exception e) {
-//            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + PROMPT);
-//        }
-//        return messageList;
-//    }
-
+    @Override
     public String getRole() {
         try {
             if (!invokeModelRequestBody.isEmpty()) {
@@ -196,6 +148,7 @@ public class AnthropicClaudeInvokeModelRequest {
         return "";
     }
 
+    @Override
     public String getInputText() {
         String inputText = "";
         try {
@@ -211,6 +164,7 @@ public class AnthropicClaudeInvokeModelRequest {
         return inputText;
     }
 
+    @Override
     public String getModelId() {
         return modelId;
     }

@@ -13,8 +13,6 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.Map;
 import java.util.UUID;
 
-// TODO make this an interface called LlmModel with some default methods, some methods that need to be implemented, and some useful constants
-//public class Model {
 public interface ModelInvocation {
     String VENDOR = "bedrock";
     String BEDROCK = "Bedrock";
@@ -27,7 +25,7 @@ public interface ModelInvocation {
     String LLM_CHAT_COMPLETION_SUMMARY = "LlmChatCompletionSummary";
     String LLM_CHAT_COMPLETION_MESSAGE = "LlmChatCompletionMessage";
 
-    // Support models
+    // Supported models
     String ANTHROPIC_CLAUDE = "claude";
     String AMAZON_TITAN = "titan";
     String META_LLAMA_2 = "llama";
@@ -47,12 +45,6 @@ public interface ModelInvocation {
     void recordLlmChatCompletionSummaryEvent(int numberOfMessages, long startTime, Map<String, String> linkingMetadata);
 
     void recordLlmChatCompletionMessageEvent(int sequence, String message, Map<String, String> linkingMetadata);
-
-    /**
-     * Records multiple LlmChatCompletionMessage events and a single LlmChatCompletionSummary event.
-     * The number of LlmChatCompletionMessage events produced can differ based on vendor.
-     */
-    void recordLlmChatCompletionEvents(long startTime, Map<String, String> linkingMetadata);
 
     void recordLlmEvents(long startTime, Map<String, String> linkingMetadata);
 
