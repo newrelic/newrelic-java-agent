@@ -68,7 +68,7 @@ object util {
             case Success(response) => {
               try {
                 seg.reportAsExternal(HttpParameters.library("SprayClient").uri(new URI(uri))
-                    .procedure("sendReceive").inboundHeaders(new InboundWrapper(response)).build());
+                    .procedure("sendReceive").inboundHeaders(new InboundWrapper(response.headers)).build());
                 seg.end()
               } catch {
                 case t :Throwable => {

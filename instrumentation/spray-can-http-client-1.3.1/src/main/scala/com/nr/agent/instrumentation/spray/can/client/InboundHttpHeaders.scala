@@ -10,7 +10,7 @@ package com.nr.agent.instrumentation.spray.can.client
 import java.util
 
 import com.newrelic.api.agent.{ExtendedInboundHeaders, HeaderType}
-import spray.http.{HttpHeader, HttpResponse}
+import spray.http.{HttpHeader}
 
 import scala.collection.JavaConversions
 
