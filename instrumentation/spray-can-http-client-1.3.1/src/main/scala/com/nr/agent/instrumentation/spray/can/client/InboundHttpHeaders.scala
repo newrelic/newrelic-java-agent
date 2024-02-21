@@ -29,7 +29,7 @@ class InboundHttpHeaders(headers: List[HttpHeader]) extends ExtendedInboundHeade
     if (tmpHeaders.isEmpty) {
       return null
     }
-    JavaConversions.seqAsJavaList(headers)
+    JavaConversions.seqAsJavaList(tmpHeaders)
   }
 
   override def getHeaderType(): HeaderType = {
