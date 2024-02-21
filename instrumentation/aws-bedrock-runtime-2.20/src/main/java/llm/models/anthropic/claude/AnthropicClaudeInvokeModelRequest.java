@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.utils;
+package llm.models.anthropic.claude;
 
 import com.newrelic.api.agent.NewRelic;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -21,9 +21,10 @@ import java.util.logging.Level;
  * Stores the required info from the Bedrock InvokeModelRequest
  * but doesn't hold a reference to the actual request object.
  */
-public class InvokeModelRequestWrapper {
+// TODO create an interface
+public class AnthropicClaudeInvokeModelRequest {
     // Request body (for Claude, how about other models?)
-    private static final String STOP_SEQUENCES = "stop_sequences";
+//    private static final String STOP_SEQUENCES = "stop_sequences";
     private static final String MAX_TOKENS_TO_SAMPLE = "max_tokens_to_sample";
     private static final String TEMPERATURE = "temperature";
     private static final String PROMPT = "prompt";
@@ -37,7 +38,7 @@ public class InvokeModelRequestWrapper {
     private String modelId = "";
     private Map<String, JsonNode> requestBodyJsonMap = null;
 
-    public InvokeModelRequestWrapper(InvokeModelRequest invokeModelRequest) {
+    public AnthropicClaudeInvokeModelRequest(InvokeModelRequest invokeModelRequest) {
         if (invokeModelRequest != null) {
             invokeModelRequestBody = invokeModelRequest.body().asUtf8String();
             modelId = invokeModelRequest.modelId();
@@ -84,30 +85,30 @@ public class InvokeModelRequestWrapper {
 
     // TODO do we potentially expect more than one entry in the stop sequence? Or is it sufficient
     //  to just check if it contains Human? DO we even need this at all? Doesn't look like we do
-    public String getStopSequences() {
-        StringBuilder stopSequences = new StringBuilder();
-        try {
-            if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getRequestBodyJsonMap().get(STOP_SEQUENCES);
-                if (jsonNode.isArray()) {
-                    List<JsonNode> jsonNodeArray = jsonNode.asArray();
-                    for (JsonNode node : jsonNodeArray) {
-                        if (node.isString()) {
-                            // Don't add comma for first node
-                            if (stopSequences.length() <= 0) {
-                                stopSequences.append(node.asString());
-                            } else {
-                                stopSequences.append(",").append(node.asString());
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + STOP_SEQUENCES);
-        }
-        return stopSequences.toString().replaceAll("[\n:]", "");
-    }
+//    public String getStopSequences() {
+//        StringBuilder stopSequences = new StringBuilder();
+//        try {
+//            if (!getRequestBodyJsonMap().isEmpty()) {
+//                JsonNode jsonNode = getRequestBodyJsonMap().get(STOP_SEQUENCES);
+//                if (jsonNode.isArray()) {
+//                    List<JsonNode> jsonNodeArray = jsonNode.asArray();
+//                    for (JsonNode node : jsonNodeArray) {
+//                        if (node.isString()) {
+//                            // Don't add comma for first node
+//                            if (stopSequences.length() <= 0) {
+//                                stopSequences.append(node.asString());
+//                            } else {
+//                                stopSequences.append(",").append(node.asString());
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + STOP_SEQUENCES);
+//        }
+//        return stopSequences.toString().replaceAll("[\n:]", "");
+//    }
 
     public String getMaxTokensToSample() {
         String maxTokensToSample = "";

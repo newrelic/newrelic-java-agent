@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.utils;
+package llm.models.anthropic.claude;
 
 import com.newrelic.api.agent.NewRelic;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -19,28 +19,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 
-import static com.newrelic.utils.BedrockRuntimeUtil.getRandomGuid;
+import static llm.models.ModelInvocation.getRandomGuid;
 
 /**
  * Stores the required info from the Bedrock InvokeModelResponse
  * but doesn't hold a reference to the actual response object.
  */
-public class InvokeModelResponseWrapper {
+// TODO create an interface
+public class AnthropicClaudeInvokeModelResponse {
     // Response body (for Claude, how about other models?)
     public static final String COMPLETION = "completion";
     public static final String EMBEDDING = "embedding";
     private static final String STOP_REASON = "stop_reason";
-    private static final String STOP = "stop";
+//    private static final String STOP = "stop";
 
     // Response headers
     private static final String X_AMZN_BEDROCK_INPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Input-Token-Count";
     private static final String X_AMZN_BEDROCK_OUTPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Output-Token-Count";
     private static final String X_AMZN_REQUEST_ID = "x-amzn-RequestId";
-    private static final String X_AMZN_BEDROCK_INVOCATION_LATENCY = "X-Amzn-Bedrock-Invocation-Latency";
+//    private static final String X_AMZN_BEDROCK_INVOCATION_LATENCY = "X-Amzn-Bedrock-Invocation-Latency";
     private int inputTokenCount = 0;
     private int outputTokenCount = 0;
     private String amznRequestId = "";
-    private String invocationLatency = "";
+//    private String invocationLatency = "";
 
     // LLM operation type
     private String operationType = "";
@@ -60,7 +61,7 @@ public class InvokeModelResponseWrapper {
 
     private static final String JSON_START = "{\"";
 
-    public InvokeModelResponseWrapper(InvokeModelResponse invokeModelResponse) {
+    public AnthropicClaudeInvokeModelResponse(InvokeModelResponse invokeModelResponse) {
         if (invokeModelResponse != null) {
             invokeModelResponseBody = invokeModelResponse.body().asUtf8String();
             isSuccessfulResponse = invokeModelResponse.sdkHttpResponse().isSuccessful();
@@ -147,10 +148,10 @@ public class InvokeModelResponseWrapper {
                 if (amznRequestIdHeaders != null && !amznRequestIdHeaders.isEmpty()) {
                     amznRequestId = amznRequestIdHeaders.get(0); // TODO does this differ from invokeModelResponse.responseMetadata().requestId()
                 }
-                List<String> invocationLatencyHeaders = headers.get(X_AMZN_BEDROCK_INVOCATION_LATENCY);
-                if (invocationLatencyHeaders != null && !invocationLatencyHeaders.isEmpty()) {
-                    invocationLatency = invocationLatencyHeaders.get(0);
-                }
+//                List<String> invocationLatencyHeaders = headers.get(X_AMZN_BEDROCK_INVOCATION_LATENCY);
+//                if (invocationLatencyHeaders != null && !invocationLatencyHeaders.isEmpty()) {
+//                    invocationLatency = invocationLatencyHeaders.get(0);
+//                }
             }
         } catch (Exception e) {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse InvokeModelResponse headers");
@@ -192,20 +193,20 @@ public class InvokeModelResponseWrapper {
         return stopReason;
     }
 
-    public String getStop() {
-        String stop = "";
-        try {
-            if (!getResponseBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getResponseBodyJsonMap().get(STOP);
-                if (jsonNode.isString()) {
-                    stop = jsonNode.asString();
-                }
-            }
-        } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + STOP);
-        }
-        return stop.replaceAll("[\n:]", "");
-    }
+//    public String getStop() {
+//        String stop = "";
+//        try {
+//            if (!getResponseBodyJsonMap().isEmpty()) {
+//                JsonNode jsonNode = getResponseBodyJsonMap().get(STOP);
+//                if (jsonNode.isString()) {
+//                    stop = jsonNode.asString();
+//                }
+//            }
+//        } catch (Exception e) {
+//            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + STOP);
+//        }
+//        return stop.replaceAll("[\n:]", "");
+//    }
 
     public int getInputTokenCount() {
         return inputTokenCount;
@@ -223,9 +224,9 @@ public class InvokeModelResponseWrapper {
         return amznRequestId;
     }
 
-    public String getInvocationLatency() {
-        return invocationLatency;
-    }
+//    public String getInvocationLatency() {
+//        return invocationLatency;
+//    }
 
     public String getOperationType() {
         return operationType;

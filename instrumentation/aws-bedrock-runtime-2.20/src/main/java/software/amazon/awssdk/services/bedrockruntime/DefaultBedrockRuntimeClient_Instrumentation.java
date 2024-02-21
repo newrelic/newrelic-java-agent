@@ -7,15 +7,16 @@
 
 package software.amazon.awssdk.services.bedrockruntime;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.api.agent.Transaction;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.utils.InvokeModelRequestWrapper;
-import com.newrelic.utils.InvokeModelResponseWrapper;
+import llm.models.ModelInvocation;
+import llm.models.anthropic.claude.AnthropicClaudeModelInvocation;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
@@ -25,16 +26,14 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static com.newrelic.utils.BedrockRuntimeUtil.incrementBedrockInstrumentedMetric;
-import static com.newrelic.utils.BedrockRuntimeUtil.recordLlmChatCompletionEvents;
-import static com.newrelic.utils.BedrockRuntimeUtil.recordLlmEmbeddingEvent;
-import static com.newrelic.utils.BedrockRuntimeUtil.setLlmOperationMetricName;
-import static com.newrelic.utils.InvokeModelResponseWrapper.COMPLETION;
-import static com.newrelic.utils.InvokeModelResponseWrapper.EMBEDDING;
+import static llm.models.ModelInvocation.ANTHROPIC_CLAUDE;
+import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.COMPLETION;
+import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.EMBEDDING;
 
 /**
  * Service client for accessing Amazon Bedrock Runtime.
  */
+// TODO switch back to instrumenting the BedrockRuntimeClient interface instead of this implementation class
 @Weave(type = MatchType.ExactClass, originalName = "software.amazon.awssdk.services.bedrockruntime.DefaultBedrockRuntimeClient")
 final class DefaultBedrockRuntimeClient_Instrumentation {
 //    private static final Logger log = Logger.loggerFor(DefaultBedrockRuntimeClient.class);
@@ -63,27 +62,24 @@ final class DefaultBedrockRuntimeClient_Instrumentation {
         long startTime = System.currentTimeMillis();
         InvokeModelResponse invokeModelResponse = Weaver.callOriginal();
 
-        incrementBedrockInstrumentedMetric();
+        ModelInvocation.incrementInstrumentedSupportabilityMetric();
 
-        Transaction txn = NewRelic.getAgent().getTransaction();
-//        Transaction txn = AgentBridge.getAgent().getTransaction();
+//        Transaction txn = NewRelic.getAgent().getTransaction();
+        Transaction txn = AgentBridge.getAgent().getTransaction();
         // TODO check AIM config
         if (txn != null && !(txn instanceof NoOpTransaction)) {
             Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
-            InvokeModelRequestWrapper requestWrapper = new InvokeModelRequestWrapper(invokeModelRequest);
-            InvokeModelResponseWrapper responseWrapper = new InvokeModelResponseWrapper(invokeModelResponse);
+            Map<String, Object> userAttributes = txn.getUserAttributes();
 
-            String operationType = responseWrapper.getOperationType();
-            // Set traced method name based on LLM operation
-            setLlmOperationMetricName(txn, operationType);
-
-            // Report LLM events
-            if (operationType.equals(COMPLETION)) {
-                recordLlmChatCompletionEvents(startTime, linkingMetadata, requestWrapper, responseWrapper);
-            } else if (operationType.equals(EMBEDDING)) {
-                recordLlmEmbeddingEvent(startTime, linkingMetadata, requestWrapper, responseWrapper);
-            } else {
-                NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unexpected operation type");
+            String modelId = invokeModelRequest.modelId();
+            if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
+                AnthropicClaudeModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(invokeModelRequest,
+                        invokeModelResponse);
+                // Set traced method name based on LLM operation
+                anthropicClaudeModelInvocation.setLlmOperationMetricName(txn, "invokeModel");
+                // Set llm = true agent attribute
+                ModelInvocation.setLlmTrueAgentAttribute(txn);
+                anthropicClaudeModelInvocation.recordLlmEvents(startTime, linkingMetadata);
             }
         }
 

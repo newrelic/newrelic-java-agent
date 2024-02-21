@@ -23,11 +23,12 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import static com.newrelic.utils.BedrockRuntimeUtil.incrementBedrockInstrumentedMetric;
+import static llm.models.ModelInvocation.incrementInstrumentedSupportabilityMetric;
 
 /**
  * Service client for accessing Amazon Bedrock Runtime asynchronously.
  */
+// TODO switch back to instrumenting the BedrockRuntimeAsyncClient interface instead of this implementation class
 @Weave(type = MatchType.ExactClass, originalName = "software.amazon.awssdk.services.bedrockruntime.DefaultBedrockRuntimeAsyncClient")
 final class DefaultBedrockRuntimeAsyncClient_Instrumentation {
 //    private static final Logger log = LoggerFactory.getLogger(DefaultBedrockRuntimeAsyncClient.class);
@@ -61,7 +62,7 @@ final class DefaultBedrockRuntimeAsyncClient_Instrumentation {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("LLM", "InvokeModelAsync");
         CompletableFuture<InvokeModelResponse> invokeModelResponseFuture = Weaver.callOriginal();
 
-        incrementBedrockInstrumentedMetric();
+        incrementInstrumentedSupportabilityMetric();
 
         // this should never happen, but protecting against bad implementations
         if (invokeModelResponseFuture == null) {
