@@ -33,6 +33,8 @@ public class DeleteLogFilesRunnable implements Runnable {
      * @param filePrefixPath   the file prefix used to filter log files
      */
     public DeleteLogFilesRunnable(Path logDirectoryPath, int fileCount, String filePrefixPath) {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "DELEON: the filePrefixPath: " + filePrefixPath);
+
         this.logDirectoryPath = logDirectoryPath;
         this.daysToKeepFiles = fileCount;
         this.fileNamePrefix = extractFileNamePrefix(filePrefixPath);
@@ -46,12 +48,13 @@ public class DeleteLogFilesRunnable implements Runnable {
     public void run() {
         Thread.currentThread().setName("New Relic Expiring Log File Cleanup");
         Path logDirectory = Paths.get(logDirectoryPath.toString());
+        Date thresholdDate = new Date();
 
         try (Stream<Path> paths = Files.list(logDirectory)) {
             paths.forEach(path -> {
                 String fileName = path.getFileName().toString();
                 String dateString = extractDateString(fileName);
-                deleteIfOlderThanThreshold(path, dateString);
+                deleteIfOlderThanThreshold(path, dateString, thresholdDate);
             });
         } catch (IOException e) {
             // Logging failure to list log files
@@ -59,7 +62,7 @@ public class DeleteLogFilesRunnable implements Runnable {
         }
     }
 
-    private void deleteIfOlderThanThreshold(Path filePath, String dateString) {
+    private void deleteIfOlderThanThreshold(Path filePath, String dateString, Date thresholdDate) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar threshold = Calendar.getInstance();
         Date fileDate;
@@ -70,7 +73,7 @@ public class DeleteLogFilesRunnable implements Runnable {
                 threshold.setTime(fileDate);
                 threshold.add(Calendar.DAY_OF_YEAR, daysToKeepFiles);
 
-                if (threshold.getTime().before(new Date())) {
+                if (threshold.getTime().before(thresholdDate)) {
                     Files.delete(filePath);
                 }
             } catch (ParseException | IOException e) {
