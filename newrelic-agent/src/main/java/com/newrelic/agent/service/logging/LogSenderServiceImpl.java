@@ -38,6 +38,7 @@ import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
+import com.newrelic.agent.util.NoOpQueue;
 import com.newrelic.api.agent.Logs;
 
 import java.text.MessageFormat;
@@ -47,6 +48,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -586,12 +588,12 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * Used to record LogEvents on Transactions
      */
     public static final class TransactionLogs implements Logs {
-        private final LinkedBlockingQueue<LogEvent> events;
+        private final Queue<LogEvent> events;
         private final ExcludeIncludeFilter contextDataKeyFilter;
 
         TransactionLogs(AgentConfig config, ExcludeIncludeFilter contextDataKeyFilter) {
             int maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
-            events = new LinkedBlockingQueue<>(maxSamplesStored);
+            events = maxSamplesStored == 0 ? NoOpQueue.getInstance() : new LinkedBlockingQueue<>(maxSamplesStored);
             this.contextDataKeyFilter = contextDataKeyFilter;
         }
 
