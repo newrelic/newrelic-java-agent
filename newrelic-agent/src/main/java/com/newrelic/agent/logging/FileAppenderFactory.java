@@ -131,7 +131,7 @@ public class FileAppenderFactory {
         Path directory = new File(this.path).toPath();
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleWithFixedDelay(
-                new DeleteLogFilesRunnable(directory, fileCount, fileName),
+                new ClearExpiredLogFilesRunnable(directory, fileCount, fileName),
                 INITIAL_DELAY_SECONDS,
                 REPEAT_INTERVAL_SECONDS,
                 TimeUnit.SECONDS

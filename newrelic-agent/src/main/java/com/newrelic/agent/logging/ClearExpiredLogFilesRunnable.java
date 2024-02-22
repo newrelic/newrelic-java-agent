@@ -17,8 +17,10 @@ import java.util.stream.Stream;
 
 /**
  * Runnable class to clean up expired log files based on a specified threshold.
+ * This class iterates over agent log files identifying those older than the specified
+ * threshold, and deletes them.
  */
-public class DeleteLogFilesRunnable implements Runnable {
+public class ClearExpiredLogFilesRunnable implements Runnable {
 
     private static Pattern pattern;
     private final Path logDirectoryPath;
@@ -26,15 +28,13 @@ public class DeleteLogFilesRunnable implements Runnable {
     private final String fileNamePrefix;
 
     /**
-     * Constructs a DeleteLogFilesRunnable object.
+     * Constructs a ClearExpiredLogFilesRunnable object.
      *
      * @param logDirectoryPath the directory path where log files are located
      * @param fileCount        the number of days to keep log files before deleting them
      * @param filePrefixPath   the file prefix used to filter log files
      */
-    public DeleteLogFilesRunnable(Path logDirectoryPath, int fileCount, String filePrefixPath) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DELEON: the filePrefixPath: " + filePrefixPath);
-
+    public ClearExpiredLogFilesRunnable(Path logDirectoryPath, int fileCount, String filePrefixPath) {
         this.logDirectoryPath = logDirectoryPath;
         this.daysToKeepFiles = fileCount;
         this.fileNamePrefix = extractFileNamePrefix(filePrefixPath);

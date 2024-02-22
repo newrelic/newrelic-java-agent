@@ -14,9 +14,9 @@ import java.util.Date;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class DeleteLogFilesRunnableTest {
+public class ClearExpiredLogFilesRunnableTest {
 
-    private DeleteLogFilesRunnable deleteLogFilesRunnable;
+    private ClearExpiredLogFilesRunnable clearExpiredLogFilesRunnable;
     private Path tempDir;
 
     @Before
@@ -45,8 +45,8 @@ public class DeleteLogFilesRunnableTest {
     public void testRunnableAgainstEmptyLogDirectory() throws IOException {
         tempDir = Files.createTempDirectory("emptyLogDir");
 
-        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 3, "testLogDir");
-        deleteLogFilesRunnable.run();
+        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "emptyLogDir");
+        clearExpiredLogFilesRunnable.run();
 
         long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(0, actualLogFileCount);
@@ -61,8 +61,8 @@ public class DeleteLogFilesRunnableTest {
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 3, "testLogDir");
-        deleteLogFilesRunnable.run();
+        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogFilesRunnable.run();
 
         expectedLogFileCount = 0;
         actualLogFileCount = Files.list(tempDir).count();
@@ -79,8 +79,8 @@ public class DeleteLogFilesRunnableTest {
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 3, "testLogDir");
-        deleteLogFilesRunnable.run();
+        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogFilesRunnable.run();
 
         expectedLogFileCount = 0;
         actualLogFileCount = Files.list(tempDir).count();
@@ -99,8 +99,8 @@ public class DeleteLogFilesRunnableTest {
         long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 1, "testLogDir");
-        deleteLogFilesRunnable.run();
+        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 1, "testLogDir");
+        clearExpiredLogFilesRunnable.run();
 
         expectedLogFileCount = 3;
         actualLogFileCount = Files.list(tempDir).count();
@@ -116,10 +116,36 @@ public class DeleteLogFilesRunnableTest {
         Path readOnlyFile = Files.createFile(tempDir.resolve("readonly.log"));
         readOnlyFile.toFile().setReadOnly();
 
-        deleteLogFilesRunnable = new DeleteLogFilesRunnable(tempDir, 3, "testLogDir");
-        deleteLogFilesRunnable.run();
+        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogFilesRunnable.run();
 
         assertTrue("Read-only file should still exist", Files.exists(readOnlyFile));
+    }
+
+    @Test
+    public void testDirectoryWithMixedFiles() throws IOException {
+        addOldLogFilesWithExtensions(5, "testLogDir");
+        addOldLogFilesWithoutExtensions(5, "testLogDir");
+
+        // non-log files
+        Files.createFile(tempDir.resolve("testFile1.txt"));
+        Files.createFile(tempDir.resolve("testFile2.jpg"));
+        Files.createDirectory(tempDir.resolve("subdirectory"));
+        Files.createFile(tempDir.resolve("subdirectory").resolve("testFile3.pdf"));
+
+        long expectedLogFileCount = 13;
+        long actualLogFileCount = Files.list(tempDir).count();
+        assertEquals(expectedLogFileCount, actualLogFileCount);
+
+        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogFilesRunnable.run();
+
+        assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("testFile1.txt")));
+        assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("testFile2.jpg")));
+        assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("subdirectory").resolve("testFile3.pdf")));
+        expectedLogFileCount = 5;
+        actualLogFileCount = Files.list(tempDir).count();
+        assertEquals(expectedLogFileCount, actualLogFileCount);
     }
 
     private void addOldLogFilesWithExtensions(int daysAgo, String fileNamePrefix) throws IOException {
