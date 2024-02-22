@@ -92,7 +92,7 @@ object TraceOps {
    * @return Value returned from executed function
    */
   def traceFun[T, S](segmentName: String)(f: T => S): T => S = {
-    t: T =>
+    (t: T) =>
       val txn = NewRelic.getAgent.getTransaction()
       val segment = txn.startSegment(segmentName)
       try {
@@ -122,7 +122,7 @@ object TraceOps {
    * @return Value returned from completed asynchronous function
    */
   def asyncTraceFun[T, S](segmentName: String)(f: T => Future[S])(implicit ec: ExecutionContext): T => Future[S] = {
-    t: T =>
+    (t: T) =>
       val txn = NewRelic.getAgent.getTransaction()
       val segment = txn.startSegment(segmentName)
       val evaluatedFunc = f(t)
