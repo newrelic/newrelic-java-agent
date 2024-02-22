@@ -1,9 +1,15 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package zio;
 
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import zio.TokenAwareRunnable;
 
 @Weave(originalName = "zio.Executor", type = MatchType.BaseClass)
 public class ZIOExecutor_Instrumentation {

@@ -1,12 +1,18 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.newrelic.zio2.api
 
 import com.newrelic.agent.introspec._
 import com.newrelic.api.agent.Trace
-import TraceOps._
+import com.newrelic.zio2.api.TraceOps._
 import org.junit._
 import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
-import zio.Exit.Success
 import zio._
 
 import java.util.concurrent.Executors
