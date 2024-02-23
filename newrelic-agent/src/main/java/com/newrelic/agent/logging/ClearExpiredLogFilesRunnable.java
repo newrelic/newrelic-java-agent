@@ -22,10 +22,18 @@ import java.util.stream.Stream;
  */
 public class ClearExpiredLogFilesRunnable implements Runnable {
 
-    private static Pattern pattern;
+    /**
+     * Regular expression pattern for matching the date format in log file names.
+     * The date format follows the pattern yyyy-MM-dd.
+     */
+    private static final String DATE_REGEX = "\\.(\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))(\\.\\d)?$";
+
+    /**
+     * The compiled pattern for matching the date format in log file names.
+     */
+    private final Pattern pattern;
     private final Path logDirectoryPath;
     private final int daysToKeepFiles;
-    private final String fileNamePrefix;
 
     /**
      * Constructs a ClearExpiredLogFilesRunnable object.
@@ -37,11 +45,10 @@ public class ClearExpiredLogFilesRunnable implements Runnable {
     public ClearExpiredLogFilesRunnable(Path logDirectoryPath, int fileCount, String filePrefixPath) {
         this.logDirectoryPath = logDirectoryPath;
         this.daysToKeepFiles = fileCount;
-        this.fileNamePrefix = extractFileNamePrefix(filePrefixPath);
 
-        // Define the pattern for matching log file names
+        String fileNamePrefix = extractFileNamePrefix(filePrefixPath);
         pattern = Pattern.compile(fileNamePrefix.replace(".", "\\.")
-                + "\\.(\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))(\\.\\d)?$");
+                + DATE_REGEX);
     }
 
     @Override
