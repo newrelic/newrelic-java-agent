@@ -82,13 +82,14 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
     }
 
     @Override
-    public String getMaxTokensToSample() {
-        String maxTokensToSample = "";
+    public int getMaxTokensToSample() {
+        int maxTokensToSample = 0;
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
                 JsonNode jsonNode = getRequestBodyJsonMap().get(MAX_TOKENS_TO_SAMPLE);
                 if (jsonNode.isNumber()) {
-                    maxTokensToSample = jsonNode.asNumber();
+                    String maxTokensToSampleString = jsonNode.asNumber();
+                    maxTokensToSample = Integer.parseInt(maxTokensToSampleString);
                 }
             }
         } catch (Exception e) {
@@ -98,13 +99,14 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
     }
 
     @Override
-    public String getTemperature() {
-        String temperature = "";
+    public float getTemperature() {
+        float temperature = 0f;
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
                 JsonNode jsonNode = getRequestBodyJsonMap().get(TEMPERATURE);
                 if (jsonNode.isNumber()) {
-                    temperature = jsonNode.asNumber();
+                    String temperatureString = jsonNode.asNumber();
+                    temperature = Float.parseFloat(temperatureString);
                 }
             }
         } catch (Exception e) {

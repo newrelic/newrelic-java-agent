@@ -13,7 +13,6 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -230,19 +229,5 @@ public class AnthropicClaudeInvokeModelResponse implements llm.models.ModelRespo
     @Override
     public String getStatusText() {
         return statusText;
-    }
-
-    @Override
-    public void reportLlmError() {
-        Map<String, Object> errorParams = new HashMap<>();
-        errorParams.put("http.statusCode", getStatusCode());
-        errorParams.put("error.code", getStatusCode());
-        if (!getLlmChatCompletionSummaryId().isEmpty()) {
-            errorParams.put("completion_id", getLlmChatCompletionSummaryId());
-        }
-        if (!getLlmEmbeddingId().isEmpty()) {
-            errorParams.put("embedding_id", getLlmEmbeddingId());
-        }
-        NewRelic.noticeError("LlmError: " + getStatusText(), errorParams);
     }
 }

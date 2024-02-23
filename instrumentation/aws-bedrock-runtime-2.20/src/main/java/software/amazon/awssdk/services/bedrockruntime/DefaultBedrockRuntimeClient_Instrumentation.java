@@ -66,7 +66,7 @@ final class DefaultBedrockRuntimeClient_Instrumentation {
         // TODO check AIM config
         if (txn != null && !(txn instanceof NoOpTransaction)) {
             Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
-            Map<String, Object> userAttributes = txn.getUserAttributes();
+//            Map<String, Object> userAttributes = txn.getUserAttributes();
 
             String modelId = invokeModelRequest.modelId();
             if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {

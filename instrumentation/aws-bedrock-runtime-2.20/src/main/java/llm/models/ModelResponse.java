@@ -27,6 +27,4 @@ public interface ModelResponse {
     int getStatusCode();
 
     String getStatusText();
-
-    void reportLlmError();
 }

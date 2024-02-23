@@ -1,9 +1,9 @@
 package llm.models;
 
 public interface ModelRequest {
-    String getMaxTokensToSample();
+    int getMaxTokensToSample();
 
-    String getTemperature();
+    float getTemperature();
 
     String getRequestMessage();
 

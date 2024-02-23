@@ -20,11 +20,6 @@ public interface ModelInvocation {
     String TRACE_ID = "trace.id";
     String SPAN_ID = "span.id";
 
-    // LLM event types
-    String LLM_EMBEDDING = "LlmEmbedding";
-    String LLM_CHAT_COMPLETION_SUMMARY = "LlmChatCompletionSummary";
-    String LLM_CHAT_COMPLETION_MESSAGE = "LlmChatCompletionMessage";
-
     // Supported models
     String ANTHROPIC_CLAUDE = "claude";
     String AMAZON_TITAN = "titan";
@@ -36,7 +31,7 @@ public interface ModelInvocation {
      * Set name of the span/segment for each LLM embedding and chat completion call
      * Llm/{operation_type}/{vendor_name}/{function_name}
      *
-     * @param txn           current transaction
+     * @param txn current transaction
      */
     void setLlmOperationMetricName(Transaction txn, String functionName);
 
@@ -48,6 +43,7 @@ public interface ModelInvocation {
 
     void recordLlmEvents(long startTime, Map<String, String> linkingMetadata);
 
+    void reportLlmError();
 
     /**
      * This needs to be incremented for every invocation of the SDK.
