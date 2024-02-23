@@ -53,7 +53,6 @@ public class ClearExpiredLogFilesRunnable implements Runnable {
 
     @Override
     public void run() {
-        Thread.currentThread().setName("New Relic Expiring Log File Cleanup");
         Path logDirectory = Paths.get(logDirectoryPath.toString());
         Date thresholdDate = new Date();
 
