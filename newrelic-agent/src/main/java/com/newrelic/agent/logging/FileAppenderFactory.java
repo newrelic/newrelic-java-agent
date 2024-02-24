@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.logging;
 
+import com.newrelic.agent.util.DefaultThreadFactory;
 import org.apache.logging.log4j.core.appender.AbstractOutputStreamAppender;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.FileManager;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static com.newrelic.agent.logging.Log4jLogger.CONVERSION_PATTERN;
@@ -129,9 +131,10 @@ public class FileAppenderFactory {
         }
 
         Path directory = new File(this.path).toPath();
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        ThreadFactory threadFactory = new DefaultThreadFactory("New Relic Expired Log Cleanup", true);
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(threadFactory);
         executorService.scheduleWithFixedDelay(
-                new ClearExpiredLogFilesRunnable(directory, fileCount, fileName),
+                new ClearExpiredLogsRunnable(directory, fileCount, fileName),
                 INITIAL_DELAY_SECONDS,
                 REPEAT_INTERVAL_SECONDS,
                 TimeUnit.SECONDS
@@ -142,7 +145,6 @@ public class FileAppenderFactory {
                 .withFilePattern(filePattern)
                 .withStrategy(rolloverStrategy)
                 .build();
-
     }
 
     private TriggeringPolicy buildRollingAppenderTriggeringPolicy() {

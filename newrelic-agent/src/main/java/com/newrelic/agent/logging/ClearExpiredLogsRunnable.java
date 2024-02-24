@@ -6,10 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,7 +18,7 @@ import java.util.stream.Stream;
  * This class iterates over agent log files identifying those older than the specified
  * threshold, and deletes them.
  */
-public class ClearExpiredLogFilesRunnable implements Runnable {
+public class ClearExpiredLogsRunnable implements Runnable {
 
     /**
      * Regular expression pattern for matching the date format in log file names.
@@ -42,7 +40,7 @@ public class ClearExpiredLogFilesRunnable implements Runnable {
      * @param fileCount        the number of days to keep log files before deleting them
      * @param filePrefixPath   the file prefix used to filter log files
      */
-    public ClearExpiredLogFilesRunnable(Path logDirectoryPath, int fileCount, String filePrefixPath) {
+    public ClearExpiredLogsRunnable(Path logDirectoryPath, int fileCount, String filePrefixPath) {
         this.logDirectoryPath = logDirectoryPath;
         this.daysToKeepFiles = fileCount;
 
@@ -54,7 +52,7 @@ public class ClearExpiredLogFilesRunnable implements Runnable {
     @Override
     public void run() {
         Path logDirectory = Paths.get(logDirectoryPath.toString());
-        Date thresholdDate = new Date();
+        LocalDate thresholdDate = LocalDate.now().minusDays(daysToKeepFiles);
 
         try (Stream<Path> paths = Files.list(logDirectory)) {
             paths.forEach(path -> {
@@ -68,23 +66,19 @@ public class ClearExpiredLogFilesRunnable implements Runnable {
         }
     }
 
-    private void deleteIfOlderThanThreshold(Path filePath, String dateString, Date thresholdDate) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar threshold = Calendar.getInstance();
-        Date fileDate;
+    private void deleteIfOlderThanThreshold(Path filePath, String dateString, LocalDate thresholdDate) {
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate fileDate;
 
         if (dateString != null) {
             try {
-                fileDate = dateFormat.parse(dateString);
-                threshold.setTime(fileDate);
-                threshold.add(Calendar.DAY_OF_YEAR, daysToKeepFiles);
-
-                if (threshold.getTime().before(thresholdDate)) {
+                fileDate = LocalDate.parse(dateString, dateFormat);
+                if (fileDate.isBefore(thresholdDate)) {
                     Files.delete(filePath);
                 }
-            } catch (ParseException | IOException e) {
+            } catch (IOException e) {
                 // Logging failure to parse log file date or error deleting expired log
-                NewRelic.getAgent().getLogger().log(Level.FINEST, "Error deleting or parsing log", e);
+                NewRelic.getAgent().getLogger().log(Level.FINEST, "Error deleting expired log", e);
             }
         }
     }

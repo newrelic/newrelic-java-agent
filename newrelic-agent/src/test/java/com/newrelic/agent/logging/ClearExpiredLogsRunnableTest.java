@@ -11,8 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ClearExpiredLogFilesRunnableTest {
 
@@ -23,6 +22,7 @@ public class ClearExpiredLogFilesRunnableTest {
     public void setUp() throws IOException {
         String fileNamePrefix = "testLogDir";
         tempDir = Files.createTempDirectory(fileNamePrefix);
+        assertNotNull(tempDir);
     }
 
     @After
@@ -32,6 +32,7 @@ public class ClearExpiredLogFilesRunnableTest {
                     .sorted((a, b) -> -a.compareTo(b))
                     .forEach(path -> {
                         try {
+                            System.out.println(path);
                             Files.deleteIfExists(path);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -43,9 +44,7 @@ public class ClearExpiredLogFilesRunnableTest {
 
     @Test
     public void testRunnableAgainstEmptyLogDirectory() throws IOException {
-        tempDir = Files.createTempDirectory("emptyLogDir");
-
-        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "emptyLogDir");
+        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
         clearExpiredLogFilesRunnable.run();
 
         long actualLogFileCount = Files.list(tempDir).count();
@@ -143,8 +142,9 @@ public class ClearExpiredLogFilesRunnableTest {
         assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("testFile1.txt")));
         assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("testFile2.jpg")));
         assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("subdirectory").resolve("testFile3.pdf")));
-        expectedLogFileCount = 5;
+        expectedLogFileCount = 4;
         actualLogFileCount = Files.list(tempDir).count();
+        System.out.println(Files.list(tempDir));
         assertEquals(expectedLogFileCount, actualLogFileCount);
     }
 
