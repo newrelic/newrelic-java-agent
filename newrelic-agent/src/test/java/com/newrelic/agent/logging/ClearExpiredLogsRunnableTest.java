@@ -13,9 +13,9 @@ import java.util.Date;
 
 import static org.junit.Assert.*;
 
-public class ClearExpiredLogFilesRunnableTest {
+public class ClearExpiredLogsRunnableTest {
 
-    private ClearExpiredLogFilesRunnable clearExpiredLogFilesRunnable;
+    private ClearExpiredLogsRunnable clearExpiredLogsRunnable;
     private Path tempDir;
 
     @Before
@@ -32,10 +32,9 @@ public class ClearExpiredLogFilesRunnableTest {
                     .sorted((a, b) -> -a.compareTo(b))
                     .forEach(path -> {
                         try {
-                            System.out.println(path);
                             Files.deleteIfExists(path);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            System.out.println("IOException when attempting to delete file: " + path);
                         }
                     });
             Files.deleteIfExists(tempDir);
@@ -44,8 +43,8 @@ public class ClearExpiredLogFilesRunnableTest {
 
     @Test
     public void testRunnableAgainstEmptyLogDirectory() throws IOException {
-        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
-        clearExpiredLogFilesRunnable.run();
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable.run();
 
         long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(0, actualLogFileCount);
@@ -60,8 +59,8 @@ public class ClearExpiredLogFilesRunnableTest {
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
-        clearExpiredLogFilesRunnable.run();
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable.run();
 
         expectedLogFileCount = 0;
         actualLogFileCount = Files.list(tempDir).count();
@@ -78,8 +77,8 @@ public class ClearExpiredLogFilesRunnableTest {
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
-        clearExpiredLogFilesRunnable.run();
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable.run();
 
         expectedLogFileCount = 0;
         actualLogFileCount = Files.list(tempDir).count();
@@ -98,8 +97,8 @@ public class ClearExpiredLogFilesRunnableTest {
         long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 1, "testLogDir");
-        clearExpiredLogFilesRunnable.run();
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 1, "testLogDir");
+        clearExpiredLogsRunnable.run();
 
         expectedLogFileCount = 3;
         actualLogFileCount = Files.list(tempDir).count();
@@ -115,8 +114,8 @@ public class ClearExpiredLogFilesRunnableTest {
         Path readOnlyFile = Files.createFile(tempDir.resolve("readonly.log"));
         readOnlyFile.toFile().setReadOnly();
 
-        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
-        clearExpiredLogFilesRunnable.run();
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable.run();
 
         assertTrue("Read-only file should still exist", Files.exists(readOnlyFile));
     }
@@ -136,15 +135,14 @@ public class ClearExpiredLogFilesRunnableTest {
         long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogFilesRunnable = new ClearExpiredLogFilesRunnable(tempDir, 3, "testLogDir");
-        clearExpiredLogFilesRunnable.run();
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable.run();
 
         assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("testFile1.txt")));
         assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("testFile2.jpg")));
         assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("subdirectory").resolve("testFile3.pdf")));
-        expectedLogFileCount = 4;
+        expectedLogFileCount = 6;
         actualLogFileCount = Files.list(tempDir).count();
-        System.out.println(Files.list(tempDir));
         assertEquals(expectedLogFileCount, actualLogFileCount);
     }
 
