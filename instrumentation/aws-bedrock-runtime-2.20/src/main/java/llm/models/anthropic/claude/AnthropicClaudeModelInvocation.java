@@ -22,18 +22,21 @@ import java.util.logging.Level;
 
 import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.COMPLETION;
 import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.EMBEDDING;
+import static llm.vendor.Vendor.BEDROCK;
 
 public class AnthropicClaudeModelInvocation implements ModelInvocation {
+    Transaction txn;
     ModelRequest claudeRequest;
     ModelResponse claudeResponse;
 
-    public AnthropicClaudeModelInvocation(InvokeModelRequest invokeModelRequest, InvokeModelResponse invokeModelResponse) {
+    public AnthropicClaudeModelInvocation(Transaction currentTransaction, InvokeModelRequest invokeModelRequest, InvokeModelResponse invokeModelResponse) {
+        txn = currentTransaction;
         claudeRequest = new AnthropicClaudeInvokeModelRequest(invokeModelRequest);
         claudeResponse = new AnthropicClaudeInvokeModelResponse(invokeModelResponse);
     }
 
     @Override
-    public void setLlmOperationMetricName(Transaction txn, String functionName) {
+    public void setLlmOperationMetricName(String functionName) {
         txn.getTracedMethod().setMetricName("Llm", claudeResponse.getOperationType(), BEDROCK, functionName);
     }
 
@@ -42,8 +45,10 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
         if (claudeResponse.isErrorResponse()) {
             reportLlmError();
         }
-
-        LlmEvent.Builder builder = new LlmEvent.Builder(linkingMetadata, claudeRequest, claudeResponse);
+        // TODO should the builder just take a ModelInvocation instance and pull all of this stuff from it? All it would
+        //  require is storing the linking metadata on the ModelInvocation instance and adding getters for the
+        //  txn, linkingMetadata, claudeRequest, claudeResponse.
+        LlmEvent.Builder builder = new LlmEvent.Builder(txn, linkingMetadata, claudeRequest, claudeResponse);
 
         LlmEvent llmEmbeddingEvent = builder
                 .spanId()
@@ -62,11 +67,6 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
                 .build();
 
         llmEmbeddingEvent.recordLlmEmbeddingEvent();
-
-        // TODO is it possible to do something like this to call getUserAttributes?
-        //  see com.newrelic.agent.bridge.Transaction
-//        eventAttributes.put("llm.<user_defined_metadata>", ""); // TODO Optional metadata attributes that can be added to a transaction by a customer via add_custom_attribute API. Done internally when event is created?
-//        eventAttributes.put("llm.conversation_id", "NEW API"); // TODO Optional attribute that can be added to a transaction by a customer via add_custom_attribute API. Should just be added and prefixed along with the other user attributes? YES!
     }
 
     @Override
@@ -75,7 +75,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
             reportLlmError();
         }
 
-        LlmEvent.Builder builder = new LlmEvent.Builder(linkingMetadata, claudeRequest, claudeResponse);
+        LlmEvent.Builder builder = new LlmEvent.Builder(txn, linkingMetadata, claudeRequest, claudeResponse);
 
         LlmEvent llmChatCompletionSummaryEvent = builder
                 .spanId()
@@ -98,18 +98,13 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
                 .build();
 
         llmChatCompletionSummaryEvent.recordLlmChatCompletionSummaryEvent();
-
-        // TODO is it possible to do something like this to call getUserAttributes?
-        //  see com.newrelic.agent.bridge.Transaction
-//        eventAttributes.put("llm.<user_defined_metadata>", ""); // TODO Optional metadata attributes that can be added to a transaction by a customer via add_custom_attribute API. Done internally when event is created?
-//        eventAttributes.put("llm.conversation_id", "NEW API"); // TODO Optional attribute that can be added to a transaction by a customer via add_custom_attribute API. Should just be added and prefixed along with the other user attributes? YES!
     }
 
     @Override
     public void recordLlmChatCompletionMessageEvent(int sequence, String message, Map<String, String> linkingMetadata) {
         boolean isUser = message.contains("Human:");
 
-        LlmEvent.Builder builder = new LlmEvent.Builder(linkingMetadata, claudeRequest, claudeResponse);
+        LlmEvent.Builder builder = new LlmEvent.Builder(txn, linkingMetadata, claudeRequest, claudeResponse);
 
         LlmEvent llmChatCompletionMessageEvent = builder
                 .spanId()
@@ -127,11 +122,6 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();
-
-        // TODO is it possible to do something like this to call getUserAttributes?
-        //  see com.newrelic.agent.bridge.Transaction
-//        eventAttributes.put("llm.<user_defined_metadata>", ""); // TODO Optional metadata attributes that can be added to a transaction by a customer via add_custom_attribute API. Done internally when event is created?
-//        eventAttributes.put("llm.conversation_id", "NEW API"); // TODO Optional attribute that can be added to a transaction by a customer via add_custom_attribute API. Should just be added and prefixed along with the other user attributes? YES!
     }
 
     @Override

@@ -13,27 +13,14 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.Map;
 import java.util.UUID;
 
+import static llm.vendor.Vendor.VENDOR;
+
 public interface ModelInvocation {
-    String VENDOR = "bedrock";
-    String BEDROCK = "Bedrock";
-    String INGEST_SOURCE = "Java";
-    String TRACE_ID = "trace.id";
-    String SPAN_ID = "span.id";
-
-    // Supported models
-    String ANTHROPIC_CLAUDE = "claude";
-    String AMAZON_TITAN = "titan";
-    String META_LLAMA_2 = "llama";
-    String COHERE_COMMAND = "cohere";
-    String AI_21_LABS_JURASSIC = "jurassic";
-
     /**
      * Set name of the span/segment for each LLM embedding and chat completion call
      * Llm/{operation_type}/{vendor_name}/{function_name}
-     *
-     * @param txn current transaction
      */
-    void setLlmOperationMetricName(Transaction txn, String functionName);
+    void setLlmOperationMetricName(String functionName);
 
     void recordLlmEmbeddingEvent(long startTime, Map<String, String> linkingMetadata);
 
@@ -53,9 +40,8 @@ public interface ModelInvocation {
      * tag lives for 27 hours so if this metric isn't repeatedly sent the tag will disappear and
      * the UI will be hidden.
      */
-    static void incrementInstrumentedSupportabilityMetric() {
-        // Bedrock vendor_version isn't available, so set it to instrumentation version instead
-        NewRelic.incrementCounter("Supportability/Java/ML/Bedrock/2.20");
+    static void incrementInstrumentedSupportabilityMetric(String vendorVersion) {
+        NewRelic.incrementCounter("Supportability/Java/ML/" + VENDOR + "/" + vendorVersion);
     }
 
     static void setLlmTrueAgentAttribute(Transaction txn) {
@@ -63,24 +49,14 @@ public interface ModelInvocation {
         txn.getAgentAttributes().put("llm", true);
     }
 
-    // Lowercased name of vendor (bedrock or openAI)
-    static String getVendor() {
-        return VENDOR;
-    }
-
-    // Name of the language agent (ex: Python, Node)
-    static String getIngestSource() {
-        return INGEST_SOURCE;
-    }
-
     // GUID associated with the active trace
     static String getSpanId(Map<String, String> linkingMetadata) {
-        return linkingMetadata.get(SPAN_ID);
+        return linkingMetadata.get("span.id");
     }
 
     // ID of the current trace
     static String getTraceId(Map<String, String> linkingMetadata) {
-        return linkingMetadata.get(TRACE_ID);
+        return linkingMetadata.get("trace.id");
     }
 
     // Returns a string representation of a random GUID

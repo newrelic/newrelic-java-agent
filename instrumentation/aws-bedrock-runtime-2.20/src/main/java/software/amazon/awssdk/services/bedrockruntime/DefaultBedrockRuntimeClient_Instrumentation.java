@@ -25,7 +25,8 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 
 import java.util.Map;
 
-import static llm.models.ModelInvocation.ANTHROPIC_CLAUDE;
+import static llm.models.SupportedModels.ANTHROPIC_CLAUDE;
+import static llm.vendor.Vendor.VENDOR_VERSION;
 
 /**
  * Service client for accessing Amazon Bedrock Runtime.
@@ -59,7 +60,7 @@ final class DefaultBedrockRuntimeClient_Instrumentation {
         long startTime = System.currentTimeMillis();
         InvokeModelResponse invokeModelResponse = Weaver.callOriginal();
 
-        ModelInvocation.incrementInstrumentedSupportabilityMetric();
+        ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION);
 
 //        Transaction txn = NewRelic.getAgent().getTransaction();
         Transaction txn = AgentBridge.getAgent().getTransaction();
@@ -70,10 +71,10 @@ final class DefaultBedrockRuntimeClient_Instrumentation {
 
             String modelId = invokeModelRequest.modelId();
             if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
-                ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(invokeModelRequest,
+                ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(txn, invokeModelRequest,
                         invokeModelResponse);
                 // Set traced method name based on LLM operation
-                anthropicClaudeModelInvocation.setLlmOperationMetricName(txn, "invokeModel");
+                anthropicClaudeModelInvocation.setLlmOperationMetricName("invokeModel");
                 // Set llm = true agent attribute
                 ModelInvocation.setLlmTrueAgentAttribute(txn);
                 anthropicClaudeModelInvocation.recordLlmEvents(startTime, linkingMetadata);

@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 import static llm.models.ModelInvocation.incrementInstrumentedSupportabilityMetric;
+import static llm.vendor.Vendor.VENDOR_VERSION;
 
 /**
  * Service client for accessing Amazon Bedrock Runtime asynchronously.
@@ -62,7 +63,7 @@ final class DefaultBedrockRuntimeAsyncClient_Instrumentation {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("LLM", "InvokeModelAsync");
         CompletableFuture<InvokeModelResponse> invokeModelResponseFuture = Weaver.callOriginal();
 
-        incrementInstrumentedSupportabilityMetric();
+        incrementInstrumentedSupportabilityMetric(VENDOR_VERSION);
 
         // this should never happen, but protecting against bad implementations
         if (invokeModelResponseFuture == null) {
