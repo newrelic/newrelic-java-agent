@@ -38,7 +38,7 @@ public class AgentAttributeSender extends AttributeSender {
         if (attributeMap == null) {
             return;
         }
-        getAttributeMap().remove(key);
+        attributeMap.remove(key);
     }
 
 }
