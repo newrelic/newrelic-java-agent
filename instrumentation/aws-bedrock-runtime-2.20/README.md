@@ -77,9 +77,7 @@ Can be built via `LlmEvent` builder
 
 
 ## TODO
-* Add custom `llm.` attributes
 * Wire up async client
-* Switch instrumentation back to BedrockRuntimeClient/BedrockRuntimeAsyncClient interfaces
 * Clean up request/response parsing logic
 * Wire up Config
   * Generate `Supportability/{language}/ML/Streaming/Disabled` metric?

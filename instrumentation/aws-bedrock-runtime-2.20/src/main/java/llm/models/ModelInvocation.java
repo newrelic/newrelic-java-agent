@@ -9,6 +9,7 @@ package llm.models;
 
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 
 import java.util.Map;
 import java.util.UUID;
@@ -17,10 +18,20 @@ import static llm.vendor.Vendor.VENDOR;
 
 public interface ModelInvocation {
     /**
-     * Set name of the span/segment for each LLM embedding and chat completion call
+     * Set name of the traced method for each LLM embedding and chat completion call
      * Llm/{operation_type}/{vendor_name}/{function_name}
+     * <p>
+     * Used with the sync client
      */
-    void setLlmOperationMetricName(String functionName);
+    void setTracedMethodName(Transaction txn, String functionName);
+
+    /**
+     * Set name of the async segment for each LLM embedding and chat completion call
+     * Llm/{operation_type}/{vendor_name}/{function_name}
+     * <p>
+     * Used with the async client
+     */
+    void setSegmentName(Segment segment, String functionName);
 
     void recordLlmEmbeddingEvent(long startTime, Map<String, String> linkingMetadata);
 

@@ -7,7 +7,6 @@
 
 package llm.events;
 
-import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import llm.models.ModelInvocation;
 import llm.models.ModelRequest;
@@ -22,6 +21,7 @@ import java.util.Map;
  */
 public class LlmEvent {
     private final Map<String, Object> eventAttributes;
+    private final Map<String, Object> userLlmAttributes;
 
     // LLM event types
     public static final String LLM_EMBEDDING = "LlmEmbedding";
@@ -55,8 +55,8 @@ public class LlmEvent {
 
     public static class Builder {
         // Required builder parameters
+        private final Map<String, Object> userAttributes;
         private final Map<String, String> linkingMetadata;
-        private final Transaction txn;
         private final ModelRequest modelRequest;
         private final ModelResponse modelResponse;
 
@@ -93,8 +93,8 @@ public class LlmEvent {
         private Integer responseUsageCompletionTokens = null;
         private String responseChoicesFinishReason = null;
 
-        public Builder(Transaction txn, Map<String, String> linkingMetadata, ModelRequest modelRequest, ModelResponse modelResponse) {
-            this.txn = txn;
+        public Builder(Map<String, Object> userAttributes, Map<String, String> linkingMetadata, ModelRequest modelRequest, ModelResponse modelResponse) {
+            this.userAttributes = userAttributes;
             this.linkingMetadata = linkingMetadata;
             this.modelRequest = modelRequest;
             this.modelResponse = modelResponse;
@@ -220,14 +220,17 @@ public class LlmEvent {
         }
 
         public LlmEvent build() {
-            return new LlmEvent(this, txn);
+            return new LlmEvent(this);
         }
     }
 
     // This populates the LlmEvent attributes map with only the attributes that were explicitly set on the builder.
-    private LlmEvent(Builder builder, Transaction txn) {
-        // Init map with any user attributes containing the llm. prefix
-        eventAttributes = new HashMap<>(getUserLlmAttributes(txn));
+    private LlmEvent(Builder builder) {
+        // Map of custom user attributes with the llm prefix
+        userLlmAttributes = getUserLlmAttributes(builder.userAttributes);
+
+        // Map of all LLM event attributes
+        eventAttributes = new HashMap<>(userLlmAttributes);
 
         spanId = builder.spanId;
         if (spanId != null && !spanId.isEmpty()) {
@@ -349,11 +352,10 @@ public class LlmEvent {
      * Takes a map of all attributes added by the customer via the addCustomParameter API and returns a map
      * containing only custom attributes with a llm. prefix to be added to LlmEvents.
      *
-     * @param txn current transaction
+     * @param userAttributes Map of all custom user attributes
      * @return Map of user attributes prefixed with llm.
      */
-    private Map<String, Object> getUserLlmAttributes(Transaction txn) {
-        Map<String, Object> userAttributes = txn.getUserAttributes();
+    private Map<String, Object> getUserLlmAttributes(Map<String, Object> userAttributes) {
         Map<String, Object> userLlmAttributes = new HashMap<>();
 
         if (userAttributes != null && !userAttributes.isEmpty()) {

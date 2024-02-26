@@ -9,6 +9,7 @@ package llm.models.anthropic.claude;
 
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import llm.events.LlmEvent;
 import llm.models.ModelInvocation;
 import llm.models.ModelRequest;
@@ -25,19 +26,24 @@ import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.EMB
 import static llm.vendor.Vendor.BEDROCK;
 
 public class AnthropicClaudeModelInvocation implements ModelInvocation {
-    Transaction txn;
+    Map<String, Object> userAttributes;
     ModelRequest claudeRequest;
     ModelResponse claudeResponse;
 
-    public AnthropicClaudeModelInvocation(Transaction currentTransaction, InvokeModelRequest invokeModelRequest, InvokeModelResponse invokeModelResponse) {
-        txn = currentTransaction;
+    public AnthropicClaudeModelInvocation(Map<String, Object> userCustomAttributes, InvokeModelRequest invokeModelRequest, InvokeModelResponse invokeModelResponse) {
+        userAttributes = userCustomAttributes;
         claudeRequest = new AnthropicClaudeInvokeModelRequest(invokeModelRequest);
         claudeResponse = new AnthropicClaudeInvokeModelResponse(invokeModelResponse);
     }
 
     @Override
-    public void setLlmOperationMetricName(String functionName) {
+    public void setTracedMethodName(Transaction txn, String functionName) {
         txn.getTracedMethod().setMetricName("Llm", claudeResponse.getOperationType(), BEDROCK, functionName);
+    }
+
+    @Override
+    public void setSegmentName(Segment segment, String functionName) {
+        segment.setMetricName("Llm", claudeResponse.getOperationType(), BEDROCK, functionName);
     }
 
     @Override
@@ -47,8 +53,8 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
         }
         // TODO should the builder just take a ModelInvocation instance and pull all of this stuff from it? All it would
         //  require is storing the linking metadata on the ModelInvocation instance and adding getters for the
-        //  txn, linkingMetadata, claudeRequest, claudeResponse.
-        LlmEvent.Builder builder = new LlmEvent.Builder(txn, linkingMetadata, claudeRequest, claudeResponse);
+        //  userAttributes, linkingMetadata, claudeRequest, claudeResponse.
+        LlmEvent.Builder builder = new LlmEvent.Builder(userAttributes, linkingMetadata, claudeRequest, claudeResponse);
 
         LlmEvent llmEmbeddingEvent = builder
                 .spanId()
@@ -75,7 +81,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
             reportLlmError();
         }
 
-        LlmEvent.Builder builder = new LlmEvent.Builder(txn, linkingMetadata, claudeRequest, claudeResponse);
+        LlmEvent.Builder builder = new LlmEvent.Builder(userAttributes, linkingMetadata, claudeRequest, claudeResponse);
 
         LlmEvent llmChatCompletionSummaryEvent = builder
                 .spanId()
@@ -104,7 +110,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
     public void recordLlmChatCompletionMessageEvent(int sequence, String message, Map<String, String> linkingMetadata) {
         boolean isUser = message.contains("Human:");
 
-        LlmEvent.Builder builder = new LlmEvent.Builder(txn, linkingMetadata, claudeRequest, claudeResponse);
+        LlmEvent.Builder builder = new LlmEvent.Builder(userAttributes, linkingMetadata, claudeRequest, claudeResponse);
 
         LlmEvent llmChatCompletionMessageEvent = builder
                 .spanId()
