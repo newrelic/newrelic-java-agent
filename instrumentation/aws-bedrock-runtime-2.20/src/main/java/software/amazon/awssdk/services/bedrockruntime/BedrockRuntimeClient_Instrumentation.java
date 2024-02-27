@@ -22,11 +22,16 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 
 import java.util.Map;
 
+import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringEnabled;
+import static llm.models.SupportedModels.AI_21_LABS_JURASSIC;
+import static llm.models.SupportedModels.AMAZON_TITAN;
 import static llm.models.SupportedModels.ANTHROPIC_CLAUDE;
+import static llm.models.SupportedModels.COHERE_COMMAND;
+import static llm.models.SupportedModels.META_LLAMA_2;
 import static llm.vendor.Vendor.VENDOR_VERSION;
 
 /**
- * Service client for accessing Amazon Bedrock Runtime.
+ * Service client for accessing Amazon Bedrock Runtime synchronously.
  */
 @Weave(type = MatchType.Interface, originalName = "software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient")
 public abstract class BedrockRuntimeClient_Instrumentation {
@@ -36,26 +41,35 @@ public abstract class BedrockRuntimeClient_Instrumentation {
         long startTime = System.currentTimeMillis();
         InvokeModelResponse invokeModelResponse = Weaver.callOriginal();
 
-        ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION);
-        Transaction txn = AgentBridge.getAgent().getTransaction();
+        if (isAiMonitoringEnabled()) {
+            Transaction txn = AgentBridge.getAgent().getTransaction();
+            ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION);
 
-        // TODO check AIM config
-        if (!(txn instanceof NoOpTransaction)) {
-            Map<String, Object> userAttributes = txn.getUserAttributes();
-            Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
-
-            String modelId = invokeModelRequest.modelId();
-            if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
-                ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(userAttributes, invokeModelRequest,
-                        invokeModelResponse);
-                // Set traced method name based on LLM operation
-                anthropicClaudeModelInvocation.setTracedMethodName(txn, "invokeModel");
-                // Set llm = true agent attribute
+            if (!(txn instanceof NoOpTransaction)) {
+                // Set llm = true agent attribute, this is required on transaction events
                 ModelInvocation.setLlmTrueAgentAttribute(txn);
-                anthropicClaudeModelInvocation.recordLlmEvents(startTime, linkingMetadata);
+
+                Map<String, Object> userAttributes = txn.getUserAttributes();
+                Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
+                String modelId = invokeModelRequest.modelId();
+
+                if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
+                    ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(userAttributes, invokeModelRequest,
+                            invokeModelResponse);
+                    // Set traced method name based on LLM operation from response
+                    anthropicClaudeModelInvocation.setTracedMethodName(txn, "invokeModel");
+                    anthropicClaudeModelInvocation.recordLlmEvents(startTime, linkingMetadata);
+                } else if (modelId.toLowerCase().contains(AMAZON_TITAN)) {
+
+                } else if (modelId.toLowerCase().contains(META_LLAMA_2)) {
+
+                } else if (modelId.toLowerCase().contains(COHERE_COMMAND)) {
+
+                } else if (modelId.toLowerCase().contains(AI_21_LABS_JURASSIC)) {
+
+                }
             }
         }
-
         return invokeModelResponse;
     }
 }

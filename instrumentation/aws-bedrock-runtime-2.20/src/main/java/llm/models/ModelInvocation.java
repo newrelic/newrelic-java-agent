@@ -46,10 +46,6 @@ public interface ModelInvocation {
     /**
      * This needs to be incremented for every invocation of the SDK.
      * Supportability/{language}/ML/{vendor_name}/{vendor_version}
-     * <p>
-     * The metric generated triggers the creation of a tag which gates the AI Response UI. The
-     * tag lives for 27 hours so if this metric isn't repeatedly sent the tag will disappear and
-     * the UI will be hidden.
      */
     static void incrementInstrumentedSupportabilityMetric(String vendorVersion) {
         NewRelic.incrementCounter("Supportability/Java/ML/" + VENDOR + "/" + vendorVersion);
