@@ -35,7 +35,7 @@ public interface ModelInvocation {
 
     void recordLlmEmbeddingEvent(long startTime, Map<String, String> linkingMetadata);
 
-    void recordLlmChatCompletionSummaryEvent(int numberOfMessages, long startTime, Map<String, String> linkingMetadata);
+    void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages, Map<String, String> linkingMetadata);
 
     void recordLlmChatCompletionMessageEvent(int sequence, String message, Map<String, String> linkingMetadata);
 

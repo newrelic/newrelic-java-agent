@@ -76,7 +76,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
     }
 
     @Override
-    public void recordLlmChatCompletionSummaryEvent(int numberOfMessages, long startTime, Map<String, String> linkingMetadata) {
+    public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages, Map<String, String> linkingMetadata) {
         if (claudeResponse.isErrorResponse()) {
             reportLlmError();
         }
@@ -166,6 +166,6 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
         // Second LlmChatCompletionMessage represents the completion message from the LLM response
         recordLlmChatCompletionMessageEvent(1, claudeResponse.getResponseMessage(), linkingMetadata);
         // A summary of all LlmChatCompletionMessage events
-        recordLlmChatCompletionSummaryEvent(2, startTime, linkingMetadata);
+        recordLlmChatCompletionSummaryEvent(startTime, 2, linkingMetadata);
     }
 }

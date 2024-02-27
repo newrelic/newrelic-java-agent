@@ -115,8 +115,6 @@ Note: Streaming is not currently supported.
 
 ## TODO
 * Clean up request/response parsing logic
-* Wire up Config
-  * Generate `Supportability/{language}/ML/Streaming/Disabled` metric?
 * Set up and test new models
 * Write instrumentation tests
 * Finish readme
