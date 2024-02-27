@@ -176,9 +176,18 @@ public class InboundTest {
     }
 
     private String fetchTransactionName(Introspector introspector, String expectedMethod) {
-        assertEquals(1, introspector.getFinishedTransactionCount(500));
+        // The number 2 is a little misleading here, 1 should be the real number, but because of the way we
+        // are mocking the weaved class for testing, it will be 2 here.
+        // One comes from the InboundWrapper call to get the headers, which forces a call to getInputStream,
+        // which actually calls the the HttpServerImpl which creates the transaction.
+        // The other comes from the "call" methods in this test class
+        assertEquals(2, introspector.getFinishedTransactionCount(500));
 
-        String transactionName = introspector.getTransactionNames().iterator().next();
+        String transactionName = introspector.getTransactionNames().stream()
+                .filter( n -> n.contains(expectedMethod))
+                .findFirst()
+                .orElse(null);
+
         boolean foundExpectedEvent = false;
         for (TransactionEvent event : introspector.getTransactionEvents(transactionName)) {
             foundExpectedEvent = foundExpectedEvent || event.getName().endsWith("/" + expectedMethod);
