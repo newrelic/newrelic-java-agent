@@ -8,6 +8,7 @@
 package llm.models.anthropic.claude;
 
 import com.newrelic.api.agent.NewRelic;
+import llm.models.ModelRequest;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
@@ -16,11 +17,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 
+import static llm.models.ModelRequest.logParsingFailure;
+
 /**
- * Stores the required info from the Bedrock InvokeModelRequest
- * but doesn't hold a reference to the actual request object.
+ * Stores the required info from the Bedrock InvokeModelRequest without holding
+ * a reference to the actual request object to avoid potential memory issues.
  */
-public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelRequest {
+public class AnthropicClaudeInvokeModelRequest implements ModelRequest {
     // TODO might be able to move some of these constants to the ModelRequest interface
     //  need to figure out if they are consistent across all models
     private static final String MAX_TOKENS_TO_SAMPLE = "max_tokens_to_sample";
@@ -41,7 +44,7 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
             invokeModelRequestBody = invokeModelRequest.body().asUtf8String();
             modelId = invokeModelRequest.modelId();
         } else {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Received null InvokeModelRequest");
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "AIM: Received null InvokeModelRequest");
         }
     }
 
@@ -70,14 +73,15 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
         JsonNode requestBodyJsonNode = jsonNodeParser.parse(invokeModelRequestBody);
 
         Map<String, JsonNode> requestBodyJsonMap = null;
-        // TODO check for other types? Or will it always be Object?
-        //  add try/catch?
-        if (requestBodyJsonNode != null && requestBodyJsonNode.isObject()) {
-            requestBodyJsonMap = requestBodyJsonNode.asObject();
-        } else {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse InvokeModelRequest body as Map Object");
+        try {
+            if (requestBodyJsonNode != null && requestBodyJsonNode.isObject()) {
+                requestBodyJsonMap = requestBodyJsonNode.asObject();
+            } else {
+                logParsingFailure(null, "request body");
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, "request body");
         }
-
         return requestBodyJsonMap != null ? requestBodyJsonMap : Collections.emptyMap();
     }
 
@@ -91,9 +95,11 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
                     String maxTokensToSampleString = jsonNode.asNumber();
                     maxTokensToSample = Integer.parseInt(maxTokensToSampleString);
                 }
+            } else {
+                logParsingFailure(null, MAX_TOKENS_TO_SAMPLE);
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + MAX_TOKENS_TO_SAMPLE);
+            logParsingFailure(e, MAX_TOKENS_TO_SAMPLE);
         }
         return maxTokensToSample;
     }
@@ -108,9 +114,11 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
                     String temperatureString = jsonNode.asNumber();
                     temperature = Float.parseFloat(temperatureString);
                 }
+            } else {
+                logParsingFailure(null, TEMPERATURE);
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + TEMPERATURE);
+            logParsingFailure(e, TEMPERATURE);
         }
         return temperature;
     }
@@ -124,9 +132,11 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
                 if (jsonNode.isString()) {
                     prompt = jsonNode.asString();
                 }
+            } else {
+                logParsingFailure(null, PROMPT);
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + PROMPT);
+            logParsingFailure(e, PROMPT);
         }
         return prompt;
     }
@@ -143,9 +153,11 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
                 } else if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + ASSISTANT)) {
                     return ASSISTANT;
                 }
+            } else {
+                logParsingFailure(null, "role");
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse role from InvokeModelRequest");
+            logParsingFailure(e, "role");
         }
         return "";
     }
@@ -159,9 +171,11 @@ public class AnthropicClaudeInvokeModelRequest implements llm.models.ModelReques
                 if (jsonNode.isString()) {
                     inputText = jsonNode.asString();
                 }
+            } else {
+                logParsingFailure(null, INPUT_TEXT);
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + INPUT_TEXT);
+            logParsingFailure(e, INPUT_TEXT);
         }
         return inputText;
     }

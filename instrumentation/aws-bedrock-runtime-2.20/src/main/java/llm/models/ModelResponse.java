@@ -7,6 +7,10 @@
 
 package llm.models;
 
+import com.newrelic.api.agent.NewRelic;
+
+import java.util.logging.Level;
+
 public interface ModelResponse {
     String COMPLETION = "completion";
     String EMBEDDING = "embedding";
@@ -34,4 +38,12 @@ public interface ModelResponse {
     int getStatusCode();
 
     String getStatusText();
+
+    static void logParsingFailure(Exception e, String fieldBeingParsed) {
+        if (e != null) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, e, "AIM: Error parsing " + fieldBeingParsed + " from ModelResponse");
+        } else {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "AIM: Unable to parse empty/null " + fieldBeingParsed + " from ModelResponse");
+        }
+    }
 }

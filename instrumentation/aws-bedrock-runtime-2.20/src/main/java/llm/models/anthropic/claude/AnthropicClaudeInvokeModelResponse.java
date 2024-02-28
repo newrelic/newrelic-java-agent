@@ -8,6 +8,7 @@
 package llm.models.anthropic.claude;
 
 import com.newrelic.api.agent.NewRelic;
+import llm.models.ModelResponse;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
@@ -19,12 +20,13 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 import static llm.models.ModelInvocation.getRandomGuid;
+import static llm.models.ModelResponse.logParsingFailure;
 
 /**
- * Stores the required info from the Bedrock InvokeModelResponse
- * but doesn't hold a reference to the actual response object.
+ * Stores the required info from the Bedrock InvokeModelResponse without holding
+ * a reference to the actual request object to avoid potential memory issues.
  */
-public class AnthropicClaudeInvokeModelResponse implements llm.models.ModelResponse {
+public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
     private static final String STOP_REASON = "stop_reason";
 
     // Response headers
@@ -97,26 +99,28 @@ public class AnthropicClaudeInvokeModelResponse implements llm.models.ModelRespo
             // TODO check for other types? Or will it always be Object?
             if (responseBodyJsonNode != null && responseBodyJsonNode.isObject()) {
                 responseBodyJsonMap = responseBodyJsonNode.asObject();
+            } else {
+                logParsingFailure(null, "response body");
             }
-//            else {
-//                NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse InvokeModelResponse body as Map Object");
-//            }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse InvokeModelResponse body as Map Object");
+            logParsingFailure(e, "response body");
         }
-
         return responseBodyJsonMap != null ? responseBodyJsonMap : Collections.emptyMap();
     }
 
     private void setOperationType(String invokeModelResponseBody) {
-        if (!invokeModelResponseBody.isEmpty()) {
-            if (invokeModelResponseBody.startsWith(JSON_START + COMPLETION)) {
-                operationType = COMPLETION;
-            } else if (invokeModelResponseBody.startsWith(JSON_START + EMBEDDING)) {
-                operationType = EMBEDDING;
-            } else {
-                NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unknown operation type");
+        try {
+            if (!invokeModelResponseBody.isEmpty()) {
+                if (invokeModelResponseBody.startsWith(JSON_START + COMPLETION)) {
+                    operationType = COMPLETION;
+                } else if (invokeModelResponseBody.startsWith(JSON_START + EMBEDDING)) {
+                    operationType = EMBEDDING;
+                } else {
+                    logParsingFailure(null, "operation type");
+                }
             }
+        } catch (Exception e) {
+            logParsingFailure(e, "operation type");
         }
     }
 
@@ -138,9 +142,11 @@ public class AnthropicClaudeInvokeModelResponse implements llm.models.ModelRespo
                 if (amznRequestIdHeaders != null && !amznRequestIdHeaders.isEmpty()) {
                     amznRequestId = amznRequestIdHeaders.get(0);
                 }
+            } else {
+                logParsingFailure(null, "response headers");
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse InvokeModelResponse headers");
+            logParsingFailure(e, "response headers");
         }
     }
 
@@ -158,9 +164,11 @@ public class AnthropicClaudeInvokeModelResponse implements llm.models.ModelRespo
                 if (jsonNode.isString()) {
                     completion = jsonNode.asString();
                 }
+            } else {
+                logParsingFailure(null, COMPLETION);
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + COMPLETION);
+            logParsingFailure(e, COMPLETION);
         }
         return completion;
     }
@@ -174,9 +182,11 @@ public class AnthropicClaudeInvokeModelResponse implements llm.models.ModelRespo
                 if (jsonNode.isString()) {
                     stopReason = jsonNode.asString();
                 }
+            } else {
+                logParsingFailure(null, STOP_REASON);
             }
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unable to parse " + STOP_REASON);
+            logParsingFailure(e, STOP_REASON);
         }
         return stopReason;
     }
