@@ -454,6 +454,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         public LlmEventAttributeSender(Map<String, Object> userAttributes) {
             super(new LlmEventAttributeValidator(ATTRIBUTE_TYPE));
             this.userAttributes = userAttributes;
+            // This will have the effect of only copying attributes onto LlmEvents if there is an active transaction
             setTransactional(true);
         }
 

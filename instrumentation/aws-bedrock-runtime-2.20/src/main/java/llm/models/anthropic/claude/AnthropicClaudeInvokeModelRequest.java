@@ -125,20 +125,7 @@ public class AnthropicClaudeInvokeModelRequest implements ModelRequest {
 
     @Override
     public String getRequestMessage() {
-        String prompt = "";
-        try {
-            if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getRequestBodyJsonMap().get(PROMPT);
-                if (jsonNode.isString()) {
-                    prompt = jsonNode.asString();
-                }
-            } else {
-                logParsingFailure(null, PROMPT);
-            }
-        } catch (Exception e) {
-            logParsingFailure(e, PROMPT);
-        }
-        return prompt;
+        return parseStringValue(PROMPT);
     }
 
     @Override
@@ -164,20 +151,24 @@ public class AnthropicClaudeInvokeModelRequest implements ModelRequest {
 
     @Override
     public String getInputText() {
-        String inputText = "";
+        return parseStringValue(INPUT_TEXT);
+    }
+
+    private String parseStringValue(String fieldToParse) {
+        String parsedStringValue = "";
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getRequestBodyJsonMap().get(INPUT_TEXT);
+                JsonNode jsonNode = getRequestBodyJsonMap().get(fieldToParse);
                 if (jsonNode.isString()) {
-                    inputText = jsonNode.asString();
+                    parsedStringValue = jsonNode.asString();
                 }
             } else {
-                logParsingFailure(null, INPUT_TEXT);
+                logParsingFailure(null, fieldToParse);
             }
         } catch (Exception e) {
-            logParsingFailure(e, INPUT_TEXT);
+            logParsingFailure(e, fieldToParse);
         }
-        return inputText;
+        return parsedStringValue;
     }
 
     @Override

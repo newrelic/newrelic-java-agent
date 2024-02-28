@@ -7,6 +7,7 @@
 
 package llm.models;
 
+import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
@@ -40,6 +41,9 @@ public interface ModelInvocation {
     void recordLlmChatCompletionMessageEvent(int sequence, String message);
 
     void recordLlmEvents(long startTime);
+
+    // This causes the txn to be active on the thread where the LlmEvents are created so that they properly added to the event reservoir on the txn. This is used when the model response is returned asynchronously.
+    void recordLlmEventsAsync(long startTime, Token token);
 
     void reportLlmError();
 

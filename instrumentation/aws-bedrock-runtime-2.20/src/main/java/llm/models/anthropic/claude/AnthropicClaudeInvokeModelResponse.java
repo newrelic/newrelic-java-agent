@@ -157,38 +157,29 @@ public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
      */
     @Override
     public String getResponseMessage() {
-        String completion = "";
-        try {
-            if (!getResponseBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getResponseBodyJsonMap().get(COMPLETION);
-                if (jsonNode.isString()) {
-                    completion = jsonNode.asString();
-                }
-            } else {
-                logParsingFailure(null, COMPLETION);
-            }
-        } catch (Exception e) {
-            logParsingFailure(e, COMPLETION);
-        }
-        return completion;
+        return parseStringValue(COMPLETION);
     }
 
     @Override
     public String getStopReason() {
-        String stopReason = "";
+        return parseStringValue(STOP_REASON);
+    }
+
+    private String parseStringValue(String fieldToParse) {
+        String parsedStringValue = "";
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getResponseBodyJsonMap().get(STOP_REASON);
+                JsonNode jsonNode = getResponseBodyJsonMap().get(fieldToParse);
                 if (jsonNode.isString()) {
-                    stopReason = jsonNode.asString();
+                    parsedStringValue = jsonNode.asString();
                 }
             } else {
-                logParsingFailure(null, STOP_REASON);
+                logParsingFailure(null, fieldToParse);
             }
         } catch (Exception e) {
-            logParsingFailure(e, STOP_REASON);
+            logParsingFailure(e, fieldToParse);
         }
-        return stopReason;
+        return parsedStringValue;
     }
 
     @Override

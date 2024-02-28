@@ -9,6 +9,7 @@ package software.amazon.awssdk.services.bedrockruntime;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
@@ -66,9 +67,13 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
                     Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
                     String modelId = invokeModelRequest.modelId();
 
+                    Token token = txn.getToken();
+
+                    // TODO instrumentation fails if the BiConsumer is replaced with a lambda
                     invokeModelResponseFuture.whenComplete(new BiConsumer<InvokeModelResponse, Throwable>() {
                         @Override
                         public void accept(InvokeModelResponse invokeModelResponse, Throwable throwable) {
+
                             try {
                                 if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
                                     ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(linkingMetadata, userAttributes,
@@ -76,7 +81,7 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
                                             invokeModelResponse);
                                     // Set segment name based on LLM operation from response
                                     anthropicClaudeModelInvocation.setSegmentName(segment, "invokeModel");
-                                    anthropicClaudeModelInvocation.recordLlmEvents(startTime);
+                                    anthropicClaudeModelInvocation.recordLlmEventsAsync(startTime, token);
                                 } else if (modelId.toLowerCase().contains(AMAZON_TITAN)) {
 
                                 } else if (modelId.toLowerCase().contains(META_LLAMA_2)) {

@@ -7,9 +7,11 @@
 
 package llm.models.anthropic.claude;
 
+import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
+import com.newrelic.api.agent.Trace;
 import llm.events.LlmEvent;
 import llm.models.ModelInvocation;
 import llm.models.ModelRequest;
@@ -141,6 +143,15 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
         } else {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unexpected operation type encountered when trying to record LLM events");
         }
+    }
+
+    @Trace(async = true)
+    @Override
+    public void recordLlmEventsAsync(long startTime, Token token) {
+        if (token != null && token.isActive()) {
+            token.linkAndExpire();
+        }
+        recordLlmEvents(startTime);
     }
 
     @Override
