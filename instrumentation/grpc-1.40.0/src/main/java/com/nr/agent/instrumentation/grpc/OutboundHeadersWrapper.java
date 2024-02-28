@@ -27,7 +27,9 @@ public class OutboundHeadersWrapper implements OutboundHeaders {
     @Override
     public void setHeader(String key, String value) {
         if (GrpcConfig.disributedTracingEnabled) {
-            metadata.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), value);
+            if (!metadata.containsKey(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER))) {
+                metadata.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), value);
+            }
         }
     }
 }
