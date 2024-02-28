@@ -54,11 +54,11 @@ public abstract class BedrockRuntimeClient_Instrumentation {
                 String modelId = invokeModelRequest.modelId();
 
                 if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
-                    ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(userAttributes, invokeModelRequest,
+                    ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(linkingMetadata, userAttributes, invokeModelRequest,
                             invokeModelResponse);
                     // Set traced method name based on LLM operation from response
                     anthropicClaudeModelInvocation.setTracedMethodName(txn, "invokeModel");
-                    anthropicClaudeModelInvocation.recordLlmEvents(startTime, linkingMetadata);
+                    anthropicClaudeModelInvocation.recordLlmEvents(startTime);
                 } else if (modelId.toLowerCase().contains(AMAZON_TITAN)) {
 
                 } else if (modelId.toLowerCase().contains(META_LLAMA_2)) {

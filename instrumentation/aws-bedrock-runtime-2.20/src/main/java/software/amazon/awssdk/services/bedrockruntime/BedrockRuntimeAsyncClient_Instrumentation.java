@@ -71,11 +71,12 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
                         public void accept(InvokeModelResponse invokeModelResponse, Throwable throwable) {
                             try {
                                 if (modelId.toLowerCase().contains(ANTHROPIC_CLAUDE)) {
-                                    ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(userAttributes, invokeModelRequest,
+                                    ModelInvocation anthropicClaudeModelInvocation = new AnthropicClaudeModelInvocation(linkingMetadata, userAttributes,
+                                            invokeModelRequest,
                                             invokeModelResponse);
                                     // Set segment name based on LLM operation from response
                                     anthropicClaudeModelInvocation.setSegmentName(segment, "invokeModel");
-                                    anthropicClaudeModelInvocation.recordLlmEvents(startTime, linkingMetadata);
+                                    anthropicClaudeModelInvocation.recordLlmEvents(startTime);
                                 } else if (modelId.toLowerCase().contains(AMAZON_TITAN)) {
 
                                 } else if (modelId.toLowerCase().contains(META_LLAMA_2)) {
@@ -107,7 +108,7 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
                         .log(Level.FINER,
                                 "aws-bedrock-runtime-2.20 instrumentation does not currently support response streaming. Enabling ai_monitoring.streaming will have no effect.");
             } else {
-                NewRelic.incrementCounter("Supportability/Java/ML/Streaming/Disabled");
+                ModelInvocation.incrementStreamingDisabledSupportabilityMetric();
             }
         }
         return Weaver.callOriginal();

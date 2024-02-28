@@ -93,11 +93,11 @@ public class LlmEvent {
         private Integer responseUsageCompletionTokens = null;
         private String responseChoicesFinishReason = null;
 
-        public Builder(Map<String, Object> userAttributes, Map<String, String> linkingMetadata, ModelRequest modelRequest, ModelResponse modelResponse) {
-            this.userAttributes = userAttributes;
-            this.linkingMetadata = linkingMetadata;
-            this.modelRequest = modelRequest;
-            this.modelResponse = modelResponse;
+        public Builder(ModelInvocation modelInvocation) {
+            userAttributes = modelInvocation.getUserAttributes();
+            linkingMetadata = modelInvocation.getLinkingMetadata();
+            modelRequest = modelInvocation.getModelRequest();
+            modelResponse = modelInvocation.getModelResponse();
         }
 
         public Builder spanId() {

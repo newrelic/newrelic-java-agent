@@ -33,15 +33,23 @@ public interface ModelInvocation {
      */
     void setSegmentName(Segment segment, String functionName);
 
-    void recordLlmEmbeddingEvent(long startTime, Map<String, String> linkingMetadata);
+    void recordLlmEmbeddingEvent(long startTime);
 
-    void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages, Map<String, String> linkingMetadata);
+    void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages);
 
-    void recordLlmChatCompletionMessageEvent(int sequence, String message, Map<String, String> linkingMetadata);
+    void recordLlmChatCompletionMessageEvent(int sequence, String message);
 
-    void recordLlmEvents(long startTime, Map<String, String> linkingMetadata);
+    void recordLlmEvents(long startTime);
 
     void reportLlmError();
+
+    Map<String, String> getLinkingMetadata();
+
+    Map<String, Object> getUserAttributes();
+
+    ModelRequest getModelRequest();
+
+    ModelResponse getModelResponse();
 
     /**
      * This needs to be incremented for every invocation of the SDK.
@@ -51,19 +59,28 @@ public interface ModelInvocation {
         NewRelic.incrementCounter("Supportability/Java/ML/" + VENDOR + "/" + vendorVersion);
     }
 
+    static void incrementStreamingDisabledSupportabilityMetric() {
+        NewRelic.incrementCounter("Supportability/Java/ML/Streaming/Disabled");
+    }
+
     static void setLlmTrueAgentAttribute(Transaction txn) {
         // If in a txn with LLM-related spans
         txn.getAgentAttributes().put("llm", true);
     }
 
-    // GUID associated with the active trace
     static String getSpanId(Map<String, String> linkingMetadata) {
-        return linkingMetadata.get("span.id");
+        if (linkingMetadata != null && !linkingMetadata.isEmpty()) {
+            return linkingMetadata.get("span.id");
+        }
+        return "";
     }
 
     // ID of the current trace
     static String getTraceId(Map<String, String> linkingMetadata) {
-        return linkingMetadata.get("trace.id");
+        if (linkingMetadata != null && !linkingMetadata.isEmpty()) {
+            return linkingMetadata.get("trace.id");
+        }
+        return "";
     }
 
     // Returns a string representation of a random GUID
