@@ -7,19 +7,25 @@
 
 package com.newrelic.agent.tracing;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.service.ServiceFactory;
 
 import java.util.List;
+import java.util.logging.Level;
 
 public class W3CTraceParentParser {
 
     static W3CTraceParent parseHeaders(List<String> traceParentHeaders) {
         if (traceParentHeaders.size() != 1) {
             ServiceFactory.getStatsService().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_PARENT_HEADER_COUNT);
-            return null;
+            Agent.LOG.log(Level.WARNING, "Multiple traceparent headers found on inbound request.");
+            // Multiple values ok if all are equal
+            boolean allHeadersEqual = traceParentHeaders.stream().allMatch(h -> h.equals(traceParentHeaders.get(0)));
+            if (traceParentHeaders.isEmpty() || !allHeadersEqual) {
+                return null;
+            }
         }
-
         String traceParentHeader = traceParentHeaders.get(0);
         return parseHeader(traceParentHeader);
     }
