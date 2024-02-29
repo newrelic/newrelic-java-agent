@@ -12,10 +12,8 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.instrumentation.InstrumentationUtils;
 import com.newrelic.agent.instrumentation.classmatchers.OptimizedClassMatcher;
-import com.newrelic.agent.instrumentation.custom.ScalaTraitFinalFieldTransformer;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.asm.Utils;
 import org.objectweb.asm.ClassReader;
@@ -45,8 +43,6 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
     private final boolean defaultMethodTracingEnabled;
     private final AtomicBoolean initialized = new AtomicBoolean(false);
     private final FinalClassTransformer finalClassTransformer = new FinalClassTransformer();
-    private final ScalaTraitFinalFieldTransformer scalaTraitFinalFieldTransformer =
-      new ScalaTraitFinalFieldTransformer();
 
     public InstrumentationClassTransformer(InstrumentationContextManager manager,
             TraceClassTransformer traceTransformer, boolean bootstrapClassloaderEnabled, boolean defaultMethodTracingEnabled) {
@@ -143,14 +139,6 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
                     context.markAsModified();
                     classfileBuffer = bytes;
                 }
-            }
-
-            if(context.isModified() && !context.getScalaFinalFields().isEmpty()) {
-              byte[] bytes = scalaTraitFinalFieldTransformer.transform(loader, className, classBeingRedefined,
-                                                                       protectionDomain, classfileBuffer, context, null);
-              if(bytes != null) {
-                classfileBuffer = bytes;
-              }
             }
 
             if (context.isModified()) {

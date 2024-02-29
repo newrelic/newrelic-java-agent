@@ -105,6 +105,21 @@ public class JfrServiceTest {
         assertFalse(spyJfr.isEnabled());
         verify(spyJfr, times(0)).startJfrLoop();
     }
+
+    @Test
+    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndHighSecurityIsTrue() throws JfrRecorderException {
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+        when(agentConfig.isHighSecurity()).thenReturn(true);
+        when(jfrConfig.isEnabled()).thenReturn(true);
+        when(spyJfr.coreApisExist()).thenReturn(true);
+
+        spyJfr.doStart();
+
+        assertFalse(spyJfr.isEnabled());
+        verify(spyJfr, times(0)).startJfrLoop();
+    }
+
     @Category( IBMJ9IncompatibleTest.class )
     @Test
     public void jfrLoopDoesStart() {
