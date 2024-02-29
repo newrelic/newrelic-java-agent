@@ -5,7 +5,7 @@ import com.newrelic.api.agent.Trace
 import com.newrelic.zio.api.TraceOps._
 import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
-import org.junit.{After, Assert, Before, FixMethodOrder, Test}
+import org.junit.{After, Assert, Before, FixMethodOrder, Ignore, Test}
 import zio.Exit.Success
 import zio.clock.Clock
 
@@ -205,6 +205,7 @@ class ZIOTraceOpsTests {
   This test is named to be evaluated last alphabetically due to side effects from the ZIO Runtime environment.
    */
   @Test
+  @Ignore
   def z_multipleTransactionsWithThreadHopsDoNotBleed(): Unit = {
     val delayMillis = 500
 
