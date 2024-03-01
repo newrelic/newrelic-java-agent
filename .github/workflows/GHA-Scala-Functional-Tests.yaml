@@ -52,7 +52,7 @@ jobs:
         timeout-minutes: 25
         run: |
           # Removed ":newrelic-cats-effect3-api:test" temporarily
-          ./gradlew $GRADLE_OPTIONS :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-zio2-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
+          ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:test :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-zio2-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
 
       - name: Run functional tests against version defined in ${{ matrix.java-version }} (attempt 2)
         id: run_tests_2
@@ -61,14 +61,14 @@ jobs:
         timeout-minutes: 25
         run: |
           # Removed ":newrelic-cats-effect3-api:test" temporarily
-          ./gradlew $GRADLE_OPTIONS :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-zio2-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
+          ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:test :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-zio2-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
 
       - name: Run functional tests against version defined in ${{ matrix.java-version }} (attempt 3)
         if: steps.run_tests_2.outcome == 'failure'
         timeout-minutes: 25
         run: |
           # Removed ":newrelic-cats-effect3-api:test" temporarily
-          ./gradlew $GRADLE_OPTIONS :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-zio2-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
+          ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:test :newrelic-scala-api:test :newrelic-scala-cats-api:test :newrelic-scala-zio-api:test :newrelic-scala-zio2-api:test :newrelic-scala-monix-api:test -PincludeScala -Ptest${{ matrix.java-version }} --continue
 
       - name: Capture Jacoco reports
         if: matrix.java-version == '11'

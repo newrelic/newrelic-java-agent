@@ -12,6 +12,7 @@ import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ApplicationLoggingConfigImpl;
 import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
@@ -40,7 +41,6 @@ public class LogSenderServiceImplTest {
     private static final HarvestService harvestService = Mockito.mock(HarvestService.class);
     private static final TransactionService txService = Mockito.mock(TransactionService.class);
     private static final StatsService statsService = Mockito.mock(StatsService.class);
-    private static final int LOG_FORWARDING_MAX_SAMPLES_STORED = 100; // should be enough for testing
 
     private static LogSenderServiceImpl createService() throws Exception {
         return createService(createConfig());
@@ -90,7 +90,7 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                LOG_FORWARDING_MAX_SAMPLES_STORED, allowAllFilter());
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
@@ -146,7 +146,7 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                LOG_FORWARDING_MAX_SAMPLES_STORED, allowAllFilter());
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);
@@ -166,6 +166,33 @@ public class LogSenderServiceImplTest {
     }
 
     @Test
+    public void testTransactionLogsMaxSamplesStoredIs0() throws Exception{
+        LogSenderServiceImpl logSenderService = createService(createConfig(null, 180));
+        Transaction transaction = Mockito.mock(Transaction.class);
+        when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
+
+        Map<String, Object> settings = Collections.singletonMap("application_logging", Collections.singletonMap("forwarding", Collections.singletonMap("max_samples_stored", 0)));
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(settings);
+        LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(agentConfig, allowAllFilter());
+        when(transaction.getLogEventData()).thenReturn(logs);
+        when(transaction.getApplicationName()).thenReturn(appName);
+        when(transaction.isInProgress()).thenReturn(true);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field2", "value2"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field3", "value3"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(0, analyticsData.getEvents().size());
+        assertEquals(0, logs.getEventsForTesting().size());
+    }
+
+    @Test
     public void testTransactionHarvest() throws Exception {
         LogSenderServiceImpl logSenderService = createService(createConfig(null, 180));
         logSenderService.addHarvestableToService(appName);
@@ -174,7 +201,7 @@ public class LogSenderServiceImplTest {
         when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
 
         LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
-                LOG_FORWARDING_MAX_SAMPLES_STORED, allowAllFilter());
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
         when(transaction.getLogEventData()).thenReturn(logs);
         when(transaction.getApplicationName()).thenReturn(appName);
         when(transaction.isInProgress()).thenReturn(true);

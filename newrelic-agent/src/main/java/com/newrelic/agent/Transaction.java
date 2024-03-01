@@ -620,7 +620,8 @@ public class Transaction {
     public Logs getLogEventData() {
         Logs logEventData = logEvents.get();
         if (logEventData == null) {
-            logEvents.compareAndSet(null, ServiceFactory.getServiceManager().getLogSenderService().getTransactionLogs());
+            AgentConfig defaultConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+            logEvents.compareAndSet(null, ServiceFactory.getServiceManager().getLogSenderService().getTransactionLogs(defaultConfig));
             logEventData = logEvents.get();
         }
         return logEventData;
