@@ -14,25 +14,43 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class InboundWrapper extends ExtendedInboundHeaders {
-    private final Message delegate;
+    private final Map<String, String> properties;
 
     public InboundWrapper(Message message) {
         super();
-        this.delegate = message;
+
+        properties = new HashMap<>();
+        if (message != null) {
+            Enumeration<String> names = null;
+            try {
+                names = message.getPropertyNames();
+            } catch (JMSException e) {
+                NewRelic.getAgent().getLogger().log(Level.FINE, e, "Error getting property names from JMS message.");
+            }
+            String name = null;
+            try {
+                while (names != null && names.hasMoreElements()) {
+                    name = names.nextElement();
+                    properties.put(name, message.getStringProperty(name));
+                }
+            } catch (JMSException e) {
+                NewRelic.getAgent().getLogger().log(Level.FINE, e, "Error getting property ({0}) from JMS message.", name);
+            }
+        }
     }
 
     @Override
     public String getHeader(String name) {
-        try {
-            return delegate.getStringProperty(name);
-        } catch (JMSException e) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, e, "Error getting property ({0}) from JMS message.", name);
-        }
-        return null;
+        if (properties == null || name == null) return null;
+
+        return properties.get(name);
     }
 
     @Override

@@ -31,7 +31,7 @@ object NewrelicClientMiddleware {
               .library("HTTP4S")
               .uri(new URI(req.uri.toString()))
               .procedure(req.method.toString())
-              .inboundHeaders(new InboundResponseWrapper(response))
+              .inboundHeaders(new InboundResponseWrapper(response.headers))
               .build())
             seg.end()
             response

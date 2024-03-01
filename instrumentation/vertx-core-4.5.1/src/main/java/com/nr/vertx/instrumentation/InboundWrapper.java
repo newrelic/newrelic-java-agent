@@ -9,14 +9,15 @@ package com.nr.vertx.instrumentation;
 
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientResponse;
 
 public class InboundWrapper implements InboundHeaders {
 
-    private final HttpClientResponse response;
+    private final MultiMap headers;
 
     public InboundWrapper(HttpClientResponse response) {
-        this.response = response;
+        this.headers = response.headers();
     }
 
     @Override
@@ -26,7 +27,7 @@ public class InboundWrapper implements InboundHeaders {
 
     @Override
     public String getHeader(String name) {
-        return response.getHeader(name);
+        return headers.get(name);
     }
 
 }
