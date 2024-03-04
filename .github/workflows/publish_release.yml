@@ -28,7 +28,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS publish -x :newrelic-scala3-api:publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish -x :agent-bridge:publish -x :agent-bridge-datastore:publish -x :newrelic-weaver:publish -x :newrelic-weaver-api:publish -x :newrelic-weaver-scala:publish -x :newrelic-weaver-scala-api:publish -x :newrelic-opentelemetry-agent-extension:publish -Prelease=true
+        run: ./gradlew $GRADLE_OPTIONS publish -x :newrelic-scala3-api:publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish -x :newrelic-scala-zio2-api:publish -x :agent-bridge:publish -x :agent-bridge-datastore:publish -x :newrelic-weaver:publish -x :newrelic-weaver-api:publish -x :newrelic-weaver-scala:publish -x :newrelic-weaver-scala-api:publish -x :newrelic-opentelemetry-agent-extension:publish -Prelease=true
       - name: Publish release scala apis
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -36,7 +36,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:publish :newrelic-scala-api:publish :newrelic-scala-cats-api:publish :newrelic-cats-effect3-api:publish :newrelic-scala-zio-api:publish -Prelease=true
+        run: ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:publish :newrelic-scala-api:publish :newrelic-scala-cats-api:publish :newrelic-cats-effect3-api:publish :newrelic-scala-zio-api:publish :newrelic-scala-zio2-api:publish -Prelease=true
       - name: Publish apis for Security agent
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

@@ -3,19 +3,20 @@ apply plugin: 'scala'
 isScalaProjectEnabled(project, "scala-2.13")
 
 dependencies {
-    implementation("dev.zio:zio_2.13:1.0.9")
+    implementation("dev.zio:zio_2.13:2.0.13")
     implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-scala-api"))
     implementation(project(":newrelic-weaver-api"))
-    implementation("org.scala-lang:scala-library:2.13.3")
+    implementation('org.scala-lang:scala-library:2.13.10')
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.zio-2',
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.zio',
             'Implementation-Title-Alias': 'zio_instrumentation' }
 }
 
 verifyInstrumentation {
-    passes 'dev.zio:zio_2.13:[1.0.9,2.0.0-M3)'
+    passes 'dev.zio:zio_2.13:[2.0.0,)'
 }
 
 site {
