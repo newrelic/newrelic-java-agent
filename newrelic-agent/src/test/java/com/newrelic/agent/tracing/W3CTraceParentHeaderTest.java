@@ -69,10 +69,18 @@ public class W3CTraceParentHeaderTest extends BaseDistributedTraceTest {
     }
 
     @Test
-    public void testParseMultiple_oopsTooMany() {
+    public void testParseMultiple_differentValues_shouldFail() {
+        W3CTraceParent result = W3CTraceParentParser.parseHeaders(
+                Arrays.asList("00-12345678123456781234567812345678-1234123412341234-01", "00-87654321876543218765432187654321-1234123412341234-01"));
+        assertNull(result);
+    }
+
+    @Test
+    public void testParseMultiple_sameValues_shouldPass() {
         W3CTraceParent result = W3CTraceParentParser.parseHeaders(
                 Arrays.asList("00-12345678123456781234567812345678-1234123412341234-01", "00-12345678123456781234567812345678-1234123412341234-01"));
-        assertNull(result);
+        W3CTraceParent expected = new W3CTraceParent("00", "12345678123456781234567812345678", "1234123412341234", 1);
+        assertEquals(expected, result);
     }
 
     @Test
