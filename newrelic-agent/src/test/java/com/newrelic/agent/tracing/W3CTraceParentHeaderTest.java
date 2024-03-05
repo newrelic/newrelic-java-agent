@@ -84,6 +84,12 @@ public class W3CTraceParentHeaderTest extends BaseDistributedTraceTest {
     }
 
     @Test
+    public void testParseMultiple_empty_shouldFail() {
+        W3CTraceParent result = W3CTraceParentParser.parseHeaders(Arrays.asList());
+        assertNull(result);
+    }
+
+    @Test
     public void testParseMultiple_butReallyJustOne() {
         W3CTraceParent result = W3CTraceParentParser.parseHeaders(
                 singletonList("00-12345678123456781234567812345678-1234123412341234-01"));

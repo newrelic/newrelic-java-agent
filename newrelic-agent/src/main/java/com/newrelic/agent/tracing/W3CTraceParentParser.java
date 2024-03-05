@@ -17,12 +17,22 @@ import java.util.logging.Level;
 public class W3CTraceParentParser {
 
     static W3CTraceParent parseHeaders(List<String> traceParentHeaders) {
-        if (traceParentHeaders.size() != 1) {
+        if (traceParentHeaders.isEmpty()) {
+            return null;
+        }
+        if (traceParentHeaders.size() > 1) {
             ServiceFactory.getStatsService().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_PARENT_HEADER_COUNT);
             Agent.LOG.log(Level.WARNING, "Multiple traceparent headers found on inbound request.");
             // Multiple values ok if all are equal
-            boolean allHeadersEqual = traceParentHeaders.stream().allMatch(h -> h.equals(traceParentHeaders.get(0)));
-            if (traceParentHeaders.isEmpty() || !allHeadersEqual) {
+            boolean allHeadersEqual = true;
+            String first = traceParentHeaders.get(0);
+            for (String header : traceParentHeaders) {
+                if (!header.equals(first)) {
+                    allHeadersEqual = false;
+                    break;
+                }
+            }
+            if (!allHeadersEqual) {
                 return null;
             }
         }
