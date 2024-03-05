@@ -24,16 +24,11 @@ public class W3CTraceParentParser {
             ServiceFactory.getStatsService().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_PARENT_HEADER_COUNT);
             Agent.LOG.log(Level.WARNING, "Multiple traceparent headers found on inbound request.");
             // Multiple values ok if all are equal
-            boolean allHeadersEqual = true;
             String first = traceParentHeaders.get(0);
             for (String header : traceParentHeaders) {
                 if (!header.equals(first)) {
-                    allHeadersEqual = false;
-                    break;
+                   return null;
                 }
-            }
-            if (!allHeadersEqual) {
-                return null;
             }
         }
         String traceParentHeader = traceParentHeaders.get(0);
