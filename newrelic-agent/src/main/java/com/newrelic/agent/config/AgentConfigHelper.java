@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.errors.ExceptionHandlerSignature;
 import com.newrelic.agent.instrumentation.methodmatchers.InvalidMethodDescriptor;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.AbstractConstruct;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -93,6 +94,7 @@ public class AgentConfigHelper {
 
     private static class ExtensionConstructor extends SafeConstructor {
         public ExtensionConstructor() {
+            super(new LoaderOptions());
             yamlConstructors.put(new Tag("!exception_handler"), new AbstractConstruct() {
                 @Override
                 public Object construct(Node node) {

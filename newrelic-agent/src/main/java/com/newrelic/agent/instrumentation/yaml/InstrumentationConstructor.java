@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
@@ -32,6 +33,7 @@ public class InstrumentationConstructor extends SafeConstructor {
     public final Collection<ConfigurationConstruct> constructs;
 
     public InstrumentationConstructor() {
+        super(new LoaderOptions());
         constructs = Arrays.asList(new ConstructClassMethodNameFormatDescriptor(), new ConstructChildClassMatcher(),
                 new ConstructNotClassMatcher(), new ConstructAndClassMatcher(), new ConstructOrClassMatcher(),
                 new ConstructExactClassMatcher(), new ConstructInterfaceMatcher(), new ConstructAllMethodsMatcher(),
