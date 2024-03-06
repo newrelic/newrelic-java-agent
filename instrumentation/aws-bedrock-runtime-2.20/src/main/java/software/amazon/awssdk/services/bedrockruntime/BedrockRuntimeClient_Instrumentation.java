@@ -73,7 +73,7 @@ public abstract class BedrockRuntimeClient_Instrumentation {
                     // Set traced method name based on LLM operation from response
                     llama2ModelInvocation.setTracedMethodName(txn, "invokeModel");
                     llama2ModelInvocation.recordLlmEvents(startTime);
-                } else if (modelId.toLowerCase().contains(COHERE_COMMAND) || modelId.toLowerCase().contains(COHERE_EMBED)) { // TODO can be combined with COHERE_EMBED? OR should these be separate?
+                } else if (modelId.toLowerCase().contains(COHERE_COMMAND) || modelId.toLowerCase().contains(COHERE_EMBED)) {
                     ModelInvocation commandModelInvocation = new CommandModelInvocation(linkingMetadata, userAttributes, invokeModelRequest,
                             invokeModelResponse);
                     // Set traced method name based on LLM operation from response
