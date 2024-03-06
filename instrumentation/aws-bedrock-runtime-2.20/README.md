@@ -203,8 +203,8 @@ When using the `BedrockRuntimeAsyncClient`, which returns the response as a `Com
     * Embed English (~~cohere.embed-english-v3~~)
     * Embed Multilingual (~~cohere.embed-multilingual-v3~~)
   * Meta
-    * Llama 2 Chat 13B (meta.llama2-13b-chat-v1)
-    * Llama 2 Chat 70B (meta.llama2-70b-chat-v1)
+    * Llama 2 Chat 13B (~~meta.llama2-13b-chat-v1~~)
+    * Llama 2 Chat 70B (~~meta.llama2-70b-chat-v1~~)
 * Test env var and sys prop config
 * Update default yaml
 * Write instrumentation tests

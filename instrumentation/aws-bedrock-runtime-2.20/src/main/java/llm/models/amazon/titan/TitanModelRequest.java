@@ -137,7 +137,7 @@ public class TitanModelRequest implements ModelRequest {
 
     @Override
     public String getRole() {
-        // This is effectively a NoOp for Titan as the request doesn't contain any signifier of the role
+        // This is a NoOp for Titan as the request doesn't contain any signifier of the role
         return "";
     }
 

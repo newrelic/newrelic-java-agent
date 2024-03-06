@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models.cohere.command;
+package llm.models.meta.llama2;
 
 import com.newrelic.api.agent.NewRelic;
 import llm.models.ModelRequest;
@@ -14,7 +14,6 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -24,17 +23,16 @@ import static llm.models.ModelRequest.logParsingFailure;
  * Stores the required info from the Bedrock InvokeModelRequest without holding
  * a reference to the actual request object to avoid potential memory issues.
  */
-public class CommandModelRequest implements ModelRequest {
-    private static final String MAX_TOKENS = "max_tokens";
+public class Llama2ModelRequest implements ModelRequest {
+    private static final String MAX_GEN_LEN = "max_gen_len";
     private static final String TEMPERATURE = "temperature";
     private static final String PROMPT = "prompt";
-    private static final String TEXTS = "texts";
 
     private String invokeModelRequestBody = "";
     private String modelId = "";
     private Map<String, JsonNode> requestBodyJsonMap = null;
 
-    public CommandModelRequest(InvokeModelRequest invokeModelRequest) {
+    public Llama2ModelRequest(InvokeModelRequest invokeModelRequest) {
         if (invokeModelRequest != null) {
             invokeModelRequestBody = invokeModelRequest.body().asUtf8String();
             modelId = invokeModelRequest.modelId();
@@ -85,17 +83,17 @@ public class CommandModelRequest implements ModelRequest {
         int maxTokensToSample = 0;
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getRequestBodyJsonMap().get(MAX_TOKENS);
+                JsonNode jsonNode = getRequestBodyJsonMap().get(MAX_GEN_LEN);
                 if (jsonNode.isNumber()) {
                     String maxTokensToSampleString = jsonNode.asNumber();
                     maxTokensToSample = Integer.parseInt(maxTokensToSampleString);
                 }
             }
         } catch (Exception e) {
-            logParsingFailure(e, MAX_TOKENS);
+            logParsingFailure(e, MAX_GEN_LEN);
         }
         if (maxTokensToSample == 0) {
-            logParsingFailure(null, MAX_TOKENS);
+            logParsingFailure(null, MAX_GEN_LEN);
         }
         return maxTokensToSample;
     }
@@ -126,33 +124,14 @@ public class CommandModelRequest implements ModelRequest {
 
     @Override
     public String getRole() {
-        // This is a NoOp for Jurassic as the request doesn't contain any signifier of the role
+        // This is a NoOp for Llama as the request doesn't contain any signifier of the role
         return "";
     }
 
     @Override
     public String getInputText() {
-        String parsedInputText = "";
-        try {
-            if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode textsJsonNode = getRequestBodyJsonMap().get(TEXTS);
-                if (textsJsonNode.isArray()) {
-                    List<JsonNode> textsJsonNodeArray = textsJsonNode.asArray();
-                    if (!textsJsonNodeArray.isEmpty()) {
-                        JsonNode jsonNode = textsJsonNodeArray.get(0);
-                        if (jsonNode.isString()) {
-                            parsedInputText = jsonNode.asString();
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logParsingFailure(e, TEXTS);
-        }
-        if (parsedInputText.isEmpty()) {
-            logParsingFailure(null, TEXTS);
-        }
-        return parsedInputText;
+        // This is a NoOp for Llama as it doesn't support embeddings
+        return "";
     }
 
     private String parseStringValue(String fieldToParse) {

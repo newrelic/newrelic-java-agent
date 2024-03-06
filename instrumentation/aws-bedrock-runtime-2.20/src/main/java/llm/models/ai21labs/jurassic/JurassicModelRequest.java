@@ -125,7 +125,7 @@ public class JurassicModelRequest implements ModelRequest {
 
     @Override
     public String getRole() {
-        // This is effectively a NoOp for Jurassic as the request doesn't contain any signifier of the role
+        // This is a NoOp for Jurassic as the request doesn't contain any signifier of the role
         return "";
     }
 
