@@ -72,6 +72,7 @@ public abstract class Harvestable {
 
         if (maxSamplesStored != service.getMaxSamplesStored()) {
             service.setMaxSamplesStored(maxSamplesStored);
+            service.setReportPeriodInMillis(reportPeriodInMillis);
             maybeSendSpanLimitMetric(maxSamplesStored);
             service.harvestEvents(appName);
             service.clearReservoir();

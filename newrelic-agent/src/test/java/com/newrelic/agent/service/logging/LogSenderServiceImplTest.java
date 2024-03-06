@@ -75,10 +75,13 @@ public class LogSenderServiceImplTest {
     public void testHarvestableConfigure() throws Exception {
         Map<String, Object> config = createConfig(true, 180);
         LogSenderServiceImpl logSenderService = createService(config);
+        assertEquals(833, logSenderService.getMaxSamplesStored());
+        assertEquals(5000, logSenderService.reportPeriodInMillis);
+
         logSenderService.addHarvestableToService(appName);
         logSenderService.configureHarvestables(60, 1);
-
         assertEquals(1, logSenderService.getMaxSamplesStored());
+        assertEquals(60, logSenderService.reportPeriodInMillis);
     }
 
     @Test
