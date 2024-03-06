@@ -177,11 +177,12 @@ public class TitanModelResponse implements ModelResponse {
                         }
                     }
                 }
-            } else {
-                logParsingFailure(null, OUTPUT_TEXT);
             }
         } catch (Exception e) {
             logParsingFailure(e, OUTPUT_TEXT);
+        }
+        if (parsedResponseMessage.isEmpty()) {
+            logParsingFailure(null, OUTPUT_TEXT);
         }
         return parsedResponseMessage;
     }
@@ -207,11 +208,12 @@ public class TitanModelResponse implements ModelResponse {
                         }
                     }
                 }
-            } else {
-                logParsingFailure(null, COMPLETION_REASON);
             }
         } catch (Exception e) {
             logParsingFailure(e, COMPLETION_REASON);
+        }
+        if (parsedStopReason.isEmpty()) {
+            logParsingFailure(null, COMPLETION_REASON);
         }
         return parsedStopReason;
     }

@@ -89,11 +89,12 @@ public class JurassicModelRequest implements ModelRequest {
                     String maxTokensToSampleString = jsonNode.asNumber();
                     maxTokensToSample = Integer.parseInt(maxTokensToSampleString);
                 }
-            } else {
-                logParsingFailure(null, MAX_TOKENS);
             }
         } catch (Exception e) {
             logParsingFailure(e, MAX_TOKENS);
+        }
+        if (maxTokensToSample == 0) {
+            logParsingFailure(null, MAX_TOKENS);
         }
         return maxTokensToSample;
     }
@@ -141,11 +142,12 @@ public class JurassicModelRequest implements ModelRequest {
                 if (jsonNode.isString()) {
                     parsedStringValue = jsonNode.asString();
                 }
-            } else {
-                logParsingFailure(null, fieldToParse);
             }
         } catch (Exception e) {
             logParsingFailure(e, fieldToParse);
+        }
+        if (parsedStringValue.isEmpty()) {
+            logParsingFailure(null, fieldToParse);
         }
         return parsedStringValue;
     }

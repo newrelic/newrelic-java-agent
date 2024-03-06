@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models.anthropic.claude;
+package llm.models.cohere.command;
 
 import com.newrelic.api.agent.NewRelic;
 import llm.models.ModelResponse;
@@ -26,8 +26,11 @@ import static llm.models.ModelResponse.logParsingFailure;
  * Stores the required info from the Bedrock InvokeModelResponse without holding
  * a reference to the actual request object to avoid potential memory issues.
  */
-public class ClaudeModelResponse implements ModelResponse {
-    private static final String STOP_REASON = "stop_reason";
+public class CommandModelResponse implements ModelResponse {
+    private static final String FINISH_REASON = "finish_reason";
+    private static final String GENERATIONS = "generations";
+    private static final String EMBEDDINGS = "embeddings";
+    private static final String TEXT = "text";
 
     private int inputTokenCount = 0;
     private int outputTokenCount = 0;
@@ -47,9 +50,7 @@ public class ClaudeModelResponse implements ModelResponse {
     private String invokeModelResponseBody = "";
     private Map<String, JsonNode> responseBodyJsonMap = null;
 
-    private static final String JSON_START = "{\"";
-
-    public ClaudeModelResponse(InvokeModelResponse invokeModelResponse) {
+    public CommandModelResponse(InvokeModelResponse invokeModelResponse) {
         if (invokeModelResponse != null) {
             invokeModelResponseBody = invokeModelResponse.body().asUtf8String();
             isSuccessfulResponse = invokeModelResponse.sdkHttpResponse().isSuccessful();
@@ -110,9 +111,9 @@ public class ClaudeModelResponse implements ModelResponse {
     private void setOperationType(String invokeModelResponseBody) {
         try {
             if (!invokeModelResponseBody.isEmpty()) {
-                if (invokeModelResponseBody.startsWith(JSON_START + COMPLETION)) {
+                if (invokeModelResponseBody.contains(GENERATIONS)) {
                     operationType = COMPLETION;
-                } else if (invokeModelResponseBody.startsWith(JSON_START + EMBEDDING)) {
+                } else if (invokeModelResponseBody.contains(EMBEDDINGS)) {
                     operationType = EMBEDDING;
                 } else {
                     logParsingFailure(null, "operation type");
@@ -156,30 +157,64 @@ public class ClaudeModelResponse implements ModelResponse {
 
     @Override
     public String getResponseMessage() {
-        return parseStringValue(COMPLETION);
+        String parsedResponseMessage = "";
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode generationsJsonNode = getResponseBodyJsonMap().get(GENERATIONS);
+                if (generationsJsonNode.isArray()) {
+                    List<JsonNode> generationsJsonNodeArray = generationsJsonNode.asArray();
+                    if (!generationsJsonNodeArray.isEmpty()) {
+                        JsonNode jsonNode = generationsJsonNodeArray.get(0);
+                        if (jsonNode.isObject()) {
+                            Map<String, JsonNode> jsonNodeObject = jsonNode.asObject();
+                            if (!jsonNodeObject.isEmpty()) {
+                                JsonNode textJsonNode = jsonNodeObject.get(TEXT);
+                                if (textJsonNode.isString()) {
+                                    parsedResponseMessage = textJsonNode.asString();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, TEXT);
+        }
+        if (parsedResponseMessage.isEmpty()) {
+            logParsingFailure(null, TEXT);
+        }
+        return parsedResponseMessage;
     }
 
     @Override
     public String getStopReason() {
-        return parseStringValue(STOP_REASON);
-    }
-
-    private String parseStringValue(String fieldToParse) {
-        String parsedStringValue = "";
+        String parsedStopReason = "";
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getResponseBodyJsonMap().get(fieldToParse);
-                if (jsonNode.isString()) {
-                    parsedStringValue = jsonNode.asString();
+                JsonNode generationsJsonNode = getResponseBodyJsonMap().get(GENERATIONS);
+                if (generationsJsonNode.isArray()) {
+                    List<JsonNode> generationsJsonNodeArray = generationsJsonNode.asArray();
+                    if (!generationsJsonNodeArray.isEmpty()) {
+                        JsonNode jsonNode = generationsJsonNodeArray.get(0);
+                        if (jsonNode.isObject()) {
+                            Map<String, JsonNode> jsonNodeObject = jsonNode.asObject();
+                            if (!jsonNodeObject.isEmpty()) {
+                                JsonNode finishReasonJsonNode = jsonNodeObject.get(FINISH_REASON);
+                                if (finishReasonJsonNode.isString()) {
+                                    parsedStopReason = finishReasonJsonNode.asString();
+                                }
+                            }
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
-            logParsingFailure(e, fieldToParse);
+            logParsingFailure(e, FINISH_REASON);
         }
-        if (parsedStringValue.isEmpty()) {
-            logParsingFailure(null, fieldToParse);
+        if (parsedStopReason.isEmpty()) {
+            logParsingFailure(null, FINISH_REASON);
         }
-        return parsedStringValue;
+        return parsedStopReason;
     }
 
     @Override

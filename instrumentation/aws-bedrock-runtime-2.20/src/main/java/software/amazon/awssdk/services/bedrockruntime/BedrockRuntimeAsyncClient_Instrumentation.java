@@ -74,7 +74,7 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
 
                     Token token = txn.getToken();
 
-                    // TODO instrumentation fails if the BiConsumer is replaced with a lambda
+                    // instrumentation fails if the BiConsumer is replaced with a lambda
                     invokeModelResponseFuture.whenComplete(new BiConsumer<InvokeModelResponse, Throwable>() {
                         @Override
                         public void accept(InvokeModelResponse invokeModelResponse, Throwable throwable) {
@@ -98,7 +98,7 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
                                     // Set traced method name based on LLM operation from response
                                     llama2ModelInvocation.setTracedMethodName(txn, "invokeModel");
                                     llama2ModelInvocation.recordLlmEventsAsync(startTime, token);
-                                } else if (modelId.toLowerCase().contains(COHERE_COMMAND) || modelId.toLowerCase().contains(COHERE_EMBED)) { // TODO can be combined with COHERE_EMBED? OR should these be separate?
+                                } else if (modelId.toLowerCase().contains(COHERE_COMMAND) || modelId.toLowerCase().contains(COHERE_EMBED)) {
                                     ModelInvocation commandModelInvocation = new CommandModelInvocation(linkingMetadata, userAttributes, invokeModelRequest,
                                             invokeModelResponse);
                                     // Set traced method name based on LLM operation from response

@@ -182,11 +182,9 @@ When using the `BedrockRuntimeAsyncClient`, which returns the response as a `Com
 
 
 ## TODO
-* Make all LLM event attribute values un-truncated https://source.datanerd.us/agents/agent-specs/pull/664
+* Make all LLM event attribute values un-truncated???? https://source.datanerd.us/agents/agent-specs/pull/664
 * Add new `ai_monitoring.record_content.enabled` config  https://source.datanerd.us/agents/agent-specs/pull/663
 * Refactoring related to token count, new callback API https://source.datanerd.us/agents/agent-specs/pull/662
-* Clean up request/response parsing logic
-* Add Javadoc comments to interfaces
 * Set up and test new models
   * AI21 Labs
     * Jurassic-2 Ultra (~~ai21.j2-ultra-v1~~)
@@ -200,14 +198,15 @@ When using the `BedrockRuntimeAsyncClient`, which returns the response as a `Com
     * Claude (~~anthropic.claude-v2~~, ~~anthropic.claude-v2:1~~)
     * Claude Instant (~~anthropic.claude-instant-v1~~)
   * Cohere
-    * Command (cohere.command-text-v14)
-    * Command Light (cohere.command-light-text-v14)
-    * Embed English (cohere.embed-english-v3)
-    * Embed Multilingual (cohere.embed-multilingual-v3)
+    * Command (~~cohere.command-text-v14~~)
+    * Command Light (~~cohere.command-light-text-v14~~)
+    * Embed English (~~cohere.embed-english-v3~~)
+    * Embed Multilingual (~~cohere.embed-multilingual-v3~~)
   * Meta
     * Llama 2 Chat 13B (meta.llama2-13b-chat-v1)
     * Llama 2 Chat 70B (meta.llama2-70b-chat-v1)
 * Test env var and sys prop config
+* Update default yaml
 * Write instrumentation tests
 * Finish readme
 * Refactor test app to have multiple invokeMethods for a single transaction...

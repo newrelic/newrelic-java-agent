@@ -183,11 +183,12 @@ public class JurassicModelResponse implements ModelResponse {
                         }
                     }
                 }
-            } else {
-                logParsingFailure(null, TEXT);
             }
         } catch (Exception e) {
             logParsingFailure(e, TEXT);
+        }
+        if (parsedResponseMessage.isEmpty()) {
+            logParsingFailure(null, TEXT);
         }
         return parsedResponseMessage;
     }
@@ -219,11 +220,12 @@ public class JurassicModelResponse implements ModelResponse {
                         }
                     }
                 }
-            } else {
-                logParsingFailure(null, FINISH_REASON);
             }
         } catch (Exception e) {
             logParsingFailure(e, FINISH_REASON);
+        }
+        if (parsedStopReason.isEmpty()) {
+            logParsingFailure(null, FINISH_REASON);
         }
         return parsedStopReason;
     }

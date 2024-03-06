@@ -93,11 +93,12 @@ public class ClaudeModelRequest implements ModelRequest {
                     String maxTokensToSampleString = jsonNode.asNumber();
                     maxTokensToSample = Integer.parseInt(maxTokensToSampleString);
                 }
-            } else {
-                logParsingFailure(null, MAX_TOKENS_TO_SAMPLE);
             }
         } catch (Exception e) {
             logParsingFailure(e, MAX_TOKENS_TO_SAMPLE);
+        }
+        if (maxTokensToSample == 0) {
+            logParsingFailure(null, MAX_TOKENS_TO_SAMPLE);
         }
         return maxTokensToSample;
     }
@@ -160,11 +161,12 @@ public class ClaudeModelRequest implements ModelRequest {
                 if (jsonNode.isString()) {
                     parsedStringValue = jsonNode.asString();
                 }
-            } else {
-                logParsingFailure(null, fieldToParse);
             }
         } catch (Exception e) {
             logParsingFailure(e, fieldToParse);
+        }
+        if (parsedStringValue.isEmpty()) {
+            logParsingFailure(null, fieldToParse);
         }
         return parsedStringValue;
     }

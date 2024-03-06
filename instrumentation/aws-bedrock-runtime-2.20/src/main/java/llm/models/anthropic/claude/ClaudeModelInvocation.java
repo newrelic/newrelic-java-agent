@@ -111,7 +111,7 @@ public class ClaudeModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionMessageEvent(int sequence, String message) {
-        boolean isUser = sequence % 2 == 0;
+        boolean isUser = isUser(sequence);
 
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 

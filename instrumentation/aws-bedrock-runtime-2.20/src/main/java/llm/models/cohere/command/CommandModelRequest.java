@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models.amazon.titan;
+package llm.models.cohere.command;
 
 import com.newrelic.api.agent.NewRelic;
 import llm.models.ModelRequest;
@@ -14,6 +14,7 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -23,17 +24,17 @@ import static llm.models.ModelRequest.logParsingFailure;
  * Stores the required info from the Bedrock InvokeModelRequest without holding
  * a reference to the actual request object to avoid potential memory issues.
  */
-public class TitanModelRequest implements ModelRequest {
-    private static final String MAX_TOKEN_COUNT = "maxTokenCount";
+public class CommandModelRequest implements ModelRequest {
+    private static final String MAX_TOKENS = "max_tokens";
     private static final String TEMPERATURE = "temperature";
-    private static final String TEXT_GENERATION_CONFIG = "textGenerationConfig";
-    private static final String INPUT_TEXT = "inputText";
+    private static final String PROMPT = "prompt";
+    private static final String TEXTS = "texts";
 
     private String invokeModelRequestBody = "";
     private String modelId = "";
     private Map<String, JsonNode> requestBodyJsonMap = null;
 
-    public TitanModelRequest(InvokeModelRequest invokeModelRequest) {
+    public CommandModelRequest(InvokeModelRequest invokeModelRequest) {
         if (invokeModelRequest != null) {
             invokeModelRequestBody = invokeModelRequest.body().asUtf8String();
             modelId = invokeModelRequest.modelId();
@@ -84,23 +85,17 @@ public class TitanModelRequest implements ModelRequest {
         int maxTokensToSample = 0;
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode textGenConfigJsonNode = getRequestBodyJsonMap().get(TEXT_GENERATION_CONFIG);
-                if (textGenConfigJsonNode.isObject()) {
-                    Map<String, JsonNode> textGenConfigJsonNodeObject = textGenConfigJsonNode.asObject();
-                    if (!textGenConfigJsonNodeObject.isEmpty()) {
-                        JsonNode maxTokenCountJsonNode = textGenConfigJsonNodeObject.get(MAX_TOKEN_COUNT);
-                        if (maxTokenCountJsonNode.isNumber()) {
-                            String maxTokenCountString = maxTokenCountJsonNode.asNumber();
-                            maxTokensToSample = Integer.parseInt(maxTokenCountString);
-                        }
-                    }
+                JsonNode jsonNode = getRequestBodyJsonMap().get(MAX_TOKENS);
+                if (jsonNode.isNumber()) {
+                    String maxTokensToSampleString = jsonNode.asNumber();
+                    maxTokensToSample = Integer.parseInt(maxTokensToSampleString);
                 }
             }
         } catch (Exception e) {
-            logParsingFailure(e, MAX_TOKEN_COUNT);
+            logParsingFailure(e, MAX_TOKENS);
         }
         if (maxTokensToSample == 0) {
-            logParsingFailure(null, MAX_TOKEN_COUNT);
+            logParsingFailure(null, MAX_TOKENS);
         }
         return maxTokensToSample;
     }
@@ -110,16 +105,10 @@ public class TitanModelRequest implements ModelRequest {
         float temperature = 0f;
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode textGenConfigJsonNode = getRequestBodyJsonMap().get(TEXT_GENERATION_CONFIG);
-                if (textGenConfigJsonNode.isObject()) {
-                    Map<String, JsonNode> textGenConfigJsonNodeObject = textGenConfigJsonNode.asObject();
-                    if (!textGenConfigJsonNodeObject.isEmpty()) {
-                        JsonNode temperatureJsonNode = textGenConfigJsonNodeObject.get(TEMPERATURE);
-                        if (temperatureJsonNode.isNumber()) {
-                            String temperatureString = temperatureJsonNode.asNumber();
-                            temperature = Float.parseFloat(temperatureString);
-                        }
-                    }
+                JsonNode jsonNode = getRequestBodyJsonMap().get(TEMPERATURE);
+                if (jsonNode.isNumber()) {
+                    String temperatureString = jsonNode.asNumber();
+                    temperature = Float.parseFloat(temperatureString);
                 }
             } else {
                 logParsingFailure(null, TEMPERATURE);
@@ -132,18 +121,38 @@ public class TitanModelRequest implements ModelRequest {
 
     @Override
     public String getRequestMessage() {
-        return parseStringValue(INPUT_TEXT);
+        return parseStringValue(PROMPT);
     }
 
     @Override
     public String getRole() {
-        // This is effectively a NoOp for Titan as the request doesn't contain any signifier of the role
+        // This is effectively a NoOp for Jurassic as the request doesn't contain any signifier of the role
         return "";
     }
 
     @Override
     public String getInputText() {
-        return parseStringValue(INPUT_TEXT);
+        String parsedInputText = "";
+        try {
+            if (!getRequestBodyJsonMap().isEmpty()) {
+                JsonNode textsJsonNode = getRequestBodyJsonMap().get(TEXTS);
+                if (textsJsonNode.isArray()) {
+                    List<JsonNode> textsJsonNodeArray = textsJsonNode.asArray();
+                    if (!textsJsonNodeArray.isEmpty()) {
+                        JsonNode jsonNode = textsJsonNodeArray.get(0);
+                        if (jsonNode.isString()) {
+                            parsedInputText = jsonNode.asString();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, TEXTS);
+        }
+        if (parsedInputText.isEmpty()) {
+            logParsingFailure(null, TEXTS);
+        }
+        return parsedInputText;
     }
 
     private String parseStringValue(String fieldToParse) {

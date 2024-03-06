@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models.ai21labs.jurassic;
+package llm.models.cohere.command;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
@@ -27,18 +27,18 @@ import static llm.models.ModelResponse.COMPLETION;
 import static llm.models.ModelResponse.EMBEDDING;
 import static llm.vendor.Vendor.BEDROCK;
 
-public class JurassicModelInvocation implements ModelInvocation {
+public class CommandModelInvocation implements ModelInvocation {
     Map<String, String> linkingMetadata;
     Map<String, Object> userAttributes;
     ModelRequest modelRequest;
     ModelResponse modelResponse;
 
-    public JurassicModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes, InvokeModelRequest invokeModelRequest,
+    public CommandModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes, InvokeModelRequest invokeModelRequest,
             InvokeModelResponse invokeModelResponse) {
         this.linkingMetadata = linkingMetadata;
         this.userAttributes = userCustomAttributes;
-        this.modelRequest = new JurassicModelRequest(invokeModelRequest);
-        this.modelResponse = new JurassicModelResponse(invokeModelResponse);
+        this.modelRequest = new CommandModelRequest(invokeModelRequest);
+        this.modelResponse = new CommandModelResponse(invokeModelResponse);
     }
 
     @Override

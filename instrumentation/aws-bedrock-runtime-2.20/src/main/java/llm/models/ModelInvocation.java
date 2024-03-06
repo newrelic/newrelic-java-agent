@@ -180,4 +180,17 @@ public interface ModelInvocation {
     static String getRandomGuid() {
         return UUID.randomUUID().toString();
     }
+
+    /**
+     * Determine if the LLM is initiated by the user or assistant.
+     * <p>
+     * Assuming that one user request is always followed by one assistant
+     * response, an even sequence value is the user, while odd is the assistant.
+     *
+     * @param sequence index starting at 0 associated with each message
+     * @return true if is user, false if not
+     */
+    default boolean isUser(int sequence) {
+        return sequence % 2 == 0;
+    }
 }
