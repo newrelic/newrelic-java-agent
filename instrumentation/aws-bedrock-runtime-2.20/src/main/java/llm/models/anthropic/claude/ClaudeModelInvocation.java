@@ -23,37 +23,37 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.COMPLETION;
-import static llm.models.anthropic.claude.AnthropicClaudeInvokeModelResponse.EMBEDDING;
+import static llm.models.ModelResponse.COMPLETION;
+import static llm.models.ModelResponse.EMBEDDING;
 import static llm.vendor.Vendor.BEDROCK;
 
-public class AnthropicClaudeModelInvocation implements ModelInvocation {
+public class ClaudeModelInvocation implements ModelInvocation {
     Map<String, String> linkingMetadata;
     Map<String, Object> userAttributes;
-    ModelRequest claudeRequest;
-    ModelResponse claudeResponse;
+    ModelRequest modelRequest;
+    ModelResponse modelResponse;
 
-    public AnthropicClaudeModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes, InvokeModelRequest invokeModelRequest,
+    public ClaudeModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes, InvokeModelRequest invokeModelRequest,
             InvokeModelResponse invokeModelResponse) {
         this.linkingMetadata = linkingMetadata;
         this.userAttributes = userCustomAttributes;
-        this.claudeRequest = new AnthropicClaudeInvokeModelRequest(invokeModelRequest);
-        this.claudeResponse = new AnthropicClaudeInvokeModelResponse(invokeModelResponse);
+        this.modelRequest = new ClaudeModelRequest(invokeModelRequest);
+        this.modelResponse = new ClaudeModelResponse(invokeModelResponse);
     }
 
     @Override
     public void setTracedMethodName(Transaction txn, String functionName) {
-        txn.getTracedMethod().setMetricName("Llm", claudeResponse.getOperationType(), BEDROCK, functionName);
+        txn.getTracedMethod().setMetricName("Llm", modelResponse.getOperationType(), BEDROCK, functionName);
     }
 
     @Override
     public void setSegmentName(Segment segment, String functionName) {
-        segment.setMetricName("Llm", claudeResponse.getOperationType(), BEDROCK, functionName);
+        segment.setMetricName("Llm", modelResponse.getOperationType(), BEDROCK, functionName);
     }
 
     @Override
     public void recordLlmEmbeddingEvent(long startTime) {
-        if (claudeResponse.isErrorResponse()) {
+        if (modelResponse.isErrorResponse()) {
             reportLlmError();
         }
 
@@ -64,7 +64,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
                 .traceId()
                 .vendor()
                 .ingestSource()
-                .id(claudeResponse.getLlmEmbeddingId())
+                .id(modelResponse.getLlmEmbeddingId())
                 .requestId()
                 .input()
                 .requestModel()
@@ -80,7 +80,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages) {
-        if (claudeResponse.isErrorResponse()) {
+        if (modelResponse.isErrorResponse()) {
             reportLlmError();
         }
 
@@ -91,7 +91,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
                 .traceId()
                 .vendor()
                 .ingestSource()
-                .id(claudeResponse.getLlmChatCompletionSummaryId())
+                .id(modelResponse.getLlmChatCompletionSummaryId())
                 .requestId()
                 .requestTemperature()
                 .requestMaxTokens()
@@ -111,7 +111,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionMessageEvent(int sequence, String message) {
-        boolean isUser = message.contains("Human:");
+        boolean isUser = sequence % 2 == 0;
 
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
@@ -135,7 +135,7 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmEvents(long startTime) {
-        String operationType = claudeResponse.getOperationType();
+        String operationType = modelResponse.getOperationType();
         if (operationType.equals(COMPLETION)) {
             recordLlmChatCompletionEvents(startTime);
         } else if (operationType.equals(EMBEDDING)) {
@@ -157,15 +157,15 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
     @Override
     public void reportLlmError() {
         Map<String, Object> errorParams = new HashMap<>();
-        errorParams.put("http.statusCode", claudeResponse.getStatusCode());
-        errorParams.put("error.code", claudeResponse.getStatusCode());
-        if (!claudeResponse.getLlmChatCompletionSummaryId().isEmpty()) {
-            errorParams.put("completion_id", claudeResponse.getLlmChatCompletionSummaryId());
+        errorParams.put("http.statusCode", modelResponse.getStatusCode());
+        errorParams.put("error.code", modelResponse.getStatusCode());
+        if (!modelResponse.getLlmChatCompletionSummaryId().isEmpty()) {
+            errorParams.put("completion_id", modelResponse.getLlmChatCompletionSummaryId());
         }
-        if (!claudeResponse.getLlmEmbeddingId().isEmpty()) {
-            errorParams.put("embedding_id", claudeResponse.getLlmEmbeddingId());
+        if (!modelResponse.getLlmEmbeddingId().isEmpty()) {
+            errorParams.put("embedding_id", modelResponse.getLlmEmbeddingId());
         }
-        NewRelic.noticeError("LlmError: " + claudeResponse.getStatusText(), errorParams);
+        NewRelic.noticeError("LlmError: " + modelResponse.getStatusText(), errorParams);
     }
 
     /**
@@ -174,9 +174,9 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
      */
     private void recordLlmChatCompletionEvents(long startTime) {
         // First LlmChatCompletionMessage represents the user input prompt
-        recordLlmChatCompletionMessageEvent(0, claudeRequest.getRequestMessage());
+        recordLlmChatCompletionMessageEvent(0, modelRequest.getRequestMessage());
         // Second LlmChatCompletionMessage represents the completion message from the LLM response
-        recordLlmChatCompletionMessageEvent(1, claudeResponse.getResponseMessage());
+        recordLlmChatCompletionMessageEvent(1, modelResponse.getResponseMessage());
         // A summary of all LlmChatCompletionMessage events
         recordLlmChatCompletionSummaryEvent(startTime, 2);
     }
@@ -193,11 +193,11 @@ public class AnthropicClaudeModelInvocation implements ModelInvocation {
 
     @Override
     public ModelRequest getModelRequest() {
-        return claudeRequest;
+        return modelRequest;
     }
 
     @Override
     public ModelResponse getModelResponse() {
-        return claudeResponse;
+        return modelResponse;
     }
 }

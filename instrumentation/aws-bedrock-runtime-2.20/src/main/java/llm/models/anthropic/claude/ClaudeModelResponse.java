@@ -26,13 +26,8 @@ import static llm.models.ModelResponse.logParsingFailure;
  * Stores the required info from the Bedrock InvokeModelResponse without holding
  * a reference to the actual request object to avoid potential memory issues.
  */
-public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
+public class ClaudeModelResponse implements ModelResponse {
     private static final String STOP_REASON = "stop_reason";
-
-    // Response headers
-    private static final String X_AMZN_BEDROCK_INPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Input-Token-Count";
-    private static final String X_AMZN_BEDROCK_OUTPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Output-Token-Count";
-    private static final String X_AMZN_REQUEST_ID = "x-amzn-RequestId";
 
     private int inputTokenCount = 0;
     private int outputTokenCount = 0;
@@ -54,7 +49,7 @@ public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
 
     private static final String JSON_START = "{\"";
 
-    public AnthropicClaudeInvokeModelResponse(InvokeModelResponse invokeModelResponse) {
+    public ClaudeModelResponse(InvokeModelResponse invokeModelResponse) {
         if (invokeModelResponse != null) {
             invokeModelResponseBody = invokeModelResponse.body().asUtf8String();
             isSuccessfulResponse = invokeModelResponse.sdkHttpResponse().isSuccessful();
@@ -96,7 +91,6 @@ public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
             JsonNodeParser jsonNodeParser = JsonNodeParser.create();
             JsonNode responseBodyJsonNode = jsonNodeParser.parse(invokeModelResponseBody);
 
-            // TODO check for other types? Or will it always be Object?
             if (responseBodyJsonNode != null && responseBodyJsonNode.isObject()) {
                 responseBodyJsonMap = responseBodyJsonNode.asObject();
             } else {
@@ -108,6 +102,11 @@ public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
         return responseBodyJsonMap != null ? responseBodyJsonMap : Collections.emptyMap();
     }
 
+    /**
+     * Parses the operation type from the response body and assigns it to a field.
+     *
+     * @param invokeModelResponseBody response body String
+     */
     private void setOperationType(String invokeModelResponseBody) {
         try {
             if (!invokeModelResponseBody.isEmpty()) {
@@ -124,6 +123,11 @@ public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
         }
     }
 
+    /**
+     * Parses header values from the response object and assigns them to fields.
+     *
+     * @param invokeModelResponse response object
+     */
     private void setHeaderFields(InvokeModelResponse invokeModelResponse) {
         Map<String, List<String>> headers = invokeModelResponse.sdkHttpResponse().headers();
         try {
@@ -150,11 +154,6 @@ public class AnthropicClaudeInvokeModelResponse implements ModelResponse {
         }
     }
 
-    /**
-     * Represents the response message
-     *
-     * @return
-     */
     @Override
     public String getResponseMessage() {
         return parseStringValue(COMPLETION);

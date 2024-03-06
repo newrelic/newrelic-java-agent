@@ -12,33 +12,105 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.logging.Level;
 
 public interface ModelResponse {
+    // Response headers
+    String X_AMZN_BEDROCK_INPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Input-Token-Count";
+    String X_AMZN_BEDROCK_OUTPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Output-Token-Count";
+    String X_AMZN_REQUEST_ID = "x-amzn-RequestId";
+
+    // Operation types
     String COMPLETION = "completion";
     String EMBEDDING = "embedding";
 
+    /**
+     * Get the response message.
+     *
+     * @return String representing the response message
+     */
     String getResponseMessage();
 
+    /**
+     * Get the stop reason.
+     *
+     * @return String representing the stop reason
+     */
     String getStopReason();
 
+    /**
+     * Get the count of input tokens used.
+     *
+     * @return int representing the count of input tokens used
+     */
     int getInputTokenCount();
 
+    /**
+     * Get the count of output tokens used.
+     *
+     * @return int representing the count of output tokens used
+     */
     int getOutputTokenCount();
 
+    /**
+     * Get the count of total tokens used.
+     *
+     * @return int representing the count of total tokens used
+     */
     int getTotalTokenCount();
 
+    /**
+     * Get the Amazon Request ID.
+     *
+     * @return String representing the Amazon Request ID
+     */
     String getAmznRequestId();
 
+    /**
+     * Get the operation type.
+     *
+     * @return String representing the operation type
+     */
     String getOperationType();
 
+    /**
+     * Get the ID for the associated LlmChatCompletionSummary event.
+     *
+     * @return String representing the ID for the associated LlmChatCompletionSummary event
+     */
     String getLlmChatCompletionSummaryId();
 
+    /**
+     * Get the ID for the associated LlmEmbedding event.
+     *
+     * @return String representing the ID for the associated LlmEmbedding event
+     */
     String getLlmEmbeddingId();
 
+    /**
+     * Determine whether the response resulted in an error or not.
+     *
+     * @return boolean true when the LLM response is an error, false when the response was successful
+     */
     boolean isErrorResponse();
 
+    /**
+     * Get the response status code.
+     *
+     * @return int representing the response status code
+     */
     int getStatusCode();
 
+    /**
+     * Get the response status text.
+     *
+     * @return String representing the response status text
+     */
     String getStatusText();
 
+    /**
+     * Log when a parsing error occurs.
+     *
+     * @param e                Exception encountered when parsing the response
+     * @param fieldBeingParsed field that was being parsed
+     */
     static void logParsingFailure(Exception e, String fieldBeingParsed) {
         if (e != null) {
             NewRelic.getAgent().getLogger().log(Level.FINEST, e, "AIM: Error parsing " + fieldBeingParsed + " from ModelResponse");

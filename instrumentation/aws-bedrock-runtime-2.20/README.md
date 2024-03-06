@@ -19,13 +19,27 @@ Note: Currently, `invokeModelWithResponseStream` is not supported.
 
 ### Supported Models
 
-Currently, only the following text-based foundation models are supported:
+At the time of the instrumentation being published, only the following text-based foundation models have been tested and confirmed as supported:
 
-* Anthropic Claude
-* Amazon Titan 
-* Meta Llama 2 
-* Cohere Command 
-* AI21 Labs Jurassic
+* AI21 Labs
+  * Jurassic-2 Ultra (ai21.j2-ultra-v1)
+  * Jurassic-2 Mid (ai21.j2-mid-v1)
+* Amazon
+  * Titan Embeddings G1 - Text (amazon.titan-embed-text-v1)
+  * Titan Text G1 - Lite (amazon.titan-text-lite-v1)
+  * Titan Text G1 - Express (amazon.titan-text-express-v1)
+  * Titan Multimodal Embeddings G1 (amazon.titan-embed-image-v1)
+* Anthropic
+  * Claude (anthropic.claude-v2, anthropic.claude-v2:1)
+  * Claude Instant (anthropic.claude-instant-v1)
+* Cohere
+  * Command (cohere.command-text-v14)
+  * Command Light (cohere.command-light-text-v14)
+  * Embed English (cohere.embed-english-v3)
+  * Embed Multilingual (cohere.embed-multilingual-v3)
+* Meta
+  * Llama 2 Chat 13B (meta.llama2-13b-chat-v1)
+  * Llama 2 Chat 70B (meta.llama2-70b-chat-v1)
 
 ## Involved Pieces
 
@@ -112,6 +126,12 @@ Note: Streaming is not currently supported.
 `ai_monitoring.enabled`: Indicates whether LLM instrumentation will be registered. If this is set to False, no metrics, events, or spans are to be sent.
 `ai_monitoring.streaming.enabled`: NOT SUPPORTED
 
+## Related Agent APIs
+
+feedback
+callback
+addCustomParameter
+
 ## Testing
 
 ## Known Issues
@@ -162,9 +182,33 @@ When using the `BedrockRuntimeAsyncClient`, which returns the response as a `Com
 
 
 ## TODO
+* Make all LLM event attribute values un-truncated https://source.datanerd.us/agents/agent-specs/pull/664
+* Add new `ai_monitoring.record_content.enabled` config  https://source.datanerd.us/agents/agent-specs/pull/663
+* Refactoring related to token count, new callback API https://source.datanerd.us/agents/agent-specs/pull/662
 * Clean up request/response parsing logic
 * Add Javadoc comments to interfaces
 * Set up and test new models
+  * AI21 Labs
+    * Jurassic-2 Ultra (~~ai21.j2-ultra-v1~~)
+    * Jurassic-2 Mid (~~ai21.j2-mid-v1~~)
+  * Amazon
+    * Titan Embeddings G1 - Text (~~amazon.titan-embed-text-v1~~)
+    * Titan Text G1 - Lite (~~amazon.titan-text-lite-v1~~)
+    * Titan Text G1 - Express (~~amazon.titan-text-express-v1~~)
+    * Titan Multimodal Embeddings G1 (~~amazon.titan-embed-image-v1~~)
+  * Anthropic
+    * Claude (~~anthropic.claude-v2~~, ~~anthropic.claude-v2:1~~)
+    * Claude Instant (~~anthropic.claude-instant-v1~~)
+  * Cohere
+    * Command (cohere.command-text-v14)
+    * Command Light (cohere.command-light-text-v14)
+    * Embed English (cohere.embed-english-v3)
+    * Embed Multilingual (cohere.embed-multilingual-v3)
+  * Meta
+    * Llama 2 Chat 13B (meta.llama2-13b-chat-v1)
+    * Llama 2 Chat 70B (meta.llama2-70b-chat-v1)
+* Test env var and sys prop config
 * Write instrumentation tests
 * Finish readme
+* Refactor test app to have multiple invokeMethods for a single transaction...
 * Figure out how to get external call linked with async client

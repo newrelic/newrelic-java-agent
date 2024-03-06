@@ -135,6 +135,9 @@ public class LlmEvent {
                 role = "user";
             } else {
                 role = modelRequest.getRole();
+                if (role.isEmpty()) {
+                    role = "assistant";
+                }
             }
             return this;
         }

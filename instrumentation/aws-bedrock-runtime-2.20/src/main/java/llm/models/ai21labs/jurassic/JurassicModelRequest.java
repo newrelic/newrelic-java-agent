@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models.anthropic.claude;
+package llm.models.ai21labs.jurassic;
 
 import com.newrelic.api.agent.NewRelic;
 import llm.models.ModelRequest;
@@ -23,23 +23,17 @@ import static llm.models.ModelRequest.logParsingFailure;
  * Stores the required info from the Bedrock InvokeModelRequest without holding
  * a reference to the actual request object to avoid potential memory issues.
  */
-public class AnthropicClaudeInvokeModelRequest implements ModelRequest {
-    // TODO might be able to move some of these constants to the ModelRequest interface
-    //  need to figure out if they are consistent across all models
-    private static final String MAX_TOKENS_TO_SAMPLE = "max_tokens_to_sample";
+public class JurassicModelRequest implements ModelRequest {
+    private static final String MAX_TOKENS = "maxTokens";
     private static final String TEMPERATURE = "temperature";
     private static final String PROMPT = "prompt";
     private static final String INPUT_TEXT = "inputText";
-    private static final String ESCAPED_NEWLINES = "\\n\\n";
-    private static final String SYSTEM = "system";
-    private static final String ASSISTANT = "assistant";
-    private static final String USER = "user";
 
     private String invokeModelRequestBody = "";
     private String modelId = "";
     private Map<String, JsonNode> requestBodyJsonMap = null;
 
-    public AnthropicClaudeInvokeModelRequest(InvokeModelRequest invokeModelRequest) {
+    public JurassicModelRequest(InvokeModelRequest invokeModelRequest) {
         if (invokeModelRequest != null) {
             invokeModelRequestBody = invokeModelRequest.body().asUtf8String();
             modelId = invokeModelRequest.modelId();
@@ -90,16 +84,16 @@ public class AnthropicClaudeInvokeModelRequest implements ModelRequest {
         int maxTokensToSample = 0;
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
-                JsonNode jsonNode = getRequestBodyJsonMap().get(MAX_TOKENS_TO_SAMPLE);
+                JsonNode jsonNode = getRequestBodyJsonMap().get(MAX_TOKENS);
                 if (jsonNode.isNumber()) {
                     String maxTokensToSampleString = jsonNode.asNumber();
                     maxTokensToSample = Integer.parseInt(maxTokensToSampleString);
                 }
             } else {
-                logParsingFailure(null, MAX_TOKENS_TO_SAMPLE);
+                logParsingFailure(null, MAX_TOKENS);
             }
         } catch (Exception e) {
-            logParsingFailure(e, MAX_TOKENS_TO_SAMPLE);
+            logParsingFailure(e, MAX_TOKENS);
         }
         return maxTokensToSample;
     }
@@ -130,22 +124,7 @@ public class AnthropicClaudeInvokeModelRequest implements ModelRequest {
 
     @Override
     public String getRole() {
-        try {
-            if (!invokeModelRequestBody.isEmpty()) {
-                String invokeModelRequestBodyLowerCase = invokeModelRequestBody.toLowerCase();
-                if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + SYSTEM)) {
-                    return SYSTEM;
-                } else if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + USER)) {
-                    return USER;
-                } else if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + ASSISTANT)) {
-                    return ASSISTANT;
-                }
-            } else {
-                logParsingFailure(null, "role");
-            }
-        } catch (Exception e) {
-            logParsingFailure(e, "role");
-        }
+        // This is effectively a NoOp for Jurassic as the request doesn't contain any signifier of the role
         return "";
     }
 
