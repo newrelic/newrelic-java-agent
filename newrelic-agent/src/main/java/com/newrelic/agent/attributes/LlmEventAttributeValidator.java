@@ -13,7 +13,6 @@ import com.newrelic.agent.service.ServiceFactory;
  * Attribute validator with truncation rules specific to LLM events.
  */
 public class LlmEventAttributeValidator extends AttributeValidator {
-    // FIXME different size attribute limits for LLM events InsightsConfigImpl.MAX_MAX_ATTRIBUTE_VALUE ?
     private static final int MAX_CUSTOM_EVENT_ATTRIBUTE_SIZE = ServiceFactory.getConfigService()
             .getDefaultAgentConfig()
             .getInsightsConfig()
@@ -25,8 +24,13 @@ public class LlmEventAttributeValidator extends AttributeValidator {
 
     @Override
     protected String truncateValue(String key, String value, String methodCalled) {
-        // TODO make sure that this behavior is accepted into the agent spec
-        if (key.equals("content")) {
+        /*
+         * The 'input' and output 'content' attributes should be added to LLM events
+         * without being truncated as per the LLMs agent spec. This is because the
+         * backend will use these attributes to calculate LLM token usage in cases
+         * where token counts aren't available on LLM events.
+         */
+        if (key.equals("content") || key.equals("input")) {
             return value;
         }
         String truncatedVal = truncateString(value, MAX_CUSTOM_EVENT_ATTRIBUTE_SIZE);

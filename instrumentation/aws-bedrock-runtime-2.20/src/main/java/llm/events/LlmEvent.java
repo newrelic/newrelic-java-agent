@@ -16,6 +16,8 @@ import llm.vendor.Vendor;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringRecordContentEnabled;
+
 /**
  * Class for building an LlmEvent
  */
@@ -261,7 +263,7 @@ public class LlmEvent {
         }
 
         content = builder.content;
-        if (content != null && !content.isEmpty()) {
+        if (isAiMonitoringRecordContentEnabled() && content != null && !content.isEmpty()) {
             eventAttributes.put("content", content);
         }
 
@@ -311,7 +313,7 @@ public class LlmEvent {
         }
 
         input = builder.input;
-        if (input != null && !input.isEmpty()) {
+        if (isAiMonitoringRecordContentEnabled() && input != null && !input.isEmpty()) {
             eventAttributes.put("input", input);
         }
 

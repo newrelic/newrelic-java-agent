@@ -112,7 +112,7 @@ public class TitanModelResponse implements ModelResponse {
             if (!invokeModelResponseBody.isEmpty()) {
                 if (invokeModelResponseBody.contains(COMPLETION_REASON)) {
                     operationType = COMPLETION;
-                } else if (invokeModelResponseBody.startsWith(EMBEDDING)) {
+                } else if (invokeModelResponseBody.contains(EMBEDDING)) {
                     operationType = EMBEDDING;
                 } else {
                     logParsingFailure(null, "operation type");
