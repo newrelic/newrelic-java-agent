@@ -49,8 +49,6 @@ public class TitanModelResponse implements ModelResponse {
     private String invokeModelResponseBody = "";
     private Map<String, JsonNode> responseBodyJsonMap = null;
 
-    private static final String JSON_START = "{\"";
-
     public TitanModelResponse(InvokeModelResponse invokeModelResponse) {
         if (invokeModelResponse != null) {
             invokeModelResponseBody = invokeModelResponse.body().asUtf8String();
@@ -114,7 +112,7 @@ public class TitanModelResponse implements ModelResponse {
             if (!invokeModelResponseBody.isEmpty()) {
                 if (invokeModelResponseBody.contains(COMPLETION_REASON)) {
                     operationType = COMPLETION;
-                } else if (invokeModelResponseBody.startsWith(JSON_START + EMBEDDING)) {
+                } else if (invokeModelResponseBody.startsWith(EMBEDDING)) {
                     operationType = EMBEDDING;
                 } else {
                     logParsingFailure(null, "operation type");

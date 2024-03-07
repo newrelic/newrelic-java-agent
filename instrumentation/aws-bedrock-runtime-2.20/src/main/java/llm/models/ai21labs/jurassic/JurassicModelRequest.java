@@ -27,7 +27,6 @@ public class JurassicModelRequest implements ModelRequest {
     private static final String MAX_TOKENS = "maxTokens";
     private static final String TEMPERATURE = "temperature";
     private static final String PROMPT = "prompt";
-    private static final String INPUT_TEXT = "inputText";
 
     private String invokeModelRequestBody = "";
     private String modelId = "";
@@ -131,7 +130,8 @@ public class JurassicModelRequest implements ModelRequest {
 
     @Override
     public String getInputText() {
-        return parseStringValue(INPUT_TEXT);
+        // This is a NoOp for Jurassic as it doesn't support embeddings
+        return "";
     }
 
     private String parseStringValue(String fieldToParse) {

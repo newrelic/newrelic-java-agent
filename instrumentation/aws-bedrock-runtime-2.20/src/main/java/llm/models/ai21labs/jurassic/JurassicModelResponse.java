@@ -112,10 +112,9 @@ public class JurassicModelResponse implements ModelResponse {
     private void setOperationType(String invokeModelResponseBody) {
         try {
             if (!invokeModelResponseBody.isEmpty()) {
+                // Jurassic for Bedrock doesn't support embedding operations
                 if (invokeModelResponseBody.contains(COMPLETION)) {
                     operationType = COMPLETION;
-                } else if (invokeModelResponseBody.contains(EMBEDDING)) {
-                    operationType = EMBEDDING;
                 } else {
                     logParsingFailure(null, "operation type");
                 }

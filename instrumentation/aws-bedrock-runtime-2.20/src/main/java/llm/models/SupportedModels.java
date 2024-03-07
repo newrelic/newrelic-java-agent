@@ -7,6 +7,12 @@
 
 package llm.models;
 
+/**
+ * Prefixes for supported models. As long as the model ID for an invoked LLM model contains
+ * one of these prefixes the instrumentation should attempt to process the request/response.
+ * <p>
+ * See the README for each model in llm.models.* for more details on supported models.
+ */
 public class SupportedModels {
     public static final String ANTHROPIC_CLAUDE = "anthropic.claude";
     public static final String AMAZON_TITAN = "amazon.titan";
@@ -15,23 +21,3 @@ public class SupportedModels {
     public static final String COHERE_EMBED = "cohere.embed";
     public static final String AI_21_LABS_JURASSIC = "ai21.j2";
 }
-
-//*AI21 Labs
-//    *Jurassic-2Ultra(ai21.j2-ultra-v1)
-//    *Jurassic-2Mid(ai21.j2-mid-v1)
-//*Amazon
-//    *Titan Embeddings G1-Text(amazon.titan-embed-text-v1)
-//    *Titan Text G1-Lite(amazon.titan-text-lite-v1)
-//    *Titan Text G1-Express(amazon.titan-text-express-v1)
-//    *Titan Multimodal Embeddings G1(amazon.titan-embed-image-v1)
-//*Anthropic
-//    *Claude(anthropic.claude-v2,anthropic.claude-v2:1)
-//    *Claude Instant(anthropic.claude-instant-v1)
-//*Cohere
-//    *Command(cohere.command-text-v14)
-//    *Command Light(cohere.command-light-text-v14)
-//    *Embed English(cohere.embed-english-v3)
-//    *Embed Multilingual(cohere.embed-multilingual-v3)
-//*Meta
-//    *Llama 2Chat 13B(meta.llama2-13b-chat-v1)
-//    *Llama 2Chat 70B(meta.llama2-70b-chat-v1)

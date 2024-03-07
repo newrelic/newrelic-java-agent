@@ -27,11 +27,6 @@ public class ClaudeModelRequest implements ModelRequest {
     private static final String MAX_TOKENS_TO_SAMPLE = "max_tokens_to_sample";
     private static final String TEMPERATURE = "temperature";
     private static final String PROMPT = "prompt";
-    private static final String INPUT_TEXT = "inputText";
-    private static final String ESCAPED_NEWLINES = "\\n\\n";
-    private static final String SYSTEM = "system";
-    private static final String ASSISTANT = "assistant";
-    private static final String USER = "user";
 
     private String invokeModelRequestBody = "";
     private String modelId = "";
@@ -129,28 +124,14 @@ public class ClaudeModelRequest implements ModelRequest {
 
     @Override
     public String getRole() {
-        try {
-            if (!invokeModelRequestBody.isEmpty()) {
-                String invokeModelRequestBodyLowerCase = invokeModelRequestBody.toLowerCase();
-                if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + SYSTEM)) {
-                    return SYSTEM;
-                } else if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + USER)) {
-                    return USER;
-                } else if (invokeModelRequestBodyLowerCase.contains(ESCAPED_NEWLINES + ASSISTANT)) {
-                    return ASSISTANT;
-                }
-            } else {
-                logParsingFailure(null, "role");
-            }
-        } catch (Exception e) {
-            logParsingFailure(e, "role");
-        }
+        // This is a NoOp for Claude as the request doesn't contain any signifier of the role
         return "";
     }
 
     @Override
     public String getInputText() {
-        return parseStringValue(INPUT_TEXT);
+        // This is a NoOp for Claude as it doesn't support embeddings
+        return "";
     }
 
     private String parseStringValue(String fieldToParse) {

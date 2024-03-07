@@ -47,8 +47,6 @@ public class ClaudeModelResponse implements ModelResponse {
     private String invokeModelResponseBody = "";
     private Map<String, JsonNode> responseBodyJsonMap = null;
 
-    private static final String JSON_START = "{\"";
-
     public ClaudeModelResponse(InvokeModelResponse invokeModelResponse) {
         if (invokeModelResponse != null) {
             invokeModelResponseBody = invokeModelResponse.body().asUtf8String();
@@ -110,10 +108,9 @@ public class ClaudeModelResponse implements ModelResponse {
     private void setOperationType(String invokeModelResponseBody) {
         try {
             if (!invokeModelResponseBody.isEmpty()) {
-                if (invokeModelResponseBody.startsWith(JSON_START + COMPLETION)) {
+                // Claude for Bedrock doesn't support embedding operations
+                if (invokeModelResponseBody.contains(COMPLETION)) {
                     operationType = COMPLETION;
-                } else if (invokeModelResponseBody.startsWith(JSON_START + EMBEDDING)) {
-                    operationType = EMBEDDING;
                 } else {
                     logParsingFailure(null, "operation type");
                 }
