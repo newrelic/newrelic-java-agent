@@ -110,9 +110,27 @@ Note: Streaming is not currently supported.
 
 ## Config
 
+### Yaml
+
 `ai_monitoring.enabled`: Provides control over all AI Monitoring functionality. Set as true to enable all AI Monitoring features.
 `ai_monitoring.record_content.enabled`: Provides control over whether attributes for the input and output content should be added to LLM events. Set as false to disable attributes for the input and output content.
 `ai_monitoring.streaming.enabled`: NOT SUPPORTED
+
+### Environment Variable
+
+```
+NEW_RELIC_AI_MONITORING_ENABLED
+NEW_RELIC_AI_MONITORING_RECORD_CONTENT_ENABLED
+NEW_RELIC_AI_MONITORING_STREAMING_ENABLED
+```
+
+### System Property
+
+```
+-Dnewrelic.config.ai_monitoring.enabled
+-Dnewrelic.config.ai_monitoring.record_content.enabled
+-Dnewrelic.config.ai_monitoring.streaming.enabled
+```
 
 ## Related Agent APIs
 
@@ -166,10 +184,3 @@ When using the `BedrockRuntimeAsyncClient`, which returns the response as a `Com
         at software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler.execute(AwsAsyncClientHandler.java:52)
         at software.amazon.awssdk.services.bedrockruntime.DefaultBedrockRuntimeAsyncClient.invokeModel(DefaultBedrockRuntimeAsyncClient.java:161)
 ```
-
-
-## TODO
-* Test env var and sys prop config
-* Write instrumentation tests
-* Refactor test app to have multiple invokeMethods for a single transaction...
-* Figure out how to get external call linked with async client
