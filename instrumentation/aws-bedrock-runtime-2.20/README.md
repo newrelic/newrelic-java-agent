@@ -2,7 +2,7 @@
 
 ## About
 
-Instruments invocations of LLMs via the AWS Bedrock Runtime SDK.
+Instruments invocations of LLMs made by the AWS Bedrock Runtime SDK.
 
 ## Support
 
@@ -19,7 +19,7 @@ Note: Currently, `invokeModelWithResponseStream` is not supported.
 
 ### Supported Models
 
-At the time of the instrumentation being published, only the following text-based foundation models have been tested and confirmed as supported. As long as the model ID for an invoked LLM model contains one of these prefixes defined in `SupportedModels`, the instrumentation should attempt to process the request/response. However, if the request/response structure significantly changes the processing may fail. See the `README` for each model in `llm.models.*` for more details on each.
+At the time of the instrumentation being published, the following text-based foundation models have been tested and confirmed as supported. As long as the model ID for an invoked LLM model contains one of the prefixes defined in `SupportedModels`, the instrumentation should attempt to process the request/response. However, if the request/response structure significantly changes the processing may fail. See the `README` for each model in `llm.models.*` for more details on each.
 
 * AI21 Labs
   * Jurassic-2 Ultra (`ai21.j2-ultra-v1`)
@@ -51,47 +51,34 @@ The main goal of this instrumentation is to generate the following LLM events to
 * `LlmChatCompletionSummary`: An event that captures high-level data about the creation of a chat completion including request, response, and call information.
 * `LlmChatCompletionMessage`: An event that corresponds to each message (sent and received) from a chat completion call including those created by the user, assistant, and the system.
 
-These events are custom events sent via the public `recordCustomEvent` API. Currently, they contribute towards the following Custom Insights Events limits (this will likely change in the future). Because of this, it is recommended to increase `custom_insights_events.max_samples_stored` to the maximum value of 100,000 to best avoid sampling issue. LLM events are sent to the `custom_event_data` collector endpoint but the backend will assign them a unique namespace to distinguish them from other custom events.
+These events are custom events sent via the public `recordCustomEvent` API. Currently, they contribute towards the following Custom Insights Events limits (this will likely change in the future).
 
 ```yaml
   custom_insights_events:
     max_samples_stored: 100000
 ```
 
-LLM events also have some unique limits for the content attribute... 
-
-```
-Regardless of which implementation(s) are built, there are consistent changes within the agents and the UX to support AI Monitoring.
-
-Agents should send the entire content; do not truncate it to 256 or 4096 characters
-
-Agents should move known token counts to the LlmChatCompletionMessage
-
-Agents should remove token counts from the LlmChatCompletionSummary
-```
-
-
-
-Can be built via `LlmEvent` builder
-
-### Model Invocation/Request/Response
-
-* `ModelInvocation`
-* `ModelRequest`
-* `ModelResponse`
+Because of this, it is recommended to increase `custom_insights_events.max_samples_stored` to the maximum value of 100,000 to best avoid sampling issue. LLM events are sent to the `custom_event_data` collector endpoint but the backend will assign them a unique namespace to distinguish them from other custom events.
 
 ### Attributes
+
+#### Agent Attributes
+
+An `llm: true` agent attribute will be set on all Transaction events where one of the supported Bedrock methods is invoked within an active transaction.
+
+#### LLM Event Attributes
+
+Attributes on LLM events use the same configuration and size limits as `custom_insights_events` with two notable exceptions being that the following two LLM event attributes will not be truncated at all:
+* `content`
+* `input`
+
+This is done so that token usage can be calculated on the backend based on the full input and output content.  
 
 #### Custom LLM Attributes
 
 Any custom attributes added by customers using the `addCustomParameters` API that are prefixed with `llm.` will automatically be copied to `LlmEvent`s. For custom attributes added by the `addCustomParameters` API to be added to `LlmEvent`s the API calls must occur before invoking the Bedrock SDK.
 
 One potential custom attribute with special meaning that customers are encouraged to add is `llm.conversation_id`, which has implications in the UI and can be used to group LLM messages into specific conversations.
-
-#### Agent Attributes
-
-                // Set llm = true agent attribute required on TransactionEvents
-
 
 ### Metrics
 
@@ -123,16 +110,16 @@ Note: Streaming is not currently supported.
 
 ## Config
 
-`ai_monitoring.enabled`: Indicates whether LLM instrumentation will be registered. If this is set to False, no metrics, events, or spans are to be sent.
+`ai_monitoring.enabled`: Provides control over all AI Monitoring functionality. Set as true to enable all AI Monitoring features.
+`ai_monitoring.record_content.enabled`: Provides control over whether attributes for the input and output content should be added to LLM events. Set as false to disable attributes for the input and output content.
 `ai_monitoring.streaming.enabled`: NOT SUPPORTED
 
 ## Related Agent APIs
 
-feedback
-callback
-addCustomParameter
-
-## Testing
+AI monitoring can be enhanced by using the following agent APIs:
+* `recordLlmFeedbackEvent` - Can be used to record an LlmFeedback event to associate user feedback with a specific distributed trace.
+* `setLlmTokenCountCallback`
+* `addCustomParameter` - Used to add custom attributed to LLM events. See [Custom LLM Attributes](#custom-llm-attributes)
 
 ## Known Issues
 
@@ -182,10 +169,8 @@ When using the `BedrockRuntimeAsyncClient`, which returns the response as a `Com
 
 
 ## TODO
-* Make all LLM event attribute values un-truncated???? https://source.datanerd.us/agents/agent-specs/pull/664
 * Refactoring related to token count, new callback API https://source.datanerd.us/agents/agent-specs/pull/662
 * Test env var and sys prop config
-* Update default yaml
 * Write instrumentation tests
 * Finish readme
 * Refactor test app to have multiple invokeMethods for a single transaction...
