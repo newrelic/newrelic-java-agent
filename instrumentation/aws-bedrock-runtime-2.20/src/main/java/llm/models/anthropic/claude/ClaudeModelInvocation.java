@@ -69,8 +69,7 @@ public class ClaudeModelInvocation implements ModelInvocation {
                 .input()
                 .requestModel()
                 .responseModel()
-                .responseUsageTotalTokens()
-                .responseUsagePromptTokens()
+                .tokenCount(0) // TODO set to value from the setLlmTokenCountCallback API
                 .error()
                 .duration(System.currentTimeMillis() - startTime)
                 .build();
@@ -98,9 +97,6 @@ public class ClaudeModelInvocation implements ModelInvocation {
                 .requestModel()
                 .responseModel()
                 .responseNumberOfMessages(numberOfMessages)
-                .responseUsageTotalTokens()
-                .responseUsagePromptTokens()
-                .responseUsageCompletionTokens()
                 .responseChoicesFinishReason()
                 .error()
                 .duration(System.currentTimeMillis() - startTime)
@@ -128,6 +124,7 @@ public class ClaudeModelInvocation implements ModelInvocation {
                 .responseModel()
                 .sequence(sequence)
                 .completionId()
+                .tokenCount(0) // TODO set to value from the setLlmTokenCountCallback API
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();

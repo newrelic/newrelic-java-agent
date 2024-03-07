@@ -12,11 +12,6 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.logging.Level;
 
 public interface ModelResponse {
-    // Response headers
-    String X_AMZN_BEDROCK_INPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Input-Token-Count";
-    String X_AMZN_BEDROCK_OUTPUT_TOKEN_COUNT = "X-Amzn-Bedrock-Output-Token-Count";
-    String X_AMZN_REQUEST_ID = "x-amzn-RequestId";
-
     // Operation types
     String COMPLETION = "completion";
     String EMBEDDING = "embedding";
@@ -34,27 +29,6 @@ public interface ModelResponse {
      * @return String representing the stop reason
      */
     String getStopReason();
-
-    /**
-     * Get the count of input tokens used.
-     *
-     * @return int representing the count of input tokens used
-     */
-    int getInputTokenCount();
-
-    /**
-     * Get the count of output tokens used.
-     *
-     * @return int representing the count of output tokens used
-     */
-    int getOutputTokenCount();
-
-    /**
-     * Get the count of total tokens used.
-     *
-     * @return int representing the count of total tokens used
-     */
-    int getTotalTokenCount();
 
     /**
      * Get the Amazon Request ID.

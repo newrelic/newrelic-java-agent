@@ -50,9 +50,7 @@ public class LlmEvent {
     private final Float requestTemperature;
     private final Integer requestMaxTokens;
     private final String requestModel;
-    private final Integer responseUsageTotalTokens;
-    private final Integer responseUsagePromptTokens;
-    private final Integer responseUsageCompletionTokens;
+    private final Integer tokenCount;
     private final String responseChoicesFinishReason;
 
     public static class Builder {
@@ -90,9 +88,7 @@ public class LlmEvent {
         private Float requestTemperature = null;
         private Integer requestMaxTokens = null;
         private String requestModel = null;
-        private Integer responseUsageTotalTokens = null;
-        private Integer responseUsagePromptTokens = null;
-        private Integer responseUsageCompletionTokens = null;
+        private Integer tokenCount = null;
         private String responseChoicesFinishReason = null;
 
         public Builder(ModelInvocation modelInvocation) {
@@ -204,18 +200,8 @@ public class LlmEvent {
             return this;
         }
 
-        public Builder responseUsageTotalTokens() {
-            responseUsageTotalTokens = modelResponse.getTotalTokenCount();
-            return this;
-        }
-
-        public Builder responseUsagePromptTokens() {
-            responseUsagePromptTokens = modelResponse.getInputTokenCount();
-            return this;
-        }
-
-        public Builder responseUsageCompletionTokens() {
-            responseUsageCompletionTokens = modelResponse.getOutputTokenCount();
+        public Builder tokenCount(int count) {
+            tokenCount = count;
             return this;
         }
 
@@ -323,7 +309,7 @@ public class LlmEvent {
         }
 
         requestMaxTokens = builder.requestMaxTokens;
-        if (requestMaxTokens != null && requestMaxTokens >= 0) {
+        if (requestMaxTokens != null && requestMaxTokens > 0) {
             eventAttributes.put("request.max_tokens", requestMaxTokens);
         }
 
@@ -332,19 +318,9 @@ public class LlmEvent {
             eventAttributes.put("request.model", requestModel);
         }
 
-        responseUsageTotalTokens = builder.responseUsageTotalTokens;
-        if (responseUsageTotalTokens != null && responseUsageTotalTokens >= 0) {
-            eventAttributes.put("response.usage.total_tokens", responseUsageTotalTokens);
-        }
-
-        responseUsagePromptTokens = builder.responseUsagePromptTokens;
-        if (responseUsagePromptTokens != null && responseUsagePromptTokens >= 0) {
-            eventAttributes.put("response.usage.prompt_tokens", responseUsagePromptTokens);
-        }
-
-        responseUsageCompletionTokens = builder.responseUsageCompletionTokens;
-        if (responseUsageCompletionTokens != null && responseUsageCompletionTokens >= 0) {
-            eventAttributes.put("response.usage.completion_tokens", responseUsageCompletionTokens);
+        tokenCount = builder.tokenCount;
+        if (tokenCount != null && tokenCount > 0) {
+            eventAttributes.put("token_count", tokenCount);
         }
 
         responseChoicesFinishReason = builder.responseChoicesFinishReason;

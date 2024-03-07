@@ -118,7 +118,7 @@ Note: Streaming is not currently supported.
 
 AI monitoring can be enhanced by using the following agent APIs:
 * `recordLlmFeedbackEvent` - Can be used to record an LlmFeedback event to associate user feedback with a specific distributed trace.
-* `setLlmTokenCountCallback`
+* `setLlmTokenCountCallback` - Can be used to register a Callback that provides a token count.
 * `addCustomParameter` - Used to add custom attributed to LLM events. See [Custom LLM Attributes](#custom-llm-attributes)
 
 ## Known Issues
@@ -169,9 +169,7 @@ When using the `BedrockRuntimeAsyncClient`, which returns the response as a `Com
 
 
 ## TODO
-* Refactoring related to token count, new callback API https://source.datanerd.us/agents/agent-specs/pull/662
 * Test env var and sys prop config
 * Write instrumentation tests
-* Finish readme
 * Refactor test app to have multiple invokeMethods for a single transaction...
 * Figure out how to get external call linked with async client

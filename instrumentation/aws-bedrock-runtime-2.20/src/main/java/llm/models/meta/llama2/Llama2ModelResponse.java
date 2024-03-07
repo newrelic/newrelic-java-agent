@@ -14,7 +14,6 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -30,8 +29,6 @@ public class Llama2ModelResponse implements ModelResponse {
     private static final String STOP_REASON = "stop_reason";
     private static final String GENERATION = "generation";
 
-    private int inputTokenCount = 0;
-    private int outputTokenCount = 0;
     private String amznRequestId = "";
 
     // LLM operation type
@@ -56,7 +53,7 @@ public class Llama2ModelResponse implements ModelResponse {
             Optional<String> statusTextOptional = invokeModelResponse.sdkHttpResponse().statusText();
             statusTextOptional.ifPresent(s -> statusText = s);
             setOperationType(invokeModelResponseBody);
-            setHeaderFields(invokeModelResponse);
+            amznRequestId = invokeModelResponse.responseMetadata().requestId();
             llmChatCompletionSummaryId = getRandomGuid();
             llmEmbeddingId = getRandomGuid();
         } else {
@@ -121,37 +118,6 @@ public class Llama2ModelResponse implements ModelResponse {
         }
     }
 
-    /**
-     * Parses header values from the response object and assigns them to fields.
-     *
-     * @param invokeModelResponse response object
-     */
-    private void setHeaderFields(InvokeModelResponse invokeModelResponse) {
-        Map<String, List<String>> headers = invokeModelResponse.sdkHttpResponse().headers();
-        try {
-            if (!headers.isEmpty()) {
-                List<String> inputTokenCountHeaders = headers.get(X_AMZN_BEDROCK_INPUT_TOKEN_COUNT);
-                if (inputTokenCountHeaders != null && !inputTokenCountHeaders.isEmpty()) {
-                    String result = inputTokenCountHeaders.get(0);
-                    inputTokenCount = result != null ? Integer.parseInt(result) : 0;
-                }
-                List<String> outputTokenCountHeaders = headers.get(X_AMZN_BEDROCK_OUTPUT_TOKEN_COUNT);
-                if (outputTokenCountHeaders != null && !outputTokenCountHeaders.isEmpty()) {
-                    String result = outputTokenCountHeaders.get(0);
-                    outputTokenCount = result != null ? Integer.parseInt(result) : 0;
-                }
-                List<String> amznRequestIdHeaders = headers.get(X_AMZN_REQUEST_ID);
-                if (amznRequestIdHeaders != null && !amznRequestIdHeaders.isEmpty()) {
-                    amznRequestId = amznRequestIdHeaders.get(0);
-                }
-            } else {
-                logParsingFailure(null, "response headers");
-            }
-        } catch (Exception e) {
-            logParsingFailure(e, "response headers");
-        }
-    }
-
     @Override
     public String getResponseMessage() {
         return parseStringValue(GENERATION);
@@ -178,21 +144,6 @@ public class Llama2ModelResponse implements ModelResponse {
             logParsingFailure(null, fieldToParse);
         }
         return parsedStringValue;
-    }
-
-    @Override
-    public int getInputTokenCount() {
-        return inputTokenCount;
-    }
-
-    @Override
-    public int getOutputTokenCount() {
-        return outputTokenCount;
-    }
-
-    @Override
-    public int getTotalTokenCount() {
-        return inputTokenCount + outputTokenCount;
     }
 
     @Override
