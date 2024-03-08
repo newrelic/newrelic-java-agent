@@ -74,7 +74,7 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
 
                     Token token = txn.getToken();
 
-                    // instrumentation fails if the BiConsumer is replaced with a lambda
+                    // Instrumentation fails if the BiConsumer is replaced with a lambda
                     invokeModelResponseFuture.whenComplete(new BiConsumer<InvokeModelResponse, Throwable>() {
                         @Override
                         public void accept(InvokeModelResponse invokeModelResponse, Throwable throwable) {
@@ -111,8 +111,13 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
                                     jurassicModelInvocation.setTracedMethodName(txn, "invokeModel");
                                     jurassicModelInvocation.recordLlmEventsAsync(startTime, token);
                                 }
-                                segment.end();
+                                if (segment != null) {
+                                    segment.endAsync();
+                                }
                             } catch (Throwable t) {
+                                if (segment != null) {
+                                    segment.endAsync();
+                                }
                                 AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
                             }
                         }
