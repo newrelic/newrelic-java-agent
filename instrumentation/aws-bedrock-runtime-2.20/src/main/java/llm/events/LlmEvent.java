@@ -132,10 +132,7 @@ public class LlmEvent {
             if (isUser) {
                 role = "user";
             } else {
-                role = modelRequest.getRole();
-                if (role.isEmpty()) {
-                    role = "assistant";
-                }
+                role = "assistant";
             }
             return this;
         }

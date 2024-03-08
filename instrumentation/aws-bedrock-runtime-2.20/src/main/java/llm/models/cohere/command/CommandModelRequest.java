@@ -131,12 +131,6 @@ public class CommandModelRequest implements ModelRequest {
     }
 
     @Override
-    public String getRole() {
-        // This is a NoOp for Jurassic as the request doesn't contain any signifier of the role
-        return "";
-    }
-
-    @Override
     public String getInputText(int index) {
         String parsedInputText = "";
         try {

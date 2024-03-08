@@ -43,13 +43,6 @@ public interface ModelRequest {
     int getNumberOfRequestMessages();
 
     /**
-     * Get the role of the requester.
-     *
-     * @return String representing the role of the requester
-     */
-    String getRole(); // TODO can this just be deleted?
-
-    /**
      * Get the input to the embedding creation call.
      *
      * @param index int indicating the index of a message in an array. May be ignored for request structures that always return a single message.
