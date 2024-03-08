@@ -17,11 +17,20 @@ public interface ModelResponse {
     String EMBEDDING = "embedding";
 
     /**
-     * Get the response message.
+     * Get the response message, potentially from a specific array index
+     * if multiple messages are returned.
      *
+     * @param index int indicating the index of a message in an array. May be ignored for response structures that always return a single message.
      * @return String representing the response message
      */
-    String getResponseMessage();
+    String getResponseMessage(int index);
+
+    /**
+     * Get the number of response messages returned
+     *
+     * @return int representing the number of response messages returned
+     */
+    int getNumberOfResponseMessages();
 
     /**
      * Get the stop reason.

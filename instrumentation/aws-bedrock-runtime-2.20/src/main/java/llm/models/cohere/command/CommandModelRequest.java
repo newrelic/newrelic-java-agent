@@ -120,7 +120,13 @@ public class CommandModelRequest implements ModelRequest {
     }
 
     @Override
-    public String getRequestMessage() {
+    public int getNumberOfRequestMessages() {
+        // The Command request only ever contains a single prompt message
+        return 1;
+    }
+
+    @Override
+    public String getRequestMessage(int index) {
         return parseStringValue(PROMPT);
     }
 
@@ -131,7 +137,7 @@ public class CommandModelRequest implements ModelRequest {
     }
 
     @Override
-    public String getInputText() {
+    public String getInputText(int index) {
         String parsedInputText = "";
         try {
             if (!getRequestBodyJsonMap().isEmpty()) {
@@ -139,7 +145,7 @@ public class CommandModelRequest implements ModelRequest {
                 if (textsJsonNode.isArray()) {
                     List<JsonNode> textsJsonNodeArray = textsJsonNode.asArray();
                     if (!textsJsonNodeArray.isEmpty()) {
-                        JsonNode jsonNode = textsJsonNodeArray.get(0);
+                        JsonNode jsonNode = textsJsonNodeArray.get(index);
                         if (jsonNode.isString()) {
                             parsedInputText = jsonNode.asString();
                         }
@@ -153,6 +159,28 @@ public class CommandModelRequest implements ModelRequest {
             logParsingFailure(null, TEXTS);
         }
         return parsedInputText;
+    }
+
+    @Override
+    public int getNumberOfInputTextMessages() {
+        int numberOfInputTextMessages = 0;
+        try {
+            if (!getRequestBodyJsonMap().isEmpty()) {
+                JsonNode textsJsonNode = getRequestBodyJsonMap().get(TEXTS);
+                if (textsJsonNode.isArray()) {
+                    List<JsonNode> textsJsonNodeArray = textsJsonNode.asArray();
+                    if (!textsJsonNodeArray.isEmpty()) {
+                        numberOfInputTextMessages = textsJsonNodeArray.size();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, TEXTS);
+        }
+        if (numberOfInputTextMessages == 0) {
+            logParsingFailure(null, TEXTS);
+        }
+        return numberOfInputTextMessages;
     }
 
     private String parseStringValue(String fieldToParse) {

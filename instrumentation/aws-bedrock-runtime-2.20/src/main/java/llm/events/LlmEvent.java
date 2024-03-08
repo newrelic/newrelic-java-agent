@@ -180,8 +180,8 @@ public class LlmEvent {
             return this;
         }
 
-        public Builder input() {
-            input = modelRequest.getInputText();
+        public Builder input(int index) {
+            input = modelRequest.getInputText(index);
             return this;
         }
 

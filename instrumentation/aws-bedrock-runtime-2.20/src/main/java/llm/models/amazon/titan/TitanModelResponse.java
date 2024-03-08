@@ -122,7 +122,7 @@ public class TitanModelResponse implements ModelResponse {
     }
 
     @Override
-    public String getResponseMessage() {
+    public String getResponseMessage(int index) {
         String parsedResponseMessage = "";
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
@@ -130,7 +130,7 @@ public class TitanModelResponse implements ModelResponse {
                 if (jsonNode.isArray()) {
                     List<JsonNode> resultsJsonNodeArray = jsonNode.asArray();
                     if (!resultsJsonNodeArray.isEmpty()) {
-                        JsonNode resultsJsonNode = resultsJsonNodeArray.get(0);
+                        JsonNode resultsJsonNode = resultsJsonNodeArray.get(index);
                         if (resultsJsonNode.isObject()) {
                             Map<String, JsonNode> resultsJsonNodeObject = resultsJsonNode.asObject();
                             if (!resultsJsonNodeObject.isEmpty()) {
@@ -150,6 +150,28 @@ public class TitanModelResponse implements ModelResponse {
             logParsingFailure(null, OUTPUT_TEXT);
         }
         return parsedResponseMessage;
+    }
+
+    @Override
+    public int getNumberOfResponseMessages() {
+        int numberOfResponseMessages = 0;
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode jsonNode = getResponseBodyJsonMap().get(RESULTS);
+                if (jsonNode.isArray()) {
+                    List<JsonNode> resultsJsonNodeArray = jsonNode.asArray();
+                    if (!resultsJsonNodeArray.isEmpty()) {
+                        numberOfResponseMessages = resultsJsonNodeArray.size();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, RESULTS);
+        }
+        if (numberOfResponseMessages == 0) {
+            logParsingFailure(null, RESULTS);
+        }
+        return numberOfResponseMessages;
     }
 
     @Override

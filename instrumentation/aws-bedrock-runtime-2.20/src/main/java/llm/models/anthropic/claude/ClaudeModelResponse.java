@@ -118,8 +118,14 @@ public class ClaudeModelResponse implements ModelResponse {
     }
 
     @Override
-    public String getResponseMessage() {
+    public String getResponseMessage(int index) {
         return parseStringValue(COMPLETION);
+    }
+
+    @Override
+    public int getNumberOfResponseMessages() {
+        // There is only ever a single response message
+        return 1;
     }
 
     @Override

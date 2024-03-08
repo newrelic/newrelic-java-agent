@@ -119,8 +119,14 @@ public class Llama2ModelResponse implements ModelResponse {
     }
 
     @Override
-    public String getResponseMessage() {
+    public String getResponseMessage(int index) {
         return parseStringValue(GENERATION);
+    }
+
+    @Override
+    public int getNumberOfResponseMessages() {
+        // There is only ever a single response message
+        return 1;
     }
 
     @Override

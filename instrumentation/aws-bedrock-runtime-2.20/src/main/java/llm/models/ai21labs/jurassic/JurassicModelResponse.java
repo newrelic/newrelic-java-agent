@@ -123,15 +123,15 @@ public class JurassicModelResponse implements ModelResponse {
     }
 
     @Override
-    public String getResponseMessage() {
+    public String getResponseMessage(int index) {
         String parsedResponseMessage = "";
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
                 JsonNode completionsJsonNode = getResponseBodyJsonMap().get(COMPLETIONS);
                 if (completionsJsonNode.isArray()) {
-                    List<JsonNode> jsonNodeArray = completionsJsonNode.asArray();
-                    if (!jsonNodeArray.isEmpty()) {
-                        JsonNode jsonNode = jsonNodeArray.get(0);
+                    List<JsonNode> completionsJsonNodeArray = completionsJsonNode.asArray();
+                    if (!completionsJsonNodeArray.isEmpty()) {
+                        JsonNode jsonNode = completionsJsonNodeArray.get(index);
                         if (jsonNode.isObject()) {
                             Map<String, JsonNode> jsonNodeObject = jsonNode.asObject();
                             if (!jsonNodeObject.isEmpty()) {
@@ -157,6 +157,28 @@ public class JurassicModelResponse implements ModelResponse {
             logParsingFailure(null, TEXT);
         }
         return parsedResponseMessage;
+    }
+
+    @Override
+    public int getNumberOfResponseMessages() {
+        int numberOfResponseMessages = 0;
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode completionsJsonNode = getResponseBodyJsonMap().get(COMPLETIONS);
+                if (completionsJsonNode.isArray()) {
+                    List<JsonNode> completionsJsonNodeArray = completionsJsonNode.asArray();
+                    if (!completionsJsonNodeArray.isEmpty()) {
+                        numberOfResponseMessages = completionsJsonNodeArray.size();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, COMPLETIONS);
+        }
+        if (numberOfResponseMessages == 0) {
+            logParsingFailure(null, COMPLETIONS);
+        }
+        return numberOfResponseMessages;
     }
 
     @Override

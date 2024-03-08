@@ -123,7 +123,7 @@ public class CommandModelResponse implements ModelResponse {
     }
 
     @Override
-    public String getResponseMessage() {
+    public String getResponseMessage(int index) {
         String parsedResponseMessage = "";
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
@@ -131,7 +131,7 @@ public class CommandModelResponse implements ModelResponse {
                 if (generationsJsonNode.isArray()) {
                     List<JsonNode> generationsJsonNodeArray = generationsJsonNode.asArray();
                     if (!generationsJsonNodeArray.isEmpty()) {
-                        JsonNode jsonNode = generationsJsonNodeArray.get(0);
+                        JsonNode jsonNode = generationsJsonNodeArray.get(index);
                         if (jsonNode.isObject()) {
                             Map<String, JsonNode> jsonNodeObject = jsonNode.asObject();
                             if (!jsonNodeObject.isEmpty()) {
@@ -151,6 +151,28 @@ public class CommandModelResponse implements ModelResponse {
             logParsingFailure(null, TEXT);
         }
         return parsedResponseMessage;
+    }
+
+    @Override
+    public int getNumberOfResponseMessages() {
+        int numberOfResponseMessages = 0;
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode generationsJsonNode = getResponseBodyJsonMap().get(GENERATIONS);
+                if (generationsJsonNode.isArray()) {
+                    List<JsonNode> generationsJsonNodeArray = generationsJsonNode.asArray();
+                    if (!generationsJsonNodeArray.isEmpty()) {
+                        numberOfResponseMessages = generationsJsonNodeArray.size();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, GENERATIONS);
+        }
+        if (numberOfResponseMessages == 0) {
+            logParsingFailure(null, GENERATIONS);
+        }
+        return numberOfResponseMessages;
     }
 
     @Override

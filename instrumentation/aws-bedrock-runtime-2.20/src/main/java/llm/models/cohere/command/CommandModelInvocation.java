@@ -52,7 +52,7 @@ public class CommandModelInvocation implements ModelInvocation {
     }
 
     @Override
-    public void recordLlmEmbeddingEvent(long startTime) {
+    public void recordLlmEmbeddingEvent(long startTime, int index) {
         if (modelResponse.isErrorResponse()) {
             reportLlmError();
         }
@@ -66,7 +66,7 @@ public class CommandModelInvocation implements ModelInvocation {
                 .ingestSource()
                 .id(modelResponse.getLlmEmbeddingId())
                 .requestId()
-                .input()
+                .input(index)
                 .requestModel()
                 .responseModel()
                 .tokenCount(0) // TODO set to value from the setLlmTokenCountCallback API
@@ -106,9 +106,7 @@ public class CommandModelInvocation implements ModelInvocation {
     }
 
     @Override
-    public void recordLlmChatCompletionMessageEvent(int sequence, String message) {
-        boolean isUser = isUser(sequence);
-
+    public void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser) {
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
         LlmEvent llmChatCompletionMessageEvent = builder
@@ -136,7 +134,7 @@ public class CommandModelInvocation implements ModelInvocation {
         if (operationType.equals(COMPLETION)) {
             recordLlmChatCompletionEvents(startTime);
         } else if (operationType.equals(EMBEDDING)) {
-            recordLlmEmbeddingEvent(startTime);
+            recordLlmEmbeddingEvents(startTime);
         } else {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unexpected operation type encountered when trying to record LLM events");
         }
@@ -170,12 +168,38 @@ public class CommandModelInvocation implements ModelInvocation {
      * The number of LlmChatCompletionMessage events produced can differ based on vendor.
      */
     private void recordLlmChatCompletionEvents(long startTime) {
-        // First LlmChatCompletionMessage represents the user input prompt
-        recordLlmChatCompletionMessageEvent(0, modelRequest.getRequestMessage());
-        // Second LlmChatCompletionMessage represents the completion message from the LLM response
-        recordLlmChatCompletionMessageEvent(1, modelResponse.getResponseMessage());
-        // A summary of all LlmChatCompletionMessage events
-        recordLlmChatCompletionSummaryEvent(startTime, 2);
+        int numberOfRequestMessages = modelRequest.getNumberOfRequestMessages();
+        int numberOfResponseMessages = modelResponse.getNumberOfResponseMessages();
+        int totalNumberOfMessages = numberOfRequestMessages + numberOfResponseMessages;
+
+        int sequence = 0;
+
+        // First, record all LlmChatCompletionMessage events representing the user input prompt
+        for (int i = 0; i < numberOfRequestMessages; i++) {
+            recordLlmChatCompletionMessageEvent(sequence, modelRequest.getRequestMessage(i), true);
+            sequence++;
+        }
+
+        // Second, record all LlmChatCompletionMessage events representing the completion message from the LLM response
+        for (int i = 0; i < numberOfResponseMessages; i++) {
+            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), false);
+            sequence++;
+        }
+
+        // Finally, record a summary event representing all LlmChatCompletionMessage events
+        recordLlmChatCompletionSummaryEvent(startTime, totalNumberOfMessages);
+    }
+
+    /**
+     * Records one, and potentially more, LlmEmbedding events based on the number of input messages in the request.
+     * The number of LlmEmbedding events produced can differ based on vendor.
+     */
+    private void recordLlmEmbeddingEvents(long startTime) {
+        int numberOfRequestMessages = modelRequest.getNumberOfInputTextMessages();
+        // Record an LlmEmbedding event for each input message in the request
+        for (int i = 0; i < numberOfRequestMessages; i++) {
+            recordLlmEmbeddingEvent(startTime, i);
+        }
     }
 
     @Override

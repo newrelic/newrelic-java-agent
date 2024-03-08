@@ -118,7 +118,13 @@ public class ClaudeModelRequest implements ModelRequest {
     }
 
     @Override
-    public String getRequestMessage() {
+    public int getNumberOfRequestMessages() {
+        // The Claude request only ever contains a single prompt message
+        return 1;
+    }
+
+    @Override
+    public String getRequestMessage(int index) {
         return parseStringValue(PROMPT);
     }
 
@@ -129,9 +135,15 @@ public class ClaudeModelRequest implements ModelRequest {
     }
 
     @Override
-    public String getInputText() {
+    public String getInputText(int index) {
         // This is a NoOp for Claude as it doesn't support embeddings
         return "";
+    }
+
+    @Override
+    public int getNumberOfInputTextMessages() {
+        // This is a NoOp for Llama as it doesn't support embeddings
+        return 0;
     }
 
     private String parseStringValue(String fieldToParse) {

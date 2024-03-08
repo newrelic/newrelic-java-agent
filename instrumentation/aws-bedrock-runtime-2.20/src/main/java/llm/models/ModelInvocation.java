@@ -44,8 +44,9 @@ public interface ModelInvocation {
      * Record an LlmEmbedding event that captures data specific to the creation of an embedding.
      *
      * @param startTime start time of SDK invoke method
+     * @param index     of the input message in an array
      */
-    void recordLlmEmbeddingEvent(long startTime);
+    void recordLlmEmbeddingEvent(long startTime, int index);
 
     /**
      * Record an LlmChatCompletionSummary event that captures high-level data about
@@ -62,8 +63,9 @@ public interface ModelInvocation {
      *
      * @param sequence index starting at 0 associated with each message
      * @param message  String representing the input/output message
+     * @param isUser   boolean representing if the current message event is from a user input prompt or an assistant response message
      */
-    void recordLlmChatCompletionMessageEvent(int sequence, String message);
+    void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser);
 
     /**
      * Record all LLM events when using the sync client.
@@ -179,18 +181,5 @@ public interface ModelInvocation {
      */
     static String getRandomGuid() {
         return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Determine if the LLM is initiated by the user or assistant.
-     * <p>
-     * Assuming that one user request is always followed by one assistant
-     * response, an even sequence value is the user, while odd is the assistant.
-     *
-     * @param sequence index starting at 0 associated with each message
-     * @return true if is user, false if not
-     */
-    default boolean isUser(int sequence) {
-        return sequence % 2 == 0;
     }
 }

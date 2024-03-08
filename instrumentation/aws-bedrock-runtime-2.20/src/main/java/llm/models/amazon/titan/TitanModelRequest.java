@@ -131,7 +131,13 @@ public class TitanModelRequest implements ModelRequest {
     }
 
     @Override
-    public String getRequestMessage() {
+    public int getNumberOfRequestMessages() {
+        // The Titan request only ever contains a single inputText message
+        return 1;
+    }
+
+    @Override
+    public String getRequestMessage(int index) {
         return parseStringValue(INPUT_TEXT);
     }
 
@@ -142,8 +148,14 @@ public class TitanModelRequest implements ModelRequest {
     }
 
     @Override
-    public String getInputText() {
+    public String getInputText(int index) {
         return parseStringValue(INPUT_TEXT);
+    }
+
+    @Override
+    public int getNumberOfInputTextMessages() {
+        // There is only ever a single inputText message for Titan embeddings
+        return 1;
     }
 
     private String parseStringValue(String fieldToParse) {
