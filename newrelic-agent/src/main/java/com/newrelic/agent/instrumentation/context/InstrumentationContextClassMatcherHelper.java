@@ -70,7 +70,7 @@ public class InstrumentationContextClassMatcherHelper {
     }
 
     // lambda classes
-    if (className.contains("$$Lambda$") || className.contains("LambdaForm$")) {
+    if (className.contains("$$Lambda$") || className.contains("$$Lambda/") || className.contains("LambdaForm$")) {
       return true;
     }
 
