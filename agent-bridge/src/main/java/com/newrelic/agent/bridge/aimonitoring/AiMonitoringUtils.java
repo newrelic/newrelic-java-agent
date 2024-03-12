@@ -22,7 +22,15 @@ public class AiMonitoringUtils {
      * @return true if AI monitoring is enabled, else false
      */
     public static boolean isAiMonitoringEnabled() {
-        return NewRelic.getAgent().getConfig().getValue("ai_monitoring.enabled", AI_MONITORING_ENABLED_DEFAULT);
+        Boolean enabled = NewRelic.getAgent().getConfig().getValue("ai_monitoring.enabled", AI_MONITORING_ENABLED_DEFAULT);
+
+        if (enabled) {
+            NewRelic.incrementCounter("Supportability/Java/ML/Enabled");
+        } else {
+            NewRelic.incrementCounter("Supportability/Java/ML/Disabled");
+        }
+
+        return enabled;
     }
 
     /**
@@ -31,7 +39,15 @@ public class AiMonitoringUtils {
      * @return true if streaming is enabled, else false
      */
     public static boolean isAiMonitoringStreamingEnabled() {
-        return NewRelic.getAgent().getConfig().getValue("ai_monitoring.streaming.enabled", AI_MONITORING_STREAMING_ENABLED_DEFAULT);
+        Boolean enabled = NewRelic.getAgent().getConfig().getValue("ai_monitoring.streaming.enabled", AI_MONITORING_STREAMING_ENABLED_DEFAULT);
+
+        if (enabled) {
+            NewRelic.incrementCounter("Supportability/Java/ML/Streaming/Enabled");
+        } else {
+            NewRelic.incrementCounter("Supportability/Java/ML/Streaming/Disabled");
+        }
+
+        return enabled;
     }
 
     /**
@@ -40,6 +56,14 @@ public class AiMonitoringUtils {
      * @return true if adding content is enabled, else false
      */
     public static boolean isAiMonitoringRecordContentEnabled() {
-        return NewRelic.getAgent().getConfig().getValue("ai_monitoring.record_content.enabled", AI_MONITORING_RECORD_CONTENT_ENABLED_DEFAULT);
+        Boolean enabled = NewRelic.getAgent().getConfig().getValue("ai_monitoring.record_content.enabled", AI_MONITORING_RECORD_CONTENT_ENABLED_DEFAULT);
+
+        if (enabled) {
+            NewRelic.incrementCounter("Supportability/Java/ML/RecordContent/Enabled");
+        } else {
+            NewRelic.incrementCounter("Supportability/Java/ML/RecordContent/Disabled");
+        }
+
+        return enabled;
     }
 }

@@ -132,13 +132,6 @@ public interface ModelInvocation {
     }
 
     /**
-     * Increment a Supportability metric indicating that streaming support is disabled.
-     */
-    static void incrementStreamingDisabledSupportabilityMetric() {
-        NewRelic.incrementCounter("Supportability/Java/ML/Streaming/Disabled");
-    }
-
-    /**
      * Set the llm:true attribute on the active transaction.
      *
      * @param txn current transaction

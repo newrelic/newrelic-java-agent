@@ -137,8 +137,6 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
                         .getLogger()
                         .log(Level.FINER,
                                 "aws-bedrock-runtime-2.20 instrumentation does not currently support response streaming. Enabling ai_monitoring.streaming will have no effect.");
-            } else {
-                ModelInvocation.incrementStreamingDisabledSupportabilityMetric();
             }
         }
         return Weaver.callOriginal();
