@@ -100,13 +100,18 @@ A supportability metric is reported each time an instrumented framework method i
 
 Note: The vendor version isn't obtainable from the AWS Bedrock SDK for Java so the instrumentation version is used instead.
 
-Additionally, a supportability metric is recorded to indicate if streaming is disabled. Streaming is considered disabled if the value of the `ai_monitoring.streaming.enabled` configuration setting is `false`. If streaming is enabled, no supportability metric will be sent. The metric uses the following format:
+Additionally, the following supportability metrics are recorded to indicate the agent config state.
 
-`Supportability/{language}/ML/Streaming/Disabled`
+```
+Supportability/Java/ML/Enabled
+Supportability/Java/ML/Disabled
 
-* `language`: Name of language agent (ex: `Java`)
+Supportability/Java/ML/Streaming/Enabled
+Supportability/Java/ML/Streaming/Disabled
 
-Note: Streaming is not currently supported.
+Supportability/Java/ML/RecordContent/Enabled
+Supportability/Java/ML/RecordContent/Disabled
+```
 
 ## Config
 

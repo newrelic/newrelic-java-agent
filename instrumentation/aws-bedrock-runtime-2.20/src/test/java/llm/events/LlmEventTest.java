@@ -14,11 +14,9 @@ import com.newrelic.agent.introspec.Introspector;
 import llm.models.ModelInvocation;
 import llm.models.amazon.titan.TitanModelInvocation;
 import llm.models.anthropic.claude.ClaudeModelInvocation;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.BedrockRuntimeResponseMetadata;
@@ -34,6 +32,10 @@ import static llm.events.LlmEvent.Builder;
 import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
 import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
 import static llm.events.LlmEvent.LLM_EMBEDDING;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.bedrockruntime" }, configName = "llm_enabled.yml")
@@ -41,7 +43,7 @@ public class LlmEventTest {
     private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
 
     @Before
-    public void reset() {
+    public void before() {
         introspector.clear();
     }
 
@@ -58,27 +60,27 @@ public class LlmEventTest {
         userAttributes.put("test", "test");
 
         // Mock out ModelRequest
-        InvokeModelRequest mockInvokeModelRequest = Mockito.mock(InvokeModelRequest.class);
-        SdkBytes mockRequestSdkBytes = Mockito.mock(SdkBytes.class);
-        Mockito.when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
-        Mockito.when(mockRequestSdkBytes.asUtf8String()).thenReturn("{\"inputText\":\"What is the color of the sky?\"}");
-        Mockito.when(mockInvokeModelRequest.modelId()).thenReturn("amazon.titan-embed-text-v1");
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String()).thenReturn("{\"inputText\":\"What is the color of the sky?\"}");
+        when(mockInvokeModelRequest.modelId()).thenReturn("amazon.titan-embed-text-v1");
 
         // Mock out ModelResponse
-        InvokeModelResponse mockInvokeModelResponse = Mockito.mock(InvokeModelResponse.class);
-        SdkBytes mockResponseSdkBytes = Mockito.mock(SdkBytes.class);
-        Mockito.when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
-        Mockito.when(mockResponseSdkBytes.asUtf8String()).thenReturn("{\"embedding\":[0.328125,0.44335938],\"inputTextTokenCount\":8}");
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+        when(mockResponseSdkBytes.asUtf8String()).thenReturn("{\"embedding\":[0.328125,0.44335938],\"inputTextTokenCount\":8}");
 
-        SdkHttpResponse mockSdkHttpResponse = Mockito.mock(SdkHttpResponse.class);
-        Mockito.when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
-        Mockito.when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
-        Mockito.when(mockSdkHttpResponse.statusCode()).thenReturn(200);
-        Mockito.when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+        when(mockSdkHttpResponse.statusCode()).thenReturn(200);
+        when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
 
-        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = Mockito.mock(BedrockRuntimeResponseMetadata.class);
-        Mockito.when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
-        Mockito.when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
+        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
+        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
 
         // Instantiate ModelInvocation
         TitanModelInvocation titanModelInvocation = new TitanModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
@@ -109,26 +111,26 @@ public class LlmEventTest {
 
         // Then
         Collection<Event> customEvents = introspector.getCustomEvents(LLM_EMBEDDING);
-        Assert.assertEquals(1, customEvents.size());
+        assertEquals(1, customEvents.size());
 
         Event event = customEvents.iterator().next();
-        Assert.assertEquals(LLM_EMBEDDING, event.getType());
+        assertEquals(LLM_EMBEDDING, event.getType());
 
         Map<String, Object> attributes = event.getAttributes();
-        Assert.assertEquals(13, attributes.size());
-        Assert.assertEquals("span-id-123", attributes.get("span_id"));
-        Assert.assertEquals("trace-id-xyz", attributes.get("trace_id"));
-        Assert.assertEquals("bedrock", attributes.get("vendor"));
-        Assert.assertEquals("Java", attributes.get("ingest_source"));
-        Assert.assertFalse(((String) attributes.get("id")).isEmpty());
-        Assert.assertEquals("90a22e92-db1d-4474-97a9-28b143846301", attributes.get("request_id"));
-        Assert.assertEquals("What is the color of the sky?", attributes.get("input"));
-        Assert.assertEquals("amazon.titan-embed-text-v1", attributes.get("request.model"));
-        Assert.assertEquals("amazon.titan-embed-text-v1", attributes.get("response.model"));
-        Assert.assertEquals(123, attributes.get("token_count"));
-        Assert.assertEquals(9000f, attributes.get("duration"));
-        Assert.assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
-        Assert.assertEquals("testPrefix", attributes.get("llm.testPrefix"));
+        assertEquals(13, attributes.size());
+        assertEquals("span-id-123", attributes.get("span_id"));
+        assertEquals("trace-id-xyz", attributes.get("trace_id"));
+        assertEquals("bedrock", attributes.get("vendor"));
+        assertEquals("Java", attributes.get("ingest_source"));
+        assertFalse(((String) attributes.get("id")).isEmpty());
+        assertEquals("90a22e92-db1d-4474-97a9-28b143846301", attributes.get("request_id"));
+        assertEquals("What is the color of the sky?", attributes.get("input"));
+        assertEquals("amazon.titan-embed-text-v1", attributes.get("request.model"));
+        assertEquals("amazon.titan-embed-text-v1", attributes.get("response.model"));
+        assertEquals(123, attributes.get("token_count"));
+        assertEquals(9000f, attributes.get("duration"));
+        assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
+        assertEquals("testPrefix", attributes.get("llm.testPrefix"));
     }
 
     @Test
@@ -146,31 +148,31 @@ public class LlmEventTest {
         String expectedUserPrompt = "Human: What is the color of the sky?\n\nAssistant:";
 
         // Mock out ModelRequest
-        InvokeModelRequest mockInvokeModelRequest = Mockito.mock(InvokeModelRequest.class);
-        SdkBytes mockRequestSdkBytes = Mockito.mock(SdkBytes.class);
-        Mockito.when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
-        Mockito.when(mockRequestSdkBytes.asUtf8String())
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String())
                 .thenReturn(
                         "{\"stop_sequences\":[\"\\n\\nHuman:\"],\"max_tokens_to_sample\":1000,\"temperature\":0.5,\"prompt\":\"Human: What is the color of the sky?\\n\\nAssistant:\"}");
-        Mockito.when(mockInvokeModelRequest.modelId()).thenReturn("anthropic.claude-v2");
+        when(mockInvokeModelRequest.modelId()).thenReturn("anthropic.claude-v2");
 
         // Mock out ModelResponse
-        InvokeModelResponse mockInvokeModelResponse = Mockito.mock(InvokeModelResponse.class);
-        SdkBytes mockResponseSdkBytes = Mockito.mock(SdkBytes.class);
-        Mockito.when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
-        Mockito.when(mockResponseSdkBytes.asUtf8String())
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+        when(mockResponseSdkBytes.asUtf8String())
                 .thenReturn(
                         "{\"completion\":\" The sky appears blue during the day because of how sunlight interacts with the gases in Earth's atmosphere.\",\"stop_reason\":\"stop_sequence\",\"stop\":\"\\n\\nHuman:\"}");
 
-        SdkHttpResponse mockSdkHttpResponse = Mockito.mock(SdkHttpResponse.class);
-        Mockito.when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
-        Mockito.when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
-        Mockito.when(mockSdkHttpResponse.statusCode()).thenReturn(200);
-        Mockito.when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+        when(mockSdkHttpResponse.statusCode()).thenReturn(200);
+        when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
 
-        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = Mockito.mock(BedrockRuntimeResponseMetadata.class);
-        Mockito.when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
-        Mockito.when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
+        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
+        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
 
         ClaudeModelInvocation claudeModelInvocation = new ClaudeModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
                 mockInvokeModelResponse);
@@ -199,28 +201,28 @@ public class LlmEventTest {
 
         // Then
         Collection<Event> customEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
-        Assert.assertEquals(1, customEvents.size());
+        assertEquals(1, customEvents.size());
 
         Event event = customEvents.iterator().next();
-        Assert.assertEquals(LLM_CHAT_COMPLETION_MESSAGE, event.getType());
+        assertEquals(LLM_CHAT_COMPLETION_MESSAGE, event.getType());
 
         Map<String, Object> attributes = event.getAttributes();
-        Assert.assertEquals(15, attributes.size());
-        Assert.assertEquals("span-id-123", attributes.get("span_id"));
-        Assert.assertEquals("trace-id-xyz", attributes.get("trace_id"));
-        Assert.assertEquals("bedrock", attributes.get("vendor"));
-        Assert.assertEquals("Java", attributes.get("ingest_source"));
-        Assert.assertFalse(((String) attributes.get("id")).isEmpty());
-        Assert.assertEquals(expectedUserPrompt, attributes.get("content"));
-        Assert.assertEquals("user", attributes.get("role"));
-        Assert.assertEquals(false, attributes.get("is_response"));
-        Assert.assertEquals("90a22e92-db1d-4474-97a9-28b143846301", attributes.get("request_id"));
-        Assert.assertEquals("anthropic.claude-v2", attributes.get("response.model"));
-        Assert.assertEquals(0, attributes.get("sequence"));
-        Assert.assertFalse(((String) attributes.get("completion_id")).isEmpty());
-        Assert.assertEquals(123, attributes.get("token_count"));
-        Assert.assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
-        Assert.assertEquals("testPrefix", attributes.get("llm.testPrefix"));
+        assertEquals(15, attributes.size());
+        assertEquals("span-id-123", attributes.get("span_id"));
+        assertEquals("trace-id-xyz", attributes.get("trace_id"));
+        assertEquals("bedrock", attributes.get("vendor"));
+        assertEquals("Java", attributes.get("ingest_source"));
+        assertFalse(((String) attributes.get("id")).isEmpty());
+        assertEquals(expectedUserPrompt, attributes.get("content"));
+        assertEquals("user", attributes.get("role"));
+        assertEquals(false, attributes.get("is_response"));
+        assertEquals("90a22e92-db1d-4474-97a9-28b143846301", attributes.get("request_id"));
+        assertEquals("anthropic.claude-v2", attributes.get("response.model"));
+        assertEquals(0, attributes.get("sequence"));
+        assertFalse(((String) attributes.get("completion_id")).isEmpty());
+        assertEquals(123, attributes.get("token_count"));
+        assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
+        assertEquals("testPrefix", attributes.get("llm.testPrefix"));
     }
 
     @Test
@@ -236,31 +238,31 @@ public class LlmEventTest {
         userAttributes.put("test", "test");
 
         // Mock out ModelRequest
-        InvokeModelRequest mockInvokeModelRequest = Mockito.mock(InvokeModelRequest.class);
-        SdkBytes mockRequestSdkBytes = Mockito.mock(SdkBytes.class);
-        Mockito.when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
-        Mockito.when(mockRequestSdkBytes.asUtf8String())
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String())
                 .thenReturn(
                         "{\"stop_sequences\":[\"\\n\\nHuman:\"],\"max_tokens_to_sample\":1000,\"temperature\":0.5,\"prompt\":\"Human: What is the color of the sky?\\n\\nAssistant:\"}");
-        Mockito.when(mockInvokeModelRequest.modelId()).thenReturn("anthropic.claude-v2");
+        when(mockInvokeModelRequest.modelId()).thenReturn("anthropic.claude-v2");
 
         // Mock out ModelResponse
-        InvokeModelResponse mockInvokeModelResponse = Mockito.mock(InvokeModelResponse.class);
-        SdkBytes mockResponseSdkBytes = Mockito.mock(SdkBytes.class);
-        Mockito.when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
-        Mockito.when(mockResponseSdkBytes.asUtf8String())
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+        when(mockResponseSdkBytes.asUtf8String())
                 .thenReturn(
                         "{\"completion\":\" The sky appears blue during the day because of how sunlight interacts with the gases in Earth's atmosphere.\",\"stop_reason\":\"stop_sequence\",\"stop\":\"\\n\\nHuman:\"}");
 
-        SdkHttpResponse mockSdkHttpResponse = Mockito.mock(SdkHttpResponse.class);
-        Mockito.when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
-        Mockito.when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
-        Mockito.when(mockSdkHttpResponse.statusCode()).thenReturn(200);
-        Mockito.when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+        when(mockSdkHttpResponse.statusCode()).thenReturn(200);
+        when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
 
-        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = Mockito.mock(BedrockRuntimeResponseMetadata.class);
-        Mockito.when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
-        Mockito.when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
+        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
+        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
 
         ClaudeModelInvocation claudeModelInvocation = new ClaudeModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
                 mockInvokeModelResponse);
@@ -290,28 +292,28 @@ public class LlmEventTest {
 
         // Then
         Collection<Event> customEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
-        Assert.assertEquals(1, customEvents.size());
+        assertEquals(1, customEvents.size());
 
         Event event = customEvents.iterator().next();
-        Assert.assertEquals(LLM_CHAT_COMPLETION_SUMMARY, event.getType());
+        assertEquals(LLM_CHAT_COMPLETION_SUMMARY, event.getType());
 
         Map<String, Object> attributes = event.getAttributes();
-        Assert.assertEquals(15, attributes.size());
-        Assert.assertEquals("span-id-123", attributes.get("span_id"));
-        Assert.assertEquals("trace-id-xyz", attributes.get("trace_id"));
-        Assert.assertEquals("bedrock", attributes.get("vendor"));
-        Assert.assertEquals("Java", attributes.get("ingest_source"));
-        Assert.assertFalse(((String) attributes.get("id")).isEmpty());
-        Assert.assertEquals("90a22e92-db1d-4474-97a9-28b143846301", attributes.get("request_id"));
-        Assert.assertEquals(0.5f, attributes.get("request.temperature"));
-        Assert.assertEquals(1000, attributes.get("request.max_tokens"));
-        Assert.assertEquals("anthropic.claude-v2", attributes.get("request.model"));
-        Assert.assertEquals("anthropic.claude-v2", attributes.get("response.model"));
-        Assert.assertEquals(2, attributes.get("response.number_of_messages"));
-        Assert.assertEquals("stop_sequence", attributes.get("response.choices.finish_reason"));
-        Assert.assertEquals(9000f, attributes.get("duration"));
-        Assert.assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
-        Assert.assertEquals("testPrefix", attributes.get("llm.testPrefix"));
+        assertEquals(15, attributes.size());
+        assertEquals("span-id-123", attributes.get("span_id"));
+        assertEquals("trace-id-xyz", attributes.get("trace_id"));
+        assertEquals("bedrock", attributes.get("vendor"));
+        assertEquals("Java", attributes.get("ingest_source"));
+        assertFalse(((String) attributes.get("id")).isEmpty());
+        assertEquals("90a22e92-db1d-4474-97a9-28b143846301", attributes.get("request_id"));
+        assertEquals(0.5f, attributes.get("request.temperature"));
+        assertEquals(1000, attributes.get("request.max_tokens"));
+        assertEquals("anthropic.claude-v2", attributes.get("request.model"));
+        assertEquals("anthropic.claude-v2", attributes.get("response.model"));
+        assertEquals(2, attributes.get("response.number_of_messages"));
+        assertEquals("stop_sequence", attributes.get("response.choices.finish_reason"));
+        assertEquals(9000f, attributes.get("duration"));
+        assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
+        assertEquals("testPrefix", attributes.get("llm.testPrefix"));
     }
 
 //    @Test
