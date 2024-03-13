@@ -31,6 +31,21 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 
 public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
+
+    // Embedding
+    public static final String embeddingModelId = "amazon.titan-embed-text-v1";
+    public static final String embeddingRequestBody = "{\"inputText\":\"What is the color of the sky?\"}";
+    public static final String embeddingResponseBody = "{\"embedding\":[0.328125,0.44335938],\"inputTextTokenCount\":8}";
+    public static final String embeddingRequestInput = "What is the color of the sky?";
+
+    // Completion
+    public static final String completionModelId = "amazon.titan-text-lite-v1";
+    public static final String completionRequestBody = "{\"inputText\":\"What is the color of the sky?\",\"textGenerationConfig\":{\"maxTokenCount\":1000,\"stopSequences\":[\"User:\"],\"temperature\":0.5,\"topP\":0.9}}";
+    public static final String completionResponseBody = "{\"inputTextTokenCount\":8,\"results\":[{\"tokenCount\":9,\"outputText\":\"\\nThe color of the sky is blue.\",\"completionReason\":\"FINISH\"}]}";
+    public static final String completionRequestInput = "What is the color of the sky?";
+    public static final String completionResponseContent = "\nThe color of the sky is blue.";
+    public static final String finishReason = "FINISH";
+
     @Override
     public String serviceName() {
         return null;
@@ -54,7 +69,7 @@ public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
 
         boolean isError = invokeModelRequest.body().asUtf8String().contains("\"errorTest\":true");
 
-        if (invokeModelRequest.modelId().equals("anthropic.claude-v2")) {
+        if (invokeModelRequest.modelId().equals(completionModelId)) {
             // This case will mock out a chat completion request/response
             if (isError) {
                 sdkHttpFullResponse = SdkHttpResponse.builder().statusCode(400).statusText("BAD_REQUEST").build();
@@ -63,13 +78,12 @@ public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
             }
 
             sdkResponse = InvokeModelResponse.builder()
-                    .body(SdkBytes.fromUtf8String(
-                            "{\"completion\":\" The sky appears blue during the day because of how sunlight interacts with the gases in Earth's atmosphere. The main gases in our atmosphere are nitrogen and oxygen. These gases are transparent to visible light wavelengths, but they scatter shorter wavelengths more, specifically blue light. This scattering makes the sky look blue from the ground.\",\"stop_reason\":\"stop_sequence\",\"stop\":\"\\n\\nHuman:\"}"))
+                    .body(SdkBytes.fromUtf8String(completionResponseBody))
                     .contentType("application/json")
                     .responseMetadata(awsResponseMetadata)
                     .sdkHttpResponse(sdkHttpFullResponse)
                     .build();
-        } else if (invokeModelRequest.modelId().equals("amazon.titan-embed-text-v1")) {
+        } else if (invokeModelRequest.modelId().equals(embeddingModelId)) {
             // This case will mock out an embedding request/response
             if (isError) {
                 sdkHttpFullResponse = SdkHttpResponse.builder().statusCode(400).statusText("BAD_REQUEST").build();
@@ -78,7 +92,7 @@ public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
             }
 
             sdkResponse = InvokeModelResponse.builder()
-                    .body(SdkBytes.fromUtf8String("{\"embedding\":[0.328125,0.44335938],\"inputTextTokenCount\":8}"))
+                    .body(SdkBytes.fromUtf8String(embeddingResponseBody))
                     .contentType("application/json")
                     .responseMetadata(awsResponseMetadata)
                     .sdkHttpResponse(sdkHttpFullResponse)
