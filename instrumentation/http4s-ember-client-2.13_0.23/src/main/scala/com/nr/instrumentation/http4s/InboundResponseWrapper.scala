@@ -1,13 +1,13 @@
 package com.nr.instrumentation.http4s
 
 import com.newrelic.api.agent.{ExtendedInboundHeaders, HeaderType}
-import org.http4s.Response
+import org.http4s.Headers
 import org.typelevel.ci.CIString
 
 import scala.jdk.CollectionConverters._
 import java.util
 
-class InboundResponseWrapper[F[_]](response: Response[F]) extends ExtendedInboundHeaders {
+class InboundResponseWrapper[F[_]](headers: Headers) extends ExtendedInboundHeaders {
   /**
     * Return the type of header key syntax used for this.
     *
@@ -25,8 +25,8 @@ class InboundResponseWrapper[F[_]](response: Response[F]) extends ExtendedInboun
     * @since 3.5.0
     */
   override def getHeader(name: String): String =
-    response.headers.headers.find(_.name == CIString(name)).map(_.value).orNull
+    headers.headers.find(_.name == CIString(name)).map(_.value).orNull
 
   override def getHeaders(name: String): util.List[String] =
-    response.headers.headers.map(_.name.toString).asJava
+    headers.headers.map(_.name.toString).asJava
 }

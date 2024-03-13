@@ -9,10 +9,12 @@ package com.newrelic.agent.config;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.newrelic.agent.HarvestServiceImpl;
 import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.reinstrument.RemoteInstrumentationServiceImpl;
+import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.ConnectionResponse;
 
 import java.util.ArrayList;
@@ -229,7 +231,22 @@ public class AgentConfigFactory {
         }
 
         // Copy "event_harvest_config" over from the serverData since it doesn't live in the "agent_config" subsection (it's a top level property from the collector)
-        addServerProp(AgentConfigFactory.EVENT_HARVEST_CONFIG, serverData.get(EVENT_HARVEST_CONFIG), settings);
+        Object eventHarvestConfig = serverData.get(EVENT_HARVEST_CONFIG);
+        addServerProp(AgentConfigFactory.EVENT_HARVEST_CONFIG, eventHarvestConfig, settings);
+
+        // when log forwarding is disabled account wide, the backend will inform the agent by setting the harvest limit to 0
+        if (eventHarvestConfig instanceof Map) {
+            Object harvestLimits = ((Map<?,?>) eventHarvestConfig).get(HarvestServiceImpl.HARVEST_LIMITS);
+            if (harvestLimits instanceof Map) {
+                Object logLimit = ((Map<?,?>) harvestLimits).get(CollectorMethods.LOG_EVENT_DATA);
+                if (logLimit instanceof Number && ((Number) logLimit).intValue() == 0) {
+                    String loggingForwardingEnabled = AgentConfigImpl.APPLICATION_LOGGING + "." + ApplicationLoggingConfigImpl.FORWARDING + "." +
+                            ApplicationLoggingForwardingConfig.ENABLED;
+                    addServerProp(loggingForwardingEnabled, false, settings);
+                }
+            }
+        }
+
 
         // Browser settings
         addServerProp(BrowserConfig.BROWSER_KEY, serverData.get(BrowserConfig.BROWSER_KEY), settings);

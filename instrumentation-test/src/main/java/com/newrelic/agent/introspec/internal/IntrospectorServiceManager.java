@@ -105,7 +105,6 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         List<String> trusted = new ArrayList<>();
         trusted.add("1xyz234");
         crossProcessConfig.put("trusted_account_ids", trusted);
-        config.put(AgentConfigImpl.OPEN_TRACING, Collections.singletonMap("enabled", false));
 
         Map<String, Object> dt = new HashMap<>();
         dt.put("enabled", false);

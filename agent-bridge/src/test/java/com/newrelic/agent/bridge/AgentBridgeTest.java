@@ -9,10 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 public class AgentBridgeTest {
-    @Test
-    public void distributedTraceParseInstance_returnsNull() {
-        assertNull(AgentBridge.distributedTraceParser.parseDistributedTracePayload("foo"));
-    }
 
     @Test
     public void getAgent_returnsNoOpAgent() {
