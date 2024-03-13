@@ -8,29 +8,20 @@
 package software.amazon.awssdk.services.bedrockruntime;
 
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.services.bedrockruntime.model.AccessDeniedException;
-import software.amazon.awssdk.services.bedrockruntime.model.BedrockRuntimeException;
-import software.amazon.awssdk.services.bedrockruntime.model.InternalServerException;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
-import software.amazon.awssdk.services.bedrockruntime.model.ModelErrorException;
-import software.amazon.awssdk.services.bedrockruntime.model.ModelNotReadyException;
-import software.amazon.awssdk.services.bedrockruntime.model.ModelTimeoutException;
-import software.amazon.awssdk.services.bedrockruntime.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.bedrockruntime.model.ServiceQuotaExceededException;
-import software.amazon.awssdk.services.bedrockruntime.model.ThrottlingException;
-import software.amazon.awssdk.services.bedrockruntime.model.ValidationException;
+import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamRequest;
+import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamResponseHandler;
 
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
+public class BedrockRuntimeAsyncClientMock implements BedrockRuntimeAsyncClient {
 
     // Embedding
     public static final String embeddingModelId = "amazon.titan-embed-text-v1";
@@ -55,10 +46,7 @@ public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
     }
 
     @Override
-    public InvokeModelResponse invokeModel(InvokeModelRequest invokeModelRequest)
-            throws AccessDeniedException, ResourceNotFoundException, ThrottlingException, ModelTimeoutException, InternalServerException, ValidationException,
-            ModelNotReadyException, ServiceQuotaExceededException, ModelErrorException, AwsServiceException, SdkClientException, BedrockRuntimeException {
-
+    public CompletableFuture<InvokeModelResponse> invokeModel(InvokeModelRequest invokeModelRequest) {
         HashMap<String, String> metadata = new HashMap<>();
         metadata.put("AWS_REQUEST_ID", "9d32a71a-e285-4b14-a23d-4f7d67b50ac3");
         AwsResponseMetadata awsResponseMetadata = new BedrockRuntimeResponseMetadataMock(metadata);
@@ -96,14 +84,21 @@ public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
                     .sdkHttpResponse(sdkHttpFullResponse)
                     .build();
         }
-        return (InvokeModelResponse) sdkResponse;
+        return CompletableFuture.completedFuture((InvokeModelResponse) sdkResponse);
     }
 
     @Override
-    public InvokeModelResponse invokeModel(Consumer<InvokeModelRequest.Builder> invokeModelRequest)
-            throws AccessDeniedException, ResourceNotFoundException, ThrottlingException, ModelTimeoutException, InternalServerException, ValidationException,
-            ModelNotReadyException, ServiceQuotaExceededException, ModelErrorException, AwsServiceException, SdkClientException, BedrockRuntimeException {
-        return null;
+    public CompletableFuture<Void> invokeModelWithResponseStream(InvokeModelWithResponseStreamRequest invokeModelWithResponseStreamRequest,
+            InvokeModelWithResponseStreamResponseHandler asyncResponseHandler) {
+        return BedrockRuntimeAsyncClient.super.invokeModelWithResponseStream(invokeModelWithResponseStreamRequest, asyncResponseHandler);
+        // Streaming not currently supported
+    }
+
+    @Override
+    public CompletableFuture<Void> invokeModelWithResponseStream(Consumer<InvokeModelWithResponseStreamRequest.Builder> invokeModelWithResponseStreamRequest,
+            InvokeModelWithResponseStreamResponseHandler asyncResponseHandler) {
+        return BedrockRuntimeAsyncClient.super.invokeModelWithResponseStream(invokeModelWithResponseStreamRequest, asyncResponseHandler);
+        // Streaming not currently supported
     }
 
     @Override
