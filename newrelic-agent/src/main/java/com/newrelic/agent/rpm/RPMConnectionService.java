@@ -33,7 +33,6 @@ public interface RPMConnectionService extends Service {
         final ConnectionListener listener = new ConnectionListener() {
             @Override
             public void connected(IRPMService rpmService, AgentConfig agentConfig) {
-                System.err.println("Connected");
                 latch.countDown();
             }
 
