@@ -88,10 +88,13 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     @Override
     public final boolean isEnabled() {
         final boolean enabled = jfrConfig.isEnabled();
+        boolean isHighSecurity = defaultAgentConfig.isHighSecurity();
         if (!enabled) {
             Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.");
+        } else if (isHighSecurity) {
+            Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is enabled but High Security mode is also enabled; JFR will not be activated.");
         }
-        return enabled;
+        return enabled && !isHighSecurity;
     }
 
     @Override

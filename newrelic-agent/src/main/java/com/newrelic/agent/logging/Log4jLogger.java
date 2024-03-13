@@ -258,7 +258,7 @@ class Log4jLogger implements IAgentLogger {
      * @param logLimitBytes Log limit
      * @param fileCount The number of files.
      */
-    public void addFileAppender(String fileName, long logLimitBytes, int fileCount, boolean isDaily) {
+    public void addFileAppender(String fileName, long logLimitBytes, int fileCount, boolean isDaily, String path) {
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();
         LoggerConfig loggerConfig = config.getLoggerConfig(logger.getName());
@@ -267,7 +267,7 @@ class Log4jLogger implements IAgentLogger {
             return;
         }
 
-        FileAppenderFactory fileAppenderFactory = new FileAppenderFactory(fileCount, logLimitBytes, fileName, isDaily);
+        FileAppenderFactory fileAppenderFactory = new FileAppenderFactory(fileCount, logLimitBytes, fileName, isDaily, path);
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = fileAppenderFactory.build();
         if (fileAppender == null) {
             return;
