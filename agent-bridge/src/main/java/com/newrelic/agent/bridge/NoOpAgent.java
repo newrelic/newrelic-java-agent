@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.AiMonitoring;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
@@ -63,6 +64,11 @@ class NoOpAgent implements Agent {
     @Override
     public Insights getInsights() {
         return NoOpInsights.INSTANCE;
+    }
+
+    @Override
+    public AiMonitoring getAiMonitoring() {
+        return null;
     }
 
     @Override

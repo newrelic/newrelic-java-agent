@@ -459,6 +459,11 @@ class NoOpAgent implements Agent {
     }
 
     @Override
+    public AiMonitoring getAiMonitoring() {
+        return null;
+    }
+
+    @Override
     public ErrorApi getErrorApi() {
         return ERROR_API;
     }
