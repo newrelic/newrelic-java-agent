@@ -96,6 +96,6 @@ public class PekkoUtil {
             senderName = tempActorName;
         }
 
-        AgentBridge.getAgent().getTracedMethod().setMetricName("pekko", senderName, "tell", receiverName);
+        AgentBridge.getAgent().getTracedMethod().setMetricName("Pekko", senderName, "tell", receiverName);
     }
 }
