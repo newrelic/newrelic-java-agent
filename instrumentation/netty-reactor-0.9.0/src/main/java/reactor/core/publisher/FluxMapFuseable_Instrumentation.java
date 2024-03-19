@@ -41,7 +41,8 @@ abstract class FluxMapFuseable_Instrumentation {
 
         public void onNext(T t) {
             if (token != null) {
-                token.link();
+                token.linkAndExpire();
+                token = null;
             }
             Weaver.callOriginal();
         }
