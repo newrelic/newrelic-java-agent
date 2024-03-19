@@ -38,6 +38,8 @@ public abstract class JmxGet extends JmxObject {
     private static final Pattern TYPE_QUERY_PATTERN = Pattern.compile(",(.*?)=");
     private static final Pattern PULL_VALUE_PATTERN = Pattern.compile("\\{(.*?)\\}");
     private static final Pattern PULL_ATTRIBUTE_PATTERN = Pattern.compile("\\:(.*?)\\:");
+    private static final Pattern PULL_ITER_VAL_PATTERN = Pattern.compile("for\\:(.*)\\[([0-9]+)\\:([0-9]*)\\].*");
+    private static final Pattern RANGE_PATTERN = Pattern.compile("\\[([0-9]+)\\:([0-9]*)\\]");
 
     /** This should be everything but the attribute portion of the metric. */
     private final String rootMetricName;
@@ -155,17 +157,20 @@ public abstract class JmxGet extends JmxObject {
         while (m.find()) {
 
             key = m.group(1);
-            Matcher attributeMatcher = PULL_ATTRIBUTE_PATTERN.matcher(key);
-            if (attributeMatcher.matches()) {
-                key = attributeMatcher.group(1);
-                try {
-                    value = server.getAttribute(actualName, key).toString();
-                } catch (Throwable e) {
-                    Agent.LOG.log(Level.FINEST, e, e.getMessage());
-                }
-            } else {
-                value = keyProperties.get(key);
+
+            String iteratedValues = null;
+            try {
+                iteratedValues = matchAndGetIteratedValue(key, keyProperties, actualName, server);
+            }  catch (Throwable e) {
+                Agent.LOG.log(Level.FINEST, e, e.getMessage());
             }
+
+            if (iteratedValues != null) {
+                value = iteratedValues;
+            } else {
+                value = getValueFromMBeanKey(key, keyProperties, actualName, server);
+            }
+
 
             if (value != null) {
                 m.appendReplacement(sb, cleanValue(value));
@@ -184,6 +189,102 @@ public abstract class JmxGet extends JmxObject {
         } else {
             return modifier.getMetricName(sb.toString());
         }
+    }
+
+    private String matchAndGetIteratedValue(String key, Map<String, String> keyProperties,
+            ObjectName actualName, MBeanServer server) {
+        Matcher iterMatcher = PULL_ITER_VAL_PATTERN.matcher(key);
+
+        if (!iterMatcher.matches())  {
+            return null;
+        }
+
+        String rangedKeyFormat = key.substring(4);
+
+        List<Range> rangeSeq = new ArrayList<>(keyProperties.size());
+
+        Matcher rangeMatcher = RANGE_PATTERN.matcher(rangedKeyFormat);
+        while (rangeMatcher.find()) {
+            String startIntStr = rangeMatcher.group(1);
+            String endIntStr = rangeMatcher.group(2);
+            rangeSeq.add(parseRange(startIntStr, endIntStr, keyProperties));
+        }
+        rangeMatcher.reset();
+
+        List<String> values = createMBeanValueSequence(rangeSeq, rangeMatcher, keyProperties, actualName, server);
+
+        return String.join("/", values);
+
+    }
+
+    private List<String> createMBeanValueSequence(List<Range> rangeSeq,
+            Matcher rangeMatcher, Map<String, String> keyProperties,
+            ObjectName actualName, MBeanServer server) {
+        int rangeLenProduct = 1;
+        for (Range range: rangeSeq) {
+            rangeLenProduct *= range.length();
+        }
+
+        List<String> valueSequence = new ArrayList<>(keyProperties.size());
+
+        for (int i = 0; i < rangeLenProduct; i++) {
+            List<Integer> numberList = new ArrayList<>(rangeSeq.size());
+            int quotient = i;
+            for (Range range: rangeSeq) {
+                int rangeLength = range.length();
+
+                int remainder = quotient % rangeLength;
+                numberList.add(remainder + range.start);
+
+                quotient = quotient / rangeLength;
+            }
+
+            StringBuffer sb = new StringBuffer();
+            for (Integer num: numberList) {
+                if (rangeMatcher.find()); {
+                    rangeMatcher.appendReplacement(sb, Integer.toString(num));
+                }
+
+            }
+            rangeMatcher.appendTail(sb);
+            rangeMatcher.reset();
+
+            String mbeanKey = sb.toString();
+            String value = getValueFromMBeanKey(mbeanKey, keyProperties, actualName, server);
+            if (value != null) {
+                valueSequence.add(value);
+            }
+        }
+        return valueSequence;
+    }
+
+    private Range parseRange(String startStr, String endStr, Map<String, String> keyProperties) {
+        if ("".equals(startStr)) {
+            return new Range(0, keyProperties.size());
+        }
+        int start = Integer.parseInt(startStr);
+        if ("".equals(endStr)) {
+            return new Range(start, start + keyProperties.size());
+        }
+        int end = Integer.parseInt(endStr);
+        return new Range(start, end);
+    }
+
+    private String getValueFromMBeanKey(String key, Map<String, String> keyProperties,
+            ObjectName actualName, MBeanServer server) {
+        String value = null;
+        Matcher pullAttrMatcher = PULL_ATTRIBUTE_PATTERN.matcher(key);
+        if (pullAttrMatcher.matches()) {
+            key = pullAttrMatcher.group(1);
+            try {
+                value = server.getAttribute(actualName, key).toString();
+            } catch (Throwable e) {
+                Agent.LOG.log(Level.FINEST, e, e.getMessage());
+            }
+        } else {
+            value = keyProperties.get(key);
+        }
+        return value;
     }
 
     protected static String cleanValue(String value) {
@@ -262,5 +363,30 @@ public abstract class JmxGet extends JmxObject {
 
     protected List<JmxMetric> getJmxMetrics() {
         return metrics;
+    }
+
+    private static class Range {
+        private final int start;
+        private final int end;
+
+        // start is inclusive, end is exclusive
+        public Range(int start, int end) {
+            if (start >= end) {
+                throw new IllegalArgumentException("start must be less than end");
+            }
+            this.start = start;
+            this.end = end;
+        }
+
+        public int getStart() {
+            return start;
+        }
+        public int getEnd() {
+            return end;
+        }
+
+        public int length() {
+            return getEnd() - getStart();
+        }
     }
 }
