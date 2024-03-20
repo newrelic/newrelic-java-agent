@@ -13,7 +13,6 @@ import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.ErrorApi;
@@ -24,7 +23,6 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
