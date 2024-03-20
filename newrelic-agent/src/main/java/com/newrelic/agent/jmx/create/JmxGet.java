@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 /**
  * Used for attributes where we want to get their values.
@@ -193,59 +194,32 @@ public abstract class JmxGet extends JmxObject {
 
     private String matchAndGetIteratedValue(String key, Map<String, String> keyProperties,
             ObjectName actualName, MBeanServer server) {
-        Matcher iterMatcher = PULL_ITER_VAL_PATTERN.matcher(key);
 
+        Matcher iterMatcher = PULL_ITER_VAL_PATTERN.matcher(key);
         if (!iterMatcher.matches())  {
             return null;
         }
 
         String rangedKeyFormat = key.substring(4);
-
-        List<Range> rangeSeq = new ArrayList<>(keyProperties.size());
-
         Matcher rangeMatcher = RANGE_PATTERN.matcher(rangedKeyFormat);
-        while (rangeMatcher.find()) {
-            String startIntStr = rangeMatcher.group(1);
-            String endIntStr = rangeMatcher.group(2);
-            rangeSeq.add(parseRange(startIntStr, endIntStr, keyProperties));
+
+        if (!rangeMatcher.find()) {
+            return null;
         }
+        String rangeStartStr = rangeMatcher.group(1);
+        String rangeEndStr = rangeMatcher.group(2);
         rangeMatcher.reset();
 
-        List<String> values = createMBeanValueSequence(rangeSeq, rangeMatcher, keyProperties, actualName, server);
-
-        return String.join("/", values);
-
-    }
-
-    private List<String> createMBeanValueSequence(List<Range> rangeSeq,
-            Matcher rangeMatcher, Map<String, String> keyProperties,
-            ObjectName actualName, MBeanServer server) {
-        int rangeLenProduct = 1;
-        for (Range range: rangeSeq) {
-            rangeLenProduct *= range.length();
-        }
+        int rangeStart = (rangeStartStr != null && !rangeStartStr.isEmpty()) ? Integer.parseInt(rangeStartStr): 0;
+        int rangeEnd = (rangeEndStr != null && !rangeEndStr.isEmpty())
+                ? Integer.parseInt(rangeEndStr)
+                : rangeStart + keyProperties.size();
 
         List<String> valueSequence = new ArrayList<>(keyProperties.size());
 
-        for (int i = 0; i < rangeLenProduct; i++) {
-            List<Integer> numberList = new ArrayList<>(rangeSeq.size());
-            int quotient = i;
-            for (Range range: rangeSeq) {
-                int rangeLength = range.length();
-
-                int remainder = quotient % rangeLength;
-                numberList.add(remainder + range.start);
-
-                quotient = quotient / rangeLength;
-            }
-
-            StringBuffer sb = new StringBuffer();
-            for (Integer num: numberList) {
-                if (rangeMatcher.find()); {
-                    rangeMatcher.appendReplacement(sb, Integer.toString(num));
-                }
-
-            }
+        for (int i = rangeStart; i < rangeEnd && rangeMatcher.find(); i++) {
+            StringBuffer sb = new StringBuffer(key.length());
+            rangeMatcher.appendReplacement(sb, Integer.toString(i));
             rangeMatcher.appendTail(sb);
             rangeMatcher.reset();
 
@@ -255,19 +229,8 @@ public abstract class JmxGet extends JmxObject {
                 valueSequence.add(value);
             }
         }
-        return valueSequence;
-    }
 
-    private Range parseRange(String startStr, String endStr, Map<String, String> keyProperties) {
-        if ("".equals(startStr)) {
-            return new Range(0, keyProperties.size());
-        }
-        int start = Integer.parseInt(startStr);
-        if ("".equals(endStr)) {
-            return new Range(start, start + keyProperties.size());
-        }
-        int end = Integer.parseInt(endStr);
-        return new Range(start, end);
+        return String.join("/", valueSequence);
     }
 
     private String getValueFromMBeanKey(String key, Map<String, String> keyProperties,
@@ -365,28 +328,4 @@ public abstract class JmxGet extends JmxObject {
         return metrics;
     }
 
-    private static class Range {
-        private final int start;
-        private final int end;
-
-        // start is inclusive, end is exclusive
-        public Range(int start, int end) {
-            if (start >= end) {
-                throw new IllegalArgumentException("start must be less than end");
-            }
-            this.start = start;
-            this.end = end;
-        }
-
-        public int getStart() {
-            return start;
-        }
-        public int getEnd() {
-            return end;
-        }
-
-        public int length() {
-            return getEnd() - getStart();
-        }
-    }
 }
