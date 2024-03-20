@@ -16,7 +16,9 @@ class JmxConfigImpl extends BaseConfig implements JmxConfig {
     public static final String ENABLED = "enabled";
     public static final String REGISTER_LINKING_METADATA_MBEAN = "linkingMetadataMBean";
     public static final String DISABLED_JMX_FRAMEWORKS = "disabled_jmx_frameworks";
+    public static final String ENABLE_ITERATED_OBJECTNAME_KEYS = "enabledIteratedObjectNameKeys";
     public static final boolean DEFAULT_REGISTER_LINKING_METADATA_MBEAN = false;
+    public static final boolean DEFAULT_ENABLE_ITERATED_OBJECTNAME_KEYS = true;
     public static final Boolean DEFAULT_ENABLED = Boolean.TRUE;
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.jmx.";
 
@@ -49,5 +51,10 @@ class JmxConfigImpl extends BaseConfig implements JmxConfig {
     @Override
     public boolean registerLinkingMetadataMBean(){
         return getProperty(REGISTER_LINKING_METADATA_MBEAN, DEFAULT_REGISTER_LINKING_METADATA_MBEAN);
+    }
+
+    @Override
+    public boolean enableIteratedObjectNameKeys() {
+        return getProperty(ENABLE_ITERATED_OBJECTNAME_KEYS, DEFAULT_ENABLE_ITERATED_OBJECTNAME_KEYS);
     }
 }
