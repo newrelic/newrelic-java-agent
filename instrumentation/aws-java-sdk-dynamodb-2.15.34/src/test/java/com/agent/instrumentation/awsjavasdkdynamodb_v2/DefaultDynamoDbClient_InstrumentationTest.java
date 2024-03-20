@@ -12,11 +12,13 @@ import com.newrelic.agent.introspec.DatastoreHelper;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.api.agent.Trace;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -286,6 +288,14 @@ public class DefaultDynamoDbClient_InstrumentationTest {
         assertEquals(1, introspector.getFinishedTransactionCount(DEFAULT_TIMEOUT_IN_MILLIS));
 
         String txName = introspector.getTransactionNames().iterator().next();
+
+        System.out.println("Checking metrics for operation:"+operation);
+        Map<String, TracedMetricData> metricData = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(txName);
+        for (String metricName: metricData.keySet()) {
+            TracedMetricData data = metricData.get(metricName);
+            System.out.println("Metric: "+metricName+" = "+data);
+        }
+
         DatastoreHelper helper = new DatastoreHelper(DYNAMODB_PRODUCT);
         helper.assertAggregateMetrics();
         helper.assertScopedStatementMetricCount(txName, operation, collection, 1);
