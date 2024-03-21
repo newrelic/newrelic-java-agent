@@ -4,6 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
+
 package io.netty.channel;
 
 import com.newrelic.api.agent.Trace;
