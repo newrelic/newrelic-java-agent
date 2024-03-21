@@ -37,25 +37,25 @@ public class Solr7JmxValues extends JmxFrameworkValues {
 
         METRICS.add(new BaseJmxValue(
                 "solr:dom1=core,*,category=CACHE,scope=searcher,name=queryResultCache",
-                "JMX/solr/{for:dom[2:]}/queryResultCache/%/",
+                "JMX/solr/{for:dom[2::.]}/queryResultCache/%/",
                 createCacheMetrics()
         ));
 
         METRICS.add(new BaseJmxValue(
                 "solr:dom1=core,*,category=CACHE,scope=searcher,name=filterCache",
-                "JMX/solr/{for:dom[2:]}/filterCache/%/",
+                "JMX/solr/{for:dom[2::.]}/filterCache/%/",
                 createCacheMetrics()
         ));
 
         METRICS.add(new BaseJmxValue(
                 "solr:dom1=core,*,category=CACHE,scope=searcher,name=documentCache",
-                "JMX/solr/{for:dom[2:]}/documentCache/%/",
+                "JMX/solr/{for:dom[2::.]}/documentCache/%/",
                 createCacheMetrics()
         ));
 
         METRICS.add(new BaseJmxValue(
                 "solr:dom1=core,*,category=UPDATE,scope=updateHandler,name=*",
-                "JMX/solr/{for:dom[2:]}/updateHandler/%/{name}",
+                "JMX/solr/{for:dom[2::.]}/updateHandler/%/{name}",
                 new JmxMetric[] {
                         JmxMetric.create("Value", JmxType.SIMPLE),
                         JmxMetric.create("RateUnit", JmxType.SIMPLE),

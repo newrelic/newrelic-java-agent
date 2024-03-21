@@ -133,27 +133,27 @@ public class JmxGetTest {
     }
 
     @Test
-    public void testGetRootMetricWithBoundedRangePattern() throws MalformedObjectNameException {
+    public void testGetRootMetricWithNoDelimiterAndBoundedRangePattern() throws MalformedObjectNameException {
         List<JmxMetric> metrics = new ArrayList<>();
         metrics.add(JmxMetric.create("hello", JmxType.SIMPLE));
         metrics.add(JmxMetric.create("goodbye", JmxType.MONOTONICALLY_INCREASING));
         JmxGet object = new JmxSingleMBeanGet("ThreadPool:type=rara,key1=*,key2=*,key3=*,otherKey=*",
-                "ThreadPool:type=rara,key1=*,key2=*,key3=*,otherKey=*", "TheRoot/Wahoo/{type}/{for:key[1:3]}/{otherKey}", metrics, null, null);
+                "ThreadPool:type=rara,key1=*,key2=*,key3=*,otherKey=*", "TheRoot/Wahoo/{type}/{for:key[1:3:]}/{otherKey}", metrics, null, null);
         String root = object.getRootMetricName(new ObjectName("ThreadPool:type=rara,key1=value1,key2=value2,key3=value3,otherKey=otherValue"),
                 getServer());
         Assert.assertEquals("JMX/TheRoot/Wahoo/rara/value1/value2/otherValue/", root);
     }
 
     @Test
-    public void testGetRootMetricWithUnBoundedRangePattern() throws MalformedObjectNameException {
+    public void testGetRootMetricWithDelimiterAndUnBoundedRangePattern() throws MalformedObjectNameException {
         List<JmxMetric> metrics = new ArrayList<>();
         metrics.add(JmxMetric.create("hello", JmxType.SIMPLE));
         metrics.add(JmxMetric.create("goodbye", JmxType.MONOTONICALLY_INCREASING));
         JmxGet object = new JmxSingleMBeanGet("ThreadPool:type=rara,key1=*,key2=*,key3=*,otherKey=*",
-                "ThreadPool:type=rara,key1=*,key2=*,key3=*,otherKey=*", "TheRoot/Wahoo/{type}/{for:key[1:]}/{otherKey}", metrics, null, null);
+                "ThreadPool:type=rara,key1=*,key2=*,key3=*,otherKey=*", "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}", metrics, null, null);
         String root = object.getRootMetricName(new ObjectName("ThreadPool:type=rara,key1=value1,key2=value2,key3=value3,otherKey=otherValue"),
                 getServer());
-        Assert.assertEquals("JMX/TheRoot/Wahoo/rara/value1/value2/value3/otherValue/", root);
+        Assert.assertEquals("JMX/TheRoot/Wahoo/rara/value1.value2.value3/otherValue/", root);
     }
 
     @Test

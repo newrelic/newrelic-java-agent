@@ -39,8 +39,8 @@ public abstract class JmxGet extends JmxObject {
     private static final Pattern TYPE_QUERY_PATTERN = Pattern.compile(",(.*?)=");
     private static final Pattern PULL_VALUE_PATTERN = Pattern.compile("\\{(.*?)\\}");
     private static final Pattern PULL_ATTRIBUTE_PATTERN = Pattern.compile("\\:(.*?)\\:");
-    private static final Pattern PULL_ITER_VAL_PATTERN = Pattern.compile("for\\:(.*)\\[([0-9]+)\\:([0-9]*)\\].*");
-    private static final Pattern RANGE_PATTERN = Pattern.compile("\\[([0-9]+)\\:([0-9]*)\\]");
+    private static final Pattern PULL_ITER_VAL_PATTERN = Pattern.compile("for\\:(.*)\\[([0-9]+)\\:([0-9]*)\\:(.*)\\].*");
+    private static final Pattern RANGE_PATTERN = Pattern.compile("\\[([0-9]+)\\:([0-9]*)\\:(.*)\\]");
 
     /** This should be everything but the attribute portion of the metric. */
     private final String rootMetricName;
@@ -208,6 +208,10 @@ public abstract class JmxGet extends JmxObject {
         }
         String rangeStartStr = rangeMatcher.group(1);
         String rangeEndStr = rangeMatcher.group(2);
+        String delimiterStr = rangeMatcher.group(3);
+        if (delimiterStr == null || delimiterStr.isEmpty()) {
+            delimiterStr = "/";
+        }
         rangeMatcher.reset();
 
         int rangeStart = (rangeStartStr != null && !rangeStartStr.isEmpty()) ? Integer.parseInt(rangeStartStr): 0;
@@ -230,7 +234,7 @@ public abstract class JmxGet extends JmxObject {
             }
         }
 
-        return String.join("/", valueSequence);
+        return String.join(delimiterStr, valueSequence);
     }
 
     private String getValueFromMBeanKey(String key, Map<String, String> keyProperties,
