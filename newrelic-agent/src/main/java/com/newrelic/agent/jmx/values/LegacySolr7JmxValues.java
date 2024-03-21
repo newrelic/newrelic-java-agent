@@ -8,7 +8,7 @@ import com.newrelic.agent.jmx.metrics.JmxMetric;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NonIteratedSolr7JmxValues extends JmxFrameworkValues {
+public class LegacySolr7JmxValues extends JmxFrameworkValues {
 
     public static final String PREFIX = "solr7";
 
@@ -61,7 +61,7 @@ public class NonIteratedSolr7JmxValues extends JmxFrameworkValues {
 
     }
 
-    public NonIteratedSolr7JmxValues() {
+    public LegacySolr7JmxValues() {
         super();
     }
 

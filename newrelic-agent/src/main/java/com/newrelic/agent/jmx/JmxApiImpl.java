@@ -17,7 +17,7 @@ import com.newrelic.agent.jmx.values.Jboss7UpJmxValues;
 import com.newrelic.agent.jmx.values.JettyJmxMetrics;
 import com.newrelic.agent.jmx.values.KafkaConsumerJmxValues;
 import com.newrelic.agent.jmx.values.KafkaProducerJmxValues;
-import com.newrelic.agent.jmx.values.NonIteratedSolr7JmxValues;
+import com.newrelic.agent.jmx.values.LegacySolr7JmxValues;
 import com.newrelic.agent.jmx.values.ResinJmxValues;
 import com.newrelic.agent.jmx.values.Solr7JmxValues;
 import com.newrelic.agent.jmx.values.SolrJmxValues;
@@ -72,7 +72,7 @@ public class JmxApiImpl implements JmxApi {
                 case Solr7JmxValues.PREFIX:
                     return jmxService.iteratedObjectNameKeysEnabled()
                             ? new Solr7JmxValues()
-                            : new NonIteratedSolr7JmxValues();
+                            : new LegacySolr7JmxValues();
                 case WebsphereLibertyJmxValues.PREFIX:
                     return new WebsphereLibertyJmxValues();
                 case TomcatJmxValues.PREFIX:

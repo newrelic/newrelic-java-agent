@@ -16,7 +16,7 @@ class JmxConfigImpl extends BaseConfig implements JmxConfig {
     public static final String ENABLED = "enabled";
     public static final String REGISTER_LINKING_METADATA_MBEAN = "linkingMetadataMBean";
     public static final String DISABLED_JMX_FRAMEWORKS = "disabled_jmx_frameworks";
-    public static final String ENABLE_ITERATED_OBJECTNAME_KEYS = "enabledIteratedObjectNameKeys";
+    public static final String ENABLE_ITERATED_OBJECTNAME_KEYS = "enable_iterated_objectname_Keys";
     public static final boolean DEFAULT_REGISTER_LINKING_METADATA_MBEAN = false;
     public static final boolean DEFAULT_ENABLE_ITERATED_OBJECTNAME_KEYS = true;
     public static final Boolean DEFAULT_ENABLED = Boolean.TRUE;

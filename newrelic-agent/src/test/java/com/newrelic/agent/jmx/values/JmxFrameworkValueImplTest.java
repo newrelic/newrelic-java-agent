@@ -70,11 +70,17 @@ public class JmxFrameworkValueImplTest {
                 new String[] { "resin:type=SessionManager,*", "resin:type=ConnectionPool,*", "resin:type=ThreadPool", "resin:type=TransactionManager" },
                 new String[] { "JmxBuiltIn/Session/{WebApp}/", "JmxBuiltIn/DataSources/{name}/", "JmxBuiltIn/ThreadPool/Resin/", "JmxBuiltIn/Transactions/" },
                 new JMXMetricType[] { JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN }));
-        classesUnderTest.add(new JmxFrameworkMetricsClassTestAttributes(Solr7JmxValues.class, "solr7",
+        classesUnderTest.add(new JmxFrameworkMetricsClassTestAttributes(LegacySolr7JmxValues.class, "solr7",
                 new String[] { "solr:dom1=core,dom2=*,category=CACHE,scope=searcher,name=queryResultCache", "solr:dom1=core,dom2=*,category=CACHE,scope=searcher,name=filterCache",
                         "solr:dom1=core,dom2=*,category=CACHE,scope=searcher,name=documentCache", "solr:dom1=core,dom2=*,category=UPDATE,scope=updateHandler,name=*" },
                 new String[] { "JMX/solr/{dom2}/queryResultCache/%/", "JMX/solr/{dom2}/filterCache/%/",
                         "JMX/solr/{dom2}/documentCache/%/", "JMX/solr/{dom2}/updateHandler/%/{name}" },
+                new JMXMetricType[] { JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN }));
+        classesUnderTest.add(new JmxFrameworkMetricsClassTestAttributes(Solr7JmxValues.class, "solr7",
+                new String[] { "solr:dom1=core,*,category=CACHE,scope=searcher,name=queryResultCache", "solr:dom1=core,*,category=CACHE,scope=searcher,name=filterCache",
+                        "solr:dom1=core,*,category=CACHE,scope=searcher,name=documentCache", "solr:dom1=core,*,category=UPDATE,scope=updateHandler,name=*" },
+                new String[] { "JMX/solr/{for:dom[2:]}/queryResultCache/%/", "JMX/solr/{for:dom[2:]}/filterCache/%/",
+                        "JMX/solr/{for:dom[2:]}/documentCache/%/", "JMX/solr/{for:dom[2:]}/updateHandler/%/{name}" },
                 new JMXMetricType[] { JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN, JMXMetricType.INCREMENT_COUNT_PER_BEAN }));
         classesUnderTest.add(new JmxFrameworkMetricsClassTestAttributes(SolrJmxValues.class, "solr",
                 new String[] { "solr*:type=queryResultCache,*", "solr*:type=filterCache,*", "solr*:type=documentCache,*", "solr*:type=updateHandler,*" },
