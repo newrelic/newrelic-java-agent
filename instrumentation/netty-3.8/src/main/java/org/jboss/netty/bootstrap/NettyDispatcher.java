@@ -58,19 +58,9 @@ public class NettyDispatcher {
                 AgentBridge.currentApiSource.set(WeavePackageType.INTERNAL);
                 AgentBridge.getAgent().getTransaction().setTransactionName(TransactionNamePriority.SERVLET_NAME, true,
                         "NettyDispatcher", "NettyDispatcher");
-
-                AgentBridge.getAgent()
-                        .getLogger()
-                        .log(Level.INFO, "Netty Debug: Set transaction name to NettyDispatcher for transaction: " + AgentBridge.getAgent().getTransaction());
             }
 
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
-
-            AgentBridge.getAgent()
-                    .getLogger()
-                    .log(Level.INFO,
-                            "Netty Debug: Called: NettyDispatcher.channelRead for transaction: " + tx + ". Token: " + ctx.getPipeline().token + ". ctx: " +
-                                    ctx);
 
             if (tx != null) {
                 tx.setWebRequest(new RequestWrapper((DefaultHttpRequest) msg));
@@ -82,5 +72,4 @@ public class NettyDispatcher {
             AgentBridge.currentApiSource.remove();
         }
     }
-
 }
