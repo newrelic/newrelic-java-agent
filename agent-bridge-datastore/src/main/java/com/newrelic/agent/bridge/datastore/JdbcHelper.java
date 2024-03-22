@@ -45,7 +45,7 @@ public class JdbcHelper {
      * be evicted from the cache when the {@link ExpiringValueMap} timer fires. This
      * will also be used as the timer interval value.
      */
-    private static final long CACHE_EXPIRATION_AGE_MILLI = Duration.ofHours(8).toMillis();
+    private static final long CACHE_EXPIRATION_AGE_MILLI = Duration.ofHours(2).toMillis();
 
     private static final ExpiringValueMap.ExpiringValueLogicFunction EXPIRE_FUNC =
             (timeCreated, timeLastAccessed) -> timeLastAccessed < (System.currentTimeMillis() - CACHE_EXPIRATION_AGE_MILLI);
