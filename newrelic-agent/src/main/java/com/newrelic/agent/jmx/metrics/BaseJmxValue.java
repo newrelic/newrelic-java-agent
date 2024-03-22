@@ -41,17 +41,18 @@ public class BaseJmxValue {
      *  An example format would be:
      *
      *  <blockquote><pre>
-     *  "TheRoot/Wahoo/{type}/{for:key[1:]}/{otherKey}"
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
      *  </pre></blockquote>
      *
      *  In the format we have placeholders such as:
      *  <ul>
      *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
-     *      <li><b>{for:%[start:end]%}</b> which matches against an iterated
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
      *      sequence of keys starting from a non-negative number <i>start</i>
      *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
-     *      The placeholder is replaced with an iterated set of values each separated by
-     *      "/" to follow the agent metric format. For example: <b>{for:key[1:]}</b> and <b>{for:keyStart[1:3]keyEnd}</b>
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
      *      </li>
      *  </ul>
      * @param pMetrics
@@ -69,17 +70,18 @@ public class BaseJmxValue {
      *  An example format would be:
      *
      *  <blockquote><pre>
-     *  "TheRoot/Wahoo/{type}/{for:key[1:]}/{otherKey}"
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
      *  </pre></blockquote>
      *
      *  In the format we have placeholders such as:
      *  <ul>
      *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
-     *      <li><b>{for:%[start:end]%}</b> which matches against an iterated
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
      *      sequence of keys starting from a non-negative number <i>start</i>
      *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
-     *      The placeholder is replaced with an iterated set of values each separated by
-     *      "/" to follow the agent metric format. For example: <b>{for:key[1:]}</b> and <b>{for:keyStart[1:3]keyEnd}</b>
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
      *      </li>
      *  </ul>
      * @param attributeFilter
@@ -99,17 +101,18 @@ public class BaseJmxValue {
      *  An example format would be:
      *
      *  <blockquote><pre>
-     *  "TheRoot/Wahoo/{type}/{for:key[1:]}/{otherKey}"
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
      *  </pre></blockquote>
      *
      *  In the format we have placeholders such as:
      *  <ul>
      *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
-     *      <li><b>{for:%[start:end]%}</b> which matches against an iterated
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
      *      sequence of keys starting from a non-negative number <i>start</i>
      *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
-     *      The placeholder is replaced with an iterated set of values each separated by
-     *      "/" to follow the agent metric format. For example: <b>{for:key[1:]}</b> and <b>{for:keyStart[1:3]keyEnd}</b>
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
      *      </li>
      *  </ul>
      * @param pModifier
@@ -129,17 +132,18 @@ public class BaseJmxValue {
      *  An example format would be:
      *
      *  <blockquote><pre>
-     *  "TheRoot/Wahoo/{type}/{for:key[1:]}/{otherKey}"
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
      *  </pre></blockquote>
      *
      *  In the format we have placeholders such as:
      *  <ul>
      *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
-     *      <li><b>{for:%[start:end]%}</b> which matches against an iterated
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
      *      sequence of keys starting from a non-negative number <i>start</i>
      *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
-     *      The placeholder is replaced with an iterated set of values each separated by
-     *      "/" to follow the agent metric format. For example: <b>{for:key[1:]}</b> and <b>{for:keyStart[1:3]keyEnd}</b>
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
      *      </li>
      *  </ul>
      * @param attributeFilter

@@ -8,6 +8,16 @@ import com.newrelic.agent.jmx.metrics.JmxMetric;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Legacy JMX values for Solr 7_, replaced by: {@link com.newrelic.agent.jmx.values.Solr7JmxValues}
+ * If the config (via system property) <b>-Dnewrelic.config.jmx.enable_iterated_objectname_keys=false</b> is set
+ * (or the equivalent config is used via yaml or environment variables),
+ * this class has to be used instead of Solr7JmxValues for Solr 7+
+ * <br/><br/>
+ * <b>
+ *     Todo: Remove this class when the temporary config -Dnewrelic.config.jmx.enable_iterated_objectname_keys is removed.
+ * </b>
+ */
 public class LegacySolr7JmxValues extends JmxFrameworkValues {
 
     public static final String PREFIX = "solr7";
