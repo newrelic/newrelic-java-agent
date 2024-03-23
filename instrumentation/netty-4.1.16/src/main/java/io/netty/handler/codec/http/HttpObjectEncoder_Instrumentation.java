@@ -15,8 +15,8 @@ import io.netty.channel.ChannelHandlerContext_Instrumentation;
 
 import java.util.List;
 
-@Weave(type = MatchType.BaseClass)
-public class HttpObjectEncoder {
+@Weave(type = MatchType.BaseClass, originalName = "io.netty.handler.codec.http.HttpObjectEncoder")
+public class HttpObjectEncoder_Instrumentation {
 
     // heading downstream
     protected void encode(ChannelHandlerContext_Instrumentation ctx, Object msg, List<Object> out) {

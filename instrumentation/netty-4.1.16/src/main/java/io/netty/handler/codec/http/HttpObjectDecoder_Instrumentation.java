@@ -16,8 +16,8 @@ import io.netty.channel.ChannelHandlerContext_Instrumentation;
 
 import java.util.List;
 
-@Weave(type = MatchType.BaseClass)
-public class HttpObjectDecoder {
+@Weave(type = MatchType.BaseClass, originalName = "io.netty.handler.codec.http.HttpObjectDecoder")
+public class HttpObjectDecoder_Instrumentation {
 
     // heading upstream
     protected void decode(ChannelHandlerContext_Instrumentation ctx, ByteBuf buffer, List<Object> out) {
@@ -34,5 +34,4 @@ public class HttpObjectDecoder {
             }
         }
     }
-
 }

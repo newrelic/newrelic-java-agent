@@ -8,6 +8,7 @@
 package io.netty.bootstrap;
 
 import com.agent.instrumentation.netty4116.NettyUtil;
+import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -15,11 +16,11 @@ import io.netty.channel.ChannelFuture;
 
 import java.net.SocketAddress;
 
-@Weave
-public abstract class AbstractBootstrap {
+@Weave(type = MatchType.ExactClass, originalName = "io.netty.bootstrap.AbstractBootstrap")
+public abstract class AbstractBootstrap_Instrumentation {
 
     @WeaveAllConstructors
-    AbstractBootstrap() {
+    AbstractBootstrap_Instrumentation() {
         // initialize NettyDispatcher here to avoid classloader deadlocks
         NettyDispatcher.get();
     }

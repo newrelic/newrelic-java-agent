@@ -15,13 +15,12 @@ import io.netty.bootstrap.NettyDispatcher;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
 import io.netty.channel.ChannelPromise;
 
-@Weave(type = MatchType.BaseClass)
-public class Http2FrameCodec {
+@Weave(type = MatchType.BaseClass, originalName = "io.netty.handler.codec.http2.Http2FrameCodec")
+public class Http2FrameCodec_Instrumentation {
 
     // Handle the incoming request. For HTTP/2 there is no HttpRequest object
     // but rather a stream of Http2Frame objects that make up the full request.
     void onHttp2Frame(ChannelHandlerContext_Instrumentation ctx, Http2Frame frame) {
-        Weaver.callOriginal();
         if (frame instanceof Http2HeadersFrame && ctx.pipeline().token == null) {
             Http2HeadersFrame msg = (Http2HeadersFrame) frame;
             if (msg.isEndStream()) {
@@ -34,6 +33,8 @@ public class Http2FrameCodec {
                 NettyDispatcher.channelRead(ctx, msg);
             }
         }
+        // Order matters here!!! Weaver.callOriginal() must come after the call to NettyDispatcher.channelRead.
+        Weaver.callOriginal();
     }
 
     // Handle the outgoing response. For HTTP/2 there is no HttpResponse object
@@ -45,6 +46,7 @@ public class Http2FrameCodec {
                 ctx.pipeline().token = null;
             }
         }
+        // Order matters here!!! Weaver.callOriginal() must come after the call to NettyUtil.processResponse.
         Weaver.callOriginal();
     }
 }
