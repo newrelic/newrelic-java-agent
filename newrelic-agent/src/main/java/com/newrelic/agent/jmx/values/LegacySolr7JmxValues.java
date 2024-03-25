@@ -1,10 +1,3 @@
-/*
- *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
- *  * SPDX-License-Identifier: Apache-2.0
- *
- */
-
 package com.newrelic.agent.jmx.values;
 
 import com.newrelic.agent.jmx.JmxType;
@@ -15,7 +8,17 @@ import com.newrelic.agent.jmx.metrics.JmxMetric;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Solr7JmxValues extends JmxFrameworkValues {
+/**
+ * Legacy JMX values for Solr 7_, replaced by: {@link com.newrelic.agent.jmx.values.Solr7JmxValues}
+ * If the config (via system property) <b>-Dnewrelic.config.jmx.enable_iterated_objectname_keys=false</b> is set
+ * (or the equivalent config is used via yaml or environment variables),
+ * this class has to be used instead of Solr7JmxValues for Solr 7+
+ * <br/><br/>
+ * <b>
+ *     Todo: Remove this class when the temporary config -Dnewrelic.config.jmx.enable_iterated_objectname_keys is removed.
+ * </b>
+ */
+public class LegacySolr7JmxValues extends JmxFrameworkValues {
 
     public static final String PREFIX = "solr7";
 
@@ -36,26 +39,26 @@ public class Solr7JmxValues extends JmxFrameworkValues {
     static {
 
         METRICS.add(new BaseJmxValue(
-                "solr:dom1=core,*,category=CACHE,scope=searcher,name=queryResultCache",
-                "JMX/solr/{for:dom[2::.]}/queryResultCache/%/",
+                "solr:dom1=core,dom2=*,category=CACHE,scope=searcher,name=queryResultCache",
+                "JMX/solr/{dom2}/queryResultCache/%/",
                 createCacheMetrics()
         ));
 
         METRICS.add(new BaseJmxValue(
-                "solr:dom1=core,*,category=CACHE,scope=searcher,name=filterCache",
-                "JMX/solr/{for:dom[2::.]}/filterCache/%/",
+                "solr:dom1=core,dom2=*,category=CACHE,scope=searcher,name=filterCache",
+                "JMX/solr/{dom2}/filterCache/%/",
                 createCacheMetrics()
         ));
 
         METRICS.add(new BaseJmxValue(
-                "solr:dom1=core,*,category=CACHE,scope=searcher,name=documentCache",
-                "JMX/solr/{for:dom[2::.]}/documentCache/%/",
+                "solr:dom1=core,dom2=*,category=CACHE,scope=searcher,name=documentCache",
+                "JMX/solr/{dom2}/documentCache/%/",
                 createCacheMetrics()
         ));
 
         METRICS.add(new BaseJmxValue(
-                "solr:dom1=core,*,category=UPDATE,scope=updateHandler,name=*",
-                "JMX/solr/{for:dom[2::.]}/updateHandler/%/{name}",
+                "solr:dom1=core,dom2=*,category=UPDATE,scope=updateHandler,name=*",
+                "JMX/solr/{dom2}/updateHandler/%/{name}",
                 new JmxMetric[] {
                         JmxMetric.create("Value", JmxType.SIMPLE),
                         JmxMetric.create("RateUnit", JmxType.SIMPLE),
@@ -68,7 +71,7 @@ public class Solr7JmxValues extends JmxFrameworkValues {
 
     }
 
-    public Solr7JmxValues() {
+    public LegacySolr7JmxValues() {
         super();
     }
 
