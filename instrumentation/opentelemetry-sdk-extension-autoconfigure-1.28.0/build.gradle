@@ -1,0 +1,29 @@
+plugins {
+    id("java")
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.28.0")
+    testImplementation("junit:junit:4.12")
+}
+
+jar {
+    manifest {
+        attributes "Implementation-Title" : "com.newrelic.instrumentation.opentelemetry-sdk-extension-autoconfigure-1.28.0"
+    }
+}
+
+java {
+}
+
+verifyInstrumentation {
+    passesOnly 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:[1.28.0,)'
+}
+
+site {
+    title = "OpenTelemetry"
+    type = "Framework"
+}
