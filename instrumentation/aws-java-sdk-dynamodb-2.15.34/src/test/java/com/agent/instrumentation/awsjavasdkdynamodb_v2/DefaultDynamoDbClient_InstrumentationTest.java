@@ -33,8 +33,11 @@ public class DefaultDynamoDbClient_InstrumentationTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        System.out.println("Before class");
         dynamoDb = LocalTestDynamoDb.create();
+        System.out.println("DynamoDB: "+dynamoDb);
         dynamoDb.start();
+        System.out.println("DynamoDB after start: "+dynamoDb);
     }
 
     @AfterClass
@@ -44,14 +47,18 @@ public class DefaultDynamoDbClient_InstrumentationTest {
 
     @Before
     public void beforeEach() {
+        System.out.println("DynamoDB beforeEach: "+dynamoDb);
         if (!dynamoDb.tableExists()) {
+            System.out.println("DynamoDB creating table: "+dynamoDb);
             dynamoDb.createTable();
         }
     }
 
     @After
     public void afterEach() {
+        System.out.println("afterEach: "+dynamoDb);
         if (dynamoDb.tableExists()) {
+            System.out.println("DynamoDB deleting table: "+dynamoDb);
             dynamoDb.deleteTable();
         }
     }
