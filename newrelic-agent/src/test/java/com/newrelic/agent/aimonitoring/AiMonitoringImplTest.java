@@ -5,10 +5,10 @@ import org.junit.Test;
 
 import java.util.Map;
 
-public class LlmFeedbackEventRecorderTest {
+public class AiMonitoringImplTest {
 
     LlmFeedbackEventAttributes.Builder llmFeedbackEventBuilder;
-    LlmFeedbackEventRecorder recordLlmFeedbackEvent;
+    AiMonitoringImpl aiMonitoringImpl;
     Map<String, Object> llmFeedbackEventParameters;
 
     @Before
@@ -16,7 +16,7 @@ public class LlmFeedbackEventRecorderTest {
         String traceId = "123456";
         Integer rating = 5;
         llmFeedbackEventBuilder = new LlmFeedbackEventAttributes.Builder(traceId, rating);
-        recordLlmFeedbackEvent = new LlmFeedbackEventRecorder();
+        aiMonitoringImpl = new AiMonitoringImpl();
     }
 
     @Test
@@ -26,7 +26,7 @@ public class LlmFeedbackEventRecorderTest {
                 .message("Great experience")
                 .build();
 
-        recordLlmFeedbackEvent.recordLlmFeedbackEvent(llmFeedbackEventParameters);
+        aiMonitoringImpl.recordLlmFeedbackEvent(llmFeedbackEventParameters);
 
         // TODO: verify recordCustomEvent was called with the correct parameters
     }
@@ -43,5 +43,18 @@ public class LlmFeedbackEventRecorderTest {
         // TODO: verify recordCustomEvent was not called
     }
 
+    @Test
+    public void testSetLlmTokenCountCallbackReturnsIntegerGreaterThanZero() {
+        class TestCallback implements LlmTokenCountCallback {
+
+            @Override
+            public Integer calculateLlmTokenCount(String model, String content) {
+                return -5;
+            }
+        }
+
+        TestCallback testCallback = new TestCallback();
+        aiMonitoringImpl.setLlmTokenCountCallback(testCallback);
+    }
 
 }

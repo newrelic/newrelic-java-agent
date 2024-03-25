@@ -1,4 +1,8 @@
-package com.newrelic.api.agent;
+package com.newrelic.agent.aimonitoring;
+
+import com.newrelic.api.agent.AiMonitoring;
+import com.newrelic.api.agent.LlmFeedbackEventAttributes;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.Map;
 
@@ -9,7 +13,7 @@ import java.util.Map;
  * by delegating to the Insights API for custom event recording.
  */
 
-public class LlmFeedbackEventRecorder implements AiMonitoring {
+public class AiMonitoringImpl implements AiMonitoring {
     /**
      * Records an LlmFeedbackMessage event.
      *
@@ -30,9 +34,22 @@ public class LlmFeedbackEventRecorder implements AiMonitoring {
      *                                   additional data to submit with the feedback event</li>
      *                                   </ul>
      */
+
     @Override
     public void recordLlmFeedbackEvent(Map<String, Object> llmFeedbackEventAttributes) {
         // Delegate to Insights API for event recording
         NewRelic.getAgent().getInsights().recordCustomEvent("LlmFeedbackMessage", llmFeedbackEventAttributes);
+    }
+
+    @Override
+    public void setLlmTokenCountCallback(LlmTokenCountCallback llmTokenCountCallback) {
+        String model = "SampleModel";
+        String content = "SampleContent";
+//        LlmTokenCountCallbackHolder llmTokenCountCallbackHolder = new LlmTokenCountCallbackHolder(llmTokenCountCallback);
+        LlmTokenCountCallbackHolder llmTokenCountCallbackHolder = new LlmTokenCountCallbackHolder();
+        llmTokenCountCallbackHolder.setLlmTokenCountCallbackHolder(llmTokenCountCallback);
+        LlmTokenCountCallback tokenCounter = llmTokenCountCallbackHolder.getLlmTokenCountCallback();
+        Integer tokenCount = llmTokenCountCallback.calculateLlmTokenCount(model, content);
+
     }
 }
