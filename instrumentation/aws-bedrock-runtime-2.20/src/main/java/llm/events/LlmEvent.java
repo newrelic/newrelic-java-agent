@@ -197,7 +197,7 @@ public class LlmEvent {
             return this;
         }
 
-        public Builder tokenCount(int count) {
+        public Builder tokenCount(Integer count) {
             tokenCount = count;
             return this;
         }
