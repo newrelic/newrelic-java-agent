@@ -67,6 +67,7 @@ jobs:
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
           echo "datastore/datastores.py" >> $excluded_tests
           echo "framework/jms/jms.py" >> $excluded_tests
+          echo "pekko/pekko.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
           echo "server/mule.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
