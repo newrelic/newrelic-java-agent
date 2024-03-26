@@ -18,6 +18,7 @@ runs:
       with:
         distribution: 'temurin'
         java-version: |
+          22
           21
           17
           11
@@ -29,7 +30,8 @@ runs:
         sed -i -e "s|jdk8=8|jdk8=${JAVA_HOME_8_X64}|
         s|jdk11=11|jdk11=${JAVA_HOME_11_X64}|
         s|jdk17=17|jdk17=${JAVA_HOME_17_X64}|
-        s|jdk21=21|jdk21=${JAVA_HOME_21_X64}|" gradle.properties.gha
+        s|jdk21=21|jdk21=${JAVA_HOME_21_X64}|
+        s|jdk21=21|jdk21=${JAVA_HOME_22_X64}|" gradle.properties.gha
         cat gradle.properties.gha >> gradle.properties
 
     - name: Setup Gradle
@@ -39,7 +41,7 @@ runs:
 
     - name: Setup Gradle options
       shell: bash
-      run: echo "GRADLE_OPTIONS=--console=plain --parallel -Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_11_X64,JAVA_HOME_17_X64,JAVA_HOME_21_X64" >> $GITHUB_ENV
+      run: echo "GRADLE_OPTIONS=--console=plain --parallel -Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_11_X64,JAVA_HOME_17_X64,JAVA_HOME_21_X64,JAVA_HOME_22_X64" >> $GITHUB_ENV
 
     - name: Download S3 instrumentation jar zip
       shell: bash
