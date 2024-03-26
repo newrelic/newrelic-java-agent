@@ -76,6 +76,11 @@ class NoOpAgent implements Agent {
     }
 
     @Override
+    public String getEntityGuid(boolean wait) {
+        return null;
+    }
+
+    @Override
     public boolean startAsyncActivity(Object activityContext) {
         return false;
     }
