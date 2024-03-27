@@ -18,7 +18,6 @@ package com.newrelic.api.agent;
  *     }
  * }
  *
- * // Usage:
  * LlmTokenCountCallback myCallback = new MyTokenCountCallback();
  * // After creating the {@code myCallback} instance, it should be passed as an argument to the {@code setLlmTokenCountCallback}
  * // method of the AI Monitoring API.
