@@ -47,6 +47,12 @@ subprojects {
     }
 }
 
+Project.getTasks().withType(Test).configureEach {
+    extensions.configure(JacocoTaskExtension) {
+        isEnabled = false
+    }
+}
+
 task test {
     dependsOn subprojects.collect {
         it.tasks.getByName 'test'
