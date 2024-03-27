@@ -16,9 +16,9 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.AiMonitoring;
+import com.newrelic.api.agent.AiMonitoringImpl;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
-import com.newrelic.api.agent.LlmFeedbackEventRecorder;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
@@ -140,7 +140,7 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
 
     @Override
     public AiMonitoring getAiMonitoring() {
-        return new LlmFeedbackEventRecorder();
+        return new AiMonitoringImpl();
     }
 
     @Override
