@@ -1,32 +1,29 @@
-package com.newrelic.agent.aimonitoring;
-
-import com.newrelic.api.agent.AiMonitoring;
-import com.newrelic.api.agent.LlmFeedbackEventAttributes;
-import com.newrelic.api.agent.NewRelic;
+package com.newrelic.api.agent;
 
 import java.util.Map;
 
 /**
- * A utility class for recording LlmFeedbackMessage events using the AI Monitoring API.
- * <p>
- * This class implements the {@link AiMonitoring} interface and provides a method to record LlmFeedbackMessage events
- * by delegating to the Insights API for custom event recording.
+ * A utility class for interacting with the AI Monitoring API to record LlmFeedbackMessage events.
+ * This class implements the {@link AiMonitoring} interface and provides methods for feedback event recording
+ * and setting callbacks for token calculation.
  */
 
 public class AiMonitoringImpl implements AiMonitoring {
+    private static final String SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET = "Supportability/AiMonitoringTokenCountCallback/set";
+
     /**
      * Records an LlmFeedbackMessage event.
      *
      * @param llmFeedbackEventAttributes A map containing the attributes of an LlmFeedbackMessage event. To construct
      *                                   the llmFeedbackEventAttributes map, use
      *                                   {@link LlmFeedbackEventAttributes.Builder}
-     *                                   <p>The map must include:</p>
+     *                                   <p>Required Attributes:</p>
      *                                   <ul>
      *                                   <li>"traceId" (String): Trace ID where the chat completion related to the
      *                                   feedback event occurred</li>
      *                                   <li>"rating" (Integer/String): Rating provided by an end user</li>
      *                                   </ul>
-     *                                   Optional attributes:
+     *                                   Optional Attributes:
      *                                   <ul>
      *                                   <li>"category" (String): Category of the feedback as provided by the end user</li>
      *                                   <li>"message" (String): Freeform text feedback from an end user.</li>
@@ -41,15 +38,16 @@ public class AiMonitoringImpl implements AiMonitoring {
         NewRelic.getAgent().getInsights().recordCustomEvent("LlmFeedbackMessage", llmFeedbackEventAttributes);
     }
 
+    /**
+     * Sets the callback for token calculation and reports a supportability metric.
+     *
+     * @param llmTokenCountCallback The callback instance implementing {@link LlmTokenCountCallback} interface.
+     *                               This callback will be used for token calculation.
+     * @see LlmTokenCountCallback
+     */
     @Override
     public void setLlmTokenCountCallback(LlmTokenCountCallback llmTokenCountCallback) {
-        String model = "SampleModel";
-        String content = "SampleContent";
-//        LlmTokenCountCallbackHolder llmTokenCountCallbackHolder = new LlmTokenCountCallbackHolder(llmTokenCountCallback);
-        LlmTokenCountCallbackHolder llmTokenCountCallbackHolder = new LlmTokenCountCallbackHolder();
-        llmTokenCountCallbackHolder.setLlmTokenCountCallbackHolder(llmTokenCountCallback);
-        LlmTokenCountCallback tokenCounter = llmTokenCountCallbackHolder.getLlmTokenCountCallback();
-        Integer tokenCount = llmTokenCountCallback.calculateLlmTokenCount(model, content);
-
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(llmTokenCountCallback);
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET);
     }
 }
