@@ -2,6 +2,9 @@ package com.newrelic.api.agent;
 
 import java.util.Map;
 
+/**
+ * This interface defines methods for recording LlmFeedbackMessage events and setting a callback for token calculation.
+ */
 public interface AiMonitoring {
     /**
      * Records an LlmFeedbackMessage event.
@@ -28,10 +31,23 @@ public interface AiMonitoring {
     void recordLlmFeedbackEvent(Map<String, Object> llmFeedbackEventAttributes);
 
     /**
-     * Registers a callback function for providing token counts to LLM events.
+     * Sets the callback function for calculating LLM tokens.
      *
-     * @param callback Callback function for calculating token counts
+     * @param llmTokenCountCallback The callback function to be invoked for counting LLM tokens.
+     *                              Example usage:
+     *                              <pre>{@code
+     *                              LlmTokenCountCallback llmTokenCountCallback = new LlmTokenCountCallback() {
+     *                                  {@literal @}Override
+     *                                  public Integer calculateLlmTokenCount(String model, String content) {
+     *                                      // Token calculation based on model and content goes here
+     *                                      // Return the calculated token count
+     *                                  }
+     *                               };
+     *
+     *                               // Set the created callback instance
+     *                               NewRelic.getAgent().getAiMonitoring().setLlmTokenCountCallback(llmTokenCountCallback);
+     *                               }</pre>
      */
-//    void setLlmTokenCountCallback(LlmTokenCountCallback callback);
+    void setLlmTokenCountCallback(LlmTokenCountCallback llmTokenCountCallback);
 
 }
