@@ -4,6 +4,63 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\
 
+## Version 8.10.0
+## New features and improvements
+
+- Support for Spring Webflux 6.1.x [1761](https://github.com/newrelic/newrelic-java-agent/pull/1761)
+- Support for Spring Batch v4.0+ [1792](https://github.com/newrelic/newrelic-java-agent/pull/1792)
+- Scala 3 API [1772](https://github.com/newrelic/newrelic-java-agent/pull/1772)
+- ZIO 1 instrumentation improvements [1739](https://github.com/newrelic/newrelic-java-agent/pull/1739)
+- Support for ZIO 2 [1778](https://github.com/newrelic/newrelic-java-agent/pull/1778)
+
+  For more information see [Scala ZIO instrumentation](https://docs.newrelic.com/docs/apm/agents/java-agent/frameworks/scala-zio)
+ 
+- Enhanced clustered Solr JMX metrics [1812](https://github.com/newrelic/newrelic-java-agent/pull/1812)
+- Add transaction GUID to Errors [1813](https://github.com/newrelic/newrelic-java-agent/pull/1813)
+
+
+## Fixes
+
+- Prevent NullPointerException when setting the user id outside of a transaction [1762](https://github.com/newrelic/newrelic-java-agent/pull/1762)
+- Disallow Real Time Profiling when High Security Mode is enabled [1764](https://github.com/newrelic/newrelic-java-agent/pull/1764)
+- Prevent ClassCircularityErrors in some specific circumstances [1763](https://github.com/newrelic/newrelic-java-agent/pull/1763)
+- Properly removing files when log_daily is enabled [1754](https://github.com/newrelic/newrelic-java-agent/pull/1754)
+- Decreased memory held by the agent when HTTP calls are made [1775](https://github.com/newrelic/newrelic-java-agent/pull/1775)
+- Prevent duplicate DT headers for gRPC [1783](https://github.com/newrelic/newrelic-java-agent/pull/1783)
+- Properly updating how many log messages are sent after configuration change [1784](https://github.com/newrelic/newrelic-java-agent/pull/1784)
+- Prevent exceptions when reading lambda bytecode [1794](https://github.com/newrelic/newrelic-java-agent/pull/1794)
+- Reduce interval for JDBC caches [1809](https://github.com/newrelic/newrelic-java-agent/pull/1809)
+
+
+## Deprecations
+
+-The browser footer injection APIs have been deprecated and will be removed in a future agent release. The header injection API now adds both the header and footer scripts. [1679](https://github.com/newrelic/newrelic-java-agent/pull/1679)
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
+
+## IAST
+### Changes
+
+- Ning Async HTTP client Support: The security agent now also supports com.ning:async-http-client 1.0.0 and above [152](https://github.com/newrelic/csec-java-agent/pull/152), [118](https://github.com/newrelic/csec-java-agent/pull/118), [116](https://github.com/newrelic/csec-java-agent/pull/116)
+- Jersey Support: The security agent now also supports Jersey 2.0 and above [150](https://github.com/newrelic/csec-java-agent/pull/150), [149](https://github.com/newrelic/csec-java-agent/pull/149)
+- Mule Support: The security agent now also supports Mule server version 3.6 to 3.9.x [144](https://github.com/newrelic/csec-java-agent/pull/144), [143](https://github.com/newrelic/csec-java-agent/pull/143)
+- Jetty v12 Support: The security agent now also support Jetty version 12 and above [106](https://github.com/newrelic/csec-java-agent/pull/106)
+- Lettuce Support: The security agent now also supports Lettuce 4.4.0.Final and above [125](https://github.com/newrelic/csec-java-agent/pull/125)
+
+### Fixes
+
+- Extract Server Configuration to resolve IAST localhost connection with application for Wildfly server [192](https://github.com/newrelic/csec-java-agent/pull/192)
+- Trustboundary events now will have list of string as parameter schema
+
+
 ## Version 8.9.1
 ## Fixes
 
