@@ -23,7 +23,7 @@ import java.util.logging.Level;
  * been submitted before.
  */
 public class ClassToJarPathSubmitterImpl implements ClassToJarPathSubmitter{
-    public static ClassToJarPathSubmitter NO_OP_INSTANCE = new NoOpClassToJarPathSubmitter();
+    public static final ClassToJarPathSubmitter NO_OP_INSTANCE = new NoOpClassToJarPathSubmitter();
     private final JarAnalystFactory jarAnalystFactory;
     private final ExecutorService executorService;
     private final Logger logger;
