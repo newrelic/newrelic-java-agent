@@ -14,6 +14,10 @@ verifyInstrumentation {
     exclude 'org.postgresql:r2dbc-postgresql:1.0.0.RC1'
 }
 
+test {
+    systemProperty "jdk.util.zip.disableZip64ExtraFieldValidation", true
+}
+
 site {
     title 'PostgreSQL R2DBC'
     type 'Datastore'
