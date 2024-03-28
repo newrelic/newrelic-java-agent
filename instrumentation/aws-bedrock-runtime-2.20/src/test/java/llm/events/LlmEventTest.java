@@ -11,6 +11,8 @@ import com.newrelic.agent.introspec.Event;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.api.agent.LlmTokenCountCallback;
+import com.newrelic.api.agent.LlmTokenCountCallbackHolder;
 import llm.models.ModelInvocation;
 import llm.models.amazon.titan.TitanModelInvocation;
 import llm.models.anthropic.claude.ClaudeModelInvocation;
@@ -45,8 +47,13 @@ public class LlmEventTest {
     @Before
     public void before() {
         introspector.clear();
+        setUp();
     }
 
+    public void setUp() {
+        LlmTokenCountCallback llmTokenCountCallback = (model, content) -> 13;
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(llmTokenCountCallback);
+    }
     @Test
     public void testRecordLlmEmbeddingEvent() {
         // Given
@@ -191,7 +198,7 @@ public class LlmEventTest {
                 .responseModel() // attribute 10
                 .sequence(0) // attribute 11
                 .completionId() // attribute 12
-                .tokenCount(123) // attribute 13
+                .tokenCount(LlmTokenCountCallbackHolder.getInstance().getLlmTokenCountCallback().calculateLlmTokenCount("model", "content")) // attribute 13
                 .build();
 
         // attributes 14 & 15 should be the two llm.* prefixed userAttributes
@@ -220,7 +227,7 @@ public class LlmEventTest {
         assertEquals("anthropic.claude-v2", attributes.get("response.model"));
         assertEquals(0, attributes.get("sequence"));
         assertFalse(((String) attributes.get("completion_id")).isEmpty());
-        assertEquals(123, attributes.get("token_count"));
+        assertEquals(13, attributes.get("token_count"));
         assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
         assertEquals("testPrefix", attributes.get("llm.testPrefix"));
     }
