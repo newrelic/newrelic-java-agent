@@ -1,28 +1,21 @@
-package com.newrelic.agent.aimonitoring;
+package com.newrelic.api.agent;
 
-import com.newrelic.api.agent.AiMonitoringImpl;
-import com.newrelic.api.agent.Insights;
-import com.newrelic.api.agent.LlmFeedbackEventAttributes;
-import com.newrelic.api.agent.LlmTokenCountCallback;
-import com.newrelic.api.agent.LlmTokenCountCallbackHolder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Map;
 
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AiMonitoringImplTest {
 
     @Mock
-    Insights insights;
-
     AiMonitoringImpl aiMonitoringImpl;
     LlmFeedbackEventAttributes.Builder llmFeedbackEventBuilder;
     Map<String, Object> llmFeedbackEventAttributes;
@@ -41,28 +34,28 @@ public class AiMonitoringImplTest {
     @Test
     public void testRecordLlmFeedbackEventSuccess() {
         aiMonitoringImpl.recordLlmFeedbackEvent(llmFeedbackEventAttributes);
-        verify(aiMonitoringImpl).recordLlmFeedbackEvent(llmFeedbackEventAttributes);
+        Mockito.verify(aiMonitoringImpl).recordLlmFeedbackEvent(llmFeedbackEventAttributes);
     }
 
     @Test
     public void testRecordLlmFeedbackEventFailure() {
-        doThrow(new RuntimeException("Custom event recording failed")).when(aiMonitoringImpl).recordLlmFeedbackEvent(anyMap());
+        Mockito.doThrow(new RuntimeException("Custom event recording failed")).when(aiMonitoringImpl).recordLlmFeedbackEvent(anyMap());
         try {
             aiMonitoringImpl.recordLlmFeedbackEvent(llmFeedbackEventAttributes);
         } catch (RuntimeException exception) {
-            verify(aiMonitoringImpl).recordLlmFeedbackEvent(llmFeedbackEventAttributes);
-            assertEquals("Custom event recording failed", exception.getMessage());
+            Mockito.verify(aiMonitoringImpl).recordLlmFeedbackEvent(llmFeedbackEventAttributes);
+            Assert.assertEquals("Custom event recording failed", exception.getMessage());
         }
     }
 
     @Test
     public void testRecordLlmFeedbackEventWithNullAttributes() {
-        doThrow(new IllegalArgumentException("llmFeedbackEventAttributes cannot be null"))
+        Mockito.doThrow(new IllegalArgumentException("llmFeedbackEventAttributes cannot be null"))
                 .when(aiMonitoringImpl).recordLlmFeedbackEvent(null);
 
         try {
             aiMonitoringImpl.recordLlmFeedbackEvent(null);
-            fail("Expected IllegalArgumentException to be thrown");
+            Assert.fail("Expected IllegalArgumentException to be thrown");
         } catch (IllegalArgumentException e) {
             // Expected exception thrown, test passed
             System.out.println("IllegalArgumentException successfully thrown!");
@@ -71,10 +64,10 @@ public class AiMonitoringImplTest {
 
     @Test
     public void testSetLlmTokenCountCallbackSuccess() {
-        LlmTokenCountCallback testCallback = mock(LlmTokenCountCallback.class);
+        LlmTokenCountCallback testCallback = Mockito.mock(LlmTokenCountCallback.class);
         aiMonitoringImpl.setLlmTokenCountCallback(testCallback);
-        verify(aiMonitoringImpl).setLlmTokenCountCallback(testCallback);
-        assertNotNull(LlmTokenCountCallbackHolder.getInstance());
+        Mockito.verify(aiMonitoringImpl).setLlmTokenCountCallback(testCallback);
+        Assert.assertNotNull(LlmTokenCountCallbackHolder.getInstance());
     }
 
     @Test
