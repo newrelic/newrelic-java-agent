@@ -49,7 +49,7 @@ subprojects {
 
 getTasks().withType(Test).configureEach {
     extensions.configure(JacocoTaskExtension) {
-        isEnabled = false
+        it.enabled = false
     }
 }
 
