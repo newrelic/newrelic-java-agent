@@ -69,7 +69,7 @@ public class CommandModelInvocation implements ModelInvocation {
                 .input(index)
                 .requestModel()
                 .responseModel()
-                .tokenCount(0) // TODO set to value from the setLlmTokenCountCallback API
+                .tokenCount(ModelInvocation.getTokenCount(modelRequest.getModelId(), modelRequest.getInputText(0)))
                 .error()
                 .duration(System.currentTimeMillis() - startTime)
                 .build();
@@ -122,7 +122,7 @@ public class CommandModelInvocation implements ModelInvocation {
                 .responseModel()
                 .sequence(sequence)
                 .completionId()
-                .tokenCount(0) // TODO set to value from the setLlmTokenCountCallback API
+                .tokenCount(ModelInvocation.getTokenCount(modelRequest.getModelId(), message))
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();
