@@ -7,17 +7,14 @@
 
 package org.jboss.netty.handler.codec.http;
 
-import org.jboss.netty.bootstrap.NettyDispatcher;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelHandlerContext_Instrumentation;
-
-import com.agent.instrumentation.netty34.NettyUtil;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import org.jboss.netty.bootstrap.NettyDispatcher;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandlerContext_Instrumentation;
 
 @Weave(type = MatchType.BaseClass)
 public class HttpMessageDecoder {

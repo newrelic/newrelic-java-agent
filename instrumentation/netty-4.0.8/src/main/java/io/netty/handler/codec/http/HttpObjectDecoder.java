@@ -7,14 +7,14 @@
 
 package io.netty.handler.codec.http;
 
-import java.util.List;
-
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.netty.bootstrap.NettyDispatcher;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
+
+import java.util.List;
 
 @Weave(type = MatchType.BaseClass)
 public class HttpObjectDecoder {
@@ -34,5 +34,4 @@ public class HttpObjectDecoder {
             }
         }
     }
-
 }

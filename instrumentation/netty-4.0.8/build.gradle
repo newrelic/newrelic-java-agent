@@ -1,15 +1,18 @@
 dependencies {
-  implementation(project(":agent-bridge"))
-  implementation("io.netty:netty-all:4.0.8.Final")
+    implementation(project(":agent-bridge"))
+    implementation("io.netty:netty-all:4.1.15.Final")
 }
 
 jar {
-  manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.netty-4.0.8',
-          'Implementation-Title-Alias': 'netty_instrumentation' }
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.netty-4.0.8',
+                'Implementation-Title-Alias': 'netty_instrumentation'
+    }
 }
 
+// This module doesn't support HTTP/2
 verifyInstrumentation {
-  passesOnly 'io.netty:netty-all:[4.0.8.Final,5.0.0.Alpha1)'
+    passesOnly 'io.netty:netty-all:[4.0.8.Final,4.1.16.Final)'
 }
 
 site {

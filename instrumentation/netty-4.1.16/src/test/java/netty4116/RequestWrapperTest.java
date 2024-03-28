@@ -1,14 +1,14 @@
 /*
  *
- *  * Copyright 2023 New Relic Corporation. All rights reserved.
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
-package netty408;
+package netty4116;
 
-import com.agent.instrumentation.netty40.RequestWrapper;
-import io.netty.handler.codec.http.HttpHeaders;
+import com.agent.instrumentation.netty4116.RequestWrapper;
+import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RequestWrapperTest {
-
     @Test
     public void testPercentageEscaping() {
         Map<String, String> inputExpectedMap = new HashMap<>();
@@ -33,8 +32,8 @@ public class RequestWrapperTest {
             String input = inputExpectedEntry.getKey();
             String expected = inputExpectedEntry.getValue();
             HttpRequest request = mock(HttpRequest.class);
-            when(request.headers()).thenReturn(HttpHeaders.EMPTY_HEADERS);
-            when(request.getUri()).thenReturn(input);
+            when(request.headers()).thenReturn(EmptyHttpHeaders.INSTANCE);
+            when(request.uri()).thenReturn(input);
             RequestWrapper requestWrapper = new RequestWrapper(request);
             Assert.assertEquals(expected, requestWrapper.getParameterValues("asdf")[0]);
         }

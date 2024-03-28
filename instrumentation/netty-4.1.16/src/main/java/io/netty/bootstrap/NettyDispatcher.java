@@ -1,13 +1,14 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
 package io.netty.bootstrap;
 
-import com.agent.instrumentation.netty40.RequestWrapper;
+import com.agent.instrumentation.netty4116.Http2RequestWrapper;
+import com.agent.instrumentation.netty4116.RequestWrapper;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
@@ -15,6 +16,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.TracedMethod;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http2.Http2HeadersFrame;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -48,7 +50,6 @@ public class NettyDispatcher {
     @Trace(dispatcher = true)
     public static void channelRead(ChannelHandlerContext_Instrumentation ctx, Object msg) {
         ctx.pipeline().token = AgentBridge.getAgent().getTransaction().getToken();
-
         TracedMethod tracer = AgentBridge.getAgent().getTransaction().getTracedMethod();
         if (tracer == null) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "Unable to dispatch netty tx. No tracer."); // it happens.
@@ -61,7 +62,11 @@ public class NettyDispatcher {
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
 
         if (tx != null) {
-            tx.setWebRequest(new RequestWrapper((HttpRequest) msg));
+            if (msg instanceof HttpRequest) {
+                tx.setWebRequest(new RequestWrapper((HttpRequest) msg));
+            } else if (msg instanceof Http2HeadersFrame) {
+                tx.setWebRequest(new Http2RequestWrapper((Http2HeadersFrame) msg));
+            }
         }
     }
 }
