@@ -222,16 +222,6 @@ test {
         events "FAILED" // additional events for more verbose logging: "PASSED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR", "STARTED"
         exceptionFormat "short"
     }
-
-    jacoco {
-        enabled = true
-        destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
-        classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
-        destinationFile = layout.buildDirectory.file("jacoco/${name}.exec").get().asFile
-
-    }
-    finalizedBy jacocoTestReport // report is always generated after tests run
-
 }
 
 dependencies {
