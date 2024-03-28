@@ -11,6 +11,8 @@ import com.newrelic.agent.introspec.Event;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.api.agent.LlmTokenCountCallback;
+import com.newrelic.api.agent.LlmTokenCountCallbackHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +56,8 @@ public class JurassicModelInvocationTest {
     @Before
     public void before() {
         introspector.clear();
+        LlmTokenCountCallback llmTokenCountCallback = (model, content) -> 13;
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(llmTokenCountCallback);
     }
 
     @Test
