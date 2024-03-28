@@ -34,6 +34,7 @@ public class TestUtil {
         assertEquals(modelId, attributes.get("response.model"));
         assertEquals("testPrefix", attributes.get("llm.testPrefix"));
         assertEquals("conversation-id-value", attributes.get("llm.conversation_id"));
+        assertEquals(13, attributes.get("token_count"));
 
         if (isResponse) {
             assertEquals("assistant", attributes.get("role"));
@@ -81,6 +82,7 @@ public class TestUtil {
         assertFalse(((String) attributes.get("request_id")).isEmpty());
         assertEquals("testPrefix", attributes.get("llm.testPrefix"));
         assertEquals("conversation-id-value", attributes.get("llm.conversation_id"));
+        assertEquals(13, attributes.get("token_count"));
     }
 
     public static void assertErrorEvent(boolean isError, Collection<ErrorEvent> errorEvents) {
