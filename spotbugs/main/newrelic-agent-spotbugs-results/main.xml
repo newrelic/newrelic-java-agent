@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<BugCollection version="4.7.3" sequence="0" timestamp="1711616805935" analysisTimestamp="1711616805935" release="">
+<BugCollection version="4.7.3" sequence="0" timestamp="1711703161623" analysisTimestamp="1711703161623" release="">
   <Project projectName="newrelic-agent (spotbugsMain)">
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/bootstrap/BootstrapAgent.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/bootstrap/EmbeddedJarFiles.class</Jar>
@@ -1384,47 +1384,8 @@
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/main/resources</SrcDir>
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/main/java</SrcDir>
   </Project>
-  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" rank="16" abbrev="MS" category="MALICIOUS_CODE" instanceHash="17d663925478eb770b1a6b9016275d25" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="218">
-    <ShortMessage>Field isn&apos;t final but should be</ShortMessage>
-    <LongMessage>com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl.NO_OP_INSTANCE isn&apos;t final but should be</LongMessage>
-    <Class classname="com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl" primary="true">
-      <SourceLine classname="com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl" start="26" end="94" sourcefile="ClassToJarPathSubmitterImpl.java" sourcepath="com/newrelic/agent/service/module/ClassToJarPathSubmitterImpl.java" relSourcepath="java/com/newrelic/agent/service/module/ClassToJarPathSubmitterImpl.java">
-        <Message>At ClassToJarPathSubmitterImpl.java:[lines 26-94]</Message>
-      </SourceLine>
-      <Message>In class com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl</Message>
-    </Class>
-    <Field classname="com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl" name="NO_OP_INSTANCE" signature="Lcom/newrelic/agent/service/module/ClassToJarPathSubmitter;" isStatic="true" primary="true">
-      <SourceLine classname="com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl" sourcefile="ClassToJarPathSubmitterImpl.java" sourcepath="com/newrelic/agent/service/module/ClassToJarPathSubmitterImpl.java" relSourcepath="java/com/newrelic/agent/service/module/ClassToJarPathSubmitterImpl.java">
-        <Message>In ClassToJarPathSubmitterImpl.java</Message>
-      </SourceLine>
-      <Message>Field com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl.NO_OP_INSTANCE</Message>
-    </Field>
-    <SourceLine classname="com.newrelic.agent.service.module.ClassToJarPathSubmitterImpl" primary="true" start="26" end="26" startBytecode="8" endBytecode="8" sourcefile="ClassToJarPathSubmitterImpl.java" sourcepath="com/newrelic/agent/service/module/ClassToJarPathSubmitterImpl.java" relSourcepath="java/com/newrelic/agent/service/module/ClassToJarPathSubmitterImpl.java">
-      <Message>At ClassToJarPathSubmitterImpl.java:[line 26]</Message>
-    </SourceLine>
-  </BugInstance>
-  <BugCategory category="MALICIOUS_CODE">
-    <Description>Malicious code vulnerability</Description>
-  </BugCategory>
-  <BugPattern type="MS_SHOULD_BE_FINAL" abbrev="MS" category="MALICIOUS_CODE">
-    <ShortDescription>Field isn&apos;t final but should be</ShortDescription>
-    <Details><![CDATA[
-
-   <p>
-This static field public but not final, and
-could be changed by malicious code or
-        by accident from another package.
-        The field could be made final to avoid
-        this vulnerability.</p>
-
-    ]]></Details>
-  </BugPattern>
-  <BugCode abbrev="MS" cweid="218">
-    <Description>Mutable static field</Description>
-  </BugCode>
   <Errors errors="0" missingClasses="0"></Errors>
-  <FindBugsSummary timestamp="Thu, 28 Mar 2024 09:06:45 +0000" total_classes="0" referenced_classes="0" total_bugs="1" total_size="0" num_packages="1" java_version="1.8.0_402" vm_version="25.402-b06" cpu_seconds="68.16" clock_seconds="26.34" peak_mbytes="514.51" alloc_mbytes="910.50" gc_seconds="1.23" priority_1="1">
-    <FileStats path="com/newrelic/agent/service/module/ClassToJarPathSubmitterImpl.java" bugCount="1" size="0" bugHash="edddd01dfe5848e42c1252d7257281f0"/>
+  <FindBugsSummary timestamp="Fri, 29 Mar 2024 09:06:01 +0000" total_classes="0" referenced_classes="0" total_bugs="0" total_size="0" num_packages="0" java_version="1.8.0_402" vm_version="25.402-b06" cpu_seconds="71.53" clock_seconds="38.42" peak_mbytes="593.39" alloc_mbytes="910.50" gc_seconds="1.32">
     <FindBugsProfile></FindBugsProfile>
   </FindBugsSummary>
   <ClassFeatures></ClassFeatures>
