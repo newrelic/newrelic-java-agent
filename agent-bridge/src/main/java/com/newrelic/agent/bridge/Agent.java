@@ -95,4 +95,6 @@ public interface Agent extends com.newrelic.api.agent.Agent {
      */
     Logs getLogSender();
 
+    String getEntityGuid(boolean wait);
+
 }
