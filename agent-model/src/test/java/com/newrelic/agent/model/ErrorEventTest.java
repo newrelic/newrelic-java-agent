@@ -47,6 +47,7 @@ public class ErrorEventTest {
         assertTrue(json.contains("\"externalCallCount\":16"));
         assertTrue(json.contains("\"port\":2020"));
         assertTrue(json.contains("\"priority\":1"));
+        assertTrue(json.contains("\"guid\":\"abc\""));
 
         //hidden attributes
         assertTrue(json.contains("\"nr.transactionGuid\":\"abc\""));

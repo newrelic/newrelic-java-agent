@@ -275,6 +275,21 @@ public class NewRelicApiImplementationTest {
     }
 
     @Test
+    public void setUserId_withoutActiveTxn_isNoOp() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = new AgentAttributeSender();
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            //These used to throw an NPE when there was no active transaction so the "assertion" is that these method calls execute without an exception
+            target.setUserId(null);
+            target.setUserId("");
+        }
+    }
+
+    @Test
     public void setUserName_withValidName_setsNameAttribute() {
         mockOutServices();
         AttributeSender mockSender = Mockito.mock(AttributeSender.class);

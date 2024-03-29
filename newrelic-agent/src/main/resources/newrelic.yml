@@ -426,10 +426,17 @@ common: &default_settings
         enabled: true
 
   # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's
-  # time exceeds the threshold value (in ms). A transaction will only be reported once.
+  # time exceeds the threshold value (in ms). A transaction will only be reported once and by default, only
+  # transactions that are in-process during a harvest cycle will be checked. Only the slowest single transaction
+  # will be reported even if multiple transactions exceed the threshold.
   slow_transactions:
     enabled: true
     threshold: 600000
+
+    # If this is set to true, every transaction will be checked for exceeding the defined threshold on
+    # transaction completion. Note that this can be computationally expensive since a stack trace is sent
+    # with every SlowTransaction event, if a large number of transaction exceed the threshold.
+    evaluate_completed_transactions: false
 
 # Application Environments
 # ------------------------------------------

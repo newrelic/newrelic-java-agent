@@ -36,6 +36,7 @@ public class InstrumentationContextClassMatcherHelperTest {
     assertTrue(testClass.isMissingResourceExpected(
         "sun.util.locale.provider.JRELocaleProviderAdapter$$Lambda$108"));
     assertTrue(testClass.isMissingResourceExpected("java.lang.invoke.LambdaForm$MH"));
+    assertTrue(testClass.isMissingResourceExpected("java.util.stream.Collectors$$Lambda/0x800000047"));
   }
 
   @Test

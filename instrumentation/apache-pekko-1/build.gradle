@@ -1,0 +1,19 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.apache-pekko-1'}
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation('org.apache.pekko:pekko-actor_2.13:1.0.0')
+}
+
+verifyInstrumentation {
+    passes 'org.apache.pekko:pekko-actor_2.13:[1.0.0,)'
+    passes 'org.apache.pekko:pekko-actor_3:[1.0.0,)'
+    passes 'org.apache.pekko:pekko-actor_2.12:[1.0.0,)'
+}
+
+site {
+    title 'Pekko'
+    type 'Framework'
+}
