@@ -12,6 +12,7 @@ public class LlmFeedbackEventAttributes {
     private final Map<String, String> metadata;
     private final UUID id;
     private final String ingestSource;
+    private static final String INGEST_SOURCE = "Java";
 
     protected LlmFeedbackEventAttributes(String traceId, Object rating, String category, String message, Map<String, String> metadata, UUID id, String ingestSource) {
         this.traceId = traceId;
@@ -53,29 +54,29 @@ public class LlmFeedbackEventAttributes {
     }
 
     public Map<String, Object> toMap() {
-        Map<String, Object> feedbackParametersMap = new HashMap<>();
-        feedbackParametersMap.put("traceId", getTraceId());
-        feedbackParametersMap.put("rating", getRating());
-        feedbackParametersMap.put("id", getId());
-        feedbackParametersMap.put("ingestSource", getIngestSource());
+        Map<String, Object> feedbackAttributesMap = new HashMap<>();
+        feedbackAttributesMap.put("traceId", getTraceId());
+        feedbackAttributesMap.put("rating", getRating());
+        feedbackAttributesMap.put("id", getId());
+        feedbackAttributesMap.put("ingestSource", getIngestSource());
         if (category != null) {
-            feedbackParametersMap.put("category", getCategory());
+            feedbackAttributesMap.put("category", getCategory());
         }
         if (message != null) {
-            feedbackParametersMap.put("message", getMessage());
+            feedbackAttributesMap.put("message", getMessage());
         }
         if (metadata != null) {
-            feedbackParametersMap.put("metadata", getMetadata());
+            feedbackAttributesMap.put("metadata", getMetadata());
         }
-        return feedbackParametersMap;
+        return feedbackAttributesMap;
     }
 
     public static class Builder {
         private final String traceId;
         private final Object rating;
-        private String category;
-        private String message;
-        private Map<String, String> metadata;
+        private String category = null;
+        private String message = null;
+        private Map<String, String> metadata = null;
         private final UUID id = UUID.randomUUID();
 
         public Builder(String traceId, Object rating) {
@@ -99,7 +100,7 @@ public class LlmFeedbackEventAttributes {
         }
 
         public Map<String, Object> build() {
-            return new LlmFeedbackEventAttributes(traceId, rating, category, message, metadata, id, "Java").toMap();
+            return new LlmFeedbackEventAttributes(traceId, rating, category, message, metadata, id, INGEST_SOURCE).toMap();
 
         }
     }
