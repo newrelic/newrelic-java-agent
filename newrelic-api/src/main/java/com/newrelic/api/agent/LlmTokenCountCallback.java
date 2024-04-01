@@ -19,7 +19,7 @@ package com.newrelic.api.agent;
  * }
  *
  * LlmTokenCountCallback myCallback = new MyTokenCountCallback();
- * // After creating the {@code myCallback} instance, it should be passed as an argument to the {@code setLlmTokenCountCallback}
+ * // After creating the myCallback instance, it should be passed as an argument to the setLlmTokenCountCallback
  * // method of the AI Monitoring API.
  * NewRelic.getAgent().getAiMonitoring.setLlmTokenCountCallback(myCallback);
  * }</pre>
@@ -34,7 +34,7 @@ public interface LlmTokenCountCallback {
      * @param model   The name of the LLM model.
      * @param content The message content or prompt.
      * @return An integer representing the number of tokens used for the given model and content.
-     *         If the count cannot be determined or is less than or equal to 0, null is returned.
+     *         If the count cannot be determined or is less than or equal to 0, 0 is returned.
      */
-    public Integer calculateLlmTokenCount(String model, String content);
+    public int calculateLlmTokenCount(String model, String content);
 }
