@@ -1,6 +1,6 @@
-package com.newrelic.agent.bridge.aimonitoring;
+package com.newrelic.agent.aimonitoring;
 
-import com.newrelic.api.agent.AiMonitoringImpl;
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.api.agent.LlmFeedbackEventAttributes;
 import com.newrelic.api.agent.LlmTokenCountCallback;
 import org.junit.Assert;
@@ -8,53 +8,46 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.anyMap;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AiMonitoringImplTest {
 
     @Mock
-    AiMonitoringImpl aiMonitoringImpl;
-    LlmFeedbackEventAttributes.Builder llmFeedbackEventBuilder;
+    private AiMonitoringImpl aiMonitoringImpl;
+
+    private LlmTokenCountCallback callback;
     Map<String, Object> llmFeedbackEventAttributes;
 
     @Before
     public void setup() {
         String traceId = "123456";
         Integer rating = 5;
-        llmFeedbackEventBuilder = new LlmFeedbackEventAttributes.Builder(traceId, rating);
+        LlmFeedbackEventAttributes.Builder llmFeedbackEventBuilder = new LlmFeedbackEventAttributes.Builder(traceId, rating);
         llmFeedbackEventAttributes = llmFeedbackEventBuilder
                 .category("General")
                 .message("Great experience")
                 .build();
+        callback = getCallback();
+        aiMonitoringImpl = new AiMonitoringImpl();
     }
 
     @Test
-    public void testRecordLlmFeedbackEventSuccess() {
-        aiMonitoringImpl.recordLlmFeedbackEvent(llmFeedbackEventAttributes);
-        Mockito.verify(aiMonitoringImpl).recordLlmFeedbackEvent(llmFeedbackEventAttributes);
-    }
-
-    @Test
-    public void testRecordLlmFeedbackEventFailure() {
-        Mockito.doThrow(new RuntimeException("Custom event recording failed")).when(aiMonitoringImpl).recordLlmFeedbackEvent(anyMap());
+    public void testRecordLlmFeedbackEventSent() {
         try {
             aiMonitoringImpl.recordLlmFeedbackEvent(llmFeedbackEventAttributes);
-        } catch (RuntimeException exception) {
-            Mockito.verify(aiMonitoringImpl).recordLlmFeedbackEvent(llmFeedbackEventAttributes);
-            Assert.assertEquals("Custom event recording failed", exception.getMessage());
+        } catch (IllegalArgumentException e) {
+            // test should not catch an exception
         }
+
     }
 
     @Test
     public void testRecordLlmFeedbackEventWithNullAttributes() {
-        Mockito.doThrow(new IllegalArgumentException("llmFeedbackEventAttributes cannot be null"))
-                .when(aiMonitoringImpl).recordLlmFeedbackEvent(null);
 
         try {
             aiMonitoringImpl.recordLlmFeedbackEvent(null);
@@ -66,25 +59,33 @@ public class AiMonitoringImplTest {
     }
 
     @Test
-    public void testSetLlmTokenCountCallbackSuccess() {
-        LlmTokenCountCallback testCallback = Mockito.mock(LlmTokenCountCallback.class);
-        aiMonitoringImpl.setLlmTokenCountCallback(testCallback);
-        Mockito.verify(aiMonitoringImpl).setLlmTokenCountCallback(testCallback);
-        Assert.assertNotNull(LlmTokenCountCallbackHolder.getInstance());
+    public void testCallbackSetSuccessfully() {
+        aiMonitoringImpl.setLlmTokenCountCallback(callback);
+        assertEquals(callback, LlmTokenCountCallbackHolder.getLlmTokenCountCallback());
     }
 
     @Test
-    public void testSetLlmTokenCountCallbackReturnsIntegerGreaterThanZero() {
+    public void testSetLlmTokenCountCallbackWithNull() {
+
+        try {
+            aiMonitoringImpl.setLlmTokenCountCallback(null);
+            Assert.fail("Expected IllegalArgumentException to be thrown");
+        } catch (IllegalArgumentException e) {
+            // Expected exception thrown, test passes
+            System.out.println("IllegalArgumentException successfully thrown!");
+        }
+
+    }
+
+    public LlmTokenCountCallback getCallback() {
         class TestCallback implements LlmTokenCountCallback {
 
             @Override
-            public Integer calculateLlmTokenCount(String model, String content) {
+            public int calculateLlmTokenCount(String model, String content) {
                 return 13;
             }
         }
-
-        TestCallback testCallback = new TestCallback();
-        aiMonitoringImpl.setLlmTokenCountCallback(testCallback);
+        return new TestCallback();
     }
 
 }

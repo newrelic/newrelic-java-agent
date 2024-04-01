@@ -1,5 +1,6 @@
-package com.newrelic.agent;
+package com.newrelic.agent.aimonitoring;
 
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.api.agent.AiMonitoring;
 import com.newrelic.api.agent.LlmFeedbackEventAttributes;
@@ -40,6 +41,9 @@ public class AiMonitoringImpl implements AiMonitoring {
 
     @Override
     public void recordLlmFeedbackEvent(Map<String, Object> llmFeedbackEventAttributes) {
+        if (llmFeedbackEventAttributes == null) {
+            throw new IllegalArgumentException("llmFeedbackEventAttributes cannot be null");
+        }
         // Delegate to Insights API for event recording
         NewRelic.getAgent().getInsights().recordCustomEvent("LlmFeedbackMessage", llmFeedbackEventAttributes);
     }
@@ -53,7 +57,10 @@ public class AiMonitoringImpl implements AiMonitoring {
      */
     @Override
     public void setLlmTokenCountCallback(LlmTokenCountCallback llmTokenCountCallback) {
+        if (llmTokenCountCallback == null) {
+            throw new IllegalArgumentException("llmTokenCountCallback cannot be null");
+        }
         LlmTokenCountCallbackHolder.setLlmTokenCountCallback(llmTokenCountCallback);
-        NewRelic.getAgent().getMetricAggregator().incrementCounter(SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET);
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET);
     }
 }
