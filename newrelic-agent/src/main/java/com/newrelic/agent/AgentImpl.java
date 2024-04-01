@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.newrelic.agent.aimonitoring.AiMonitoringImpl;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpMetricAggregator;
 import com.newrelic.agent.bridge.NoOpTracedMethod;
@@ -16,7 +17,6 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.AiMonitoring;
-import com.newrelic.api.agent.AiMonitoringImpl;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
