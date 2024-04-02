@@ -28,7 +28,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "pekko", "scala" })
+@InstrumentationTestConfig(includePrefixes = { "org.apache.pekko", "scala" })
 public class PekkoHttpRoutesTest {
 
     private static final long TIMEOUT = 30000;

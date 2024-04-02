@@ -36,7 +36,7 @@ class PekkoServer() {
 
   def start(port: Int, async: Boolean) = {
 
-    serverSource = Http().bind(interface = "localhost", port)
+    serverSource = Http().newServerAt(interface = "localhost", port).connectionSource()
 
     if (async) {
 

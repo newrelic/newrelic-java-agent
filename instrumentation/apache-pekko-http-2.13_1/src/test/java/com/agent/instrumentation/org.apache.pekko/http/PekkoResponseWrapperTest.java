@@ -25,7 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "pekko", "scala" })
+@InstrumentationTestConfig(includePrefixes = { "org.apache.pekko", "scala" })
 public class PekkoResponseWrapperTest {
 
     private static final long TIMEOUT = 30000;
