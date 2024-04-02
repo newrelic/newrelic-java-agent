@@ -28,10 +28,10 @@ public class LlmFeedbackEventAttributesTest {
         llmFeedbackEventAttributes = llmFeedbackEventBuilder.build();
 
         assertNotNull(llmFeedbackEventAttributes);
-        assertEquals("123456", llmFeedbackEventAttributes.get("traceId"));
+        assertEquals("123456", llmFeedbackEventAttributes.get("trace_id"));
         assertEquals(3, llmFeedbackEventAttributes.get("rating"));
         assertNotNull(llmFeedbackEventAttributes.get("id"));
-        assertEquals("Java", llmFeedbackEventAttributes.get("ingestSource"));
+        assertEquals("Java", llmFeedbackEventAttributes.get("ingest_source"));
         assertFalse(llmFeedbackEventAttributes.containsKey("category"));
         assertFalse(llmFeedbackEventAttributes.containsKey("message"));
         assertFalse(llmFeedbackEventAttributes.containsKey("metadata"));
@@ -46,7 +46,7 @@ public class LlmFeedbackEventAttributesTest {
                 .build();
 
         assertNotNull(llmFeedbackEventAttributes);
-        assertEquals("123456", llmFeedbackEventAttributes.get("traceId"));
+        assertEquals("123456", llmFeedbackEventAttributes.get("trace_id"));
         assertEquals(3, llmFeedbackEventAttributes.get("rating"));
         assertEquals("exampleCategory", llmFeedbackEventAttributes.get("category"));
         assertEquals("exampleMessage", llmFeedbackEventAttributes.get("message"));
@@ -61,13 +61,13 @@ public class LlmFeedbackEventAttributesTest {
                 .build();
 
         assertNotNull(llmFeedbackEventAttributes);
-        assertEquals("123456", llmFeedbackEventAttributes.get("traceId"));
+        assertEquals("123456", llmFeedbackEventAttributes.get("trace_id"));
         assertEquals(3, llmFeedbackEventAttributes.get("rating"));
         assertNull(llmFeedbackEventAttributes.get("category"));
         assertNull(llmFeedbackEventAttributes.get("message"));
         assertNull(llmFeedbackEventAttributes.get("metadata"));
         assertNotNull(llmFeedbackEventAttributes.get("id"));
-        assertEquals("Java", llmFeedbackEventAttributes.get("ingestSource"));
+        assertEquals("Java", llmFeedbackEventAttributes.get("ingest_source"));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class LlmFeedbackEventAttributesTest {
         llmFeedbackEventAttributes = llmFeedbackEventBuilder.build();
 
         assertNotNull(llmFeedbackEventAttributes);
-        assertEquals("123456", llmFeedbackEventAttributes.get("traceId"));
+        assertEquals("123456", llmFeedbackEventAttributes.get("trace_id"));
         assertEquals("3", llmFeedbackEventAttributes.get("rating"));
     }
 
