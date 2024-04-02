@@ -12,7 +12,7 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.LlmTokenCountCallback;
-import com.newrelic.api.agent.LlmTokenCountCallbackHolder;
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import llm.models.ModelInvocation;
 import llm.models.amazon.titan.TitanModelInvocation;
 import llm.models.anthropic.claude.ClaudeModelInvocation;
@@ -198,7 +198,7 @@ public class LlmEventTest {
                 .responseModel() // attribute 10
                 .sequence(0) // attribute 11
                 .completionId() // attribute 12
-                .tokenCount(LlmTokenCountCallbackHolder.getInstance().getLlmTokenCountCallback().calculateLlmTokenCount("model", "content")) // attribute 13
+                .tokenCount(LlmTokenCountCallbackHolder.getLlmTokenCountCallback().calculateLlmTokenCount("model", "content")) // attribute 13
                 .build();
 
         // attributes 14 & 15 should be the two llm.* prefixed userAttributes

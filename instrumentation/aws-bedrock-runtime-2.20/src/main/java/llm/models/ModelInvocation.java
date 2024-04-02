@@ -9,7 +9,7 @@ package llm.models;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.api.agent.LlmTokenCountCallbackHolder;
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 
@@ -186,14 +186,11 @@ public interface ModelInvocation {
      * @return int representing the tokenCount
      */
     static int getTokenCount(String model, String content) {
-        int tokenCount = 0;
-
-        if (LlmTokenCountCallbackHolder.getInstance() != null && !Objects.equals(content, "")) {
-            return LlmTokenCountCallbackHolder
-                    .getInstance()
-                    .getLlmTokenCountCallback()
-                    .calculateLlmTokenCount(model, content);
+        if (LlmTokenCountCallbackHolder.getLlmTokenCountCallback() == null || Objects.equals(content, "")) {
+            return 0;
         }
-        return tokenCount;
+        return LlmTokenCountCallbackHolder
+                .getLlmTokenCountCallback()
+                .calculateLlmTokenCount(model, content);
     }
 }
