@@ -1,18 +1,21 @@
 package io.opentelemetry.sdk.autoconfigure;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.NewRelic;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.resources.ResourceBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.UUID;
 import java.util.logging.Level;
 
-public final class PropertiesCustomizer implements Function<ConfigProperties, Map<String, String>> {
-    @Override
-    public Map<String, String> apply(ConfigProperties configProperties) {
+public final class Customizer {
+    public static Map<String, String> applyProperties(ConfigProperties configProperties) {
         if (configProperties.getString("otel.exporter.otlp.endpoint") == null) {
             final Agent agent = NewRelic.getAgent();
             agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
@@ -36,5 +39,21 @@ public final class PropertiesCustomizer implements Function<ConfigProperties, Ma
             return properties;
         }
         return Collections.emptyMap();
+    }
+
+    public static Resource applyResources(Resource resource, ConfigProperties configProperties) {
+        NewRelic.getAgent().getLogger().log(Level.FINE, "Appending OpenTelemetry resources");
+        final ResourceBuilder builder = new ResourceBuilder().putAll(resource);
+        final AttributeKey<String> instanceIdKey = AttributeKey.stringKey("service.instance.id");
+        final String instanceId = resource.getAttribute(instanceIdKey);
+        if (instanceId == null) {
+            builder.put(instanceIdKey, UUID.randomUUID().toString());
+        }
+
+        final String entityGuid = AgentBridge.getAgent().getEntityGuid(true);
+        if (entityGuid != null) {
+            builder.put("entity.guid", entityGuid);
+        }
+        return builder.build();
     }
 }
