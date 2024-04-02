@@ -25,6 +25,7 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class AgentImpl implements com.newrelic.agent.bridge.Agent {
@@ -146,6 +147,17 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     @Override
     public Logs getLogSender() {
         return ServiceFactory.getServiceManager().getLogSenderService();
+    }
+
+    @Override
+    public String getEntityGuid(boolean wait) {
+        final RPMServiceManager rpmServiceManager = ServiceFactory.getServiceManager().getRPMServiceManager();
+        final IRPMService rpmService = rpmServiceManager.getRPMService();
+        if (wait && !rpmService.isConnected()) {
+            logger.log(Level.FINE, "Connecting");
+            ServiceFactory.getRPMConnectionService().awaitConnectImmediate(rpmServiceManager, 1, TimeUnit.MINUTES);
+        }
+        return rpmService.getEntityGuid();
     }
 
     @Override

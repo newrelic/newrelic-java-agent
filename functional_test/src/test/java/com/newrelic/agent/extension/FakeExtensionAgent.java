@@ -75,4 +75,9 @@ public class FakeExtensionAgent implements Agent {
     public Logs getLogSender() {
         throw new RuntimeException();
     }
+
+    @Override
+    public String getEntityGuid(boolean wait) {
+        throw new RuntimeException();
+    }
 }

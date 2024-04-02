@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 /**
  * Used for attributes where we want to get their values.
@@ -38,6 +39,8 @@ public abstract class JmxGet extends JmxObject {
     private static final Pattern TYPE_QUERY_PATTERN = Pattern.compile(",(.*?)=");
     private static final Pattern PULL_VALUE_PATTERN = Pattern.compile("\\{(.*?)\\}");
     private static final Pattern PULL_ATTRIBUTE_PATTERN = Pattern.compile("\\:(.*?)\\:");
+    private static final Pattern PULL_ITER_VAL_PATTERN = Pattern.compile("for\\:(.*)\\[([0-9]+)\\:([0-9]*)\\:(.*)\\].*");
+    private static final Pattern RANGE_PATTERN = Pattern.compile("\\[([0-9]+)\\:([0-9]*)\\:(.*)\\]");
 
     /** This should be everything but the attribute portion of the metric. */
     private final String rootMetricName;
@@ -155,17 +158,20 @@ public abstract class JmxGet extends JmxObject {
         while (m.find()) {
 
             key = m.group(1);
-            Matcher attributeMatcher = PULL_ATTRIBUTE_PATTERN.matcher(key);
-            if (attributeMatcher.matches()) {
-                key = attributeMatcher.group(1);
-                try {
-                    value = server.getAttribute(actualName, key).toString();
-                } catch (Throwable e) {
-                    Agent.LOG.log(Level.FINEST, e, e.getMessage());
-                }
-            } else {
-                value = keyProperties.get(key);
+
+            String iteratedValues = null;
+            try {
+                iteratedValues = matchAndGetIteratedValue(key, keyProperties, actualName, server);
+            }  catch (Throwable e) {
+                Agent.LOG.log(Level.FINEST, e, e.getMessage());
             }
+
+            if (iteratedValues != null) {
+                value = iteratedValues;
+            } else {
+                value = getValueFromMBeanKey(key, keyProperties, actualName, server);
+            }
+
 
             if (value != null) {
                 m.appendReplacement(sb, cleanValue(value));
@@ -184,6 +190,68 @@ public abstract class JmxGet extends JmxObject {
         } else {
             return modifier.getMetricName(sb.toString());
         }
+    }
+
+    private String matchAndGetIteratedValue(String key, Map<String, String> keyProperties,
+            ObjectName actualName, MBeanServer server) {
+
+        Matcher iterMatcher = PULL_ITER_VAL_PATTERN.matcher(key);
+        if (!iterMatcher.matches())  {
+            return null;
+        }
+
+        String rangedKeyFormat = key.substring(4);
+        Matcher rangeMatcher = RANGE_PATTERN.matcher(rangedKeyFormat);
+
+        if (!rangeMatcher.find()) {
+            return null;
+        }
+        String rangeStartStr = rangeMatcher.group(1);
+        String rangeEndStr = rangeMatcher.group(2);
+        String delimiterStr = rangeMatcher.group(3);
+        if (delimiterStr == null || delimiterStr.isEmpty()) {
+            delimiterStr = "/";
+        }
+        rangeMatcher.reset();
+
+        int rangeStart = (rangeStartStr != null && !rangeStartStr.isEmpty()) ? Integer.parseInt(rangeStartStr): 0;
+        int rangeEnd = (rangeEndStr != null && !rangeEndStr.isEmpty())
+                ? Integer.parseInt(rangeEndStr)
+                : rangeStart + keyProperties.size();
+
+        List<String> valueSequence = new ArrayList<>(keyProperties.size());
+
+        for (int i = rangeStart; i < rangeEnd && rangeMatcher.find(); i++) {
+            StringBuffer sb = new StringBuffer(key.length());
+            rangeMatcher.appendReplacement(sb, Integer.toString(i));
+            rangeMatcher.appendTail(sb);
+            rangeMatcher.reset();
+
+            String mbeanKey = sb.toString();
+            String value = getValueFromMBeanKey(mbeanKey, keyProperties, actualName, server);
+            if (value != null) {
+                valueSequence.add(value);
+            }
+        }
+
+        return String.join(delimiterStr, valueSequence);
+    }
+
+    private String getValueFromMBeanKey(String key, Map<String, String> keyProperties,
+            ObjectName actualName, MBeanServer server) {
+        String value = null;
+        Matcher pullAttrMatcher = PULL_ATTRIBUTE_PATTERN.matcher(key);
+        if (pullAttrMatcher.matches()) {
+            key = pullAttrMatcher.group(1);
+            try {
+                value = server.getAttribute(actualName, key).toString();
+            } catch (Throwable e) {
+                Agent.LOG.log(Level.FINEST, e, e.getMessage());
+            }
+        } else {
+            value = keyProperties.get(key);
+        }
+        return value;
     }
 
     protected static String cleanValue(String value) {
@@ -263,4 +331,5 @@ public abstract class JmxGet extends JmxObject {
     protected List<JmxMetric> getJmxMetrics() {
         return metrics;
     }
+
 }

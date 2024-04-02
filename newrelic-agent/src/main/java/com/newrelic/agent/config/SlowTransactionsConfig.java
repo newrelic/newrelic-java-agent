@@ -22,4 +22,12 @@ public interface SlowTransactionsConfig {
      */
     long getThresholdMillis();
 
+    /**
+     * By default, only in-progress transactions are checked for exceeding the defined
+     * threshold time during a normal harvest cycle. Setting this to true will
+     * evaluate transactions as they complete and report any that exceed the defined
+     * threshold.
+     */
+    boolean evaluateCompletedTransactions();
+
 }
