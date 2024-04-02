@@ -55,10 +55,10 @@ public class LlmFeedbackEventAttributes {
 
     public Map<String, Object> toMap() {
         Map<String, Object> feedbackAttributesMap = new HashMap<>();
-        feedbackAttributesMap.put("traceId", getTraceId());
+        feedbackAttributesMap.put("trace_id", getTraceId());
         feedbackAttributesMap.put("rating", getRating());
         feedbackAttributesMap.put("id", getId());
-        feedbackAttributesMap.put("ingestSource", getIngestSource());
+        feedbackAttributesMap.put("ingest_source", getIngestSource());
         if (category != null) {
             feedbackAttributesMap.put("category", getCategory());
         }
