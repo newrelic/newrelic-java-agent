@@ -3,6 +3,7 @@ package io.opentelemetry.sdk.autoconfigure;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.tracers.TracerFlags;
+import com.newrelic.api.agent.NewRelic;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
@@ -12,9 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class SpanToTracerProcessor implements SpanProcessor {
-
     private final Map<String, ExitTracer> tracersBySpanId = new ConcurrentHashMap<>();
-
     @Override
     public void onStart(Context parentContext, ReadWriteSpan span) {
         final ExitTracer tracer = AgentBridge.instrumentation.createTracer("Span/" + span.getName(),
@@ -24,6 +23,8 @@ public final class SpanToTracerProcessor implements SpanProcessor {
 
         tracer.addCustomAttribute("span.kind", span.getKind().name());
         tracersBySpanId.put(span.getSpanContext().getSpanId(), tracer);
+
+        NewRelic.getAgent().getMetricAggregator().recordMetric("Supportability/SpanToTracerProcessor/tracersBySpanId/size", tracersBySpanId.size());
     }
 
     @Override
