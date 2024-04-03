@@ -17,6 +17,10 @@ public class AutoConfiguredOpenTelemetrySdk {
             NewRelic.getAgent().getLogger().log(Level.INFO, "Appending OpenTelemetry SDK customizers");
             builder.addPropertiesCustomizer(Customizer::applyProperties);
             builder.addResourceCustomizer(Customizer::applyResources);
+
+            // span support
+            builder.addTracerProviderCustomizer(Customizer::applyTraceProviderCustomizer);
+            builder.addSpanExporterCustomizer(SpanExporterCustomizer::new);
         }
         return builder;
     }

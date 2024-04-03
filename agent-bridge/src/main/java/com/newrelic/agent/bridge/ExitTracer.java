@@ -19,6 +19,11 @@ public interface ExitTracer extends InvocationHandler, TracedMethod {
      */
     void finish(int opcode, Object returnValue);
 
+    default void finish() {
+        //  177 is Opcodes.RETURN
+        finish(177, null);
+    }
+
     /**
      * Called when a method invocation throws an exception.
      * 

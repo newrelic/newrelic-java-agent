@@ -64,6 +64,7 @@ import java.util.logging.Level;
 
 import static com.newrelic.agent.Transaction.SCALA_API_TRACER_FLAGS;
 import static com.newrelic.agent.Transaction.SCALA_API_TXN_CLASS_SIGNATURE_ID;
+import static com.newrelic.agent.Transaction.GENERIC_TXN_CLASS_SIGNATURE_ID;
 
 public class InstrumentationImpl implements Instrumentation {
 
@@ -360,12 +361,17 @@ public class InstrumentationImpl implements Instrumentation {
         }
     }
 
-  @Override
-  public ExitTracer createScalaTxnTracer() {
-    return createTracer(null, SCALA_API_TXN_CLASS_SIGNATURE_ID, null, SCALA_API_TRACER_FLAGS);
-  }
+    @Override
+    public ExitTracer createScalaTxnTracer() {
+      return createTracer(null, SCALA_API_TXN_CLASS_SIGNATURE_ID, null, SCALA_API_TRACER_FLAGS);
+    }
 
-  private boolean overSegmentLimit(TransactionActivity transactionActivity) {
+    @Override
+    public ExitTracer createTracer(String metricName, int flags) {
+        return createTracer(null, GENERIC_TXN_CLASS_SIGNATURE_ID, metricName, flags);
+    }
+
+    private boolean overSegmentLimit(TransactionActivity transactionActivity) {
         Transaction transaction;
         if (transactionActivity == null) {
             transaction = Transaction.getTransaction(false);

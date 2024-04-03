@@ -7,6 +7,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,5 +56,10 @@ public final class Customizer {
             builder.put("entity.guid", entityGuid);
         }
         return builder.build();
+    }
+
+    public static SdkTracerProviderBuilder applyTraceProviderCustomizer(
+            SdkTracerProviderBuilder sdkTracerProviderBuilder, ConfigProperties configProperties) {
+        return sdkTracerProviderBuilder.addSpanProcessor(new SpanToTracerProcessor());
     }
 }
