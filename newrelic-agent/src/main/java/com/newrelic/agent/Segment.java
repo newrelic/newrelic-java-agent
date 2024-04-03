@@ -195,18 +195,15 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity, Attrib
             final String endThreadName = Thread.currentThread().getName();
 
             if (tracer != null) {
-                Runnable expireSegmentRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        tracer.getTransactionActivity()
-                                .getTransaction()
-                                .finishSegment(segment, t, parent, endThreadName);
+                Runnable expireSegmentRunnable = () -> {
+                    tracer.getTransactionActivity()
+                            .getTransaction()
+                            .finishSegment(segment, t, parent, endThreadName);
 
-                        // Remove references to underlying and parent tracer to prevent GC issues
-                        underlyingTracer = null;
-                        parent = null;
-                        weakRefTransaction = null;
-                    }
+                    // Remove references to underlying and parent tracer to prevent GC issues
+                    underlyingTracer = null;
+                    parent = null;
+                    weakRefTransaction = null;
                 };
 
                 if (async) {

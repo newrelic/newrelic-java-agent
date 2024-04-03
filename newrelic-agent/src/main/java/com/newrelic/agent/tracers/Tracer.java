@@ -14,14 +14,11 @@ import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.trace.TransactionSegment;
 import com.newrelic.api.agent.ExternalParameters;
 
-import java.lang.reflect.InvocationHandler;
 import java.util.Map;
 
 /**
  * A tracer records information about a method invocation - primarily the start and stop time of the invocation. A
  * tracer instance is associated with a single method invocation.
- *
- * Tracers are created by {@link TracerFactory} instances.
  */
 public interface Tracer extends TimedItem, ExitTracer, ErrorTracer {
 

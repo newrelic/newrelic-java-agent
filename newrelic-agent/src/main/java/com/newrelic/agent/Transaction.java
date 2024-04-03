@@ -220,8 +220,7 @@ public class Transaction {
     // The appNameAndConfig combo has a deceptively complex behavior: we want both threadsafe lazy
     // initialization with lock-free updates. Setters must have priority over initialization.
 
-    private Callable<AppNameAndConfig> appNameAndConfigInitializer = AppNameAndConfig::getDefault;
-    private LazyAtomicReference<AppNameAndConfig> appNameAndConfig = new LazyAtomicReference<>(appNameAndConfigInitializer);
+    private final LazyAtomicReference<AppNameAndConfig> appNameAndConfig = new LazyAtomicReference<>(AppNameAndConfig::getDefault);
 
     // (4) State that is guarded using the lock. Referenced objects must be threadsafe.
 
