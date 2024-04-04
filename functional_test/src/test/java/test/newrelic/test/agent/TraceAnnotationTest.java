@@ -269,6 +269,7 @@ public class TraceAnnotationTest implements TransactionListener {
     }
 
     @Test
+    @Trace(dispatcher = true)
     public void testOTelWithSpan() {
         withSpan();
 
