@@ -29,6 +29,7 @@ import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -265,6 +266,19 @@ public class TraceAnnotationTest implements TransactionListener {
 
         Set<String> metrics = AgentHelper.getMetrics();
         AgentHelper.verifyMetrics(metrics, MessageFormat.format("Custom/{0}/doubleArrayArg", Simple.class.getName()));
+    }
+
+    @Test
+    public void testOTelWithSpan() {
+        withSpan();
+
+        Set<String> metrics = AgentHelper.getMetrics();
+        AgentHelper.verifyMetrics(metrics, MessageFormat.format("Custom/{0}/withSpan", Simple.class.getName()));
+    }
+
+    @WithSpan
+    private void withSpan() {
+
     }
 
     @Trace(dispatcher = true)
