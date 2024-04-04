@@ -7,6 +7,7 @@
 
 package test.newrelic.test.agent;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
@@ -269,7 +270,6 @@ public class TraceAnnotationTest implements TransactionListener {
     }
 
     @Test
-    @Trace(dispatcher = true)
     public void testOTelWithSpan() {
         withSpan();
 
@@ -277,9 +277,9 @@ public class TraceAnnotationTest implements TransactionListener {
         AgentHelper.verifyMetrics(metrics, MessageFormat.format("Custom/{0}/withSpan", Simple.class.getName()));
     }
 
-    @WithSpan
-    private void withSpan() {
-
+    @Trace(dispatcher = true)
+    static void withSpan() {
+        new Simple().withSpan();
     }
 
     @Trace(dispatcher = true)
@@ -320,7 +320,12 @@ public class TraceAnnotationTest implements TransactionListener {
         new Simple().charArray(new char[] { 6 });
     }
 
-    private class Simple {
+    private static class Simple {
+        @WithSpan
+        void withSpan() {
+            Agent.LOG.info("withSpan");
+        }
+
         @Trace
         private void foo() throws InterruptedException {
             Thread.sleep(200);
