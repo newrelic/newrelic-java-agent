@@ -7,6 +7,7 @@
 
 package test.newrelic.test.agent;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
@@ -29,6 +30,7 @@ import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -267,6 +269,19 @@ public class TraceAnnotationTest implements TransactionListener {
         AgentHelper.verifyMetrics(metrics, MessageFormat.format("Custom/{0}/doubleArrayArg", Simple.class.getName()));
     }
 
+    @Test
+    public void testOTelWithSpan() {
+        withSpan();
+
+        Set<String> metrics = AgentHelper.getMetrics();
+        AgentHelper.verifyMetrics(metrics, MessageFormat.format("Custom/{0}/withSpan", Simple.class.getName()));
+    }
+
+    @Trace(dispatcher = true)
+    static void withSpan() {
+        new Simple().withSpan();
+    }
+
     @Trace(dispatcher = true)
     private void callDoubleArray() {
         new Simple().doubleArrayArg(new String[0][0]);
@@ -305,7 +320,12 @@ public class TraceAnnotationTest implements TransactionListener {
         new Simple().charArray(new char[] { 6 });
     }
 
-    private class Simple {
+    private static class Simple {
+        @WithSpan
+        void withSpan() {
+            Agent.LOG.info("withSpan");
+        }
+
         @Trace
         private void foo() throws InterruptedException {
             Thread.sleep(200);
