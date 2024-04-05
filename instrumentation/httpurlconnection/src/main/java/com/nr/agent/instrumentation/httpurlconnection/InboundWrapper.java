@@ -18,6 +18,9 @@ public class InboundWrapper extends ExtendedInboundHeaders {
     private final HttpURLConnection connection;
 
     public InboundWrapper(HttpURLConnection connection) {
+        // Do not try to optimize by holding a reference to the header map obtained from HttpURLConnection.getHeaderFields
+        // instead of holding a reference to the HttpURLConnection instance, as it will trigger a call to
+        // HttpURLConnection.getInputStream and infinitely loop through this instrumentation.
         this.connection = connection;
     }
 
