@@ -53,7 +53,7 @@ jobs:
       tests: ${{ steps.read-single-test.outputs.tests || steps.read-tests.outputs.tests }}
     steps:
       - name: Checkout AIT repo test
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: newrelic/java-agent-integration-tests
           ref: ${{ inputs.ait-ref || 'main' }}
@@ -125,7 +125,7 @@ jobs:
     steps:
       - name: Retrieve agent from cache
         id: retrieve-agent
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: agent-jar-${{ github.run_id }}
@@ -133,7 +133,7 @@ jobs:
 
       ## Ongoing tests with artifactory dependencies
       - name: Checkout AIT repo test
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: newrelic/java-agent-integration-tests
           ref: ${{ inputs.ait-ref }}
@@ -142,7 +142,7 @@ jobs:
 
       # Apps repos/caches - this process could be a candidate for custom action
       - name: Checkout Cache 1
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: newrelic/java-ait-cache-1
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -151,7 +151,7 @@ jobs:
           lfs: true
 
       - name: Checkout Cache 2
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: newrelic/java-ait-cache-2
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -160,7 +160,7 @@ jobs:
           lfs: true
 
       - name: Checkout Cache 3
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: newrelic/java-ait-cache-3
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -169,7 +169,7 @@ jobs:
           lfs: true
 
       - name: Checkout Cache 4
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: newrelic/java-ait-cache-4
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -195,7 +195,7 @@ jobs:
 
       # Install Zulu
       - name: Set up Zulu versions
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: |
@@ -211,7 +211,7 @@ jobs:
           echo "JDK_zulu_21=${JAVA_HOME_21_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: |
@@ -327,14 +327,14 @@ jobs:
 
       - name: Capture testing artifacts
         if: ${{ failure() || success() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.workflow }}-${{ github.job }}-${{ env.MATRIX }}
           path: |
             agent-integration-tests/testing-artifacts/*
 
       - name: Upload negative value artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: ${{ github.workspace }}/negative_value_*.txt
           if-no-files-found: ignore
@@ -348,7 +348,7 @@ jobs:
       - name: Send failure message to Slack
         if: ${{ hashFiles('**/negative_value_*.txt') != '' }}
         id: slack
-        uses: slackapi/slack-github-action@v1.23.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
             {
