@@ -2,9 +2,12 @@
 Noteworthy changes to the agent are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Version 8.10.0
+
+:warning: NOTICE: This agent version introduced a bug that can cause a deadlock if your application uses `HttpUrlConnection` (or any libraries that use it under the hood). This issue will be resolved in the 8.11.0 agent. Alternatively, downgrading to agent version 8.9.1 or disabling the `HttpUrlConnection` instrumentation would resolve the issue (i.e. `-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.enabled=false`). Note that disabling this instrumentation will result in external calls made by the client no longer getting recorded and thus the recommended approach would be to use one of the recommended agent versions.
+
 ## New features and improvements
 
 - Support for Spring Webflux 6.1.x [1761](https://github.com/newrelic/newrelic-java-agent/pull/1761)
