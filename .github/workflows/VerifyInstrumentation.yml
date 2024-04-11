@@ -32,7 +32,7 @@ jobs:
   # So 2 pages should be good until we have around 500 instrumentation modules
   # When we grow to more than that, we'll need to create a third job here and have pages 1/3, 2/3 and 3/3
   # Also, this new job must be listed in the `needs` for notify-failure
-  
+
   verify-instrumentation-1:
     name: Page 1/2
     needs: build-agent
@@ -50,15 +50,15 @@ jobs:
       page: 2/2
       ref: ${{ inputs.agent-ref || 'main' }}
     secrets: inherit
-    
+
   notify-failure:
-    needs: [verify-instrumentation-1, verify-instrumentation-2]
+    needs: [ verify-instrumentation-1, verify-instrumentation-2 ]
     if: ${{ failure() }}
     runs-on: ubuntu-20.04
     steps:
       - name: Send failure message to Slack
         id: slack
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # pin@v1.25.0
         with:
           payload: |
             {
@@ -66,4 +66,3 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-

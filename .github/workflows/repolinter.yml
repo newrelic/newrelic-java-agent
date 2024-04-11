@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Run Repolinter
         if: ${{ steps.default-branch.outputs.result == 'true' }}
-        uses: newrelic/repolinter-action@v1
+        uses: newrelic/repolinter-action@3f4448f855c351e9695b24524a4111c7847b84cb # pin@v1.7.0
         with:
           config_url: https://raw.githubusercontent.com/newrelic/.github/main/repolinter-rulesets/community-plus.yml
           output_type: issue
