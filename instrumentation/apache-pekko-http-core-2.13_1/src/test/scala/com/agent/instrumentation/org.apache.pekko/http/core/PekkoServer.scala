@@ -25,7 +25,7 @@ import scala.language.postfixOps
 class PekkoServer() {
   implicit val system = ActorSystem()
   implicit val executor = system.dispatcher
-  implicit val materializer = ActorMaterializer()
+
   implicit val timeout: Timeout = 3 seconds
 
   val config = ConfigFactory.load()

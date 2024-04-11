@@ -30,7 +30,6 @@ class PekkoHttpTestRoutes {
   implicit val system: ActorSystem = ActorSystem("pekkohttptest")
   implicit val scheduler: Scheduler = system.scheduler
   implicit val executor: ExecutionContext = system.dispatcher
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val requestTimeout: Timeout = Timeout(30 seconds)
 
   val newrelicCheck: ActorRef = system.actorOf(StatusCheckActor.props, "StatusCheck")

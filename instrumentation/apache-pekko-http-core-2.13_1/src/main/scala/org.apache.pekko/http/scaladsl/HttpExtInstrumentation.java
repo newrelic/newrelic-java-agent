@@ -25,13 +25,8 @@ import scala.concurrent.Future;
 @Weave(type = MatchType.ExactClass, originalName = "org.apache.pekko.http.scaladsl.HttpExt")
 public class HttpExtInstrumentation {
 
-    // This method only exists to ensure that this weave module doesn't match for versions of pekko-http-core-2.13 prior to 10.2.0.
-    // That said, as of 10.2.0 bind, bindAndHandle, bindAndHandleSync, and bindAndHandleAsync were all deprecated in favor of newServerAt:
-    //   @deprecated("Use Http.newServerAt(...)...connectionSource() to create a source that can be materialized to a binding.", since = "10.2.0")
-    public ServerBuilder newServerAt(String interfaceString, int port) {
-        return Weaver.callOriginal();
-    }
-
+    // These methods are deprecated but still exist in Pekko Http Core 1.0.0.
+    // They have been replaced by Http().newServerAt().bind().
     public Future<HttpInstrumentation.ServerBinding> bindAndHandleAsync(
             Function1<HttpRequest, Future<HttpResponse>> handler,
             String interfaceString, int port,

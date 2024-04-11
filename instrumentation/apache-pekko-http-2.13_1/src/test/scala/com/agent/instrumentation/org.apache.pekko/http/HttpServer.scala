@@ -13,7 +13,6 @@ import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.Http.ServerBinding
 import org.apache.pekko.http.scaladsl.server.Directives._
 import org.apache.pekko.http.scaladsl.server.{RequestContext, Route}
-import org.apache.pekko.stream.ActorMaterializer
 import org.apache.pekko.util.Timeout
 import com.typesafe.config.ConfigFactory
 
@@ -24,7 +23,6 @@ import scala.language.postfixOps
 class HttpServer(val routes: Route = RouteService.defaultRoute) {
   implicit val system = ActorSystem()
   implicit val executor = system.dispatcher
-  implicit val materializer = ActorMaterializer()
   implicit val timeout: Timeout = 60 seconds
 
   val config = ConfigFactory.load()
@@ -34,7 +32,7 @@ class HttpServer(val routes: Route = RouteService.defaultRoute) {
 
   def start(port: Int) = {
     Await.ready({
-      handle = Http().bindAndHandle(routes, "localhost", port)
+      handle = Http().newServerAt("localhost", port).bind(routes)
       handle
     }, timeout.duration)
   }

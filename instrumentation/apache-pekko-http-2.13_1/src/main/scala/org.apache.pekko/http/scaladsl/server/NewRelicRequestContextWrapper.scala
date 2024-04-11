@@ -55,8 +55,6 @@ class NewRelicRequestContextWrapper(originalRequestContext: Object,
     underlyingRequestContext.reconfigure(executionContext, materializer, log, settings)
   }
 
-  //INCOMPLETE --- COME BACK LATER
-
   @Trace(async = true)
   override def complete(trm: ToResponseMarshallable): Future[RouteResult] = {
     try {
@@ -71,7 +69,7 @@ class NewRelicRequestContextWrapper(originalRequestContext: Object,
         result
       })(executionContext)
     } catch {
-      case t: Throwable => AgentBridge.instrumentation.noticeInstrumentationError(t, "pekko-http-2.4.5")
+      case t: Throwable => AgentBridge.instrumentation.noticeInstrumentationError(t, "pekko-http-1")
         underlyingRequestContext.complete(trm)
     }
   }
@@ -83,7 +81,7 @@ class NewRelicRequestContextWrapper(originalRequestContext: Object,
         token.linkAndExpire()
       }
     } catch {
-      case t: Throwable => AgentBridge.instrumentation.noticeInstrumentationError(t, "pekko-http-2.4.5")
+      case t: Throwable => AgentBridge.instrumentation.noticeInstrumentationError(t, "pekko-http-1")
     }
   }
 

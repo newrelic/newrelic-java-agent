@@ -34,8 +34,6 @@ object PekkoHttpContextFunction {
 
 }
 
-// REVISIT THIS AND UNPACK IT
-
 class ContextWrapper(original: Function1[RequestContext, Future[RouteResult]]) extends AbstractFunction1[RequestContext, Future[RouteResult]] {
 
   @Trace(dispatcher = true)
@@ -55,7 +53,7 @@ class ContextWrapper(original: Function1[RequestContext, Future[RouteResult]]) e
       original.apply(newCtx)
     } catch {
       case t: Throwable => {
-        AgentBridge.instrumentation.noticeInstrumentationError(t, "pekko-http-2.4.5")
+        AgentBridge.instrumentation.noticeInstrumentationError(t, "pekko-http-1")
         original.apply(ctx)
       }
     }

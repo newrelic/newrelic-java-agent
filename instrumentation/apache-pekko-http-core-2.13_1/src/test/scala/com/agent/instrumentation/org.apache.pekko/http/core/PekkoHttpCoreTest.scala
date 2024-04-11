@@ -9,12 +9,11 @@ package com.agent.instrumentation.org.apache.pekko.http.core
 
 import java.util
 import java.util.concurrent.TimeUnit
-
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
 import org.apache.pekko.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
-import org.apache.pekko.stream.ActorMaterializer
+import org.apache.pekko.stream.{ActorMaterializer, Materializer}
 import com.newrelic.agent.HeadersUtil
 import com.newrelic.agent.introspec._
 import com.newrelic.agent.util.Obfuscator
@@ -27,11 +26,10 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[InstrumentationTestRunner])
-@InstrumentationTestConfig(includePrefixes = Array("scala", "pekko"))
+@InstrumentationTestConfig(includePrefixes = Array("scala", "org.apache.pekko"))
 class PekkoHttpCoreTest {
 
   implicit val system: ActorSystem = ActorSystem()
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   val pekkoServer = new PekkoServer()
   val playServer = new PlayServer()
@@ -42,7 +40,7 @@ class PekkoHttpCoreTest {
   def syncHandlerPekkoServerTest(): Unit = {
     pekkoServer.start(port, async = false)
 
-    Http().singleRequest(HttpRequest(uri = baseUrl + "/ping"))
+    val response: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = baseUrl + "/ping"))
 
     val introspector: Introspector = InstrumentationTestRunner.getIntrospector
     awaitFinishedTx(introspector, 1)
