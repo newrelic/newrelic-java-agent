@@ -36,7 +36,7 @@ public class HttpInstrumentation {
         public ServerBinding() {
             AgentBridge.getAgent().getLogger().log(Level.FINE, "Setting pekko-http port to: {0,number,#}", localAddress().getPort());
             AgentBridge.publicApi.setAppServerPort(localAddress().getPort());
-            AgentBridge.publicApi.setServerInfo("Pekko HTTP", ManifestUtils.getVersionFromManifest(getClass(), "pekko-http-core", "10.2.0"));
+            AgentBridge.publicApi.setServerInfo("Pekko HTTP", ManifestUtils.getVersionFromManifest(getClass(), "pekko-http-core", "1.0.0"));
 
             AgentBridge.instrumentation.retransformUninstrumentedClass(SyncRequestHandler.class);
             AgentBridge.instrumentation.retransformUninstrumentedClass(AsyncRequestHandler.class);
