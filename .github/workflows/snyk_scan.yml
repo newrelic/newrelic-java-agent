@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Java Agent
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4
+        uses: actions/checkout@v4
         with:
           ref: 'main'
 
@@ -23,9 +23,9 @@ jobs:
           echo "jdk8=/tmp" >> gradle.properties
           echo "jdk11=/tmp" >> gradle.properties
           echo "jdk17=/tmp" >> gradle.properties
-
+          
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/gradle-jdk11@8349f9043a8b7f0f3ee8885bf28f0b388d2446e8 # pin@master
+        uses: snyk/actions/gradle-jdk11@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:

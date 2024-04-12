@@ -26,7 +26,7 @@ jobs:
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -56,7 +56,7 @@ jobs:
       # GHA's IDE think the line below is broken. It is not.
       matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -65,7 +65,7 @@ jobs:
 
       - name: Retrieve agent from cache
         id: retrieve-agent
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v4
+        uses: actions/cache@v4
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: agent-jar-${{ github.run_id }}
