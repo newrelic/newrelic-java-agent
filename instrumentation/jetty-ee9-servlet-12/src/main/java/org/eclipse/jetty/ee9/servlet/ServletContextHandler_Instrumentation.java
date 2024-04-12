@@ -9,7 +9,7 @@ package org.eclipse.jetty.ee9.servlet;
 
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.jetty.ee9.servlet.JettyRequestListener;
+import com.nr.agent.instrumentation.jetty12.ee9.servlet.JettyRequestListener;
 
 import java.util.EventListener;
 

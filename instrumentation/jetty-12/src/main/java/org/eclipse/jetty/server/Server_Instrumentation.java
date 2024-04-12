@@ -8,10 +8,14 @@
 package org.eclipse.jetty.server;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.agent.instrumentation.jetty12.JettyRequest;
+import com.nr.agent.instrumentation.jetty12.JettyResponse;
 import com.nr.agent.instrumentation.jetty12.JettySampler;
+import com.nr.agent.instrumentation.jetty12.ServerHelper;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.thread.ThreadPool;
 
@@ -25,9 +29,19 @@ public abstract class Server_Instrumentation {
         Weaver.callOriginal();
     }
 
-    // Required so that earlier jetty versions do not apply.
-    // Transactions are managed in the jetty-12-ee* modules.
-    public  abstract boolean handle(Request request, Response response, Callback callback);
+    public boolean handle(Request request, Response response, Callback callback) {
+        boolean isStarted = AgentBridge.getAgent().getTransaction().isStarted();
+        // if there is a #ContextHolder, then this is not embedded Jetty, so the transaction should start there
+        boolean hasContextHolder = ServerHelper.hasContextHandler();
+        boolean startTransaction = request != null && !isStarted && !hasContextHolder;
+
+        if (startTransaction) {
+            Transaction txn = AgentBridge.getAgent().getTransaction(true);
+            txn.setWebRequest(new JettyRequest(request));
+            txn.setWebResponse(new JettyResponse(response));
+        }
+        return Weaver.callOriginal();
+    }
 
     public static String getVersion() {
         return Weaver.callOriginal();
