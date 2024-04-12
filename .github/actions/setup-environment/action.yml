@@ -33,7 +33,7 @@ runs:
         cat gradle.properties.gha >> gradle.properties
 
     - name: Setup Gradle
-      uses: gradle/gradle-build-action@v3
+      uses: gradle/actions/setup-gradle@v3
       with:
         cache-read-only: ${{ inputs.gradle-cache-read-only }}
 
