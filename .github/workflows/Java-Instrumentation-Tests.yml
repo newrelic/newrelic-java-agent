@@ -30,13 +30,13 @@ jobs:
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
     steps:
       - name: Checkout Java agent
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -76,7 +76,7 @@ jobs:
       # Capture HTML build result in artifacts
       - name: Capture build reports
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: instrumentation-tests-results-java-${{ matrix.java-version }}
           path: |
