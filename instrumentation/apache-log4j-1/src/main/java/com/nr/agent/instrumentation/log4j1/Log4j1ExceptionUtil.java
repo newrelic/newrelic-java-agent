@@ -25,7 +25,7 @@ public class Log4j1ExceptionUtil {
         boolean inner = false;
         while (t != null) {
             if (inner) {
-                lines.add("caused by: " + t.getClass().getName() + ": " + t.getMessage());
+                lines.add(" caused by: " + t.getClass().getName() + ": " + t.getMessage());
             }
             lines.addAll(stackTracesToStrings(t.getStackTrace()));
             t = t.equals(t.getCause()) ? null : t.getCause();
