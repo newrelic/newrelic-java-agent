@@ -360,6 +360,14 @@ class NoOpAgent implements Agent {
         }
     };
 
+    private static final AiMonitoring AI_MONITORING = new AiMonitoring() {
+        @Override
+        public void recordLlmFeedbackEvent(Map<String, Object> llmFeedbackEventAttributes) {}
+
+        @Override
+        public void setLlmTokenCountCallback(LlmTokenCountCallback llmTokenCountCallback) {}
+    };
+
     private static final Segment SEGMENT = new Segment() {
         @Override
         public void setMetricName(String... metricNameParts) {
@@ -456,6 +464,11 @@ class NoOpAgent implements Agent {
     @Override
     public Insights getInsights() {
         return INSIGHTS;
+    }
+
+    @Override
+    public AiMonitoring getAiMonitoring() {
+        return AI_MONITORING;
     }
 
     @Override
