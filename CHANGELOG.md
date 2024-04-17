@@ -55,7 +55,10 @@ The following instrumentation modules are deprecated and will be removed in the 
 
 ## Version 8.10.0
 
-:warning: NOTICE: This agent version introduced a bug that can cause a deadlock if your application uses `HttpUrlConnection` (or any libraries that use it). This issue is resolved in the 8.11.0 agent. Alternatively, downgrading to agent version 8.9.1 or disabling the `HttpUrlConnection` instrumentation would resolve the issue (i.e. `-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.enabled=false`). Note that disabling this instrumentation will result in external calls made by the client no longer getting recorded and thus the recommended approach would be to use one of the recommended agent versions.
+:warning: CAUTION: This agent version introduced a bug that may cause significant increases in CPU and memory usage and potential deadlock if your application uses HttpUrlConnection (or any libraries that use it under the hood). This issue has been resolved in the 8.11.0 agent. Alternatively, disabling the HttpUrlConnection instrumentation would prevent the issue 
+(for example `-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.enabled=false`). 
+
+PLEASE NOTE: Disabling this instrumentation will result in external calls made by the client no longer getting recorded. We strongly recommend using the latest agent versions, which include all recent code fixes and provide access to the latest platform features.
 
 ## New features and improvements
 
