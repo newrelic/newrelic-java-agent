@@ -16,7 +16,7 @@ public class AgentUtils {
     /**
      * Checks pretty or compact JSON layout strings for a series of characters and returns the index of
      * the characters or -1 if they were not found. This is used to find the log "message" substring
-     * so that the NR-LINKING metadata blob can be inserted when using local decorating with JsonLayout.
+     * so that the NR-LINKING metadata blob can be inserted when using local decorating with JsonTemplateLayout.
      *
      * @param writerString String representing JSON formatted log event
      * @return positive int if index was found, else -1
@@ -26,7 +26,14 @@ public class AgentUtils {
         if (msgIndex < 0) {
             return msgIndex;
         }
-        return writerString.indexOf("\",", msgIndex);
+        // If the "message" field is before other fields in the json string
+        int index = writerString.indexOf("\",", msgIndex);
+
+        if (index < 0 ) {
+            // If "message" is the last field in the json string
+            index = writerString.indexOf("\"}", msgIndex);
+        }
+        return index;
     }
 
     /**
@@ -40,6 +47,12 @@ public class AgentUtils {
         return indexToModifyJson != -1;
     }
 
+    /**
+     * Updates {@code jsonStringBuilder} with agent linking metadata.
+     *
+     * @param event LogEvent that may contain linking metadata
+     * @param jsonStringBuilder JSON formatted string builder that will be modified with linking metadata
+     */
     public static void writeLinkingMetadata(final LogEvent event, StringBuilder jsonStringBuilder) {
         String oldJsonString = jsonStringBuilder.toString();
         // Append linking metadata to the log message if local decorating is enabled
