@@ -1,7 +1,6 @@
 package com.nr.agent.instrumentation.log4j2.layout.template.json;
 
 import com.newrelic.agent.bridge.logging.Log4jUtils;
-import com.newrelic.api.agent.weaver.Weaver;
 import org.apache.logging.log4j.core.LogEvent;
 
 import java.util.Map;
