@@ -24,7 +24,7 @@ public class Log4jUtils {
 
         Field[] fieldList = c.getFields();
         for (Field field : fieldList) {
-            // Check if agentLinkingMetadata exists in LogEvent (instrumented since apache log4j 2.11)
+            // Check if agentLinkingMetadata exists in LogEvent (instrumented in instrumentation:apache-log4j-2.11 and above)
             if (field.getAnnotationsByType(NewField.class).length != 0 && field.getName().equals("agentLinkingMetadata")) {
                 try {
                     return (Map<String, String>) field.get(logEvent);
@@ -34,7 +34,7 @@ public class Log4jUtils {
                 }
             }
         }
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "No linking metadata found from LogEvent log4j's LogEvent instance {0}", logEvent);
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "No linking metadata found from log4j's LogEvent instance {0}", logEvent);
         return null;
     }
 }
