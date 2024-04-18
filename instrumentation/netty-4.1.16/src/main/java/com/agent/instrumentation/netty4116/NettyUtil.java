@@ -37,15 +37,28 @@ public class NettyUtil {
     }
 
     public static boolean processResponse(Object msg, Token token) {
+
+        NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][1] NettyUtil.processResponse: (token != null) = " + (token != null));
+
         if (token != null) {
+
+            NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][2] NettyUtil.processResponse: msg = " + msg);
+
+            NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][3] NettyUtil.processResponse: (msg instanceof Http2HeadersFrame) = " + (msg instanceof Http2HeadersFrame));
+
             if (msg instanceof HttpResponse || msg instanceof Http2HeadersFrame) {
                 com.newrelic.api.agent.Transaction tx = token.getTransaction();
+
+                NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][4] NettyUtil.processResponse: (tx != null) = " + (tx != null));
+
                 if (tx != null) {
                     try {
                         if (msg instanceof HttpResponse) {
                             tx.setWebResponse(new ResponseWrapper((HttpResponse) msg));
                         } else {
                             tx.setWebResponse(new Http2ResponseWrapper((Http2HeadersFrame) msg));
+
+                            NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][5] NettyUtil.processResponse: called tx.setWebResponse(new Http2ResponseWrapper((Http2HeadersFrame) msg))");
                         }
                         tx.addOutboundResponseHeaders();
                         tx.markResponseSent();

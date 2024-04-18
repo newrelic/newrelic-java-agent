@@ -10,6 +10,7 @@ package com.agent.instrumentation.netty4116;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.HeaderType;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
@@ -39,8 +40,12 @@ public class Http2RequestWrapper extends ExtendedRequest {
         super();
         // There's no reason to mutate the incoming request but the Http2HeadersFrame could be used for that if need be.
 
+        NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][1] Http2RequestWrapper: http2HeadersFrame = " + http2HeadersFrame);
+
         // Use the HttpRequest for getting info from the request
         this.request = getHttpRequest(http2HeadersFrame);
+
+        NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][2] Http2RequestWrapper: request = " + this.request);
 
         Set<Cookie> rawCookies = null;
         if (request.headers().contains(HttpHeaderNames.COOKIE)) {

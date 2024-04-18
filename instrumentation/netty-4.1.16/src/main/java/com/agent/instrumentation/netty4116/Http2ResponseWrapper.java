@@ -10,12 +10,15 @@ package com.agent.instrumentation.netty4116;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
 import io.netty.handler.codec.http2.HttpConversionUtil;
+
+import java.util.logging.Level;
 
 public class Http2ResponseWrapper extends ExtendedResponse {
     private final HttpResponse response;
@@ -24,8 +27,13 @@ public class Http2ResponseWrapper extends ExtendedResponse {
     public Http2ResponseWrapper(Http2HeadersFrame http2HeadersFrame) {
         // Use the Http2HeadersFrame for mutating the outgoing response
         this.http2HeadersFrame = http2HeadersFrame;
+
+        NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][1] Http2ResponseWrapper: http2HeadersFrame = " + http2HeadersFrame);
+
         // Use the HttpResponse for getting info from the response
         this.response = getHttpResponse(http2HeadersFrame);
+
+        NewRelic.getAgent().getLogger().log(Level.INFO, "[NettyDebug][2] Http2ResponseWrapper: response = " + this.response);
     }
 
     @Override
