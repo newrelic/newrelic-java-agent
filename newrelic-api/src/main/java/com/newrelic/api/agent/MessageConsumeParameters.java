@@ -20,20 +20,29 @@ public class MessageConsumeParameters implements ExternalParameters {
     private final DestinationType destinationType;
     private final String destinationName;
     private final InboundHeaders inboundHeaders;
+    private final String cloudResourceId;
 
     protected MessageConsumeParameters(String library, DestinationType destinationType, String destinationName,
-            InboundHeaders inboundHeaders) {
+            InboundHeaders inboundHeaders, String cloudResourceId) {
         this.library = library;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
         this.inboundHeaders = inboundHeaders;
+        this.cloudResourceId = cloudResourceId;
     }
 
+
+    /**
+     * This method creates a clone of a MessageConsumerParameters.
+     * This class is immutable, so the original object can be reused.
+     */
+    @Deprecated
     protected MessageConsumeParameters(MessageConsumeParameters messageConsumeParameters) {
         this.library = messageConsumeParameters.library;
         this.destinationType = messageConsumeParameters.destinationType;
         this.destinationName = messageConsumeParameters.destinationName;
         this.inboundHeaders = messageConsumeParameters.inboundHeaders;
+        this.cloudResourceId = messageConsumeParameters.cloudResourceId;
     }
 
     public String getDestinationName() {
@@ -48,6 +57,10 @@ public class MessageConsumeParameters implements ExternalParameters {
         return inboundHeaders;
     }
 
+    public String getCloudResourceId() {
+        return cloudResourceId;
+    }
+
     public String getLibrary() {
         return library;
     }
@@ -58,6 +71,7 @@ public class MessageConsumeParameters implements ExternalParameters {
         private DestinationType destinationType;
         private String destinationName;
         private InboundHeaders inboundHeaders;
+        private String cloudResourceId;
 
         public Builder(String library) {
             this.library = library;
@@ -78,8 +92,13 @@ public class MessageConsumeParameters implements ExternalParameters {
             return this;
         }
 
+        public Build cloudResourceId(String cloudResourceId) {
+            this.cloudResourceId = cloudResourceId;
+            return this;
+        }
+
         public MessageConsumeParameters build() {
-            return new MessageConsumeParameters(library, destinationType, destinationName, inboundHeaders);
+            return new MessageConsumeParameters(library, destinationType, destinationName, inboundHeaders, cloudResourceId);
         }
     }
 
@@ -128,6 +147,11 @@ public class MessageConsumeParameters implements ExternalParameters {
 
     public interface Build {
 
+        /**
+         * Set the cloud provider's id for the message queue.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build cloudResourceId(String cloudResourceId);
         /**
          * Build the final {@link MessageConsumeParameters} for the API call.
          *

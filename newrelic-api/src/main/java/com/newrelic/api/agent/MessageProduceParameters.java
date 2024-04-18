@@ -19,20 +19,28 @@ public class MessageProduceParameters implements ExternalParameters {
     private final DestinationType destinationType;
     private final String destinationName;
     private final OutboundHeaders outboundHeaders;
+    private final String cloudResourceId;
 
     protected MessageProduceParameters(String library, DestinationType destinationType, String destinationName,
-            OutboundHeaders outboundHeaders) {
+            OutboundHeaders outboundHeaders, String cloudResourceId) {
         this.library = library;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
         this.outboundHeaders = outboundHeaders;
+        this.cloudResourceId = cloudResourceId;
     }
 
+    /**
+     * This method creates a clone of a MessageProduceParameters.
+     * This class is immutable, so the original object can be reused.
+     */
+    @Deprecated
     protected MessageProduceParameters(MessageProduceParameters messageProduceParameters) {
         this.library = messageProduceParameters.library;
         this.destinationType = messageProduceParameters.destinationType;
         this.destinationName = messageProduceParameters.destinationName;
         this.outboundHeaders = messageProduceParameters.outboundHeaders;
+        this.cloudResourceId = messageProduceParameters.cloudResourceId;
     }
 
     public String getDestinationName() {
@@ -47,6 +55,10 @@ public class MessageProduceParameters implements ExternalParameters {
         return outboundHeaders;
     }
 
+    public String getCloudResourceId() {
+        return cloudResourceId;
+    }
+
     public String getLibrary() {
         return library;
     }
@@ -57,6 +69,7 @@ public class MessageProduceParameters implements ExternalParameters {
         private DestinationType destinationType;
         private String destinationName;
         private OutboundHeaders outboundHeaders;
+        private String cloudResourceId;
 
         public Builder(String library) {
             this.library = library;
@@ -77,8 +90,13 @@ public class MessageProduceParameters implements ExternalParameters {
             return this;
         }
 
+        public Build cloudResourceId(String cloudResourceId) {
+            this.cloudResourceId = cloudResourceId;
+            return this;
+        }
+
         public MessageProduceParameters build() {
-            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders);
+            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders, cloudResourceId);
         }
     }
 
@@ -127,6 +145,12 @@ public class MessageProduceParameters implements ExternalParameters {
     }
 
     public interface Build {
+
+        /**
+         * Set the cloud provider's id for the message queue.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build cloudResourceId(String cloudResourceId);
 
         /**
          * Build the final {@link MessageProduceParameters} for the API call.
