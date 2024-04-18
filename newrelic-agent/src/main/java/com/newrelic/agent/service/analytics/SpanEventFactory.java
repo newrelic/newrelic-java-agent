@@ -12,7 +12,6 @@ import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AttributesConfig;
-import com.newrelic.agent.config.TransactionEventsConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
@@ -282,6 +281,11 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory setCloudResourceId(String cloudResourceId) {
+        builder.putAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID,cloudResourceId);
+        return this;
+    }
+
     public SpanEventFactory setServerPort(int port) {
         builder.putAgentAttribute("server.port", port);
         return this;
@@ -386,6 +390,7 @@ public class SpanEventFactory {
             setDatabaseCollection(datastoreParameters.getCollection());
             setDatabaseOperation(datastoreParameters.getOperation());
             setServerAddress(datastoreParameters.getHost());
+            setCloudResourceId(datastoreParameters.getCloudResourceId());
             setKindFromUserAttributes();
             if (datastoreParameters.getPort() != null) {
                 setServerPort(datastoreParameters.getPort());

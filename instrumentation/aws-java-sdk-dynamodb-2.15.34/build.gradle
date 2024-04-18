@@ -4,7 +4,8 @@ dependencies {
 
     implementation platform('software.amazon.awssdk:bom:2.16.81')
     implementation("software.amazon.awssdk:dynamodb:2.16.81")
-    testImplementation("com.amazonaws:DynamoDBLocal:1.12.0")
+    testImplementation("com.amazonaws:DynamoDBLocal:1.25.0")
+    testImplementation("software.amazon.awssdk:url-connection-client")
     testImplementation("com.almworks.sqlite4java:sqlite4java:1.0.392")
     testImplementation("com.almworks.sqlite4java:libsqlite4java-osx:1.0.392")
     testImplementation("com.almworks.sqlite4java:libsqlite4java-linux-i386:1.0.392")

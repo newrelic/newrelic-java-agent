@@ -661,9 +661,9 @@ public class DefaultTracer extends AbstractTracer {
             } else if (externalParameters instanceof HttpParameters) {
                 recordExternalMetricsHttp((HttpParameters) externalParameters);
             } else if (externalParameters instanceof MessageProduceParameters) {
-                recordMessageBrokerMetrics(((MessageProduceParameters) this.externalParameters));
+                recordMessageBrokerMetrics((MessageProduceParameters) this.externalParameters);
             } else if (externalParameters instanceof MessageConsumeParameters) {
-                recordMessageBrokerMetrics(((MessageConsumeParameters) this.externalParameters));
+                recordMessageBrokerMetrics((MessageConsumeParameters) this.externalParameters);
             } else {
                 Agent.LOG.log(Level.SEVERE, "Unknown externalParameters type. This should not happen. {0} -- {1}",
                         externalParameters, externalParameters.getClass());
@@ -729,12 +729,17 @@ public class DefaultTracer extends AbstractTracer {
                     datastoreParameters.getDatabaseName());
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
-            boolean allUnknown = datastoreParameters.getHost() == null && datastoreParameters.getPort() == null
-                    && datastoreParameters.getPathOrId() == null;
-            if (datastoreConfig.isInstanceReportingEnabled() && !allUnknown) {
-                setAgentAttribute(DatastoreMetrics.DATASTORE_HOST, DatastoreMetrics.replaceLocalhost(datastoreParameters.getHost()));
-                setAgentAttribute(DatastoreMetrics.DATASTORE_PORT_PATH_OR_ID, DatastoreMetrics.getIdentifierOrPort(
-                        datastoreParameters.getPort(), datastoreParameters.getPathOrId()));
+            if (datastoreConfig.isInstanceReportingEnabled()) {
+                boolean allUnknown = datastoreParameters.getHost() == null && datastoreParameters.getPort() == null
+                        && datastoreParameters.getPathOrId() == null;
+                if (!allUnknown) {
+                    setAgentAttribute(DatastoreMetrics.DATASTORE_HOST, DatastoreMetrics.replaceLocalhost(datastoreParameters.getHost()));
+                    setAgentAttribute(DatastoreMetrics.DATASTORE_PORT_PATH_OR_ID, DatastoreMetrics.getIdentifierOrPort(
+                            datastoreParameters.getPort(), datastoreParameters.getPathOrId()));
+                }
+                if (datastoreParameters.getCloudResourceId() != null) {
+                    setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, datastoreParameters.getCloudResourceId());
+                }
             }
 
             // Spec says this is a should, only send database name when we actually have one.
@@ -815,6 +820,10 @@ public class DefaultTracer extends AbstractTracer {
                     messageProduceParameters.getLibrary(),
                     messageProduceParameters.getDestinationType().getTypeName()));
         }
+
+        if (messageProduceParameters.getCloudResourceId() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageProduceParameters.getCloudResourceId());
+        }
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -834,6 +843,10 @@ public class DefaultTracer extends AbstractTracer {
                     messageConsumeParameters.getLibrary(),
                     messageConsumeParameters.getDestinationType().getTypeName()));
         }
+
+        if (messageConsumeParameters.getCloudResourceId() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageConsumeParameters.getCloudResourceId());
+        }
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
@@ -844,5 +857,4 @@ public class DefaultTracer extends AbstractTracer {
             transaction.getSlowQueryListener(true).noticeTracer(this, slowQueryDatastoreParameters);
         }
     }
-
 }

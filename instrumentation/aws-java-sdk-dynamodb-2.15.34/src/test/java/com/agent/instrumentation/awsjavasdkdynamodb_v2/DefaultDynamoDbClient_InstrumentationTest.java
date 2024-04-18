@@ -22,6 +22,8 @@ import static junit.framework.TestCase.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"software.amazon.awssdk.services.dynamodb", "com.nr.instrumentation"})
+@Ignore("This test ran into a problem where it uses the API from the CSEC agent instead of the agent's. " +
+        "Also, it is flaky on GHA.")
 public class DefaultDynamoDbClient_InstrumentationTest {
 
     private static final String DYNAMODB_PRODUCT = DatastoreVendor.DynamoDB.toString();
