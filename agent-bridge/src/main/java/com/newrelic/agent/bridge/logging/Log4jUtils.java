@@ -15,7 +15,7 @@ import java.util.logging.Level;
 
 public class Log4jUtils {
 
-    private static final Map<Object, Object> cache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
+    private static final Map<Object, Object> linkingMetadataReflectFieldCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
     /**
      * Gets the agent linking metadata from a LogEvent from Log4j.
@@ -42,7 +42,7 @@ public class Log4jUtils {
             if (field.getAnnotationsByType(NewField.class).length != 0 && field.getName().equals("agentLinkingMetadata")) {
                 Map<String, String> metadata = getLinkingMetadata(logEvent, field);
                 if (metadata != null) {
-                    cache.put(c, field);
+                    linkingMetadataReflectFieldCache.put(c, field);
                     return metadata;
                 }
             }
@@ -53,7 +53,7 @@ public class Log4jUtils {
 
     private static Field getFieldFromCache(Class<?> c) {
         try {
-            Object v = cache.get(c);
+            Object v = linkingMetadataReflectFieldCache.get(c);
             if (v != null) {
                 return (Field) v;
             }
