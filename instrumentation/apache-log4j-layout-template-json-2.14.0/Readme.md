@@ -5,8 +5,7 @@ Adds local decorating support for apps using log4j with `JsonTemplateLayout` suc
 ```xml
 <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-        <!-- THIS DOES NOT WORK! Use JsonTemplateLayout with default JsonLayout provided by log4j2 -->
-                     <JsonTemplateLayout eventTemplateUri="classpath:JsonLayout.json"/>
+        <JsonTemplateLayout eventTemplateUri="classpath:JsonLayout.json"/>
     </Console>
 </Appenders>
 ```

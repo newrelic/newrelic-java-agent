@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package org.apache.logging.log4j.layout.template.json;
 
 import com.newrelic.api.agent.weaver.MatchType;
