@@ -498,6 +498,9 @@ public class MetricNames {
     public static final String SUPPORTABILITY_SLOW_TXN_DETECTION_ENABLED = "Supportability/SlowTransactionDetection/enabled";
     public static final String SUPPORTABILITY_SLOW_TXN_DETECTION_DISABLED = "Supportability/SlowTransactionDetection/disabled";
 
+    // AiMonitoring Callback Set
+    public static final String SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET = "Supportability/AiMonitoringTokenCountCallback/Set";
+
     /**
      * Utility method for adding supportability metrics to APIs
      *

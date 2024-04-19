@@ -15,6 +15,17 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class ExceptionUtilTest {
+    @Test
+    public void getErrorStack_withThrowable_generatesFullStacktrace() {
+        assertFalse(ExceptionUtil.getErrorStack(createTestException()).contains("caused by: java.lang.Exception: inner exception"));
+
+        assertTrue(ExceptionUtil.getErrorStack(createTestExceptionWithCausedBy()).contains("caused by: java.lang.Exception: inner exception"));
+    }
+
+    @Test
+    public void getErrorStack_withNullThrowable_returnsNull() {
+        assertNull(ExceptionUtil.getErrorStack(null));
+    }
 
     @Test
     public void testIsThrowableNull() {
@@ -26,43 +37,30 @@ public class ExceptionUtilTest {
     }
 
     @Test
-    public void testGetErrorStack() {
-        int maxStackSize = 3;
-        StackTraceElement stackTraceElement1 = new StackTraceElement("Class1", "method1", "File1", 1);
-        StackTraceElement stackTraceElement2 = new StackTraceElement("Class2", "method2", "File2", 2);
-        StackTraceElement stackTraceElement3 = new StackTraceElement("Class3", "method3", "File3", 3);
-        StackTraceElement stackTraceElement4 = new StackTraceElement("Class4", "method4", "File4", 4);
-        StackTraceElement stackTraceElement5 = new StackTraceElement("Class5", "method5", "File5", 5);
-        StackTraceElement[] stack = new StackTraceElement[] { stackTraceElement1, stackTraceElement2, stackTraceElement3, stackTraceElement4,
-                stackTraceElement5 };
-        String errorStack = ExceptionUtil.getErrorStack(stack, maxStackSize);
-
-        // Processed stack should be limited to only the first three lines
-        assertTrue(errorStack.contains(stackTraceElement1.toString()));
-        assertTrue(errorStack.contains(stackTraceElement2.toString()));
-        assertTrue(errorStack.contains(stackTraceElement3.toString()));
-        // Processed stack should omit the last two lines
-        assertFalse(errorStack.contains(stackTraceElement4.toString()));
-        assertFalse(errorStack.contains(stackTraceElement5.toString()));
+    public void getErrorMessage_withThrowable_returnsErrorMessage() {
+        assertEquals("test exception", ExceptionUtil.getErrorMessage(createTestException()));
     }
 
     @Test
-    public void testGetErrorMessage() {
-        String expectedMessage = "Hi";
-        Throwable nullThrowable = null;
-        Throwable nonNullThrowable = new Throwable(expectedMessage);
-
-        assertNull(ExceptionUtil.getErrorMessage(nullThrowable));
-        assertEquals(expectedMessage, ExceptionUtil.getErrorMessage(nonNullThrowable));
+    public void getErrorMessage_withNullThrowable_returnsNull() {
+        assertNull(ExceptionUtil.getErrorMessage(null));
     }
 
     @Test
-    public void testGetErrorClass() {
-        String expectedExceptionClass = "java.lang.RuntimeException";
-        Throwable nullThrowable = null;
-        RuntimeException runtimeException = new RuntimeException("Hi");
+    public void getErrorClass_withThrowable_returnsErrorMessage() {
+        assertEquals("java.lang.Exception", ExceptionUtil.getErrorClass(createTestException()));
+    }
 
-        assertNull(ExceptionUtil.getErrorClass(nullThrowable));
-        assertEquals(expectedExceptionClass, ExceptionUtil.getErrorClass(runtimeException));
+    @Test
+    public void getErrorClass_withNullThrowable_returnsNull() {
+        assertNull(ExceptionUtil.getErrorClass(null));
+    }
+    
+    private Exception createTestException() {
+        return new Exception("test exception");
+    }
+
+    private Exception createTestExceptionWithCausedBy() {
+        return new Exception("test exception", new Exception("inner exception"));
     }
 }

@@ -11,6 +11,9 @@ dependencies {
     implementation(project(":agent-bridge-datastore"))
     implementation(project(":newrelic-weaver"))
 
+    // WithSpan annotation
+    implementation('io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.33.1')
+
     testImplementation(project(":functional_test:weave_test_impl"))
 
     // the newrelic-agent test classes
@@ -102,7 +105,7 @@ test {
     //testLogging.showStandardStreams = true
 
     // when using an early access Java version, we need to pass an extra param to the agent
-    if (project.hasProperty("test22")) {
+    if (project.hasProperty("test23")) {
         jvmArgs += ["-Dnewrelic.config.experimental_runtime=true"]
     }
 

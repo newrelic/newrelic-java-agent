@@ -12,8 +12,11 @@ import com.newrelic.agent.service.ServiceFactory;
 /**
  * Attribute validator with truncation rules specific to custom events.
  */
-public class CustomEventAttributeValidator extends AttributeValidator{
-    private static final int MAX_CUSTOM_EVENT_ATTRIBUTE_SIZE = ServiceFactory.getConfigService().getDefaultAgentConfig().getInsightsConfig().getMaxAttributeValue();
+public class CustomEventAttributeValidator extends AttributeValidator {
+    private static final int MAX_CUSTOM_EVENT_ATTRIBUTE_SIZE = ServiceFactory.getConfigService()
+            .getDefaultAgentConfig()
+            .getInsightsConfig()
+            .getMaxAttributeValue();
 
     public CustomEventAttributeValidator(String attributeType) {
         super(attributeType);

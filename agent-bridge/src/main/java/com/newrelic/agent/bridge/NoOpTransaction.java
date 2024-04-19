@@ -27,6 +27,7 @@ import java.util.Set;
 public class NoOpTransaction implements Transaction {
     public static final Transaction INSTANCE = new NoOpTransaction();
     public static final NoOpMap<String, Object> AGENT_ATTRIBUTES = new NoOpMap<>();
+    public static final NoOpMap<String, Object> USER_ATTRIBUTES = new NoOpMap<>();
 
     @Override
     public void beforeSendResponseHeaders() {
@@ -151,6 +152,11 @@ public class NoOpTransaction implements Transaction {
     @Override
     public Map<String, Object> getAgentAttributes() {
         return AGENT_ATTRIBUTES;
+    }
+
+    @Override
+    public Map<String, Object> getUserAttributes() {
+        return USER_ATTRIBUTES;
     }
 
     @Override

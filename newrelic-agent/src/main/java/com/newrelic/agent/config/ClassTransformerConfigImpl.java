@@ -59,6 +59,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.class_transformer.";
 
     static final String NEW_RELIC_TRACE_TYPE_DESC = "Lcom/newrelic/api/agent/Trace;";
+    static final String OTEL_WITH_SPAN_TYPE_DESC = "Lio/opentelemetry/instrumentation/annotations/WithSpan;";
     static final String DEPRECATED_NEW_RELIC_TRACE_TYPE_DESC = "Lcom/newrelic/agent/Trace;";
 
     // as of JAVA-4824 the yml config file is not required, but still need to match old behavior
@@ -186,6 +187,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         List<AnnotationMatcher> matchers = new ArrayList<>();
         matchers.add(new ClassNameAnnotationMatcher(Type.getType(DEPRECATED_NEW_RELIC_TRACE_TYPE_DESC).getDescriptor()));
         matchers.add(new ClassNameAnnotationMatcher(Type.getType(NEW_RELIC_TRACE_TYPE_DESC).getDescriptor()));
+        matchers.add(new ClassNameAnnotationMatcher(Type.getType(OTEL_WITH_SPAN_TYPE_DESC).getDescriptor()));
 
         final Collection<String> traceAnnotationClassNames = getUniqueStrings("trace_annotation_class_name");
         if (traceAnnotationClassNames.isEmpty()) {

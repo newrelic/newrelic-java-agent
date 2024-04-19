@@ -14,6 +14,10 @@ verifyInstrumentation {
     excludeRegex(".*(M1|M2|RC).*")
 }
 
+test {
+    systemProperty "jdk.util.zip.disableZip64ExtraFieldValidation", true
+}
+
 site {
     title 'PostgreSQL R2DBC'
     type 'Datastore'

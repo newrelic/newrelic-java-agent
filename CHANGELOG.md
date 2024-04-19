@@ -2,9 +2,64 @@
 Noteworthy changes to the agent are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Version 8.11.0
+## New features and improvements
+
+- Add HTTP/2 support for Netty 4.1.16.Final + [1815](https://github.com/newrelic/newrelic-java-agent/pull/1815)
+- Support external calls inside Spring Reactor call chains [1828](https://github.com/newrelic/newrelic-java-agent/pull/1828)
+- Support for Apache Pekko (i.e. the pekko-actor library). *Support for Pekko HTTP coming soon.* [1811](https://github.com/newrelic/newrelic-java-agent/pull/1811)
+- Add configuration to allow the OTel SDK integration to be completely disabled [1821](https://github.com/newrelic/newrelic-java-agent/pull/1821)
+
+  Configuration via yaml:
+  ```
+  opentelemetry:
+    sdk: 
+      autoconfigure:
+        enabled: false
+  ```
+
+  Configuration via system property:
+  ```
+    -Dnewrelic.config.opentelemetry.sdk.autoconfigure.enabled=false
+  ```
+- Treat OpenTelemetry [@WithSpan](https://opentelemetry.io/docs/languages/java/automatic/annotations/#creating-spans-around-methods-with-withspan) annotation as [@Trace](https://docs.newrelic.com/docs/apm/agents/java-agent/api-guides/java-agent-api-instrument-using-annotation/#trace) in the Java Agent API  [1841](https://github.com/newrelic/newrelic-java-agent/pull/1841)
+
+## Fixes
+
+- Fix high CPU usage with HttpURLConnection by reverting InboundWrapper changes introduced in 8.10.0 [1840](https://github.com/newrelic/newrelic-java-agent/pull/1840)
+- Prevent duplicate HTTP external calls when using the DynamoDB SDK [1827](https://github.com/newrelic/newrelic-java-agent/pull/1827)
+
+## Deprecations
+
+- The browser footer injection APIs have been deprecated and will be removed in a future agent release. The header injection API now adds both the header and footer scripts. [1679](https://github.com/newrelic/newrelic-java-agent/pull/1679)
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
+## IAST
+
+### Changes
+- Json Version bump to 1.2.0 [207](https://github.com/newrelic/csec-java-agent/pull/207)
+- IAST replay header decryption due to Security Findings [207](https://github.com/newrelic/csec-java-agent/pull/207)
+### Fixes
+- Fix issue related to the instrumentation of the Rhino JavaScript Engine that occurred while reading the script [211](https://github.com/newrelic/csec-java-agent/pull/211)
+
 
 ## Version 8.10.0
+
+:warning: CAUTION: This agent version introduced a bug that may cause significant increases in CPU and memory usage and potential deadlock if your application uses HttpUrlConnection (or any libraries that use it under the hood). This issue has been resolved in the 8.11.0 agent. Alternatively, disabling the HttpUrlConnection instrumentation would prevent the issue 
+(for example `-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.enabled=false`). 
+
+PLEASE NOTE: Disabling this instrumentation will result in external calls made by the client no longer getting recorded. We strongly recommend using the latest agent versions, which include all recent code fixes and provide access to the latest platform features.
+
 ## New features and improvements
 
 - Support for Spring Webflux 6.1.x [1761](https://github.com/newrelic/newrelic-java-agent/pull/1761)

@@ -8,6 +8,7 @@
 package com.newrelic.opentelemetry;
 
 import com.newrelic.api.agent.Agent;
+import com.newrelic.api.agent.AiMonitoring;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
@@ -71,6 +72,11 @@ public final class OpenTelemetryAgent implements Agent {
     @Override
     public Insights getInsights() {
         return openTelemetryInsights;
+    }
+
+    @Override
+    public AiMonitoring getAiMonitoring() {
+        return null;
     }
 
     @Override
