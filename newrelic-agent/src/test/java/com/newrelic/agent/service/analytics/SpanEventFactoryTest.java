@@ -249,6 +249,28 @@ public class SpanEventFactoryTest {
     }
 
     @Test
+    public void shouldSetCloudResourceIdParameters() {
+        DatastoreParameters mockParameters = mock(DatastoreParameters.class);
+        when(mockParameters.getOperation()).thenReturn("putItem");
+        when(mockParameters.getCollection()).thenReturn("tableName");
+        when(mockParameters.getProduct()).thenReturn("DynamoDB");
+        when(mockParameters.getHost()).thenReturn("dbserver");
+        when(mockParameters.getPort()).thenReturn(1234);
+        when(mockParameters.getCloudResourceId()).thenReturn("arn:aws:dynamodb:us-west-1:123456789012:tableName");
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals("putItem", agentAttrs.get("db.operation"));
+        assertEquals("tableName", agentAttrs.get("db.collection"));
+        assertEquals("DynamoDB", agentAttrs.get("db.system"));
+        assertEquals("dbserver", agentAttrs.get("peer.hostname"));
+        assertEquals("dbserver", agentAttrs.get("server.address"));
+        assertEquals(1234, agentAttrs.get("server.port"));
+        assertEquals("dbserver:1234", agentAttrs.get("peer.address"));
+        assertEquals("arn:aws:dynamodb:us-west-1:123456789012:tableName", agentAttrs.get("cloud.resource_id"));
+    }
+
+    @Test
     public void shouldStoreStackTrace() {
         SpanEventFactory spanEventFactory = new SpanEventFactory("MyApp", new AttributeFilter.PassEverythingAttributeFilter(),
                 DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
