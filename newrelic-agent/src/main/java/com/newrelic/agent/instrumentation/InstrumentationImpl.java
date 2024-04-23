@@ -16,6 +16,7 @@ import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.TransactionApiImpl;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
+import com.newrelic.agent.bridge.IdGenerator;
 import com.newrelic.agent.bridge.Instrumentation;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.config.ClassTransformerConfig;
@@ -34,6 +35,7 @@ import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
 import com.newrelic.agent.profile.v2.TransactionProfileSession;
 import com.newrelic.agent.reinstrument.PeriodicRetransformer;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.trace.TransactionGuidFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.ClassMethodSignatures;
 import com.newrelic.agent.tracers.DefaultSqlTracer;
@@ -758,5 +760,10 @@ public class InstrumentationImpl implements Instrumentation {
             ServiceFactory.getClassTransformerService().getContextManager().getClassWeaverService().registerInstrumentationCloseable(
                     instrumentationName, closeable);
         }
+    }
+
+    @Override
+    public IdGenerator getIdGenerator() {
+        return TransactionGuidFactory.ID_GENERATOR;
     }
 }

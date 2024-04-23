@@ -12,6 +12,18 @@ import java.lang.reflect.Method;
 
 public class NoOpInstrumentation implements Instrumentation {
 
+    private final IdGenerator idGenerator = new IdGenerator() {
+        @Override
+        public String generateSpanId() {
+            return "0000000000000000";
+        }
+
+        @Override
+        public String generateTraceId() {
+            return generateSpanId() + generateSpanId();
+        }
+    };
+
     @Override
     public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
         return null;
@@ -81,4 +93,9 @@ public class NoOpInstrumentation implements Instrumentation {
   public ExitTracer createScalaTxnTracer() {
     return null;
   }
+
+    @Override
+    public IdGenerator getIdGenerator() {
+        return idGenerator;
+    }
 }

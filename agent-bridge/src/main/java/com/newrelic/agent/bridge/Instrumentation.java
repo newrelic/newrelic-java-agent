@@ -130,4 +130,6 @@ public interface Instrumentation {
     Object getCachedObject(int id);
 
     void registerCloseable(String instrumentationName, Closeable closeable);
+
+    IdGenerator getIdGenerator();
 }

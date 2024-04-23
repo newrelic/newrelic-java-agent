@@ -1,5 +1,6 @@
 package io.opentelemetry.context;
 
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -15,11 +16,13 @@ import java.util.function.Supplier;
 public abstract class Context_Instrumentation {
 
     public Runnable wrap(Runnable runnable) {
-        return AsyncWrappers.wrap(Weaver.<Runnable>callOriginal(), runnable);
+        return NewRelic.getAgent().getTransaction().getToken().wrap(Weaver.<Runnable>callOriginal(),
+                MetricNames.getMetricName(runnable.getClass(), "run"));
     }
 
     public <T> Callable<T> wrap(Callable<T> callable) {
-        return AsyncWrappers.wrap(Weaver.<Callable>callOriginal(), callable);
+        return NewRelic.getAgent().getTransaction().getToken().wrap(Weaver.<Callable>callOriginal(),
+                MetricNames.getMetricName(callable.getClass(), "call"));
     }
 
     /**
@@ -27,22 +30,27 @@ public abstract class Context_Instrumentation {
     */
 
     public <T, U> Function<T, U> wrapFunction(Function<T, U> function) {
-        return AsyncWrappers.wrapFunction(Weaver.<Function>callOriginal(), function);
+        return NewRelic.getAgent().getTransaction().getToken().wrapFunction(Weaver.<Function>callOriginal(),
+                MetricNames.getMetricName(function.getClass(), "apply"));
     }
 
     public <T, U, V> BiFunction<T, U, V> wrapFunction(BiFunction<T, U, V> function) {
-        return AsyncWrappers.wrapFunction(Weaver.<BiFunction>callOriginal(), function);
+        return NewRelic.getAgent().getTransaction().getToken().wrapFunction(Weaver.<BiFunction>callOriginal(),
+                MetricNames.getMetricName(function.getClass(), "apply"));
     }
 
     public <T> Consumer<T> wrapConsumer(Consumer<T> consumer) {
-        return AsyncWrappers.wrapConsumer(Weaver.<Consumer>callOriginal(), consumer);
+        return NewRelic.getAgent().getTransaction().getToken().wrapConsumer(Weaver.<Consumer>callOriginal(),
+                MetricNames.getMetricName(consumer.getClass(), "accept"));
     }
 
     public <T, U> BiConsumer<T, U> wrapConsumer(BiConsumer<T, U> consumer) {
-        return AsyncWrappers.wrapConsumer(Weaver.<BiConsumer>callOriginal(), consumer);
+        return NewRelic.getAgent().getTransaction().getToken().wrapConsumer(Weaver.<BiConsumer>callOriginal(),
+                MetricNames.getMetricName(consumer.getClass(), "accept"));
     }
 
     public <T> Supplier<T> wrapSupplier(Supplier<T> supplier) {
-        return AsyncWrappers.wrapSupplier(Weaver.<Supplier>callOriginal(), supplier);
+        return NewRelic.getAgent().getTransaction().getToken().wrapSupplier(Weaver.<Supplier>callOriginal(),
+                MetricNames.getMetricName(supplier.getClass(), "get"));
     }
 }

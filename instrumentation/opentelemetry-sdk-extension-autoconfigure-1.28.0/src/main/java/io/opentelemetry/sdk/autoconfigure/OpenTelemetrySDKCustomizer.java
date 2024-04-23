@@ -7,6 +7,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
+import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 
 import java.util.Collections;
@@ -60,6 +61,22 @@ public final class OpenTelemetrySDKCustomizer {
 
     public static SdkTracerProviderBuilder applyTraceProviderCustomizer(
             SdkTracerProviderBuilder sdkTracerProviderBuilder, ConfigProperties configProperties) {
+        sdkTracerProviderBuilder.setIdGenerator(getIdGenerator());
         return sdkTracerProviderBuilder.addSpanProcessor(new SpanToTracerProcessor());
+    }
+
+    private static IdGenerator getIdGenerator() {
+        final com.newrelic.agent.bridge.IdGenerator idGenerator = AgentBridge.instrumentation.getIdGenerator();
+        return new IdGenerator() {
+            @Override
+            public String generateSpanId() {
+                return idGenerator.generateSpanId();
+            }
+
+            @Override
+            public String generateTraceId() {
+                return idGenerator.generateTraceId();
+            }
+        };
     }
 }

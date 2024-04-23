@@ -32,7 +32,7 @@ public class SpanProxy {
     public String getOrCreateTraceId() {
         String id = traceId.get();
         if (id == null) {
-            String newGuid = TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid();
+            String newGuid = TransactionGuidFactory.ID_GENERATOR.generateTraceId();
             traceId.compareAndSet(null, newGuid);
         }
         return traceId.get();

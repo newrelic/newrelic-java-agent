@@ -143,7 +143,7 @@ public class DefaultTracer extends AbstractTracer {
         }
 
         this.tracerFlags = (byte) tracerFlags;
-        this.guid = TransactionGuidFactory.generate16CharGuid();
+        this.guid = TransactionGuidFactory.ID_GENERATOR.generateSpanId();
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,

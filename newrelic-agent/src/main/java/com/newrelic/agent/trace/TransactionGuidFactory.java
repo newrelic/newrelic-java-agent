@@ -7,9 +7,22 @@
 
 package com.newrelic.agent.trace;
 
+import com.newrelic.agent.bridge.IdGenerator;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TransactionGuidFactory {
+    public static final IdGenerator ID_GENERATOR = new IdGenerator() {
+        @Override
+        public String generateSpanId() {
+            return TransactionGuidFactory.generate16CharGuid();
+        }
+
+        @Override
+        public String generateTraceId() {
+            return TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid();
+        }
+    };
 
     private TransactionGuidFactory() {
     }
