@@ -7,10 +7,10 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 
 import java.util.Collection;
 
-public class SpanExporterCustomizer implements SpanExporter {
+public class SpanExportSuppressor implements SpanExporter {
     private final SpanExporter delegate;
 
-    public SpanExporterCustomizer(SpanExporter delegate, ConfigProperties configProperties) {
+    public SpanExportSuppressor(SpanExporter delegate, ConfigProperties configProperties) {
         this.delegate = delegate;
     }
 

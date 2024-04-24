@@ -12,7 +12,7 @@ public class AutoConfiguredOpenTelemetrySdk {
 
     public static AutoConfiguredOpenTelemetrySdkBuilder builder() {
         final AutoConfiguredOpenTelemetrySdkBuilder builder = Weaver.callOriginal();
-        Boolean autoConfigure = NewRelic.getAgent().getConfig().getValue("opentelemetry.sdk.autoconfigure.enabled");
+        final Boolean autoConfigure = NewRelic.getAgent().getConfig().getValue("opentelemetry.sdk.autoconfigure.enabled");
         if (autoConfigure == null || autoConfigure) {
             NewRelic.getAgent().getLogger().log(Level.INFO, "Appending OpenTelemetry SDK customizers");
             builder.addPropertiesCustomizer(OpenTelemetrySDKCustomizer::applyProperties);
@@ -20,7 +20,7 @@ public class AutoConfiguredOpenTelemetrySdk {
 
             // span support
             builder.addTracerProviderCustomizer(OpenTelemetrySDKCustomizer::applyTraceProviderCustomizer);
-            builder.addSpanExporterCustomizer(SpanExporterCustomizer::new);
+            builder.addSpanExporterCustomizer(SpanExportSuppressor::new);
         }
         return builder;
     }

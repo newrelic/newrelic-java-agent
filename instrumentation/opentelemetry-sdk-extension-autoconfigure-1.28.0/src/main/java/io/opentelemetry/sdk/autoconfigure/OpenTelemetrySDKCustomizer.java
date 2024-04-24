@@ -16,8 +16,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public final class OpenTelemetrySDKCustomizer {
-    public static Map<String, String> applyProperties(ConfigProperties configProperties) {
+final class OpenTelemetrySDKCustomizer {
+    /**
+     * Configure OpenTelemetry exporters to send data to the New Relic backend.
+     */
+    static Map<String, String> applyProperties(ConfigProperties configProperties) {
         if (configProperties.getString("otel.exporter.otlp.endpoint") == null) {
             final Agent agent = NewRelic.getAgent();
             agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
@@ -43,7 +46,10 @@ public final class OpenTelemetrySDKCustomizer {
         return Collections.emptyMap();
     }
 
-    public static Resource applyResources(Resource resource, ConfigProperties configProperties) {
+    /**
+     * Add the monitored service's entity.guid to resources.
+     */
+    static Resource applyResources(Resource resource, ConfigProperties configProperties) {
         NewRelic.getAgent().getLogger().log(Level.FINE, "Appending OpenTelemetry resources");
         final ResourceBuilder builder = new ResourceBuilder().putAll(resource);
         final AttributeKey<String> instanceIdKey = AttributeKey.stringKey("service.instance.id");
@@ -59,7 +65,7 @@ public final class OpenTelemetrySDKCustomizer {
         return builder.build();
     }
 
-    public static SdkTracerProviderBuilder applyTraceProviderCustomizer(
+    static SdkTracerProviderBuilder applyTraceProviderCustomizer(
             SdkTracerProviderBuilder sdkTracerProviderBuilder, ConfigProperties configProperties) {
         sdkTracerProviderBuilder.setIdGenerator(getIdGenerator());
         return sdkTracerProviderBuilder.addSpanProcessor(new SpanToTracerProcessor());
