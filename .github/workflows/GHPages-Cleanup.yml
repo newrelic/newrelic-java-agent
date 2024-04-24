@@ -19,7 +19,7 @@ jobs:
       DAYS: ${{ inputs.days || '5' }}
     steps:
       - name: Checkout GH Pages
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'gh-pages'
           path: 'gh-pages'

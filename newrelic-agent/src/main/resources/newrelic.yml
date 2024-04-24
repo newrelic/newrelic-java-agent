@@ -83,6 +83,20 @@ common: &default_settings
   # Default is the logs directory in the newrelic.jar parent directory.
   #log_file_path:
 
+  # AI Monitoring captures insights on the performance, quality, and cost of interactions with LLM models made with instrumented SDKs.
+  ai_monitoring:
+
+    # Provides control over all AI Monitoring functionality. Set as true to enable all AI Monitoring features.
+    # Default is false.
+    enabled: false
+
+    # Provides control over whether attributes for the input and output content should be added to LLM events.
+    record_content:
+
+      # Set as false to disable attributes for the input and output content.
+      # Default is true.
+      enabled: true
+
   # Provides the ability to forward application logs to New Relic, generate log usage metrics,
   # and decorate local application log files with agent metadata for use with third party log forwarders.
   # The application_logging.forwarding and application_logging.local_decorating should not be used together.
@@ -401,11 +415,6 @@ common: &default_settings
     # Determines whether the security data is sent to New Relic or not. When this is disabled and agent.enabled is
     # true, the security module will run but data will not be sent. Default is false.
     enabled: false
-
-    # Determines whether the low priority attack/vulnerability modules will instrument or not.
-    # When this is disabled instrumentation of such modules will be skipped and vice versa, default is false.
-    low-priority-instrumentation:
-      enabled: false
 
     # New Relic Security provides two modes: IAST and RASP
     # Default is IAST. Due to the invasive nature of IAST scanning, DO NOT enable this mode in either a

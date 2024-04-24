@@ -75,13 +75,13 @@ public class SpanEventFactoryTest {
     }
 
     @Test
-    public void shouldTruncate3KDBStatementTo2K() {
-        char[] data = new char[3000];
-        String threeKStatement = new String(data);
+    public void shouldTruncate5KDBStatementTo4K() {
+        char[] data = new char[5000];
+        String fiveKStatement = new String(data);
 
-        SpanEvent target = spanEventFactory.setDatabaseStatement(threeKStatement).build();
+        SpanEvent target = spanEventFactory.setDatabaseStatement(fiveKStatement).build();
 
-        assertEquals(2000,
+        assertEquals(4095,
                 target.getAgentAttributes().get("db.statement").toString().length());
     }
 

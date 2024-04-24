@@ -22,13 +22,13 @@ jobs:
       AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
     steps:
       - name: Checkout Java agent
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.agent-ref }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -43,7 +43,7 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS clean jar
 
       - name: Cache agent
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: agent-jar-${{ github.run_id }}

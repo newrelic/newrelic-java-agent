@@ -9,30 +9,29 @@ package com.nr.agent.instrumentation.httpurlconnection;
 
 import java.net.HttpURLConnection;
 import java.util.List;
-import java.util.Map;
 
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.ExtendedInboundHeaders;
 
 public class InboundWrapper extends ExtendedInboundHeaders {
 
-    private final Map<String, List<String>> headers;
+    private final HttpURLConnection connection;
 
     public InboundWrapper(HttpURLConnection connection) {
-        this.headers = connection.getHeaderFields();
+        // Do not try to optimize by holding a reference to the header map obtained from HttpURLConnection.getHeaderFields
+        // instead of holding a reference to the HttpURLConnection instance, as it will trigger a call to
+        // HttpURLConnection.getInputStream and infinitely loop through this instrumentation.
+        this.connection = connection;
     }
 
     @Override
     public String getHeader(String name) {
-        if (headers == null || name == null) return null;
-        List<String> result = headers.get(name);
-        return result == null || result.isEmpty() ? null : result.get(0);
+        return connection.getHeaderField(name);
     }
 
     @Override
     public List<String> getHeaders(String name) {
-        if (headers == null || name == null) return null;
-        return headers.get(name);
+        return connection.getHeaderFields().get(name);
     }
 
     @Override

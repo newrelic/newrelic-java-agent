@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Java Agent
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'main'
 
@@ -25,9 +25,9 @@ jobs:
           echo "jdk17=/tmp" >> gradle.properties
           
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/gradle@master
+        uses: snyk/actions/gradle-jdk11@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          args: --all-sub-projects --org=java-agent --debug --configuration-matching='(includeInJar)|(shadowIntoJar)'
+          args: --all-sub-projects --org=java-agent --configuration-matching='(includeInJar)|(shadowIntoJar)'
