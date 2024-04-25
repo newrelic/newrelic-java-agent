@@ -63,8 +63,9 @@ public class SpanTest {
 
             Map<String, TracedMetricData> metricsForTransaction = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(txName);
 
-            assertEquals(2, metricsForTransaction.size());
+            assertEquals(3, metricsForTransaction.size());
             assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/asyncSpans"));
+            assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest$$Lambda$.run"));
             assertTrue(metricsForTransaction.containsKey("Span/MyCustomAsyncSpan"));
         } finally {
             executor.shutdown();
@@ -84,14 +85,6 @@ public class SpanTest {
     @Trace(dispatcher = true)
     static void asyncSpans(Executor executor) {
         executor.execute(Context.current().wrap(SpanTest::asyncWork));
-
-        CountDownLatch latch = new CountDownLatch(1);
-        executor.execute(latch::countDown);
-        try {
-            latch.await(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     static void asyncWork() {
