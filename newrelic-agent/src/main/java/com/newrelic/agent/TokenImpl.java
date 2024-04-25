@@ -7,13 +7,22 @@
 
 package com.newrelic.agent;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 
 import java.text.MessageFormat;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public class TokenImpl implements Token {
@@ -162,4 +171,87 @@ public class TokenImpl implements Token {
         }
     }
 
+    public Runnable wrap(Runnable runnable, final String metricName) {
+        return () -> {
+            com.newrelic.agent.bridge.Transaction transaction = AgentBridge.getAgent().getTransaction(true);
+            Segment segment = transaction.startSegment(metricName);
+            try {
+                link();
+                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                runnable.run();
+            } finally {
+                segment.end();
+                expire();
+            }
+        };
+    }
+
+
+    public <T> Callable<T> wrap(Callable<T> callable, String metricName) {
+        return () -> {
+            try {
+                link();
+                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                return callable.call();
+            } finally {
+                expire();
+            }
+        };
+    }
+
+    public <T, U> Function<T, U> wrapFunction(Function<T, U> function, String metricName) {
+        return t -> {
+            try {
+                link();
+                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                return function.apply(t);
+            } finally {
+                expire();
+            }
+        };
+    }
+
+    public <T, U, V> BiFunction<T, U, V> wrapFunction(BiFunction<T, U, V> function, String metricName) {
+        return (t, u) -> {
+            try {
+                link();
+                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                return function.apply(t, u);
+            } finally {
+                expire();
+            }
+        };
+    }
+
+    public <T> Consumer<T> wrapConsumer(Consumer<T> consumer, String metricName) {
+        return t -> {
+            try {
+                link();
+                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                consumer.accept(t);
+            } finally {
+                expire();
+            }
+        };
+    }
+
+    public <T, U> BiConsumer<T, U> wrapConsumer(BiConsumer<T, U> consumer, String metricName) {
+        return (t, u) -> {
+            try {
+                link();
+                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                consumer.accept(t, u);
+            } finally {
+                expire();
+            }
+        };
+    }
+
+    public <T> Supplier<T> wrapSupplier(Supplier<T> supplier, String metricName) {
+        return () -> {
+            linkAndExpire();
+            NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+            return supplier.get();
+        };
+    }
 }

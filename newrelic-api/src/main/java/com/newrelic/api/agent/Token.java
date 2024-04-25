@@ -69,15 +69,7 @@ public interface Token extends AutoCloseable {
     boolean isActive();
 
     default Runnable wrap(Runnable runnable, final String metricName) {
-        return new Runnable() {
-            @Override
-            @Trace(async = true)
-            public void run() {
-                linkAndExpire();
-                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
-                runnable.run();
-            }
-        };
+        return runnable;
     }
 
     default <T> Callable<T> wrap(Callable<T> callable, String metricName) {
@@ -85,9 +77,13 @@ public interface Token extends AutoCloseable {
             @Override
             @Trace(async = true)
             public T call() throws Exception {
-                linkAndExpire();
-                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
-                return callable.call();
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    return callable.call();
+                } finally {
+                    expire();
+                }
             }
         };
     }
@@ -97,9 +93,13 @@ public interface Token extends AutoCloseable {
             @Override
             @Trace(async = true)
             public U apply(T t) {
-                linkAndExpire();
-                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
-                return function.apply(t);
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    return function.apply(t);
+                } finally {
+                    expire();
+                }
             }
         };
     }
@@ -109,9 +109,13 @@ public interface Token extends AutoCloseable {
             @Override
             @Trace(async = true)
             public V apply(T t, U u) {
-                linkAndExpire();
-                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
-                return function.apply(t, u);
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    return function.apply(t, u);
+                } finally {
+                    expire();
+                }
             }
         };
     }
@@ -121,9 +125,13 @@ public interface Token extends AutoCloseable {
             @Override
             @Trace(async = true)
             public void accept(T t) {
-                linkAndExpire();
-                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
-                consumer.accept(t);
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    consumer.accept(t);
+                } finally {
+                    expire();
+                }
             }
         };
     }
@@ -133,9 +141,13 @@ public interface Token extends AutoCloseable {
             @Override
             @Trace(async = true)
             public void accept(T t, U u) {
-                linkAndExpire();
-                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
-                consumer.accept(t, u);
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    consumer.accept(t, u);
+                } finally {
+                    expire();
+                }
             }
         };
     }

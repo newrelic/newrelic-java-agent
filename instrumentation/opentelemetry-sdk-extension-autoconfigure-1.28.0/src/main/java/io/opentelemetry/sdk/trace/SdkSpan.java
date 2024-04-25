@@ -9,6 +9,8 @@ import io.opentelemetry.api.common.AttributeKey;
 /**
  * None of the Span interfaces expose an accessor to get all attributes, so we have to intercept the
  * `setAttribute` method to observe attributes and add them to our tracers.
+ *
+ * We could call `ReadableSpan.toSpanData()` when the span finishes, but that introduces unnecessary object allocation.
  */
 @Weave(type = MatchType.ExactClass)
 final class SdkSpan {
