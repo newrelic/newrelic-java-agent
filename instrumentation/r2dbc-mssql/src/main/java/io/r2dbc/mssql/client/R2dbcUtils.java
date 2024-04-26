@@ -27,6 +27,8 @@ public class R2dbcUtils {
             Transaction transaction = NewRelic.getAgent().getTransaction();
             if(transaction != null && !(transaction instanceof NoOpTransaction)) {
                 Segment segment = transaction.startSegment("execute");
+                long wrapperTime = System.currentTimeMillis() - start;
+                AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: wrapping request took " + wrapperTime);
                 return request
                         .doOnSubscribe(reportExecution(sql, client, segment))
                         .doFinally((type) -> segment.end());
