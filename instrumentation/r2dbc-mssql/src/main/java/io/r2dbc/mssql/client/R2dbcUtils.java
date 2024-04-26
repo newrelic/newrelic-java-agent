@@ -42,7 +42,8 @@ public class R2dbcUtils {
             long start = System.currentTimeMillis();
             OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
             long sqlOpTime = System.currentTimeMillis() - start;
-            AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: extracting SQL operation took " + sqlOpTime);
+            String opName = (sqlOperation != null) ? sqlOperation.getOperation() : "none";
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: extracting SQL operation " + opName + " took " + sqlOpTime);
             InetSocketAddress socketAddress = extractSocketAddress(client);
             if (sqlOperation != null && socketAddress != null) {
                 segment.reportAsExternal(DatastoreParameters
