@@ -270,7 +270,7 @@ public final class Agent {
                 LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
             }
         } else {
-            LOG.warning("New Relic Security is completely disabled by one of the user provided config `security.enabled`, `security.agent.enabled` or `high_security`. Not loading security capabilities.");
+            LOG.info("New Relic Security is completely disabled by one of the user provided config `security.enabled`, `security.agent.enabled` or `high_security`. Not loading security capabilities.");
         }
     }
 
