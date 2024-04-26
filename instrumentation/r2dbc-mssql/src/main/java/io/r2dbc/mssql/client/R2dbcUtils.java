@@ -1,5 +1,6 @@
 package io.r2dbc.mssql.client;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.OperationAndTableName;
@@ -17,9 +18,11 @@ import reactor.netty.Connection;
 import java.net.InetSocketAddress;
 
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class R2dbcUtils {
     public static Flux<MssqlResult> wrapRequest(Flux<MssqlResult> request, String sql, Client client) {
+        long start = System.currentTimeMillis();
         if(request != null) {
             Transaction transaction = NewRelic.getAgent().getTransaction();
             if(transaction != null && !(transaction instanceof NoOpTransaction)) {
@@ -29,12 +32,17 @@ public class R2dbcUtils {
                         .doFinally((type) -> segment.end());
             }
         }
+        long wrapperTime = System.currentTimeMillis() - start;
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: wrapping request took " + wrapperTime);
         return request;
     }
 
     private static Consumer<Subscription> reportExecution(String sql, Client client, Segment segment) {
         return (subscription) -> {
+            long start = System.currentTimeMillis();
             OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
+            long sqlOpTime = System.currentTimeMillis() - start;
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: extracting SQL operation took " + sqlOpTime);
             InetSocketAddress socketAddress = extractSocketAddress(client);
             if (sqlOperation != null && socketAddress != null) {
                 segment.reportAsExternal(DatastoreParameters
