@@ -14,6 +14,7 @@ import com.newrelic.api.agent.NewRelic;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -157,19 +158,24 @@ public class SecurityAgentConfig {
      * Log security settings to help debug when the IAST agent is not enabled.
      */
     public static void logSettings(Level logLevel) {
-        final Logger logger = NewRelic.getAgent().getLogger();
+        logSettings(NewRelic.getAgent().getConfig(), NewRelic.getAgent().getLogger(), logLevel,
+                System.getenv(), System.getProperties());
+    }
+
+    static void logSettings(final Config config, final Logger logger, Level logLevel,
+                            Map<String, String> environment,
+                            Map<Object, Object> systemProperties) {
+
         if (logger.isLoggable(logLevel)) {
-            final Config config = NewRelic.getAgent().getConfig();
-
             Arrays.asList(AgentConfigImpl.HIGH_SECURITY, SECURITY_ENABLED, SECURITY_AGENT_ENABLED).forEach(key ->
-                logger.log(logLevel, "{0} = {1}", key, config.getValue(key)));
+                    logger.log(logLevel, "{0} = {1}", key, config.getValue(key)));
 
-            System.getenv().forEach((key, value) -> {
+            environment.forEach((key, value) -> {
                 if (key.contains("NEW_RELIC") && key.contains("SECURITY")) {
                     logger.log(logLevel, "Environment {0} = {1}", key, value);
                 }
             });
-            System.getProperties().forEach((key, value) -> {
+            systemProperties.forEach((key, value) -> {
                 if (key.toString().contains("newrelic.config.") && key.toString().contains("security")) {
                     logger.log(logLevel, "System property {0} = {1}", key, value);
                 }
