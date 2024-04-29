@@ -4,6 +4,30 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.11.1
+## New features and improvements
+
+- Update Security Agent to Public Release version `1.2.1`
+
+## Deprecations
+
+- The browser footer injection APIs have been deprecated and will be removed in a future agent release. The header injection API now adds both the header and footer scripts. [1679](https://github.com/newrelic/newrelic-java-agent/pull/1679)
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
+## IAST
+
+- Update Security Agent to Public Release version 1.2.1 [1870](https://github.com/newrelic/newrelic-java-agent/pull/1870)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.2.1
+
+
 ## Version 8.11.0
 ## New features and improvements
 
