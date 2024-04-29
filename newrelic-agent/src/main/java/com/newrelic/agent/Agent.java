@@ -10,7 +10,6 @@ package com.newrelic.agent;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
@@ -29,8 +28,6 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
-import com.newrelic.api.agent.Config;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.security.NewRelicSecurity;
 import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
@@ -275,15 +272,8 @@ public final class Agent {
             }
         } else {
             LOG.info("New Relic Security is completely disabled by one of the user provided config `security.enabled`, `security.agent.enabled` or `high_security`. Not loading security capabilities.");
-            Config config = NewRelic.getAgent().getConfig();
-            logConfig(config, Level.FINE, AgentConfigImpl.HIGH_SECURITY);
-            logConfig(config, Level.FINE, SecurityAgentConfig.SECURITY_ENABLED);
-            logConfig(config, Level.FINE, SecurityAgentConfig.SECURITY_AGENT_ENABLED);
+            SecurityAgentConfig.logSettings(Level.FINE);
         }
-    }
-
-    private static void logConfig(Config config, Level logLevel, String key) {
-        LOG.log(logLevel, "{0} = {1}", key, config.getValue(key));
     }
 
     private static Instrumentation maybeWrapInstrumentation(Instrumentation inst) {
