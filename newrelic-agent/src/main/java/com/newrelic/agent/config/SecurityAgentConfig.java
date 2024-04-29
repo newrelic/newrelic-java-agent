@@ -9,10 +9,13 @@ package com.newrelic.agent.config;
 
 import com.google.common.collect.Sets;
 import com.newrelic.api.agent.Config;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.logging.Level;
 
 /* Default config should look like:
  *
@@ -150,4 +153,27 @@ public class SecurityAgentConfig {
         return config.getValue(SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED, SECURITY_LOW_PRIORITY_INSTRUMENTATION_ENABLED_DEFAULT);
     }
 
+    /**
+     * Log security settings to help debug when the IAST agent is not enabled.
+     */
+    public static void logSettings(Level logLevel) {
+        final Logger logger = NewRelic.getAgent().getLogger();
+        if (logger.isLoggable(logLevel)) {
+            final Config config = NewRelic.getAgent().getConfig();
+
+            Arrays.asList(AgentConfigImpl.HIGH_SECURITY, SECURITY_ENABLED, SECURITY_AGENT_ENABLED).forEach(key ->
+                logger.log(logLevel, "{0} = {1}", key, config.getValue(key)));
+
+            System.getenv().forEach((key, value) -> {
+                if (key.contains("NEW_RELIC") && key.contains("SECURITY")) {
+                    logger.log(logLevel, "Environment {0} = {1}", key, value);
+                }
+            });
+            System.getProperties().forEach((key, value) -> {
+                if (key.toString().contains("newrelic.config.") && key.toString().contains("security")) {
+                    logger.log(logLevel, "System property {0} = {1}", key, value);
+                }
+            });
+        }
+    }
 }
