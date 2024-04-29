@@ -16,7 +16,7 @@ import com.newrelic.api.agent.OutboundHeaders;
 public class MessageProduceParameters extends com.newrelic.api.agent.MessageProduceParameters implements ExternalParameters {
 
     /**
-     * @Deprecated Do not use. Use {@link com.newrelic.api.agent.MessageProduceParameters#MessageProduceParameters} instead.
+     * @Deprecated Do not use. Use the fluent builder {@link com.newrelic.api.agent.MessageProduceParameters#library(String)} instead.
      *
      * @param library
      * @param destinationType
@@ -26,7 +26,7 @@ public class MessageProduceParameters extends com.newrelic.api.agent.MessageProd
     @Deprecated
     protected MessageProduceParameters(String library, DestinationType destinationType, String destinationName,
             OutboundHeaders outboundHeaders) {
-        super(library, destinationType.toApiDestinationType(), destinationName, outboundHeaders);
+        super(library, destinationType.toApiDestinationType(), destinationName, outboundHeaders, null);
     }
 
 }

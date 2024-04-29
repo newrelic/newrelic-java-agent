@@ -3,7 +3,14 @@ package com.agent.instrumentation.awsjavasdkdynamodb_v2;
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import com.newrelic.agent.transport.apache.ApacheHttpClientWrapper;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -29,13 +36,16 @@ public class LocalTestDynamoDb {
     private LocalTestDynamoDb() throws Exception {
         port = String.valueOf(InstrumentationTestRunner.getIntrospector().getRandomPort());
         hostName = InetAddress.getLocalHost().getHostName();
-        server = ServerRunner.createServerFromCommandLineArgs(new String[]{"-inMemory", "-port", port});
+        server = ServerRunner.createServerFromCommandLineArgs(new String[]{"-disableTelemetry", "-inMemory", "-port", port});
+        AwsCredentials awsCredentials = AwsBasicCredentials.create("1234QAAAAAAAZZZZZZZZ", "secret");
         client = DynamoDbClient.builder()
-                .credentialsProvider(DefaultCredentialsProvider.builder().build())
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .endpointOverride(new URI("http://localhost:" + port))
-                .region(Region.US_WEST_1).build();
+                .region(Region.US_WEST_1)
+                .httpClient(UrlConnectionHttpClient.create())
+                .build();
         asyncClient = DynamoDbAsyncClient.builder()
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .endpointOverride(new URI("http://localhost:" + port))
                 .region(Region.US_WEST_1).build();
     }
