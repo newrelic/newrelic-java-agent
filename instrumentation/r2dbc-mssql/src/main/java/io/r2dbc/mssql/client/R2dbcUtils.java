@@ -1,6 +1,5 @@
 package io.r2dbc.mssql.client;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.OperationAndTableName;
@@ -18,7 +17,6 @@ import reactor.netty.Connection;
 import java.net.InetSocketAddress;
 
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
 public class R2dbcUtils {
     public static Flux<MssqlResult> wrapRequest(Flux<MssqlResult> request, String sql, Client client) {

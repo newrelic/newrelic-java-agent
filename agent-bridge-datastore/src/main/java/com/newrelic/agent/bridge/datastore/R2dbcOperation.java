@@ -7,11 +7,9 @@
 
 package com.newrelic.agent.bridge.datastore;
 
-import com.newrelic.agent.bridge.AgentBridge;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
