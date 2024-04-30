@@ -10,6 +10,7 @@ package com.newrelic.agent.bridge;
 import java.io.Closeable;
 import java.lang.reflect.Method;
 
+import com.newrelic.agent.bridge.datastore.DatabaseModelOperation;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 
@@ -132,4 +133,8 @@ public interface Instrumentation {
     void registerCloseable(String instrumentationName, Closeable closeable);
 
     IdGenerator getIdGenerator();
+
+    default DatabaseModelOperation parseSqlStatement(String databaseStatement) {
+        return null;
+    }
 }

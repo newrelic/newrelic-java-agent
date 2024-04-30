@@ -2,6 +2,7 @@ package io.opentelemetry.sdk.autoconfigure;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
+import com.newrelic.agent.bridge.datastore.DatabaseModelOperation;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.GenericParameters;
@@ -24,6 +25,7 @@ import java.util.logging.Level;
 public final class SpanToTracerProcessor implements SpanProcessor {
     private static final AttributeKey<String> OTEL_LIBRARY_NAME = AttributeKey.stringKey("otel.library.name");
     private static final AttributeKey<String> DB_SYSTEM = AttributeKey.stringKey("db.system");
+    private static final AttributeKey<String> DB_STATEMENT = AttributeKey.stringKey("db.statement");
     private static final AttributeKey<String> DB_OPERATION = AttributeKey.stringKey("db.operation");
     private static final AttributeKey<String> DB_SQL_TABLE = AttributeKey.stringKey("db.sql.table");
     private static final AttributeKey<String> DB_NAME = AttributeKey.stringKey("db.name");
@@ -128,7 +130,13 @@ public final class SpanToTracerProcessor implements SpanProcessor {
         if (sqlTable != null) {
             return sqlTable;
         }
-        // FIXME parse sql statement?
+        final String dbStatement = span.getAttribute(DB_STATEMENT);
+        if (dbStatement != null) {
+            DatabaseModelOperation databaseModelOperation = AgentBridge.instrumentation.parseSqlStatement(dbStatement);
+            if (databaseModelOperation != null) {
+                return databaseModelOperation.getModel();
+            }
+        }
         return "unknown";
     }
 
