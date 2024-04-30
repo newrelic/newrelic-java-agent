@@ -40,12 +40,8 @@ public class R2dbcOperation {
                 String opName = operation.getKey();
                 if (upperCaseSql.contains(opName)) { //NR-262136, non-regex check before pattern matching
                     for (Pattern pattern : operation.getValue()) {
-                        long start = System.currentTimeMillis();
                         Matcher matcher = pattern.matcher(strippedSql);
-                        boolean foundMatch = matcher.find();
-                        long matchTime = System.currentTimeMillis() - start;
-                        AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: finding match for " + opName + " took " + matchTime);
-                        if (foundMatch) {
+                        if (matcher.find()) {
                             String model = matcher.groupCount() > 0 ? removeBrackets(unquoteDatabaseName(matcher.group(1).trim())) : "unknown";
                             return new OperationAndTableName(operation.getKey(), VALID_METRIC_NAME_MATCHER.matcher(model).matches() ? model : "ParseError");
                         }

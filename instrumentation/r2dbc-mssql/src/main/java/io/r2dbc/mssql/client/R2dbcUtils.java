@@ -22,30 +22,21 @@ import java.util.logging.Level;
 
 public class R2dbcUtils {
     public static Flux<MssqlResult> wrapRequest(Flux<MssqlResult> request, String sql, Client client) {
-        long start = System.currentTimeMillis();
         if(request != null) {
             Transaction transaction = NewRelic.getAgent().getTransaction();
             if(transaction != null && !(transaction instanceof NoOpTransaction)) {
                 Segment segment = transaction.startSegment("execute");
-                long wrapperTime = System.currentTimeMillis() - start;
-                AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: wrapping request took " + wrapperTime);
                 return request
                         .doOnSubscribe(reportExecution(sql, client, segment))
                         .doFinally((type) -> segment.end());
             }
         }
-        long wrapperTime = System.currentTimeMillis() - start;
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: wrapping request took " + wrapperTime);
         return request;
     }
 
     private static Consumer<Subscription> reportExecution(String sql, Client client, Segment segment) {
         return (subscription) -> {
-            long start = System.currentTimeMillis();
             OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
-            long sqlOpTime = System.currentTimeMillis() - start;
-            String opName = (sqlOperation != null) ? sqlOperation.getOperation() : "none";
-            AgentBridge.getAgent().getLogger().log(Level.FINEST, "NR-262136: extracting SQL operation " + opName + " took " + sqlOpTime);
             InetSocketAddress socketAddress = extractSocketAddress(client);
             if (sqlOperation != null && socketAddress != null) {
                 segment.reportAsExternal(DatastoreParameters
