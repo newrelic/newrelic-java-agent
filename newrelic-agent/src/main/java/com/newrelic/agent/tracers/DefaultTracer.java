@@ -13,11 +13,13 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.DatastoreConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.DatastoreMetrics;
+import com.newrelic.agent.database.ParsedDatabaseStatement;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
@@ -723,8 +725,9 @@ public class DefaultTracer extends AbstractTracer {
     private void recordExternalMetricsDatastore(DatastoreParameters datastoreParameters) {
         Transaction tx = getTransactionActivity().getTransaction();
         if (tx != null && datastoreParameters != null) {
+            final String collection = getCollection(datastoreParameters);
             DatastoreMetrics.collectDatastoreMetrics(datastoreParameters.getProduct(), tx, this,
-                    datastoreParameters.getCollection(), datastoreParameters.getOperation(),
+                    collection, datastoreParameters.getOperation(),
                     datastoreParameters.getHost(), datastoreParameters.getPort(), datastoreParameters.getPathOrId(),
                     datastoreParameters.getDatabaseName());
 
@@ -745,6 +748,23 @@ public class DefaultTracer extends AbstractTracer {
             Agent.LOG.log(Level.FINE,
                     "Datastore metrics will not be applied because the tracer is not in a transaction.");
         }
+    }
+
+    private String getCollection(DatastoreParameters datastoreParameters) {
+        final String collection = datastoreParameters.getCollection();
+        if (collection == null && datastoreParameters instanceof SlowQueryDatastoreParameters) {
+            final Object rawQuery = ((SlowQueryDatastoreParameters)datastoreParameters).getRawQuery();
+            if (rawQuery != null) {
+                ParsedDatabaseStatement databaseStatement = ServiceFactory.getDatabaseService().
+                        getDatabaseStatementParser().getParsedDatabaseStatement(
+                        UnknownDatabaseVendor.INSTANCE, rawQuery.toString(), null);
+                if (databaseStatement.recordMetric()) {
+                    return databaseStatement.getModel();
+                }
+            }
+            return "unknown";
+        }
+        return collection;
     }
 
     private void catForMessaging(MessageProduceParameters produceParameters) {

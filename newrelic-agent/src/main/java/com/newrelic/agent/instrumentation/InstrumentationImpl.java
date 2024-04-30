@@ -19,10 +19,7 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.IdGenerator;
 import com.newrelic.agent.bridge.Instrumentation;
 import com.newrelic.agent.bridge.NoOpTransaction;
-import com.newrelic.agent.bridge.datastore.DatabaseModelOperation;
-import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
 import com.newrelic.agent.config.ClassTransformerConfig;
-import com.newrelic.agent.database.ParsedDatabaseStatement;
 import com.newrelic.agent.instrumentation.classmatchers.DefaultClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.ExactClassMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.HashSafeClassAndMethodMatcher;
@@ -768,15 +765,5 @@ public class InstrumentationImpl implements Instrumentation {
     @Override
     public IdGenerator getIdGenerator() {
         return TransactionGuidFactory.ID_GENERATOR;
-    }
-
-    @Override
-    public DatabaseModelOperation parseSqlStatement(String databaseStatement) {
-        ParsedDatabaseStatement parsedDatabaseStatement = ServiceFactory.getDatabaseService().getDatabaseStatementParser().getParsedDatabaseStatement(
-                UnknownDatabaseVendor.INSTANCE, databaseStatement, null);
-        return parsedDatabaseStatement.recordMetric() ?
-            new DatabaseModelOperation(parsedDatabaseStatement.getModel(), parsedDatabaseStatement.getOperation()) :
-            null;
-
     }
 }

@@ -42,7 +42,7 @@ public class SpanToTracerProcessorTest {
         final ArgumentCaptor<DatastoreParameters> dbParams = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracer, times(1)).reportAsExternal(dbParams.capture());
         assertEquals("mysql", dbParams.getValue().getProduct());
-        assertEquals("owners", dbParams.getValue().getCollection());
+        assertEquals(null, dbParams.getValue().getCollection());
         assertEquals("mysqlserver", dbParams.getValue().getHost());
         assertEquals(3306, dbParams.getValue().getPort().intValue());
         assertEquals("SELECT", dbParams.getValue().getOperation());

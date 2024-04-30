@@ -2,11 +2,12 @@ package io.opentelemetry.sdk.autoconfigure;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
-import com.newrelic.agent.bridge.datastore.DatabaseModelOperation;
+import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.QueryConverter;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
@@ -80,8 +81,15 @@ public final class SpanToTracerProcessor implements SpanProcessor {
             String dbName = span.getAttribute(DB_NAME);
             DatastoreParameters.SlowQueryParameter slowQueryParameter =
                     dbName == null ? instance.noDatabaseName() : instance.databaseName(dbName);
+            final String dbStatement = span.getAttribute(DB_STATEMENT);
+            final DatastoreParameters datastoreParameters;
+            if (dbStatement == null) {
+                datastoreParameters = slowQueryParameter.build();
+            } else {
+                datastoreParameters = slowQueryParameter.slowQuery(dbStatement, SqlQueryConverter.INSTANCE).build();
+            }
 
-            tracer.reportAsExternal(slowQueryParameter.build());
+            tracer.reportAsExternal(datastoreParameters);
         }
         // Only support the current otel spec.  Ignore client spans with old attribute names
         else {
@@ -130,14 +138,7 @@ public final class SpanToTracerProcessor implements SpanProcessor {
         if (sqlTable != null) {
             return sqlTable;
         }
-        final String dbStatement = span.getAttribute(DB_STATEMENT);
-        if (dbStatement != null) {
-            DatabaseModelOperation databaseModelOperation = AgentBridge.instrumentation.parseSqlStatement(dbStatement);
-            if (databaseModelOperation != null) {
-                return databaseModelOperation.getModel();
-            }
-        }
-        return "unknown";
+        return null;
     }
 
     @Override
