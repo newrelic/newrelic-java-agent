@@ -2,6 +2,7 @@ package io.opentelemetry.sdk.autoconfigure;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Agent;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -17,12 +18,13 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 final class OpenTelemetrySDKCustomizer {
+    static final AttributeKey<String> SERVICE_INSTANCE_ID_ATTRIBUTE_KEY = AttributeKey.stringKey("service.instance.id");
+
     /**
      * Configure OpenTelemetry exporters to send data to the New Relic backend.
      */
-    static Map<String, String> applyProperties(ConfigProperties configProperties) {
+    static Map<String, String> applyProperties(ConfigProperties configProperties, Agent agent) {
         if (configProperties.getString("otel.exporter.otlp.endpoint") == null) {
-            final Agent agent = NewRelic.getAgent();
             agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
             final String host = agent.getConfig().getValue("host");
             final String endpoint = "https://" + host + ":443";
@@ -49,16 +51,15 @@ final class OpenTelemetrySDKCustomizer {
     /**
      * Add the monitored service's entity.guid to resources.
      */
-    static Resource applyResources(Resource resource, ConfigProperties configProperties) {
-        NewRelic.getAgent().getLogger().log(Level.FINE, "Appending OpenTelemetry resources");
+    static Resource applyResources(Resource resource, com.newrelic.agent.bridge.Agent agent, Logger logger) {
+        logger.log(Level.FINE, "Appending OpenTelemetry resources");
         final ResourceBuilder builder = new ResourceBuilder().putAll(resource);
-        final AttributeKey<String> instanceIdKey = AttributeKey.stringKey("service.instance.id");
-        final String instanceId = resource.getAttribute(instanceIdKey);
+        final String instanceId = resource.getAttribute(SERVICE_INSTANCE_ID_ATTRIBUTE_KEY);
         if (instanceId == null) {
-            builder.put(instanceIdKey, UUID.randomUUID().toString());
+            builder.put(SERVICE_INSTANCE_ID_ATTRIBUTE_KEY, UUID.randomUUID().toString());
         }
 
-        final String entityGuid = AgentBridge.getAgent().getEntityGuid(true);
+        final String entityGuid = agent.getEntityGuid(true);
         if (entityGuid != null) {
             builder.put("entity.guid", entityGuid);
         }
