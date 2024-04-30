@@ -20,6 +20,10 @@ import java.util.logging.Level;
 final class OpenTelemetrySDKCustomizer {
     static final AttributeKey<String> SERVICE_INSTANCE_ID_ATTRIBUTE_KEY = AttributeKey.stringKey("service.instance.id");
 
+    static Map<String, String> applyProperties(ConfigProperties configProperties) {
+        return applyProperties(configProperties, NewRelic.getAgent());
+    }
+
     /**
      * Configure OpenTelemetry exporters to send data to the New Relic backend.
      */
@@ -46,6 +50,10 @@ final class OpenTelemetrySDKCustomizer {
             return properties;
         }
         return Collections.emptyMap();
+    }
+
+    static Resource applyResources(Resource resource, ConfigProperties configProperties) {
+        return applyResources(resource, AgentBridge.getAgent(), NewRelic.getAgent().getLogger());
     }
 
     /**
