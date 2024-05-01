@@ -52,6 +52,7 @@ import com.newrelic.api.agent.NewRelic;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
@@ -138,7 +139,7 @@ public class InstrumentationImpl implements Instrumentation {
      * a Transaction is present on the thread. If present, we do not know if the Transaction has been started.
      */
     @Override
-    public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+    public @Nullable ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
         try {
             if (ServiceFactory.getServiceManager().isStopped()) {
                 return null;
@@ -369,7 +370,7 @@ public class InstrumentationImpl implements Instrumentation {
     }
 
     @Override
-    public ExitTracer createTracer(String metricName, int flags) {
+    public @Nullable ExitTracer createTracer(String metricName, int flags) {
         return createTracer(null, GENERIC_TXN_CLASS_SIGNATURE_ID, metricName, flags);
     }
 

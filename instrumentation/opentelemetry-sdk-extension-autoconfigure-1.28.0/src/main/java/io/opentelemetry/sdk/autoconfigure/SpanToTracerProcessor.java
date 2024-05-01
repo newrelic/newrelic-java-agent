@@ -7,7 +7,6 @@ import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.QueryConverter;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
@@ -43,6 +42,7 @@ public final class SpanToTracerProcessor implements SpanProcessor {
             Arrays.asList(CODE_FUNCTION, RPC_METHOD, HTTP_REQUEST_METHOD);
 
     private final Map<String, ExitTracer> tracersBySpanId = new ConcurrentHashMap<>();
+
     @Override
     public void onStart(Context parentContext, ReadWriteSpan span) {
         final ExitTracer tracer = AgentBridge.instrumentation.createTracer("Span/" + span.getName(),
@@ -70,7 +70,7 @@ public final class SpanToTracerProcessor implements SpanProcessor {
             String operation = span.getAttribute(DB_OPERATION);
             DatastoreParameters.InstanceParameter builder = DatastoreParameters
                     .product(dbSystem)
-                    .collection(getDbCollection(span))
+                    .collection(span.getAttribute(DB_SQL_TABLE))
                     .operation(operation == null ? "unknown" : operation);
             String serverAddress = span.getAttribute(SERVER_ADDRESS);
             Long serverPort = span.getAttribute(SERVER_PORT);
@@ -129,14 +129,6 @@ public final class SpanToTracerProcessor implements SpanProcessor {
                 return new URI(scheme == null ? "http" : scheme, null, serverAddress,
                         serverPort == null ? 0 : serverPort.intValue(), null, null, null);
             }
-        }
-        return null;
-    }
-
-    static String getDbCollection(ReadableSpan span) {
-        final String sqlTable = span.getAttribute(DB_SQL_TABLE);
-        if (sqlTable != null) {
-            return sqlTable;
         }
         return null;
     }
