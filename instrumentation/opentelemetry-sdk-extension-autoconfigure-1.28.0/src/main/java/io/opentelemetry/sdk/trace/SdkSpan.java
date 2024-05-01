@@ -15,18 +15,7 @@ import io.opentelemetry.api.common.AttributeKey;
 @Weave(type = MatchType.ExactClass)
 final class SdkSpan {
     public <T> ReadWriteSpan setAttribute(AttributeKey<T> key, T value) {
-        switch (key.getType()) {
-            case BOOLEAN:
-                NewRelic.getAgent().getTracedMethod().addCustomAttribute(key.getKey(), (Boolean) value);
-                break;
-            case LONG:
-            case DOUBLE:
-                NewRelic.getAgent().getTracedMethod().addCustomAttribute(key.getKey(), (Number) value);
-                break;
-            case STRING:
-                NewRelic.getAgent().getTracedMethod().addCustomAttribute(key.getKey(), (String) value);
-                break;
-        }
+        AttributeHelper.setAttribute(NewRelic.getAgent(), key, value);
         return Weaver.callOriginal();
     }
 }
