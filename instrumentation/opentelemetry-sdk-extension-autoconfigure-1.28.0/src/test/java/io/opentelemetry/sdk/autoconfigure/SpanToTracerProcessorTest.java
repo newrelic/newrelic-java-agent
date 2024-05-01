@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -36,13 +37,16 @@ public class SpanToTracerProcessorTest {
     @Test
     public void testReportDatabaseClientSpanMissingSqlTable() throws Exception {
         ReadableSpan span = SpanReader.readSpan(SpanToTracerProcessor.class.getResourceAsStream("db-span.json"),
-                attribute -> !"db.sql.table".equals(attribute));
+                attributes -> {
+                    attributes.remove("db.sql.table");
+                    return attributes;
+                });
         ExitTracer tracer = mock(ExitTracer.class);
         SpanToTracerProcessor.reportClientSpan(span, tracer);
         final ArgumentCaptor<DatastoreParameters> dbParams = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracer, times(1)).reportAsExternal(dbParams.capture());
         assertEquals("mysql", dbParams.getValue().getProduct());
-        assertEquals(null, dbParams.getValue().getCollection());
+        assertNull(dbParams.getValue().getCollection());
         assertEquals("mysqlserver", dbParams.getValue().getHost());
         assertEquals(3306, dbParams.getValue().getPort().intValue());
         assertEquals("SELECT", dbParams.getValue().getOperation());
@@ -71,6 +75,22 @@ public class SpanToTracerProcessorTest {
         assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
         assertEquals("https://google.com", externalParams.getValue().getUri().toString());
         assertEquals("GET", externalParams.getValue().getProcedure());
+    }
+
+    @Test
+    public void testReportHttpClientSpanWithCodeFunction() throws Exception {
+        ReadableSpan span = SpanReader.readSpan(SpanToTracerProcessor.class.getResourceAsStream("external-http-span.json"),
+                attributes -> {
+                    attributes.put("code.function", "execute");
+                    return attributes;
+                });
+        ExitTracer tracer = mock(ExitTracer.class);
+        SpanToTracerProcessor.reportClientSpan(span, tracer);
+        final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
+        verify(tracer, times(1)).reportAsExternal(externalParams.capture());
+        assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
+        assertEquals("https://google.com", externalParams.getValue().getUri().toString());
+        assertEquals("execute", externalParams.getValue().getProcedure());
     }
 
     @Test
