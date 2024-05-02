@@ -19,7 +19,10 @@ import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.api.agent.DatastoreParameters;
+import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Test;
 
 import java.net.URI;
@@ -249,25 +252,47 @@ public class SpanEventFactoryTest {
     }
 
     @Test
-    public void shouldSetCloudResourceIdParameters() {
+    public void shouldSetCloudResourceIdOnSpanFromDatastoreParameters() {
+        String expectedArn = "arn:aws:dynamodb:us-west-1:123456789012:tableName";
         DatastoreParameters mockParameters = mock(DatastoreParameters.class);
         when(mockParameters.getOperation()).thenReturn("putItem");
         when(mockParameters.getCollection()).thenReturn("tableName");
         when(mockParameters.getProduct()).thenReturn("DynamoDB");
         when(mockParameters.getHost()).thenReturn("dbserver");
         when(mockParameters.getPort()).thenReturn(1234);
-        when(mockParameters.getCloudResourceId()).thenReturn("arn:aws:dynamodb:us-west-1:123456789012:tableName");
+        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
         Map<String, Object> agentAttrs = target.getAgentAttributes();
-        assertEquals("putItem", agentAttrs.get("db.operation"));
-        assertEquals("tableName", agentAttrs.get("db.collection"));
-        assertEquals("DynamoDB", agentAttrs.get("db.system"));
-        assertEquals("dbserver", agentAttrs.get("peer.hostname"));
-        assertEquals("dbserver", agentAttrs.get("server.address"));
-        assertEquals(1234, agentAttrs.get("server.port"));
-        assertEquals("dbserver:1234", agentAttrs.get("peer.address"));
-        assertEquals("arn:aws:dynamodb:us-west-1:123456789012:tableName", agentAttrs.get("cloud.resource_id"));
+        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
+    }
+
+    @Test
+    public void shouldSetCloudResourceIdOnSpanFromMessageProduceParameters() {
+        String expectedArn = "arn:aws:sqs:us-east-1:123456789012:queueName";
+        MessageProduceParameters mockParameters = mock(MessageProduceParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
+    }
+
+    @Test
+    public void shouldSetCloudResourceIdOnSpanFromMessageConsumeParameters() {
+        String expectedArn = "arn:aws:sqs:us-east-1:123456789012:queueName";
+        MessageConsumeParameters mockParameters = mock(MessageConsumeParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
     }
 
     @Test
