@@ -13,7 +13,8 @@ import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.utils.Util;
+import com.newrelic.utils.MetricUtil;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
@@ -24,12 +25,13 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
-@Weave(type = MatchType.Interface, originalName = "software.amazon.awssdk.services.sqs.SqsAsyncClient")
-public class SqsAsyncClient_Instrumentation {
+@Weave(type = MatchType.ExactClass, originalName = "software.amazon.awssdk.services.sqs.DefaultSqsAsyncClient")
+class DefaultSqsAsyncClient_Instrumentation {
+    private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
 
     public CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest sendMessageRequest) {
-        Segment segment = NewRelic.getAgent().getTransaction().startSegment(Util.LIBRARY,"sendMessage");
-        segment.reportAsExternal(Util.generateExternalProduceMetrics(sendMessageRequest.queueUrl()));
+        Segment segment = NewRelic.getAgent().getTransaction().startSegment(MetricUtil.LIBRARY, "sendMessage");
+        segment.reportAsExternal(MetricUtil.generateExternalProduceMetrics(sendMessageRequest.queueUrl(), clientConfiguration));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<SendMessageResponse> result = Weaver.callOriginal();
@@ -39,14 +41,14 @@ public class SqsAsyncClient_Instrumentation {
         return result.whenComplete(new BiConsumer<SendMessageResponse, Throwable>() {
             @Override
             public void accept(SendMessageResponse sendMessageResponse, Throwable throwable) {
-                Util.finishSegment(segment);
+                MetricUtil.finishSegment(segment);
             }
         });
     }
 
     public CompletableFuture<SendMessageBatchResponse> sendMessageBatch(SendMessageBatchRequest sendMessageBatchRequest) {
-        Segment segment = NewRelic.getAgent().getTransaction().startSegment(Util.LIBRARY,"sendMessageBatch");
-        segment.reportAsExternal(Util.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl()));
+        Segment segment = NewRelic.getAgent().getTransaction().startSegment(MetricUtil.LIBRARY, "sendMessageBatch");
+        segment.reportAsExternal(MetricUtil.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl(), clientConfiguration));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<SendMessageBatchResponse> result = Weaver.callOriginal();
@@ -56,14 +58,14 @@ public class SqsAsyncClient_Instrumentation {
         return result.whenComplete(new BiConsumer<SendMessageBatchResponse, Throwable>() {
             @Override
             public void accept(SendMessageBatchResponse sendMessageBatchResponse, Throwable throwable) {
-                Util.finishSegment(segment);
+                MetricUtil.finishSegment(segment);
             }
         });
     }
 
     public CompletableFuture<ReceiveMessageResponse> receiveMessage(ReceiveMessageRequest receiveMessageRequest) {
-        Segment segment = NewRelic.getAgent().getTransaction().startSegment(Util.LIBRARY,"receiveMessage");
-        segment.reportAsExternal(Util.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl()));
+        Segment segment = NewRelic.getAgent().getTransaction().startSegment(MetricUtil.LIBRARY, "receiveMessage");
+        segment.reportAsExternal(MetricUtil.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl(), clientConfiguration));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<ReceiveMessageResponse> result = Weaver.callOriginal();
@@ -73,7 +75,7 @@ public class SqsAsyncClient_Instrumentation {
         return result.whenComplete(new BiConsumer<ReceiveMessageResponse, Throwable>() {
             @Override
             public void accept(ReceiveMessageResponse receiveMessageResponse, Throwable throwable) {
-                Util.finishSegment(segment);
+                MetricUtil.finishSegment(segment);
             }
         });
     }
