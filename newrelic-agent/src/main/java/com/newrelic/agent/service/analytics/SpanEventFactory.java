@@ -25,6 +25,8 @@ import com.newrelic.agent.util.StackTraces;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 
 import java.net.URI;
@@ -399,6 +401,14 @@ public class SpanEventFactory {
             } else {
                 setAddress(datastoreParameters.getHost(), datastoreParameters.getPathOrId());
             }
+        } else if (parameters instanceof MessageProduceParameters) {
+            MessageProduceParameters messageProduceParameters = (MessageProduceParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudResourceId(messageProduceParameters.getCloudResourceId());
+        } else if (parameters instanceof MessageConsumeParameters) {
+            MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudResourceId(messageConsumeParameters.getCloudResourceId());
         } else {
             setCategory(SpanCategory.generic);
         }
