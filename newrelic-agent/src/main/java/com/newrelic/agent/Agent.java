@@ -15,6 +15,7 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.config.JarResource;
 import com.newrelic.agent.config.JavaVersionUtils;
+import com.newrelic.agent.config.SecurityAgentConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -234,10 +235,10 @@ public final class Agent {
             instrumentation.started();
         }
         lifecycleObserver.agentStarted();
-        InitialiseNewRelicSecurityIfAllowed(inst);
+        initialiseNewRelicSecurityIfAllowed(inst);
     }
 
-    private static void InitialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
+    private static void initialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
         addSecurityAgentConfigSupportabilityMetrics();
         if (shouldInitializeSecurityAgent()) {
@@ -270,7 +271,8 @@ public final class Agent {
                 LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
             }
         } else {
-            LOG.warning("New Relic Security is completely disabled by one of the user provided config `security.enabled`, `security.agent.enabled` or `high_security`. Not loading security capabilities.");
+            LOG.info("New Relic Security is completely disabled by one of the user provided config `security.enabled`, `security.agent.enabled` or `high_security`. Not loading security capabilities.");
+            SecurityAgentConfig.logSettings(Level.FINE);
         }
     }
 

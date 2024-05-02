@@ -1,11 +1,17 @@
 package com.newrelic.agent.config;
 
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.api.agent.Agent;
+import com.newrelic.api.agent.Config;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.MockedStatic;
+
+import java.util.Map;
+import java.util.logging.Level;
 
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_AGENT_ENABLED;
 import static com.newrelic.agent.config.SecurityAgentConfig.SECURITY_AGENT_ENABLED_DEFAULT;
@@ -28,6 +34,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SecurityAgentConfigTest {
@@ -163,4 +171,23 @@ public class SecurityAgentConfigTest {
         assertFalse(SecurityAgentConfig.isSecurityLowPriorityInstrumentationEnabled());
     }
 
+    @Test
+    public void testLogSettings() {
+        Config config = mock(Config.class);
+        Logger logger = mock(Logger.class);
+        when(logger.isLoggable(Level.FINE)).thenReturn(true);
+        final String test = "test";
+        final String environmentValueToSkip = "SECURITY_THING";
+        Map<String, String> env = ImmutableMap.of("NEW_RELIC_SECURITY_AGENT_ENABLED", "true",
+                environmentValueToSkip, test);
+        final String systemPropertyToSkip = "security.test";
+        Map<Object, Object> systemProperties = ImmutableMap.of("newrelic.config.security.enabled", "true",
+                systemPropertyToSkip, test);
+        SecurityAgentConfig.logSettings(config, logger, Level.FINE, env, systemProperties);
+
+        verify(logger, times(1)).log(Level.FINE, "Environment {0} = {1}", "NEW_RELIC_SECURITY_AGENT_ENABLED", "true");
+        verify(logger, times(0)).log(Level.FINE, "Environment {0} = {1}", environmentValueToSkip, test);
+        verify(logger, times(1)).log(Level.FINE, "System property {0} = {1}", "newrelic.config.security.enabled", "true");
+        verify(logger, times(0)).log(Level.FINE, "System property {0} = {1}", systemPropertyToSkip, test);
+    }
 }
