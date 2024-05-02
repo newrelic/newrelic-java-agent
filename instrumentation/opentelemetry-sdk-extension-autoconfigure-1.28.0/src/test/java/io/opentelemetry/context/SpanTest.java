@@ -7,6 +7,7 @@ import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.api.agent.Trace;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.junit.Test;
@@ -72,11 +73,41 @@ public class SpanTest {
         }
     }
 
+    @Test
+    public void testDatabaseSpan() {
+        databaseSpan();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+        final String txName = introspector.getTransactionNames().iterator().next();
+        assertEquals("OtherTransaction/Custom/io.opentelemetry.context.SpanTest/databaseSpan", txName);
+
+        Map<String, TracedMetricData> metricsForTransaction = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(txName);
+
+        assertEquals(2, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/databaseSpan"));
+        assertTrue(metricsForTransaction.containsKey("Datastore/statement/mysql/owners/select"));
+    }
+
+    @Trace(dispatcher = true)
+    static void databaseSpan() {
+        Span span = otelTracer.spanBuilder("owners select").setSpanKind(SpanKind.CLIENT)
+                .setAttribute("db.system", "mysql")
+                .setAttribute("db.operation", "select")
+                .setAttribute("db.sql.table", "owners")
+                .startSpan();
+        span.end();
+    }
+
     @Trace(dispatcher = true)
     static void simpleSpans() {
         Span span = otelTracer.spanBuilder("MyCustomSpan").startSpan();
+        Scope scope = span.makeCurrent();
+        Span current = Span.current();
+        assertEquals(span, current);
         Span kid = otelTracer.spanBuilder("kid").startSpan();
         kid.end();
+        scope.close();
         span.end();
 
         withSpan();

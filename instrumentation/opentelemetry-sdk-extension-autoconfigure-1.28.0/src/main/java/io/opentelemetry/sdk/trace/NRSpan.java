@@ -1,28 +1,27 @@
-package io.opentelemetry.sdk.autoconfigure;
+package io.opentelemetry.sdk.trace;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
-import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.NewRelic;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.AttributeType;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.sdk.trace.ReadWriteSpan;
-import io.opentelemetry.sdk.trace.ReadableSpan;
-import io.opentelemetry.sdk.trace.SpanProcessor;
+import io.opentelemetry.api.trace.StatusCode;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public final class SpanToTracerProcessor implements SpanProcessor {
+class NRSpan implements Span {
     private static final AttributeKey<String> OTEL_LIBRARY_NAME = AttributeKey.stringKey("otel.library.name");
     private static final AttributeKey<String> DB_SYSTEM = AttributeKey.stringKey("db.system");
     private static final AttributeKey<String> DB_STATEMENT = AttributeKey.stringKey("db.statement");
@@ -41,47 +40,100 @@ public final class SpanToTracerProcessor implements SpanProcessor {
     private static final List<AttributeKey<String>> PROCEDURE_KEYS =
             Arrays.asList(CODE_FUNCTION, RPC_METHOD, HTTP_REQUEST_METHOD);
 
-    private final Map<String, ExitTracer> tracersBySpanId = new ConcurrentHashMap<>();
+    private final ExitTracer tracer;
+    private final SpanKind spanKind;
+    private final Map<String, Object> attributes;
 
-    @Override
-    public void onStart(Context parentContext, ReadWriteSpan span) {
-        final ExitTracer tracer = AgentBridge.instrumentation.createTracer("Span/" + span.getName(),
-                TracerFlags.GENERATE_SCOPED_METRIC
-                        | TracerFlags.TRANSACTION_TRACER_SEGMENT
-                        | TracerFlags.CUSTOM);
-        if (tracer != null) {
-            final SpanKind spanKind = span.getKind();
-            tracer.addCustomAttribute("span.kind", spanKind.name());
-            tracersBySpanId.put(span.getSpanContext().getSpanId(), tracer);
-
-            if (SpanKind.CLIENT == spanKind) {
-                reportClientSpan(span, tracer);
-            }
-
-            NewRelic.getAgent().getMetricAggregator().recordMetric("Supportability/SpanToTracerProcessor/tracersBySpanId/size", tracersBySpanId.size());
-        } else {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "No tracer, skipping span {0}", span.getName());
-        }
+    public NRSpan(ExitTracer tracer, SpanKind spanKind, Map<String, Object> attributes) {
+        this.tracer = tracer;
+        this.spanKind = spanKind;
+        this.attributes = attributes;
     }
 
-    static void reportClientSpan(ReadableSpan span, ExitTracer tracer) {
-        final String dbSystem = span.getAttribute(DB_SYSTEM);
+    @Override
+    public <T> Span setAttribute(AttributeKey<T> key, T value) {
+        attributes.put(key.getKey(), value);
+        return this;
+    }
+
+    @Override
+    public Span addEvent(String name, Attributes attributes) {
+        return this;
+    }
+
+    @Override
+    public Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit) {
+        return this;
+    }
+
+    @Override
+    public Span setStatus(StatusCode statusCode, String description) {
+        return this;
+    }
+
+    @Override
+    public Span recordException(Throwable exception, Attributes additionalAttributes) {
+        return this;
+    }
+
+    @Override
+    public Span updateName(String name) {
+        tracer.setMetricName("Span", name);
+        return this;
+    }
+
+    @Override
+    public void end() {
+        if (SpanKind.CLIENT == spanKind) {
+            reportClientSpan();
+        }
+        tracer.addCustomAttributes(attributes);
+        tracer.finish();
+    }
+
+    @Override
+    public void end(long timestamp, TimeUnit unit) {
+        this.end();
+    }
+
+    @Override
+    public SpanContext getSpanContext() {
+        return null;
+    }
+
+    @Override
+    public boolean isRecording() {
+        return true;
+    }
+
+    private <T> T getAttribute(AttributeKey<T> key) {
+        Object value = attributes.get(key.getKey());
+        if (key.getType() == AttributeType.LONG && value instanceof Number) {
+            value = ((Number) value).longValue();
+        } else if (key.getType() == AttributeType.DOUBLE && value instanceof Number) {
+            value = ((Number) value).doubleValue();
+        }
+        return (T) value;
+    }
+
+    private void reportClientSpan() {
+        final String dbSystem = getAttribute(DB_SYSTEM);
         if (dbSystem != null) {
-            String operation = span.getAttribute(DB_OPERATION);
+            String operation = getAttribute(DB_OPERATION);
             DatastoreParameters.InstanceParameter builder = DatastoreParameters
                     .product(dbSystem)
-                    .collection(span.getAttribute(DB_SQL_TABLE))
+                    .collection(getAttribute(DB_SQL_TABLE))
                     .operation(operation == null ? "unknown" : operation);
-            String serverAddress = span.getAttribute(SERVER_ADDRESS);
-            Long serverPort = span.getAttribute(SERVER_PORT);
+            String serverAddress = getAttribute(SERVER_ADDRESS);
+            Long serverPort = getAttribute(SERVER_PORT);
 
             DatastoreParameters.DatabaseParameter instance = serverAddress == null ? builder.noInstance() :
-                builder.instance(serverAddress, (serverPort == null ? Long.valueOf(0L) : serverPort).intValue());
+                    builder.instance(serverAddress, (serverPort == null ? Long.valueOf(0L) : serverPort).intValue());
 
-            String dbName = span.getAttribute(DB_NAME);
+            String dbName = getAttribute(DB_NAME);
             DatastoreParameters.SlowQueryParameter slowQueryParameter =
                     dbName == null ? instance.noDatabaseName() : instance.databaseName(dbName);
-            final String dbStatement = span.getAttribute(DB_STATEMENT);
+            final String dbStatement = getAttribute(DB_STATEMENT);
             final DatastoreParameters datastoreParameters;
             if (dbStatement == null) {
                 datastoreParameters = slowQueryParameter.build();
@@ -94,11 +146,11 @@ public final class SpanToTracerProcessor implements SpanProcessor {
         // Only support the current otel spec.  Ignore client spans with old attribute names
         else {
             try {
-                final URI uri = getUri(span);
+                final URI uri = getUri();
                 if (uri != null) {
-                    final String libraryName = span.getAttribute(OTEL_LIBRARY_NAME);
+                    final String libraryName = getAttribute(OTEL_LIBRARY_NAME);
                     GenericParameters genericParameters = GenericParameters.library(libraryName).uri(uri)
-                            .procedure(getProcedure(span)).build();
+                            .procedure(getProcedure()).build();
                     tracer.reportAsExternal(genericParameters);
                 }
             } catch (URISyntaxException e) {
@@ -107,9 +159,9 @@ public final class SpanToTracerProcessor implements SpanProcessor {
         }
     }
 
-    static String getProcedure(ReadableSpan span) {
+    String getProcedure() {
         for (AttributeKey<String> key : PROCEDURE_KEYS) {
-            String value = span.getAttribute(key);
+            String value = getAttribute(key);
             if (value != null) {
                 return value;
             }
@@ -117,38 +169,19 @@ public final class SpanToTracerProcessor implements SpanProcessor {
         return "unknown";
     }
 
-    static URI getUri(ReadableSpan span) throws URISyntaxException {
-        final String urlFull = span.getAttribute(URL_FULL);
+    URI getUri() throws URISyntaxException {
+        final String urlFull = getAttribute(URL_FULL);
         if (urlFull != null) {
             return URI.create(urlFull);
         } else {
-            final String serverAddress = span.getAttribute(SERVER_ADDRESS);
+            final String serverAddress = getAttribute(SERVER_ADDRESS);
             if (serverAddress != null) {
-                final String scheme = span.getAttribute(URL_SCHEME);
-                final Long serverPort = span.getAttribute(SERVER_PORT);
+                final String scheme = getAttribute(URL_SCHEME);
+                final Long serverPort = getAttribute(SERVER_PORT);
                 return new URI(scheme == null ? "http" : scheme, null, serverAddress,
                         serverPort == null ? 0 : serverPort.intValue(), null, null, null);
             }
         }
         return null;
-    }
-
-    @Override
-    public boolean isStartRequired() {
-        return true;
-    }
-
-    @Override
-    public void onEnd(ReadableSpan span) {
-        final ExitTracer tracer = tracersBySpanId.remove(span.getSpanContext().getSpanId());
-        if (tracer != null) {
-            tracer.addCustomAttribute("span.name", span.getName());
-            tracer.finish();
-        }
-    }
-
-    @Override
-    public boolean isEndRequired() {
-        return true;
     }
 }

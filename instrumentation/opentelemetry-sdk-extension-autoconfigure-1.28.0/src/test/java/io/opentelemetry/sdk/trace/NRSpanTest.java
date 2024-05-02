@@ -1,29 +1,31 @@
-package io.opentelemetry.sdk.autoconfigure;
+package io.opentelemetry.sdk.trace;
 
 import com.newrelic.agent.bridge.ExitTracer;
+import com.newrelic.agent.security.deps.com.fasterxml.jackson.databind.ObjectMapper;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.GenericParameters;
-import io.opentelemetry.sdk.trace.ReadableSpan;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.SpanKind;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class SpanToTracerProcessorTest {
+public class NRSpanTest {
     @Test
     public void testReportDatabaseClientSpan() throws Exception {
-        ReadableSpan span = readSpan("db-span.json");
         ExitTracer tracer = mock(ExitTracer.class);
-        SpanToTracerProcessor.reportClientSpan(span, tracer);
+        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("db-span.json")).end();
         final ArgumentCaptor<DatastoreParameters> dbParams = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracer, times(1)).reportAsExternal(dbParams.capture());
         assertEquals("mysql", dbParams.getValue().getProduct());
@@ -36,13 +38,10 @@ public class SpanToTracerProcessorTest {
 
     @Test
     public void testReportDatabaseClientSpanMissingSqlTable() throws Exception {
-        ReadableSpan span = SpanReader.readSpan(SpanToTracerProcessor.class.getResourceAsStream("db-span.json"),
-                attributes -> {
-                    attributes.remove("db.sql.table");
-                    return attributes;
-                });
         ExitTracer tracer = mock(ExitTracer.class);
-        SpanToTracerProcessor.reportClientSpan(span, tracer);
+        Map<String, Object> attributes = readSpanAttributes("db-span.json");
+        attributes.remove("db.sql.table");
+        new NRSpan(tracer, SpanKind.CLIENT, attributes).end();
         final ArgumentCaptor<DatastoreParameters> dbParams = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracer, times(1)).reportAsExternal(dbParams.capture());
         assertEquals("mysql", dbParams.getValue().getProduct());
@@ -55,9 +54,8 @@ public class SpanToTracerProcessorTest {
 
     @Test
     public void testReportRpcClientSpan() throws Exception {
-        ReadableSpan span = readSpan("external-rpc-span.json");
         ExitTracer tracer = mock(ExitTracer.class);
-        SpanToTracerProcessor.reportClientSpan(span, tracer);
+        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-rpc-span.json")).end();
         final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.grpc-1.6", externalParams.getValue().getLibrary());
@@ -67,9 +65,8 @@ public class SpanToTracerProcessorTest {
 
     @Test
     public void testReportHttpClientSpan() throws Exception {
-        ReadableSpan span = readSpan("external-http-span.json");
         ExitTracer tracer = mock(ExitTracer.class);
-        SpanToTracerProcessor.reportClientSpan(span, tracer);
+        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-http-span.json")).end();
         final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
@@ -79,13 +76,9 @@ public class SpanToTracerProcessorTest {
 
     @Test
     public void testReportHttpClientSpanWithCodeFunction() throws Exception {
-        ReadableSpan span = SpanReader.readSpan(SpanToTracerProcessor.class.getResourceAsStream("external-http-span.json"),
-                attributes -> {
-                    attributes.put("code.function", "execute");
-                    return attributes;
-                });
         ExitTracer tracer = mock(ExitTracer.class);
-        SpanToTracerProcessor.reportClientSpan(span, tracer);
+        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-http-span.json"))
+                .setAttribute(AttributeKey.stringKey("code.function"), "execute").end();
         final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
@@ -95,15 +88,14 @@ public class SpanToTracerProcessorTest {
 
     @Test
     public void testBadClientSpan() throws Exception {
-        ReadableSpan span = readSpan("bad-client-span.json");
         ExitTracer tracer = mock(ExitTracer.class);
-        SpanToTracerProcessor.reportClientSpan(span, tracer);
+        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("bad-client-span.json")).end();
         verify(tracer, times(0)).reportAsExternal(any(ExternalParameters.class));
     }
 
-    static ReadableSpan readSpan(String fileName) throws IOException {
-        try (InputStream in = SpanToTracerProcessorTest.class.getResourceAsStream(fileName)) {
-            return SpanReader.readSpan(in);
+    static Map<String, Object> readSpanAttributes(String fileName) throws IOException {
+        try (InputStream in = NRSpanTest.class.getResourceAsStream(fileName)) {
+            return new ObjectMapper().readValue(in, Map.class);
         }
     }
 }
