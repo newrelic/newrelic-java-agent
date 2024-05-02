@@ -7,12 +7,19 @@
 
 package com.newrelic.api.agent;
 
+import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 /**
  * Tokens are passed between threads to link asynchronous units of work to the originating {@link Transaction}
  * associated with the token. This results in two or more pieces of work being tied together into a single
  * {@link Transaction}. A token is created by a call to {@link Transaction#getToken()}.
  */
-public interface Token {
+public interface Token extends AutoCloseable {
 
     /**
      * Links the work being done on the current thread back to the originating {@link Transaction} associated with the
@@ -61,4 +68,104 @@ public interface Token {
      */
     boolean isActive();
 
+    default Runnable wrap(Runnable runnable, final String metricName) {
+        return runnable;
+    }
+
+    default <T> Callable<T> wrap(Callable<T> callable, String metricName) {
+        return new Callable<T>() {
+            @Override
+            @Trace(async = true)
+            public T call() throws Exception {
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    return callable.call();
+                } finally {
+                    expire();
+                }
+            }
+        };
+    }
+
+    default <T, U> Function<T, U> wrapFunction(Function<T, U> function, String metricName) {
+        return new Function<T, U>() {
+            @Override
+            @Trace(async = true)
+            public U apply(T t) {
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    return function.apply(t);
+                } finally {
+                    expire();
+                }
+            }
+        };
+    }
+
+    default <T, U, V> BiFunction<T, U, V> wrapFunction(BiFunction<T, U, V> function, String metricName) {
+        return new BiFunction<T, U, V>() {
+            @Override
+            @Trace(async = true)
+            public V apply(T t, U u) {
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    return function.apply(t, u);
+                } finally {
+                    expire();
+                }
+            }
+        };
+    }
+
+    default <T> Consumer<T> wrapConsumer(Consumer<T> consumer, String metricName) {
+        return new Consumer<T>() {
+            @Override
+            @Trace(async = true)
+            public void accept(T t) {
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    consumer.accept(t);
+                } finally {
+                    expire();
+                }
+            }
+        };
+    }
+
+    default <T, U> BiConsumer<T, U> wrapConsumer(BiConsumer<T, U> consumer, String metricName) {
+        return new BiConsumer<T, U>() {
+            @Override
+            @Trace(async = true)
+            public void accept(T t, U u) {
+                try {
+                    link();
+                    NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                    consumer.accept(t, u);
+                } finally {
+                    expire();
+                }
+            }
+        };
+    }
+
+    default <T> Supplier<T> wrapSupplier(Supplier<T> supplier, String metricName) {
+        return new Supplier<T>() {
+            @Override
+            @Trace(async = true)
+            public T get() {
+                linkAndExpire();
+                NewRelic.getAgent().getTracedMethod().setMetricName(metricName);
+                return supplier.get();
+            }
+        };
+    }
+
+    @Override
+    default void close() {
+        linkAndExpire();
+    }
 }

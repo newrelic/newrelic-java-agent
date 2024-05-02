@@ -8,6 +8,8 @@ dependencies {
     implementation(project(":newrelic-weaver-api"))
     implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.28.0")
     testImplementation("junit:junit:4.12")
+    testImplementation("io.opentelemetry:opentelemetry-exporter-otlp:1.28.0")
+    testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.28.0")
 }
 
 jar {
