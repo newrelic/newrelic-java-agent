@@ -802,6 +802,13 @@ public class DefaultTracer extends AbstractTracer {
             Agent.LOG.log(Level.FINE,
                     "Unexpected destination type when reporting external metrics for message consume.");
         }
+
+        String host = consumeParameters.getHost();
+        Integer port = consumeParameters.getPort();
+        // Todo: send roll up metric for host and port
+        if (host != null && port != null) {
+            // Todo: add agent attribute for host
+        }
     }
 
     private void recordMessageBrokerMetrics(MessageProduceParameters messageProduceParameters) {
@@ -819,6 +826,14 @@ public class DefaultTracer extends AbstractTracer {
             setMetricName(MessageFormat.format(MetricNames.MESSAGE_BROKER_PRODUCE_TEMP,
                     messageProduceParameters.getLibrary(),
                     messageProduceParameters.getDestinationType().getTypeName()));
+        }
+
+        String host = messageProduceParameters.getHost();
+        Integer port = messageProduceParameters.getPort();
+
+        // Todo: send roll up metric for host and port
+        if (host != null && port != null) {
+            // Todo: add agent attribute for host
         }
 
         if (messageProduceParameters.getCloudResourceId() != null) {

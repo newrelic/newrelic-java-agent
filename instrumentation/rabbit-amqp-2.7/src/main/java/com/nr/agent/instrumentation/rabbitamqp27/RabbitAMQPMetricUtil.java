@@ -14,7 +14,9 @@ import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
 import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Connection;
 
+import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,24 +43,28 @@ public abstract class RabbitAMQPMetricUtil {
 
     public static void processSendMessage(String exchangeName, String routingKey,
                                           HashMap<String, Object> headers,
-                                          AMQP.BasicProperties props, TracedMethod tracedMethod) {
+                                          AMQP.BasicProperties props, TracedMethod tracedMethod, Connection connection) {
         tracedMethod.reportAsExternal(MessageProduceParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .outboundHeaders(new OutboundWrapper(headers))
+                .host(getHost(connection))
+                .port(getPort(connection))
                 .build());
 
         addAttributes(routingKey, props);
     }
 
     public static void processGetMessage(String queueName, String routingKey, String exchangeName,
-                                         AMQP.BasicProperties properties, TracedMethod tracedMethod) {
+                                         AMQP.BasicProperties properties, TracedMethod tracedMethod, Connection connection) {
         tracedMethod.reportAsExternal(MessageConsumeParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .inboundHeaders(new InboundWrapper(properties.getHeaders()))
+                .host(getHost(connection))
+                .port(getPort(connection))
                 .build());
 
         addConsumeAttributes(queueName, routingKey, properties);
@@ -74,6 +80,14 @@ public abstract class RabbitAMQPMetricUtil {
     public static void queuePurge(String queue, TracedMethod tracedMethod) {
         tracedMethod.setMetricName(MessageFormat.format("MessageBroker/{0}/Queue/Purge/Named/{1}",
                 RABBITMQ, queue.isEmpty() ? DEFAULT : queue));
+    }
+
+    private static String getHost(Connection connection) {
+        return (connection != null) ? connection.getHost() : null;
+    }
+
+    private static Integer getPort(Connection connection) {
+        return (connection != null) ? connection.getPort() : null;
     }
 
     private static void addAttributes(String routingKey, AMQP.BasicProperties properties) {

@@ -21,14 +21,18 @@ public class MessageConsumeParameters implements ExternalParameters {
     private final String destinationName;
     private final InboundHeaders inboundHeaders;
     private final String cloudResourceId;
+    private final String host;
+    private final Integer port;
 
     protected MessageConsumeParameters(String library, DestinationType destinationType, String destinationName,
-            InboundHeaders inboundHeaders, String cloudResourceId) {
+            InboundHeaders inboundHeaders, String cloudResourceId, String host, Integer port) {
         this.library = library;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
         this.inboundHeaders = inboundHeaders;
         this.cloudResourceId = cloudResourceId;
+        this.host = host;
+        this.port = port;
     }
 
 
@@ -43,6 +47,8 @@ public class MessageConsumeParameters implements ExternalParameters {
         this.destinationName = messageConsumeParameters.destinationName;
         this.inboundHeaders = messageConsumeParameters.inboundHeaders;
         this.cloudResourceId = messageConsumeParameters.cloudResourceId;
+        this.host = messageConsumeParameters.host;
+        this.port = messageConsumeParameters.port;
     }
 
     public String getDestinationName() {
@@ -61,6 +67,14 @@ public class MessageConsumeParameters implements ExternalParameters {
         return cloudResourceId;
     }
 
+    public String getHost() {
+        return host;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
     public String getLibrary() {
         return library;
     }
@@ -72,6 +86,8 @@ public class MessageConsumeParameters implements ExternalParameters {
         private String destinationName;
         private InboundHeaders inboundHeaders;
         private String cloudResourceId;
+        private String host;
+        private Integer port;
 
         public Builder(String library) {
             this.library = library;
@@ -97,8 +113,18 @@ public class MessageConsumeParameters implements ExternalParameters {
             return this;
         }
 
+        public Build host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        public Build port(Integer port) {
+            this.port = port;
+            return this;
+        }
+
         public MessageConsumeParameters build() {
-            return new MessageConsumeParameters(library, destinationType, destinationName, inboundHeaders, cloudResourceId);
+            return new MessageConsumeParameters(library, destinationType, destinationName, inboundHeaders, cloudResourceId, host, port);
         }
     }
 
@@ -152,6 +178,19 @@ public class MessageConsumeParameters implements ExternalParameters {
          * This method is optional and can be bypassed by calling build directly.
          */
         Build cloudResourceId(String cloudResourceId);
+
+        /**
+         * Set the host name for the message queue.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build host(String host);
+
+        /**
+         * Set the port for the message queue.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build port(Integer port);
+
         /**
          * Build the final {@link MessageConsumeParameters} for the API call.
          *

@@ -18,6 +18,10 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 @Weave(type = MatchType.BaseClass, originalName = "com.rabbitmq.client.QueueingConsumer")
 public abstract class QueueingConsumer_Instrumentation {
 
+    public Channel getChannel() {
+        return Weaver.callOriginal();
+    }
+
     @Weave(originalName = "com.rabbitmq.client.QueueingConsumer$Delivery")
     public static class Delivery_Instrumentation {
         public BasicProperties getProperties() {
@@ -34,8 +38,13 @@ public abstract class QueueingConsumer_Instrumentation {
         QueueingConsumer.Delivery delivery = Weaver.callOriginal();
         Envelope envelope = delivery.getEnvelope();
         BasicProperties props = delivery.getProperties();
+        Connection connection = null;
+        Channel channel = getChannel();
+        if (channel != null) {
+            connection = channel.getConnection();
+        }
         RabbitAMQPMetricUtil.processGetMessage(null, envelope.getRoutingKey(),
-                envelope.getExchange(), props, AgentBridge.getAgent().getTracedMethod());
+                envelope.getExchange(), props, AgentBridge.getAgent().getTracedMethod(), connection);
         RabbitAMQPMetricUtil.nameTransaction(envelope.getExchange());
         return delivery;
     }
