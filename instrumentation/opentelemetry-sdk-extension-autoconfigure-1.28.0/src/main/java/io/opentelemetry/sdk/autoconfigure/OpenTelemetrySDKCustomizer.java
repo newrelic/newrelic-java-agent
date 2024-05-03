@@ -1,20 +1,32 @@
 package io.opentelemetry.sdk.autoconfigure;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Agent;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.resources.ResourceBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.UUID;
 import java.util.logging.Level;
 
-public final class PropertiesCustomizer implements Function<ConfigProperties, Map<String, String>> {
-    @Override
-    public Map<String, String> apply(ConfigProperties configProperties) {
+final class OpenTelemetrySDKCustomizer {
+    static final AttributeKey<String> SERVICE_INSTANCE_ID_ATTRIBUTE_KEY = AttributeKey.stringKey("service.instance.id");
+
+    static Map<String, String> applyProperties(ConfigProperties configProperties) {
+        return applyProperties(configProperties, NewRelic.getAgent());
+    }
+
+    /**
+     * Configure OpenTelemetry exporters to send data to the New Relic backend.
+     */
+    static Map<String, String> applyProperties(ConfigProperties configProperties, Agent agent) {
         if (configProperties.getString("otel.exporter.otlp.endpoint") == null) {
-            final Agent agent = NewRelic.getAgent();
             agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
             final String host = agent.getConfig().getValue("host");
             final String endpoint = "https://" + host + ":443";
@@ -36,5 +48,27 @@ public final class PropertiesCustomizer implements Function<ConfigProperties, Ma
             return properties;
         }
         return Collections.emptyMap();
+    }
+
+    static Resource applyResources(Resource resource, ConfigProperties configProperties) {
+        return applyResources(resource, AgentBridge.getAgent(), NewRelic.getAgent().getLogger());
+    }
+
+    /**
+     * Add the monitored service's entity.guid to resources.
+     */
+    static Resource applyResources(Resource resource, com.newrelic.agent.bridge.Agent agent, Logger logger) {
+        logger.log(Level.FINE, "Appending OpenTelemetry resources");
+        final ResourceBuilder builder = new ResourceBuilder().putAll(resource);
+        final String instanceId = resource.getAttribute(SERVICE_INSTANCE_ID_ATTRIBUTE_KEY);
+        if (instanceId == null) {
+            builder.put(SERVICE_INSTANCE_ID_ATTRIBUTE_KEY, UUID.randomUUID().toString());
+        }
+
+        final String entityGuid = agent.getEntityGuid(true);
+        if (entityGuid != null) {
+            builder.put("entity.guid", entityGuid);
+        }
+        return builder.build();
     }
 }
