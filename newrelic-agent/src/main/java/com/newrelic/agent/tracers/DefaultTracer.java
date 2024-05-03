@@ -16,9 +16,11 @@ import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.DatastoreConfig;
+import com.newrelic.agent.config.MessageBrokerConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.database.SqlObfuscator;
+import com.newrelic.agent.messaging.MessageMetrics;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.TransactionStats;
@@ -803,11 +805,17 @@ public class DefaultTracer extends AbstractTracer {
                     "Unexpected destination type when reporting external metrics for message consume.");
         }
 
+        String library = consumeParameters.getLibrary();
         String host = consumeParameters.getHost();
         Integer port = consumeParameters.getPort();
-        // Todo: send roll up metric for host and port
-        if (host != null && port != null) {
-            // Todo: add agent attribute for host
+
+        MessageMetrics.collectMessageConsumerMetrics(this, library, host, port);
+
+        MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
+
+        if (messageBrokerConfig.isInstanceReportingEnabled() && !MessageMetrics.isAllParamsUnknown(library, host, port)) {
+            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
+            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
         }
     }
 
@@ -828,16 +836,17 @@ public class DefaultTracer extends AbstractTracer {
                     messageProduceParameters.getDestinationType().getTypeName()));
         }
 
+        String library = messageProduceParameters.getLibrary();
         String host = messageProduceParameters.getHost();
         Integer port = messageProduceParameters.getPort();
 
-        // Todo: send roll up metric for host and port
-        if (host != null && port != null) {
-            // Todo: add agent attribute for host
-        }
+        MessageMetrics.collectMessageProducerMetrics(this, library, host, port);
 
-        if (messageProduceParameters.getCloudResourceId() != null) {
-            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageProduceParameters.getCloudResourceId());
+        MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
+
+        if (messageBrokerConfig.isInstanceReportingEnabled() && !MessageMetrics.isAllParamsUnknown(library, host, port)) {
+            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
+            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
         }
     }
 
