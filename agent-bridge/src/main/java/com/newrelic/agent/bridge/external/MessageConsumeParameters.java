@@ -26,7 +26,7 @@ public class MessageConsumeParameters extends com.newrelic.api.agent.MessageCons
     @Deprecated
     protected MessageConsumeParameters(String library, DestinationType destinationType, String destinationName,
             InboundHeaders inboundHeaders) {
-        super(library, destinationType.toApiDestinationType(), destinationName, inboundHeaders, null);
+        super(library, destinationType.toApiDestinationType(), destinationName, inboundHeaders, null, null, null);
     }
 
 }

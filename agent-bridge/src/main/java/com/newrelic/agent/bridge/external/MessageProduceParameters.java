@@ -26,7 +26,7 @@ public class MessageProduceParameters extends com.newrelic.api.agent.MessageProd
     @Deprecated
     protected MessageProduceParameters(String library, DestinationType destinationType, String destinationName,
             OutboundHeaders outboundHeaders) {
-        super(library, destinationType.toApiDestinationType(), destinationName, outboundHeaders, null);
+        super(library, destinationType.toApiDestinationType(), destinationName, outboundHeaders, null, null, null);
     }
 
 }
