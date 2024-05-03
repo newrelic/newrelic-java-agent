@@ -18,9 +18,7 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 @Weave(type = MatchType.BaseClass, originalName = "com.rabbitmq.client.QueueingConsumer")
 public abstract class QueueingConsumer_Instrumentation {
 
-    public Channel getChannel() {
-        return Weaver.callOriginal();
-    }
+    public abstract Channel getChannel();
 
     @Weave(originalName = "com.rabbitmq.client.QueueingConsumer$Delivery")
     public static class Delivery_Instrumentation {

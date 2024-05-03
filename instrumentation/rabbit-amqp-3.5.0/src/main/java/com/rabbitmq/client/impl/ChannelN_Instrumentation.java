@@ -20,11 +20,9 @@ import com.rabbitmq.client.MessageProperties;
 import java.util.HashMap;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.rabbitmq.client.impl.ChannelN")
-public class ChannelN_Instrumentation {
+public abstract class ChannelN_Instrumentation {
 
-    AMQConnection getConnection() {
-        return Weaver.callOriginal();
-    }
+    public abstract AMQConnection getConnection();
 
     @Trace
     public void basicPublish(String exchange, String routingKey, boolean mandatory, boolean immediate,
