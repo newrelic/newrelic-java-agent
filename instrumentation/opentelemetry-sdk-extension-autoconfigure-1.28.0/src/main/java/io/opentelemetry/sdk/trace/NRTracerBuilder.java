@@ -5,8 +5,13 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.TracerBuilder;
 
 class NRTracerBuilder implements TracerBuilder {
+    private final String instrumentationScopeName;
     private String schemaUrl;
     private String instrumentationScopeVersion;
+
+    public NRTracerBuilder(String instrumentationScopeName) {
+        this.instrumentationScopeName = instrumentationScopeName;
+    }
 
     @Override
     public TracerBuilder setSchemaUrl(String schemaUrl) {
@@ -22,6 +27,6 @@ class NRTracerBuilder implements TracerBuilder {
 
     @Override
     public Tracer build() {
-        return spanName -> new NRSpanBuilder(AgentBridge.instrumentation, schemaUrl, instrumentationScopeVersion, spanName);
+        return spanName -> new NRSpanBuilder(AgentBridge.instrumentation, instrumentationScopeName, instrumentationScopeVersion, spanName);
     }
 }

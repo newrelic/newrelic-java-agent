@@ -9,6 +9,6 @@ import io.opentelemetry.api.trace.TracerBuilder;
 public final class SdkTracerProvider_Instrumentation {
     public TracerBuilder tracerBuilder(String instrumentationScopeName) {
         Weaver.callOriginal();
-        return new NRTracerBuilder();
+        return new NRTracerBuilder(instrumentationScopeName);
     }
 }

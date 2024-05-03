@@ -21,11 +21,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class NRSpanTest {
+public class ExitTracerSpanTest {
     @Test
     public void testReportDatabaseClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("db-span.json")).end();
+        new ExitTracerSpan(tracer, SpanKind.CLIENT, readSpanAttributes("db-span.json")).end();
         final ArgumentCaptor<DatastoreParameters> dbParams = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracer, times(1)).reportAsExternal(dbParams.capture());
         assertEquals("mysql", dbParams.getValue().getProduct());
@@ -41,7 +41,7 @@ public class NRSpanTest {
         ExitTracer tracer = mock(ExitTracer.class);
         Map<String, Object> attributes = readSpanAttributes("db-span.json");
         attributes.remove("db.sql.table");
-        new NRSpan(tracer, SpanKind.CLIENT, attributes).end();
+        new ExitTracerSpan(tracer, SpanKind.CLIENT, attributes).end();
         final ArgumentCaptor<DatastoreParameters> dbParams = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracer, times(1)).reportAsExternal(dbParams.capture());
         assertEquals("mysql", dbParams.getValue().getProduct());
@@ -55,7 +55,7 @@ public class NRSpanTest {
     @Test
     public void testReportRpcClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-rpc-span.json")).end();
+        new ExitTracerSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-rpc-span.json")).end();
         final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.grpc-1.6", externalParams.getValue().getLibrary());
@@ -66,7 +66,7 @@ public class NRSpanTest {
     @Test
     public void testReportHttpClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-http-span.json")).end();
+        new ExitTracerSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-http-span.json")).end();
         final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
@@ -77,7 +77,7 @@ public class NRSpanTest {
     @Test
     public void testReportHttpClientSpanWithCodeFunction() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-http-span.json"))
+        new ExitTracerSpan(tracer, SpanKind.CLIENT, readSpanAttributes("external-http-span.json"))
                 .setAttribute(AttributeKey.stringKey("code.function"), "execute").end();
         final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
@@ -89,12 +89,12 @@ public class NRSpanTest {
     @Test
     public void testBadClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new NRSpan(tracer, SpanKind.CLIENT, readSpanAttributes("bad-client-span.json")).end();
+        new ExitTracerSpan(tracer, SpanKind.CLIENT, readSpanAttributes("bad-client-span.json")).end();
         verify(tracer, times(0)).reportAsExternal(any(ExternalParameters.class));
     }
 
     static Map<String, Object> readSpanAttributes(String fileName) throws IOException {
-        try (InputStream in = NRSpanTest.class.getResourceAsStream(fileName)) {
+        try (InputStream in = ExitTracerSpanTest.class.getResourceAsStream(fileName)) {
             return new ObjectMapper().readValue(in, Map.class);
         }
     }

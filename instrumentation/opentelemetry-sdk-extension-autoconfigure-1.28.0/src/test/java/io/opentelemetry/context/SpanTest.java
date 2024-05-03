@@ -7,6 +7,7 @@ import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.api.agent.Trace;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -21,6 +22,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
@@ -66,7 +69,7 @@ public class SpanTest {
 
             assertEquals(3, metricsForTransaction.size());
             assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/asyncSpans"));
-            assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest$$Lambda$.run"));
+            assertTrue(metricsForTransaction.containsKey("Java/OpenTelemetry/AsyncScope"));
             assertTrue(metricsForTransaction.containsKey("Span/MyCustomAsyncSpan"));
         } finally {
             executor.shutdown();
@@ -103,9 +106,13 @@ public class SpanTest {
     static void simpleSpans() {
         Span span = otelTracer.spanBuilder("MyCustomSpan").startSpan();
         Scope scope = span.makeCurrent();
+        SpanContext spanContext = span.getSpanContext();
+        assertNotNull(spanContext.getTraceId());
+        assertNotNull(spanContext.getSpanId());
+        assertSame(spanContext, span.getSpanContext());
         Span current = Span.current();
         assertEquals(span, current);
-        Span kid = otelTracer.spanBuilder("kid").startSpan();
+        Span kid = otelTracer.spanBuilder("kid").setParent(Context.current()).startSpan();
         kid.end();
         scope.close();
         span.end();
@@ -120,6 +127,7 @@ public class SpanTest {
 
     static void asyncWork() {
         Span span = otelTracer.spanBuilder("MyCustomAsyncSpan").startSpan();
+        span.makeCurrent().close();
         span.end();
     }
 

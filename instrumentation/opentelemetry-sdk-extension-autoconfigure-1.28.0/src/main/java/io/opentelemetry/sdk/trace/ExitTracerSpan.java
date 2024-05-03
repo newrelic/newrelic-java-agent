@@ -1,10 +1,14 @@
 package io.opentelemetry.sdk.trace;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
+import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Token;
+import com.newrelic.api.agent.Trace;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
@@ -12,17 +16,23 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-class NRSpan implements Span {
-    private static final AttributeKey<String> OTEL_LIBRARY_NAME = AttributeKey.stringKey("otel.library.name");
+public class ExitTracerSpan implements Span {
+    static final String OTEL_LIBRARY_VERSION = "otel.library.version";
+    static final AttributeKey<String> OTEL_LIBRARY_NAME = AttributeKey.stringKey("otel.library.name");
     private static final AttributeKey<String> DB_SYSTEM = AttributeKey.stringKey("db.system");
     private static final AttributeKey<String> DB_STATEMENT = AttributeKey.stringKey("db.statement");
     private static final AttributeKey<String> DB_OPERATION = AttributeKey.stringKey("db.operation");
@@ -40,14 +50,16 @@ class NRSpan implements Span {
     private static final List<AttributeKey<String>> PROCEDURE_KEYS =
             Arrays.asList(CODE_FUNCTION, RPC_METHOD, HTTP_REQUEST_METHOD);
 
-    private final ExitTracer tracer;
+    final ExitTracer tracer;
     private final SpanKind spanKind;
     private final Map<String, Object> attributes;
+    private final SpanContext spanContext;
 
-    public NRSpan(ExitTracer tracer, SpanKind spanKind, Map<String, Object> attributes) {
+    public ExitTracerSpan(ExitTracer tracer, SpanKind spanKind, Map<String, Object> attributes) {
         this.tracer = tracer;
         this.spanKind = spanKind;
         this.attributes = attributes;
+        this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
     }
 
     @Override
@@ -72,8 +84,30 @@ class NRSpan implements Span {
     }
 
     @Override
-    public Span recordException(Throwable exception, Attributes additionalAttributes) {
+    public Span recordException(Throwable exception) {
+        NewRelic.noticeError(exception);
         return this;
+    }
+
+    @Override
+    public Span recordException(Throwable exception, Attributes additionalAttributes) {
+        NewRelic.noticeError(exception, toMap(additionalAttributes));
+        return this;
+    }
+
+    static Map<String, Object> toMap(Attributes attributes) {
+        final Map<String, Object> map = new HashMap<>(attributes.size());
+        attributes.forEach((key, value) -> {
+            switch (key.getType()) {
+                case STRING:
+                case LONG:
+                case DOUBLE:
+                case BOOLEAN:
+                    map.put(key.getKey(), value);
+                    break;
+            }
+        });
+        return map;
     }
 
     @Override
@@ -98,12 +132,17 @@ class NRSpan implements Span {
 
     @Override
     public SpanContext getSpanContext() {
-        return null;
+        return spanContext;
     }
 
     @Override
     public boolean isRecording() {
         return true;
+    }
+
+    @Override
+    public Context storeInContext(Context context) {
+        return Span.super.storeInContext(context);
     }
 
     private <T> T getAttribute(AttributeKey<T> key) {
@@ -183,5 +222,21 @@ class NRSpan implements Span {
             }
         }
         return null;
+    }
+
+    public Scope createScope(Scope scope) {
+        final Token token = tracer.getToken();
+        // we can't link a known transaction from one thread to another unless there is
+        // a transaction with at least one tracer on the new thread.
+        AgentBridge.getAgent().getTransaction(true);
+        final ExitTracer tracer = AgentBridge.instrumentation.createTracer(null,
+                TracerFlags.CUSTOM | TracerFlags.ASYNC);
+        tracer.setMetricName("Java", "OpenTelemetry", "AsyncScope");
+        token.link();
+        return () -> {
+            token.expire();
+            tracer.finish();
+            scope.close();
+        };
     }
 }

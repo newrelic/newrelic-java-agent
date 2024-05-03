@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.Token;
+
 import java.lang.reflect.InvocationHandler;
 
 
@@ -30,4 +32,8 @@ public interface ExitTracer extends InvocationHandler, TracedMethod {
      * @param throwable
      */
     void finish(Throwable throwable);
+
+    default Token getToken() {
+        return NoOpToken.INSTANCE;
+    }
 }

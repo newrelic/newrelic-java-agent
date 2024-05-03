@@ -22,9 +22,11 @@ class NRSpanBuilder implements SpanBuilder {
     private final Map<String, Object> attributes = new HashMap<>();
     private SpanKind spanKind= SpanKind.INTERNAL;
 
-    public NRSpanBuilder(Instrumentation instrumentation, String schemaUrl, String instrumentationScopeVersion, String spanName) {
+    public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, String spanName) {
         this.instrumentation = instrumentation;
         this.spanName = spanName;
+        attributes.put(ExitTracerSpan.OTEL_LIBRARY_NAME.getKey(), instrumentationScopeName);
+        attributes.put(ExitTracerSpan.OTEL_LIBRARY_VERSION, instrumentationScopeVersion);
     }
 
     @Override
@@ -97,13 +99,8 @@ class NRSpanBuilder implements SpanBuilder {
         if (tracer == null) {
             return NO_OP_SPAN;
         }
-
-        return startSpan(tracer);
-    }
-
-    Span startSpan(ExitTracer tracer) {
         tracer.addCustomAttribute("span.kind", spanKind.name());
-        return new NRSpan(tracer, spanKind, attributes);
+        return new ExitTracerSpan(tracer, spanKind, attributes);
     }
 
     private static final Span NO_OP_SPAN = new Span() {
