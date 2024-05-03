@@ -23,6 +23,7 @@ import io.opentelemetry.context.Scope;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,11 +55,15 @@ public class ExitTracerSpan implements Span {
     private final Map<String, Object> attributes;
     private final SpanContext spanContext;
 
-    public ExitTracerSpan(ExitTracer tracer, SpanKind spanKind, Map<String, Object> attributes) {
+    ExitTracerSpan(ExitTracer tracer, SpanKind spanKind, Map<String, Object> attributes) {
         this.tracer = tracer;
         this.spanKind = spanKind;
         this.attributes = attributes;
         this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
+    }
+
+    public static ExitTracerSpan wrap(ExitTracer tracer) {
+        return new ExitTracerSpan(tracer, SpanKind.INTERNAL, Collections.emptyMap());
     }
 
     @Override

@@ -5,10 +5,7 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.TracedMethod;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.trace.ExitTracerSpan;
-
-import java.util.Collections;
 
 class ContextHelper {
     private ContextHelper() {}
@@ -23,8 +20,7 @@ class ContextHelper {
             if (transaction != null) {
                 TracedMethod tracedMethod = transaction.getTracedMethod();
                 if (tracedMethod instanceof ExitTracer) {
-                    return context.with(new ExitTracerSpan((ExitTracer) tracedMethod, SpanKind.INTERNAL,
-                            Collections.emptyMap()));
+                    return context.with(ExitTracerSpan.wrap((ExitTracer) tracedMethod));
                 }
             }
         }
