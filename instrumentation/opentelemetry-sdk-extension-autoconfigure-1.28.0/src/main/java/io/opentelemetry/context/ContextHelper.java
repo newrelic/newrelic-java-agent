@@ -13,6 +13,9 @@ import java.util.Collections;
 class ContextHelper {
     private ContextHelper() {}
 
+    /**
+     * If there's no span on the context, but there is a NR tracer on the stack, return a context with our span.
+     */
     public static Context current(Context context) {
         Span currentSpan = Span.fromContext(context);
         if (currentSpan == Span.getInvalid()) {
@@ -28,6 +31,11 @@ class ContextHelper {
         return context;
     }
 
+    /**
+     * If there's currently no NR transaction but the current contains a NR span, create a
+     * {@link com.newrelic.api.agent.Token} related to that span's transaction and hook it into
+     * the returned {@link Scope}.
+     */
     public static Scope makeCurrent(Context context, Scope scope) {
         final Transaction currentTransaction = AgentBridge.getAgent().getTransaction(false);
         if (currentTransaction == null) {
