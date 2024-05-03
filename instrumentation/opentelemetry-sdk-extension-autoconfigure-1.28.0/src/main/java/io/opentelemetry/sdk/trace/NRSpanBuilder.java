@@ -26,7 +26,9 @@ class NRSpanBuilder implements SpanBuilder {
         this.instrumentation = instrumentation;
         this.spanName = spanName;
         attributes.put(ExitTracerSpan.OTEL_LIBRARY_NAME.getKey(), instrumentationScopeName);
-        attributes.put(ExitTracerSpan.OTEL_LIBRARY_VERSION, instrumentationScopeVersion);
+        if (instrumentationScopeVersion != null) {
+            attributes.put(ExitTracerSpan.OTEL_LIBRARY_VERSION, instrumentationScopeVersion);
+        }
     }
 
     @Override

@@ -1,9 +1,11 @@
 package io.opentelemetry.context;
 
+import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import com.newrelic.agent.util.LatchingRunnable;
 import com.newrelic.api.agent.Trace;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
@@ -11,15 +13,15 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.sdk.trace.ExitTracerSpan;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,7 +34,7 @@ public class SpanTest {
     static {
         System.setProperty("otel.java.global-autoconfigure.enabled", "true");
     }
-    static Tracer otelTracer = GlobalOpenTelemetry.get().getTracer("test");
+    static Tracer otelTracer = GlobalOpenTelemetry.get().getTracer("test", "1.0");
 
     @Test
     public void testSimpleSpans() {
@@ -52,13 +54,11 @@ public class SpanTest {
     }
 
     @Test
-    public void testAsyncSpans() throws InterruptedException {
+    public void testAsyncSpans() {
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
-            asyncSpans(executor);
-            CountDownLatch latch = new CountDownLatch(1);
-            executor.execute(latch::countDown);
-            latch.await(1, TimeUnit.MINUTES);
+            asyncSpans(executor, SpanTest::asyncWork);
+            LatchingRunnable.drain(executor);
 
             Introspector introspector = InstrumentationTestRunner.getIntrospector();
             assertEquals(1, introspector.getFinishedTransactionCount());
@@ -71,6 +71,40 @@ public class SpanTest {
             assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/asyncSpans"));
             assertTrue(metricsForTransaction.containsKey("Java/OpenTelemetry/AsyncScope"));
             assertTrue(metricsForTransaction.containsKey("Span/MyCustomAsyncSpan"));
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    public void testAsyncSpansWithParentNotWorking() {
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            asyncSpans(executor, context -> {
+                // this is the correct parent, but it's transaction has already finished, so
+                // we can't link it together
+                Span parent = Span.fromContext(context);
+                assertTrue(parent instanceof ExitTracerSpan);
+
+                // however, we could use the trace id from the parent transaction.  We'd have two metric
+                // transactions, but the distributed trace would display the relationship between the spans
+                Span span = otelTracer.spanBuilder("OrphanedSpan").setParent(context).startSpan();
+                span.makeCurrent().close();
+                span.end();
+            });
+            LatchingRunnable.drain(executor);
+
+            Introspector introspector = InstrumentationTestRunner.getIntrospector();
+            // we have two transactions because the async activity isn't linked together
+            assertEquals(2, introspector.getFinishedTransactionCount());
+            final String txName = "OtherTransaction/Custom/io.opentelemetry.context.SpanTest/asyncSpans";
+            assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Custom/io.opentelemetry.context.SpanTest/asyncSpans"));
+            assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Custom"));
+
+            Map<String, TracedMetricData> metricsForTransaction = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(txName);
+
+            assertEquals(1, metricsForTransaction.size());
+            assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/asyncSpans"));
         } finally {
             executor.shutdown();
         }
@@ -121,11 +155,12 @@ public class SpanTest {
     }
 
     @Trace(dispatcher = true)
-    static void asyncSpans(Executor executor) {
-        executor.execute(Context.current().wrap(SpanTest::asyncWork));
+    static void asyncSpans(Executor executor, Consumer<Context> consumer) {
+        Context context = Context.current();
+        executor.execute(Context.current().wrap(() -> consumer.accept(context)));
     }
 
-    static void asyncWork() {
+    static void asyncWork(Context context) {
         Span span = otelTracer.spanBuilder("MyCustomAsyncSpan").startSpan();
         span.makeCurrent().close();
         span.end();
