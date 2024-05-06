@@ -12,7 +12,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.rabbitamqp27.RabbitAMQPMetricUtil;
+import com.nr.agent.instrumentation.rabbitamqp172.RabbitAMQPMetricUtil;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.MessageProperties;

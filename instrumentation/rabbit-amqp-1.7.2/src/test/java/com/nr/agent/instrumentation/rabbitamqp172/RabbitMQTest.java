@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.rabbitamqp27;
+package com.nr.agent.instrumentation.rabbitamqp172;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;

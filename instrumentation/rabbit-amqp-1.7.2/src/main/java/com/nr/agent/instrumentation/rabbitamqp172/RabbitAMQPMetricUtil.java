@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.rabbitamqp27;
+package com.nr.agent.instrumentation.rabbitamqp172;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
@@ -16,7 +16,6 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Connection;
 
-import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;

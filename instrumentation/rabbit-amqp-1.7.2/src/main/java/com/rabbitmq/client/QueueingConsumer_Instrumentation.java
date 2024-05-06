@@ -7,7 +7,7 @@
 
 package com.rabbitmq.client;
 
-import com.nr.agent.instrumentation.rabbitamqp27.RabbitAMQPMetricUtil;
+import com.nr.agent.instrumentation.rabbitamqp172.RabbitAMQPMetricUtil;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;

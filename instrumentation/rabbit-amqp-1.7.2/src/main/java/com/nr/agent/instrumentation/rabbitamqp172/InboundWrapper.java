@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.rabbitamqp27;
+package com.nr.agent.instrumentation.rabbitamqp172;
 
 import java.util.Collections;
 import java.util.List;

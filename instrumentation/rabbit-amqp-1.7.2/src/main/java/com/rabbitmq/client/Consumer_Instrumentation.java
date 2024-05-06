@@ -15,8 +15,8 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.rabbitamqp27.InboundWrapper;
-import com.nr.agent.instrumentation.rabbitamqp27.RabbitAMQPMetricUtil;
+import com.nr.agent.instrumentation.rabbitamqp172.InboundWrapper;
+import com.nr.agent.instrumentation.rabbitamqp172.RabbitAMQPMetricUtil;
 
 @Weave(type = MatchType.Interface, originalName = "com.rabbitmq.client.Consumer")
 public abstract class Consumer_Instrumentation {
