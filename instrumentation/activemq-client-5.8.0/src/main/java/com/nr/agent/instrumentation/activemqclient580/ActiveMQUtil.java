@@ -16,7 +16,7 @@ public class ActiveMQUtil {
 
         Matcher m = addressPattern.matcher(address);
         if(!m.find()) {
-            return null;
+            return HostAndPort.empty();
         }
 
         String hostName = m.group(1);
@@ -26,7 +26,7 @@ public class ActiveMQUtil {
             String portStr = m.group(2);
             port = Integer.parseInt(portStr);
         } catch (NumberFormatException e) {
-            return null;
+            return HostAndPort.empty();
         }
 
         HostAndPort hostAndPort = new HostAndPort(hostName, port);

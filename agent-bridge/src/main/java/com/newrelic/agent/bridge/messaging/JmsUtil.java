@@ -7,7 +7,7 @@ import java.util.Map;
 public class JmsUtil {
     private static final Map<Object, Object> hostAndPortCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
-    public static final String JMS_HOST_AND_PORT_PROPERTY = "com.nr.agent.instrumentation.jms.HostAndPort";
+    public static final String NR_JMS_HOST_AND_PORT_PROPERTY = "com.nr.agent.instrumentation.jms.HostAndPort";
 
     public static HostAndPort getHostAndPortFromCache(String address) {
         Object obj = hostAndPortCache.get(address);

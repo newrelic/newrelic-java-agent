@@ -4,6 +4,10 @@ public class HostAndPort {
     private final String hostName;
     private final Integer port;
 
+    public static HostAndPort empty() {
+        return new HostAndPort(null, null);
+    }
+
     public HostAndPort(String host, Integer port) {
         this.hostName = host;
         this.port = port;
