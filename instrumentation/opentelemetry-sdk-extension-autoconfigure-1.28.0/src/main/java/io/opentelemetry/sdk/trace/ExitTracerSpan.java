@@ -17,8 +17,13 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.data.EventData;
+import io.opentelemetry.sdk.trace.data.LinkData;
+import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.trace.data.StatusData;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,9 +33,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public class ExitTracerSpan implements Span {
+public class ExitTracerSpan implements ReadWriteSpan {
     static final String OTEL_LIBRARY_VERSION = "otel.library.version";
     static final AttributeKey<String> OTEL_LIBRARY_NAME = AttributeKey.stringKey("otel.library.name");
     private static final AttributeKey<String> DB_SYSTEM = AttributeKey.stringKey("db.system");
@@ -52,18 +58,33 @@ public class ExitTracerSpan implements Span {
 
     final ExitTracer tracer;
     private final SpanKind spanKind;
+    private final InstrumentationLibraryInfo instrumentationLibraryInfo;
     private final Map<String, Object> attributes;
     private final SpanContext spanContext;
+    private final Consumer<ExitTracerSpan> onEnd;
+    private final SpanContext parentSpanContext;
+    private final long startEpochNanos;
+    private boolean ended;
+    private String spanName;
+    private long endEpochNanos;
+    private final Resource resource;
 
-    ExitTracerSpan(ExitTracer tracer, SpanKind spanKind, Map<String, Object> attributes) {
+    ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext, Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd) {
         this.tracer = tracer;
         this.spanKind = spanKind;
+        this.spanName = spanName;
+        this.parentSpanContext = parentSpanContext;
         this.attributes = attributes;
+        this.onEnd = onEnd;
+        this.resource = resource;
+        this.instrumentationLibraryInfo = instrumentationLibraryInfo;
+        this.startEpochNanos = System.nanoTime();
         this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
     }
 
     public static ExitTracerSpan wrap(ExitTracer tracer) {
-        return new ExitTracerSpan(tracer, SpanKind.INTERNAL, Collections.emptyMap());
+        return new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.INTERNAL, tracer.getMetricName(), SpanContext.getInvalid(),
+                Resource.empty(), Collections.emptyMap(), span -> {});
     }
 
     @Override
@@ -116,7 +137,7 @@ public class ExitTracerSpan implements Span {
 
     @Override
     public Span updateName(String name) {
-        tracer.setMetricName("Span", name);
+        this.spanName = name;
         return this;
     }
 
@@ -125,8 +146,12 @@ public class ExitTracerSpan implements Span {
         if (SpanKind.CLIENT == spanKind) {
             reportClientSpan();
         }
+        tracer.setMetricName("Span", spanName);
         tracer.addCustomAttributes(attributes);
         tracer.finish();
+        endEpochNanos = System.nanoTime();
+        ended = true;
+        onEnd.accept(this);
     }
 
     @Override
@@ -145,11 +170,42 @@ public class ExitTracerSpan implements Span {
     }
 
     @Override
-    public Context storeInContext(Context context) {
-        return Span.super.storeInContext(context);
+    public SpanContext getParentSpanContext() {
+        return parentSpanContext;
     }
 
-    private <T> T getAttribute(AttributeKey<T> key) {
+    @Override
+    public String getName() {
+        return spanName;
+    }
+
+    @Override
+    public SpanData toSpanData() {
+        return new BasicSpanData(spanName, endEpochNanos, AttributesHelper.toAttributes(attributes), ended);
+    }
+
+    @Override
+    public InstrumentationLibraryInfo getInstrumentationLibraryInfo() {
+        return InstrumentationLibraryInfo.empty();
+    }
+
+    @Override
+    public boolean hasEnded() {
+        return ended;
+    }
+
+    @Override
+    public long getLatencyNanos() {
+        long endEpochNanos = ended ? this.endEpochNanos : System.nanoTime();
+        return endEpochNanos - startEpochNanos;
+    }
+
+    @Override
+    public SpanKind getKind() {
+        return spanKind;
+    }
+
+    public <T> T getAttribute(AttributeKey<T> key) {
         Object value = attributes.get(key.getKey());
         if (key.getType() == AttributeType.LONG && value instanceof Number) {
             value = ((Number) value).longValue();
@@ -242,5 +298,99 @@ public class ExitTracerSpan implements Span {
             tracer.finish();
             scope.close();
         };
+    }
+
+    public class BasicSpanData implements SpanData {
+        private final String spanName;
+        private final long endEpochNanos;
+        private final Attributes attributes;
+        private final boolean ended;
+
+        public BasicSpanData(String spanName, long endEpochNanos, Attributes attributes, boolean ended) {
+            this.spanName = spanName;
+            this.endEpochNanos = endEpochNanos;
+            this.attributes = attributes;
+            this.ended = ended;
+        }
+
+        @Override
+        public String getName() {
+            return spanName;
+        }
+
+        @Override
+        public SpanKind getKind() {
+            return spanKind;
+        }
+
+        @Override
+        public SpanContext getSpanContext() {
+            return spanContext;
+        }
+
+        @Override
+        public SpanContext getParentSpanContext() {
+            return parentSpanContext;
+        }
+
+        @Override
+        public StatusData getStatus() {
+            return StatusData.ok();
+        }
+
+        @Override
+        public long getStartEpochNanos() {
+            return startEpochNanos;
+        }
+
+        @Override
+        public Attributes getAttributes() {
+            return attributes;
+        }
+
+        @Override
+        public List<EventData> getEvents() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<LinkData> getLinks() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public long getEndEpochNanos() {
+            return endEpochNanos;
+        }
+
+        @Override
+        public boolean hasEnded() {
+            return ended;
+        }
+
+        @Override
+        public int getTotalRecordedEvents() {
+            return 0;
+        }
+
+        @Override
+        public int getTotalRecordedLinks() {
+            return 0;
+        }
+
+        @Override
+        public int getTotalAttributeCount() {
+            return 0;
+        }
+
+        @Override
+        public InstrumentationLibraryInfo getInstrumentationLibraryInfo() {
+            return instrumentationLibraryInfo;
+        }
+
+        @Override
+        public Resource getResource() {
+            return resource;
+        }
     }
 }

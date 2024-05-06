@@ -1,6 +1,5 @@
 package io.opentelemetry.context;
 
-import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
@@ -13,16 +12,19 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.sdk.trace.AttributesHelper;
 import io.opentelemetry.sdk.trace.ExitTracerSpan;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+import static io.opentelemetry.sdk.trace.ExitTracerSpanTest.readSpanAttributes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
@@ -35,6 +37,57 @@ public class SpanTest {
         System.setProperty("otel.java.global-autoconfigure.enabled", "true");
     }
     static Tracer otelTracer = GlobalOpenTelemetry.get().getTracer("test", "1.0");
+
+    @Test
+    public void testInternalSpansNoTransaction() {
+        Span span = otelTracer.spanBuilder("MyCustomSpan").startSpan();
+        span.makeCurrent().close();
+        span.end();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        // no transactions because there was no dispatcher trace around the spans
+        assertEquals(0, introspector.getFinishedTransactionCount());
+    }
+
+    @Test
+    public void testConsumerSpan() {
+        Span span = otelTracer.spanBuilder("consume").setSpanKind(SpanKind.CONSUMER).startSpan();
+        span.makeCurrent().close();
+        span.end();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+
+        final String txName = introspector.getTransactionNames().iterator().next();
+        assertEquals("OtherTransaction/consume", txName);
+
+        Map<String, TracedMetricData> metricsForTransaction = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(txName);
+
+        assertEquals(1, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.keySet().toString(), metricsForTransaction.containsKey("Span/consume"));
+    }
+
+    @Test
+    public void testServerSpan() throws IOException {
+        Map<String, Object> attributes = readSpanAttributes("server-span.json");
+        final String spanName = (String) attributes.remove("name");
+
+        Span span = otelTracer.spanBuilder(spanName).setSpanKind(SpanKind.SERVER).startSpan();
+        span.setAllAttributes(AttributesHelper.toAttributes(attributes));
+        span.makeCurrent().close();
+        span.end();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+
+        final String txName = introspector.getTransactionNames().iterator().next();
+        assertEquals("WebTransaction/Uri/owners", txName);
+
+        Map<String, TracedMetricData> metricsForTransaction = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(txName);
+
+        assertEquals(1, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.keySet().toString(), metricsForTransaction.containsKey("Span/GET /owners"));
+    }
 
     @Test
     public void testSimpleSpans() {

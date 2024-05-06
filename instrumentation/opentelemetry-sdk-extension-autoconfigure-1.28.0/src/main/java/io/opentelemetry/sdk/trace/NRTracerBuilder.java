@@ -6,11 +6,13 @@ import io.opentelemetry.api.trace.TracerBuilder;
 
 class NRTracerBuilder implements TracerBuilder {
     private final String instrumentationScopeName;
+    private final TracerSharedState sharedState;
     private String schemaUrl;
     private String instrumentationScopeVersion;
 
-    public NRTracerBuilder(String instrumentationScopeName) {
+    public NRTracerBuilder(String instrumentationScopeName, TracerSharedState sharedState) {
         this.instrumentationScopeName = instrumentationScopeName;
+        this.sharedState = sharedState;
     }
 
     @Override
@@ -27,6 +29,6 @@ class NRTracerBuilder implements TracerBuilder {
 
     @Override
     public Tracer build() {
-        return spanName -> new NRSpanBuilder(AgentBridge.instrumentation, instrumentationScopeName, instrumentationScopeVersion, spanName);
+        return spanName -> new NRSpanBuilder(AgentBridge.instrumentation, instrumentationScopeName, instrumentationScopeVersion, sharedState, spanName);
     }
 }
