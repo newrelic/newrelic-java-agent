@@ -16,7 +16,7 @@ public abstract class ActiveMQMessage_Instrumentation {
     public abstract ActiveMQConnection getConnection();
 
     // This is so the JMS instrumentation can grab host and port of the Active MQ instance
-    public HostAndPort getObjectProperty(String name) throws JMSException {
+    public Object getObjectProperty(String name) {
         if (NR_JMS_HOST_AND_PORT_PROPERTY.equals(name)) {
             return ActiveMQUtil.parseHostAndPort(getConnection().getTransport().toString());
         }
