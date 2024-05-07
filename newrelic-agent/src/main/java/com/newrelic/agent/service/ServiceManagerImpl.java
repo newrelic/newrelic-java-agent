@@ -38,6 +38,7 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.instrumentation.ClassTransformerServiceImpl;
+import com.newrelic.agent.integration.HttpIntegrationServerService;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.language.SourceLanguageService;
@@ -149,6 +150,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile SourceLanguageService sourceLanguageService;
     private volatile ExpirationService expirationService;
     private volatile SlowTransactionService slowTransactionService;
+    private volatile HttpIntegrationServerService httpIntegrationServerService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -281,6 +283,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         slowTransactionService = new SlowTransactionService(config);
 
+        httpIntegrationServerService = new HttpIntegrationServerService(config);
+
         asyncTxService.start();
         threadService.start();
         statsService.start();
@@ -314,6 +318,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.start();
         spanEventsService.start();
         slowTransactionService.start();
+        httpIntegrationServerService.start();
 
         startServices();
 

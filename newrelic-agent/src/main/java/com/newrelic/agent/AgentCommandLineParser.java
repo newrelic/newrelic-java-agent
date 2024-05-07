@@ -34,6 +34,7 @@ class AgentCommandLineParser {
      * Used to create the custom instrumentation file.
      */
     private static final String INSTRUMENT_COMMAND = "instrument";
+    private static final String INIT_CONFIG = "init-config";
     private static final Map<String, Options> commandOptionsMap;
     private static final Map<String, String> commandDescriptions;
 
@@ -42,6 +43,7 @@ class AgentCommandLineParser {
         commandOptionsMap.put(DEPLOYMENT_COMMAND, getDeploymentOptions());
         commandOptionsMap.put(INSTRUMENT_COMMAND, getInstrumentOptions());
         commandOptionsMap.put(VERIFY_INSTRUMENTATION, getVerifyInstrumentationOptions());
+        commandOptionsMap.put(INIT_CONFIG, getInitConfigEnvUpdateOptions());
 
         commandDescriptions = new HashMap<>();
         commandDescriptions.put(DEPLOYMENT_COMMAND, "[OPTIONS] [description]  Records a deployment");
@@ -77,6 +79,8 @@ class AgentCommandLineParser {
                 instrumentCommand(cmd);
             } else if (VERIFY_INSTRUMENTATION.equals(command)) {
                 verifyInstrumentation(cmd);
+            }else if (INIT_CONFIG.equals(command)) {
+                initConfigEnvUpdateCommand(cmd);
             } else if (cmd.hasOption('v') || cmd.hasOption("version")) {
                 System.out.println(Agent.getVersion());
             } else {
@@ -106,6 +110,10 @@ class AgentCommandLineParser {
 
     private void deploymentCommand(CommandLine cmd) throws Exception {
         Deployments.recordDeployment(cmd);
+    }
+
+    private void initConfigEnvUpdateCommand(CommandLine cmd) throws Exception {
+        InitConfigEnvUpdate.updateEnvInitialConfigOptions(cmd);
     }
 
     private void printHelp() {
@@ -203,4 +211,16 @@ class AgentCommandLineParser {
         return new Options();
     }
 
+    private static Options getInitConfigEnvUpdateOptions() {
+        Options options = new Options();
+
+        Option configFileLocationOpt = new Option(InitConfigEnvUpdate.CONFIG_FILE_LOCATION_OPTION, true, "Set the newrelic.config.file property for the Java agent");
+        options.addOption(configFileLocationOpt);
+
+        Option licenseKeyOpt = new Option(InitConfigEnvUpdate.LICENSE_KEY_OPTION, true, "Set the license_key property for the Java agent");
+        options.addOption(licenseKeyOpt);
+
+        options.addOption(InitConfigEnvUpdate.APP_NAME_OPTION, true, "Set the app_name property for the Java agent");
+        return options;
+    }
 }
