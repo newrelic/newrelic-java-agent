@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.bridge.datastore;
 
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -32,11 +31,11 @@ public class R2dbcOperation {
 
     public static OperationAndTableName extractFrom(String sql) {
         String strippedSql = COMMENT_PATTERN.matcher(sql).replaceAll("");
-        String upperCaseSql = strippedSql.toUpperCase(); //NR-262136, upper case for case-insensitive non-regex-checks
+        String upperCaseSql = strippedSql.toUpperCase(); //upper case for case-insensitive non-regex-checks
         try {
             for (Map.Entry<String, Pattern[]> operation : OPERATION_PATTERNS.entrySet()) {
                 String opName = operation.getKey();
-                if (upperCaseSql.contains(opName)) { //NR-262136, non-regex check before pattern matching
+                if (upperCaseSql.contains(opName)) { //non-regex check before pattern matching
                     for (Pattern pattern : operation.getValue()) {
                         Matcher matcher = pattern.matcher(strippedSql);
                         if (matcher.find()) {
