@@ -80,6 +80,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
         this.instrumentationLibraryInfo = instrumentationLibraryInfo;
         this.startEpochNanos = System.nanoTime();
         this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
+        this.setAllAttributes(resource.getAttributes());
     }
 
     public static ExitTracerSpan wrap(ExitTracer tracer) {

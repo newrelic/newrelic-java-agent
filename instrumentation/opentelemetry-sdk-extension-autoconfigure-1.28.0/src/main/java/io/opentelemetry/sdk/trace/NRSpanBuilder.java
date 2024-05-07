@@ -5,6 +5,7 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.Instrumentation;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.tracers.TracerFlags;
+import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
@@ -50,6 +51,15 @@ class NRSpanBuilder implements SpanBuilder {
         } else {
             endHandler = span -> {};
         }
+    }
+
+    static boolean isSpanBuilderEnabled(Config config) {
+        final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled");
+        if (autoConfigure == null || autoConfigure) {
+            final Boolean spansEnabled = config.getValue("opentelemetry.sdk.spans.enabled");
+            return spansEnabled == null || spansEnabled;
+        }
+        return false;
     }
 
     @Override
