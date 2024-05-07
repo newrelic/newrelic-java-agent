@@ -15,7 +15,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'jakarta.ws.rs:jakarta.ws.rs-api:[3.0-M1,4.0.0-M2)'
+    passesOnly 'jakarta.ws.rs:jakarta.ws.rs-api:[3.0-M1,)'
+    exclude 'jakarta.ws.rs:jakarta.ws.rs-api:4.0.0-M2'
 }
 
 compileJava {
