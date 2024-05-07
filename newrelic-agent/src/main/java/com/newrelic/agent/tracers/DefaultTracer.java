@@ -804,19 +804,6 @@ public class DefaultTracer extends AbstractTracer {
             Agent.LOG.log(Level.FINE,
                     "Unexpected destination type when reporting external metrics for message consume.");
         }
-
-        String library = consumeParameters.getLibrary();
-        String host = consumeParameters.getHost();
-        Integer port = consumeParameters.getPort();
-
-        MessageMetrics.collectMessageConsumerMetrics(this, library, host, port);
-
-        MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
-
-        if (messageBrokerConfig.isInstanceReportingEnabled() && !MessageMetrics.isAllParamsUnknown(library, host, port)) {
-            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
-            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
-        }
     }
 
     private void recordMessageBrokerMetrics(MessageProduceParameters messageProduceParameters) {
@@ -840,7 +827,7 @@ public class DefaultTracer extends AbstractTracer {
         String host = messageProduceParameters.getHost();
         Integer port = messageProduceParameters.getPort();
 
-        MessageMetrics.collectMessageProducerMetrics(this, library, host, port);
+        MessageMetrics.collectMessageProducerRollupMetrics(this, library, host, port);
 
         MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
 
@@ -870,6 +857,19 @@ public class DefaultTracer extends AbstractTracer {
 
         if (messageConsumeParameters.getCloudResourceId() != null) {
             setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageConsumeParameters.getCloudResourceId());
+        }
+
+        String library = messageConsumeParameters.getLibrary();
+        String host = messageConsumeParameters.getHost();
+        Integer port = messageConsumeParameters.getPort();
+
+        MessageMetrics.collectMessageConsumerRollupMetrics(this, library, host, port);
+
+        MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
+
+        if (messageBrokerConfig.isInstanceReportingEnabled() && !MessageMetrics.isAllParamsUnknown(library, host, port)) {
+            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
+            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
         }
     }
 

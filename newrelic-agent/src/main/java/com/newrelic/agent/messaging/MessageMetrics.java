@@ -19,11 +19,11 @@ public class MessageMetrics {
     public static boolean isAllParamsUnknown(String library, String host, Integer port) {
         return isParamUnknown(library) && isParamUnknown(host) && isParamUnknown(port);
     }
-    public static void collectMessageProducerMetrics(TracedMethod method, String library, String host, Integer port) {
+    public static void collectMessageProducerRollupMetrics(TracedMethod method, String library, String host, Integer port) {
         reportInstanceIfEnabled(method, library, host, port);
     }
 
-    public static void collectMessageConsumerMetrics(TracedMethod method, String library, String host, Integer port) {
+    public static void collectMessageConsumerRollupMetrics(TracedMethod method, String library, String host, Integer port) {
         reportInstanceIfEnabled(method, library, host, port);
     }
 

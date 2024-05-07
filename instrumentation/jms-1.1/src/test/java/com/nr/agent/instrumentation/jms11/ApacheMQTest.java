@@ -24,7 +24,7 @@ import javax.jms.ConnectionFactory;
  * Run the standard JMS instrumentation test suite against the ApacheMQ JMS provider.
  */
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.jms11" })
+@InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.jms11", "com.nr.agent.instrumentation.activemqclient580", "org.apache.activemq" })
 public class ApacheMQTest implements JmsProviderTest {
     private static final String MESSAGE_BROKER_URL = "vm://localhost?create=false";
     private static final String QUEUE_NAME = "InstrumentationTestQueue";
