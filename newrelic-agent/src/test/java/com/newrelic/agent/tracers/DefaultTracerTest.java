@@ -112,6 +112,7 @@ public class DefaultTracerTest {
         APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
         SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         eventPool.clear();
+        ServiceFactory.getStatsService().getStatsEngineForHarvest("Unit Test").clear();
     }
 
     @Test
