@@ -314,8 +314,16 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         proxyScheme = getProperty(PROXY_SCHEME, DEFAULT_PROXY_SCHEME);
         proxyUser = getStringPropertyOrNull(PROXY_USER);
         proxyPass = getStringPropertyOrNull(PROXY_PASS);
-        appNames = new ArrayList<>(getUniqueStrings(APP_NAME, SEMI_COLON_SEPARATOR));
-        appName = getPrimaryAppName();
+
+        if (getProperty(APP_NAME) != null) {
+            appNames = new ArrayList<>(getUniqueStrings(APP_NAME, SEMI_COLON_SEPARATOR));
+            appName = getPrimaryAppName();
+        } else {
+            String generatedAppName = AppNameGenerator.generateAppName();
+            appNames = new ArrayList<>(Collections.singleton(generatedAppName));
+            appName = generatedAppName;
+        }
+
         cpuSamplingEnabled = getProperty(CPU_SAMPLING_ENABLED, DEFAULT_CPU_SAMPLING_ENABLED);
         autoAppNamingEnabled = getProperty(ENABLE_AUTO_APP_NAMING, DEFAULT_ENABLE_AUTO_APP_NAMING);
         autoTransactionNamingEnabled = getProperty(ENABLE_AUTO_TRANSACTION_NAMING, DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING);
@@ -663,6 +671,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
                 return null;
             }
         }
+        String generatedAppName = AppNameGenerator.generateAppName();
+        if (generatedAppName != null) {
+            Agent.LOG.info("app_name assigned via AppNameGenerator: " + generatedAppName);
+            return generatedAppName;
+        }
+
         return null;
     }
 
