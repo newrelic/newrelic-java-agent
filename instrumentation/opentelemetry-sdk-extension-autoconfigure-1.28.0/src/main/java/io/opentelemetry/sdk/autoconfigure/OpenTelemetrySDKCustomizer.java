@@ -26,7 +26,8 @@ final class OpenTelemetrySDKCustomizer {
      * Configure OpenTelemetry exporters to send data to the New Relic backend.
      */
     static Map<String, String> applyProperties(ConfigProperties configProperties, Agent agent) {
-        if (configProperties.getString("otel.exporter.otlp.endpoint") == null) {
+        final String existingEndpoint = configProperties.getString("otel.exporter.otlp.endpoint");
+        if (existingEndpoint == null) {
             agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
             final String host = agent.getConfig().getValue("host");
             final String endpoint = "https://" + host + ":443";
@@ -46,6 +47,10 @@ final class OpenTelemetrySDKCustomizer {
             properties.put("otel.service.name", appName.toString());
 
             return properties;
+        } else {
+            agent.getLogger().log(Level.WARNING,
+                    "The OpenTelemetry exporter endpoint is set to {0}, the agent will not autoconfigure the SDK",
+                    existingEndpoint);
         }
         return Collections.emptyMap();
     }
