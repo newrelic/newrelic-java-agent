@@ -39,7 +39,7 @@ public class R2dbcOperation {
                     for (Pattern pattern : operation.getValue()) {
                         Matcher matcher = pattern.matcher(strippedSql);
                         if (matcher.find()) {
-                            String model = matcher.groupCount() > 0 ? removeBrackets(unquoteDatabaseName(matcher.group(1).trim())) : "unknown";
+                            String model = removeBrackets(unquoteDatabaseName(matcher.group(1).trim()));
                             return new OperationAndTableName(operation.getKey(), VALID_METRIC_NAME_MATCHER.matcher(model).matches() ? model : "ParseError");
                         }
                     }
