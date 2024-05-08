@@ -17,11 +17,14 @@ public class ClearExpiredLogsRunnableTest {
 
     private ClearExpiredLogsRunnable clearExpiredLogsRunnable;
     private Path tempDir;
+    private String absoluteLogFilePath;
+    private final static String LOG_FILENAME = "newrelic.log";
 
     @Before
     public void setUp() throws IOException {
-        String fileNamePrefix = "testLogDir";
+        String fileNamePrefix = "nr_log_test";
         tempDir = Files.createTempDirectory(fileNamePrefix);
+        absoluteLogFilePath = tempDir.toString() + "/" + LOG_FILENAME;
         assertNotNull(tempDir);
     }
 
@@ -43,7 +46,7 @@ public class ClearExpiredLogsRunnableTest {
 
     @Test
     public void testRunnableAgainstEmptyLogDirectory() throws IOException {
-        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(3, absoluteLogFilePath);
         clearExpiredLogsRunnable.run();
 
         long actualLogFileCount = Files.list(tempDir).count();
@@ -52,14 +55,14 @@ public class ClearExpiredLogsRunnableTest {
 
     @Test
     public void testDeleteOldFilesWithLogExtensions() throws Exception {
-        addOldLogFilesWithExtensions(10, "testLogDir");
+        addOldLogFilesWithExtensions(10);
 
         long expectedLogFileCount = 5;
         long actualLogFileCount = Files.list(tempDir).count();
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(3, absoluteLogFilePath);
         clearExpiredLogsRunnable.run();
 
         expectedLogFileCount = 0;
@@ -70,14 +73,14 @@ public class ClearExpiredLogsRunnableTest {
 
     @Test
     public void testDeleteOldFilesWithoutLogExtensions() throws IOException {
-        addOldLogFilesWithoutExtensions(10, "testLogDir");
+        addOldLogFilesWithoutExtensions(10);
 
         long expectedLogFileCount = 5;
         long actualLogFileCount = Files.list(tempDir).count();
 
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(3, absoluteLogFilePath);
         clearExpiredLogsRunnable.run();
 
         expectedLogFileCount = 0;
@@ -91,13 +94,13 @@ public class ClearExpiredLogsRunnableTest {
         Files.createFile(tempDir.resolve("invalid_log_file.txt"));
         Files.createFile(tempDir.resolve("invalid.txt"));
         Files.createFile(tempDir.resolve("2024-02-04"));
-        addOldLogFilesWithExtensions(10, "testLogDir");
+        addOldLogFilesWithExtensions(10);
 
         long expectedLogFileCount = 8;
         long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 1, "testLogDir");
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(1, absoluteLogFilePath);
         clearExpiredLogsRunnable.run();
 
         expectedLogFileCount = 3;
@@ -114,7 +117,7 @@ public class ClearExpiredLogsRunnableTest {
         Path readOnlyFile = Files.createFile(tempDir.resolve("readonly.log"));
         readOnlyFile.toFile().setReadOnly();
 
-        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(3, absoluteLogFilePath);
         clearExpiredLogsRunnable.run();
 
         assertTrue("Read-only file should still exist", Files.exists(readOnlyFile));
@@ -122,8 +125,8 @@ public class ClearExpiredLogsRunnableTest {
 
     @Test
     public void testDirectoryWithMixedFiles() throws IOException {
-        addOldLogFilesWithExtensions(5, "testLogDir");
-        addOldLogFilesWithoutExtensions(5, "testLogDir");
+        addOldLogFilesWithExtensions(5);
+        addOldLogFilesWithoutExtensions(5);
 
         // non-log files
         Files.createFile(tempDir.resolve("testFile1.txt"));
@@ -135,7 +138,7 @@ public class ClearExpiredLogsRunnableTest {
         long actualLogFileCount = Files.list(tempDir).count();
         assertEquals(expectedLogFileCount, actualLogFileCount);
 
-        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(tempDir, 3, "testLogDir");
+        clearExpiredLogsRunnable = new ClearExpiredLogsRunnable(3, absoluteLogFilePath);
         clearExpiredLogsRunnable.run();
 
         assertTrue("Non-log file should exist", Files.exists(tempDir.resolve("testFile1.txt")));
@@ -146,28 +149,28 @@ public class ClearExpiredLogsRunnableTest {
         assertEquals(expectedLogFileCount, actualLogFileCount);
     }
 
-    private void addOldLogFilesWithExtensions(int daysAgo, String fileNamePrefix) throws IOException {
+    private void addOldLogFilesWithExtensions(int daysAgo) throws IOException {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, -daysAgo);
         Date date = calendar.getTime();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         for (int i = 0; i < 5; i++) {
-            String fileName = fileNamePrefix + "." + dateFormat.format(date) + "." + (i + 1);
+            String fileName = LOG_FILENAME + "." + dateFormat.format(date) + "." + (i + 1);
             Files.createFile(tempDir.resolve(fileName));
             calendar.add(Calendar.MINUTE, 1);
             date = calendar.getTime();
         }
     }
 
-    private void addOldLogFilesWithoutExtensions(int daysAgo, String fileNamePrefix) throws IOException {
+    private void addOldLogFilesWithoutExtensions(int daysAgo) throws IOException {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, -daysAgo);
         Date date = calendar.getTime();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         for (int i = 0; i < 5; i++) {
-            String fileName = fileNamePrefix + "." + dateFormat.format(date);
+            String fileName = LOG_FILENAME + "." + dateFormat.format(date);
             Files.createFile(tempDir.resolve(fileName));
             calendar.add(Calendar.DAY_OF_YEAR, 1);
             date = calendar.getTime();
