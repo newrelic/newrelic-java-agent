@@ -136,7 +136,7 @@ public class FileAppenderFactory {
             return thread;
         });
         executorService.scheduleWithFixedDelay(
-                new ClearExpiredLogsRunnable(directory, fileCount, fileName),
+                new ClearExpiredLogsRunnable(fileCount, fileName),
                 INITIAL_DELAY_SECONDS,
                 REPEAT_INTERVAL_SECONDS,
                 TimeUnit.SECONDS
