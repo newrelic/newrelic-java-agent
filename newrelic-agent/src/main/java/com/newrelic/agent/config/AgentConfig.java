@@ -149,6 +149,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     JmxConfig getJmxConfig();
 
     /**
+     * Gets the HTTP Integration Server configuration settings.
+     *
+     * @return HTTP Integration Server configuration settings.
+     */
+    HttpIntegrationServerConfig getHttpIntegrationServerConfig();
+
+    /**
      * Gets the JarCollectorService configuration settings.
      *
      * @return JarCollectorService configuration settings.

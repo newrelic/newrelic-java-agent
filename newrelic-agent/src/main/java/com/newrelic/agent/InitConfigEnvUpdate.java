@@ -24,11 +24,12 @@ public class InitConfigEnvUpdate {
     public static final String LICENSE_KEY_OPTION = "l";
     public static final String APP_NAME_OPTION = "a";
     public static final String CONFIG_FILE_LOCATION_OPTION = "c";
+    public static final String PORT_OPTION = "p";
     private static final String AGENT_CLASS = "com.newrelic.agent.Agent";
     //private static final String TARGET_ENV_FILE = "/etc/environment";
     private static final String TARGET_ENV_FILE = "/Users/jduffy/tmp/etc/environment";
     private static final String JAVA_TOOL_OPTIONS = "JAVA_TOOL_OPTIONS";
-    private static final String CONFIG_FILE_ENV_KEY = "NEWRELIC_CONFIG_FILE";
+    private static final String CONFIG_FILE_ENV_KEY = "NEW_RELIC_CONFIG_FILE";
     private static final String AGENT_CONFIG_FILE = "newrelic.yml";
     private static final String JAVA_AGENT_OPTION = "-javaagent:";
     private static final String NEWRELIC_JAR = "newrelic.jar";
@@ -48,6 +49,7 @@ public class InitConfigEnvUpdate {
         String configFileLocation = cmdLine.getOptionValue(CONFIG_FILE_LOCATION_OPTION);
         String licenseKey = cmdLine.getOptionValue(LICENSE_KEY_OPTION);
         String appName = cmdLine.getOptionValue(APP_NAME_OPTION);
+        int port = portNumberFromCommandLineOption(cmdLine.getOptionValue(PORT_OPTION));
         int exitCode;
 
         if (StringUtils.isNotEmpty(configFileLocation) && StringUtils.isNotEmpty(licenseKey)) {
@@ -56,8 +58,9 @@ public class InitConfigEnvUpdate {
             logMessage("Config file location: " + configFileLocation);
             logMessage("License key supplied");
             logMessage("App name: " + (StringUtils.isEmpty(appName) ? "n/a" : appName));
+            logMessage("Port: " + (port == 0 ? "n/a" : port));
 
-            exitCode = writeInitialConfigFile(configFileLocation, licenseKey, appName);
+            exitCode = writeInitialConfigFile(configFileLocation, licenseKey, appName, port);
             if (exitCode == 0) {
                 exitCode = updateEnvFileWithToolOptions(configFileLocation);
             }
@@ -69,12 +72,18 @@ public class InitConfigEnvUpdate {
         System.exit(exitCode);
     }
 
-    private static int writeInitialConfigFile(String path, String licenseKey, String appName) {
+    private static int writeInitialConfigFile(String path, String licenseKey, String appName, int port) {
         Path configFilePath = Paths.get(path);
         if (configFilePath.toFile().exists() && Files.isWritable(configFilePath)) {
             Path ymlFile = Paths.get(path, AGENT_CONFIG_FILE);
-            String ymlContents = "# Generated via Java agent init-config parameter\n" + "common: &default_settings\n  license_key: '" + licenseKey + "'\n  app_name: " + (appName == null ? "" : appName) + "\n";
-            logMessage("Wrote initial");
+            String ymlContents = "# Generated via Java agent init-config parameter\n" +
+                    "common: &default_settings\n  " +
+                    "license_key: '" + licenseKey +
+                    "'\n  app_name: " + (appName == null ? "" : appName) + "\n\n" +
+                    "  http_integration_server:\n" +
+                    "    enabled: true\n" +
+                    (port == 0 ? "" : "    port: " + port) + "\n\n";
+            logMessage("Wrote initial agent config file to " + ymlFile);
 
             try {
                 Files.write(ymlFile, ymlContents.getBytes(StandardCharsets.UTF_8));
@@ -164,6 +173,19 @@ public class InitConfigEnvUpdate {
 
     private static void writeUpdatedEnvFile(Path path, String contents) throws IOException {
         Files.write(path, contents.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static int portNumberFromCommandLineOption(String value) {
+        int port = 0;
+        if (StringUtils.isNotBlank(value)) {
+            try {
+                port = Integer.parseInt(value);
+            } catch (NumberFormatException nfe) {
+                logMessage("Invalid port value supplied: " + value);
+            }
+        }
+
+        return port;
     }
 
     private static void logMessage(String msg) {

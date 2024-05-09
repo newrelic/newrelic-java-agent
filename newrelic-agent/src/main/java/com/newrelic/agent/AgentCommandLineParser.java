@@ -214,13 +214,11 @@ class AgentCommandLineParser {
     private static Options getInitConfigEnvUpdateOptions() {
         Options options = new Options();
 
-        Option configFileLocationOpt = new Option(InitConfigEnvUpdate.CONFIG_FILE_LOCATION_OPTION, true, "Set the newrelic.config.file property for the Java agent");
-        options.addOption(configFileLocationOpt);
-
-        Option licenseKeyOpt = new Option(InitConfigEnvUpdate.LICENSE_KEY_OPTION, true, "Set the license_key property for the Java agent");
-        options.addOption(licenseKeyOpt);
-
+        options.addOption(InitConfigEnvUpdate.CONFIG_FILE_LOCATION_OPTION, true, "Set the newrelic.config.file property for the Java agent");
+        options.addOption(InitConfigEnvUpdate.LICENSE_KEY_OPTION, true, "Set the license_key property for the Java agent");
         options.addOption(InitConfigEnvUpdate.APP_NAME_OPTION, true, "Set the app_name property for the Java agent");
+        options.addOption(InitConfigEnvUpdate.PORT_OPTION, true, "Set the port number the integration server will listen on");
+
         return options;
     }
 }

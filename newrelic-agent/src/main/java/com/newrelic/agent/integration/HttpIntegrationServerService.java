@@ -6,6 +6,7 @@
  */
 package com.newrelic.agent.integration;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.HarvestListener;
 import com.newrelic.agent.IRPMService;
@@ -13,6 +14,7 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
+import com.newrelic.agent.config.HttpIntegrationServerConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -28,27 +30,30 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
 
 public class HttpIntegrationServerService extends AbstractService implements AgentConfigListener, ExtendedTransactionListener, HarvestListener {
     private static final String HEALTH_CHECK_CONTEXT = "/_nr_/health";
     private static final String FORCE_RESTART_CONTEXT = "/_nr_/restart";
 
     private HttpServer server = null;
-    private final AgentConfig agentConfig;
+    private final HttpIntegrationServerConfig httpIntegrationServerConfig;
     private static int transactionsFinishedCount = 0;
     private static int transactionsCancelledCount = 0;
     private static long lastHarvestTimestamp = 0;
 
     public HttpIntegrationServerService(AgentConfig defaultAgentConfig) {
         super(HttpIntegrationServerService.class.getSimpleName());
-        this.agentConfig = defaultAgentConfig;
+        this.httpIntegrationServerConfig = defaultAgentConfig.getHttpIntegrationServerConfig();
     }
 
     @Override
-    protected void doStart() throws Exception {
+    protected void doStart() {
         if (isEnabled()) {
             ServiceFactory.getTransactionService().addTransactionListener(this);
             ServiceFactory.getHarvestService().addHarvestListener(this);
+
+            Agent.LOG.log(Level.INFO, "Starting HTTP integration server on port {0}", httpIntegrationServerConfig.getPort());
 
             server = configureIntegrationServer();
             if (server != null) {
@@ -58,7 +63,7 @@ public class HttpIntegrationServerService extends AbstractService implements Age
     }
 
     @Override
-    protected void doStop() throws Exception {
+    protected void doStop() {
         if (isEnabled()) {
             if (server != null) {
                 server.stop(0);
@@ -72,18 +77,29 @@ public class HttpIntegrationServerService extends AbstractService implements Age
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return httpIntegrationServerConfig.isEnabled();
     }
 
     @Override
     public void configChanged(String appName, AgentConfig agentConfig) {
+        boolean newEnabledFlag = agentConfig.getHttpIntegrationServerConfig().isEnabled();
 
+        if (newEnabledFlag != httpIntegrationServerConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "HTTP Integration Server enabled flag changed to {0}", newEnabledFlag);
+            httpIntegrationServerConfig.setEnabled(newEnabledFlag);
+
+            if (newEnabledFlag) {
+                doStart();
+            } else {
+                doStop();
+            }
+        }
     }
 
     private HttpServer configureIntegrationServer() {
         HttpServer server;
         InetAddress localHost = InetAddress.getLoopbackAddress();
-        InetSocketAddress socketAddress = new InetSocketAddress(localHost, 9999);
+        InetSocketAddress socketAddress = new InetSocketAddress(localHost, httpIntegrationServerConfig.getPort());
 
         try {
             server = HttpServer.create(socketAddress, 1);
@@ -93,8 +109,7 @@ public class HttpIntegrationServerService extends AbstractService implements Age
             healthCheckContext.setHandler(new HealthCheckHttpHandler());
             forceRestartContext.setHandler(new ForceRestartHttpHandler());
         } catch (IOException e) {
-            //TODO
-            System.out.println(e);
+            Agent.LOG.log(Level.INFO, "HTTP Integration Server threw an exception during configuration", e);
             return null;
         }
 
@@ -126,13 +141,12 @@ public class HttpIntegrationServerService extends AbstractService implements Age
         //no-op
     }
 
-    private class HealthCheckHttpHandler implements HttpHandler {
+    private static class HealthCheckHttpHandler implements HttpHandler {
         @Override
         @SuppressWarnings("unchecked")
         public void handle(HttpExchange exchange) throws IOException {
             // We don't really need any info from the request, since the endpoint is the only trigger we need
             JSONObject healthResponse = new JSONObject();
-            healthResponse.put("appName", HttpIntegrationServerService.this.agentConfig.getApplicationName());
             healthResponse.put("transactionsFinished", transactionsFinishedCount);
             healthResponse.put("transactionsCancelled", transactionsCancelledCount);
             healthResponse.put("lastHarvest", lastHarvestTimestamp);
@@ -147,7 +161,7 @@ public class HttpIntegrationServerService extends AbstractService implements Age
                 outputStream.flush();
                 outputStream.close();
             } catch (IOException e) {
-                //TODO Oops
+                Agent.LOG.log(Level.INFO, "HTTP Integration Server threw exception while handling health check request", e);
             }
         }
     }
@@ -165,7 +179,7 @@ public class HttpIntegrationServerService extends AbstractService implements Age
                 outputStream.flush();
                 outputStream.close();
             } catch (IOException e) {
-                //TODO oops
+                Agent.LOG.log(Level.INFO, "HTTP Integration Server threw exception while handling health check force restart request", e);
             }
         }
     }

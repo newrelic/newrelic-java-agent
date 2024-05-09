@@ -119,6 +119,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
+    public static final String HTTP_INTEGRATION_SERVER = "http_integration_server";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
@@ -261,6 +262,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final JarCollectorConfig jarCollectorConfig;
     private final JfrConfig jfrConfig;
     private final JmxConfig jmxConfig;
+    private final HttpIntegrationServerConfig httpIntegrationServerConfig;
     private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
@@ -362,6 +364,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         externalTracerConfig = initExternalTracerConfig();
         jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
+        httpIntegrationServerConfig = initHttpIntegrationServerConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
         applicationLoggingConfig = initApplicationLoggingConfig();
@@ -739,6 +742,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private JmxConfig initJmxConfig() {
         Map<String, Object> props = nestedProps(JMX);
         return JmxConfigImpl.createJmxConfig(props);
+    }
+
+    private HttpIntegrationServerConfig initHttpIntegrationServerConfig() {
+        Map<String, Object> props = nestedProps(HTTP_INTEGRATION_SERVER);
+        return HttpIntegrationServerConfigImpl.createHttpIntegrationServerConfig(props);
     }
 
     private JarCollectorConfig initJarCollectorConfig() {
@@ -1245,6 +1253,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public JmxConfig getJmxConfig() {
         return jmxConfig;
+    }
+
+    @Override
+    public HttpIntegrationServerConfig getHttpIntegrationServerConfig() {
+        return httpIntegrationServerConfig;
     }
 
     @Override
