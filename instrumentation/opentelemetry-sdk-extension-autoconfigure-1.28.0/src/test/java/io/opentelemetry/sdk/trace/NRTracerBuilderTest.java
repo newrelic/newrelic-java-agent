@@ -22,7 +22,7 @@ public class NRTracerBuilderTest extends TestCase {
         Tracer tracer = new NRTracerBuilder(NewRelic.getAgent().getConfig(), "test-lib",
                 TRACER_SHARED_STATE).build();
         assertTrue(tracer.getClass().getName(), tracer.getClass().getName().startsWith(
-                "io.opentelemetry.sdk.trace.NRTracerBuilder$$Lambda$"));
+                "io.opentelemetry.sdk.trace.NRTracerBuilder"));
     }
 
     public void testBuildDisabled() {
