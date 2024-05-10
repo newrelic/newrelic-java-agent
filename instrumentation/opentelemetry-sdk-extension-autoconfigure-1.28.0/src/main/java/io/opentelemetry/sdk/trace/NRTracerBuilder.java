@@ -1,16 +1,21 @@
 package io.opentelemetry.sdk.trace;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.Config;
+import com.newrelic.api.agent.NewRelic;
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.TracerBuilder;
 
 class NRTracerBuilder implements TracerBuilder {
     private final String instrumentationScopeName;
     private final TracerSharedState sharedState;
+    private final Config config;
     private String schemaUrl;
     private String instrumentationScopeVersion;
 
-    public NRTracerBuilder(String instrumentationScopeName, TracerSharedState sharedState) {
+    public NRTracerBuilder(Config config, String instrumentationScopeName, TracerSharedState sharedState) {
+        this.config = config;
         this.instrumentationScopeName = instrumentationScopeName;
         this.sharedState = sharedState;
     }
@@ -29,6 +34,11 @@ class NRTracerBuilder implements TracerBuilder {
 
     @Override
     public Tracer build() {
-        return spanName -> new NRSpanBuilder(AgentBridge.instrumentation, instrumentationScopeName, instrumentationScopeVersion, sharedState, spanName);
+        Boolean enabled = config.getValue("opentelemetry.instrumentation." + instrumentationScopeName + ".enabled");
+        if (enabled != null && !enabled) {
+            return OpenTelemetry.noop().getTracer(instrumentationScopeName);
+        } else {
+            return spanName -> new NRSpanBuilder(AgentBridge.instrumentation, instrumentationScopeName, instrumentationScopeVersion, sharedState, spanName);
+        }
     }
 }

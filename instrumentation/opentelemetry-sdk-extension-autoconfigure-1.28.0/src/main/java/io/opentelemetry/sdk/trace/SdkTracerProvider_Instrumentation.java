@@ -14,7 +14,7 @@ public final class SdkTracerProvider_Instrumentation {
         final TracerBuilder tracerBuilder = Weaver.callOriginal();
         if (NRSpanBuilder.isSpanBuilderEnabled(NewRelic.getAgent().getConfig())) {
             // return our tracer builder instead of the OTel instance
-            return new NRTracerBuilder(instrumentationScopeName, sharedState);
+            return new NRTracerBuilder(NewRelic.getAgent().getConfig(), instrumentationScopeName, sharedState);
         }
         return tracerBuilder;
     }

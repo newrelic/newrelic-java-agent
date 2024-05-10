@@ -36,11 +36,11 @@ public class SpanTest {
     static {
         System.setProperty("otel.java.global-autoconfigure.enabled", "true");
     }
-    static Tracer otelTracer = GlobalOpenTelemetry.get().getTracer("test", "1.0");
+    static final Tracer OTEL_TRACER = GlobalOpenTelemetry.get().getTracer("test", "1.0");
 
     @Test
     public void testInternalSpansNoTransaction() {
-        Span span = otelTracer.spanBuilder("MyCustomSpan").startSpan();
+        Span span = OTEL_TRACER.spanBuilder("MyCustomSpan").startSpan();
         span.makeCurrent().close();
         span.end();
 
@@ -51,7 +51,7 @@ public class SpanTest {
 
     @Test
     public void testConsumerSpan() {
-        Span span = otelTracer.spanBuilder("consume").setSpanKind(SpanKind.CONSUMER).startSpan();
+        Span span = OTEL_TRACER.spanBuilder("consume").setSpanKind(SpanKind.CONSUMER).startSpan();
         span.makeCurrent().close();
         span.end();
 
@@ -72,7 +72,7 @@ public class SpanTest {
         Map<String, Object> attributes = readSpanAttributes("server-span.json");
         final String spanName = (String) attributes.remove("name");
 
-        Span span = otelTracer.spanBuilder(spanName).setSpanKind(SpanKind.SERVER).startSpan();
+        Span span = OTEL_TRACER.spanBuilder(spanName).setSpanKind(SpanKind.SERVER).startSpan();
         span.setAllAttributes(AttributesHelper.toAttributes(attributes));
         span.makeCurrent().close();
         span.end();
@@ -141,7 +141,7 @@ public class SpanTest {
 
                 // however, we could use the trace id from the parent transaction.  We'd have two metric
                 // transactions, but the distributed trace would display the relationship between the spans
-                Span span = otelTracer.spanBuilder("OrphanedSpan").setParent(context).startSpan();
+                Span span = OTEL_TRACER.spanBuilder("OrphanedSpan").setParent(context).startSpan();
                 span.makeCurrent().close();
                 span.end();
             });
@@ -181,7 +181,7 @@ public class SpanTest {
 
     @Trace(dispatcher = true)
     static void databaseSpan() {
-        Span span = otelTracer.spanBuilder("owners select").setSpanKind(SpanKind.CLIENT)
+        Span span = OTEL_TRACER.spanBuilder("owners select").setSpanKind(SpanKind.CLIENT)
                 .setAttribute("db.system", "mysql")
                 .setAttribute("db.operation", "select")
                 .setAttribute("db.sql.table", "owners")
@@ -191,7 +191,7 @@ public class SpanTest {
 
     @Trace(dispatcher = true)
     static void simpleSpans() {
-        Span span = otelTracer.spanBuilder("MyCustomSpan").startSpan();
+        Span span = OTEL_TRACER.spanBuilder("MyCustomSpan").startSpan();
         Scope scope = span.makeCurrent();
         SpanContext spanContext = span.getSpanContext();
         assertNotNull(spanContext.getTraceId());
@@ -199,7 +199,7 @@ public class SpanTest {
         assertSame(spanContext, span.getSpanContext());
         Span current = Span.current();
         assertEquals(span, current);
-        Span kid = otelTracer.spanBuilder("kid").setParent(Context.current()).startSpan();
+        Span kid = OTEL_TRACER.spanBuilder("kid").setParent(Context.current()).startSpan();
         kid.end();
         scope.close();
         span.end();
@@ -214,14 +214,14 @@ public class SpanTest {
     }
 
     static void asyncWork(Context context) {
-        Span span = otelTracer.spanBuilder("MyCustomAsyncSpan").startSpan();
+        Span span = OTEL_TRACER.spanBuilder("MyCustomAsyncSpan").startSpan();
         span.makeCurrent().close();
         span.end();
     }
 
     @WithSpan
     static void withSpan() {
-        Span span = otelTracer.spanBuilder("kid").startSpan();
+        Span span = OTEL_TRACER.spanBuilder("kid").startSpan();
         span.end();
     }
 }
