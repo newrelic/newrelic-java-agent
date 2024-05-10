@@ -15,16 +15,14 @@ import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Transaction;
-import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
+import com.nr.instrumentation.r2dbc.postgresql092.EndpointData;
 import io.r2dbc.postgresql.api.PostgresqlResult;
 import io.r2dbc.postgresql.client.Client;
 import io.r2dbc.postgresql.client.ReactorNettyClient_Instrumentation;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
-import reactor.netty.Connection;
 import reactor.util.annotation.Nullable;
 
-import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
 public class R2dbcUtils {
@@ -44,13 +42,13 @@ public class R2dbcUtils {
     private static Consumer<Subscription> reportExecution(String sql, Client client, PostgresqlConnectionConfiguration connectionConfiguration, Segment segment) {
         return (subscription) -> {
             OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
-            InetSocketAddress socketAddress = extractSocketAddress(client);
-            if (sqlOperation != null && socketAddress != null) {
+            EndpointData endpointData = extractEndpointData(client);
+            if (sqlOperation != null && endpointData != null) {
                 segment.reportAsExternal(DatastoreParameters
                         .product(DatastoreVendor.Postgres.name())
                         .collection(sqlOperation.getTableName())
                         .operation(sqlOperation.getOperation())
-                        .instance(socketAddress.getHostName(), socketAddress.getPort())
+                        .instance(endpointData.getHostName(), endpointData.getPort())
                         .databaseName(connectionConfiguration.getDatabase())
                         .slowQuery(sql, R2dbcObfuscator.POSTGRES_QUERY_CONVERTER)
                         .build());
@@ -58,14 +56,11 @@ public class R2dbcUtils {
         };
     }
 
-    public static @Nullable InetSocketAddress extractSocketAddress(Client client) {
+    public static @Nullable EndpointData extractEndpointData(Client client) {
         try {
             if(client instanceof ReactorNettyClient_Instrumentation) {
                 ReactorNettyClient_Instrumentation instrumentedClient = (ReactorNettyClient_Instrumentation) client;
-                Connection clientConnection = instrumentedClient.clientConnection;
-                if(clientConnection.channel().remoteAddress() != null && clientConnection.channel().remoteAddress() instanceof InetSocketAddress) {
-                    return (InetSocketAddress) clientConnection.channel().remoteAddress();
-                }
+                return instrumentedClient.endpointData;
             }
             return null;
         } catch(Exception exception) {
