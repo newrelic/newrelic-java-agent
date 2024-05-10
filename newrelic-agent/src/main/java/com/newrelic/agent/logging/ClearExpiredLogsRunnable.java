@@ -43,7 +43,7 @@ public class ClearExpiredLogsRunnable implements Runnable {
     public ClearExpiredLogsRunnable(int fileCount, String logfile) {
         File absoluteLogFilename = new File(logfile);
         this.daysToKeepFiles = fileCount;
-        this.logDirectoryPath = Paths.get(absoluteLogFilename.getParent());
+        this.logDirectoryPath = absoluteLogFilename.getParent() == null ? Paths.get("./") : Paths.get(absoluteLogFilename.getParent());
 
         String fileNamePrefix = absoluteLogFilename.getName();
         pattern = Pattern.compile(fileNamePrefix.replace(".", "\\.")
