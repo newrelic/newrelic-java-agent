@@ -831,9 +831,9 @@ public class DefaultTracer extends AbstractTracer {
 
         MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
 
-        if (messageBrokerConfig.isInstanceReportingEnabled() && !MessageMetrics.isAllParamsUnknown(library, host, port)) {
-            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
-            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
+        if (messageBrokerConfig.isInstanceReportingEnabled() && MessageMetrics.isEndpointParamsKnown(host, port)) {
+            setAgentAttribute(AttributeNames.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
+            setAgentAttribute(AttributeNames.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
         }
     }
 
@@ -867,9 +867,9 @@ public class DefaultTracer extends AbstractTracer {
 
         MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
 
-        if (messageBrokerConfig.isInstanceReportingEnabled() && !MessageMetrics.isAllParamsUnknown(library, host, port)) {
-            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
-            setAgentAttribute(MessageMetrics.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
+        if (messageBrokerConfig.isInstanceReportingEnabled() && MessageMetrics.isEndpointParamsKnown(host, port)) {
+            setAgentAttribute(AttributeNames.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
+            setAgentAttribute(AttributeNames.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
         }
     }
 

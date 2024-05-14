@@ -56,6 +56,10 @@ public final class AttributeNames {
     // cloud provider identifier for the resource being used
     public static final String CLOUD_RESOURCE_ID = "cloud.resource_id";
 
+    // Message broker endpoint information
+    public static final String MESSAGE_BROKER_HOST = "message.broker.host";
+    public static final String MESSAGE_BROKER_PORT = "message.broker.port";
+
     public static final String RESPONSE_CONTENT_TYPE_PARAMETER_NAME = "response.headers.contentType";
 
     // high security matches

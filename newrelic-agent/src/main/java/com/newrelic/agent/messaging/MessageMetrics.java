@@ -13,11 +13,8 @@ public class MessageMetrics {
     public static final String UNKNOWN = "unknown";
     public static String HOSTNAME = Hostname.getHostname(ServiceFactory.getConfigService().getDefaultAgentConfig());
 
-    public static final String MESSAGE_BROKER_HOST = "message.broker.host";
-    public static final String MESSAGE_BROKER_PORT = "message.broker.port";
-
-    public static boolean isAllParamsUnknown(String library, String host, Integer port) {
-        return isParamUnknown(library) && isParamUnknown(host) && isParamUnknown(port);
+    public static boolean isEndpointParamsKnown(String host, Integer port) {
+        return !(isParamUnknown(host) && isParamUnknown(port));
     }
     public static void collectMessageProducerRollupMetrics(TracedMethod method, String library, String host, Integer port) {
         reportInstanceIfEnabled(method, library, host, port);

@@ -288,6 +288,16 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory setMessageBrokerHost(String host) {
+        builder.putAgentAttribute(AttributeNames.MESSAGE_BROKER_HOST, host);
+        return this;
+    }
+
+    public SpanEventFactory setMessageBrokerPort(Integer port) {
+        builder.putAgentAttribute(AttributeNames.MESSAGE_BROKER_PORT, port);
+        return this;
+    }
+
     public SpanEventFactory setServerPort(int port) {
         builder.putAgentAttribute("server.port", port);
         return this;
@@ -410,10 +420,14 @@ public class SpanEventFactory {
             MessageProduceParameters messageProduceParameters = (MessageProduceParameters) parameters;
             setCategory(SpanCategory.generic);
             setCloudResourceId(messageProduceParameters.getCloudResourceId());
+            setMessageBrokerHost(messageProduceParameters.getHost());
+            setMessageBrokerPort(messageProduceParameters.getPort());
         } else if (parameters instanceof MessageConsumeParameters) {
             MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
             setCategory(SpanCategory.generic);
             setCloudResourceId(messageConsumeParameters.getCloudResourceId());
+            setMessageBrokerHost(messageConsumeParameters.getHost());
+            setMessageBrokerPort(messageConsumeParameters.getPort());
         } else {
             setCategory(SpanCategory.generic);
         }
