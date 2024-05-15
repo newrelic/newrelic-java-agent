@@ -53,6 +53,9 @@ public final class AttributeNames {
     public static final String REQUEST_USER_AGENT_PARAMETER_NAME = "request.headers.userAgent";
     public static final String REQUEST_METHOD_PARAMETER_NAME = "request.method";
 
+    // cloud provider identifier for the resource being used
+    public static final String CLOUD_RESOURCE_ID = "cloud.resource_id";
+
     public static final String RESPONSE_CONTENT_TYPE_PARAMETER_NAME = "response.headers.contentType";
 
     // high security matches

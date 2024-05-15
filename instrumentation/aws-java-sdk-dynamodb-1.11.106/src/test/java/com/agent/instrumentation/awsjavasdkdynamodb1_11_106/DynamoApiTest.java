@@ -56,6 +56,7 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -77,6 +78,7 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.amazonaws", "com.nr.instrumentation" })
+@Ignore("This test is running into some incompatibilities with a dependency.")
 public class DynamoApiTest {
 
     private static String hostName;

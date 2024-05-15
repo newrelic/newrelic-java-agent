@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import static junit.framework.TestCase.assertEquals;
 
+// this test is ignored in instrumentation/build.gradle
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"software.amazon.awssdk.services.dynamodb", "com.nr.instrumentation"})
 public class DefaultDynamoDbClient_InstrumentationTest {
