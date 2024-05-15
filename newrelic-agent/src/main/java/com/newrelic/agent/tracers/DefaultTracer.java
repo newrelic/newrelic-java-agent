@@ -827,7 +827,7 @@ public class DefaultTracer extends AbstractTracer {
         String host = messageProduceParameters.getHost();
         Integer port = messageProduceParameters.getPort();
 
-        MessageMetrics.collectMessageProducerRollupMetrics(this, library, host, port);
+        MessageMetrics.collectMessageProducerRollupMetrics(this, library, host, port, destinationType, messageProduceParameters.getDestinationName());
 
         MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
 
@@ -863,7 +863,7 @@ public class DefaultTracer extends AbstractTracer {
         String host = messageConsumeParameters.getHost();
         Integer port = messageConsumeParameters.getPort();
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(this, library, host, port);
+        MessageMetrics.collectMessageConsumerRollupMetrics(this, library, host, port, destinationType, messageConsumeParameters.getDestinationName());
 
         MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
 
