@@ -5,12 +5,16 @@
  *
  */
 
-package java.util.concurrent;
+package nr.java.util.concurrent;
 
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import util.TokenDelegateExecutor;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
