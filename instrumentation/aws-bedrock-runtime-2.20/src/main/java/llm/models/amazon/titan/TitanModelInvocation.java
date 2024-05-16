@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import static llm.models.ModelInvocation.*;
 import static llm.models.ModelResponse.COMPLETION;
 import static llm.models.ModelResponse.EMBEDDING;
 import static llm.vendor.Vendor.BEDROCK;
@@ -69,7 +70,7 @@ public class TitanModelInvocation implements ModelInvocation {
                 .input(index)
                 .requestModel()
                 .responseModel()
-                .tokenCount(ModelInvocation.getTokenCount(modelRequest.getModelId(), modelRequest.getInputText(0)))
+                .tokenCount(getTokenCount(modelRequest.getModelId(), modelRequest.getInputText(index)))
                 .error()
                 .duration(System.currentTimeMillis() - startTime)
                 .build();
@@ -114,7 +115,7 @@ public class TitanModelInvocation implements ModelInvocation {
                 .traceId()
                 .vendor()
                 .ingestSource()
-                .id(ModelInvocation.getRandomGuid())
+                .id(getRandomGuid())
                 .content(message)
                 .role(isUser)
                 .isResponse(isUser)
@@ -122,7 +123,7 @@ public class TitanModelInvocation implements ModelInvocation {
                 .responseModel()
                 .sequence(sequence)
                 .completionId()
-                .tokenCount(ModelInvocation.getTokenCount(modelRequest.getModelId(), message))
+                .tokenCount(getTokenCount(modelRequest.getModelId(), message))
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();
