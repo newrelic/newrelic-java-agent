@@ -10,13 +10,13 @@ import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.TracedMethod;
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 
@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 class NRSpanBuilder implements SpanBuilder {
+    private static final Span NO_OP_SPAN = OpenTelemetry.noop().getTracer("").spanBuilder("").startSpan();
     private final Instrumentation instrumentation;
     private final String spanName;
     private final Map<String, Object> attributes = new HashMap<>();
@@ -259,55 +260,4 @@ class NRSpanBuilder implements SpanBuilder {
         }
         return flags;
     }
-
-    private static final Span NO_OP_SPAN = new Span() {
-        @Override
-        public <T> Span setAttribute(AttributeKey<T> key, T value) {
-            return this;
-        }
-
-        @Override
-        public Span addEvent(String name, Attributes attributes) {
-            return this;
-        }
-
-        @Override
-        public Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit) {
-            return this;
-        }
-
-        @Override
-        public Span setStatus(StatusCode statusCode, String description) {
-            return this;
-        }
-
-        @Override
-        public Span recordException(Throwable exception, Attributes additionalAttributes) {
-            return this;
-        }
-
-        @Override
-        public Span updateName(String name) {
-            return this;
-        }
-
-        @Override
-        public void end() {
-        }
-
-        @Override
-        public void end(long timestamp, TimeUnit unit) {
-
-        }
-
-        @Override
-        public SpanContext getSpanContext() {
-            return SpanContext.getInvalid();
-        }
-
-        @Override
-        public boolean isRecording() {
-            return false;
-        }
-    };
 }
