@@ -13,6 +13,12 @@ verifyInstrumentation {
     verifyClasspath = false // We don't want to verify classpath since these are JDK classes
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(9))
+    }
+}
+
 site {
     title 'Java Completable futures'
     type 'Other'
