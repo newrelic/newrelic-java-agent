@@ -22,11 +22,11 @@ public class ActiveMQUtilTest {
         final String expectedHost = "b-cd914095-3880-10d3-bb93-ee07ce1f57a5-1.mq.us-east-2.amazonaws.com";
         final Integer expectedPort = 61617;
 
-        final HostAndPort hostAndPort = ActiveMQUtil.parseHostAndPort(awsAddress);
+        final HostAndPort hostAndPort = ActiveMQUtil.get().parseHostAndPort(awsAddress);
         assertHostAndPort(expectedHost, expectedPort, hostAndPort);
 
         // Verify caching works
-        final HostAndPort hostAndPortRepeated = ActiveMQUtil.parseHostAndPort(awsAddress);
+        final HostAndPort hostAndPortRepeated = ActiveMQUtil.get().parseHostAndPort(awsAddress);
         assertHostAndPort(expectedHost, expectedPort, hostAndPortRepeated);
 
     }
@@ -38,11 +38,11 @@ public class ActiveMQUtilTest {
         final String expectedHost = "b-cd914095-3880-10d3-bb93-ee07ce1f57a5-1.mq.us-east-2.amazonaws.com";
         final Integer expectedPort = 61617;
 
-        final HostAndPort hostAndPort = ActiveMQUtil.parseHostAndPort(awsAddress);
+        final HostAndPort hostAndPort = ActiveMQUtil.get().parseHostAndPort(awsAddress);
         assertHostAndPort(expectedHost, expectedPort, hostAndPort);
 
         // Verify caching works
-        final HostAndPort hostAndPortRepeated = ActiveMQUtil.parseHostAndPort(awsAddress);
+        final HostAndPort hostAndPortRepeated = ActiveMQUtil.get().parseHostAndPort(awsAddress);
         assertHostAndPort(expectedHost, expectedPort, hostAndPortRepeated);
 
     }
@@ -54,11 +54,11 @@ public class ActiveMQUtilTest {
         final String expectedHost = "localhost";
         final Integer expectedPort = 61616;
 
-        final HostAndPort hostAndPort = ActiveMQUtil.parseHostAndPort(localhostAddress);
+        final HostAndPort hostAndPort = ActiveMQUtil.get().parseHostAndPort(localhostAddress);
         assertHostAndPort(expectedHost, expectedPort, hostAndPort);
 
         // Verify caching works
-        final HostAndPort hostAndPortRepeated = ActiveMQUtil.parseHostAndPort(localhostAddress);
+        final HostAndPort hostAndPortRepeated = ActiveMQUtil.get().parseHostAndPort(localhostAddress);
         assertHostAndPort(expectedHost, expectedPort, hostAndPortRepeated);
     }
 

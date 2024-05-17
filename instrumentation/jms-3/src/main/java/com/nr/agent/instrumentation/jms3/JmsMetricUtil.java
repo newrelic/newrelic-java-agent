@@ -10,7 +10,7 @@ package com.nr.agent.instrumentation.jms3;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.messaging.HostAndPort;
-import com.newrelic.agent.bridge.messaging.JmsUtil;
+import com.newrelic.agent.bridge.messaging.JmsProperties;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
@@ -173,7 +173,7 @@ public abstract class JmsMetricUtil {
     }
 
     private static HostAndPort getHostAndPort(Message message) throws JMSException {
-        Object obj = message.getObjectProperty(JmsUtil.NR_JMS_HOST_AND_PORT_PROPERTY);
+        Object obj = message.getObjectProperty(JmsProperties.NR_JMS_HOST_AND_PORT_PROPERTY);
         if (obj instanceof HostAndPort) {
             return (HostAndPort) obj;
         }
