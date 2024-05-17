@@ -12,19 +12,22 @@ public class MessageMetrics {
     public static final String MESSAGE_BROKER_INSTANCE = METRIC_NAMESPACE + "/instance/";
 
     public static final String UNKNOWN = "unknown";
+
+    public static final String PRODUCE = "Produce";
+    public static final String CONSUME = "Consume";
     public static String HOSTNAME = Hostname.getHostname(ServiceFactory.getConfigService().getDefaultAgentConfig());
 
-    public static boolean isEndpointParamsKnown(String host, Integer port) {
+    public static boolean isAnyEndpointParamsKnown(String host, Integer port) {
         return !(isParamUnknown(host) && isParamUnknown(port));
     }
     public static void collectMessageProducerRollupMetrics(TracedMethod method, String library, String host, Integer port,
             DestinationType destinationType, String destinationName) {
-        reportInstanceIfEnabled(method, library, "Produce", host, port, destinationType, destinationName);
+        reportInstanceIfEnabled(method, library, PRODUCE, host, port, destinationType, destinationName);
     }
 
     public static void collectMessageConsumerRollupMetrics(TracedMethod method, String library, String host, Integer port,
             DestinationType destinationType, String destinationName) {
-        reportInstanceIfEnabled(method, library, "Consume", host, port, destinationType, destinationName);
+        reportInstanceIfEnabled(method, library, CONSUME, host, port, destinationType, destinationName);
     }
 
     public static void reportInstanceIfEnabled(TracedMethod method, String library, String operation, String host, Integer port,
@@ -59,19 +62,19 @@ public class MessageMetrics {
         if (isParamUnknown(destinationName)) {
             return UNKNOWN;
         }
-        return destinationName.toLowerCase();
+        return "Named" + SLASH + destinationName;
     }
 
     public static String replaceLibrary(String library) {
         if (isParamUnknown(library)) {
             return UNKNOWN;
         }
-        return library.toLowerCase();
+        return library;
     }
 
     public static String replaceLocalhost(String host) {
         if (isParamUnknown(host)) {
-            return HOSTNAME;
+            return UNKNOWN;
         }
 
         if ("localhost".equals(host) || "127.0.0.1".equals(host) || "0.0.0.0".equals(host)

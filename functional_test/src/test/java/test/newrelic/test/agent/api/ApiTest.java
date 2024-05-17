@@ -15,9 +15,9 @@ import com.newrelic.agent.TransactionDataList;
 import com.newrelic.agent.TransactionListener;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TransactionNamePriority;
-import com.newrelic.agent.browser.BrowserConfigTest;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigConstant;
+import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.dispatchers.WebRequestDispatcher;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.errors.ErrorService;
@@ -38,7 +38,6 @@ import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionThrowable;
-import com.newrelic.agent.util.Obfuscator;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.ExtendedRequest;
@@ -77,13 +76,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /* (non-javadoc)
@@ -95,6 +92,7 @@ public class ApiTest implements TransactionListener {
     ApiTestHelper apiTestHelper = new ApiTestHelper();
     private static final String CAT_CONFIG_FILE = "configs/cross_app_tracing_test.yml";
     private static final String HIGH_SECURITY_CONFIG_FILE = "configs/high_security_config.yml";
+    public static String HOSTNAME = Hostname.getHostname(ServiceFactory.getConfigService().getDefaultAgentConfig());
     private static final ClassLoader CLASS_LOADER = ApiTest.class.getClassLoader();
 
     @Before
@@ -1996,7 +1994,32 @@ public class ApiTest implements TransactionListener {
             server.start();
             runTestMessagingAPI();
             String messageBrokerMetric = "MessageBroker/JMS/Queue/Consume/Temp";
+            String endpointMetric = "MessageBroker/instance/JMS/unknown/unknown/Consume/Queue/Temp";
             Assert.assertTrue("The following metric should exist: " + messageBrokerMetric, apiTestHelper.tranStats.getScopedStats().getStatsMap().containsKey(messageBrokerMetric));
+            Assert.assertTrue("The following metric should exist: " + endpointMetric, apiTestHelper.tranStats.getUnscopedStats().getStatsMap().containsKey(endpointMetric));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.fail();
+        } finally {
+            Transaction.clearTransaction();
+            server.closeAllConnections();
+            holder.close();
+        }
+    }
+
+    @Test
+    public void testMessagingAPIWithHostAndPort() throws Exception {
+        // override default agent config to disabled distributed tracing and use CAT instead
+        EnvironmentHolder holder = setupEnvironmentHolder(CAT_CONFIG_FILE, "cat_enabled_dt_disabled_test");
+        MessagingTestServer server = new MessagingTestServer(8088);
+
+        try {
+            server.start();
+            runTestMessagingAPIWithHostAndPort();
+            String messageBrokerMetric = "MessageBroker/JMS/Queue/Consume/Temp";
+            String endpointMetric = String.format("MessageBroker/instance/JMS/%s/8088/Consume/Queue/Temp", HOSTNAME);
+            Assert.assertTrue("The following metric should exist: " + messageBrokerMetric, apiTestHelper.tranStats.getScopedStats().getStatsMap().containsKey(messageBrokerMetric));
+            Assert.assertTrue("The following metric should exist: " + endpointMetric, apiTestHelper.tranStats.getUnscopedStats().getStatsMap().containsKey(endpointMetric));
         } catch (IOException e) {
             e.printStackTrace();
             Assert.fail();
@@ -2038,6 +2061,51 @@ public class ApiTest implements TransactionListener {
                     .destinationType(DestinationType.TEMP_QUEUE)
                     .destinationName("Message Destination")
                     .inboundHeaders(new ApiTestHelper.InboundWrapper(response, HeaderType.MESSAGE))
+                    .build();
+            NewRelic.getAgent().getTracedMethod().reportAsExternal(messageResponseParameters);
+
+            Assert.assertTrue(response.getHeaders("NewRelicAppData").length != 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+    }
+
+    @Trace(dispatcher = true)
+    private void runTestMessagingAPIWithHostAndPort() {
+        URL myURL = null;
+        try {
+            Thread.sleep(600);
+            myURL = new URL("http://localhost:8088");
+            HttpUriRequest request = RequestBuilder.get().setUri(myURL.toURI()).build();
+
+            ApiTestHelper.OutboundWrapper outboundRequestWrapper = new ApiTestHelper.OutboundWrapper(request, HeaderType.MESSAGE);
+
+            // MessageProducer
+            ExternalParameters messageProduceParameters = MessageProduceParameters
+                    .library("JMS")
+                    .destinationType(DestinationType.NAMED_QUEUE)
+                    .destinationName("Message Destination")
+                    .outboundHeaders(outboundRequestWrapper)
+                    .host(myURL.getHost())
+                    .port(myURL.getPort())
+                    .build();
+            NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
+
+            Assert.assertTrue(request.getHeaders("NewRelicID").length != 0);
+            Assert.assertTrue(request.getHeaders("NewRelicTransaction").length != 0);
+
+            CloseableHttpClient connection = HttpClientBuilder.create().build();
+            CloseableHttpResponse response = connection.execute(request);
+
+            // MessageConsumer
+            ExternalParameters messageResponseParameters = MessageConsumeParameters
+                    .library("JMS")
+                    .destinationType(DestinationType.TEMP_QUEUE)
+                    .destinationName("Message Destination")
+                    .inboundHeaders(new ApiTestHelper.InboundWrapper(response, HeaderType.MESSAGE))
+                    .host(myURL.getHost())
+                    .port(myURL.getPort())
                     .build();
             NewRelic.getAgent().getTracedMethod().reportAsExternal(messageResponseParameters);
 
