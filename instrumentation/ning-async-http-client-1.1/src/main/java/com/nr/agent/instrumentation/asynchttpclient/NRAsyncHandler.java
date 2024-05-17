@@ -62,7 +62,6 @@ public class NRAsyncHandler<T> {
     }
 
     public void onThrowable(Throwable t) {
-        responseStatus = null;
         if (segment != null) {
             segment.reportAsExternal(GenericParameters
                     .library("AsyncHttpClient")
@@ -71,11 +70,13 @@ public class NRAsyncHandler<T> {
                     .build());
             // This used to be segment.finish(t), but the agent doesn't automatically report it.
             segment.end();
-            segment = null;
-            uri = null;
-            inboundHeaders = null;
-            userAbortedOnStatusReceived = null;
         }
+        responseStatus = null;
+        segment = null;
+        uri = null;
+        inboundHeaders = null;
+        userAbortedOnStatusReceived = null;
+
         Weaver.callOriginal();
     }
 
@@ -93,9 +94,6 @@ public class NRAsyncHandler<T> {
 
     @Trace(async = true)
     public T onCompleted() throws Exception {
-        Integer statusCode = getStatusCode();
-        String reasonMessage = getReasonMessage();
-        responseStatus = null;
         if (segment != null) {
             // This keeps the transaction alive after "segment.end()" just in case there are any completion handlers
             segment.getTransaction().getToken().linkAndExpire();
@@ -105,15 +103,16 @@ public class NRAsyncHandler<T> {
                     .uri(uri)
                     .procedure("onCompleted")
                     .inboundHeaders(inboundHeaders)
-                    .status(statusCode, reasonMessage)
+                    .status(getStatusCode(), getReasonMessage())
                     .build());
             //This used to be segment.finish(t), but the agent doesn't automatically report t.
             segment.end();
-            segment = null;
-            uri = null;
-            inboundHeaders = null;
-            userAbortedOnStatusReceived = null;
         }
+        responseStatus = null;
+        segment = null;
+        uri = null;
+        inboundHeaders = null;
+        userAbortedOnStatusReceived = null;
 
         return Weaver.callOriginal();
     }
