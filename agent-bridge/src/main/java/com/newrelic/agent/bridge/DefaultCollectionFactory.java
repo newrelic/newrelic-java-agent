@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,5 +37,16 @@ public class DefaultCollectionFactory implements CollectionFactory {
             }
             return loader.apply(k1);
         });
+    }
+    /**
+     * Note: In this implementation, this method will return a simple concurrent map since an eviction
+     * cache can't be easily created with just vanilla JDK Map SDKs.
+     *
+     * @param ageInSeconds how old, in seconds, a cache entry must be to be evicted after last write
+     * @return a time based concurrent cache
+     */
+    @Override
+    public <K, V> Map<K, V> createConcurrentTimeBasedEvictionMap(long ageInSeconds) {
+        return Collections.synchronizedMap(new HashMap<>());
     }
 }

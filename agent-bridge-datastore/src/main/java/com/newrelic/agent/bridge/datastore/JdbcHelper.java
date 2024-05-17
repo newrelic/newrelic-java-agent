@@ -40,16 +40,6 @@ public class JdbcHelper {
         }
     };
 
-    /**
-     * Any values in the urlToFactory or urlToDatabaseName Maps older than this value will
-     * be evicted from the cache when the {@link ExpiringValueMap} timer fires. This
-     * will also be used as the timer interval value.
-     */
-    private static final long CACHE_EXPIRATION_AGE_MILLI = Duration.ofHours(2).toMillis();
-
-    private static final ExpiringValueMap.ExpiringValueLogicFunction EXPIRE_FUNC =
-            (timeCreated, timeLastAccessed) -> timeLastAccessed < (System.currentTimeMillis() - CACHE_EXPIRATION_AGE_MILLI);
-
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
     private static final Map<Class<?>, DatabaseVendor> classToVendorLookup = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
@@ -58,25 +48,10 @@ public class JdbcHelper {
     private static final Map<Connection, String> connectionToURL = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     public static final String UNKNOWN = "unknown";
 
-    // Config to toggle the use of the ExpiringValueCache Map implementation or vanilla ConcurrentHashMap implementation
-    // for the urlToFactory and urlToDatabaseName maps. The default is to use the ExpiringValueCache. Set a config
-    // property of use_jdbchelper_vanilla_map=true to revert to the ConcurrentHashMap implementation.
-    private static final Map<String, ConnectionFactory> urlToFactory;
-    private static final Map<String, String> urlToDatabaseName;
-    static {
-        boolean useVanillaMap = NewRelic.getAgent().getConfig().getValue("use_jdbchelper_vanilla_map", false);
-        if (useVanillaMap) {
-            urlToFactory = new ConcurrentHashMap<>(10);
-            urlToDatabaseName = new ConcurrentHashMap<>(10);
-        } else {
-            urlToFactory =
-                    new ExpiringValueMap<>("urlToFactoryCache", CACHE_EXPIRATION_AGE_MILLI, EXPIRE_FUNC);
-            urlToDatabaseName =
-                    new ExpiringValueMap<>("urlToDatabaseNameCache", CACHE_EXPIRATION_AGE_MILLI, EXPIRE_FUNC);
-        }
-        NewRelic.getAgent().getLogger().log(Level.FINEST, "JdbcHelper using map implementation: {0} " +
-                "for urlToFactory and urlToDatabaseName maps", useVanillaMap ? "ConcurrentHashMap" : "ExpiringValueMap");
-    }
+
+    private static final int cacheExpireTime = NewRelic.getAgent().getConfig().getValue("jdbc_helper_cache_expire_time", 7200);
+    private static final Map<String, ConnectionFactory> urlToFactory = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
+    private static final Map<String, String> urlToDatabaseName = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
 
     public static void putVendor(Class<?> driverOrDatastoreClass, DatabaseVendor databaseVendor) {
         classToVendorLookup.put(driverOrDatastoreClass, databaseVendor);

@@ -2,6 +2,7 @@ package com.newrelic.agent.logging;
 
 import com.newrelic.api.agent.NewRelic;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,15 +37,15 @@ public class ClearExpiredLogsRunnable implements Runnable {
     /**
      * Constructs a ClearExpiredLogFilesRunnable object.
      *
-     * @param logDirectoryPath the directory path where log files are located
-     * @param fileCount        the number of days to keep log files before deleting them
-     * @param filePrefixPath   the file prefix used to filter log files
+     * @param fileCount the number of days to keep log files before deleting them
+     * @param logfile   the full path and filename of the agent logfile
      */
-    public ClearExpiredLogsRunnable(Path logDirectoryPath, int fileCount, String filePrefixPath) {
-        this.logDirectoryPath = logDirectoryPath;
+    public ClearExpiredLogsRunnable(int fileCount, String logfile) {
+        File absoluteLogFilename = new File(logfile);
         this.daysToKeepFiles = fileCount;
+        this.logDirectoryPath = absoluteLogFilename.getParent() == null ? Paths.get("./") : Paths.get(absoluteLogFilename.getParent());
 
-        String fileNamePrefix = extractFileNamePrefix(filePrefixPath);
+        String fileNamePrefix = absoluteLogFilename.getName();
         pattern = Pattern.compile(fileNamePrefix.replace(".", "\\.")
                 + DATE_REGEX);
     }
@@ -87,11 +88,5 @@ public class ClearExpiredLogsRunnable implements Runnable {
         // Extract the date string from the file name using the pattern
         Matcher matcher = pattern.matcher(fileName);
         return matcher.find() ? matcher.group(1) : null;
-    }
-
-    private String extractFileNamePrefix(String fileName) {
-        // Extract the file name prefix from the given file path
-        String[] parts = fileName.split("/");
-        return parts[parts.length - 1];
     }
 }

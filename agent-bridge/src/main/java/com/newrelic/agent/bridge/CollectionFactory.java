@@ -38,4 +38,15 @@ public interface CollectionFactory {
      * @param <V> the type of value stored/returned
      */
     <K, V> Function<K, V> memoize(Function<K, V> loader, int maxSize);
+
+    /**
+     * Create a time based eviction cache in which an entry's age is determined on a last-write basis.
+     *
+     * @param ageInSeconds how old, in seconds, a cache entry must be to be evicted after last write
+     * @return a time based concurrent cache
+     *
+     * @param <K> key type
+     * @param <V> value type
+     */
+    <K, V> Map<K, V> createConcurrentTimeBasedEvictionMap(long ageInSeconds);
 }
