@@ -181,7 +181,7 @@ public interface ModelInvocation {
     /**
      * Calculates the tokenCount based on a user provided callback
      *
-     * @param model String representation of the LLM model
+     * @param model   String representation of the LLM model
      * @param content String representation of the message content or prompt
      * @return int representing the tokenCount
      */
