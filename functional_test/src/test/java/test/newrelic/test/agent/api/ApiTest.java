@@ -2087,8 +2087,7 @@ public class ApiTest implements TransactionListener {
                     .destinationType(DestinationType.NAMED_QUEUE)
                     .destinationName("Message Destination")
                     .outboundHeaders(outboundRequestWrapper)
-                    .host(myURL.getHost())
-                    .port(myURL.getPort())
+                    .instance(myURL.getHost(), myURL.getPort())
                     .build();
             NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
 
@@ -2104,8 +2103,7 @@ public class ApiTest implements TransactionListener {
                     .destinationType(DestinationType.TEMP_QUEUE)
                     .destinationName("Message Destination")
                     .inboundHeaders(new ApiTestHelper.InboundWrapper(response, HeaderType.MESSAGE))
-                    .host(myURL.getHost())
-                    .port(myURL.getPort())
+                    .hostAndPort(myURL.getHost(), myURL.getPort())
                     .build();
             NewRelic.getAgent().getTracedMethod().reportAsExternal(messageResponseParameters);
 

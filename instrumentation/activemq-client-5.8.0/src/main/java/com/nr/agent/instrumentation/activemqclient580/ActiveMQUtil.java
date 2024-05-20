@@ -7,7 +7,7 @@
 package com.nr.agent.instrumentation.activemqclient580;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.messaging.HostAndPort;
+import com.newrelic.agent.bridge.messaging.BrokerInstance;
 
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -23,17 +23,17 @@ public class ActiveMQUtil {
 
     private final Pattern addressPattern = Pattern.compile("^\\w+://(.+)/.+:(\\d+)");
 
-    public HostAndPort parseHostAndPort(String address) {
+    public BrokerInstance parseHostAndPort(String address) {
         return CACHE.apply(address);
     }
 
-    private final Function<String, HostAndPort> CACHE = AgentBridge.collectionFactory.memoize(this::doParseHostAndPort, 32);
+    private final Function<String, BrokerInstance> CACHE = AgentBridge.collectionFactory.memoize(this::doParseHostAndPort, 32);
 
-    public HostAndPort doParseHostAndPort(String address) {
+    public BrokerInstance doParseHostAndPort(String address) {
 
         Matcher m = addressPattern.matcher(address);
         if(!m.find()) {
-            return HostAndPort.empty();
+            return BrokerInstance.empty();
         }
 
         String hostName = m.group(1);
@@ -43,9 +43,9 @@ public class ActiveMQUtil {
             String portStr = m.group(2);
             port = Integer.parseInt(portStr);
         } catch (NumberFormatException e) {
-            return HostAndPort.empty();
+            return BrokerInstance.empty();
         }
-        return new HostAndPort(hostName, port);
+        return new BrokerInstance(hostName, port);
     }
 
     private ActiveMQUtil() {

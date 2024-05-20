@@ -111,12 +111,8 @@ public class MessageProduceParameters implements ExternalParameters {
             return this;
         }
 
-        public Build host(String host) {
+        public Build instance(String host, Integer port) {
             this.host = host;
-            return this;
-        }
-
-        public Build port(Integer port) {
             this.port = port;
             return this;
         }
@@ -179,16 +175,10 @@ public class MessageProduceParameters implements ExternalParameters {
         Build cloudResourceId(String cloudResourceId);
 
         /**
-         * Set the host name for the message queue.
+         * Set the host name and port number for the message queue.
          * This method is optional and can be bypassed by calling build directly.
          */
-        Build host(String host);
-
-        /**
-         * Set the port for the message queue.
-         * This method is optional and can be bypassed by calling build directly.
-         */
-        Build port(Integer port);
+        Build instance(String host, Integer port);
 
         /**
          * Build the final {@link MessageProduceParameters} for the API call.

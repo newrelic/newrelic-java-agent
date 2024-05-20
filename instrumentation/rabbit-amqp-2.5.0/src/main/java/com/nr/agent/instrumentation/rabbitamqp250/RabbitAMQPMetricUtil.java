@@ -47,8 +47,7 @@ public abstract class RabbitAMQPMetricUtil {
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .outboundHeaders(new OutboundWrapper(headers))
-                .host(getHost(connection))
-                .port(getPort(connection))
+                .instance(getHost(connection), getPort(connection))
                 .build());
 
         addAttributes(routingKey, props);
@@ -61,8 +60,7 @@ public abstract class RabbitAMQPMetricUtil {
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .inboundHeaders(new InboundWrapper(properties.getHeaders()))
-                .host(getHost(connection))
-                .port(getPort(connection))
+                .hostAndPort(getHost(connection), getPort(connection))
                 .build());
 
         addConsumeAttributes(queueName, routingKey, properties);

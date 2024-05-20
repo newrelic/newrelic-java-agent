@@ -9,7 +9,7 @@ package com.nr.agent.instrumentation.jms11;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
-import com.newrelic.agent.bridge.messaging.HostAndPort;
+import com.newrelic.agent.bridge.messaging.BrokerInstance;
 import com.newrelic.agent.bridge.messaging.JmsProperties;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageConsumeParameters;
@@ -132,11 +132,9 @@ public abstract class JmsMetricUtil {
                     .destinationType(destinationType)
                     .destinationName(destinationName)
                     .outboundHeaders(new OutboundWrapper(message));
-            HostAndPort hostAndPort = getHostAndPort(message);
-            if (hostAndPort != null) {
-                builder = builder
-                        .host(hostAndPort.getHostName())
-                        .port(hostAndPort.getPort());
+            BrokerInstance brokerInstance = getHostAndPort(message);
+            if (brokerInstance != null) {
+                builder = builder.instance(brokerInstance.getHostName(), brokerInstance.getPort());
             }
             tracer.reportAsExternal(builder.build());
         } catch (JMSException exception) {
@@ -159,11 +157,9 @@ public abstract class JmsMetricUtil {
                     .destinationType(destinationType)
                     .destinationName(destinationName)
                     .inboundHeaders(new InboundWrapper(message));
-            HostAndPort hostAndPort = getHostAndPort(message);
-            if (hostAndPort != null) {
-                builder = builder
-                        .host(hostAndPort.getHostName())
-                        .port(hostAndPort.getPort());
+            BrokerInstance brokerInstance = getHostAndPort(message);
+            if (brokerInstance != null) {
+                builder = builder.hostAndPort(brokerInstance.getHostName(), brokerInstance.getPort());
             }
             tracer.reportAsExternal(builder.build());
         } catch (JMSException exception) {
@@ -172,10 +168,10 @@ public abstract class JmsMetricUtil {
         }
     }
 
-    private static HostAndPort getHostAndPort(Message message) throws JMSException {
+    private static BrokerInstance getHostAndPort(Message message) throws JMSException {
         Object obj = message.getObjectProperty(JmsProperties.NR_JMS_HOST_AND_PORT_PROPERTY);
-        if (obj instanceof HostAndPort) {
-            return (HostAndPort) obj;
+        if (obj instanceof BrokerInstance) {
+            return (BrokerInstance) obj;
         }
         return null;
     }

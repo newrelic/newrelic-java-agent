@@ -6,15 +6,15 @@
  */
 package com.newrelic.agent.bridge.messaging;
 
-public class HostAndPort {
+public class BrokerInstance {
     private final String hostName;
     private final Integer port;
 
-    public static HostAndPort empty() {
-        return new HostAndPort(null, null);
+    public static BrokerInstance empty() {
+        return new BrokerInstance(null, null);
     }
 
-    public HostAndPort(String host, Integer port) {
+    public BrokerInstance(String host, Integer port) {
         this.hostName = host;
         this.port = port;
     }

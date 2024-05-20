@@ -1,6 +1,6 @@
 package com.nr.agent.instrumentation.activemqclient580;
 
-import com.newrelic.agent.bridge.messaging.HostAndPort;
+import com.newrelic.agent.bridge.messaging.BrokerInstance;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import org.apache.activemq.ActiveMQConnection;
@@ -41,7 +41,7 @@ public class ActiveMQMessageTest {
     @Test
     public void fromMessageGetUnsetProperty() throws Exception {
         Object object = activeMQMessage.getObjectProperty("unsetProperty");
-        assertFalse("Object must not be an instance of HostAndPort", object instanceof HostAndPort);
+        assertFalse("Object must not be an instance of BrokerInstance", object instanceof BrokerInstance);
         assertNull("object must be null", object);
     }
 
@@ -91,11 +91,11 @@ public class ActiveMQMessageTest {
     }
 
     private void assertMessage(String expectedHost, Integer expectedPort, ActiveMQMessage message, Integer timesGetConnectionCalled) throws JMSException {
-        HostAndPort hostAndPort = (HostAndPort)message.getObjectProperty(NR_JMS_HOST_AND_PORT_PROPERTY);
+        BrokerInstance brokerInstance = (BrokerInstance)message.getObjectProperty(NR_JMS_HOST_AND_PORT_PROPERTY);
         Mockito.verify(message, Mockito.times(timesGetConnectionCalled)).getConnection();
-        assertNotNull("Failed to retrieve hostAndPort from ActiveMQ message", hostAndPort);
-        assertEquals("Expected host did not match", expectedHost, hostAndPort.getHostName());
-        assertEquals("Expected port did not match", expectedPort, hostAndPort.getPort());
+        assertNotNull("Failed to retrieve brokerInstance from ActiveMQ message", brokerInstance);
+        assertEquals("Expected host did not match", expectedHost, brokerInstance.getHostName());
+        assertEquals("Expected port did not match", expectedPort, brokerInstance.getPort());
     }
 
 }
