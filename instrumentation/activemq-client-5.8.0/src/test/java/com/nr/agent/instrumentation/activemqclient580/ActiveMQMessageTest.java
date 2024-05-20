@@ -30,9 +30,12 @@ public class ActiveMQMessageTest {
     public void setUp() {
         ActiveMQConnection connection = Mockito.mock(ActiveMQConnection.class);
         transport = Mockito.mock(Transport.class);
+
         Mockito.when(connection.getTransport()).thenReturn(transport);
-        activeMQMessage = new ActiveMQMessage();
-        activeMQMessage.setConnection(connection);
+
+        ActiveMQMessage message = new ActiveMQMessage();
+        message.setConnection(connection);
+        activeMQMessage = Mockito.spy(message);
     }
 
     @Test
@@ -51,9 +54,9 @@ public class ActiveMQMessageTest {
 
         setStubs(awsAddress);
 
-        assertMessage(expectedHost, expectedPort, activeMQMessage);
+        assertMessage(expectedHost, expectedPort, activeMQMessage, 1);
         // Verify Caching
-        assertMessage(expectedHost, expectedPort, activeMQMessage);
+        assertMessage(expectedHost, expectedPort, activeMQMessage, 2);
     }
 
     @Test
@@ -65,9 +68,9 @@ public class ActiveMQMessageTest {
 
         setStubs(awsAddress);
 
-        assertMessage(expectedHost, expectedPort, activeMQMessage);
+        assertMessage(expectedHost, expectedPort, activeMQMessage, 1);
         // Verify Caching
-        assertMessage(expectedHost, expectedPort, activeMQMessage);
+        assertMessage(expectedHost, expectedPort, activeMQMessage, 2);
     }
 
     @Test
@@ -78,17 +81,18 @@ public class ActiveMQMessageTest {
 
         setStubs(localhostAddress);
 
-        assertMessage(expectedHost, expectedPort, activeMQMessage);
+        assertMessage(expectedHost, expectedPort, activeMQMessage, 1);
         // Verify Caching
-        assertMessage(expectedHost, expectedPort, activeMQMessage);
+        assertMessage(expectedHost, expectedPort, activeMQMessage, 2);
     }
 
     private void setStubs(String transportString) {
         Mockito.when(transport.toString()).thenReturn(transportString);
     }
 
-    private void assertMessage(String expectedHost, Integer expectedPort, ActiveMQMessage message) throws JMSException {
+    private void assertMessage(String expectedHost, Integer expectedPort, ActiveMQMessage message, Integer timesGetConnectionCalled) throws JMSException {
         HostAndPort hostAndPort = (HostAndPort)message.getObjectProperty(NR_JMS_HOST_AND_PORT_PROPERTY);
+        Mockito.verify(message, Mockito.times(timesGetConnectionCalled)).getConnection();
         assertNotNull("Failed to retrieve hostAndPort from ActiveMQ message", hostAndPort);
         assertEquals("Expected host did not match", expectedHost, hostAndPort.getHostName());
         assertEquals("Expected port did not match", expectedPort, hostAndPort.getPort());
