@@ -1,5 +1,12 @@
 # Workflows
 
+## Pinning Actions to Commit SHAs Instead of Tags
+For security [reasons](https://blog.rafaelgss.dev/why-you-should-pin-actions-by-commit-hash), actions in github workflows should be pinned by a commit
+SHA rather than a tag. A node based tool exists to automate this: [pin-github-action](https://github.com/mheap/pin-github-action).
+
+This tool can be run locally whenever a `uses` action is added or change in a workflow file. Instructions exist in the tool's README that explain
+installation and execution.
+
 ## Test workflows
 
 ### Java Functional Tests
