@@ -452,6 +452,12 @@ common: &default_settings
     # with every SlowTransaction event, if a large number of transaction exceed the threshold.
     evaluate_completed_transactions: false
 
+  # Configuration settings for reporting external calls to/from message brokers
+  message_broker_tracer:
+    # Determines if the message broker endpoint (host & port) is reported. By default it is enabled.
+    instance_reporting:
+      enabled: true
+
 # Application Environments
 # ------------------------------------------
 # Environment specific settings are in this section.
