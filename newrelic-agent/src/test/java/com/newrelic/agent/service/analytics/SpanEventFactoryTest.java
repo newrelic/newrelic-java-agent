@@ -282,23 +282,6 @@ public class SpanEventFactoryTest {
     }
 
     @Test
-    public void shouldSetEndpointOnSpanFromMessageProduceParameters() {
-        String host = "localhost";
-        Integer port = 61616;
-        MessageProduceParameters mockParameters = mock(MessageProduceParameters.class);
-        when(mockParameters.getLibrary()).thenReturn("JMS");
-        when(mockParameters.getDestinationName()).thenReturn("queueName");
-        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
-        when(mockParameters.getHost()).thenReturn(host);
-        when(mockParameters.getPort()).thenReturn(port);
-        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
-
-        Map<String, Object> agentAttrs = target.getAgentAttributes();
-        assertEquals(host, agentAttrs.get("server.address"));
-        assertEquals(port, agentAttrs.get("server.port"));
-    }
-
-    @Test
     public void shouldSetCloudResourceIdOnSpanFromMessageConsumeParameters() {
         String expectedArn = "arn:aws:sqs:us-east-1:123456789012:queueName";
         MessageConsumeParameters mockParameters = mock(MessageConsumeParameters.class);
@@ -310,23 +293,6 @@ public class SpanEventFactoryTest {
 
         Map<String, Object> agentAttrs = target.getAgentAttributes();
         assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
-    }
-
-    @Test
-    public void shouldSetEndpointOnSpanFromMessageConsumeParameters() {
-        String host = "localhost";
-        Integer port = 61616;
-        MessageConsumeParameters mockParameters = mock(MessageConsumeParameters.class);
-        when(mockParameters.getLibrary()).thenReturn("JMS");
-        when(mockParameters.getDestinationName()).thenReturn("queueName");
-        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
-        when(mockParameters.getHost()).thenReturn(host);
-        when(mockParameters.getPort()).thenReturn(port);
-        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
-
-        Map<String, Object> agentAttrs = target.getAgentAttributes();
-        assertEquals(host, agentAttrs.get("server.address"));
-        assertEquals(port, agentAttrs.get("server.port"));
     }
 
     @Test

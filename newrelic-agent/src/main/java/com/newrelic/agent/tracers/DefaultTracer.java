@@ -828,13 +828,6 @@ public class DefaultTracer extends AbstractTracer {
         Integer port = messageProduceParameters.getPort();
 
         MessageMetrics.collectMessageProducerRollupMetrics(this, library, host, port, destinationType, messageProduceParameters.getDestinationName());
-
-        MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
-
-        if (messageBrokerConfig.isInstanceReportingEnabled() && MessageMetrics.isAnyEndpointParamsKnown(host, port)) {
-            setAgentAttribute(AttributeNames.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
-            setAgentAttribute(AttributeNames.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
-        }
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -864,13 +857,6 @@ public class DefaultTracer extends AbstractTracer {
         Integer port = messageConsumeParameters.getPort();
 
         MessageMetrics.collectMessageConsumerRollupMetrics(this, library, host, port, destinationType, messageConsumeParameters.getDestinationName());
-
-        MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
-
-        if (messageBrokerConfig.isInstanceReportingEnabled() && MessageMetrics.isAnyEndpointParamsKnown(host, port)) {
-            setAgentAttribute(AttributeNames.MESSAGE_BROKER_HOST, MessageMetrics.replaceLocalhost(host));
-            setAgentAttribute(AttributeNames.MESSAGE_BROKER_PORT, MessageMetrics.replacePort(port));
-        }
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
