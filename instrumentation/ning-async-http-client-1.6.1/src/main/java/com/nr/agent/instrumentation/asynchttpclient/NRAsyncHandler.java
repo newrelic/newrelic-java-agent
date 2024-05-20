@@ -70,12 +70,13 @@ public class NRAsyncHandler<T> {
                     .build());
             //This used to be segment.finish(t), but the agent doesn't automatically report t.
             segment.end();
-            segment = null;
-            uri = null;
-            inboundHeaders = null;
-            responseStatus = null;
-            userAbortedOnStatusReceived = null;
         }
+        segment = null;
+        uri = null;
+        inboundHeaders = null;
+        userAbortedOnStatusReceived = null;
+        responseStatus = null;
+
         Weaver.callOriginal();
     }
 
@@ -106,19 +107,18 @@ public class NRAsyncHandler<T> {
                     .build());
             // This used to be segment.finish(t), but the agent doesn't automatically report it.
             segment.end();
-            segment = null;
-            uri = null;
-            inboundHeaders = null;
-            responseStatus = null;
-            userAbortedOnStatusReceived = null;
         }
+        responseStatus = null;
+        segment = null;
+        uri = null;
+        inboundHeaders = null;
+        userAbortedOnStatusReceived = null;
 
         return Weaver.callOriginal();
     }
 
     private Integer getStatusCode() {
-        if (responseStatus != null)
-        {
+        if (responseStatus != null) {
             return responseStatus.getStatusCode();
         }
         return null;
