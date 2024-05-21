@@ -22,9 +22,10 @@ public class MessageProduceParameters implements ExternalParameters {
     private final String cloudResourceId;
     private final String host;
     private final Integer port;
+    private final String amqpRoutingKey;
 
     protected MessageProduceParameters(String library, DestinationType destinationType, String destinationName,
-            OutboundHeaders outboundHeaders, String cloudResourceId, String host, Integer port) {
+            OutboundHeaders outboundHeaders, String cloudResourceId, String host, Integer port, String amqpRoutingKey) {
         this.library = library;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
@@ -32,6 +33,7 @@ public class MessageProduceParameters implements ExternalParameters {
         this.cloudResourceId = cloudResourceId;
         this.host = host;
         this.port = port;
+        this.amqpRoutingKey = amqpRoutingKey;
     }
 
     /**
@@ -47,6 +49,7 @@ public class MessageProduceParameters implements ExternalParameters {
         this.cloudResourceId = messageProduceParameters.cloudResourceId;
         this.host = messageProduceParameters.host;
         this.port = messageProduceParameters.port;
+        this.amqpRoutingKey = messageProduceParameters.amqpRoutingKey;
     }
 
     public String getDestinationName() {
@@ -77,6 +80,10 @@ public class MessageProduceParameters implements ExternalParameters {
         return library;
     }
 
+    public String getAmqpRoutingKey() {
+        return amqpRoutingKey;
+    }
+
     protected static class Builder implements DestinationTypeParameter, DestinationNameParameter,
             OutboundHeadersParameter, Build {
         private String library;
@@ -86,6 +93,7 @@ public class MessageProduceParameters implements ExternalParameters {
         private String cloudResourceId;
         private String host;
         private Integer port;
+        private String amqpRoutingKey;
 
         public Builder(String library) {
             this.library = library;
@@ -117,8 +125,13 @@ public class MessageProduceParameters implements ExternalParameters {
             return this;
         }
 
+        public Build amqp(String routingKey) {
+            this.amqpRoutingKey = routingKey;
+            return this;
+        }
+
         public MessageProduceParameters build() {
-            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders, cloudResourceId, host, port);
+            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders, cloudResourceId, host, port, amqpRoutingKey);
         }
     }
 
@@ -179,6 +192,13 @@ public class MessageProduceParameters implements ExternalParameters {
          * This method is optional and can be bypassed by calling build directly.
          */
         Build instance(String host, Integer port);
+
+
+        /**
+         * If your external call is using the amqp protocol, this sets the routing key.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build amqp(String routingKey);
 
         /**
          * Build the final {@link MessageProduceParameters} for the API call.

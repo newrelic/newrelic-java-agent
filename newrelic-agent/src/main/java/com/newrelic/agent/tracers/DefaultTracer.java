@@ -822,11 +822,12 @@ public class DefaultTracer extends AbstractTracer {
                     messageProduceParameters.getDestinationType().getTypeName()));
         }
 
-        String library = messageProduceParameters.getLibrary();
-        String host = messageProduceParameters.getHost();
-        Integer port = messageProduceParameters.getPort();
-
-        MessageMetrics.collectMessageProducerRollupMetrics(this, host, port, destinationType, messageProduceParameters.getDestinationName());
+        MessageMetrics.collectMessageProducerRollupMetrics(this,
+                messageProduceParameters.getHost(),
+                messageProduceParameters.getPort(),
+                destinationType,
+                messageProduceParameters.getDestinationName(),
+                messageProduceParameters.getAmqpRoutingKey());
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -851,11 +852,13 @@ public class DefaultTracer extends AbstractTracer {
             setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageConsumeParameters.getCloudResourceId());
         }
 
-        String library = messageConsumeParameters.getLibrary();
-        String host = messageConsumeParameters.getHost();
-        Integer port = messageConsumeParameters.getPort();
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(this, host, port, destinationType, messageConsumeParameters.getDestinationName());
+        MessageMetrics.collectMessageConsumerRollupMetrics(this,
+                messageConsumeParameters.getHost(),
+                messageConsumeParameters.getPort(),
+                destinationType,
+                messageConsumeParameters.getDestinationName(),
+                messageConsumeParameters.getAmqpQueue(),
+                messageConsumeParameters.getAmqpRoutingKey());
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {

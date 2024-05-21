@@ -159,7 +159,7 @@ public abstract class JmsMetricUtil {
                     .inboundHeaders(new InboundWrapper(message));
             BrokerInstance brokerInstance = getHostAndPort(message);
             if (brokerInstance != null) {
-                builder = builder.hostAndPort(brokerInstance.getHostName(), brokerInstance.getPort());
+                builder = builder.instance(brokerInstance.getHostName(), brokerInstance.getPort());
             }
             tracer.reportAsExternal(builder.build());
         } catch (JMSException exception) {

@@ -17,6 +17,8 @@ public class MessageMetrics {
     public static final String SLASH = "/";
     public static final String MESSAGE_BROKER_INSTANCE = METRIC_NAMESPACE + "/instance/";
 
+    public static final String ROUTING_KEY = "RoutingKey";
+
     public static final String UNKNOWN = "unknown";
     public static String HOSTNAME = Hostname.getHostname(ServiceFactory.getConfigService().getDefaultAgentConfig());
 
@@ -24,21 +26,25 @@ public class MessageMetrics {
         return !(isParamUnknown(host) && isParamUnknown(port));
     }
     public static void collectMessageProducerRollupMetrics(TracedMethod method, String host, Integer port,
-            DestinationType destinationType, String destinationName) {
-        reportInstanceIfEnabled(method, host, port, destinationType, destinationName);
+            DestinationType destinationType, String destinationName, String amqpRoutingKey) {
+        reportInstanceIfEnabled(method, host, port, destinationType, destinationName, null, amqpRoutingKey);
     }
 
     public static void collectMessageConsumerRollupMetrics(TracedMethod method, String host, Integer port,
-            DestinationType destinationType, String destinationName) {
-        reportInstanceIfEnabled(method, host, port, destinationType, destinationName);
+            DestinationType destinationType, String destinationName, String amqpQueueName, String amqpRoutingKey) {
+        reportInstanceIfEnabled(method, host, port, destinationType, destinationName, amqpQueueName, amqpRoutingKey);
     }
 
     public static void reportInstanceIfEnabled(TracedMethod method, String host, Integer port,
-            DestinationType destinationType, String destinationName) {
+            DestinationType destinationType, String destinationName, String amqpQueueName, String amqpRoutingKey) {
         MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
         if (messageBrokerConfig.isInstanceReportingEnabled()) {
-            String metric = buildInstanceMetric(host, port, destinationType, destinationName);
-            method.addRollupMetricName(metric);
+            String instanceMetric = buildInstanceMetric(host, port, destinationType, destinationName);
+            method.addRollupMetricName(instanceMetric);
+            if (isAmqpCall(destinationType, amqpQueueName, amqpRoutingKey)) {
+                String amqpInstance = buildAmqpInstanceMetric(instanceMetric, destinationType, amqpQueueName, amqpRoutingKey);
+                method.addRollupMetricName(amqpInstance);
+            }
         }
     }
 
@@ -55,6 +61,22 @@ public class MessageMetrics {
         String parsedDestinationName = replaceDestinationName(destinationType, destinationName);
 
         return hostname + SLASH + portName + SLASH + destinationType.getTypeName() + SLASH + parsedDestinationName;
+    }
+
+    public static String buildAmqpInstanceMetric(String instanceMetric, DestinationType destinationType, String amqpQueueName, String amqpRoutingKey) {
+        String amqpSuffix = buildAmqpInstance(destinationType, amqpQueueName, amqpRoutingKey);
+        return instanceMetric + SLASH + amqpSuffix;
+    }
+
+    public static String buildAmqpInstance(DestinationType destinationType, String amqpQueueName, String amqpRoutingKey) {
+        if (DestinationType.EXCHANGE.equals(destinationType)) {
+            if (!isParamUnknown(amqpQueueName)) {
+                return DestinationType.NAMED_QUEUE.getTypeName() + SLASH + amqpQueueName;
+            } else if (!isParamUnknown(amqpRoutingKey)) {
+                return ROUTING_KEY + SLASH + amqpRoutingKey;
+            }
+        }
+        return "";
     }
 
     public static String replaceDestinationName(DestinationType destinationType, String destinationName) {
@@ -86,6 +108,10 @@ public class MessageMetrics {
             return UNKNOWN;
         }
         return String.valueOf(port);
+    }
+
+    private static boolean isAmqpCall(DestinationType destinationType, String amqpQueueName, String amqpRoutingKey) {
+        return DestinationType.EXCHANGE.equals(destinationType) && !(isParamUnknown(amqpQueueName) && isParamUnknown(amqpRoutingKey));
     }
 
     private static boolean isParamUnknown(String str) {
