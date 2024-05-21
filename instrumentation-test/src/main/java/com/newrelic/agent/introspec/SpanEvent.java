@@ -33,4 +33,6 @@ public interface SpanEvent {
     String getStatusText();
 
     Map<String, Object> getAgentAttributes();
+
+    Map<String, Object> getUserAttributes();
 }

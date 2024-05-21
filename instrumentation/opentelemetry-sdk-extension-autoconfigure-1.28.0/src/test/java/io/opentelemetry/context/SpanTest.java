@@ -3,6 +3,7 @@ package io.opentelemetry.context;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.agent.util.LatchingRunnable;
 import com.newrelic.api.agent.Trace;
@@ -18,6 +19,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -27,11 +30,12 @@ import java.util.function.Consumer;
 import static io.opentelemetry.sdk.trace.ExitTracerSpanTest.readSpanAttributes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "io.opentelemetry" })
+@InstrumentationTestConfig(includePrefixes = { "io.opentelemetry" }, configName = "distributed_tracing.yml")
 public class SpanTest {
     static {
         System.setProperty("otel.java.global-autoconfigure.enabled", "true");
@@ -177,6 +181,16 @@ public class SpanTest {
         assertEquals(2, metricsForTransaction.size());
         assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/databaseSpan"));
         assertTrue(metricsForTransaction.containsKey("Datastore/statement/mysql/owners/select"));
+
+        Collection<SpanEvent> spanEvents = introspector.getSpanEvents();
+        assertEquals(2, spanEvents.size());
+        SpanEvent dbSpan = spanEvents.stream()
+                .filter(span -> "datastore".equals(span.category())).findFirst().get();
+        assertEquals("owners", dbSpan.getAgentAttributes().get("db.collection"));
+        assertEquals("SELECT * FROM owners WHERE ssn = ?", dbSpan.getAgentAttributes().get("db.statement"));
+        Arrays.asList("db.collection", "db.sql.table", "db.system", "db.operation").forEach(key -> {
+            assertNull(key, dbSpan.getUserAttributes().get(key));
+        });
     }
 
     @Trace(dispatcher = true)
@@ -185,6 +199,7 @@ public class SpanTest {
                 .setAttribute("db.system", "mysql")
                 .setAttribute("db.operation", "select")
                 .setAttribute("db.sql.table", "owners")
+                .setAttribute("db.statement", "SELECT * FROM owners WHERE ssn = 4566661792")
                 .startSpan();
         span.end();
     }

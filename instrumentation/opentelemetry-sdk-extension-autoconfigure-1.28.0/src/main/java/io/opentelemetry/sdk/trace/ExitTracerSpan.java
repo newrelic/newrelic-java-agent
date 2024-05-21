@@ -32,9 +32,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ExitTracerSpan implements ReadWriteSpan {
     static final String OTEL_LIBRARY_VERSION = "otel.library.version";
@@ -55,6 +58,11 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
     private static final List<AttributeKey<String>> PROCEDURE_KEYS =
             Arrays.asList(CODE_FUNCTION, RPC_METHOD, HTTP_REQUEST_METHOD);
+    // these attributes are reported as agent attributes, we don't want to duplicate them in user attributes
+    private static final Set<String> AGENT_ATTRIBUTE_KEYS =
+            Collections.unmodifiableSet(
+            Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION).map(AttributeKey::getKey)
+                    .collect(Collectors.toSet()));
 
     final ExitTracer tracer;
     private final SpanKind spanKind;
@@ -148,7 +156,12 @@ public class ExitTracerSpan implements ReadWriteSpan {
             reportClientSpan();
         }
         tracer.setMetricName("Span", spanName);
-        tracer.addCustomAttributes(attributes);
+        // db.statement is reported through DatastoreParameters.SlowQueryParameter.  That code path
+        // will correctly obfuscate the sql based on agent settings.
+        Map<String, Object> filteredAttributes = attributes.entrySet().stream()
+                .filter(entry -> !AGENT_ATTRIBUTE_KEYS.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        tracer.addCustomAttributes(filteredAttributes);
         tracer.finish();
         endEpochNanos = System.nanoTime();
         ended = true;
