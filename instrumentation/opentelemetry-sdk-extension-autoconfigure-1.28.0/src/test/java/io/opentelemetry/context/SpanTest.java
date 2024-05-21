@@ -1,5 +1,6 @@
 package io.opentelemetry.context;
 
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
@@ -200,6 +201,47 @@ public class SpanTest {
                 .setAttribute("db.operation", "select")
                 .setAttribute("db.sql.table", "owners")
                 .setAttribute("db.statement", "SELECT * FROM owners WHERE ssn = 4566661792")
+                .startSpan();
+        span.end();
+    }
+
+    @Test
+    public void testExternalSpan() {
+        externalSpan();
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+        final String txName = introspector.getTransactionNames().iterator().next();
+        assertEquals("OtherTransaction/Custom/io.opentelemetry.context.SpanTest/externalSpan", txName);
+
+        Map<String, TracedMetricData> metricsForTransaction = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(txName);
+
+        assertEquals(2, metricsForTransaction.size());
+        assertTrue(metricsForTransaction.toString(), metricsForTransaction.containsKey("External/www.foo.bar/test/GET"));
+        assertTrue(metricsForTransaction.toString(), metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/externalSpan"));
+
+        Collection<SpanEvent> spanEvents = introspector.getSpanEvents();
+        assertEquals(2, spanEvents.size());
+        SpanEvent httpSpan = spanEvents.stream()
+                .filter(span -> "http".equals(span.category())).findFirst().get();
+        Map<String, Object> agentAttributes = ImmutableMap.of(
+                "server.address", "www.foo.bar",
+                "server.port", 8080,
+                "http.url", "https://www.foo.bar:8080/search",
+                "peer.hostname", "www.foo.bar",
+                "http.method", "GET");
+        assertEquals(agentAttributes.size(), httpSpan.getAgentAttributes().size());
+        agentAttributes.forEach((key, value) -> assertEquals(value, httpSpan.getAgentAttributes().get(key)));
+        agentAttributes.forEach((key, value) -> assertNull(key, httpSpan.getUserAttributes().get(key)));
+    }
+
+    @Trace(dispatcher = true)
+    static void externalSpan() {
+        Span span = OTEL_TRACER.spanBuilder("example.com").setSpanKind(SpanKind.CLIENT)
+                .setAttribute("server.address", "www.foo.bar")
+                .setAttribute("url.full", "https://www.foo.bar:8080/search?q=OpenTelemetry#SemConv")
+                .setAttribute("server.port", 8080)
+                .setAttribute("http.request.method", "GET")
                 .startSpan();
         span.end();
     }

@@ -5,7 +5,7 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
-import com.newrelic.api.agent.GenericParameters;
+import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import io.opentelemetry.api.common.AttributeKey;
@@ -61,7 +61,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
     // these attributes are reported as agent attributes, we don't want to duplicate them in user attributes
     private static final Set<String> AGENT_ATTRIBUTE_KEYS =
             Collections.unmodifiableSet(
-            Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION).map(AttributeKey::getKey)
+            Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT)
+                    .map(AttributeKey::getKey)
                     .collect(Collectors.toSet()));
 
     final ExitTracer tracer;
@@ -262,8 +263,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 final URI uri = getUri();
                 if (uri != null) {
                     final String libraryName = getAttribute(OTEL_LIBRARY_NAME);
-                    GenericParameters genericParameters = GenericParameters.library(libraryName).uri(uri)
-                            .procedure(getProcedure()).build();
+                    HttpParameters genericParameters = HttpParameters.library(libraryName).uri(uri)
+                            .procedure(getProcedure()).noInboundHeaders().build();
                     tracer.reportAsExternal(genericParameters);
                 }
             } catch (URISyntaxException e) {

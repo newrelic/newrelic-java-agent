@@ -4,7 +4,7 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.security.deps.com.fasterxml.jackson.databind.ObjectMapper;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
-import com.newrelic.api.agent.GenericParameters;
+import com.newrelic.api.agent.HttpParameters;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
@@ -106,7 +106,7 @@ public class ExitTracerSpanTest {
     public void testReportRpcClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), readSpanAttributes("external-rpc-span.json"), END_HANDLER).end();
-        final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
+        final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.grpc-1.6", externalParams.getValue().getLibrary());
         assertEquals("ResolveBoolean", externalParams.getValue().getProcedure());
@@ -117,7 +117,7 @@ public class ExitTracerSpanTest {
     public void testReportHttpClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),readSpanAttributes("external-http-span.json"), END_HANDLER).end();
-        final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
+        final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
         assertEquals("https://google.com", externalParams.getValue().getUri().toString());
@@ -129,7 +129,7 @@ public class ExitTracerSpanTest {
         ExitTracer tracer = mock(ExitTracer.class);
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),readSpanAttributes("external-http-span.json"), END_HANDLER)
                 .setAttribute(AttributeKey.stringKey("code.function"), "execute").end();
-        final ArgumentCaptor<GenericParameters> externalParams = ArgumentCaptor.forClass(GenericParameters.class);
+        final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
         assertEquals("https://google.com", externalParams.getValue().getUri().toString());
