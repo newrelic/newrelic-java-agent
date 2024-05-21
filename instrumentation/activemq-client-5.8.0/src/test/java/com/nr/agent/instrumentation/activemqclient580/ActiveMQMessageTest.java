@@ -9,7 +9,6 @@ import org.apache.activemq.transport.Transport;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 
 import javax.jms.JMSException;
 
@@ -18,6 +17,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.apache" })
@@ -28,14 +32,14 @@ public class ActiveMQMessageTest {
 
     @Before
     public void setUp() {
-        ActiveMQConnection connection = Mockito.mock(ActiveMQConnection.class);
-        transport = Mockito.mock(Transport.class);
+        ActiveMQConnection connection = mock(ActiveMQConnection.class);
+        transport = mock(Transport.class);
 
-        Mockito.when(connection.getTransport()).thenReturn(transport);
+        when(connection.getTransport()).thenReturn(transport);
 
         ActiveMQMessage message = new ActiveMQMessage();
         message.setConnection(connection);
-        activeMQMessage = Mockito.spy(message);
+        activeMQMessage = spy(message);
     }
 
     @Test
@@ -87,12 +91,12 @@ public class ActiveMQMessageTest {
     }
 
     private void setStubs(String transportString) {
-        Mockito.when(transport.toString()).thenReturn(transportString);
+        when(transport.toString()).thenReturn(transportString);
     }
 
     private void assertMessage(String expectedHost, Integer expectedPort, ActiveMQMessage message, Integer timesGetConnectionCalled) throws JMSException {
         BrokerInstance brokerInstance = (BrokerInstance)message.getObjectProperty(NR_JMS_HOST_AND_PORT_PROPERTY);
-        Mockito.verify(message, Mockito.times(timesGetConnectionCalled)).getConnection();
+        verify(message, times(timesGetConnectionCalled)).getConnection();
         assertNotNull("Failed to retrieve brokerInstance from ActiveMQ message", brokerInstance);
         assertEquals("Expected host did not match", expectedHost, brokerInstance.getHostName());
         assertEquals("Expected port did not match", expectedPort, brokerInstance.getPort());

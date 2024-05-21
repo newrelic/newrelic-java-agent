@@ -320,8 +320,6 @@ public class MetricNames {
     public static final String MESSAGE_BROKER_CONSUME_NAMED = "MessageBroker/{0}/{1}/Consume/Named/{2}";
     public static final String MESSAGE_BROKER_CONSUME_TEMP = "MessageBroker/{0}/{1}/Consume/Temp";
 
-    public static final String MESSAGE_BROKER_INSTANCE = "MessageBroker/Instance/{0}/{1}";
-
     //  API tracking supportability metrics that include API source. e.g. Supportability/API/Ignore/{source}
     // tokens
     public static final String SUPPORTABILITY_API_TOKEN = "Token";

@@ -1994,7 +1994,7 @@ public class ApiTest implements TransactionListener {
             server.start();
             runTestMessagingAPI();
             String messageBrokerMetric = "MessageBroker/JMS/Queue/Consume/Temp";
-            String endpointMetric = "MessageBroker/instance/JMS/unknown/unknown/Consume/Queue/Temp";
+            String endpointMetric = "MessageBroker/instance/unknown/unknown/Queue/Temp";
             Assert.assertTrue("The following metric should exist: " + messageBrokerMetric, apiTestHelper.tranStats.getScopedStats().getStatsMap().containsKey(messageBrokerMetric));
             Assert.assertTrue("The following metric should exist: " + endpointMetric, apiTestHelper.tranStats.getUnscopedStats().getStatsMap().containsKey(endpointMetric));
         } catch (IOException e) {
@@ -2017,7 +2017,7 @@ public class ApiTest implements TransactionListener {
             server.start();
             runTestMessagingAPIWithHostAndPort();
             String messageBrokerMetric = "MessageBroker/JMS/Queue/Consume/Temp";
-            String endpointMetric = String.format("MessageBroker/instance/JMS/%s/8088/Consume/Queue/Temp", HOSTNAME);
+            String endpointMetric = String.format("MessageBroker/instance/%s/8088/Queue/Temp", HOSTNAME);
             Assert.assertTrue("The following metric should exist: " + messageBrokerMetric, apiTestHelper.tranStats.getScopedStats().getStatsMap().containsKey(messageBrokerMetric));
             Assert.assertTrue("The following metric should exist: " + endpointMetric, apiTestHelper.tranStats.getUnscopedStats().getStatsMap().containsKey(endpointMetric));
         } catch (IOException e) {

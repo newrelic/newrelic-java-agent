@@ -16,7 +16,6 @@ import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.DatastoreConfig;
-import com.newrelic.agent.config.MessageBrokerConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -827,7 +826,7 @@ public class DefaultTracer extends AbstractTracer {
         String host = messageProduceParameters.getHost();
         Integer port = messageProduceParameters.getPort();
 
-        MessageMetrics.collectMessageProducerRollupMetrics(this, library, host, port, destinationType, messageProduceParameters.getDestinationName());
+        MessageMetrics.collectMessageProducerRollupMetrics(this, host, port, destinationType, messageProduceParameters.getDestinationName());
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -856,7 +855,7 @@ public class DefaultTracer extends AbstractTracer {
         String host = messageConsumeParameters.getHost();
         Integer port = messageConsumeParameters.getPort();
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(this, library, host, port, destinationType, messageConsumeParameters.getDestinationName());
+        MessageMetrics.collectMessageConsumerRollupMetrics(this, host, port, destinationType, messageConsumeParameters.getDestinationName());
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {

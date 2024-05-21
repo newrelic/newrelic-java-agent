@@ -18,47 +18,43 @@ public class MessageMetrics {
     public static final String MESSAGE_BROKER_INSTANCE = METRIC_NAMESPACE + "/instance/";
 
     public static final String UNKNOWN = "unknown";
-
-    public static final String PRODUCE = "Produce";
-    public static final String CONSUME = "Consume";
     public static String HOSTNAME = Hostname.getHostname(ServiceFactory.getConfigService().getDefaultAgentConfig());
 
     public static boolean isAnyEndpointParamsKnown(String host, Integer port) {
         return !(isParamUnknown(host) && isParamUnknown(port));
     }
-    public static void collectMessageProducerRollupMetrics(TracedMethod method, String library, String host, Integer port,
+    public static void collectMessageProducerRollupMetrics(TracedMethod method, String host, Integer port,
             DestinationType destinationType, String destinationName) {
-        reportInstanceIfEnabled(method, library, PRODUCE, host, port, destinationType, destinationName);
+        reportInstanceIfEnabled(method, host, port, destinationType, destinationName);
     }
 
-    public static void collectMessageConsumerRollupMetrics(TracedMethod method, String library, String host, Integer port,
+    public static void collectMessageConsumerRollupMetrics(TracedMethod method, String host, Integer port,
             DestinationType destinationType, String destinationName) {
-        reportInstanceIfEnabled(method, library, CONSUME, host, port, destinationType, destinationName);
+        reportInstanceIfEnabled(method, host, port, destinationType, destinationName);
     }
 
-    public static void reportInstanceIfEnabled(TracedMethod method, String library, String operation, String host, Integer port,
+    public static void reportInstanceIfEnabled(TracedMethod method, String host, Integer port,
             DestinationType destinationType, String destinationName) {
         MessageBrokerConfig messageBrokerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getMessageBrokerConfig();
         if (messageBrokerConfig.isInstanceReportingEnabled()) {
-            String metric = buildInstanceMetric(library, host, port, operation, destinationType, destinationName);
+            String metric = buildInstanceMetric(host, port, destinationType, destinationName);
             method.addRollupMetricName(metric);
         }
     }
 
-    public static String buildInstanceMetric(String library, String host, Integer port, String operation,
+    public static String buildInstanceMetric(String host, Integer port,
             DestinationType destinationType, String destinationName) {
-        String instance = buildInstanceIdentifier(library, host, port, operation, destinationType, destinationName);
+        String instance = buildInstanceIdentifier(host, port, destinationType, destinationName);
         return MESSAGE_BROKER_INSTANCE + instance;
     }
 
-    public static String buildInstanceIdentifier(String library, String host, Integer port, String operation,
+    public static String buildInstanceIdentifier(String host, Integer port,
             DestinationType destinationType, String destinationName) {
-        String libraryName = replaceLibrary(library);
         String hostname = replaceLocalhost(host);
         String portName = replacePort(port);
         String parsedDestinationName = replaceDestinationName(destinationType, destinationName);
 
-        return libraryName + SLASH + hostname + SLASH + portName + SLASH + operation + SLASH + destinationType.getTypeName() + SLASH + parsedDestinationName;
+        return hostname + SLASH + portName + SLASH + destinationType.getTypeName() + SLASH + parsedDestinationName;
     }
 
     public static String replaceDestinationName(DestinationType destinationType, String destinationName) {
@@ -69,13 +65,6 @@ public class MessageMetrics {
             return UNKNOWN;
         }
         return "Named" + SLASH + destinationName;
-    }
-
-    public static String replaceLibrary(String library) {
-        if (isParamUnknown(library)) {
-            return UNKNOWN;
-        }
-        return library;
     }
 
     public static String replaceLocalhost(String host) {

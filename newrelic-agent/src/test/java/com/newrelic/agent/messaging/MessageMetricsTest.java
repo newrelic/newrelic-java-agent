@@ -11,7 +11,6 @@ import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.TracedMethod;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -20,6 +19,8 @@ import java.text.MessageFormat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class MessageMetricsTest {
 
@@ -34,7 +35,7 @@ public class MessageMetricsTest {
     @Before
     public void before() throws Exception {
         AgentHelper.bootstrap(AgentHelper.createAgentConfig(true));
-        mockTracedMethod = Mockito.mock(TracedMethod.class);
+        mockTracedMethod = mock(TracedMethod.class);
     }
 
     @Test
@@ -74,87 +75,87 @@ public class MessageMetricsTest {
 
     @Test
     public void testCollectMessageProducerRollupMetrics() {
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.NAMED_TOPIC, "topic");
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Produce/Topic/Named/topic", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Named/topic", hostName));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.NAMED_QUEUE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Produce/Queue/Named/queue", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Named/queue", hostName));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.TEMP_TOPIC, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Produce/Topic/Temp", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Temp", hostName));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.TEMP_QUEUE, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Produce/Queue/Temp", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Temp", hostName));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", "example.com",
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "example.com",
                 8080, DestinationType.NAMED_QUEUE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/example.com/8080/Produce/Queue/Named/queue");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Queue/Named/queue");
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", null,
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, null,
                 8080, DestinationType.EXCHANGE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/unknown/8080/Produce/Exchange/Named/queue");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/queue");
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", "example.com",
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "example.com",
                 null, DestinationType.NAMED_QUEUE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/example.com/unknown/Produce/Queue/Named/queue");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/unknown/Queue/Named/queue");
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, null, null,
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, null,
                 null, DestinationType.EXCHANGE, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/unknown/unknown/Produce/Exchange/unknown");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/unknown/Exchange/unknown");
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "JMS", "example.com",
+        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "example.com",
                 8080, DestinationType.EXCHANGE, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/example.com/8080/Produce/Exchange/unknown");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Exchange/unknown");
     }
 
     @Test
     public void testCollectMessageConsumerRollupMetrics() {
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.NAMED_TOPIC, "topic");
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Consume/Topic/Named/topic", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Named/topic", hostName));
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.NAMED_QUEUE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Consume/Queue/Named/queue", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Named/queue", hostName));
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.TEMP_TOPIC, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Consume/Topic/Temp", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Temp", hostName));
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", "localhost",
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
                 8080, DestinationType.TEMP_QUEUE, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/JMS/{0}/8080/Consume/Queue/Temp", hostName));
+        verify(mockTracedMethod).addRollupMetricName(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Temp", hostName));
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", "example.com",
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "example.com",
                 8080, DestinationType.NAMED_QUEUE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/example.com/8080/Consume/Queue/Named/queue");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Queue/Named/queue");
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", null,
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null,
                 8080, DestinationType.EXCHANGE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/unknown/8080/Consume/Exchange/Named/queue");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/queue");
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", "example.com",
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "example.com",
                 null, DestinationType.NAMED_QUEUE, "queue");
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/example.com/unknown/Consume/Queue/Named/queue");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/unknown/Queue/Named/queue");
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null, null,
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null,
                 null, DestinationType.EXCHANGE, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/unknown/unknown/Consume/Exchange/unknown");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/unknown/Exchange/unknown");
 
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "JMS", "example.com",
+        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "example.com",
                 8080, DestinationType.EXCHANGE, null);
-        Mockito.verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/JMS/example.com/8080/Consume/Exchange/unknown");
+        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Exchange/unknown");
     }
 }
