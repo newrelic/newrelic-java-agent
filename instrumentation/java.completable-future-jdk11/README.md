@@ -35,4 +35,10 @@ This instrumentation will produce entries such as the following when searching t
 
 ## Testing
 
-See the following functional tests: `newrelic-java-agent/functional_test/src/test/java/test/newrelic/test/agent/CompletableFutureTest.java`
+Like all other modules instrumenting JDK classes, this module does not have instrumentation tests within the module
+(this is a limitation of the introspector). Additionally, because this module is built with Java 11, it cannot otherwise
+be tested in the functional tests. 
+
+To work around these limitations, tests for this module have been placed in the `java-agent-integration-tests` project. 
+Their content is similar to the existing CompletableFuture tests in 
+`newrelic-java-agent/functional_test/src/test/java/test/newrelic/test/agent/CompletableFutureTest.java`.
