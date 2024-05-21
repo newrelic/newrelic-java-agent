@@ -6,7 +6,7 @@ dependencies {
 
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java.completable-future-jdk9' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java.completable-future-jdk11' }
 }
 
 verifyInstrumentation {
@@ -15,7 +15,7 @@ verifyInstrumentation {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(9))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 

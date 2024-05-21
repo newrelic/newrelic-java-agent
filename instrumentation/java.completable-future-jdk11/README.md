@@ -1,11 +1,13 @@
-# java.completable-future-jdk9
+# java.completable-future-jdk11
 
 This instrumentation weaves `java.util.concurrent.CompletableFuture` to trace code execution across asynchronous boundaries.
 
-## JDK9 Updates
+## JDK11 Updates
 
-This instrumentation applies to JDK9 and higher. This was necessary in order to add support for the method
-`completeAsync`, which was introduced with Java 9. 
+This instrumentation applies to JRE 11 and higher. This was necessary in order to add support for the method
+`completeAsync` (introduced with Java 9).
+
+JREs 8, 9 and 10 use the previous version of this module, `java.completable-future-jdk8u40`.
 
 The instrumentation is otherwise the same as the `java.completable-future-jdk8u40`, and
 works as described below. 
