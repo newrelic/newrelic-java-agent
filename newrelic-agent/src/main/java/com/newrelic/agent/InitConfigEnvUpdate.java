@@ -26,11 +26,10 @@ public class InitConfigEnvUpdate {
     public static final String CONFIG_FILE_LOCATION_OPTION = "c";
     public static final String PORT_OPTION = "p";
     private static final String AGENT_CLASS = "com.newrelic.agent.Agent";
-    //private static final String TARGET_ENV_FILE = "/etc/environment";
-    private static final String TARGET_ENV_FILE = "/Users/jduffy/tmp/etc/environment";
+    private static final String TARGET_ENV_FILE = "/etc/environment";
+    //private static final String TARGET_ENV_FILE = "/Users/jduffy/tmp/etc/environment";
     private static final String JAVA_TOOL_OPTIONS = "JAVA_TOOL_OPTIONS";
     private static final String CONFIG_FILE_ENV_KEY = "NEW_RELIC_CONFIG_FILE";
-    private static final String AGENT_CONFIG_FILE = "newrelic.yml";
     private static final String JAVA_AGENT_OPTION = "-javaagent:";
     private static final String NEWRELIC_JAR = "newrelic.jar";
 
@@ -53,7 +52,6 @@ public class InitConfigEnvUpdate {
         int exitCode;
 
         if (StringUtils.isNotEmpty(configFileLocation) && StringUtils.isNotEmpty(licenseKey)) {
-            configFileLocation = configFileLocation.endsWith("/") ? configFileLocation : configFileLocation + "/";
 
             logMessage("Config file location: " + configFileLocation);
             logMessage("License key supplied");
@@ -73,24 +71,22 @@ public class InitConfigEnvUpdate {
     }
 
     private static int writeInitialConfigFile(String path, String licenseKey, String appName, int port) {
-        Path configFilePath = Paths.get(path);
-        if (configFilePath.toFile().exists() && Files.isWritable(configFilePath)) {
-            Path ymlFile = Paths.get(path, AGENT_CONFIG_FILE);
-            String ymlContents = "# Generated via Java agent init-config parameter\n" +
-                    "common: &default_settings\n  " +
-                    "license_key: '" + licenseKey +
-                    "'\n  app_name: " + (appName == null ? "" : appName) + "\n\n" +
-                    "  http_integration_server:\n" +
-                    "    enabled: true\n" +
-                    (port == 0 ? "" : "    port: " + port) + "\n\n";
-            logMessage("Wrote initial agent config file to " + ymlFile);
+        File configFile = new File(path);
 
-            try {
-                Files.write(ymlFile, ymlContents.getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                logMessage("Config file path either does not exist or is not writable");
-                return 106;
-            }
+        String ymlContents = "# Generated via Java agent init-config parameter\n" +
+                "common: &default_settings\n  " +
+                "license_key: '" + licenseKey +
+                "'\n  app_name: " + (appName == null ? "" : appName) + "\n\n" +
+                "  http_integration_server:\n" +
+                "    enabled: true\n" +
+                (port == 0 ? "" : "    port: " + port) + "\n\n";
+
+        try {
+            Files.write(configFile.toPath(), ymlContents.getBytes(StandardCharsets.UTF_8));
+            logMessage("Wrote initial agent config file to " + configFile);
+        } catch (IOException e) {
+            logMessage("Config file path either does not exist or is not writable");
+            return 106;
         }
 
         return 0;
@@ -113,7 +109,7 @@ public class InitConfigEnvUpdate {
                                 JAVA_TOOL_OPTIONS + "=" +
                                 (doesEnvFileAlreadyContainJavaToolOpts(envFileContents) ? "$" + JAVA_TOOL_OPTIONS + " " : "") +
                                 JAVA_AGENT_OPTION + agentJarLocation + "\n" +
-                                CONFIG_FILE_ENV_KEY + "=" + configFilePath + AGENT_CONFIG_FILE;
+                                CONFIG_FILE_ENV_KEY + "=" + configFilePath;
 
                         System.out.println(contents);
                         writeUpdatedEnvFile(path, contents);
