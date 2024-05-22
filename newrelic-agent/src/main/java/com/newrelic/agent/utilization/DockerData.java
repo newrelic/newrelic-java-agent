@@ -31,6 +31,11 @@ import java.util.regex.Pattern;
  *
  *   We should grab the "cpu" line. The long id number is the number we want.
  *
+ * For AWS ECS (fargate and non-fargate) we check the metadata returned from the URL defined in either the
+ * v3 or v4 metadata URL. These checks are only made if the cgroup files don't return anything and the
+ * metadata URL(s) are present in the target env variables. The docker id returned in the metadata JSON response
+ * is a 32-digit hex followed by a 10-digit number in the "DockerId" key.
+ *
  * In either case, this is the full docker id, not the short id that appears when you run a "docker ps".
  */
 public class DockerData {
@@ -38,6 +43,9 @@ public class DockerData {
     private static final String FILE_WITH_CONTAINER_ID_V1 = "/proc/self/cgroup";
     private static final String FILE_WITH_CONTAINER_ID_V2 = "/proc/self/mountinfo";
     private static final String CPU = "cpu";
+
+    private static final String AWS_ECS_METADATA_V3_ENV_VAR = "ECS_CONTAINER_METADATA_URI";
+    private static final String AWS_ECS_METADATA_V4_ENV_VAR = "ECS_CONTAINER_METADATA_URI_V4";
 
     private static final Pattern VALID_CONTAINER_ID = Pattern.compile("^[0-9a-f]{64}$");
     private static final Pattern DOCKER_CONTAINER_STRING_V1 = Pattern.compile("^.*[^0-9a-f]+([0-9a-f]{64,}).*");
