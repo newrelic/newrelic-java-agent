@@ -77,23 +77,26 @@ public class HttpIntegrationServerService extends AbstractService implements Age
 
     @Override
     public boolean isEnabled() {
-        return httpIntegrationServerConfig.isEnabled();
+        return true;
+        // TODO
+        //return httpIntegrationServerConfig.isEnabled();
     }
 
     @Override
     public void configChanged(String appName, AgentConfig agentConfig) {
-        boolean newEnabledFlag = agentConfig.getHttpIntegrationServerConfig().isEnabled();
-
-        if (newEnabledFlag != httpIntegrationServerConfig.isEnabled()) {
-            Agent.LOG.log(Level.INFO, "HTTP Integration Server enabled flag changed to {0}", newEnabledFlag);
-            httpIntegrationServerConfig.setEnabled(newEnabledFlag);
-
-            if (newEnabledFlag) {
-                doStart();
-            } else {
-                doStop();
-            }
-        }
+        //TODO
+//        boolean newEnabledFlag = agentConfig.getHttpIntegrationServerConfig().isEnabled();
+//
+//        if (newEnabledFlag != httpIntegrationServerConfig.isEnabled()) {
+//            Agent.LOG.log(Level.INFO, "HTTP Integration Server enabled flag changed to {0}", newEnabledFlag);
+//            httpIntegrationServerConfig.setEnabled(newEnabledFlag);
+//
+//            if (newEnabledFlag) {
+//                doStart();
+//            } else {
+//                doStop();
+//            }
+//        }
     }
 
     private HttpServer configureIntegrationServer() {
