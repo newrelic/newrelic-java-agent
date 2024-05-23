@@ -8,6 +8,9 @@
 package com.nr.instrumentation.graphql.helper;
 
 import com.newrelic.agent.bridge.PrivateApi;
+import com.newrelic.agent.messaging.MessageMetrics;
+import com.newrelic.api.agent.DestinationType;
+import com.newrelic.api.agent.TracedMethod;
 
 import javax.management.MBeanServer;
 import java.io.Closeable;
@@ -94,6 +97,11 @@ public class PrivateApiStub implements PrivateApi {
 
     @Override
     public void setInstanceName(String instanceName) {
+
+    }
+
+    @Override
+    public void reportAmqpInstance(TracedMethod method, String host, Integer port, String exchangeName, String queueName, String routingKey) {
 
     }
 }

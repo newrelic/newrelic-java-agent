@@ -826,8 +826,7 @@ public class DefaultTracer extends AbstractTracer {
                 messageProduceParameters.getHost(),
                 messageProduceParameters.getPort(),
                 destinationType,
-                messageProduceParameters.getDestinationName(),
-                messageProduceParameters.getAmqpRoutingKey());
+                messageProduceParameters.getDestinationName());
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -856,9 +855,7 @@ public class DefaultTracer extends AbstractTracer {
                 messageConsumeParameters.getHost(),
                 messageConsumeParameters.getPort(),
                 destinationType,
-                messageConsumeParameters.getDestinationName(),
-                messageConsumeParameters.getAmqpQueue(),
-                messageConsumeParameters.getAmqpRoutingKey());
+                messageConsumeParameters.getDestinationName());
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {

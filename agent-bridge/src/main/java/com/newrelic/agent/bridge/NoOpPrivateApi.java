@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.TracedMethod;
+
 import javax.management.MBeanServer;
 import java.io.Closeable;
 import java.util.Map;
@@ -65,6 +67,11 @@ public class NoOpPrivateApi implements PrivateApi {
 
     @Override
     public void setInstanceName(String instanceName) {
+    }
+
+    @Override
+    public void reportAmqpInstance(TracedMethod method, String host, Integer port, String exchangeName, String queueName, String routingKey) {
+
     }
 
     @Override

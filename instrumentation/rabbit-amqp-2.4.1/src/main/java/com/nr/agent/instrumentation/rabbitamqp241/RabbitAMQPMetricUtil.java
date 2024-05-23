@@ -44,28 +44,32 @@ public abstract class RabbitAMQPMetricUtil {
     public static void processSendMessage(String exchangeName, String routingKey,
                                           HashMap<String, Object> headers,
                                           AMQP.BasicProperties props, TracedMethod tracedMethod, Connection connection) {
+        String host = getHost(connection);
+        Integer port = getPort(connection);
         tracedMethod.reportAsExternal(MessageProduceParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .outboundHeaders(new OutboundWrapper(headers))
-                .instance(getHost(connection), getPort(connection))
-                .amqp(routingKey)
+                .instance(host, port)
                 .build());
+        AgentBridge.privateApi.reportAmqpInstance(tracedMethod, host, port, exchangeName, null, routingKey);
 
         addAttributes(routingKey, props);
     }
 
     public static void processGetMessage(String queueName, String routingKey, String exchangeName,
                                          AMQP.BasicProperties properties, TracedMethod tracedMethod, Connection connection) {
+        String host = getHost(connection);
+        Integer port = getPort(connection);
         tracedMethod.reportAsExternal(MessageConsumeParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .inboundHeaders(new InboundWrapper(properties.getHeaders()))
-                .instance(getHost(connection), getPort(connection))
-                .amqp(queueName, routingKey)
+                .instance(host, port)
                 .build());
+        AgentBridge.privateApi.reportAmqpInstance(tracedMethod, host, port, exchangeName, queueName, routingKey);
 
         addConsumeAttributes(queueName, routingKey, properties);
     }

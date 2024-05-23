@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.TracedMethod;
+
 import javax.management.MBeanServer;
 import java.io.Closeable;
 import java.util.Map;
@@ -122,4 +124,16 @@ public interface PrivateApi {
      */
     @Deprecated
     void setInstanceName(String instanceName);
+
+    /**
+     * Report the instance of a message broker using the AMQP protocol
+     *
+     * @param method        Traced method
+     * @param host          Broker host name
+     * @param port          Broker port
+     * @param exchangeName  Name of the exchange
+     * @param queueName     Queue name
+     * @param routingKey    Routing key
+     */
+    void reportAmqpInstance(TracedMethod method, String host, Integer port, String exchangeName, String queueName, String routingKey);
 }

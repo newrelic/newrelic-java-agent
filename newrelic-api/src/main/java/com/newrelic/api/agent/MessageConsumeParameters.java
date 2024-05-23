@@ -23,11 +23,9 @@ public class MessageConsumeParameters implements ExternalParameters {
     private final String cloudResourceId;
     private final String host;
     private final Integer port;
-    private final String amqpRoutingKey;
-    private final String amqpQueue;
 
     protected MessageConsumeParameters(String library, DestinationType destinationType, String destinationName,
-            InboundHeaders inboundHeaders, String cloudResourceId, String host, Integer port, String amqpRoutingKey, String amqpQueue) {
+            InboundHeaders inboundHeaders, String cloudResourceId, String host, Integer port) {
         this.library = library;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
@@ -35,8 +33,6 @@ public class MessageConsumeParameters implements ExternalParameters {
         this.cloudResourceId = cloudResourceId;
         this.host = host;
         this.port = port;
-        this.amqpRoutingKey = amqpRoutingKey;
-        this.amqpQueue = amqpQueue;
     }
 
 
@@ -53,8 +49,6 @@ public class MessageConsumeParameters implements ExternalParameters {
         this.cloudResourceId = messageConsumeParameters.cloudResourceId;
         this.host = messageConsumeParameters.host;
         this.port = messageConsumeParameters.port;
-        this.amqpRoutingKey = messageConsumeParameters.amqpRoutingKey;
-        this.amqpQueue = messageConsumeParameters.amqpQueue;
     }
 
     public String getDestinationName() {
@@ -85,14 +79,6 @@ public class MessageConsumeParameters implements ExternalParameters {
         return library;
     }
 
-    public String getAmqpRoutingKey() {
-        return amqpRoutingKey;
-    }
-
-    public String getAmqpQueue() {
-        return amqpQueue;
-    }
-
     protected static class Builder implements DestinationTypeParameter, DestinationNameParameter,
             InboundHeadersParameter, Build {
         private String library;
@@ -102,8 +88,6 @@ public class MessageConsumeParameters implements ExternalParameters {
         private String cloudResourceId;
         private String host;
         private Integer port;
-        private String amqpRoutingKey;
-        private String amqpQueue;
 
         public Builder(String library) {
             this.library = library;
@@ -135,15 +119,8 @@ public class MessageConsumeParameters implements ExternalParameters {
             return this;
         }
 
-        public Build amqp(String queue, String routingKey) {
-            this.amqpQueue = queue;
-            this.amqpRoutingKey = routingKey;
-            return this;
-        }
-
         public MessageConsumeParameters build() {
-            return new MessageConsumeParameters(library, destinationType, destinationName, inboundHeaders,
-                    cloudResourceId, host, port, amqpRoutingKey, amqpQueue);
+            return new MessageConsumeParameters(library, destinationType, destinationName, inboundHeaders, cloudResourceId, host, port);
         }
     }
 
@@ -203,12 +180,6 @@ public class MessageConsumeParameters implements ExternalParameters {
          * This method is optional and can be bypassed by calling build directly.
          */
         Build instance(String host, Integer port);
-
-        /**
-         * If you are using the amqp protocol, this sets the routing key and queue.
-         * This method is optional and can be bypassed by calling build directly.
-         */
-        Build amqp(String queue, String routingKey);
 
         /**
          * Build the final {@link MessageConsumeParameters} for the API call.

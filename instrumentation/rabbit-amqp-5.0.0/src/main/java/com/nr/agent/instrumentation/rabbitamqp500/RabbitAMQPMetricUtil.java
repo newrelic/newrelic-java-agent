@@ -19,6 +19,7 @@ import com.rabbitmq.client.impl.AMQConnection;
 
 import java.net.InetAddress;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class RabbitAMQPMetricUtil {
@@ -41,30 +42,35 @@ public abstract class RabbitAMQPMetricUtil {
                 .setTransactionName(TransactionNamePriority.FRAMEWORK, false, MESSAGE, transactionName);
     }
 
-    public static void processSendMessage(String exchangeName, String routingKey, Map<String, Object> headers,
-                                          AMQP.BasicProperties props, TracedMethod tracedMethod, AMQConnection connection) {
+    public static void processSendMessage(String exchangeName, String routingKey,
+            HashMap<String, Object> headers,
+            AMQP.BasicProperties props, TracedMethod tracedMethod, AMQConnection connection) {
+        String host = getHost(connection);
+        Integer port = getPort(connection);
         tracedMethod.reportAsExternal(MessageProduceParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .outboundHeaders(new OutboundWrapper(headers))
-                .instance(getHost(connection), getPort(connection))
-                .amqp(routingKey)
+                .instance(host, port)
                 .build());
+        AgentBridge.privateApi.reportAmqpInstance(tracedMethod, host, port, exchangeName, null, routingKey);
 
         addAttributes(routingKey, props);
     }
 
     public static void processGetMessage(String queueName, String routingKey, String exchangeName,
-                                         AMQP.BasicProperties properties, TracedMethod tracedMethod, AMQConnection connection) {
+            AMQP.BasicProperties properties, TracedMethod tracedMethod, AMQConnection connection) {
+        String host = getHost(connection);
+        Integer port = getPort(connection);
         tracedMethod.reportAsExternal(MessageConsumeParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .inboundHeaders(new InboundWrapper(properties.getHeaders()))
-                .instance(getHost(connection), getPort(connection))
-                .amqp(queueName, routingKey)
+                .instance(host, port)
                 .build());
+        AgentBridge.privateApi.reportAmqpInstance(tracedMethod, host, port, exchangeName, queueName, routingKey);
 
         addConsumeAttributes(queueName, routingKey, properties);
     }
