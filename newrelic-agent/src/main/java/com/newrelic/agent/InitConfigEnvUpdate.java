@@ -27,8 +27,8 @@ public class InitConfigEnvUpdate {
     public static final String PORT_OPTION = "p";
     private static final String AGENT_CLASS = "com.newrelic.agent.Agent";
     private static final String TARGET_ENV_FILE = "/etc/environment";
-    private static final String TARGET_ENV_FILE = "/Users/jduffy/tmp/etc/environment";
-    //private static final String JAVA_TOOL_OPTIONS = "JAVA_TOOL_OPTIONS";
+    //private static final String TARGET_ENV_FILE = "/Users/jduffy/tmp/etc/environment";
+    private static final String JAVA_TOOL_OPTIONS = "JAVA_TOOL_OPTIONS";
     private static final String CONFIG_FILE_SYS_PROP = "-Dnewrelic.config.file";
     private static final String JAVA_AGENT_OPTION = "-javaagent:";
     private static final String NEWRELIC_JAR = "newrelic.jar";
