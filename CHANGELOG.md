@@ -4,6 +4,43 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.12.0
+## New features and improvements
+
+* Add support for Java 22 [1819](https://github.com/newrelic/newrelic-java-agent/pull/1819)
+* Add AI Monitoring support for AWS SDK for Java v2 Bedrock Runtime Client versions 2.20.157 and above [1837](https://github.com/newrelic/newrelic-java-agent/pull/1837)
+* Enhance log forwarding to include "caused by" section [1857](https://github.com/newrelic/newrelic-java-agent/pull/1857)
+* Add support for Pekko Http https://github.com/newrelic/newrelic-java-agent/pull/1850
+* Add local decorating for Log4j 2 users utilizing JsonTemplateLayout [1866](https://github.com/newrelic/newrelic-java-agent/pull/1866)
+* Performance improvements on SQL checks [1887](https://github.com/newrelic/newrelic-java-agent/pull/1887)
+
+
+
+## Fixes
+
+- Resolve various thread hopping issues with Spring Reactor call chains [1883](https://github.com/newrelic/newrelic-java-agent/pull/1883)
+- Refactor the daily logfile rolling job to support all platforms [1888](https://github.com/newrelic/newrelic-java-agent/pull/1888)
+- Fix Ning memory leak [1903](https://github.com/newrelic/newrelic-java-agent/pull/1903)
+
+## IAST
+Update Security Agent to Public Release version `1.3.0` [1896](https://github.com/newrelic/newrelic-java-agent/pull/1896)
+- [Changes/Fixes](https://github.com/newrelic/csec-java-agent/releases/tag/1.3.0)
+
+
+
+## Deprecations
+
+- The browser footer injection APIs have been deprecated and will be removed in a future agent release. The header injection API now adds both the header and footer scripts. [1679](https://github.com/newrelic/newrelic-java-agent/pull/1679)
+
+- The following instrumentation modules are deprecated and will be removed in the next major release:
+  - `aws-wrap-0.7.0`
+  - `java.completable-future-jdk8`
+  - `play-2.3`
+  - `spring-3.0.0`
+  - `netty-3.4`
+  - `Struts v1`
+
+
 ## Version 8.11.1
 ## New features and improvements
 
