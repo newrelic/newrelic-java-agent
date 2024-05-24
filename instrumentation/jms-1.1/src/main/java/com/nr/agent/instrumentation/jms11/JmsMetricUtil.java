@@ -132,11 +132,11 @@ public abstract class JmsMetricUtil {
                     .destinationType(destinationType)
                     .destinationName(destinationName)
                     .outboundHeaders(new OutboundWrapper(message));
+            tracer.reportAsExternal(builder.build());
             BrokerInstance brokerInstance = getHostAndPort(message);
             if (brokerInstance != null) {
-                builder = builder.instance(brokerInstance.getHostName(), brokerInstance.getPort());
+                AgentBridge.privateApi.reportMessageBrokerInstance(brokerInstance.getHostName(), brokerInstance.getPort(), destinationType, destinationName);
             }
-            tracer.reportAsExternal(builder.build());
         } catch (JMSException exception) {
             NewRelic.getAgent().getLogger().log(Level.FINE, exception,
                     "Unable to record metrics for JMS message produce.");
@@ -157,11 +157,11 @@ public abstract class JmsMetricUtil {
                     .destinationType(destinationType)
                     .destinationName(destinationName)
                     .inboundHeaders(new InboundWrapper(message));
+            tracer.reportAsExternal(builder.build());
             BrokerInstance brokerInstance = getHostAndPort(message);
             if (brokerInstance != null) {
-                builder = builder.instance(brokerInstance.getHostName(), brokerInstance.getPort());
+                AgentBridge.privateApi.reportMessageBrokerInstance(brokerInstance.getHostName(), brokerInstance.getPort(), destinationType, destinationName);
             }
-            tracer.reportAsExternal(builder.build());
         } catch (JMSException exception) {
             NewRelic.getAgent().getLogger().log(Level.FINE, exception,
                     "Unable to record metrics for JMS message consume.");
@@ -169,7 +169,7 @@ public abstract class JmsMetricUtil {
     }
 
     private static BrokerInstance getHostAndPort(Message message) throws JMSException {
-        Object obj = message.getObjectProperty(JmsProperties.NR_JMS_HOST_AND_PORT_PROPERTY);
+        Object obj = message.getObjectProperty(JmsProperties.NR_JMS_BROKER_INSTANCE_PROPERTY);
         if (obj instanceof BrokerInstance) {
             return (BrokerInstance) obj;
         }

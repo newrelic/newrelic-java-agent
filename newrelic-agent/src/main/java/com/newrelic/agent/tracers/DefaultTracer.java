@@ -19,7 +19,6 @@ import com.newrelic.agent.config.DatastoreConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.database.SqlObfuscator;
-import com.newrelic.agent.messaging.MessageMetrics;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.TransactionStats;
@@ -821,12 +820,6 @@ public class DefaultTracer extends AbstractTracer {
                     messageProduceParameters.getLibrary(),
                     messageProduceParameters.getDestinationType().getTypeName()));
         }
-
-        MessageMetrics.collectMessageProducerRollupMetrics(this,
-                messageProduceParameters.getHost(),
-                messageProduceParameters.getPort(),
-                destinationType,
-                messageProduceParameters.getDestinationName());
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -850,12 +843,6 @@ public class DefaultTracer extends AbstractTracer {
         if (messageConsumeParameters.getCloudResourceId() != null) {
             setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageConsumeParameters.getCloudResourceId());
         }
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(this,
-                messageConsumeParameters.getHost(),
-                messageConsumeParameters.getPort(),
-                destinationType,
-                messageConsumeParameters.getDestinationName());
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {

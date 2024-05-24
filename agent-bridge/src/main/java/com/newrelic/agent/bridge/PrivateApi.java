@@ -7,7 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
-import com.newrelic.api.agent.TracedMethod;
+import com.newrelic.api.agent.DestinationType;
 
 import javax.management.MBeanServer;
 import java.io.Closeable;
@@ -92,6 +92,29 @@ public interface PrivateApi {
     void reportException(Throwable throwable);
 
     /**
+     * Creates a message broker instance metric if enabled via agent configuration.
+     * Otherwise, a null value is returned.
+     *
+     * @param host              Broker host
+     * @param port              Broker port
+     * @param destinationType   Destination type
+     * @param destination       Destination (can be the destination name or a more complex value related to the destination type)
+     */
+    String buildMessageBrokerInstanceMetric(String host, Integer port,
+            DestinationType destinationType, String destination);
+
+    /**
+     * Creates a message broker instance rollup metric if enabled via agent configuration.
+     *
+     * @param host              Broker host
+     * @param port              Broker port
+     * @param destinationType   Destination type
+     * @param destination       Destination (can be the destination name or a more complex value related to the destination type)
+     */
+    void reportMessageBrokerInstance(String host, Integer port,
+            DestinationType destinationType, String destination);
+
+    /**
      * Set the app server port which is reported to RPM.
      *
      * @deprecated
@@ -125,15 +148,4 @@ public interface PrivateApi {
     @Deprecated
     void setInstanceName(String instanceName);
 
-    /**
-     * Report the instance of a message broker using the AMQP protocol
-     *
-     * @param method        Traced method
-     * @param host          Broker host name
-     * @param port          Broker port
-     * @param exchangeName  Name of the exchange
-     * @param queueName     Queue name
-     * @param routingKey    Routing key
-     */
-    void reportAmqpInstance(TracedMethod method, String host, Integer port, String exchangeName, String queueName, String routingKey);
 }

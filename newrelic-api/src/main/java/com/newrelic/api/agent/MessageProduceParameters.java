@@ -20,17 +20,13 @@ public class MessageProduceParameters implements ExternalParameters {
     private final String destinationName;
     private final OutboundHeaders outboundHeaders;
     private final String cloudResourceId;
-    private final String host;
-    private final Integer port;
     protected MessageProduceParameters(String library, DestinationType destinationType, String destinationName,
-            OutboundHeaders outboundHeaders, String cloudResourceId, String host, Integer port) {
+            OutboundHeaders outboundHeaders, String cloudResourceId) {
         this.library = library;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
         this.outboundHeaders = outboundHeaders;
         this.cloudResourceId = cloudResourceId;
-        this.host = host;
-        this.port = port;
     }
 
     /**
@@ -44,8 +40,6 @@ public class MessageProduceParameters implements ExternalParameters {
         this.destinationName = messageProduceParameters.destinationName;
         this.outboundHeaders = messageProduceParameters.outboundHeaders;
         this.cloudResourceId = messageProduceParameters.cloudResourceId;
-        this.host = messageProduceParameters.host;
-        this.port = messageProduceParameters.port;
     }
 
     public String getDestinationName() {
@@ -64,14 +58,6 @@ public class MessageProduceParameters implements ExternalParameters {
         return cloudResourceId;
     }
 
-    public String getHost() {
-        return host;
-    }
-
-    public Integer getPort() {
-        return port;
-    }
-
     public String getLibrary() {
         return library;
     }
@@ -83,8 +69,6 @@ public class MessageProduceParameters implements ExternalParameters {
         private String destinationName;
         private OutboundHeaders outboundHeaders;
         private String cloudResourceId;
-        private String host;
-        private Integer port;
 
         public Builder(String library) {
             this.library = library;
@@ -110,14 +94,8 @@ public class MessageProduceParameters implements ExternalParameters {
             return this;
         }
 
-        public Build instance(String host, Integer port) {
-            this.host = host;
-            this.port = port;
-            return this;
-        }
-
         public MessageProduceParameters build() {
-            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders, cloudResourceId, host, port);
+            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders, cloudResourceId);
         }
     }
 
@@ -172,12 +150,6 @@ public class MessageProduceParameters implements ExternalParameters {
          * This method is optional and can be bypassed by calling build directly.
          */
         Build cloudResourceId(String cloudResourceId);
-
-        /**
-         * Set the host name and port number for the message queue.
-         * This method is optional and can be bypassed by calling build directly.
-         */
-        Build instance(String host, Integer port);
 
         /**
          * Build the final {@link MessageProduceParameters} for the API call.

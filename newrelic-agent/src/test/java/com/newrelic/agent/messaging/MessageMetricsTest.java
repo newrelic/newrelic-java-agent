@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 public class MessageMetricsTest {
 
@@ -63,134 +62,43 @@ public class MessageMetricsTest {
     }
 
     @Test
-    public void testIsAnyEndpointParamsKnown() {
-        assertTrue(MessageMetrics.isAnyEndpointParamsKnown("example.com", 1000));
-        assertTrue(MessageMetrics.isAnyEndpointParamsKnown("example.com", null));
-        assertTrue(MessageMetrics.isAnyEndpointParamsKnown(null, 1000));
-        assertFalse(MessageMetrics.isAnyEndpointParamsKnown(null, null));
-        assertTrue(MessageMetrics.isAnyEndpointParamsKnown("example.com", -1));
-        assertTrue(MessageMetrics.isAnyEndpointParamsKnown("", 1000));
-        assertFalse(MessageMetrics.isAnyEndpointParamsKnown("", -1));
-    }
+    public void testBuildInstanceMetrics() {
+        assertEquals(
+                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Named/topic", hostName),
+                MessageMetrics.buildInstanceMetricIfEnabled("localhost", 8080, DestinationType.NAMED_TOPIC, "topic"));
 
-    @Test
-    public void testCollectMessageProducerRollupMetrics() {
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.NAMED_TOPIC, "topic");
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Named/topic", hostName));
+        assertEquals(
+                "MessageBroker/instance/broker.com/8080/Topic/Named/topic2",
+                MessageMetrics.buildInstanceMetricIfEnabled("broker.com", 8080, DestinationType.NAMED_TOPIC, "topic2"));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.NAMED_QUEUE, "queue");
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Named/queue", hostName));
+        assertEquals(
+                "MessageBroker/instance/broker.com/8080/Queue/Named/queue2",
+                MessageMetrics.buildInstanceMetricIfEnabled("broker.com", 8080, DestinationType.NAMED_QUEUE, "queue2"));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.NAMED_QUEUE, "queue2");
-        // Expect routing key is ignored as we already have a queue
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Named/queue2", hostName));
+        assertEquals(
+                "MessageBroker/instance/broker.com/8080/Topic/Temp",
+                MessageMetrics.buildInstanceMetricIfEnabled( "broker.com", 8080, DestinationType.TEMP_TOPIC, null));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.TEMP_TOPIC, null);
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Temp", hostName));
+        assertEquals(
+                "MessageBroker/instance/broker.com/8081/Queue/Temp",
+                MessageMetrics.buildInstanceMetricIfEnabled( "broker.com", 8081, DestinationType.TEMP_QUEUE, null));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.TEMP_QUEUE, null);
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Temp", hostName));
+        assertEquals(
+                "MessageBroker/instance/example.com/8080/Exchange/Named/exchange/Queue/Named/someQueue",
+                MessageMetrics.buildInstanceMetricIfEnabled("example.com", 8080,
+                        DestinationType.EXCHANGE, "exchange/Queue/Named/someQueue"));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "example.com",
-                8080, DestinationType.NAMED_QUEUE, "queue");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Queue/Named/queue");
+        assertEquals("MessageBroker/instance/unknown/8080/Exchange/Named/exchange",
+                MessageMetrics.buildInstanceMetricIfEnabled(null, 8080, DestinationType.EXCHANGE, "exchange"));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, null,
-                8080, DestinationType.EXCHANGE, "exchange");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/exchange");
+        assertEquals("MessageBroker/instance/example.com/unknown/Exchange/Named/exchange",
+                MessageMetrics.buildInstanceMetricIfEnabled("example.com", null, DestinationType.EXCHANGE, "exchange"));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, null,
-                8080, DestinationType.EXCHANGE, "exchange2");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/exchange2");
+        assertEquals("MessageBroker/instance/example.com/8080/Exchange/unknown",
+                MessageMetrics.buildInstanceMetricIfEnabled("example.com", 8080, DestinationType.EXCHANGE, null));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "example.com",
-                null, DestinationType.NAMED_QUEUE, "queue");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/unknown/Queue/Named/queue");
+        assertEquals("MessageBroker/instance/unknown/unknown/Exchange/unknown",
+                MessageMetrics.buildInstanceMetricIfEnabled(null, null, DestinationType.EXCHANGE, null));
 
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, null,
-                null, DestinationType.EXCHANGE, null);
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/unknown/Exchange/unknown");
-
-        MessageMetrics.collectMessageProducerRollupMetrics(mockTracedMethod, "example.com",
-                8080, DestinationType.EXCHANGE, null);
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Exchange/unknown");
-    }
-
-    @Test
-    public void testCollectMessageConsumerRollupMetrics() {
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.NAMED_TOPIC, "topic");
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Named/topic", hostName));
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.NAMED_QUEUE, "queue");
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Named/queue", hostName));
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.TEMP_TOPIC, null);
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Topic/Temp", hostName));
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "localhost",
-                8080, DestinationType.TEMP_QUEUE, null);
-        verify(mockTracedMethod).addRollupMetricName(
-                MessageFormat.format("MessageBroker/instance/{0}/8080/Queue/Temp", hostName));
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "example.com",
-                8080, DestinationType.NAMED_QUEUE, "queue");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Queue/Named/queue");
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null,
-                8080, DestinationType.EXCHANGE, "queue");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/queue");
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "example.com",
-                null, DestinationType.NAMED_QUEUE, "queue");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/unknown/Queue/Named/queue");
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null,
-                null, DestinationType.EXCHANGE, null);
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/unknown/Exchange/unknown");
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, "example.com",
-                8080, DestinationType.EXCHANGE, null);
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/example.com/8080/Exchange/unknown");
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null,
-                8080, DestinationType.EXCHANGE, "exchange2");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/exchange2");
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null,
-                8080, DestinationType.EXCHANGE, "exchange3");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/exchange3");
-
-        MessageMetrics.collectMessageConsumerRollupMetrics(mockTracedMethod, null,
-                8080, DestinationType.EXCHANGE, "exchange4");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/unknown/8080/Exchange/Named/exchange4");
-    }
-
-    @Test
-    public void testCollectAmqpRollupMetrics() {
-        MessageMetrics.collectAmqpMetrics(mockTracedMethod, "amqp.com",
-                8080, "exchange2", null, "someKey");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/amqp.com/8080/Exchange/Named/exchange2/RoutingKey/someKey");
-        MessageMetrics.collectAmqpMetrics(mockTracedMethod, "amqp.com",
-                8080, "exchange2", "someQueue", "someKey");
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/amqp.com/8080/Exchange/Named/exchange2/Queue/someQueue");
-        MessageMetrics.collectAmqpMetrics(mockTracedMethod, "amqp.com",
-                8080, "exchange3", "someQueue", null);
-        verify(mockTracedMethod).addRollupMetricName("MessageBroker/instance/amqp.com/8080/Exchange/Named/exchange3/Queue/someQueue");
     }
 }

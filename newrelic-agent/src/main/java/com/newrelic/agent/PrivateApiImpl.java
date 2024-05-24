@@ -16,8 +16,8 @@ import com.newrelic.agent.jmx.JmxApiImpl;
 import com.newrelic.agent.messaging.MessageMetrics;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.AgentCollectionFactory;
+import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.Logger;
-import com.newrelic.api.agent.TracedMethod;
 
 import javax.management.MBeanServer;
 import java.io.Closeable;
@@ -98,6 +98,19 @@ public class PrivateApiImpl implements PrivateApi {
     }
 
     @Override
+    public String buildMessageBrokerInstanceMetric(String host, Integer port, DestinationType destinationType, String destination) {
+        return MessageMetrics.buildInstanceMetricIfEnabled(host, port, destinationType, destination);
+    }
+
+    @Override
+    public void reportMessageBrokerInstance(String host, Integer port, DestinationType destinationType, String destination) {
+        Transaction currentTxn = Transaction.getTransaction(false);
+        if (currentTxn != null) {
+            MessageMetrics.reportInstanceMetric(currentTxn.getTransactionActivity().getLastTracer(), host, port, destinationType, destination);
+        }
+    }
+
+    @Override
     public void setAppServerPort(int port) {
         AgentBridge.publicApi.setAppServerPort(port);
     }
@@ -110,11 +123,6 @@ public class PrivateApiImpl implements PrivateApi {
     @Override
     public void setInstanceName(String instanceName) {
         AgentBridge.publicApi.setInstanceName(instanceName);
-    }
-
-    @Override
-    public void reportAmqpInstance(TracedMethod method, String host, Integer port, String exchangeName, String queueName, String routingKey) {
-        MessageMetrics.collectAmqpMetrics(method, host, port, exchangeName, queueName, routingKey);
     }
 
     /**

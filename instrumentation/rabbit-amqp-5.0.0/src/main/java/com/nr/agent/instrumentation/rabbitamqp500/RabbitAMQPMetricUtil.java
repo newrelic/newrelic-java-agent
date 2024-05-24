@@ -30,6 +30,9 @@ public abstract class RabbitAMQPMetricUtil {
     private static final String MESSAGE = "Message";
     private static final String DEFAULT = "Default";
 
+    public static final String SLASH = "/";
+    public static final String ROUTING_KEY = "RoutingKey";
+
     private static final boolean captureSegmentParameters = AgentBridge.getAgent()
             .getConfig()
             .getValue("message_tracer.segment_parameters.enabled", Boolean.TRUE);
@@ -52,9 +55,9 @@ public abstract class RabbitAMQPMetricUtil {
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .outboundHeaders(new OutboundWrapper(headers))
-                .instance(host, port)
                 .build());
-        AgentBridge.privateApi.reportAmqpInstance(tracedMethod, host, port, exchangeName, null, routingKey);
+        AgentBridge.privateApi.reportMessageBrokerInstance(host, port, DestinationType.EXCHANGE,
+                buildInstDestination(exchangeName, null, routingKey));
 
         addAttributes(routingKey, props);
     }
@@ -68,9 +71,9 @@ public abstract class RabbitAMQPMetricUtil {
                 .destinationType(DestinationType.EXCHANGE)
                 .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
                 .inboundHeaders(new InboundWrapper(properties.getHeaders()))
-                .instance(host, port)
                 .build());
-        AgentBridge.privateApi.reportAmqpInstance(tracedMethod, host, port, exchangeName, queueName, routingKey);
+        AgentBridge.privateApi.reportMessageBrokerInstance(host, port, DestinationType.EXCHANGE,
+                buildInstDestination(exchangeName, queueName, routingKey));
 
         addConsumeAttributes(queueName, routingKey, properties);
     }
@@ -123,6 +126,27 @@ public abstract class RabbitAMQPMetricUtil {
                 AgentBridge.privateApi.addTracerParameter("message.headers." + entry.getKey(), entry.toString());
             }
         }
+    }
+
+    public static String buildInstDestination(String exchangeName, String queueName, String routingKey) {
+        String amqpSuffix = buildAmqpDestinationSuffix(queueName, routingKey);
+        if (amqpSuffix == null) {
+            return exchangeName;
+        }
+        return exchangeName + SLASH + amqpSuffix;
+    }
+
+    public static String buildAmqpDestinationSuffix(String queueName, String routingKey) {
+        if (isParamKnown(queueName)) {
+            return DestinationType.NAMED_QUEUE.getTypeName() + SLASH + queueName;
+        } else if (isParamKnown(routingKey)) {
+            return ROUTING_KEY + SLASH + routingKey;
+        }
+        return null;
+    }
+
+    private static boolean isParamKnown(String str) {
+        return str != null && !str.isEmpty();
     }
 
 }

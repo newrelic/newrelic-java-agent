@@ -17,7 +17,6 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.MessageProperties;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.rabbitmq.client.impl.ChannelN")

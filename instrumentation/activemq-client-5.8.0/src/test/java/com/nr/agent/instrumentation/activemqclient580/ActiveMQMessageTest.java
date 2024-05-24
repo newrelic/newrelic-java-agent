@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.JMSException;
 
-import static com.newrelic.agent.bridge.messaging.JmsProperties.NR_JMS_HOST_AND_PORT_PROPERTY;
+import static com.newrelic.agent.bridge.messaging.JmsProperties.NR_JMS_BROKER_INSTANCE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -95,7 +95,7 @@ public class ActiveMQMessageTest {
     }
 
     private void assertMessage(String expectedHost, Integer expectedPort, ActiveMQMessage message, Integer timesGetConnectionCalled) throws JMSException {
-        BrokerInstance brokerInstance = (BrokerInstance)message.getObjectProperty(NR_JMS_HOST_AND_PORT_PROPERTY);
+        BrokerInstance brokerInstance = (BrokerInstance)message.getObjectProperty(NR_JMS_BROKER_INSTANCE_PROPERTY);
         verify(message, times(timesGetConnectionCalled)).getConnection();
         assertNotNull("Failed to retrieve brokerInstance from ActiveMQ message", brokerInstance);
         assertEquals("Expected host did not match", expectedHost, brokerInstance.getHostName());

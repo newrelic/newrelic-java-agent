@@ -22,6 +22,7 @@ import com.newrelic.agent.dispatchers.WebRequestDispatcher;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.errors.TracedError;
+import com.newrelic.agent.messaging.MessageMetrics;
 import com.newrelic.agent.metric.MetricName;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
@@ -1994,9 +1995,7 @@ public class ApiTest implements TransactionListener {
             server.start();
             runTestMessagingAPI();
             String messageBrokerMetric = "MessageBroker/JMS/Queue/Consume/Temp";
-            String endpointMetric = "MessageBroker/instance/unknown/unknown/Queue/Temp";
             Assert.assertTrue("The following metric should exist: " + messageBrokerMetric, apiTestHelper.tranStats.getScopedStats().getStatsMap().containsKey(messageBrokerMetric));
-            Assert.assertTrue("The following metric should exist: " + endpointMetric, apiTestHelper.tranStats.getUnscopedStats().getStatsMap().containsKey(endpointMetric));
         } catch (IOException e) {
             e.printStackTrace();
             Assert.fail();
@@ -2085,11 +2084,11 @@ public class ApiTest implements TransactionListener {
             ExternalParameters messageProduceParameters = MessageProduceParameters
                     .library("JMS")
                     .destinationType(DestinationType.NAMED_QUEUE)
-                    .destinationName("Message Destination")
+                    .destinationName("MessageDestination")
                     .outboundHeaders(outboundRequestWrapper)
-                    .instance(myURL.getHost(), myURL.getPort())
                     .build();
             NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
+            MessageMetrics.buildInstanceMetric(myURL.getHost(), myURL.getPort(), DestinationType.NAMED_QUEUE, "MessageDestination");
 
             Assert.assertTrue(request.getHeaders("NewRelicID").length != 0);
             Assert.assertTrue(request.getHeaders("NewRelicTransaction").length != 0);
@@ -2101,11 +2100,11 @@ public class ApiTest implements TransactionListener {
             ExternalParameters messageResponseParameters = MessageConsumeParameters
                     .library("JMS")
                     .destinationType(DestinationType.TEMP_QUEUE)
-                    .destinationName("Message Destination")
+                    .destinationName("MessageDestination")
                     .inboundHeaders(new ApiTestHelper.InboundWrapper(response, HeaderType.MESSAGE))
-                    .instance(myURL.getHost(), myURL.getPort())
                     .build();
             NewRelic.getAgent().getTracedMethod().reportAsExternal(messageResponseParameters);
+            MessageMetrics.buildInstanceMetric(myURL.getHost(), myURL.getPort(), DestinationType.TEMP_QUEUE, "MessageDestination");
 
             Assert.assertTrue(response.getHeaders("NewRelicAppData").length != 0);
         } catch (Exception e) {

@@ -12,7 +12,6 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.jms11.JmsMetricUtil;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
