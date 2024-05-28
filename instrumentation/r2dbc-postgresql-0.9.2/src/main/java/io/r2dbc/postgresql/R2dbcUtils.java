@@ -30,13 +30,17 @@ import java.util.function.Consumer;
 public class R2dbcUtils {
     public static Flux<PostgresqlResult> wrapRequest(Flux<PostgresqlResult> request, String sql, Client client, PostgresqlConnectionConfiguration connectionConfiguration) {
         if(request != null) {
-            Transaction transaction = NewRelic.getAgent().getTransaction();
-            EndpointData endpointData = extractEndpointData(client);
-            if(transaction != null && !(transaction instanceof NoOpTransaction) && endpointData != null) {
-                Segment segment = transaction.startSegment("execute");
-                return request
-                        .doOnSubscribe(reportExecution(sql, endpointData, connectionConfiguration, segment))
-                        .doFinally((type) -> segment.end());
+            try {
+                Transaction transaction = NewRelic.getAgent().getTransaction();
+                EndpointData endpointData = extractEndpointData(client);
+                if (transaction != null && !(transaction instanceof NoOpTransaction) && endpointData != null) {
+                    Segment segment = transaction.startSegment("execute");
+                    return request
+                            .doOnSubscribe(reportExecution(sql, endpointData, connectionConfiguration, segment))
+                            .doFinally((type) -> segment.end());
+                }
+            } catch (Exception exception) {
+                return request;
             }
         }
         return request;
@@ -44,16 +48,22 @@ public class R2dbcUtils {
 
     private static Consumer<Subscription> reportExecution(String sql, EndpointData endpointData, PostgresqlConnectionConfiguration connectionConfiguration, Segment segment) {
         return (subscription) -> {
-            OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
-            if (sqlOperation != null) {
-                segment.reportAsExternal(DatastoreParameters
-                        .product(DatastoreVendor.Postgres.name())
-                        .collection(sqlOperation.getTableName())
-                        .operation(sqlOperation.getOperation())
-                        .instance(endpointData.getHostName(), endpointData.getPort())
-                        .databaseName(connectionConfiguration.getDatabase())
-                        .slowQuery(sql, R2dbcObfuscator.POSTGRES_QUERY_CONVERTER)
-                        .build());
+            try {
+                OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
+                if (sqlOperation != null) {
+                    segment.reportAsExternal(DatastoreParameters
+                            .product(DatastoreVendor.Postgres.name())
+                            .collection(sqlOperation.getTableName())
+                            .operation(sqlOperation.getOperation())
+                            .instance(endpointData.getHostName(), endpointData.getPort())
+                            .databaseName(connectionConfiguration.getDatabase())
+                            .slowQuery(sql, R2dbcObfuscator.POSTGRES_QUERY_CONVERTER)
+                            .build());
+                }
+            } catch (Exception ignored) {
+
+            } finally {
+                segment.end();
             }
         };
     }
