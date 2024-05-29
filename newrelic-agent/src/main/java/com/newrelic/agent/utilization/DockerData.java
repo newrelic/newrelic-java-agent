@@ -7,8 +7,8 @@
 
 package com.newrelic.agent.utilization;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
-import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -77,13 +76,24 @@ public class DockerData {
                 return result;
             }
 
-            // Try v4 ESC Fargate metadata call, the finally v3
-            result = retrieveDockerIdFromFargateMetadata(System.getenv(AWS_ECS_METADATA_V4_ENV_VAR));
-            if (result != null) {
-                return result;
-            }
+            // Try v4 ESC Fargate metadata call, then finally v3
+            String fargateUrl = null;
+            try {
+                fargateUrl = System.getenv(AWS_ECS_METADATA_V4_ENV_VAR);
+                if (fargateUrl != null) {
+                    result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                    if (result != null) {
+                        return result;
+                    }
+                }
 
-            return retrieveDockerIdFromFargateMetadata(System.getenv(AWS_ECS_METADATA_V3_ENV_VAR));
+                fargateUrl = System.getenv(AWS_ECS_METADATA_V3_ENV_VAR);
+                if (fargateUrl != null) {
+                    return retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                }
+            } catch (MalformedURLException e) {
+                Agent.LOG.log(Level.FINEST, "Invalid AWS Fargate metadata URL: {0}", fargateUrl);
+            }
         }
 
         return null;
@@ -184,30 +194,25 @@ public class DockerData {
         return false;
     }
 
-    private String retrieveDockerIdFromFargateMetadata(String metadataUrl) {
+    @VisibleForTesting
+    String retrieveDockerIdFromFargateMetadata(AwsFargateMetadataFetcher awsFargateMetadataFetcher) {
         String dockerId = null;
         StringBuffer jsonBlob = new StringBuffer();
 
-        if (StringUtils.isNotEmpty(metadataUrl)) {
-            try {
-                URL url = new URL(metadataUrl);
-
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        jsonBlob.append(line);
-                    }
+        try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(awsFargateMetadataFetcher.openStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonBlob.append(line);
                 }
-
-                JSONObject jsonObject = (JSONObject) new JSONParser().parse(jsonBlob.toString());
-                dockerId = (String) jsonObject.get(FARGATE_DOCKER_ID_KEY);
-            } catch (MalformedURLException e) {
-                Agent.LOG.log(Level.FINEST, "Invalid AWS Fargate metadata URL: {0}", metadataUrl);
-            } catch (IOException e) {
-                Agent.LOG.log(Level.FINEST, "Error opening input stream for AWS Fargate metadata URL: {0}", metadataUrl);
-            } catch (ParseException e) {
-                Agent.LOG.log(Level.FINEST, "Error parsing JSON blob for AWS Fargate metadata URL: {0}", metadataUrl);
             }
+
+            JSONObject jsonObject = (JSONObject) new JSONParser().parse(jsonBlob.toString());
+            dockerId = (String) jsonObject.get(FARGATE_DOCKER_ID_KEY);
+        } catch (IOException e) {
+            Agent.LOG.log(Level.FINEST, "Error opening input stream retrieving AWS Fargate metadata");
+        } catch (ParseException e) {
+            Agent.LOG.log(Level.FINEST, "Error parsing JSON blob for AWS Fargate metadata");
         }
 
         return dockerId;
