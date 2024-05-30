@@ -2,6 +2,7 @@ package org.eclipse.jetty.server.handler;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -20,14 +21,11 @@ public class ContextHandler_Instrumentation {
         ServerHelper.contextHandlerFound();
     }
 
+    @Trace(dispatcher = true)
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
-        boolean isStarted = AgentBridge.getAgent().getTransaction().isStarted();
-
-        if (request != null && !isStarted) {
-            Transaction txn = AgentBridge.getAgent().getTransaction(true);
-            txn.setWebRequest(new JettyRequest(request));
-            txn.setWebResponse(new JettyResponse(response));
-        }
+        Transaction txn = AgentBridge.getAgent().getTransaction(true);
+        txn.setWebRequest(new JettyRequest(request));
+        txn.setWebResponse(new JettyResponse(response));
 
         return Weaver.callOriginal();
     }

@@ -9,6 +9,7 @@ package org.eclipse.jetty.server;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -29,17 +30,11 @@ public abstract class Server_Instrumentation {
         Weaver.callOriginal();
     }
 
+    @Trace(dispatcher = true)
     public boolean handle(Request request, Response response, Callback callback) {
-        boolean isStarted = AgentBridge.getAgent().getTransaction().isStarted();
-        // if there is a #ContextHolder, then this is not embedded Jetty, so the transaction should start there
-        boolean hasContextHolder = ServerHelper.hasContextHandler();
-        boolean startTransaction = request != null && !isStarted && !hasContextHolder;
-
-        if (startTransaction) {
-            Transaction txn = AgentBridge.getAgent().getTransaction(true);
-            txn.setWebRequest(new JettyRequest(request));
-            txn.setWebResponse(new JettyResponse(response));
-        }
+        Transaction txn = AgentBridge.getAgent().getTransaction(true);
+        txn.setWebRequest(new JettyRequest(request));
+        txn.setWebResponse(new JettyResponse(response));
         return Weaver.callOriginal();
     }
 
