@@ -9,7 +9,6 @@ package com.newrelic.agent.instrumentation;
 
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionStatsListener;
-import com.newrelic.agent.async.ExternalAsyncTest;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedActivity;
 import com.newrelic.agent.service.ServiceFactory;
@@ -24,7 +23,6 @@ import com.newrelic.api.agent.TransactionNamePriority;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import test.newrelic.EnvironmentHolderSettingsGenerator;
 import test.newrelic.test.agent.EnvironmentHolder;
@@ -33,6 +31,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.newrelic.agent.instrumentation.InstrumentTestUtils.retransformClass;
 
 public class APISupportabilityTest implements TransactionStatsListener {
 
@@ -65,7 +65,6 @@ public class APISupportabilityTest implements TransactionStatsListener {
         public void getTokenLinkAndExpire() {
             Token token = NewRelic.getAgent().getTransaction().getToken();
             token.linkAndExpire();
-            token = null;
         }
     }
 
@@ -73,7 +72,6 @@ public class APISupportabilityTest implements TransactionStatsListener {
         public void getTokenLinkAndExpire() {
             Token token = NewRelic.getAgent().getTransaction().getToken();
             token.linkAndExpire();
-            token = null;
         }
     }
 
@@ -82,7 +80,6 @@ public class APISupportabilityTest implements TransactionStatsListener {
         public void getTokenLinkAndExpire() {
             Token token = AgentBridge.getAgent().getTransaction().getToken();
             token.linkAndExpire();
-            token = null;
         }
     }
 
@@ -90,7 +87,6 @@ public class APISupportabilityTest implements TransactionStatsListener {
         public void getTokenLinkAndExpire() {
             Token token = AgentBridge.getAgent().getTransaction().getToken();
             token.linkAndExpire();
-            token = null;
         }
     }
 
@@ -498,16 +494,9 @@ public class APISupportabilityTest implements TransactionStatsListener {
         }
     }
 
-    @BeforeClass
-    public static void beforeClass() {
-        ServiceFactory.getClassTransformerService().getClassTransformer().getClassNameFilter().addIncludeClass(
-                APISupportabilityTest.class.getName().replace('.', '/') + "$TokenApiDispatcherTestClass");
-    }
-
     @Test
     public void testTokenApiDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TokenApiDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTokenLinkAndExpire", "()V;");
+        retransformClass(TokenApiDispatcherTestClass.class.getName());
 
         final String getTokenApiMetric = "Supportability/API/Token/API"; // Transaction.getToken
         final String tokenLinkApiMetric = "Supportability/API/Token/Link/API"; // Token.link
@@ -526,8 +515,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTokenApiNonDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TokenApiNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTokenLinkAndExpire", "()V;");
+        retransformClass(TokenApiNonDispatcherTestClass.class.getName());
 
         final String getTokenApiMetric = "Supportability/API/Token/API"; // Transaction.getToken
         final String tokenLinkApiMetric = "Supportability/API/Token/Link/API"; // Token.link
@@ -544,8 +532,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTokenApiDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TokenApiDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTokenLinkAndExpire", "()V;");
+        retransformClass(TokenApiDispatcherBridgeTestClass.class.getName());
 
         final String getTokenApiMetric = "Supportability/API/Token/API"; // Transaction.getToken
         final String tokenLinkApiMetric = "Supportability/API/Token/Link/API"; // Token.link
@@ -564,8 +551,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTokenApiNonDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TokenApiNonDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTokenLinkAndExpire", "()V;");
+        retransformClass(TokenApiNonDispatcherBridgeTestClass.class.getName());
 
         final String getTokenApiMetric = "Supportability/API/Token/API"; // Transaction.getToken
         final String tokenLinkApiMetric = "Supportability/API/Token/Link/API"; // Token.link
@@ -582,8 +568,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testSegmentApiSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.SegmentApiTestClass1.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "startAndEndSegment", "()V;");
+        retransformClass(SegmentApiTestClass1.class.getName());
 
         final String startSegmentApiMetric = "Supportability/API/Segment/API"; // Transaction.startSegment
         final String setMetricNameApiMetric = "Supportability/API/Segment/SetMetricName/API"; // Segment.setMetricName
@@ -605,8 +590,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testSegmentApiNonDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.SegmentApiTestClass2.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "startAndEndSegment", "()V;");
+        retransformClass(SegmentApiTestClass2.class.getName());
 
         final String startSegmentApiMetric = "Supportability/API/Segment/API"; // Transaction.startSegment
         final String setMetricNameApiMetric = "Supportability/API/Segment/SetMetricName/API"; // Segment.setMetricName
@@ -624,8 +608,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testCategorySegmentApiSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.SegmentApiTestClass3.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "startAndEndSegment", "()V;");
+        retransformClass(SegmentApiTestClass3.class.getName());
 
         final String startSegmentApiMetric = "Supportability/API/Segment/API"; // Transaction.startSegment
         final String setMetricNameApiMetric = "Supportability/API/Segment/SetMetricName/API"; // Segment.setMetricName
@@ -647,8 +630,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testCategorySegmentApiNonDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.SegmentApiTestClass4.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "startAndEndSegment", "()V;");
+        retransformClass(SegmentApiTestClass4.class.getName());
 
         final String startSegmentApiMetric = "Supportability/API/Segment/API"; // Transaction.startSegment
         final String setMetricNameApiMetric = "Supportability/API/Segment/SetMetricName/API"; // Segment.setMetricName
@@ -666,8 +648,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTracedActivityApiSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.SegmentApiTestClass5.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "startAndEndSegment", "()V;");
+        retransformClass(SegmentApiTestClass5.class.getName());
 
         final String createAndStartTracedActivityApiMetric = "Supportability/API/Segment/API"; // Transaction.createAndStartTracedActivity
         final String setMetricNameApiMetric = "Supportability/API/Segment/SetMetricName/API"; // TracedActivity.setMetricName
@@ -689,8 +670,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTracedActivityApiNonDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.SegmentApiTestClass6.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "startAndEndSegment", "()V;");
+        retransformClass(SegmentApiTestClass6.class.getName());
 
         final String createAndStartTracedActivityApiMetric = "Supportability/API/Segment/API"; // Transaction.createAndStartTracedActivity
         final String setMetricNameApiMetric = "Supportability/API/Segment/SetMetricName/API"; // TracedActivity.setMetricName
@@ -708,8 +688,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTxnIgnoreApdexDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TxnIgnoreApdexDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnoreApdex", "()V;");
+        retransformClass(TxnIgnoreApdexDispatcherTestClass.class.getName());
 
         final String txnIgnoreApdexMetric = "Supportability/API/IgnoreApdex/API";
         new TxnIgnoreApdexDispatcherTestClass().getTxnIgnoreApdex();
@@ -721,8 +700,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTxnIgnoreApdexNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TxnIgnoreApdexNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnoreApdex", "()V;");
+        retransformClass(TxnIgnoreApdexNonDispatcherTestClass.class.getName());
 
         final String txnIgnoreApdexMetric = "Supportability/API/IgnoreApdex/API";
         new TxnIgnoreApdexNonDispatcherTestClass().getTxnIgnoreApdex();
@@ -735,8 +713,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTxnIgnoreApdexDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TxnIgnoreApdexDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnoreApdex", "()V;");
+        retransformClass(TxnIgnoreApdexDispatcherBridgeTestClass.class.getName());
 
         final String txnIgnoreApdexMetric = "Supportability/API/IgnoreApdex/API";
         new TxnIgnoreApdexDispatcherBridgeTestClass().getTxnIgnoreApdex();
@@ -748,8 +725,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTxnIgnoreApdexNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TxnIgnoreApdexNonDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnoreApdex", "()V;");
+        retransformClass(TxnIgnoreApdexNonDispatcherBridgeTestClass.class.getName());
 
         final String txnIgnoreApdexMetric = "Supportability/API/IgnoreApdex/API";
         new TxnIgnoreApdexNonDispatcherBridgeTestClass().getTxnIgnoreApdex();
@@ -762,8 +738,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicIgnoreApdexDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.NewRelicIgnoreApdexDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicIgnoreApdex", "()V;");
+        retransformClass(NewRelicIgnoreApdexDispatcherTestClass.class.getName());
 
         final String newRelicIgnoreApdexMetric = "Supportability/API/IgnoreApdex/API";
         new NewRelicIgnoreApdexDispatcherTestClass().getNewRelicIgnoreApdex();
@@ -775,8 +750,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicIgnoreApdexNonDispatcherSupportabilityTracking() throws Exception {
-        String className = NewRelicIgnoreApdexNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicIgnoreApdex", "()V;");
+        retransformClass(NewRelicIgnoreApdexNonDispatcherTestClass.class.getName());
 
         final String newRelicIgnoreApdexMetric = "Supportability/API/IgnoreApdex/API";
         new NewRelicIgnoreApdexNonDispatcherTestClass().getNewRelicIgnoreApdex();
@@ -789,8 +763,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTxnIgnoreDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TxnIgnoreDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnore", "()V;");
+        retransformClass(TxnIgnoreDispatcherTestClass.class.getName());
 
         final String txnIgnoreMetric = "Supportability/API/Ignore/API";
         new TxnIgnoreDispatcherTestClass().getTxnIgnore();
@@ -802,8 +775,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTxnIgnoreNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TxnIgnoreNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnore", "()V;");
+        retransformClass(TxnIgnoreNonDispatcherTestClass.class.getName());
 
         final String txnIgnoreMetric = "Supportability/API/Ignore/API";
         new TxnIgnoreNonDispatcherTestClass().getTxnIgnore();
@@ -816,8 +788,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTxnIgnoreDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TxnIgnoreDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnore", "()V;");
+        retransformClass(TxnIgnoreDispatcherBridgeTestClass.class.getName());
 
         final String txnIgnoreMetric = "Supportability/API/Ignore/API";
         new TxnIgnoreDispatcherBridgeTestClass().getTxnIgnore();
@@ -829,8 +800,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTxnIgnoreNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TxnIgnoreNonDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnIgnore", "()V;");
+        retransformClass(TxnIgnoreNonDispatcherBridgeTestClass.class.getName());
 
         final String txnIgnoreMetric = "Supportability/API/Ignore/API";
         new TxnIgnoreNonDispatcherBridgeTestClass().getTxnIgnore();
@@ -843,8 +813,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicIgnoreDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.NewRelicIgnoreDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicIgnore", "()V;");
+        retransformClass(NewRelicIgnoreDispatcherTestClass.class.getName());
 
         final String newRelicIgnoreMetric = "Supportability/API/Ignore/API";
         new NewRelicIgnoreDispatcherTestClass().getNewRelicIgnore();
@@ -856,8 +825,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicIgnoreNonDispatcherSupportabilityTracking() throws Exception {
-        String className = NewRelicIgnoreNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicIgnore", "()V;");
+        retransformClass(NewRelicIgnoreNonDispatcherTestClass.class.getName());
 
         final String newRelicIgnoreMetric = "Supportability/API/Ignore/API";
         new NewRelicIgnoreNonDispatcherTestClass().getNewRelicIgnore();
@@ -874,8 +842,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
         EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
         try {
-            String className = APISupportabilityTest.ProcessRequestMetadataDispatcherTestClass.class.getName();
-            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
+            retransformClass(ProcessRequestMetadataDispatcherTestClass.class.getName());
 
             final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
             new ProcessRequestMetadataDispatcherTestClass().getProcessRequestMetadata();
@@ -890,8 +857,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testProcessRequestMetadataNonDispatcherSupportabilityTracking() throws Exception {
-        String className = ProcessRequestMetadataNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
+        retransformClass(ProcessRequestMetadataNonDispatcherTestClass.class.getName());
 
         final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
         new ProcessRequestMetadataNonDispatcherTestClass().getProcessRequestMetadata();
@@ -908,8 +874,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
         EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
         try {
-            String className = APISupportabilityTest.ProcessRequestMetadataDispatcherBridgeTestClass.class.getName();
-            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
+            retransformClass(ProcessRequestMetadataDispatcherBridgeTestClass.class.getName());
 
             final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
             new ProcessRequestMetadataDispatcherBridgeTestClass().getProcessRequestMetadata();
@@ -924,8 +889,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeProcessRequestMetadataNonDispatcherSupportabilityTracking() throws Exception {
-        String className = ProcessRequestMetadataNonDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessRequestMetadata", "()V;");
+        retransformClass(ProcessRequestMetadataNonDispatcherBridgeTestClass.class.getName());
 
         final String processRequestMetadataMetric = "Supportability/API/ProcessRequestMetadata/API";
         new ProcessRequestMetadataNonDispatcherBridgeTestClass().getProcessRequestMetadata();
@@ -942,8 +906,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
         EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
         try {
-            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherTestClass1.class.getName();
-            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+            retransformClass(ProcessResponseMetadataDispatcherTestClass1.class.getName());
 
             final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
             new ProcessResponseMetadataDispatcherTestClass1().getProcessResponseMetadata();
@@ -958,8 +921,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testProcessResponseMetadataNonDispatcherSupportabilityTracking1() throws Exception {
-        String className = ProcessResponseMetadataNonDispatcherTestClass1.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        retransformClass(ProcessResponseMetadataNonDispatcherTestClass1.class.getName());
 
         final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
         new ProcessResponseMetadataNonDispatcherTestClass1().getProcessResponseMetadata();
@@ -976,8 +938,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
         EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
         try {
-            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherBridgeTestClass1.class.getName();
-            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+            retransformClass(ProcessResponseMetadataDispatcherBridgeTestClass1.class.getName());
 
             final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
             new ProcessResponseMetadataDispatcherBridgeTestClass1().getProcessResponseMetadata();
@@ -992,8 +953,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeProcessResponseMetadataNonDispatcherSupportabilityTracking1() throws Exception {
-        String className = ProcessResponseMetadataNonDispatcherBridgeTestClass1.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        retransformClass(ProcessResponseMetadataNonDispatcherBridgeTestClass1.class.getName());
 
         final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
         new ProcessResponseMetadataNonDispatcherBridgeTestClass1().getProcessResponseMetadata();
@@ -1010,8 +970,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
         EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
         try {
-            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherTestClass2.class.getName();
-            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+            retransformClass(ProcessResponseMetadataDispatcherTestClass2.class.getName());
 
             final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
             new ProcessResponseMetadataDispatcherTestClass2().getProcessResponseMetadata();
@@ -1026,8 +985,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testProcessResponseMetadataNonDispatcherSupportabilityTracking2() throws Exception {
-        String className = ProcessResponseMetadataNonDispatcherTestClass2.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        retransformClass(ProcessResponseMetadataNonDispatcherTestClass2.class.getName());
 
         final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
         new ProcessResponseMetadataNonDispatcherTestClass2().getProcessResponseMetadata();
@@ -1044,8 +1002,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
         EnvironmentHolder holder = setupEnvironmentHolder("cat_enabled_dt_disabled_test");
 
         try {
-            String className = APISupportabilityTest.ProcessResponseMetadataDispatcherBridgeTestClass2.class.getName();
-            InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+            retransformClass(ProcessResponseMetadataDispatcherBridgeTestClass2.class.getName());
 
             final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
             new ProcessResponseMetadataDispatcherBridgeTestClass2().getProcessResponseMetadata();
@@ -1060,8 +1017,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeProcessResponseMetadataNonDispatcherSupportabilityTracking2() throws Exception {
-        String className = ProcessResponseMetadataNonDispatcherBridgeTestClass2.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getProcessResponseMetadata", "()V;");
+        retransformClass(ProcessResponseMetadataNonDispatcherBridgeTestClass2.class.getName());
 
         final String processResponseMetadataMetric = "Supportability/API/ProcessResponseMetadata/API";
         new ProcessResponseMetadataNonDispatcherBridgeTestClass2().getProcessResponseMetadata();
@@ -1074,8 +1030,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTxnSetTransactionNameDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TxnSetTransactionNameDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnSetTransactionName", "()V;");
+        retransformClass(TxnSetTransactionNameDispatcherTestClass.class.getName());
 
         final String txnSetTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         new TxnSetTransactionNameDispatcherTestClass().getTxnSetTransactionName();
@@ -1087,8 +1042,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTxnSetTransactionNameNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TxnSetTransactionNameNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnSetTransactionName", "()V;");
+        retransformClass(TxnSetTransactionNameNonDispatcherTestClass.class.getName());
 
         final String txnSetTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         new TxnSetTransactionNameNonDispatcherTestClass().getTxnSetTransactionName();
@@ -1101,8 +1055,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTxnSetTransactionNameDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TxnSetTransactionNameDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnSetTransactionName", "()V;");
+        retransformClass(TxnSetTransactionNameDispatcherBridgeTestClass.class.getName());
 
         final String txnSetTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         new TxnSetTransactionNameDispatcherBridgeTestClass().getTxnSetTransactionName();
@@ -1114,8 +1067,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTxnSetTransactionNameNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TxnSetTransactionNameNonDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTxnSetTransactionName", "()V;");
+        retransformClass(TxnSetTransactionNameNonDispatcherBridgeTestClass.class.getName());
 
         final String txnSetTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         new TxnSetTransactionNameNonDispatcherBridgeTestClass().getTxnSetTransactionName();
@@ -1128,8 +1080,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicSetTransactionNameDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.NewRelicSetTransactionNameDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicSetTransactionName", "()V;");
+        retransformClass(NewRelicSetTransactionNameDispatcherTestClass.class.getName());
 
         final String newRelicSetTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         new NewRelicSetTransactionNameDispatcherTestClass().getNewRelicSetTransactionName();
@@ -1141,8 +1092,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicSetTransactionNameNonDispatcherSupportabilityTracking() throws Exception {
-        String className = NewRelicSetTransactionNameNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicSetTransactionName", "()V;");
+        retransformClass(NewRelicSetTransactionNameNonDispatcherTestClass.class.getName());
 
         final String newRelicSetTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         new NewRelicSetTransactionNameNonDispatcherTestClass().getNewRelicSetTransactionName();
@@ -1155,8 +1105,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTracedMethodReportAsExternalDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TracedMethodReportAsExternalDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTracedMethodReportAsExternal", "()V;");
+        retransformClass(TracedMethodReportAsExternalDispatcherTestClass.class.getName());
 
         final String tracedMethodReportAsExternalMetric = "Supportability/API/ReportAsExternal/API";
         new TracedMethodReportAsExternalDispatcherTestClass().getTracedMethodReportAsExternal();
@@ -1168,8 +1117,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testTracedMethodReportAsExternalNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TracedMethodReportAsExternalNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTracedMethodReportAsExternal", "()V;");
+        retransformClass(TracedMethodReportAsExternalNonDispatcherTestClass.class.getName());
 
         final String tracedMethodReportAsExternalMetric = "Supportability/API/ReportAsExternal/API";
         new TracedMethodReportAsExternalNonDispatcherTestClass().getTracedMethodReportAsExternal();
@@ -1182,8 +1130,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTracedMethodReportAsExternalDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.TracedMethodReportAsExternalDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTracedMethodReportAsExternal", "()V;");
+        retransformClass(TracedMethodReportAsExternalDispatcherBridgeTestClass.class.getName());
 
         final String tracedMethodReportAsExternalMetric = "Supportability/API/ReportAsExternal/API";
         new TracedMethodReportAsExternalDispatcherBridgeTestClass().getTracedMethodReportAsExternal();
@@ -1195,8 +1142,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testBridgeTracedMethodReportAsExternalNonDispatcherSupportabilityTracking() throws Exception {
-        String className = TracedMethodReportAsExternalNonDispatcherBridgeTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getTracedMethodReportAsExternal", "()V;");
+        retransformClass(TracedMethodReportAsExternalNonDispatcherBridgeTestClass.class.getName());
 
         final String tracedMethodReportAsExternalMetric = "Supportability/API/ReportAsExternal/API";
         new TracedMethodReportAsExternalNonDispatcherBridgeTestClass().getTracedMethodReportAsExternal();
@@ -1209,8 +1155,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testRecordCustomEventDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.RecordCustomEventDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getRecordCustomEvent", "()V;");
+        retransformClass(RecordCustomEventDispatcherTestClass.class.getName());
 
         final String recordCustomEventMetric = "Supportability/API/RecordCustomEvent/API"; // Insights.recordCustomEvent
         new RecordCustomEventDispatcherTestClass().getRecordCustomEvent();
@@ -1222,8 +1167,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testRecordCustomEventNonDispatcherSupportabilityTracking() throws Exception {
-        String className = RecordCustomEventNonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getRecordCustomEvent", "()V;");
+        retransformClass(RecordCustomEventNonDispatcherTestClass.class.getName());
 
         final String recordCustomEventMetric = "Supportability/API/RecordCustomEvent/API"; // Insights.recordCustomEvent
         new RecordCustomEventNonDispatcherTestClass().getRecordCustomEvent();
@@ -1237,8 +1181,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicAPIDispatcherSupportabilityTracking() throws Exception {
-        String className = APISupportabilityTest.NewRelicAPIDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicAPI", "()V;");
+        retransformClass(NewRelicAPIDispatcherTestClass.class.getName());
 
         final String setTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         final String addCustomParameterMetric = "Supportability/API/AddCustomParameter/API";
@@ -1274,8 +1217,7 @@ public class APISupportabilityTest implements TransactionStatsListener {
 
     @Test
     public void testNewRelicAPINonDispatcherSupportabilityTracking() throws Exception {
-        String className = NewRelicAPINonDispatcherTestClass.class.getName();
-        InstrumentTestUtils.createTransformerAndRetransformClass(className, "getNewRelicAPI", "()V;");
+        retransformClass(NewRelicAPINonDispatcherTestClass.class.getName());
 
         final String setTransactionNameMetric = "Supportability/API/SetTransactionName/API";
         final String addCustomParameterMetric = "Supportability/API/AddCustomParameter/API";

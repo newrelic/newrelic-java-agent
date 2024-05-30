@@ -14,6 +14,7 @@ import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java21IncompatibleTest;
+import com.newrelic.test.marker.Java22IncompatibleTest;
 import com.nr.instrumentation.akka22.test.actors.broadcasting.ActorA;
 import com.nr.instrumentation.akka22.test.actors.broadcasting.ActorB;
 import com.nr.instrumentation.akka22.test.actors.broadcasting.ActorC;
@@ -32,7 +33,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 // Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
-@Category({ Java17IncompatibleTest.class, Java21IncompatibleTest.class })
+@Category({ Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java22IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"akka.actor", "akka.dispatch", "akka.pattern", "akka.routing"})
 public class AkkaTest {

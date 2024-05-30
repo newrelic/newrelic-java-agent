@@ -44,7 +44,7 @@ public class SpanEventFactory {
 
     private static final Joiner TRACE_STATE_VENDOR_JOINER = Joiner.on(",");
     // Truncate `db.statement` at 2000 characters
-    private static final int DB_STATEMENT_TRUNCATE_LENGTH = 2000;
+    private static final int DB_STATEMENT_TRUNCATE_LENGTH = 4095;
     private static final int MAX_EVENT_ATTRIBUTE_STRING_LENGTH = 4095;
 
     public static final Supplier<Long> DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER = System::currentTimeMillis;

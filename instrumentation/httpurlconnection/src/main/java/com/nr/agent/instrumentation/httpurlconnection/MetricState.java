@@ -11,12 +11,14 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.external.URISupport;
+import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.OutboundHeaders;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.UnknownHostException;
 
 /**
  * <p>
@@ -42,6 +44,7 @@ import java.net.URI;
  */
 public class MetricState {
     private static final String LIBRARY = "HttpURLConnection";
+    private static final URI UNKNOWN_HOST = URI.create("UnknownHost");
 
     // the guids for these tracers are swapped so the DT is attached to the tracer that
     // has the external
@@ -106,6 +109,24 @@ public class MetricState {
         if (tx != null) {
             reportExternalCall(connection, operation, responseCode, responseMessage);
         }
+    }
+
+    public void handleException(TracedMethod tracer, Exception e) {
+        if (externalTracer != tracer) {
+            return;
+        }
+
+        if (!externalReported && e instanceof UnknownHostException) {
+            externalTracer.reportAsExternal(GenericParameters
+                    .library(LIBRARY)
+                    .uri(UNKNOWN_HOST)
+                    .procedure("failed")
+                    .build());
+            externalReported = true;
+        }
+
+        dtTracer = null;
+        externalTracer = null;
     }
 
     /**

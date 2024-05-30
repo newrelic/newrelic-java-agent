@@ -99,8 +99,8 @@ tasks {
 
 // This is a functional test really. Jacoco conflicts with the InstrumetnationTestRunner init.
 // We will need to resolve this in future work to get Jacoco working with functional tests.
-tasks.withType<Test> {
-    extensions.configure(JacocoTaskExtension::class) {
-        isEnabled = false
-    }
-}
+//tasks.withType<Test> {
+//    extensions.configure(JacocoTaskExtension::class) {
+//        isEnabled = false
+//    }
+//}

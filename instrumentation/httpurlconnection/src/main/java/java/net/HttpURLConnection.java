@@ -78,10 +78,7 @@ public abstract class HttpURLConnection extends URLConnection {
             // This does a network request (if getResponseCode() wasn't called first)
             inputStream = Weaver.callOriginal();
         } catch (Exception e) {
-            // This is the default legacy behavior of the AbstractExternalComponentTracer
-            if (e instanceof UnknownHostException) {
-                method.setMetricName("External", "UnknownHost", "HttpURLConnection");
-            }
+            metricState.handleException(method, e);
             throw e;
         }
 
@@ -103,10 +100,7 @@ public abstract class HttpURLConnection extends URLConnection {
             // This does a network request (if getInputStream() wasn't called first)
             responseCodeValue = Weaver.callOriginal();
         } catch (Exception e) {
-            // This is the default legacy behavior of the AbstractExternalComponentTracer
-            if (e instanceof UnknownHostException) {
-                method.setMetricName("External", "UnknownHost", "HttpURLConnection");
-            }
+            metricState.handleException(method, e);
             throw e;
         }
 
@@ -123,9 +117,7 @@ public abstract class HttpURLConnection extends URLConnection {
         try {
             responseMessageValue = Weaver.callOriginal();
         } catch (Exception e) {
-            if (e instanceof UnknownHostException) {
-                method.setMetricName("External", "UnknownHost", "HttpURLConnection");
-            }
+            metricState.handleException(method, e);
             throw e;
         }
         metricState.inboundPostamble(this, responseCode, responseMessageValue, GET_RESPONSE_MSG, method);

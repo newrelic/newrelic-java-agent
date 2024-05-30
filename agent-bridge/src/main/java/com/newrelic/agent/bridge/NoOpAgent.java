@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.AiMonitoring;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
@@ -17,6 +18,8 @@ import com.newrelic.api.agent.TraceMetadata;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static com.newrelic.agent.bridge.NoOpAiMonitoring.INSTANCE;
 
 class NoOpAgent implements Agent {
 
@@ -63,6 +66,11 @@ class NoOpAgent implements Agent {
     @Override
     public Insights getInsights() {
         return NoOpInsights.INSTANCE;
+    }
+
+    @Override
+    public AiMonitoring getAiMonitoring() {
+        return NoOpAiMonitoring.INSTANCE;
     }
 
     @Override
