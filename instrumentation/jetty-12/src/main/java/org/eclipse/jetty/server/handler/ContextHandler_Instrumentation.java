@@ -21,11 +21,14 @@ public class ContextHandler_Instrumentation {
         ServerHelper.contextHandlerFound();
     }
 
-    @Trace(dispatcher = true)
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
-        Transaction txn = AgentBridge.getAgent().getTransaction(true);
-        txn.setWebRequest(new JettyRequest(request));
-        txn.setWebResponse(new JettyResponse(response));
+        boolean isStarted = AgentBridge.getAgent().getTransaction().isStarted();
+
+        if (request != null && !isStarted) {
+            Transaction txn = AgentBridge.getAgent().getTransaction(true);
+            txn.setWebRequest(new JettyRequest(request));
+            txn.setWebResponse(new JettyResponse(response));
+        }
 
         return Weaver.callOriginal();
     }
