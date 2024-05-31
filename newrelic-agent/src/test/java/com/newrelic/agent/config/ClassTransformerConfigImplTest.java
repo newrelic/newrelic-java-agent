@@ -45,11 +45,11 @@ public class ClassTransformerConfigImplTest {
     public void isEnabled() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
-                true, false);
+                true, false, false);
         assertTrue(config.isEnabled());
 
         classTransformerMap.put("enabled", false);
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Assert.assertFalse(config.isEnabled());
     }
 
@@ -59,20 +59,20 @@ public class ClassTransformerConfigImplTest {
         Map<String, Object> instDefault = new HashMap<>();
         Map<String, Object> builtinExt = new HashMap<>();
 
-        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Assert.assertTrue(config.isDefaultInstrumentationEnabled());
         Assert.assertTrue(config.isBuiltinExtensionEnabled());
 
         instDefault.put("enabled", false);
         classTransformerMap.put(ClassTransformerConfigImpl.DEFAULT_INSTRUMENTATION, instDefault);
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
 
         Assert.assertFalse(config.isDefaultInstrumentationEnabled());
         Assert.assertFalse(config.isBuiltinExtensionEnabled());
 
         builtinExt.put("enabled", true);
         classTransformerMap.put(ClassTransformerConfigImpl.BUILTIN_EXTENSIONS, builtinExt);
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
 
         Assert.assertFalse(config.isDefaultInstrumentationEnabled());
         Assert.assertTrue(config.isBuiltinExtensionEnabled());
@@ -82,9 +82,9 @@ public class ClassTransformerConfigImplTest {
     public void isCustomTracingEnabled() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
-                true, false);
+                true, false, false);
         assertTrue(config.isCustomTracingEnabled());
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, false, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, false, false, false);
         Assert.assertFalse(config.isCustomTracingEnabled());
     }
 
@@ -92,17 +92,17 @@ public class ClassTransformerConfigImplTest {
     public void shutdownDelayInNanos() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
-                true, false);
+                true, false, false);
         Assert.assertEquals(-1L, config.getShutdownDelayInNanos());
 
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         classTransformerMap.put("shutdown_delay", 60);
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Assert.assertEquals(60000000000L, config.getShutdownDelayInNanos());
 
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         classTransformerMap.put("shutdown_delay", 44.10);
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Assert.assertEquals(44000000000L, config.getShutdownDelayInNanos());
     }
 
@@ -110,13 +110,13 @@ public class ClassTransformerConfigImplTest {
     public void includes() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
-                true, false);
+                true, false, false);
         Assert.assertEquals(0, config.getIncludes().size());
 
         classTransformerMap.put(
                 ClassTransformerConfigImpl.INCLUDES,
                 "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper, test/ExcludeTest$ExcludeTestInner, org/jruby/rack/RackEnvironment");
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Set<String> includes = config.getIncludes();
         Assert.assertEquals(3, includes.size());
         assertTrue(includes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
@@ -125,7 +125,7 @@ public class ClassTransformerConfigImplTest {
 
         classTransformerMap.put(ClassTransformerConfigImpl.INCLUDES,
                 "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper");
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         includes = config.getIncludes();
         Assert.assertEquals(1, includes.size());
         assertTrue(includes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
@@ -154,7 +154,7 @@ public class ClassTransformerConfigImplTest {
         AgentConfig config = AgentConfigImpl.createAgentConfig(configMap);
         ClassTransformerConfig classTransformerConfig = config.getClassTransformerConfig();
 
-        classTransformerConfig = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        classTransformerConfig = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Set<String> exclusions = classTransformerConfig.getClassloaderExclusions();
         Assert.assertEquals(8, exclusions.size()); // 6 included by default ClassTransformerConfigImpl#initializeClassloaderExcludes
 
@@ -205,13 +205,13 @@ public class ClassTransformerConfigImplTest {
     public void excludes() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
-                true, false);
+                true, false, false);
         Assert.assertEquals(0, config.getExcludes().size());
 
         classTransformerMap.put(
                 ClassTransformerConfigImpl.EXCLUDES,
                 "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper, test/ExcludeTest$ExcludeTestInner, org/jruby/rack/RackEnvironment");
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Set<String> excludes = config.getExcludes();
         Assert.assertEquals(3, excludes.size());
         assertTrue(excludes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
@@ -220,9 +220,34 @@ public class ClassTransformerConfigImplTest {
 
         classTransformerMap.put(ClassTransformerConfigImpl.EXCLUDES,
                 "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper");
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         excludes = config.getExcludes();
         Assert.assertEquals(1, excludes.size());
+        assertTrue(excludes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
+    }
+
+    @Test
+    public void excludes_withSecurityAgentClasses() throws Exception {
+        Map<String, Object> classTransformerMap = new HashMap<>();
+        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
+                true, false, true);
+        Assert.assertEquals(5, config.getExcludes().size());
+
+        classTransformerMap.put(
+                ClassTransformerConfigImpl.EXCLUDES,
+                "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper, test/ExcludeTest$ExcludeTestInner, org/jruby/rack/RackEnvironment");
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, true);
+        Set<String> excludes = config.getExcludes();
+        Assert.assertEquals(8, excludes.size());
+        assertTrue(excludes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
+        assertTrue(excludes.contains("test/ExcludeTest$ExcludeTestInner"));
+        assertTrue(excludes.contains("org/jruby/rack/RackEnvironment"));
+
+        classTransformerMap.put(ClassTransformerConfigImpl.EXCLUDES,
+                "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper");
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, true);
+        excludes = config.getExcludes();
+        Assert.assertEquals(6, excludes.size());
         assertTrue(excludes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
     }
 
@@ -381,7 +406,7 @@ public class ClassTransformerConfigImplTest {
 
         instDefault.put("enabled", false);
         props.put(ClassTransformerConfigImpl.DEFAULT_INSTRUMENTATION, instDefault);
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(props, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(props, true, false, false);
 
         assertFalse(config.isWeavePackageEnabled(weaveConfig));
 
@@ -507,7 +532,7 @@ public class ClassTransformerConfigImplTest {
     public void testPointcutEnabled() {
         Map<String, Object> classTransformerMap = new HashMap<>();
 
-        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false);
+        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
 
         Map<String, Object> configSettings = new HashMap<>();
         configSettings.put(AgentConfigImpl.CLASS_TRANSFORMER, classTransformerMap);
@@ -565,12 +590,12 @@ public class ClassTransformerConfigImplTest {
     public void weavePackageConfigInstrumentationDisableSystemPropertyOverride() {
         final String moduleName = "com.newrelic.instrumentation.mymodule-1.0";
         Map<String, Object> configMap = new HashMap<>();
-        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(configMap, true, false);
+        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(configMap, true, false, false);
         Assert.assertTrue(config.isDefaultInstrumentationEnabled());
 
         configMap.put("instrumentation_default:enabled", false);
         configMap = buildConfigMap(configMap);
-        config = ClassTransformerConfigImpl.createClassTransformerConfig(configMap, true, false);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(configMap, true, false, false);
         Assert.assertFalse(config.isDefaultInstrumentationEnabled());
 
         WeavePackageConfig weaveConfig = WeavePackageConfig.builder().name(moduleName).build();

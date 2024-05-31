@@ -780,36 +780,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private ClassTransformerConfig initClassTransformerConfig(boolean liteMode) {
         boolean customTracingEnabled = getProperty(ENABLE_CUSTOM_TRACING, DEFAULT_ENABLE_CUSTOM_TRACING);
         Map<String, Object> props = nestedProps(CLASS_TRANSFORMER);
-        props = placeSecurityCollectorRelatedModification(props);
-        return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode);
-    }
-
-    /**
-     * Security agent specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
-     */
-    private Map<String, Object> placeSecurityCollectorRelatedModification(Map<String, Object> props) {
-        if (getProperty("security") != null) {
-            if (props == null) {
-                props = new HashMap<>();
-            } else {
-                props = new HashMap<>(props);
-            }
-            Set<String> securityExcludes = new HashSet<>();
-            securityExcludes.add("java/util/zip/InflaterInputStream");
-            securityExcludes.add("java/util/zip/ZipFile$ZipFileInputStream");
-            securityExcludes.add("java/util/zip/ZipFile$ZipFileInflaterInputStream");
-            securityExcludes.add("com/newrelic/api/agent/security/.*");
-            securityExcludes.add("com/newrelic/agent/security/.*");
-
-            Object userProvidedExcludes = props.get(ClassTransformerConfigImpl.EXCLUDES);
-            if (userProvidedExcludes instanceof String) {
-                securityExcludes.add((String) userProvidedExcludes);
-            } else if (userProvidedExcludes instanceof Set) {
-                securityExcludes.addAll((Collection<? extends String>) userProvidedExcludes);
-            }
-            props.put(ClassTransformerConfigImpl.EXCLUDES, securityExcludes);
-        }
-        return props;
+        boolean addSecurityExcludes = getProperty("security") != null;
+        return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode, addSecurityExcludes);
     }
 
     private CircuitBreakerConfig initCircuitBreakerConfig() {
