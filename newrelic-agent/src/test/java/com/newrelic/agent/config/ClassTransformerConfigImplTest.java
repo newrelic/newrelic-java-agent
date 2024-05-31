@@ -231,17 +231,28 @@ public class ClassTransformerConfigImplTest {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
                 true, false, true);
-        Assert.assertEquals(5, config.getExcludes().size());
+        Set<String> excludes = config.getExcludes();
+        Assert.assertEquals(5, excludes.size());
+        assertTrue(excludes.contains("java/util/zip/InflaterInputStream"));
+        assertTrue(excludes.contains("java/util/zip/ZipFile$ZipFileInputStream"));
+        assertTrue(excludes.contains("java/util/zip/ZipFile$ZipFileInflaterInputStream"));
+        assertTrue(excludes.contains("com/newrelic/api/agent/security/.*"));
+        assertTrue(excludes.contains("com/newrelic/agent/security/.*"));
 
         classTransformerMap.put(
                 ClassTransformerConfigImpl.EXCLUDES,
                 "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper, test/ExcludeTest$ExcludeTestInner, org/jruby/rack/RackEnvironment");
         config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, true);
-        Set<String> excludes = config.getExcludes();
+        excludes = config.getExcludes();
         Assert.assertEquals(8, excludes.size());
         assertTrue(excludes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
         assertTrue(excludes.contains("test/ExcludeTest$ExcludeTestInner"));
         assertTrue(excludes.contains("org/jruby/rack/RackEnvironment"));
+        assertTrue(excludes.contains("java/util/zip/InflaterInputStream"));
+        assertTrue(excludes.contains("java/util/zip/ZipFile$ZipFileInputStream"));
+        assertTrue(excludes.contains("java/util/zip/ZipFile$ZipFileInflaterInputStream"));
+        assertTrue(excludes.contains("com/newrelic/api/agent/security/.*"));
+        assertTrue(excludes.contains("com/newrelic/agent/security/.*"));
 
         classTransformerMap.put(ClassTransformerConfigImpl.EXCLUDES,
                 "org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper");
@@ -249,6 +260,11 @@ public class ClassTransformerConfigImplTest {
         excludes = config.getExcludes();
         Assert.assertEquals(6, excludes.size());
         assertTrue(excludes.contains("org/apache/tomcat/dbcp/dbcp/PoolableDataSource$PoolGuardConnectionWrapper"));
+        assertTrue(excludes.contains("java/util/zip/InflaterInputStream"));
+        assertTrue(excludes.contains("java/util/zip/ZipFile$ZipFileInputStream"));
+        assertTrue(excludes.contains("java/util/zip/ZipFile$ZipFileInflaterInputStream"));
+        assertTrue(excludes.contains("com/newrelic/api/agent/security/.*"));
+        assertTrue(excludes.contains("com/newrelic/agent/security/.*"));
     }
 
     @Test
