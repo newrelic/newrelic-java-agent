@@ -820,6 +820,15 @@ public class DefaultTracer extends AbstractTracer {
                     messageProduceParameters.getLibrary(),
                     messageProduceParameters.getDestinationType().getTypeName()));
         }
+        if (messageProduceParameters.getCloudResourceId() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageProduceParameters.getCloudResourceId());
+        }
+        if (messageProduceParameters.getHost() != null) {
+            setAgentAttribute(AttributeNames.SERVER_ADDRESS, messageProduceParameters.getHost());
+        }
+        if (messageProduceParameters.getPort() != null) {
+            setAgentAttribute(AttributeNames.SERVER_PORT, messageProduceParameters.getPort());
+        }
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -842,6 +851,12 @@ public class DefaultTracer extends AbstractTracer {
 
         if (messageConsumeParameters.getCloudResourceId() != null) {
             setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, messageConsumeParameters.getCloudResourceId());
+        }
+        if (messageConsumeParameters.getHost() != null) {
+            setAgentAttribute(AttributeNames.SERVER_ADDRESS, messageConsumeParameters.getHost());
+        }
+        if (messageConsumeParameters.getPort() != null) {
+            setAgentAttribute(AttributeNames.SERVER_PORT, messageConsumeParameters.getPort());
         }
     }
 

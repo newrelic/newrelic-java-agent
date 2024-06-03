@@ -13,10 +13,8 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.PrivateApi;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.jmx.JmxApiImpl;
-import com.newrelic.agent.messaging.MessageMetrics;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.AgentCollectionFactory;
-import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.Logger;
 
 import javax.management.MBeanServer;
@@ -98,19 +96,6 @@ public class PrivateApiImpl implements PrivateApi {
     }
 
     @Override
-    public String buildMessageBrokerInstanceMetric(String host, Integer port, DestinationType destinationType, String destination) {
-        return MessageMetrics.buildInstanceMetricIfEnabled(host, port, destinationType, destination);
-    }
-
-    @Override
-    public void reportMessageBrokerInstance(String host, Integer port, DestinationType destinationType, String destination) {
-        Transaction currentTxn = Transaction.getTransaction(false);
-        if (currentTxn != null) {
-            MessageMetrics.reportInstanceMetric(currentTxn.getTransactionActivity().getLastTracer(), host, port, destinationType, destination);
-        }
-    }
-
-    @Override
     public void setAppServerPort(int port) {
         AgentBridge.publicApi.setAppServerPort(port);
     }
@@ -133,6 +118,17 @@ public class PrivateApiImpl implements PrivateApi {
         Transaction currentTxn = Transaction.getTransaction(false);
         if (currentTxn != null) {
             currentTxn.getTransactionActivity().getLastTracer().setAgentAttribute(key, value);
+        }
+    }
+
+    /**
+     * Allows modules to add strings to a segment in a transaction trace.
+     */
+    @Override
+    public void addTracerParameter(String key, String value, boolean addToSpan) {
+        Transaction currentTxn = Transaction.getTransaction(false);
+        if (currentTxn != null) {
+            currentTxn.getTransactionActivity().getLastTracer().setAgentAttribute(key, value, addToSpan);
         }
     }
 

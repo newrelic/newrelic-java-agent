@@ -314,8 +314,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     DatastoreConfig getDatastoreConfig();
 
-    MessageBrokerConfig getMessageBrokerConfig();
-
     ExternalTracerConfig getExternalTracerConfig();
 
     boolean liteMode();

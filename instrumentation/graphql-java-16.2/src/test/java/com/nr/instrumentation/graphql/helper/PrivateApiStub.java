@@ -59,6 +59,11 @@ public class PrivateApiStub implements PrivateApi {
     }
 
     @Override
+    public void addTracerParameter(String key, String value, boolean addToSpan) {
+
+    }
+
+    @Override
     public void addTracerParameter(String key, Map<String, String> values) {
 
     }
@@ -80,16 +85,6 @@ public class PrivateApiStub implements PrivateApi {
 
     @Override
     public void reportException(Throwable throwable) {
-
-    }
-
-    @Override
-    public String buildMessageBrokerInstanceMetric(String host, Integer port, DestinationType destinationType, String destination) {
-        return null;
-    }
-
-    @Override
-    public void reportMessageBrokerInstance(String host, Integer port, DestinationType destinationType, String destination) {
 
     }
 

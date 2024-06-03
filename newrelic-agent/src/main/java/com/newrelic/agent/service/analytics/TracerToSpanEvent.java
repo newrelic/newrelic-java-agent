@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributesUtils;
@@ -94,6 +93,7 @@ public class TracerToSpanEvent {
                 .setTimestamp(tracer.getStartTimeInMillis())
                 .setPriority(transactionData.getPriority())
                 .setExternalParameterAttributes(tracer.getExternalParameters())
+                .setAgentAttributesMarkedForSpans(tracer.GetAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
                 .setIsRootSpanEvent(isRoot)
                 .setDecider(inboundPayload == null || inboundPayload.priority == null);

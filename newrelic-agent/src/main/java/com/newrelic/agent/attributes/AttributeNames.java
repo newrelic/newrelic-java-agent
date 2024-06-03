@@ -55,6 +55,10 @@ public final class AttributeNames {
 
     // cloud provider identifier for the resource being used
     public static final String CLOUD_RESOURCE_ID = "cloud.resource_id";
+
+    // Opem Telemetry compatible attributes for host and port
+    public static final String SERVER_ADDRESS = "server.address";
+    public static final String SERVER_PORT = "server.port";
     public static final String RESPONSE_CONTENT_TYPE_PARAMETER_NAME = "response.headers.contentType";
 
     // high security matches

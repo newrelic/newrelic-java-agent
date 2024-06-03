@@ -58,16 +58,6 @@ public class NoOpPrivateApi implements PrivateApi {
     }
 
     @Override
-    public String buildMessageBrokerInstanceMetric(String host, Integer port, DestinationType destinationType, String destination) {
-        return null;
-    }
-
-    @Override
-    public void reportMessageBrokerInstance(String host, Integer port, DestinationType destinationType, String destination) {
-
-    }
-
-    @Override
     public void setAppServerPort(int port) {
     }
 
@@ -81,6 +71,11 @@ public class NoOpPrivateApi implements PrivateApi {
 
     @Override
     public void addTracerParameter(String key, String value) {
+    }
+
+    @Override
+    public void addTracerParameter(String key, String value, boolean addToSpan) {
+
     }
 
     @Override

@@ -40,12 +40,15 @@ import java.util.logging.Level;
 public abstract class AbstractTracer implements Tracer, AttributeHolder {
 
     static final int INITIAL_PARAMETER_MAP_SIZE = 5;
+    static final int INITIAL_PARAMETER_SET_SIZE = 5;
     protected static final String ATTRIBUTE_TYPE = "custom";
 
     private final TransactionActivity transactionActivity;
     private AttributeValidator attributeValidator;
     private Set<String> rollupMetricNames;
     private Set<String> exclusiveRollupMetricNames;
+
+    private Set<String> agentAttributeNamesForSpans;
     Map<String, Object> customAttributes;
     Map<String, Object> agentAttributes;
     private String customPrefix = "Custom";
@@ -337,7 +340,7 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
         Object verifiedValue = attributeValidator.verifyParameterAndReturnValue(
                 key, value, ATTRIBUTE_API_METHOD_NAME);
         if (verifiedValue != null) {
-            setAttribute(key, verifiedValue, true, true);
+            setAttribute(key, verifiedValue, true, true, false);
         }
     }
 
@@ -345,7 +348,7 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
         return getTransaction() != null && !getTransaction().getTransactionCounts().isOverTracerSegmentLimit();
     }
 
-    public void setAttribute(String key, Object value, boolean checkLimits, boolean isCustom) {
+    public void setAttribute(String key, Object value, boolean checkLimits, boolean isCustom, boolean addAgentAttrToSpan) {
         if (checkLimits && !shouldAddAttribute()) {
             return;
         }
@@ -368,6 +371,12 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
                 agentAttributes = new HashMap<>(1, INITIAL_PARAMETER_MAP_SIZE);
             }
             agentAttributes.put(key, value);
+            if(addAgentAttrToSpan) {
+                if (agentAttributeNamesForSpans == null) {
+                    agentAttributeNamesForSpans = new HashSet<>(INITIAL_PARAMETER_SET_SIZE);
+                }
+                agentAttributeNamesForSpans.add(key);
+            }
         }
     }
 
@@ -391,7 +400,12 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
 
     @Override
     public void setAgentAttribute(String key, Object value) {
-        setAttribute(key, value, true, false);
+        setAttribute(key, value, true, false, false);
+    }
+
+    @Override
+    public void setAgentAttribute(String key, Object value, boolean addToSpan) {
+        setAttribute(key, value, true, false, addToSpan);
     }
 
     @Override
@@ -420,6 +434,14 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
             return Collections.emptyMap();
         }
         return Collections.unmodifiableMap(customAttributes);
+    }
+
+    @Override
+    public Set<String> GetAgentAttributeNamesForSpans() {
+        if (agentAttributeNamesForSpans == null) {
+            return Collections.emptySet();
+        }
+        return Collections.unmodifiableSet(agentAttributeNamesForSpans);
     }
 
     public Object getCustomAttribute(String key) {

@@ -8,6 +8,7 @@
 package com.newrelic.agent.service.analytics;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.newrelic.agent.MockConfigService;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.attributes.AttributeNames;
@@ -29,6 +30,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import static com.newrelic.agent.service.analytics.SpanEventFactory.DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER;
 import static org.junit.Assert.assertEquals;
@@ -296,6 +298,42 @@ public class SpanEventFactoryTest {
     }
 
     @Test
+    public void shouldSetInstanceOnSpanFromMessageProduceParameters() {
+        String expectedHost = "example.com";
+        Integer expectedPort = 8080;
+        MessageProduceParameters mockParameters = mock(MessageProduceParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getHost()).thenReturn(expectedHost);
+        when(mockParameters.getPort()).thenReturn(expectedPort);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedHost, agentAttrs.get("server.address"));
+        assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
+        assertEquals(expectedPort, agentAttrs.get("server.port"));
+    }
+
+    @Test
+    public void shouldSetInstanceOnSpanFromMessageConsumeParameters() {
+        String expectedHost = "example.com";
+        Integer expectedPort = 8080;
+        MessageConsumeParameters mockParameters = mock(MessageConsumeParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getHost()).thenReturn(expectedHost);
+        when(mockParameters.getPort()).thenReturn(expectedPort);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedHost, agentAttrs.get("server.address"));
+        assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
+        assertEquals(expectedPort, agentAttrs.get("server.port"));
+    }
+
+    @Test
     public void shouldStoreStackTrace() {
         SpanEventFactory spanEventFactory = new SpanEventFactory("MyApp", new AttributeFilter.PassEverythingAttributeFilter(),
                 DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
@@ -308,6 +346,19 @@ public class SpanEventFactoryTest {
 
         final Object stackTrace = spanEventFactory.build().getAgentAttributes().get(AttributeNames.CODE_STACKTRACE);
         assertNotNull(stackTrace);
+    }
+
+    @Test
+    public void shouldStoreAgentAttributesMarkedForSpans() {
+        Map<String, Object> agentAttributes = ImmutableMap.of(
+                "key1", "v1",
+                "key2", "v2"
+        );
+        Set<String> attributesToBeAddedToSpans = ImmutableSet.of("key1", "key3");
+        SpanEvent target = spanEventFactory.setAgentAttributesMarkedForSpans(attributesToBeAddedToSpans, agentAttributes).build();
+        assertEquals("v1", target.getAgentAttributes().get("key1"));
+        assertNull(target.getIntrinsics().get("key2"));
+        assertNull(target.getIntrinsics().get("key3"));
     }
 
     @Test

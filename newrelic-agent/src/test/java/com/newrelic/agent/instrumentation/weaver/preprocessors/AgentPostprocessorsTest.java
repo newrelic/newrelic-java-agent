@@ -899,6 +899,8 @@ public class AgentPostprocessorsTest {
             AgentBridge.privateApi.addTracerParameter("key1", 10);
             AgentBridge.privateApi.addTracerParameter("key1", Collections.<String, String>emptyMap());
             AgentBridge.privateApi.addTracerParameter("key1", "value");
+            AgentBridge.privateApi.addTracerParameter("key2", "value", true);
+            AgentBridge.privateApi.addTracerParameter("key3", "value", false);
         }
 
         public void privateApiReportError() {

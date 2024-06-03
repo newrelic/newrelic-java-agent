@@ -278,7 +278,7 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setServerAddress(String host) {
-        builder.putAgentAttribute("server.address", host);
+        builder.putAgentAttribute(AttributeNames.SERVER_ADDRESS, host);
         builder.putAgentAttribute("peer.hostname", host);
         return this;
     }
@@ -289,7 +289,7 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setServerPort(int port) {
-        builder.putAgentAttribute("server.port", port);
+        builder.putAgentAttribute(AttributeNames.SERVER_PORT, port);
         return this;
     }
 
@@ -410,12 +410,28 @@ public class SpanEventFactory {
             MessageProduceParameters messageProduceParameters = (MessageProduceParameters) parameters;
             setCategory(SpanCategory.generic);
             setCloudResourceId(messageProduceParameters.getCloudResourceId());
+            setServerAddress(messageProduceParameters.getHost());
+            setServerPort(messageProduceParameters.getPort());
         } else if (parameters instanceof MessageConsumeParameters) {
             MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
             setCategory(SpanCategory.generic);
             setCloudResourceId(messageConsumeParameters.getCloudResourceId());
+            setServerAddress(messageConsumeParameters.getHost());
+            setServerPort(messageConsumeParameters.getPort());
         } else {
             setCategory(SpanCategory.generic);
+        }
+        return this;
+    }
+
+    public SpanEventFactory setAgentAttributesMarkedForSpans(Set<String> agentAttributesMarkedForSpans, Map<String, Object> agentAttributes) {
+        if (agentAttributesMarkedForSpans != null) {
+            for (String attributeName: agentAttributesMarkedForSpans) {
+                Object value = agentAttributes.get(attributeName);
+                if (value != null) {
+                    builder.putAgentAttribute(attributeName, value);
+                }
+            }
         }
         return this;
     }

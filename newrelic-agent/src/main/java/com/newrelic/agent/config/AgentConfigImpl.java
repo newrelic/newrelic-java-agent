@@ -250,7 +250,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final CrossProcessConfig crossProcessConfig;
     private final DatastoreConfig datastoreConfig;
 
-    private final MessageBrokerConfig messageBrokerConfig;
     private final DistributedTracingConfig distributedTracingConfig;
     private final ErrorCollectorConfig errorCollectorConfig;
     private final ExtensionsConfig extensionsConfig;
@@ -353,7 +352,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         labelsConfig = new LabelsConfigImpl(getProperty(LABELS));
         utilizationConfig = initUtilizationConfig();
         datastoreConfig = initDatastoreConfig();
-        messageBrokerConfig = initMessageBrokerConfig();
         externalTracerConfig = initExternalTracerConfig();
         jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
@@ -828,11 +826,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private DatastoreConfig initDatastoreConfig() {
         Map<String, Object> props = nestedProps(DatastoreConfigImpl.PROPERTY_NAME);
         return new DatastoreConfigImpl(props);
-    }
-
-    private MessageBrokerConfig initMessageBrokerConfig() {
-        Map<String, Object> props = nestedProps(MessageBrokerConfigImpl.PROPERTY_NAME);
-        return new MessageBrokerConfigImpl(props);
     }
 
     private ExternalTracerConfig initExternalTracerConfig() {
@@ -1407,11 +1400,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public DatastoreConfig getDatastoreConfig() {
         return datastoreConfig;
-    }
-
-    @Override
-    public MessageBrokerConfig getMessageBrokerConfig() {
-        return messageBrokerConfig;
     }
 
     @Override

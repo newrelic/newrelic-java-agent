@@ -59,6 +59,8 @@ public interface PrivateApi {
 
     void addTracerParameter(String key, String value);
 
+    void addTracerParameter(String key, String value, boolean addToSpan);
+
     void addTracerParameter(String key, Map<String, String> values);
 
     /**
@@ -90,29 +92,6 @@ public interface PrivateApi {
      * @param throwable
      */
     void reportException(Throwable throwable);
-
-    /**
-     * Creates a message broker instance metric if enabled via agent configuration.
-     * Otherwise, a null value is returned.
-     *
-     * @param host              Broker host
-     * @param port              Broker port
-     * @param destinationType   Destination type
-     * @param destination       Destination (can be the destination name or a more complex value related to the destination type)
-     */
-    String buildMessageBrokerInstanceMetric(String host, Integer port,
-            DestinationType destinationType, String destination);
-
-    /**
-     * Creates a message broker instance rollup metric if enabled via agent configuration.
-     *
-     * @param host              Broker host
-     * @param port              Broker port
-     * @param destinationType   Destination type
-     * @param destination       Destination (can be the destination name or a more complex value related to the destination type)
-     */
-    void reportMessageBrokerInstance(String host, Integer port,
-            DestinationType destinationType, String destination);
 
     /**
      * Set the app server port which is reported to RPM.
