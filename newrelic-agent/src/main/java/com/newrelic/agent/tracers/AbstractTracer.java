@@ -437,7 +437,7 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
     }
 
     @Override
-    public Set<String> GetAgentAttributeNamesForSpans() {
+    public Set<String> getAgentAttributeNamesForSpans() {
         if (agentAttributeNamesForSpans == null) {
             return Collections.emptySet();
         }

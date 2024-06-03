@@ -165,5 +165,5 @@ public interface Tracer extends TimedItem, ExitTracer, ErrorTracer {
      * <br><br>
      * <b>Note</b>: <i>Some attributes will be added to spans even if they are not in the returned set.</i>
      */
-    Set<String> GetAgentAttributeNamesForSpans();
+    Set<String> getAgentAttributeNamesForSpans();
 }

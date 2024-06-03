@@ -355,7 +355,7 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     }
 
     @Override
-    public Set<String> GetAgentAttributeNamesForSpans() {
+    public Set<String> getAgentAttributeNamesForSpans() {
         return null;
     }
 

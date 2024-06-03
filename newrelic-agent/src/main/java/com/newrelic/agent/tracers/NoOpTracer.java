@@ -292,7 +292,7 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
-    public Set<String> GetAgentAttributeNamesForSpans() {
+    public Set<String> getAgentAttributeNamesForSpans() {
         return null;
     }
 

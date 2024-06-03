@@ -15,6 +15,7 @@ import org.junit.Test;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -89,6 +90,13 @@ public class MethodExitTracerNoSkipTest {
     }
     @Test
     public void fetchingAgentAttributes_returnsNull() {
+        MethodExitTracerNoSkip instance = new TestMethodExitTracerNoSkip(classMethodSignature, mockTxn);
+        assertEquals(0, instance.getAgentAttributeNamesForSpans().size());
+        assertFalse(instance.getAgentAttributeNamesForSpans().contains("foo"));
+    }
+
+    @Test
+    public void fetchingAgentAttributeNamesMarkedForSpans_returnsEmptySet() {
         MethodExitTracerNoSkip instance = new TestMethodExitTracerNoSkip(classMethodSignature, mockTxn);
         assertEquals(0, instance.getAgentAttributes().size());
         assertNull(instance.getAgentAttribute("foo"));

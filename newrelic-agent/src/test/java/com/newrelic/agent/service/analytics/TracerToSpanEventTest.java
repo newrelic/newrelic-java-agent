@@ -137,7 +137,7 @@ public class TracerToSpanEventTest {
         when(tracer.getStartTimeInMillis()).thenReturn(timestamp);
         when(tracer.getAgentAttributes()).thenReturn(tracerAgentAttributes);
         when(tracer.getCustomAttributes()).thenReturn(tracerUserAttributes);
-        when(tracer.GetAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
+        when(tracer.getAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
         when(spanErrorBuilder.buildSpanError(tracer, isRoot, responseStatus, statusMessage, throwable)).thenReturn(spanError);
         when(spanErrorBuilder.areErrorsEnabled()).thenReturn(true);
         when(txnData.getApplicationName()).thenReturn(appName);

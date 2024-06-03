@@ -312,7 +312,7 @@ public class UltraLightTracer implements Tracer {
     }
 
     @Override
-    public Set<String> GetAgentAttributeNamesForSpans() {
+    public Set<String> getAgentAttributeNamesForSpans() {
         return null;
     }
 
