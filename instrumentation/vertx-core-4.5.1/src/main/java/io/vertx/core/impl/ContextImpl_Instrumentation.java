@@ -36,5 +36,6 @@ public abstract class ContextImpl_Instrumentation {
                 resultHandler = new AsyncHandlerWrapper<>(resultHandler, NewRelic.getAgent().getTransaction().getToken());
             }
         }
+        Weaver.callOriginal();
     }
 }
