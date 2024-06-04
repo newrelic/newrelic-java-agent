@@ -21,6 +21,7 @@ import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.*;
 import com.newrelic.telemetry.Attributes;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,6 +121,21 @@ public class JfrService extends AbstractService implements AgentConfigListener {
 
     @VisibleForTesting
     DaemonConfig buildDaemonConfig() {
+
+        String host;
+        String appPort = ServiceFactory
+            .getEnvironmentService()
+            .getEnvironment()
+            .getAgentIdentity()
+            .getServerPort()
+            .toString();
+        try {
+            host = InetAddress.getLocalHost().getHostName();
+        } catch (Throwable t) {
+            logger.error(t.getMessage());
+            host = InetAddress.getLoopbackAddress().getHostAddress();
+        }
+        String hostname = String.format("%s:%s", host, appPort);
         DaemonConfig.Builder builder = DaemonConfig.builder()
                 .daemonVersion(VersionFinder.getVersion())
                 .useLicenseKey(jfrConfig.useLicenseKey())
@@ -132,7 +148,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                 .proxyScheme(defaultAgentConfig.getProxyScheme())
                 .proxyPort(defaultAgentConfig.getProxyPort())
                 .proxyUser(defaultAgentConfig.getProxyUser())
-                .proxyPassword(defaultAgentConfig.getProxyPassword());
+                .proxyPassword(defaultAgentConfig.getProxyPassword())
+                .hostname(hostname);
         return builder.build();
     }
 
