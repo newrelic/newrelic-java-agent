@@ -252,50 +252,6 @@ public class SpanEventFactoryTest {
     }
 
     @Test
-    public void shouldSetCloudResourceIdOnSpanFromDatastoreParameters() {
-        String expectedArn = "arn:aws:dynamodb:us-west-1:123456789012:tableName";
-        DatastoreParameters mockParameters = mock(DatastoreParameters.class);
-        when(mockParameters.getOperation()).thenReturn("putItem");
-        when(mockParameters.getCollection()).thenReturn("tableName");
-        when(mockParameters.getProduct()).thenReturn("DynamoDB");
-        when(mockParameters.getHost()).thenReturn("dbserver");
-        when(mockParameters.getPort()).thenReturn(1234);
-        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
-        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
-
-        Map<String, Object> agentAttrs = target.getAgentAttributes();
-        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
-    }
-
-    @Test
-    public void shouldSetCloudResourceIdOnSpanFromMessageProduceParameters() {
-        String expectedArn = "arn:aws:sqs:us-east-1:123456789012:queueName";
-        MessageProduceParameters mockParameters = mock(MessageProduceParameters.class);
-        when(mockParameters.getLibrary()).thenReturn("SQS");
-        when(mockParameters.getDestinationName()).thenReturn("queueName");
-        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
-        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
-        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
-
-        Map<String, Object> agentAttrs = target.getAgentAttributes();
-        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
-    }
-
-    @Test
-    public void shouldSetCloudResourceIdOnSpanFromMessageConsumeParameters() {
-        String expectedArn = "arn:aws:sqs:us-east-1:123456789012:queueName";
-        MessageConsumeParameters mockParameters = mock(MessageConsumeParameters.class);
-        when(mockParameters.getLibrary()).thenReturn("SQS");
-        when(mockParameters.getDestinationName()).thenReturn("queueName");
-        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
-        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
-        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
-
-        Map<String, Object> agentAttrs = target.getAgentAttributes();
-        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
-    }
-
-    @Test
     public void shouldStoreStackTrace() {
         SpanEventFactory spanEventFactory = new SpanEventFactory("MyApp", new AttributeFilter.PassEverythingAttributeFilter(),
                 DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);

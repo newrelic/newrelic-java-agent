@@ -5,9 +5,12 @@
  *
  */
 
+package software.amazon.awssdk.services.sqs;
+
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.api.agent.Trace;
 import org.elasticmq.rest.sqs.SQSRestServer;
@@ -20,7 +23,6 @@ import org.junit.runner.RunWith;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -28,9 +30,12 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.net.URI;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.sqs" })
+@InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.sqs" }, configName = "dt_enabled.yml")
 public class SqsClientTest {
 
     private SqsClient sqsClient;
@@ -66,7 +71,9 @@ public class SqsClientTest {
         Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
 
         String txName = introspector.getTransactionNames().iterator().next();
-        checkScopedMetricCount(txName, "MessageBroker/SQS/Queue/Produce/Named/" + QUEUE_NAME, 1);
+        String metricName = "MessageBroker/SQS/Queue/Produce/Named/" + QUEUE_NAME;
+        checkScopedMetricCount(txName, metricName, 1);
+        checkSpanAttrs(metricName);
     }
 
     @Test
@@ -76,7 +83,9 @@ public class SqsClientTest {
         Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
 
         String txName = introspector.getTransactionNames().iterator().next();
-        checkScopedMetricCount(txName, "MessageBroker/SQS/Queue/Produce/Named/" + QUEUE_NAME, 1);
+        String metricName = "MessageBroker/SQS/Queue/Produce/Named/" + QUEUE_NAME;
+        checkScopedMetricCount(txName, metricName, 1);
+        checkSpanAttrs(metricName);
     }
 
     @Test
@@ -86,7 +95,9 @@ public class SqsClientTest {
         Assert.assertEquals(1, introspector.getFinishedTransactionCount(10000));
 
         String txName = introspector.getTransactionNames().iterator().next();
-        checkScopedMetricCount(txName, "MessageBroker/SQS/Queue/Consume/Named/" + QUEUE_NAME, 1);
+        String metricName = "MessageBroker/SQS/Queue/Consume/Named/" + QUEUE_NAME;
+        checkScopedMetricCount(txName, metricName, 1);
+        checkSpanAttrs(metricName);
     }
 
     @Trace(dispatcher = true)
@@ -111,5 +122,14 @@ public class SqsClientTest {
         TracedMetricData data = InstrumentationTestRunner.getIntrospector().getMetricsForTransaction(
                 transactionName).get(metricName);
         Assert.assertEquals(expected, data.getCallCount());
+    }
+
+    public void checkSpanAttrs(String metricName) {
+        SpanEvent messageSpan = InstrumentationTestRunner.getIntrospector().getSpanEvents().stream()
+                .filter(span -> span.getName().equals(metricName))
+                .findFirst().orElseThrow(() -> new RuntimeException("Could not find span"));
+        Map<String, Object> agentAttrs = messageSpan.getAgentAttributes();
+        assertEquals("aws_sqs", agentAttrs.get("messaging.system"));
+        assertEquals(QUEUE_NAME, agentAttrs.get("messaging.destination.name"));
     }
 }

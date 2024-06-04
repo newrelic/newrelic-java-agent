@@ -27,11 +27,10 @@ import java.util.function.BiConsumer;
 
 @Weave(type = MatchType.ExactClass, originalName = "software.amazon.awssdk.services.sqs.DefaultSqsAsyncClient")
 class DefaultSqsAsyncClient_Instrumentation {
-    private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
 
     public CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest sendMessageRequest) {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment(MetricUtil.LIBRARY, "sendMessage");
-        segment.reportAsExternal(MetricUtil.generateExternalProduceMetrics(sendMessageRequest.queueUrl(), clientConfiguration));
+        segment.reportAsExternal(MetricUtil.generateExternalProduceMetrics(sendMessageRequest.queueUrl()));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<SendMessageResponse> result = Weaver.callOriginal();
@@ -48,7 +47,7 @@ class DefaultSqsAsyncClient_Instrumentation {
 
     public CompletableFuture<SendMessageBatchResponse> sendMessageBatch(SendMessageBatchRequest sendMessageBatchRequest) {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment(MetricUtil.LIBRARY, "sendMessageBatch");
-        segment.reportAsExternal(MetricUtil.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl(), clientConfiguration));
+        segment.reportAsExternal(MetricUtil.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl()));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<SendMessageBatchResponse> result = Weaver.callOriginal();
@@ -65,7 +64,7 @@ class DefaultSqsAsyncClient_Instrumentation {
 
     public CompletableFuture<ReceiveMessageResponse> receiveMessage(ReceiveMessageRequest receiveMessageRequest) {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment(MetricUtil.LIBRARY, "receiveMessage");
-        segment.reportAsExternal(MetricUtil.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl(), clientConfiguration));
+        segment.reportAsExternal(MetricUtil.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl()));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
 
         CompletableFuture<ReceiveMessageResponse> result = Weaver.callOriginal();

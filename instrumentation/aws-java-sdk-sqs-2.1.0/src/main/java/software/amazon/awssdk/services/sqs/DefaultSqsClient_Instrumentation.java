@@ -25,25 +25,24 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 @Weave(type = MatchType.ExactClass, originalName = "software.amazon.awssdk.services.sqs.DefaultSqsClient")
 class DefaultSqsClient_Instrumentation {
-    private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
 
     @Trace
     public SendMessageBatchResponse sendMessageBatch(SendMessageBatchRequest sendMessageBatchRequest) {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl(), clientConfiguration);
+        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
         return Weaver.callOriginal();
     }
 
     @Trace
     public SendMessageResponse sendMessage(SendMessageRequest sendMessageRequest) {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics(sendMessageRequest.queueUrl(), clientConfiguration);
+        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics(sendMessageRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
         return Weaver.callOriginal();
     }
 
     @Trace
     public ReceiveMessageResponse receiveMessage(ReceiveMessageRequest receiveMessageRequest) {
-        MessageConsumeParameters messageConsumeParameters = MetricUtil.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl(), clientConfiguration);
+        MessageConsumeParameters messageConsumeParameters = MetricUtil.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageConsumeParameters);
         return Weaver.callOriginal();
     }

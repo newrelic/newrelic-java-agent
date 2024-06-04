@@ -5,9 +5,10 @@
  *
  */
 
+package com.amazonaws.services.sqs;
+
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.internal.StaticCredentialsProvider;
-import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -29,7 +30,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.amazonaws.services.sqs" })
+@InstrumentationTestConfig(includePrefixes = { "com.amazonaws.services.sqs" }, configName = "dt_enabled.yml")
 public class SqsClientTest {
 
     private static AmazonSQSClient sqsClient;
