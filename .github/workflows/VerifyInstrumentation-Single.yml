@@ -20,13 +20,13 @@ jobs:
       MODULE: ${{ github.event.inputs.module || inputs.module }}
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: ${{ inputs.ref }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # pin@v4
         with:
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}

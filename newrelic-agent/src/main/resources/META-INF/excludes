@@ -3,10 +3,10 @@
 ^java/io/(BufferedOutputStream|ByteArrayOutputStream|DataOutputStream|FilterOutputStream|ObjectOutputStream|PipedOutputStream)
 ^java/lang/(NullOutputStream|ProcessPipeOutputStream)
 ^java/net/SocketOutputStream
-//To resolve class circularity error
+# To resolve class circularity error
 ^javax/crypto/BadPaddingException
 ^javax/crypto/SecretKey
-//Remove ThreadLocal Weak Random Class Instrumentation
+# Remove ThreadLocal Weak Random Class Instrumentation
 ^java/util/concurrent/ThreadLocalRandom
 ^(org/objectweb/asm/|javax/xml/|org/apache/juli/)(.*)
 # Don't instrument agent threads

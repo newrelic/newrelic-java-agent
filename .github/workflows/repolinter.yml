@@ -6,7 +6,7 @@ name: Repolinter Action
 # Currently there is no elegant way to specify the default
 # branch in the event filtering, so branches are instead
 # filtered in the "Test Default Branch" step.
-on: [push, workflow_dispatch]
+on: [ push, workflow_dispatch ]
 
 jobs:
   repolint:
@@ -15,17 +15,17 @@ jobs:
     steps:
       - name: Test Default Branch
         id: default-branch
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # pin@v7
         with:
           script: |
             const data = await github.rest.repos.get(context.repo)
             return data.data && data.data.default_branch === context.ref.split('/').slice(-1)[0]
       - name: Checkout Self
         if: ${{ steps.default-branch.outputs.result == 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
       - name: Run Repolinter
         if: ${{ steps.default-branch.outputs.result == 'true' }}
-        uses: newrelic/repolinter-action@v1
+        uses: newrelic/repolinter-action@3f4448f855c351e9695b24524a4111c7847b84cb # pin@v1
         with:
           config_url: https://raw.githubusercontent.com/newrelic/.github/main/repolinter-rulesets/community-plus.yml
           output_type: issue
