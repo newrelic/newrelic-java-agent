@@ -54,7 +54,7 @@ public abstract class RabbitAMQPMetricUtil {
                 .instance(host, port)
                 .build());
 
-        addAttributes(routingKey, props);
+        addProduceAttributes(exchangeName, routingKey, props);
     }
 
     public static void processGetMessage(String queueName, String routingKey, String exchangeName,
@@ -69,12 +69,25 @@ public abstract class RabbitAMQPMetricUtil {
                 .instance(host, port)
                 .build());
 
-        addConsumeAttributes(queueName, routingKey, properties);
+        addConsumeAttributes(exchangeName, queueName, routingKey, properties);
     }
 
-    public static void addConsumeAttributes(String queueName, String routingKey, AMQP.BasicProperties properties) {
+    public static void addConsumeAttributes(String exchangeName, String queueName, String routingKey, AMQP.BasicProperties properties) {
         if (queueName != null && captureSegmentParameters) {
             AgentBridge.privateApi.addTracerParameter("message.queueName", queueName, true);
+            // OTel attributes
+            AgentBridge.privateApi.addTracerParameter("messaging.destination.name", queueName, true);
+            if (exchangeName != null) {
+                AgentBridge.privateApi.addTracerParameter("messaging.destination_publish.name", exchangeName, true);
+            }
+        }
+        addAttributes(routingKey, properties);
+    }
+
+    public static void addProduceAttributes(String exchangeName, String routingKey, AMQP.BasicProperties properties) {
+        if (exchangeName != null && captureSegmentParameters) {
+            // OTel attributes
+            AgentBridge.privateApi.addTracerParameter("messaging.destination.name", exchangeName, true);
         }
         addAttributes(routingKey, properties);
     }

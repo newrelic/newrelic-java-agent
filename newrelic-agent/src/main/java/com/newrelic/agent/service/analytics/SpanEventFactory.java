@@ -412,12 +412,14 @@ public class SpanEventFactory {
             setCloudResourceId(messageProduceParameters.getCloudResourceId());
             setServerAddress(messageProduceParameters.getHost());
             setServerPort(messageProduceParameters.getPort());
+            setKindFromUserAttributes();
         } else if (parameters instanceof MessageConsumeParameters) {
             MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
             setCategory(SpanCategory.generic);
             setCloudResourceId(messageConsumeParameters.getCloudResourceId());
             setServerAddress(messageConsumeParameters.getHost());
             setServerPort(messageConsumeParameters.getPort());
+            setKindFromUserAttributes();
         } else {
             setCategory(SpanCategory.generic);
         }
