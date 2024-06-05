@@ -10,6 +10,12 @@ Cross agent tests are shared across all agent teams and are meant to ensure pari
 git subtree pull --prefix=newrelic-agent/src/test/resources/com/newrelic/agent/cross_agent_tests git@source.datanerd.us:agents/cross_agent_tests.git master --squash
 ```
 
+If the git history gets out of whack and `git subtree pull` is no longer working then you might need to delete the `cross_agent_tests` directory and re-add it as a subtree (and then `git subtree pull` should work again):
+
+```shell
+git subtree add --prefix=newrelic-agent/src/test/resources/com/newrelic/agent/cross_agent_tests git@source.datanerd.us:agents/cross_agent_tests.git master
+```
+
 Cross agent tests define test cases and their expected results in JSON format, which the agent will typically parse and execute as unit tests.
 
 ## Uncross Agent Tests
