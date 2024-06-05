@@ -104,7 +104,9 @@ public abstract class RabbitAMQPMetricUtil {
             return;
         }
 
-        AgentBridge.privateApi.addTracerParameter("message.routingKey", routingKey, true);
+        AgentBridge.privateApi.addTracerParameter("message.routingKey", routingKey);
+        // Add Open Telemetry attribute for routing key to be added to spans
+        AgentBridge.privateApi.addTracerParameter("messaging.rabbitmq.destination.routing_key", routingKey, true);
         if (properties.getReplyTo() != null) {
             AgentBridge.privateApi.addTracerParameter("message.replyTo", properties.getReplyTo());
         }
