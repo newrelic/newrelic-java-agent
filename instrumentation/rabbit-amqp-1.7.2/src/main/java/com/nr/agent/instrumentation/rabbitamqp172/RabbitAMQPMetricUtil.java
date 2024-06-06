@@ -48,7 +48,7 @@ public abstract class RabbitAMQPMetricUtil {
         tracedMethod.reportAsExternal(MessageProduceParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
-                .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
+                .destinationName(wrapExchange(exchangeName))
                 .outboundHeaders(new OutboundWrapper(headers))
                 .instance(host, port)
                 .build());
@@ -63,7 +63,7 @@ public abstract class RabbitAMQPMetricUtil {
         tracedMethod.reportAsExternal(MessageConsumeParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
-                .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
+                .destinationName(wrapExchange(exchangeName))
                 .inboundHeaders(new InboundWrapper(properties.getHeaders()))
                 .instance(host, port)
                 .build());
@@ -86,9 +86,13 @@ public abstract class RabbitAMQPMetricUtil {
     public static void addProduceAttributes(String exchangeName, String routingKey, AMQP.BasicProperties properties) {
         if (exchangeName != null && captureSegmentParameters) {
             // OTel attributes
-            AgentBridge.privateApi.addTracerParameter("messaging.destination.name", exchangeName, true);
+            AgentBridge.privateApi.addTracerParameter("messaging.destination.name", wrapExchange(exchangeName), true);
         }
         addAttributes(routingKey, properties);
+    }
+
+    public static String wrapExchange(String exchangeName) {
+        return exchangeName.isEmpty() ? DEFAULT : exchangeName;
     }
 
     public static void queuePurge(String queue, TracedMethod tracedMethod) {
