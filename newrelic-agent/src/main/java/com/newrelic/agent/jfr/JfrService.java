@@ -123,12 +123,11 @@ public class JfrService extends AbstractService implements AgentConfigListener {
 
     private String getHostname() {
         String host;
-        String appPort = ServiceFactory
+        Integer appPort = ServiceFactory
             .getEnvironmentService()
             .getEnvironment()
             .getAgentIdentity()
-            .getServerPort()
-            .toString();
+            .getServerPort();
         try {
             host = InetAddress.getLocalHost().getHostName();
         } catch (Exception e) {
