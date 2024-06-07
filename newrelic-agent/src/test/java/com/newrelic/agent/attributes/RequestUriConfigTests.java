@@ -73,7 +73,7 @@ public class RequestUriConfigTests {
 
     @Parameterized.Parameters(name = "{index}:{0}:{1}")
     public static Collection<Object[]> getParameters() throws Exception {
-        JSONArray jsonTests = CrossAgentInput.readJsonAndGetTests("com/newrelic/agent/cross_agent_tests/request_uri_java_only.json");
+        JSONArray jsonTests = CrossAgentInput.readJsonAndGetTests("com/newrelic/agent/uncross_agent_tests/request_uri_java_only.json");
         List<Object[]> testParameters = new LinkedList<>();
         for (Object jsonTest : jsonTests) {
             JSONObject testObj = (JSONObject) jsonTest;

@@ -13,7 +13,7 @@ The Utilization tests ensure that the appropriate information is being gathered 
   - `input_environment_variables`: Any environment variables which have been set.
   - `expected_output_json`: The expected JSON output from the agent for the `utilization` hash.
 
-New fields for Google Cloud Platform (gcp), Pivotal Cloud Foundry (pcf), and Azure added:
+New fields for Google Cloud Platform (gcp), Pivotal Cloud Foundry (pcf), and Azure added as of [Utilization spec version 8](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md):
   - `input_gcp_id`: The gcp `id` determined by the agent.
   - `input_gcp_type`: The gcp `machineType` determined by the agent.
   - `input_gcp_name`: The gcp `name` determined by the agent.
@@ -26,7 +26,7 @@ New fields for Google Cloud Platform (gcp), Pivotal Cloud Foundry (pcf), and Azu
   - `input_azure_id`: The azure `vmId` determined by the agent.
   - `input_azure_size`: The azure `vmSize` determined by the agent.
  
-Test cases for `boot_id.json` added:
+Test cases for `boot_id.json` added as of [Utilization spec version 8](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md):
   - `testname`: The name of the test.
   - `input_total_ram_mib`: The total ram number calculated by the agent.
   - `input_logical_processors`: The number of logical processors calculated by the agent.
