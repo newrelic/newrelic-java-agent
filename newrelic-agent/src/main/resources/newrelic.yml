@@ -347,6 +347,11 @@ common: &default_settings
     # Set this attribute to false to turn off this behavior.
     auto_instrument: true
 
+    # For pages that emit the <head> tag via a JSP tag library, enabling this setting
+    # will monitor JspWriter print/println calls for output of the <head> element and
+    # inject the RUM script automatically.
+    tag_lib_instrument: false
+
   # Class transformer can be used to disable all agent instrumentation or specific instrumentation modules.
   # All instrumentation modules can be found here: https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation
   class_transformer:

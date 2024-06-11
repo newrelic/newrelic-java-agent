@@ -68,7 +68,7 @@ fetched from a [JspContext.getOut()](https://jakarta.ee/specifications/pages/3.0
 ```
 
 In this scenario, the `SimpleTagSupport` instrumentation will detect the output of the head tag and inject the RUM script
-just like the Jasper compiler instrumentation, which will result in the following HTML:`
+just like the Jasper compiler instrumentation, which will result in the following HTML:
 ```html
 
 <!DOCTYPE html>
