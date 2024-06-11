@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.jsp24;
+package com.nr.agent.instrumentation.jsp3;
 
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -20,6 +20,9 @@ public class JspUtils {
     public static final String ORG_APACHE_JSP = "org.apache.jsp.";
     public static final Pattern JSP_PATTERN = Pattern.compile("_jsp$");
     public static final Pattern WEB_INF_PATTERN = Pattern.compile("WEB_002dINF");
+    private static final String AUTO_INSTRUMENT_ENABLED_CONFIG = "browser_monitoring.auto_instrument";
+    private static final String TAG_LIB_ENABLED_CONFIG = "browser_monitoring.tag_lib_instrument";
+
 
     public static void setTransactionName(Class<?> jspClass, TracedMethod timedMethod) {
         String name = jspClass.getName();
@@ -43,4 +46,8 @@ public class JspUtils {
         }
     }
 
+    public static boolean isTagLibInstrumentationEnabled() {
+        return NewRelic.getAgent().getConfig().getValue(AUTO_INSTRUMENT_ENABLED_CONFIG, Boolean.FALSE) &&
+                NewRelic.getAgent().getConfig().getValue(TAG_LIB_ENABLED_CONFIG, Boolean.FALSE);
+    }
 }
