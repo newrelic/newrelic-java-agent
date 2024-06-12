@@ -20,6 +20,16 @@ To enable tag library instrumentation, both of the following settings must be `t
 
 By default, the `tag_lib_instrument` setting is `false`.
 
+The instrumentation will use the regular expression pattern of `<head>` to detect the start of HTML head elements.
+If a tag library emits a more complex head start element, the regular expression can be modified via the `tag_lib_head_pattern`
+config setting. For example:
+```
+  browser_monitoring:
+    tag_lib_head_pattern: '<head.*>'
+```
+The regular expression will be compiled to be case-insensitive. If the defined regular expression is invalid it will default to `<head>`.
+
+
 ### Requirements for Script Injection
 The following are the requirements for the RUM script to be injected from instrumented tag libraries:
 - The application must utilize version 3 of the JSP libraries (jakarta namespace)

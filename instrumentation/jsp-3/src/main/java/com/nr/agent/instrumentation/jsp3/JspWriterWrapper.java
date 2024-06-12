@@ -15,8 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JspWriterWrapper extends JspWriter {
-
-    private static final Pattern HEAD_PATTERN = Pattern.compile("<head.*>", Pattern.CASE_INSENSITIVE + Pattern.MULTILINE);
     private JspWriter originalWriter;
 
     private boolean found = false;
@@ -180,7 +178,7 @@ public class JspWriterWrapper extends JspWriter {
 
     private String detectAndModifyHeadElement(String originalContent) {
         String modifiedContent = null;
-        Matcher m = HEAD_PATTERN.matcher(originalContent);
+        Matcher m = JspUtils.START_HEAD_REGEX.matcher(originalContent);
         if (m.find()) {
             // The getBrowserTimingHeader call performs the "does transaction exist" check so not duplicating that here
             modifiedContent = originalContent.substring(0, m.end()) + NewRelic.getBrowserTimingHeader() + originalContent.substring(m.end());
