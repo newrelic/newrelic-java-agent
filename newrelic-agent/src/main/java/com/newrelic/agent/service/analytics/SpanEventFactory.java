@@ -198,6 +198,11 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory setKind(String kind) {
+        builder.spanKind(kind);
+        return this;
+    }
+
     // http parameter
     public SpanEventFactory setUri(URI uri) {
         if (uri == null) {
@@ -412,14 +417,14 @@ public class SpanEventFactory {
             setCloudResourceId(messageProduceParameters.getCloudResourceId());
             setServerAddress(messageProduceParameters.getHost());
             setServerPort(messageProduceParameters.getPort());
-            setKindFromUserAttributes();
+            setKind("producer");
         } else if (parameters instanceof MessageConsumeParameters) {
             MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
             setCategory(SpanCategory.generic);
             setCloudResourceId(messageConsumeParameters.getCloudResourceId());
             setServerAddress(messageConsumeParameters.getHost());
             setServerPort(messageConsumeParameters.getPort());
-            setKindFromUserAttributes();
+            setKind("consumer");
         } else {
             setCategory(SpanCategory.generic);
         }

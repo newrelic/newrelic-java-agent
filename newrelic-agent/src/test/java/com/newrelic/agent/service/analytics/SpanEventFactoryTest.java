@@ -281,6 +281,7 @@ public class SpanEventFactoryTest {
 
         Map<String, Object> agentAttrs = target.getAgentAttributes();
         assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
+        assertEquals("producer", target.getIntrinsics().get("span.kind"));
     }
 
     @Test
@@ -295,6 +296,7 @@ public class SpanEventFactoryTest {
 
         Map<String, Object> agentAttrs = target.getAgentAttributes();
         assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
+        assertEquals("consumer", target.getIntrinsics().get("span.kind"));
     }
 
     @Test
@@ -313,6 +315,7 @@ public class SpanEventFactoryTest {
         assertEquals(expectedHost, agentAttrs.get("server.address"));
         assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
         assertEquals(expectedPort, agentAttrs.get("server.port"));
+        assertEquals("producer", target.getIntrinsics().get("span.kind"));
     }
 
     @Test
@@ -331,6 +334,7 @@ public class SpanEventFactoryTest {
         assertEquals(expectedHost, agentAttrs.get("server.address"));
         assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
         assertEquals(expectedPort, agentAttrs.get("server.port"));
+        assertEquals("consumer", target.getIntrinsics().get("span.kind"));
     }
 
     @Test
