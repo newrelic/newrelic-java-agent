@@ -20,13 +20,18 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DockerDataTest {
 
@@ -331,6 +336,40 @@ public class DockerDataTest {
         Assert.assertTrue(dockerData.isInvalidDockerValue(null));
     }
 
+    @Test
+    public void retrieveDockerIdFromFargateMetadata_withValidUrl_returnsDockerId() throws IOException {
+        InputStream byteArrayStream = new ByteArrayInputStream(FARGATE_JSON.getBytes());
+        AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
+        when(mockFetcher.openStream()).thenReturn(byteArrayStream);
+
+        DockerData dockerData = new DockerData();
+        Assert.assertEquals("1e1698469422439ea356071e581e8545-2769485393", dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
+    }
+
+    @Test
+    public void retrieveDockerIdFromFargateMetadata_withInvalidJson_returnsNull() throws IOException {
+        InputStream byteArrayStream = new ByteArrayInputStream("foofoo".getBytes());
+        AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
+        when(mockFetcher.openStream()).thenReturn(byteArrayStream);
+
+        DockerData dockerData = new DockerData();
+        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
+    }
+
+    @Test
+    public void retrieveDockerIdFromFargateMetadata_withInputStreamException_returnsNull() throws IOException {
+        AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
+        when(mockFetcher.openStream()).thenThrow(new IOException("oops"));
+
+        DockerData dockerData = new DockerData();
+        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
+    }
+
+    @Test
+    public void getDockerContainerId_withNoDockerIdSource_returnsNull() {
+        Assert.assertNull(dockerData.getDockerContainerId(true));
+    }
+
     private void processFile(File file, String answer, CGroup cgroup) {
         System.out.println("Current test file: " + file.getAbsolutePath());
         String actual = dockerData.getDockerIdFromFile(file, cgroup);
@@ -375,4 +414,35 @@ public class DockerDataTest {
         return theTests;
     }
 
+    private static final String FARGATE_JSON =
+            "{" +
+                    "\"DockerId\": \"1e1698469422439ea356071e581e8545-2769485393\"," +
+                    "\"Name\": \"fargateapp\"," +
+                    "\"DockerName\": \"fargateapp\"," +
+                    "\"Image\": \"123456789012.dkr.ecr.us-west-2.amazonaws.com/fargatetest:latest\"," +
+                    "\"ImageID\": \"sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd\"," +
+                    "\"Labels\": {" +
+                    "\"com.amazonaws.ecs.cluster\": \"arn:aws:ecs:us-west-2:123456789012:cluster/testcluster\"," +
+                    "\"com.amazonaws.ecs.container-name\": \"fargateapp\"," +
+                    "\"com.amazonaws.ecs.task-arn\": \"arn:aws:ecs:us-west-2:123456789012:task/testcluster/1e1698469422439ea356071e581e8545\"," +
+                    "\"com.amazonaws.ecs.task-definition-family\": \"fargatetestapp\"," +
+                    "\"com.amazonaws.ecs.task-definition-version\": \"7\"" +
+                    "}," +
+                    "\"DesiredStatus\": \"RUNNING\"," +
+                    "\"KnownStatus\": \"RUNNING\"," +
+                    "\"Limits\": {" +
+                    "\"CPU\": 2" +
+                    "}," +
+                    "\"CreatedAt\": \"2024-04-25T17:38:31.073208914Z\"," +
+                    "\"StartedAt\": \"2024-04-25T17:38:31.073208914Z\"," +
+                    "\"Type\": \"NORMAL\"," +
+                    "\"Networks\": [" +
+                    "{" +
+                    "\"NetworkMode\": \"awsvpc\"," +
+                    "\"IPv4Addresses\": [" +
+                    "\"10.10.10.10\"" +
+                    "]" +
+                    "}" +
+                    "]" +
+                    "}";
 }
