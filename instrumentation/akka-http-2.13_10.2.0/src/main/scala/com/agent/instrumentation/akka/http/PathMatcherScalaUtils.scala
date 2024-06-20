@@ -5,7 +5,7 @@
  *
  */
 
-package com.agent.instrumentation.akka.http102
+package com.agent.instrumentation.akka.http
 
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.server.util.Tuple

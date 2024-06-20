@@ -1,0 +1,37 @@
+apply plugin: 'scala'
+
+isScalaProjectEnabled(project, "scala-2.13")
+
+sourceSets.test.scala.srcDir "src/test/java"
+sourceSets.test.java.srcDirs = []
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.akka-http-2.13_10.2.0' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation("com.typesafe.akka:akka-http_2.13:10.5.0")
+    implementation("com.typesafe.akka:akka-stream_2.13:2.8.5")
+    implementation("com.typesafe.akka:akka-actor_2.13:2.8.5")
+
+    testImplementation(project(":instrumentation:akka-2.2")) { transitive = false }
+    testImplementation(project(":instrumentation:scala-2.13.0")) { transitive = false }
+    testImplementation("com.jayway.restassured:rest-assured:2.7.0")
+    testImplementation("jakarta.xml.ws:jakarta.xml.ws-api:2.3.3")
+}
+
+verifyInstrumentation {
+    passesOnly('com.typesafe.akka:akka-http_2.13:[10.5.0,)') {
+        implementation("com.typesafe.akka:akka-stream_2.13:2.8.5")
+    }
+    excludeRegex 'com.typesafe.akka:akka-http_2.13:.*(RC|M)[0-9]*$'
+    excludeRegex 'com.typesafe.akka:akka-http_2.13:.*-[0-9a-f]{8}$'
+}
+
+site {
+    title 'Akka Http'
+    type 'Framework'
+}

@@ -5,7 +5,7 @@
  *
  */
 
-package com.agent.instrumentation.akka.http102
+package com.agent.instrumentation.akka.http
 
 import akka.http.scaladsl.model.HttpRequest
 import com.newrelic.api.agent.{ExtendedRequest, HeaderType}

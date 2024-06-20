@@ -5,7 +5,7 @@
  *
  */
 
-package com.agent.instrumentation.akka.http102;
+package com.agent.instrumentation.akka.http;
 
 import scala.Function0;
 import scala.concurrent.Future;

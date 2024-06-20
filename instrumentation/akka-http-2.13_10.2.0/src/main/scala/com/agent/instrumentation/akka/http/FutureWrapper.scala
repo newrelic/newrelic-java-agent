@@ -1,4 +1,4 @@
-package com.agent.instrumentation.akka.http102
+package com.agent.instrumentation.akka.http
 
 import com.newrelic.agent.bridge.AgentBridge
 import com.newrelic.api.agent.NewRelic
