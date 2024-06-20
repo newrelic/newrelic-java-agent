@@ -18,7 +18,6 @@ import akka.pattern.after
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.{ByteString, Timeout}
-import com.agent.instrumentation.akka.http.StatusCheckActor.Ping
 import com.newrelic.api.agent.NewRelic
 
 import scala.concurrent.ExecutionContext.Implicits.global
