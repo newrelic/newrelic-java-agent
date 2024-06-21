@@ -98,8 +98,8 @@ public class DockerDataTest {
 
     @Test
     public void testGetDockerIdFromFilesV2() throws Exception {
-        Map<String, String> tests = testToAnswers(AgentHelper.getFile("com/newrelic/agent/uncross_agent_tests/cgroup_v2_docker_container_id/cases.json"));
-        List<File> files = AgentHelper.getFiles("com/newrelic/agent/uncross_agent_tests/cgroup_v2_docker_container_id/");
+        Map<String, String> tests = testToAnswers(AgentHelper.getFile("com/newrelic/agent/cross_agent_tests/docker_container_id_v2/cases.json"));
+        List<File> files = AgentHelper.getFiles("com/newrelic/agent/cross_agent_tests/docker_container_id_v2");
         if (files == null || files.isEmpty()) {
             Assert.fail("There were no files read in for testing.");
         }
