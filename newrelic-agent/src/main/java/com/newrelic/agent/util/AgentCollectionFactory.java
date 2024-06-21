@@ -40,7 +40,7 @@ public class AgentCollectionFactory implements CollectionFactory {
     }
 
     @Override
-    public <K, V> Function<K, V> memoize(Function<K, V> loader, int maxSize) {
+    public <K, V> Function<K, V> sizedCache(Function<K, V> loader, int maxSize) {
         LoadingCache<K, V> cache = Caffeine.newBuilder()
                 .maximumSize(maxSize)
                 .executor(Runnable::run)

@@ -10,7 +10,7 @@ package com.nr.instrumentation.dynamodb_1_11_106;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
-import com.newrelic.agent.util.AwsAccountUtil;
+import com.newrelic.agent.util.aws.AwsUtil;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TracedMethod;
@@ -76,9 +76,8 @@ public abstract class DynamoDBMetricUtil {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. Access key is null.");
             return null;
         }
-        Long accountId = AwsAccountUtil.get().decodeAccount(accessKey);
+        Long accountId = AwsUtil.decodeAccount(accessKey);
         if (accountId == null) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. Unable to decode account.");
             return null;
         }
         // arn:${Partition}:dynamodb:${Region}:${Account}:table/${TableName}

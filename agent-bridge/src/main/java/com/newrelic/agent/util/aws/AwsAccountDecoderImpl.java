@@ -5,28 +5,22 @@
  *
  */
 
-package com.newrelic.agent.util;
+package com.newrelic.agent.util.aws;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.function.Function;
 
-
-public class AwsAccountUtil {
-    private static AwsAccountUtil INSTANCE = AwsAccountUtil.create();
-
-    private final Function<String, Long> CACHE = AgentBridge.collectionFactory.memoize(this::doDecodeAccount, 32);
-
-    public static AwsAccountUtil get() {
-        return INSTANCE;
-    }
+class AwsAccountDecoderImpl implements AwsAccountDecoder {
+    private final Function<String, Long> CACHE = AgentBridge.collectionFactory.sizedCache(this::doDecodeAccount, 32);
 
     public Long decodeAccount(String accessKey) {
         return CACHE.apply(accessKey);
     }
 
-    private Long doDecodeAccount(String awsAccessKeyId) {
-        String accessKeyWithoutPrefix = awsAccessKeyId.substring(4).toLowerCase();
+    private Long doDecodeAccount(String awsAccessKey) {
+        String accessKeyWithoutPrefix = awsAccessKey.substring(4).toLowerCase();
         long encodedAccount = base32Decode(accessKeyWithoutPrefix);
         // magic number
         long mask = 140737488355200L;
@@ -58,11 +52,24 @@ public class AwsAccountUtil {
         return base >> 2;
     }
 
-    private AwsAccountUtil() {
-        // prevent instantiation of utility class
+    /**
+     * @see #newInstance() to instantiate a AwsAccountDecoder.
+     */
+    private AwsAccountDecoderImpl() {
     }
 
-    private static AwsAccountUtil create() {
-        return new AwsAccountUtil();
+    /**
+     * This factory method will check the agent configuration and return an appropriate implementation of
+     * AwsAccountDecoder.
+     */
+    static AwsAccountDecoder newInstance() {
+        if (NewRelic.getAgent().getConfig().getValue("aws.decode_account", true)) {
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/Aws/AccountDecode/enabled");
+            return new AwsAccountDecoderImpl();
+        } else {
+            // decoding is disabled, create a noop decoder
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/Aws/AccountDecode/disabled");
+            return (accessKey) -> null;
+        }
     }
 }

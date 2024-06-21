@@ -48,5 +48,5 @@ public interface CollectionFactory {
      * @param <K> the type of key
      * @param <V> the type of value stored/returned
      */
-    <K, V> Function<K, V> memoize(Function<K, V> loader, int maxSize);
+    <K, V> Function<K, V> sizedCache(Function<K, V> loader, int maxSize);
 }

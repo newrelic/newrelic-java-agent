@@ -25,7 +25,7 @@ public class DefaultCollectionFactory implements CollectionFactory {
 
     @Override
     public <K, V> Map<K, V> createConcurrentWeakKeyedMap() {
-        return Collections.synchronizedMap(new WeakHashMap<K, V>());
+        return Collections.synchronizedMap(new WeakHashMap<>());
     }
 
     /**
@@ -41,13 +41,15 @@ public class DefaultCollectionFactory implements CollectionFactory {
     }
 
     @Override
-    public <K, V> Function<K, V> memoize(Function<K, V> loader, int maxSize) {
+    public <K, V> Function<K, V> sizedCache(Function<K, V> loader, int maxSize) {
         Map<K, V> map = new ConcurrentHashMap<>();
-        return k -> map.computeIfAbsent(k, k1 -> {
+
+        return k -> {
             if (map.size() >= maxSize) {
-                map.remove(map.keySet().iterator().next());
+                V value = map.get(k);
+                return value == null ? loader.apply(k) : value;
             }
-            return loader.apply(k1);
-        });
+            return map.computeIfAbsent(k, loader);
+        };
     }
 }
