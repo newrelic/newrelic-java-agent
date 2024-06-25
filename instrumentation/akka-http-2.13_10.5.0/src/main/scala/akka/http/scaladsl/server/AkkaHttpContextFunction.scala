@@ -8,13 +8,12 @@
 package akka.http.scaladsl.server
 
 import com.agent.instrumentation.akka.http.PathMatcherUtils
+import com.newrelic.agent.bridge.AgentBridge
+import com.newrelic.api.agent.Trace
 
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.logging.Level
-import com.newrelic.agent.bridge.AgentBridge
-import com.newrelic.api.agent.Trace
-
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.runtime.AbstractFunction1
