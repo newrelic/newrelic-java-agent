@@ -14,37 +14,35 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.Weaver;
 
-public class Util {
+public class MetricUtil {
 
     public static final String LIBRARY = "SQS";
-    public static final String UNKOWN = "unknown";
+    public static final String OTEL_LIBRARY = "aws_sqs";
 
     public static MessageProduceParameters generateExternalProduceMetrics(String queueUrl) {
-        String queueName = UNKOWN;
-        int index = queueUrl.lastIndexOf('/');
-        if (index > 0) {
-            queueName = queueUrl.substring(index + 1);
-        }
+        DestinationData destinationData = DestinationData.parse(queueUrl);
+
         MessageProduceParameters params = MessageProduceParameters
-                .library(LIBRARY)
+                .library(LIBRARY, OTEL_LIBRARY)
                 .destinationType(DestinationType.NAMED_QUEUE)
-                .destinationName(queueName)
+                .destinationName(destinationData.getQueueName())
                 .outboundHeaders(null)
+                .cloudRegion(destinationData.getRegion())
+                .cloudAccountId(destinationData.getAccountId())
                 .build();
         return params;
     }
 
     public static MessageConsumeParameters generateExternalConsumeMetrics(String queueUrl) {
-        String queueName = UNKOWN;
-        int index = queueUrl.lastIndexOf('/');
-        if (index > 0) {
-            queueName = queueUrl.substring(index + 1);
-        }
+        DestinationData destinationData = DestinationData.parse(queueUrl);
+
         MessageConsumeParameters params = MessageConsumeParameters
-                .library(LIBRARY)
+                .library(LIBRARY, OTEL_LIBRARY)
                 .destinationType(DestinationType.NAMED_QUEUE)
-                .destinationName(queueName)
+                .destinationName(destinationData.getQueueName())
                 .inboundHeaders(null)
+                .cloudRegion(destinationData.getRegion())
+                .cloudAccountId(destinationData.getAccountId())
                 .build();
         return params;
     }
@@ -56,4 +54,5 @@ public class Util {
             AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
         }
     }
+
 }
