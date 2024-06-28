@@ -14,12 +14,13 @@ import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
+import org.reactivestreams.Subscription;
 
 @Weave(type = MatchType.ExactClass, originalName = "reactor.core.publisher.MonoSubscribeOn")
 abstract class MonoSubscribeOn_Instrumentation {
 
     @Weave(type = MatchType.ExactClass, originalName = "reactor.core.publisher.MonoSubscribeOn$SubscribeOnSubscriber")
-    static final class SubscribeOnSubscriber_Instrumentation {
+    static final class SubscribeOnSubscriber_Instrumentation<T> {
         @NewField
         private Token token;
 
@@ -39,6 +40,38 @@ abstract class MonoSubscribeOn_Instrumentation {
         }
 
         public void cancel () {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        void trySchedule(long n, Subscription s) {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        public void onNext(T t) {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        public void onError(Throwable t) {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        public void onComplete() {
             if (token != null) {
                 token.linkAndExpire();
                 token = null;
