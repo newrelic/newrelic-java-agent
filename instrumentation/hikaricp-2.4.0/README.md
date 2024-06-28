@@ -1,8 +1,9 @@
 # hikaricp-2.4.0 Instrumentation Module
+This module supports HikariCP version 2.4.0 to current.
 
 ### Important Note Regarding Use of the Legacy HikariCP Extension Module
 This built in instrumentation module replaces the extension module that can be downloaded from the New Relic
-[download size](https://download.newrelic.com/newrelic/java-agent/extensions/). The `hikaricp-2.4.0.jar` 
+[download site](https://download.newrelic.com/newrelic/java-agent/extensions/). The `hikaricp-2.4.0.jar` 
 artifact should be removed from the agent's `extension` folder if present.
 
 ### Reported Metrics
