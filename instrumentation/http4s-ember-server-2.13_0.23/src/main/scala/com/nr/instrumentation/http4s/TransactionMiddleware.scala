@@ -6,7 +6,7 @@ import com.newrelic.api.agent.{Token, Trace}
 import org.http4s.{Request, Response}
 import cats.implicits._
 import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction, TransactionNamePriority}
-import com.newrelic.instrumentable.scala.http4s.ember.server.RequestProcessor
+//import com.newrelic.instrumentable.scala.http4s.ember.server.RequestProcessor
 
 object TransactionMiddleware {
   def genHttpApp[F[_] : Sync](httpApp: Kleisli[F, Request[F], Response[F]]): Kleisli[F, Request[F], Response[F]] =
@@ -35,7 +35,8 @@ object TransactionMiddleware {
   @Trace(async = true, excludeFromTransactionTrace = true)
   private def processReq[F[_] : Sync](token: Token, request: Request[F]): F[Unit] = {
     token.link()
-    RequestProcessor.processRequest(request)
+//    RequestProcessor.processRequest(request)
+    Sync[F].delay()
   }
 
   private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {

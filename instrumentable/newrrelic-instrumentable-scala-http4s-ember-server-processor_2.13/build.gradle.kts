@@ -10,10 +10,12 @@ evaluationDependsOn(":newrelic-api")
 
 
 crossBuild {
-    scalaVersionsCatalog = mapOf("2.12" to "2.12.13", "2.13" to "2.13.10")
+    scalaVersionsCatalog = mapOf("2.13" to "2.13.10")
     builds {
         register("scala") {
-            scalaVersions = setOf("2.12", "2.13")
+            scalaVersions = HashSet<String>().also {
+                it.add("2.13")
+            }
 
         }
     }
@@ -33,15 +35,11 @@ dependencies {
 }
 
 val crossBuildScala_213Jar by tasks.getting
-val crossBuildScala_212Jar by tasks.getting
 
 val javadocJar by tasks.getting
 val sourcesJar by tasks.getting
 
-mapOf(
-        "2.13" to crossBuildScala_213Jar,
-        "2.12" to crossBuildScala_212Jar
-).forEach { (scalaVersion, versionedClassJar) ->
+mapOf("2.13" to crossBuildScala_213Jar, ).forEach { (scalaVersion, versionedClassJar) ->
     PublishConfig.config(
             "crossBuildScala_${scalaVersion.replace(".", "")}",
             project,
