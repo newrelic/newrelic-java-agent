@@ -66,6 +66,10 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private static final Set<String> DEFAULT_DISABLED_WEAVE_PACKAGES = new HashSet<>();
     private static final Set<String> DEFAULT_CLASSLOADER_EXCLUDES = new HashSet<>();
 
+    // Security agent specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
+    private static final Set<String> SECURITY_AGENT_CLASS_EXCLUDES = new HashSet<>(Arrays.asList("java/util/zip/InflaterInputStream", "java/util/zip/ZipFile$ZipFileInputStream",
+            "java/util/zip/ZipFile$ZipFileInflaterInputStream", "com/newrelic/api/agent/security/.*", "com/newrelic/agent/security/.*"));
+
     static {
         DEFAULT_DISABLED_WEAVE_PACKAGES.add("com.newrelic.instrumentation.servlet-user");
         DEFAULT_DISABLED_WEAVE_PACKAGES.add("com.newrelic.instrumentation.spring-aop-2");
@@ -103,14 +107,14 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private final boolean litemode;
     private final long autoAsyncLinkRateLimit;
 
-    public ClassTransformerConfigImpl(Map<String, Object> props, boolean customTracingEnabled, boolean litemode) {
+    public ClassTransformerConfigImpl(Map<String, Object> props, boolean customTracingEnabled, boolean litemode, boolean addSecurityExcludes) {
         super(props, SYSTEM_PROPERTY_ROOT);
         this.custom_tracing = customTracingEnabled;
         this.litemode = litemode;
         isEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
         isDefaultInstrumentationEnabled = getDefaultInstrumentationEnabled();
         isBuiltinExtensionEnabled = getBuiltinExensionEnabled();
-        excludes = Collections.unmodifiableSet(new HashSet<>(getUniqueStrings(EXCLUDES)));
+        excludes = initializeClassExcludes(addSecurityExcludes);
         includes = Collections.unmodifiableSet(new HashSet<>(getUniqueStrings(INCLUDES)));
         classloaderExclusions = initializeClassloaderExcludes();
         classloaderDelegationExcludes = initializeClassloaderDelegationExcludes();
@@ -131,7 +135,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     }
 
     public ClassTransformerConfigImpl(Map<String, Object> props, boolean customTracingEnabled) {
-        this(props, customTracingEnabled, false);
+        this(props, customTracingEnabled, false, false);
     }
 
     private boolean getBuiltinExensionEnabled() {
@@ -154,6 +158,15 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
             Agent.LOG.info("Instrumentation is disabled by default");
             return DEFAULT_DISABLED;
         }
+    }
+
+    private Set<String> initializeClassExcludes(boolean addSecurityExcludes) {
+        HashSet<String> tempExcludes = new HashSet<>(getUniqueStrings(EXCLUDES));
+        if (addSecurityExcludes) {
+            tempExcludes.addAll(SECURITY_AGENT_CLASS_EXCLUDES);
+        }
+
+        return Collections.unmodifiableSet(new HashSet<>(tempExcludes));
     }
 
     private Set<String> initializeClassloaderExcludes() {
@@ -326,11 +339,11 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         return Arrays.asList(jdbcStatementsProp.split(",[\\s]*"));
     }
 
-    static ClassTransformerConfig createClassTransformerConfig(Map<String, Object> settings, boolean custom_tracing, boolean litemode) {
+    static ClassTransformerConfig createClassTransformerConfig(Map<String, Object> settings, boolean custom_tracing, boolean litemode, boolean addSecurityExcludes) {
         if (settings == null) {
             settings = Collections.emptyMap();
         }
-        return new ClassTransformerConfigImpl(settings, custom_tracing, litemode);
+        return new ClassTransformerConfigImpl(settings, custom_tracing, litemode, addSecurityExcludes);
     }
 
     @Override

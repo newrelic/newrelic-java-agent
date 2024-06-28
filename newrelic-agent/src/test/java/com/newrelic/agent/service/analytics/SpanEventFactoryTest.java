@@ -19,7 +19,10 @@ import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.api.agent.DatastoreParameters;
+import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Test;
 
 import java.net.URI;

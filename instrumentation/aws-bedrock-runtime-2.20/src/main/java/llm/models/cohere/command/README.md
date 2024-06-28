@@ -1,12 +1,15 @@
 # Cohere
 
-Examples of the request/response bodies for models that have been tested and verified to work. The instrumentation should continue to correctly process new models as long as they match the model naming prefixes in `llm.models.SupportedModels` and the request/response structure stays the same as the examples listed here.
+Examples of the request/response bodies for models that have been tested and verified to work. The instrumentation should continue to correctly process new
+models as long as they match the model naming prefixes in `llm.models.SupportedModels` and the request/response structure stays the same as the examples listed
+here.
 
 ## Command Models
 
 ### Text Completion Models
 
 The following models have been tested:
+
 * Command(`cohere.command-text-v14`)
 * Command Light(`cohere.command-light-text-v14`)
 
@@ -47,6 +50,7 @@ The following models have been tested:
 ### Embedding Models
 
 The following models have been tested:
+
 * Embed English(`cohere.embed-english-v3`)
 * Embed Multilingual(`cohere.embed-multilingual-v3`)
 

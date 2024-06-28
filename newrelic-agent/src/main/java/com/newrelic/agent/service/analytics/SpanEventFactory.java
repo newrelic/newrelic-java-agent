@@ -26,6 +26,8 @@ import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.QueryConverter;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 
 import java.net.URI;
@@ -264,7 +266,7 @@ public class SpanEventFactory {
 
     // datastore parameter
     public SpanEventFactory setDatastoreComponent(String component) {
-        builder.putAgentAttribute("db.system", component);
+        builder.putAgentAttribute(AttributeNames.DB_SYSTEM, component);
         return this;
     }
 
@@ -280,6 +282,26 @@ public class SpanEventFactory {
     public SpanEventFactory setServerAddress(String host) {
         builder.putAgentAttribute("server.address", host);
         builder.putAgentAttribute("peer.hostname", host);
+        return this;
+    }
+
+    public SpanEventFactory setCloudAccountId(String cloudAccountId) {
+        builder.putAgentAttribute(AttributeNames.CLOUD_ACCOUNT_ID, cloudAccountId);
+        return this;
+    }
+
+    public SpanEventFactory setCloudRegion(String region) {
+        builder.putAgentAttribute(AttributeNames.CLOUD_REGION, region);
+        return this;
+    }
+
+    public SpanEventFactory setMessagingSystem(String messagingSystem) {
+        builder.putAgentAttribute(AttributeNames.MESSAGING_SYSTEM, messagingSystem);
+        return this;
+    }
+
+    public SpanEventFactory setMessagingDestination(String messagingDestination) {
+        builder.putAgentAttribute(AttributeNames.MESSAGING_DESTINATION_NAME, messagingDestination);
         return this;
     }
 
@@ -400,6 +422,20 @@ public class SpanEventFactory {
             } else {
                 setAddress(datastoreParameters.getHost(), datastoreParameters.getPathOrId());
             }
+        } else if (parameters instanceof MessageProduceParameters) {
+            MessageProduceParameters messageProduceParameters = (MessageProduceParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudAccountId(messageProduceParameters.getCloudAccountId());
+            setCloudRegion(messageProduceParameters.getCloudRegion());
+            setMessagingSystem(messageProduceParameters.getOtelLibrary());
+            setMessagingDestination(messageProduceParameters.getDestinationName());
+        } else if (parameters instanceof MessageConsumeParameters) {
+            MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudAccountId(messageConsumeParameters.getCloudAccountId());
+            setCloudRegion(messageConsumeParameters.getCloudRegion());
+            setMessagingSystem(messageConsumeParameters.getOtelLibrary());
+            setMessagingDestination(messageConsumeParameters.getDestinationName());
         } else {
             setCategory(SpanCategory.generic);
         }

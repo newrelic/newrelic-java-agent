@@ -7,12 +7,12 @@
 
 package llm.models.amazon.titan;
 
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.agent.introspec.Event;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.LlmTokenCountCallback;
-import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -325,7 +325,9 @@ public class W3CTraceContextCrossAgentTest {
         JSONObject exact = (JSONObject) payloadAssertions.get("exact");
 
         if (exact != null) {
-            assertEquals(exact.get("traceparent.version"), payload.getVersion());
+            if (exact.get("traceparent.version") != null) {
+                assertEquals(exact.get("traceparent.version"), payload.getVersion());
+            }
             if (exact.containsKey("traceparent.trace_id")) {
                 assertEquals(exact.get("traceparent.trace_id"), payload.getTraceId());
             }
@@ -362,10 +364,10 @@ public class W3CTraceContextCrossAgentTest {
                 assertEquals(exact.get("tracestate.tenant_id"), payload.getTrustKey());
             }
             if (exact.containsKey("tracestate.version")) {
-                assertEquals(((Long) exact.get("tracestate.version")).intValue(), payload.getVersion());
+                assertEquals(exact.get("tracestate.version"), String.valueOf(payload.getVersion()));
             }
             if (exact.containsKey("tracestate.parent_type")) {
-                assertEquals(((Long) exact.get("tracestate.parent_type")).intValue(), payload.getParentType().value);
+                assertEquals(exact.get("tracestate.parent_type"), String.valueOf(payload.getParentType().value));
             }
             if (exact.containsKey("tracestate.parent_account_id")) {
                 assertEquals(exact.get("tracestate.parent_account_id"), payload.getAccountId());
@@ -374,10 +376,11 @@ public class W3CTraceContextCrossAgentTest {
                 assertEquals(exact.get("tracestate.parent_application_id"), payload.getApplicationId());
             }
             if (exact.containsKey("tracestate.sampled")) {
-                assertEquals(exact.get("tracestate.sampled"), payload.getSampled().booleanValue());
+                boolean expectedTracestateSampled = exact.get("tracestate.sampled").equals("1");
+                assertEquals(expectedTracestateSampled, payload.getSampled().booleanValue());
             }
             if (exact.containsKey("tracestate.priority")) {
-                assertEquals((double) exact.get("tracestate.priority"), (double) payload.getPriority(), 0.00001);
+                assertEquals(Double.parseDouble(((String) exact.get("tracestate.priority"))), (double) payload.getPriority(), 0.00001);
             }
         }
 
@@ -471,8 +474,9 @@ public class W3CTraceContextCrossAgentTest {
                 }
             } else if (event.getKey().startsWith("unexpected")) {
                 for (Object val : (JSONArray) event.getValue()) {
-                    final String message = "Did not expect: " + val.toString();
-                    assertFalse(message, intrinsics.containsKey(val.toString()));
+                    String valString = val.toString();
+                    final String message = "Did not expect: " + valString;
+                    assertFalse(message, (intrinsics.containsKey(valString) && !intrinsics.get(valString).toString().isEmpty()));
                 }
             }
         }

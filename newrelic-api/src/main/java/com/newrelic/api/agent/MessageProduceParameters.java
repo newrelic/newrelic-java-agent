@@ -16,23 +16,43 @@ package com.newrelic.api.agent;
  */
 public class MessageProduceParameters implements ExternalParameters {
     private final String library;
+    private final String otelLibrary;
     private final DestinationType destinationType;
     private final String destinationName;
     private final OutboundHeaders outboundHeaders;
+    private final String cloudAccountId;
+    private final String cloudRegion;
 
+    private MessageProduceParameters(Builder builder) {
+        this.library = builder.library;
+        this.otelLibrary = builder.otelLibrary;
+        this.destinationType = builder.destinationType;
+        this.destinationName = builder.destinationName;
+        this.outboundHeaders = builder.outboundHeaders;
+        this.cloudAccountId = builder.cloudAccountId;
+        this.cloudRegion = builder.cloudRegion;
+    }
+
+    @Deprecated
     protected MessageProduceParameters(String library, DestinationType destinationType, String destinationName,
             OutboundHeaders outboundHeaders) {
         this.library = library;
+        this.otelLibrary = null;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
         this.outboundHeaders = outboundHeaders;
+        this.cloudAccountId = null;
+        this.cloudRegion = null;
     }
 
     protected MessageProduceParameters(MessageProduceParameters messageProduceParameters) {
         this.library = messageProduceParameters.library;
+        this.otelLibrary = messageProduceParameters.otelLibrary;
         this.destinationType = messageProduceParameters.destinationType;
         this.destinationName = messageProduceParameters.destinationName;
         this.outboundHeaders = messageProduceParameters.outboundHeaders;
+        this.cloudAccountId = messageProduceParameters.cloudAccountId;
+        this.cloudRegion = messageProduceParameters.cloudRegion;
     }
 
     public String getDestinationName() {
@@ -47,19 +67,39 @@ public class MessageProduceParameters implements ExternalParameters {
         return outboundHeaders;
     }
 
+    public String getCloudAccountId() {
+        return cloudAccountId;
+    }
+
+    public String getCloudRegion() {
+        return cloudRegion;
+    }
+
     public String getLibrary() {
         return library;
+    }
+
+    public String getOtelLibrary() {
+        return otelLibrary;
     }
 
     protected static class Builder implements DestinationTypeParameter, DestinationNameParameter,
             OutboundHeadersParameter, Build {
         private String library;
+        private String otelLibrary;
         private DestinationType destinationType;
         private String destinationName;
         private OutboundHeaders outboundHeaders;
+        private String cloudAccountId;
+        private String cloudRegion;
 
         public Builder(String library) {
             this.library = library;
+        }
+
+        public DestinationTypeParameter otelLibrary(String otelLibrary) {
+            this.otelLibrary = otelLibrary;
+            return this;
         }
 
         public DestinationNameParameter destinationType(DestinationType destinationType) {
@@ -77,8 +117,18 @@ public class MessageProduceParameters implements ExternalParameters {
             return this;
         }
 
+        public Build cloudAccountId(String cloudAccountId) {
+            this.cloudAccountId = cloudAccountId;
+            return this;
+        }
+
+        public Build cloudRegion(String cloudRegion) {
+            this.cloudRegion = cloudRegion;
+            return this;
+        }
+
         public MessageProduceParameters build() {
-            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders);
+            return new MessageProduceParameters(this);
         }
     }
 
@@ -90,6 +140,17 @@ public class MessageProduceParameters implements ExternalParameters {
      */
     public static DestinationTypeParameter library(String library) {
         return new MessageProduceParameters.Builder(library);
+    }
+
+    /**
+     * Set the name of the library. And the OTEL known name of that library.
+     *
+     * @param library the name of the library
+     * @param otelLibrary the OTEL known name of the library
+     * @return the next builder interface
+     */
+    public static DestinationTypeParameter library(String library, String otelLibrary) {
+        return new MessageProduceParameters.Builder(library).otelLibrary(otelLibrary);
     }
 
     public interface DestinationTypeParameter {
@@ -127,6 +188,18 @@ public class MessageProduceParameters implements ExternalParameters {
     }
 
     public interface Build {
+
+        /**
+         * Set the cloud provider's account id for the message destination.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build cloudAccountId(String cloudAccountId);
+
+        /**
+         * Set the cloud provider's region for the message destination.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build cloudRegion(String cloudRegion);
 
         /**
          * Build the final {@link MessageProduceParameters} for the API call.
