@@ -39,6 +39,6 @@ public class PooledDataSourceSampler implements Runnable {
         MetricAggregator metricAggregator = NewRelic.getAgent().getMetricAggregator();
         metricAggregator.recordMetric(baseName + "Busy Count[connections]", hikariPool.getActiveConnections());
         metricAggregator.recordMetric(baseName + "Idle Count[connections]", hikariPool.getIdleConnections());
-        NewRelic.getAgent().getMetricAggregator().recordMetric(baseName + "Max Pool Size[connections]", config.getMaximumPoolSize());
+        metricAggregator.recordMetric(baseName + "Max Pool Size[connections]", config.getMaximumPoolSize());
     }
 }
