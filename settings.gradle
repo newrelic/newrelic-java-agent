@@ -65,6 +65,9 @@ if (JavaVersion.current().isJava11Compatible()) {
     include 'module_test_11'
 }
 
+// Instrument only modules
+include 'instrumentable:newrrelic-instrumentable-scala-http4s-ember-server-processor'
+
 // Weaver Instrumentation
 include 'instrumentation:anorm-2.3'
 include 'instrumentation:anorm-2.4'
