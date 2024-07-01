@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.opentelemetry.sdk.trace;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -61,9 +68,9 @@ public class ExitTracerSpan implements ReadWriteSpan {
     // these attributes are reported as agent attributes, we don't want to duplicate them in user attributes
     private static final Set<String> AGENT_ATTRIBUTE_KEYS =
             Collections.unmodifiableSet(
-            Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT)
-                    .map(AttributeKey::getKey)
-                    .collect(Collectors.toSet()));
+                    Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT)
+                            .map(AttributeKey::getKey)
+                            .collect(Collectors.toSet()));
 
     final ExitTracer tracer;
     private final SpanKind spanKind;
@@ -78,7 +85,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private long endEpochNanos;
     private final Resource resource;
 
-    ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext, Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd) {
+    ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
+            Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd) {
         this.tracer = tracer;
         this.spanKind = spanKind;
         this.spanName = spanName;
@@ -94,7 +102,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
     public static ExitTracerSpan wrap(ExitTracer tracer) {
         return new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.INTERNAL, tracer.getMetricName(), SpanContext.getInvalid(),
-                Resource.empty(), Collections.emptyMap(), span -> {});
+                Resource.empty(), Collections.emptyMap(), span -> {
+        });
     }
 
     @Override

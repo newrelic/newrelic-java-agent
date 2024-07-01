@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.opentelemetry.sdk.trace;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -35,10 +42,11 @@ class NRSpanBuilder implements SpanBuilder {
     private final TracerSharedState sharedState;
     private final Consumer<ExitTracerSpan> endHandler;
     private final InstrumentationLibraryInfo instrumentationLibraryInfo;
-    private SpanKind spanKind= SpanKind.INTERNAL;
+    private SpanKind spanKind = SpanKind.INTERNAL;
     private SpanContext parentSpanContext;
 
-    public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, TracerSharedState sharedState, String spanName) {
+    public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, TracerSharedState sharedState,
+            String spanName) {
         this.instrumentation = instrumentation;
         this.spanName = spanName;
         this.sharedState = sharedState;
@@ -50,7 +58,8 @@ class NRSpanBuilder implements SpanBuilder {
         if (sharedState.getActiveSpanProcessor().isEndRequired()) {
             endHandler = sharedState.getActiveSpanProcessor()::onEnd;
         } else {
-            endHandler = span -> {};
+            endHandler = span -> {
+            };
         }
     }
 
@@ -144,7 +153,8 @@ class NRSpanBuilder implements SpanBuilder {
             tracer.addCustomAttribute("span.kind", spanKind.name());
         }
         // REVIEW - we're not picking up the global resources
-        return onStart(new ExitTracerSpan(tracer, instrumentationLibraryInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), attributes, endHandler));
+        return onStart(new ExitTracerSpan(tracer, instrumentationLibraryInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), attributes,
+                endHandler));
     }
 
     private Span startServerSpan(SpanContext parentSpanContext) {
@@ -208,7 +218,7 @@ class NRSpanBuilder implements SpanBuilder {
             @Override
             public int getStatus() throws Exception {
                 Object statusCode = attributes.get("http.response.status_code");
-                return statusCode instanceof Number ? ((Number)statusCode).intValue() : 0;
+                return statusCode instanceof Number ? ((Number) statusCode).intValue() : 0;
             }
 
             @Override

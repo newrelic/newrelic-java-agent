@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.opentelemetry.sdk.trace;
 
 import com.newrelic.agent.bridge.ExitTracer;
@@ -56,7 +63,8 @@ public class TestTracerBuilder implements TracerBuilder {
     @Override
     public Tracer build() {
         Supplier<SpanLimits> spanLimitsSupplier = () -> SpanLimits.getDefault();
-        TracerSharedState sharedState = new TracerSharedState(Clock.getDefault(), IdGenerator.random(), resource, spanLimitsSupplier, Sampler.alwaysOn(), spanProcessors);
+        TracerSharedState sharedState = new TracerSharedState(Clock.getDefault(), IdGenerator.random(), resource, spanLimitsSupplier, Sampler.alwaysOn(),
+                spanProcessors);
         return spanName -> new NRSpanBuilder(instrumentation, instrumentationScopeName, instrumentationScopeVersion, sharedState, spanName);
     }
 }

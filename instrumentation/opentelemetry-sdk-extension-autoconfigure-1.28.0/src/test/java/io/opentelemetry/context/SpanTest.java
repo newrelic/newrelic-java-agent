@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.opentelemetry.context;
 
 import com.google.common.collect.ImmutableMap;
@@ -41,6 +48,7 @@ public class SpanTest {
     static {
         System.setProperty("otel.java.global-autoconfigure.enabled", "true");
     }
+
     static final Tracer OTEL_TRACER = GlobalOpenTelemetry.get().getTracer("test", "1.0");
 
     @Test

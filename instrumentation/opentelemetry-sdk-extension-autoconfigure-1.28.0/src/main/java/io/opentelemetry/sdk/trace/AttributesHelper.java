@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.opentelemetry.sdk.trace;
 
 import io.opentelemetry.api.common.Attributes;
@@ -6,7 +13,8 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import java.util.Map;
 
 public class AttributesHelper {
-    private AttributesHelper() {}
+    private AttributesHelper() {
+    }
 
     public static Attributes toAttributes(Map<String, Object> attributes) {
         AttributesBuilder builder = Attributes.builder();

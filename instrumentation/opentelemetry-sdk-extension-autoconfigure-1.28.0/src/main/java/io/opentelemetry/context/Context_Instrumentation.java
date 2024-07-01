@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.opentelemetry.context;
 
 import com.newrelic.api.agent.weaver.MatchType;
@@ -11,6 +18,6 @@ public abstract class Context_Instrumentation {
     }
 
     public Scope makeCurrent() {
-        return ContextHelper.makeCurrent((Context)this, Weaver.callOriginal());
+        return ContextHelper.makeCurrent((Context) this, Weaver.callOriginal());
     }
 }

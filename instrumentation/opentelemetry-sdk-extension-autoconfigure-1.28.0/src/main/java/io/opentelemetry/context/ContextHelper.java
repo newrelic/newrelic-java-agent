@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.opentelemetry.context;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -8,7 +15,8 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.sdk.trace.ExitTracerSpan;
 
 class ContextHelper {
-    private ContextHelper() {}
+    private ContextHelper() {
+    }
 
     /**
      * If there's no span on the context, but there is a NR tracer on the stack, return a context with our span.
@@ -38,7 +46,7 @@ class ContextHelper {
             Span currentSpan = Span.fromContext(context);
 
             if (currentSpan instanceof ExitTracerSpan) {
-                return ((ExitTracerSpan)currentSpan).createScope(scope);
+                return ((ExitTracerSpan) currentSpan).createScope(scope);
             }
         }
         return scope;
