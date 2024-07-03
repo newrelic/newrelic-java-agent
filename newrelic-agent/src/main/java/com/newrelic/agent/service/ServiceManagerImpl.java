@@ -78,6 +78,7 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.StatsWork;
+import com.newrelic.agent.superagent.SuperAgentIntegrationService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
@@ -149,6 +150,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile SourceLanguageService sourceLanguageService;
     private volatile ExpirationService expirationService;
     private volatile SlowTransactionService slowTransactionService;
+    private volatile SuperAgentIntegrationService superAgentIntegrationService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -280,6 +282,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         harvestService.addHarvestListener(jarCollectorHarvestListener);
 
         slowTransactionService = new SlowTransactionService(config);
+        superAgentIntegrationService = new SuperAgentIntegrationService(config);
 
         asyncTxService.start();
         threadService.start();
@@ -314,6 +317,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.start();
         spanEventsService.start();
         slowTransactionService.start();
+        superAgentIntegrationService.start();
 
         startServices();
 
