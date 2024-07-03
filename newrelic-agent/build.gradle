@@ -10,10 +10,14 @@ plugins {
     id("java-library")
     id("maven-publish")
     id("signing")
+    id("com.google.protobuf") version("0.9.4")
 }
 
 apply from: '../gradle/script/spotbugs-config.gradle'
 apply from: '../gradle/script/jacoco.gradle'
+
+def protobufVersion = '4.27.2'
+def junixsockVersion = '2.9.1'
 
 configurations {
     tests
@@ -33,6 +37,22 @@ configurations.implementation.extendsFrom(configurations.jarIntoJar)
 project.ext {
     instrumentProjects = {
         rootProject.subprojects.findAll { project -> project.path =~ /:instrumentation:/ }
+    }
+}
+
+protobuf {
+    protoc {
+        // If needed, you can generate the protobuf .java files by running ./gradlew generateProto
+        //
+        // For M1 macs, you must add the following to your $HOME/.gradle/gradle.properties:
+        //      protoc_platform=osx-x86_64
+        // This will force the plugin to download the x86 protoc executable rather than looking for the
+        // osx-aarch_64 binary (which doesn't exist)
+        if (project.hasProperty('protoc_platform')) {
+            artifact = "com.google.protobuf:protoc:${protobufVersion}:${protoc_platform}"
+        } else {
+            artifact = "com.google.protobuf:protoc:${protobufVersion}"
+        }
     }
 }
 
@@ -100,6 +120,10 @@ dependencies {
     shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.3')
 
     shadowIntoJar("org.yaml:snakeyaml:1.33")
+
+    shadowIntoJar("com.kohlschutter.junixsocket:junixsocket-core:${junixsockVersion}")
+    shadowIntoJar("com.google.protobuf:protobuf-java:${protobufVersion}")
+    shadowIntoJar("com.kohlschutter.junixsocket:junixsocket-native:${junixsockVersion}")
 
     implementation("javax.management.j2ee:management-api:1.1-rev-1") {
         transitive = false
@@ -192,7 +216,11 @@ task relocatedShadowJar(type: ShadowJar) {
             // need them at runtime.
             "**/*.proto",
             // These are unnecessary files from our dependencies.
-            "META-INF/maven/**",
+            "META-INF/maven/com.google.*/**",
+            "META-INF/maven/com.squareup.okio/**",
+            "META-INF/maven/commons-*/**",
+            "META-INF/maven/net.*/**",
+            "META-INF/maven/org.*/**",
             // Multiple dependencies
             "LICENSE",
             // log4j2
@@ -208,7 +236,16 @@ task relocatedShadowJar(type: ShadowJar) {
             "META-INF/LICENSE.txt",
             "META-INF/NOTICE.txt",
             // gRPC
-            "META-INF/services/javax.annotation.*"
+            "META-INF/services/javax.annotation.*",
+            // junixsocket multi-release artifacts
+            "META-INF/versions/14/module-info.class",
+            "META-INF/versions/15/module-info.class",
+            "META-INF/versions/16/module-info.class",
+            "META-INF/versions/9/org/newsclub/**",
+            "META-INF/versions/14/org/newsclub/**",
+            "META-INF/versions/15/org/newsclub/**",
+            "META-INF/versions/16/org/newsclub/**"
+
     )
 
     mergeServiceFiles()
