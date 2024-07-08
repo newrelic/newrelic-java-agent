@@ -11,11 +11,13 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.service.AbstractService;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.superagent.protos.AgentCapabilities;
 import com.newrelic.agent.superagent.protos.AgentDisconnect;
 import com.newrelic.agent.superagent.protos.AgentToServer;
 import com.newrelic.agent.superagent.protos.ComponentHealth;
 import com.newrelic.agent.util.DefaultThreadFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,76 +28,66 @@ public class SuperAgentIntegrationService extends AbstractService implements Age
     private final String SA_INTEGRATION_THREAD_NAME = "New Relic Super Agent Integration Service";
 
     private AgentConfig agentConfig;
+    private final SuperAgentIntegrationClient client;
     private final long startTimeNano;
     private ByteString instanceId = ByteString.copyFromUtf8("test");
     private long sequenceNum = 1L;
     private final long capabilities = AgentCapabilities.AgentCapabilities_ReportsHealth_VALUE;
-    private AgentHealth agentHealth;
+    private final AgentHealth agentHealth;
 
-    public SuperAgentIntegrationService(AgentConfig agentConfig) {
+    private ScheduledExecutorService scheduler;
+
+    public SuperAgentIntegrationService(SuperAgentIntegrationClient client, AgentConfig agentConfig) {
         super(SuperAgentIntegrationService.class.getSimpleName());
         this.agentConfig = agentConfig;
+        this.client = client;
         this.startTimeNano = getPseudoCurrentTimeNanos();
         this.agentHealth = new AgentHealth();
+
+        ServiceFactory.getConfigService().addIAgentConfigListener(this);
     }
 
     @Override
     protected void doStart() throws Exception {
-        // Check enabled, grab socket addr from config
-        //SuperAgentIntegrationClient client = new SuperAgentDomainSocketIntegrationClient(agentConfig.getSuperAgentIntegrationConfig().getEndpoint());
-        Agent.LOG.log(Level.INFO, "foooooooooooo");
-        SuperAgentIntegrationClient client = new SuperAgentDomainSocketIntegrationClient("/Users/jduffy/foo.socket");
-        ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory(SA_INTEGRATION_THREAD_NAME, true));
-        AgentToServer a = generateAgentToServerOpAmpMessage(false);
-        Agent.LOG.log(Level.INFO, "2222222222");
+        if (isEnabled()) {
+            Agent.LOG.log(Level.INFO, "SuperAgentIntegrationService starting");
+            int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getFrequency(); //Used for both repeat frequency and initial delay
 
-//        s.scheduleWithFixedDelay(() -> client.sendAgentToServerMessage(generateAgentToServerOpAmpMessage(false)),
-//                5,
-//                5,
-//                TimeUnit.SECONDS);
-        s.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("4444444444444444444");
-                Agent.LOG.log(Level.INFO, "zzzzzzzzzzzzzzzzzzzzzzzzzz  " + AgentToServer.class.getName());
-                AgentToServer a = generateAgentToServerOpAmpMessage(false);
-                Agent.LOG.log(Level.INFO, "aaaaaaaaaaaaaaaaaaaaaaaaa\n" + a.toString());
-                client.sendAgentToServerMessage(generateAgentToServerOpAmpMessage(false));
-
-            }
-        }, 5, 5, TimeUnit.SECONDS);
+            this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory(SA_INTEGRATION_THREAD_NAME, true));
+            this.scheduler.scheduleWithFixedDelay(() -> {
+                if (!instanceId.isEmpty()) {
+                    client.sendAgentToServerMessage(generateAgentToServerOpAmpMessage(false));
+                }
+            }, messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
+        }
     }
 
     @Override
     protected void doStop() throws Exception {
+        if (isEnabled()) {
+            scheduler.shutdown();
 
+            //Submit final msg with shutdown object
+        }
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
-        //return agentConfig.isEnabled();
+        return agentConfig.getSuperAgentIntegrationConfig().isEnabled();
     }
 
     private AgentToServer generateAgentToServerOpAmpMessage(boolean sendShutdownProperty) {
-        AgentToServer.Builder builder;
-        try {
-
-            builder = AgentToServer.newBuilder()
+        AgentToServer.Builder builder = AgentToServer.newBuilder()
                     .setInstanceUid(instanceId)
                     .setSequenceNum(sequenceNum++)
                     .setCapabilities(capabilities)
                     .setHealth(generateComponentHealthOpAmpMessage());
 
-            if (sendShutdownProperty) {
-                builder.setAgentDisconnect(AgentDisconnect.newBuilder().build());
-            }
-
-            return builder.build();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        if (sendShutdownProperty) {
+            builder.setAgentDisconnect(AgentDisconnect.newBuilder().build());
         }
-        return null;
+
+        return builder.build();
     }
 
     private ComponentHealth generateComponentHealthOpAmpMessage() {
@@ -117,16 +109,5 @@ public class SuperAgentIntegrationService extends AbstractService implements Age
     @Override
     public void configChanged(String appName, AgentConfig agentConfig) {
         this.agentConfig = agentConfig;
-    }
-
-    private static class AgentToServerMessageSender implements Runnable {
-        public AgentToServerMessageSender() {
-
-        }
-
-        @Override
-        public void run() {
-
-        }
     }
 }
