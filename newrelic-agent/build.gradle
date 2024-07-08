@@ -34,6 +34,9 @@ project.ext {
     instrumentProjects = {
         rootProject.subprojects.findAll { project -> project.path =~ /:instrumentation:/ }
     }
+    instrumentableProjects = {
+        rootProject.subprojects.findAll { project -> project.path =~ /:instrumentable:/ }
+    }
 }
 
 java {
@@ -258,6 +261,7 @@ task newrelicVersionedAgentJar(type: Jar) {
     group("build")
     dependsOn("transformedShadowJar", "buildManifest")
     dependsOn(instrumentProjects().collect { it.tasks["jar"] })
+    dependsOn(instrumentableProjects().collect { it.tasks["jar"] })
 
     from("$rootDir/LICENSE")
     from("$rootDir/THIRD_PARTY_NOTICES.md")
@@ -277,6 +281,12 @@ task newrelicVersionedAgentJar(type: Jar) {
     into('instrumentation') {
         from {
             instrumentProjects().collect { it.tasks['jar'].archiveFile.get().asFile.path }
+        }
+    }
+
+    into('instrumentable') {
+        from {
+            instrumentableProjects().collect { it.tasks['jar'].archiveFile.get().asFile.path }
         }
     }
 

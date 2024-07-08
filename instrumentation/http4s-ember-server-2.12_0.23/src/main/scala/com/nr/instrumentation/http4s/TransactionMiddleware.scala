@@ -2,11 +2,10 @@ package com.nr.instrumentation.http4s
 
 import cats.data.Kleisli
 import cats.effect.Sync
-import com.newrelic.api.agent.{Token, Trace}
-import org.http4s.{Request, Response}
 import cats.implicits._
 import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction, TransactionNamePriority}
-//import com.newrelic.instrumentable.scala.http4s.ember.server.RequestProcessor
+import com.newrelic.api.agent.Token
+import org.http4s.{Request, Response}
 
 object TransactionMiddleware {
   def genHttpApp[F[_] : Sync](httpApp: Kleisli[F, Request[F], Response[F]]): Kleisli[F, Request[F], Response[F]] =
@@ -18,7 +17,6 @@ object TransactionMiddleware {
              tracer => for {
                txn <- construct(AgentBridge.getAgent.getTransaction)
                token <-  setupTxn(txn, request)
-               _ <- processReq(token, request)
                res <- attachErrorEvent(httpApp(request), tracer, token)
                _ <- completeTxn(tracer, token)
              } yield res
@@ -31,12 +29,6 @@ object TransactionMiddleware {
     txn.getTracedMethod.setMetricName("HTTP4s", "RequestHandler")
     t.setWebRequest(RequestWrapper(request))
     token
-  }
-  @Trace(async = true, excludeFromTransactionTrace = true)
-  private def processReq[F[_] : Sync](token: Token, request: Request[F]): F[Unit] = {
-    token.link()
-//    RequestProcessor.processRequest(request)
-    Sync[F].delay()
   }
 
   private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {
