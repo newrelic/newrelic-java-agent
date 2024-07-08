@@ -18,21 +18,20 @@ import java.util.logging.Level;
 
 public class SuperAgentDomainSocketIntegrationClient implements SuperAgentIntegrationClient {
     private final File socketAddress;
-    private AgentToServer agentToServerMessage;
 
     public SuperAgentDomainSocketIntegrationClient(String socketAddress) {
         this.socketAddress = new File(socketAddress);
     }
 
     public void sendAgentToServerMessage(AgentToServer agentToServerMessage) {
-        Agent.LOG.log(Level.FINEST, "Sending AgentToServer message to domain socket address {0}", this.socketAddress.getAbsolutePath());
+        Agent.LOG.log(Level.FINEST, "Sending AgentToServer message to domain socket address: {0}\n{1}", this.socketAddress.getAbsolutePath(), agentToServerMessage.toString());
 
         try (AFUNIXSocket socket = AFUNIXSocket.connectTo(AFUNIXSocketAddress.of(this.socketAddress));
              OutputStream outputStream = socket.getOutputStream()) {
-            outputStream.write(this.agentToServerMessage.toByteArray());
+            outputStream.write(agentToServerMessage.toByteArray());
             outputStream.flush();
         } catch (IOException se) {
-            Agent.LOG.log(Level.WARNING, "Exception attempting to connect to UnixSocketAddress {0}", this.socketAddress.getAbsolutePath(), se);
+            Agent.LOG.log(Level.WARNING, "Exception attempting to connect to UnixSocketAddress {0}: - {1}", this.socketAddress.getAbsolutePath(), se.getMessage());
         }
 
     }

@@ -216,6 +216,7 @@ task relocatedShadowJar(type: ShadowJar) {
             // need them at runtime.
             "**/*.proto",
             // These are unnecessary files from our dependencies.
+            //"META-INF/maven/**",
             "META-INF/maven/com.google.*/**",
             "META-INF/maven/com.squareup.okio/**",
             "META-INF/maven/commons-*/**",
