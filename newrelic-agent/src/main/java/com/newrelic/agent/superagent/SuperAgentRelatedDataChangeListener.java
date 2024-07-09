@@ -1,9 +1,5 @@
 package com.newrelic.agent.superagent;
 
 public interface SuperAgentRelatedDataChangeListener {
-    public enum Type {
-        InstanceId,
-        Error,
-
-    }
+    void onHealthDataChange(HealthDataProducer.Type type, String data);
 }
