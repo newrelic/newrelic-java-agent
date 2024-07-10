@@ -122,6 +122,14 @@ public class PrivateApiImpl implements PrivateApi {
     }
 
     @Override
+    public void addTracerParameter(String key, String value, boolean addToSpan) {
+        Transaction currentTxn = Transaction.getTransaction(false);
+        if (currentTxn != null) {
+            currentTxn.getTransactionActivity().getLastTracer().setAgentAttribute(key, value, addToSpan);
+        }
+    }
+
+    @Override
     public void addTracerParameter(String key, Map<String, String> values) {
         Transaction currentTxn = Transaction.getTransaction(false);
         if (currentTxn != null) {

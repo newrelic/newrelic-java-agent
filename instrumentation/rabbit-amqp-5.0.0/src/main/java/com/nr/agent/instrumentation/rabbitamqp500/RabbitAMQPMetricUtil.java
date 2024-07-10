@@ -14,8 +14,12 @@ import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
 import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.impl.AMQConnection;
 
+import java.net.InetAddress;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class RabbitAMQPMetricUtil {
@@ -38,40 +42,79 @@ public abstract class RabbitAMQPMetricUtil {
                 .setTransactionName(TransactionNamePriority.FRAMEWORK, false, MESSAGE, transactionName);
     }
 
-    public static void processSendMessage(String exchangeName, String routingKey, Map<String, Object> headers,
-                                          AMQP.BasicProperties props, TracedMethod tracedMethod) {
+    public static void processSendMessage(String exchangeName, String routingKey,
+            HashMap<String, Object> headers,
+            AMQP.BasicProperties props, TracedMethod tracedMethod, AMQConnection connection) {
+        String host = getHost(connection);
+        Integer port = getPort(connection);
         tracedMethod.reportAsExternal(MessageProduceParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
-                .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
+                .destinationName(wrapExchange(exchangeName))
                 .outboundHeaders(new OutboundWrapper(headers))
+                .instance(host, port)
                 .build());
 
-        addAttributes(routingKey, props);
+        addProduceAttributes(exchangeName, routingKey, props);
     }
 
     public static void processGetMessage(String queueName, String routingKey, String exchangeName,
-                                         AMQP.BasicProperties properties, TracedMethod tracedMethod) {
+            AMQP.BasicProperties properties, TracedMethod tracedMethod, AMQConnection connection) {
+        String host = getHost(connection);
+        Integer port = getPort(connection);
         tracedMethod.reportAsExternal(MessageConsumeParameters
                 .library(RABBITMQ)
                 .destinationType(DestinationType.EXCHANGE)
-                .destinationName(exchangeName.isEmpty() ? DEFAULT : exchangeName)
+                .destinationName(wrapExchange(exchangeName))
                 .inboundHeaders(new InboundWrapper(properties.getHeaders()))
+                .instance(host, port)
                 .build());
 
-        addConsumeAttributes(queueName, routingKey, properties);
+        addConsumeAttributes(exchangeName, queueName, routingKey, properties);
     }
 
-    public static void addConsumeAttributes(String queueName, String routingKey, AMQP.BasicProperties properties) {
+    public static void addConsumeAttributes(String exchangeName, String queueName, String routingKey, AMQP.BasicProperties properties) {
         if (queueName != null && captureSegmentParameters) {
-            AgentBridge.privateApi.addTracerParameter("message.queueName", queueName);
+            AgentBridge.privateApi.addTracerParameter("message.queueName", queueName, true);
+            // OTel attributes
+            AgentBridge.privateApi.addTracerParameter("messaging.destination.name", queueName, true);
+            if (exchangeName != null) {
+                AgentBridge.privateApi.addTracerParameter("messaging.destination_publish.name", exchangeName, true);
+            }
         }
         addAttributes(routingKey, properties);
+    }
+
+    public static void addProduceAttributes(String exchangeName, String routingKey, AMQP.BasicProperties properties) {
+        if (exchangeName != null && captureSegmentParameters) {
+            // OTel attributes
+            AgentBridge.privateApi.addTracerParameter("messaging.destination.name", wrapExchange(exchangeName), true);
+        }
+        addAttributes(routingKey, properties);
+    }
+
+    public static String wrapExchange(String exchangeName) {
+        return exchangeName.isEmpty() ? DEFAULT : exchangeName;
     }
 
     public static void queuePurge(String queue, TracedMethod tracedMethod) {
         tracedMethod.setMetricName(MessageFormat.format("MessageBroker/{0}/Queue/Purge/Named/{1}",
                 RABBITMQ, queue.isEmpty() ? DEFAULT : queue));
+    }
+
+    private static String getHost(AMQConnection connection) {
+        String host = null;
+        if (connection != null) {
+            InetAddress address = connection.getAddress();
+            if (address != null) {
+                host = address.getHostName();
+            }
+        }
+        return host;
+    }
+
+    private static Integer getPort(Connection connection) {
+        return (connection != null) ? connection.getPort() : null;
     }
 
     private static void addAttributes(String routingKey, AMQP.BasicProperties properties) {
@@ -80,6 +123,8 @@ public abstract class RabbitAMQPMetricUtil {
         }
 
         AgentBridge.privateApi.addTracerParameter("message.routingKey", routingKey);
+        // Add Open Telemetry attribute for routing key to be added to spans
+        AgentBridge.privateApi.addTracerParameter("messaging.rabbitmq.destination.routing_key", routingKey, true);
         if (properties.getReplyTo() != null) {
             AgentBridge.privateApi.addTracerParameter("message.replyTo", properties.getReplyTo());
         }

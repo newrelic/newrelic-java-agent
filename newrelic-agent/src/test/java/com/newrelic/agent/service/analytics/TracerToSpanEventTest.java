@@ -31,7 +31,9 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.newrelic.agent.MetricNames.QUEUE_TIME;
@@ -52,6 +54,7 @@ import static com.newrelic.agent.attributes.AttributeNames.RESPONSE_CONTENT_TYPE
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -83,6 +86,7 @@ public class TracerToSpanEventTest {
     private Map<String, Object> transactionUserAttributes;
     private Map<String, Object> tracerAgentAttributes;
     private Map<String, Object> tracerUserAttributes;
+    private Set<String> tracerAgentAttributeNamesMarkedForSpans;
     private SpanProxy spanProxy;
     private SpanErrorBuilder spanErrorBuilder;
     private TransactionThrowable throwable;
@@ -132,6 +136,8 @@ public class TracerToSpanEventTest {
         when(tracer.getStartTimeInMillis()).thenReturn(timestamp);
         when(tracer.getAgentAttributes()).thenReturn(tracerAgentAttributes);
         when(tracer.getCustomAttributes()).thenReturn(tracerUserAttributes);
+        when(tracer.getAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
+        when(tracer.getAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
         when(spanErrorBuilder.buildSpanError(tracer, isRoot, responseStatus, statusMessage, throwable)).thenReturn(spanError);
         when(spanErrorBuilder.areErrorsEnabled()).thenReturn(true);
         when(txnData.getApplicationName()).thenReturn(appName);
@@ -511,6 +517,30 @@ public class TracerToSpanEventTest {
 
         // assertions
         assertEquals(expectedSpanEvent, spanEvent);
+    }
+
+    @Test
+    public void testAgentAttributesMarkedForSpansAdded() {
+        // set up
+
+        tracerAgentAttributes.put("key1", "v1");
+        tracerAgentAttributes.put("key2", "v2");
+
+        tracerAgentAttributeNamesMarkedForSpans.add("key1");
+        tracerAgentAttributeNamesMarkedForSpans.add("key3");
+
+        when(txnData.getAgentAttributes()).thenReturn(transactionAgentAttributes);
+
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        // execution
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, false);
+
+        // assertions
+        assertEquals("v1", spanEvent.getAgentAttributes().get("key1"));
+        assertNull(spanEvent.getAgentAttributes().get("key2"));
+        assertNull(spanEvent.getAgentAttributes().get("key3"));
     }
 
     @Test

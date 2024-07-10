@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
@@ -192,6 +193,11 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     }
 
     @Override
+    public void setAgentAttribute(String key, Object value, boolean addToSpan) {
+
+    }
+
+    @Override
     public Object getAgentAttribute(String key) {
         return null;
     }
@@ -345,6 +351,11 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
 
     @Override
     public ExternalParameters getExternalParameters() {
+        return null;
+    }
+
+    @Override
+    public Set<String> getAgentAttributeNamesForSpans() {
         return null;
     }
 

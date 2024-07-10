@@ -23,6 +23,8 @@ public class MessageConsumeParameters implements ExternalParameters {
     private final InboundHeaders inboundHeaders;
     private final String cloudAccountId;
     private final String cloudRegion;
+    private final String host;
+    private final Integer port;
 
     private MessageConsumeParameters(Builder builder) {
         this.library = builder.library;
@@ -32,6 +34,8 @@ public class MessageConsumeParameters implements ExternalParameters {
         this.inboundHeaders = builder.inboundHeaders;
         this.cloudAccountId = builder.cloudAccountId;
         this.cloudRegion = builder.cloudRegion;
+        this.host = builder.host;
+        this.port = builder.port;
     }
 
     @Deprecated
@@ -44,6 +48,8 @@ public class MessageConsumeParameters implements ExternalParameters {
         this.inboundHeaders = inboundHeaders;
         this.cloudAccountId = null;
         this.cloudRegion = null;
+        this.host = null;
+        this.port = null;
     }
 
     protected MessageConsumeParameters(MessageConsumeParameters messageConsumeParameters) {
@@ -54,6 +60,8 @@ public class MessageConsumeParameters implements ExternalParameters {
         this.inboundHeaders = messageConsumeParameters.inboundHeaders;
         this.cloudAccountId = messageConsumeParameters.cloudAccountId;
         this.cloudRegion = messageConsumeParameters.cloudRegion;
+        this.host = messageConsumeParameters.host;
+        this.port = messageConsumeParameters.port;
     }
 
     public String getDestinationName() {
@@ -84,6 +92,14 @@ public class MessageConsumeParameters implements ExternalParameters {
         return otelLibrary;
     }
 
+    public String getHost() {
+        return host;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
     protected static class Builder implements DestinationTypeParameter, DestinationNameParameter,
             InboundHeadersParameter, Build {
         private String library;
@@ -93,6 +109,8 @@ public class MessageConsumeParameters implements ExternalParameters {
         private InboundHeaders inboundHeaders;
         private String cloudAccountId;
         private String cloudRegion;
+        private String host;
+        private Integer port;
 
         public Builder(String library) {
             this.library = library;
@@ -125,6 +143,12 @@ public class MessageConsumeParameters implements ExternalParameters {
 
         public Build cloudRegion(String cloudRegion) {
             this.cloudRegion = cloudRegion;
+            return this;
+        }
+
+        public Build instance(String host, Integer port) {
+            this.host = host;
+            this.port = port;
             return this;
         }
 
@@ -201,6 +225,16 @@ public class MessageConsumeParameters implements ExternalParameters {
          * This method is optional and can be bypassed by calling build directly.
          */
         Build cloudRegion(String region);
+
+        /**
+         * Set the host and port of the message broker.
+         * This method is optional and can be bypassed by calling build directly.
+         *
+         * @param host The host where the message broker is located
+         * @param port The port for the connection to the message broker
+         * @return the next builder interface
+         */
+        Build instance(String host, Integer port);
 
         /**
          * Build the final {@link MessageConsumeParameters} for the API call.
