@@ -16,7 +16,6 @@ import java.util.Map;
  */
 
 public class AiMonitoringImpl implements AiMonitoring {
-    private static final String SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET = "Supportability/AiMonitoringTokenCountCallback/set";
 
     /**
      * Records an LlmFeedbackMessage event.
@@ -38,7 +37,6 @@ public class AiMonitoringImpl implements AiMonitoring {
      *                                   additional data to submit with the feedback event</li>
      *                                   </ul>
      */
-
     @Override
     public void recordLlmFeedbackEvent(Map<String, Object> llmFeedbackEventAttributes) {
         if (llmFeedbackEventAttributes == null) {
