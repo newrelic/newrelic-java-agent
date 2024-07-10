@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils;
 import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -183,6 +184,7 @@ public class AgentConfigFactory {
         addServerProp(COLLECT_ERROR_EVENTS, serverData.get(ErrorCollectorConfigImpl.COLLECT_EVENTS), settings);
         addServerProp(CAPTURE_ERROR_EVENTS, serverData.get(ErrorCollectorConfigImpl.CAPTURE_EVENTS), settings);
         addServerProp(MAX_ERROR_EVENT_SAMPLES_STORED, serverData.get(ErrorCollectorConfigImpl.MAX_EVENT_SAMPLES_STORED), settings);
+        addServerProp(AiMonitoringUtils.COLLECT_AI, serverData.get(AiMonitoringUtils.COLLECT_AI), settings);
         addServerProp(COLLECT_TRACES, serverData.get(TransactionTracerConfigImpl.COLLECT_TRACES), settings);
         addServerProp(COLLECT_TRANSACTION_EVENTS, serverData.get("collect_analytics_events"), settings);
         addServerProp(COLLECT_CUSTOM_INSIGHTS_EVENTS, serverData.get(InsightsConfigImpl.COLLECT_CUSTOM_EVENTS), settings);
