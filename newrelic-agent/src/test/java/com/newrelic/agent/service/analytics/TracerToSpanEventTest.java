@@ -104,6 +104,7 @@ public class TracerToSpanEventTest {
         tracerUserAttributes = new HashMap<>();
         expectedAgentAttributes = new HashMap<>();
         expectedUserAttributes = new HashMap<>();
+        tracerAgentAttributeNamesMarkedForSpans = new HashSet<>();
         expectedAgentAttributes.put("error.class", "0");
         expectedAgentAttributes.put("port", 9191);
 
