@@ -41,6 +41,8 @@ abstract class FluxMapFuseable_Instrumentation {
 
         public void onNext(T t) {
             if (token != null) {
+                // not ideal to do this in onNext, but we're seeing situations where nothing else is ever called
+                // no onComplete, no onError, no cancel
                 token.linkAndExpire();
                 token = null;
             }
@@ -48,6 +50,14 @@ abstract class FluxMapFuseable_Instrumentation {
         }
 
         public void onError(Throwable t) {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        public void cancel() {
             if (token != null) {
                 token.linkAndExpire();
                 token = null;
