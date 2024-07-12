@@ -39,6 +39,14 @@ public class PooledDataSourceSampler implements Runnable {
         MetricAggregator metricAggregator = NewRelic.getAgent().getMetricAggregator();
         metricAggregator.recordMetric(baseName + "Busy Count[connections]", hikariPool.getActiveConnections());
         metricAggregator.recordMetric(baseName + "Idle Count[connections]", hikariPool.getIdleConnections());
+        metricAggregator.recordMetric(baseName + "Total Count[connections]", hikariPool.getTotalConnections());
+        metricAggregator.recordMetric(baseName + "Threads Awaiting Count[connections]", hikariPool.getThreadsAwaitingConnection());
         metricAggregator.recordMetric(baseName + "Max Pool Size[connections]", config.getMaximumPoolSize());
+        metricAggregator.recordMetric(baseName + "Minimum Idle Size[connections]", config.getMinimumIdle());
+        metricAggregator.recordMetric(baseName + "Connection Timeout", config.getConnectionTimeout());
+        metricAggregator.recordMetric(baseName + "Idle Timeout", config.getIdleTimeout());
+        metricAggregator.recordMetric(baseName + "Leak Detection Threshold", config.getLeakDetectionThreshold());
+        metricAggregator.recordMetric(baseName + "Maximum Lifetime", config.getMaxLifetime());
+        metricAggregator.recordMetric(baseName + "Validation Timeout", config.getValidationTimeout());
     }
 }
