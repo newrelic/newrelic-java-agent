@@ -834,7 +834,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     private SuperAgentIntegrationConfig initSuperAgentHealthCheckConfig() {
-        return SuperAgentIntegrationConfigImpl.createSuperAgentConfig(nestedProps(SuperAgentIntegrationConfigImpl.ROOT));
+        return new SuperAgentIntegrationConfigImpl(nestedProps(SuperAgentIntegrationConfigImpl.ROOT));
     }
 
     @Override
