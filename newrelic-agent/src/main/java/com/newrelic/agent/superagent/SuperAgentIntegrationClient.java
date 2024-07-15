@@ -6,8 +6,6 @@
  */
 package com.newrelic.agent.superagent;
 
-import com.newrelic.agent.superagent.protos.AgentToServer;
-
 public interface SuperAgentIntegrationClient {
-    void sendAgentToServerMessage(AgentToServer agentToServerMessage);
+    void sendHealthMessage(String message);
 }

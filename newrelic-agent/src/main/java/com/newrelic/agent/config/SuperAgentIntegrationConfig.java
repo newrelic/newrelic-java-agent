@@ -19,12 +19,12 @@ public interface SuperAgentIntegrationConfig {
      *
      * @return the domain socket address for the health check
      */
-    String getEndpoint();
+    String getHealthDeliveryLocation();
 
     /**
      * Return the frequency of the messages sent to the Super Agent, in seconds
      *
      * @return the health check frequency, in seconds
      */
-    int getFrequency();
+    int getHealthReportingFrequency();
 }

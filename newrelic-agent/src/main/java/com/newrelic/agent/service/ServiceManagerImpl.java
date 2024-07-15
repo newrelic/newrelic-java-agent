@@ -78,7 +78,6 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.StatsWork;
-import com.newrelic.agent.superagent.SuperAgentDomainSocketIntegrationClient;
 import com.newrelic.agent.superagent.SuperAgentIntegrationService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
@@ -283,8 +282,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         harvestService.addHarvestListener(jarCollectorHarvestListener);
 
         slowTransactionService = new SlowTransactionService(config);
-        superAgentIntegrationService = new SuperAgentIntegrationService(
-                new SuperAgentDomainSocketIntegrationClient(config.getSuperAgentIntegrationConfig().getEndpoint()), config);
+        //superAgentIntegrationService = new SuperAgentIntegrationService(
+        //        new SuperAgentDomainSocketIntegrationClient(config.getSuperAgentIntegrationConfig().getHealthDeliveryLocation()), config);
 
         asyncTxService.start();
         threadService.start();

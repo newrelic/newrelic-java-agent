@@ -1,41 +1,45 @@
 package com.newrelic.agent.config;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collections;
 import java.util.Map;
 
 public class SuperAgentIntegrationConfigImpl extends BaseConfig implements SuperAgentIntegrationConfig {
-    public static final String ROOT = "health";
-    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.health";
-    public static final String ENDPOINT = "endpoint";
-    public static final String FREQUENCY = "frequency";
-    public static final int FREQUENCY_DEFAULT = 5;  // In seconds
+    public static final String ROOT = "superagent";
+    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.superagent";
+
+    public static final String ENABLED = "enabled";
+    public static final boolean ENABLED_DEFAULT = false;
+    private final boolean enabled;
+
+    private final SuperAgentIntegrationHealthConfig superAgentIntegrationHealthConfig;
 
     public SuperAgentIntegrationConfigImpl(Map<String, Object> configProps) {
         super(configProps, SYSTEM_PROPERTY_ROOT);
-    }
 
-    static SuperAgentIntegrationConfigImpl createSuperAgentConfig(Map<String, Object> configProps) {
         if (configProps == null) {
             configProps = Collections.emptyMap();
         }
+        enabled = getProperty(ENABLED, ENABLED_DEFAULT);
+        superAgentIntegrationHealthConfig = createHealthConfig();
+    }
 
-        return new SuperAgentIntegrationConfigImpl(configProps);
+    private SuperAgentIntegrationHealthConfig createHealthConfig() {
+        Map<String, Object> healthProps = getProperty(SuperAgentIntegrationHealthConfig.ROOT, Collections.emptyMap());
+        return new SuperAgentIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
     }
 
     @Override
     public boolean isEnabled() {
-        return StringUtils.isNotEmpty(getProperty(ENDPOINT));
+        return enabled;
     }
 
     @Override
-    public String getEndpoint() {
-        return getProperty(ENDPOINT);
+    public String getHealthDeliveryLocation() {
+        return superAgentIntegrationHealthConfig.getHealthDeliveryLocation();
     }
 
     @Override
-    public int getFrequency() {
-        return getProperty(FREQUENCY, FREQUENCY_DEFAULT);
+    public int getHealthReportingFrequency() {
+        return superAgentIntegrationHealthConfig.getHealthReportingFrequency();
     }
 }
