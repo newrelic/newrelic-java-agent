@@ -20,8 +20,8 @@ import java.util.logging.Level;
 public final class ServerLifeCycleRuntime_Instrumentation {
     @WeaveAllConstructors
     ServerLifeCycleRuntime_Instrumentation() {
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "ServerLifeCycleRuntime_Instrumentation - constructor called");
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "ServerLifeCycleRuntime_Instrumentation - weblogic.Name sysprop value: {0}",
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "ServerLifeCycleRuntime_Instrumentation - constructor called");
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "ServerLifeCycleRuntime_Instrumentation - weblogic.Name sysprop value: {0}",
                 System.getProperty("weblogic.Name"));
         AgentBridge.publicApi.setServerInfo("WebLogic", version.getVersions().substring(16,26));
         AgentBridge.publicApi.setInstanceName(System.getProperty("weblogic.Name"));
