@@ -12,6 +12,7 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.vertx.instrumentation.OutboundWrapper;
+import com.nr.vertx.instrumentation.VertxCoreUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -26,6 +27,7 @@ import static com.nr.vertx.instrumentation.VertxCoreUtil.VERTX_CLIENT;
 public abstract class HttpClientRequestImpl_Instrumentation extends HttpClientRequestBase_Instrumentation {
 
     public Future<Void> end(Buffer chunk) {
+//        VertxCoreUtil.debug(null, null, this.getClass().getName() + ".end");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
@@ -34,6 +36,7 @@ public abstract class HttpClientRequestImpl_Instrumentation extends HttpClientRe
     }
 
     public void end(Buffer chunk, Handler<AsyncResult<Void>> handler) {
+//        VertxCoreUtil.debug(null, null, this.getClass().getName() + ".end");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));
@@ -42,6 +45,7 @@ public abstract class HttpClientRequestImpl_Instrumentation extends HttpClientRe
     }
 
     public void end(Handler<AsyncResult<Void>> handler) {
+//        VertxCoreUtil.debug(null, null, this.getClass().getName() + ".end");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             segment = NewRelic.getAgent().getTransaction().startSegment(VERTX_CLIENT, END);
             segment.addOutboundRequestHeaders(new OutboundWrapper(headers()));

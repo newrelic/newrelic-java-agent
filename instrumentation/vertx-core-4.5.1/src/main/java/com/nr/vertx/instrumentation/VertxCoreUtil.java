@@ -10,17 +10,22 @@ package com.nr.vertx.instrumentation;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
+import com.newrelic.api.agent.Transaction;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.impl.HttpClientResponseImpl;
 import io.vertx.core.impl.future.Listener;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public class VertxCoreUtil {
 
@@ -33,6 +38,21 @@ public class VertxCoreUtil {
     public static final String END = "handleResponse";
 
     private static final URI UNKNOWN_HOST_URI = URI.create("http://UnknownHost/");
+
+    public static final AtomicInteger handleResponseCount = new AtomicInteger(1);
+
+
+    public static void debug(Segment segment, HttpClientResponse resp, String callingClass) {
+        Transaction transaction = NewRelic.getAgent().getTransaction();
+
+        Logger logger = NewRelic.getAgent().getLogger();
+        logger.log(Level.INFO, "[NettyDebug/VertxDebug] ======= " + callingClass + " COUNT : " + handleResponseCount.getAndIncrement() + " =======");
+
+        logger.log(Level.INFO, "[NettyDebug/VertxDebug] segment: " + segment);
+
+        logger.log(Level.INFO, "[NettyDebug/VertxDebug] HttpClientResponse: " + resp);
+
+    }
 
     public static void storeToken(Listener listener) {
         if (listener != null && AgentBridge.getAgent().getTransaction(false) != null) {

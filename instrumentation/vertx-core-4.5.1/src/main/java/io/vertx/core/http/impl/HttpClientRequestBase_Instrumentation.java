@@ -33,6 +33,7 @@ public abstract class HttpClientRequestBase_Instrumentation {
 
     @Trace(async = true)
     void handleResponse(Promise<HttpClientResponse> promise, HttpClientResponse resp, long timeoutMs) {
+//        VertxCoreUtil.debug(segment, resp, this.getClass().getName() + ".handleResponse");
         if (segment != null) {
             final Token segmentToken = segment.getTransaction().getToken();
             reportExternal(resp, segment);

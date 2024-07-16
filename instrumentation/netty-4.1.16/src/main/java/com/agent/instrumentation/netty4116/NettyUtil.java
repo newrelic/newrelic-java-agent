@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.api.agent.NewRelic;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
 
 import java.net.InetSocketAddress;
@@ -38,14 +39,16 @@ public class NettyUtil {
 
     public static boolean processResponse(Object msg, Token token) {
         if (token != null) {
-            if (msg instanceof HttpResponse || msg instanceof Http2HeadersFrame) {
+            if (msg instanceof HttpResponse || msg instanceof Http2HeadersFrame || msg instanceof Http2Headers) {
                 com.newrelic.api.agent.Transaction tx = token.getTransaction();
                 if (tx != null) {
                     try {
                         if (msg instanceof HttpResponse) {
                             tx.setWebResponse(new ResponseWrapper((HttpResponse) msg));
-                        } else {
+                        } else if (msg instanceof Http2HeadersFrame) {
                             tx.setWebResponse(new Http2ResponseWrapper((Http2HeadersFrame) msg));
+                        } else if (msg instanceof Http2Headers) {
+                            tx.setWebResponse(new Http2ResponseHeaderWrapper((Http2Headers) msg));
                         }
                         tx.addOutboundResponseHeaders();
                         tx.markResponseSent();

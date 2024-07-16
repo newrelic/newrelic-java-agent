@@ -22,8 +22,10 @@ public abstract class FutureImpl_Instrumentation {
     @Trace(async = true, excludeFromTransactionTrace = true)
     public void addListener(Listener listener) {
         if (isComplete()) {
+//            VertxCoreUtil.debug(null, null, this.getClass().getName() + ".addListener/linkAndExpireToken");
             VertxCoreUtil.linkAndExpireToken(listener);
         } else {
+            VertxCoreUtil.debug(null, null, this.getClass().getName() + ".addListener/storeToken");
             VertxCoreUtil.storeToken(listener);
         }
         Weaver.callOriginal();
@@ -31,12 +33,14 @@ public abstract class FutureImpl_Instrumentation {
 
     @Trace(async = true, excludeFromTransactionTrace = true)
     public boolean tryComplete(Object result) {
+//        VertxCoreUtil.debug(null, null, this.getClass().getName() + ".tryComplete/linkAndExpireToken");
         VertxCoreUtil.linkAndExpireToken(this.listener);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, excludeFromTransactionTrace = true)
     public boolean tryFail(Throwable cause) {
+//        VertxCoreUtil.debug(null, null, this.getClass().getName() + ".tryFail/linkAndExpireToken");
         VertxCoreUtil.linkAndExpireToken(this.listener);
         return Weaver.callOriginal();
     }
