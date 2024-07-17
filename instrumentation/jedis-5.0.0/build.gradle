@@ -11,7 +11,7 @@ dependencies {
 }
 
 verifyInstrumentation {
-    passes 'redis.clients:jedis:[5.0.0,6.0.0)'
+    passesOnly 'redis.clients:jedis:[5.0.0,)'
     fails 'redis.clients:jedis:[1.4.0,3.8.0]'
     excludeRegex 'redis.clients:jedis:.*-(m|rc|RC|alpha|beta)[0-9]*'
     exclude 'redis.clients:jedis:3.6.2'
