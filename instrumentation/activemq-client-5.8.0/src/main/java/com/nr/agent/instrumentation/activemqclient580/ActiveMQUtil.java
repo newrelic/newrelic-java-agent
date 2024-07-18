@@ -21,17 +21,16 @@ public class ActiveMQUtil {
         return INSTANCE;
     }
 
-    private final Pattern addressPattern = Pattern.compile("^\\w+://(.+)/.+:(\\d+)");
+    private static final Pattern ADDRESS_PATTERN = Pattern.compile("^\\w+://(.+)/.+:(\\d+)");
+    private final Function<String, BrokerInstance> DO_PARSE_HOST_REF = this::doParseHostAndPort;
+    private final Function<String, BrokerInstance> CACHE = AgentBridge.collectionFactory.memorize(DO_PARSE_HOST_REF, 32);
 
     public BrokerInstance parseHostAndPort(String address) {
-        return doParseHostAndPort(address);
+        return CACHE.apply(address);
     }
-
-    private final Function<String, BrokerInstance> CACHE = AgentBridge.collectionFactory.memorize(this::doParseHostAndPort, 32);
-
     public BrokerInstance doParseHostAndPort(String address) {
 
-        Matcher m = addressPattern.matcher(address);
+        Matcher m = ADDRESS_PATTERN.matcher(address);
         if(!m.find()) {
             return BrokerInstance.empty();
         }
