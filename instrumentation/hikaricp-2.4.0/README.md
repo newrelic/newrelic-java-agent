@@ -8,6 +8,14 @@ artifact should be removed from the agent's `extension` folder if present.
 
 ### Reported Metrics
 Every 5 seconds, the following metrics will be reported:
-- `Database Connection/HikariCP/{PoolName}/Busy Count[connections]`: Retrieved from the [HikariPoolMXBean](https://www.javadoc.io/doc/com.zaxxer/HikariCP/2.4.6/com/zaxxer/hikari/HikariPoolMXBean.html) instance
-- `Database Connection/HikariCP/{PoolName}/Idle Count[connections]`: Retrieved from the [HikariPoolMXBean](https://www.javadoc.io/doc/com.zaxxer/HikariCP/2.4.6/com/zaxxer/hikari/HikariPoolMXBean.html) instance
-- `Database Connection/HikariCP/{PoolName}/Max Pool Size[connections]`: Retrieved from the [HikariConfig](https://www.javadoc.io/static/com.zaxxer/HikariCP/2.4.6/index.html?com/zaxxer/hikari/pool/HikariPool.html) instance
+- `Database Connection/HikariCP/Busy Count[connections]`: Retrieved from HikariPool.getActiveConnections()
+- `Database Connection/HikariCP/Idle Count[connections]`: Retrieved from HikariPool.getIdleConnections()
+- `Database Connection/HikariCP/Total Count[connections]`: Retrieved from HikariPool.getTotalConnections()
+- `Database Connection/HikariCP/Threads Awaiting Count[connections]`: Retrieved from HikariPool.getThreadsAwaitingConnection()
+- `Database Connection/HikariCP/Max Pool Size[connections]`: Retrieved from HikariConfig.getMaximumPoolSize()
+- `Database Connection/HikariCP/Minimum Idle Size[connections]`: Retrieved from HikariConfig.getMinimumIdle()
+- `Database Connection/HikariCP/Connection Timeout`: Retrieved from HikariConfig.getConnectionTimeout()
+- `Database Connection/HikariCP/Idle Timeout`: Retrieved from HikariConfig.getIdleTimeout()
+- `Database Connection/HikariCP/Leak Detection Threshold`: Retrieved from HikariConfig.getLeakDetectionThreshold()
+- `Database Connection/HikariCP/Maximum Lifetime`: Retrieved from HikariConfig.getMaxLifetime()
+- `Database Connection/HikariCP/Validation Timeout`: Retrieved from HikariConfig.getValidationTimeout()
