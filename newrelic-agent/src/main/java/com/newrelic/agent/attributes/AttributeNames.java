@@ -53,6 +53,10 @@ public final class AttributeNames {
     public static final String REQUEST_USER_AGENT_PARAMETER_NAME = "request.headers.userAgent";
     public static final String REQUEST_METHOD_PARAMETER_NAME = "request.method";
 
+    // Opem Telemetry compatible attributes for host and port
+    public static final String SERVER_ADDRESS = "server.address";
+    public static final String SERVER_PORT = "server.port";
+
     // cloud provider fields
     public static final String CLOUD_RESOURCE_ID = "cloud.resource_id";
     public static final String CLOUD_ACCOUNT_ID = "cloud.account.id";
