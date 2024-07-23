@@ -26,6 +26,7 @@ PublishConfig.config(
         "New Relic Java agent Scala 3 API",
         "The public Scala 3 API of the Java agent, and no-op implementations for safe usage without the agent."
 ) {
+    artifactId = "newrelic-scala-api_3"
     from(components["java"])
 }
 
