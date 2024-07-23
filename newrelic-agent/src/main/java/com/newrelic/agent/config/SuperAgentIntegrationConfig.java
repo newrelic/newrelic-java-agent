@@ -22,9 +22,13 @@ public interface SuperAgentIntegrationConfig {
     String getHealthDeliveryLocation();
 
     /**
-     * Return the frequency of the messages sent to the Super Agent, in seconds
+     * Return the frequency of the health messages sent to the Super Agent, in seconds
      *
      * @return the health check frequency, in seconds
      */
     int getHealthReportingFrequency();
+
+    String getFleetId();
+
+    String getHealthClientType();
 }

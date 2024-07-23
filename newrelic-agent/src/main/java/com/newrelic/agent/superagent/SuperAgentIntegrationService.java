@@ -18,24 +18,28 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class SuperAgentIntegrationService extends AbstractService implements AgentConfigListener {
+public class SuperAgentIntegrationService extends AbstractService implements AgentConfigListener, HealthDataChangeListener{
     private final String SA_INTEGRATION_THREAD_NAME = "New Relic Super Agent Integration Service";
 
     private AgentConfig agentConfig;
-    private final SuperAgentIntegrationClient client;
+    private final SuperAgentIntegrationHealthClient client;
     private final long startTimeNano;
     private final AgentHealth agentHealth;
 
     private ScheduledExecutorService scheduler;
 
-    public SuperAgentIntegrationService(SuperAgentIntegrationClient client, AgentConfig agentConfig) {
+    public SuperAgentIntegrationService(SuperAgentIntegrationHealthClient client, AgentConfig agentConfig,
+            HealthDataProducer... healthProducers) {
         super(SuperAgentIntegrationService.class.getSimpleName());
         this.agentConfig = agentConfig;
         this.client = client;
-        this.startTimeNano = getPseudoCurrentTimeNanos();
-        this.agentHealth = new AgentHealth();
+        this.startTimeNano = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
+        this.agentHealth = new AgentHealth(startTimeNano);
 
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+        for (HealthDataProducer healthProducer : healthProducers) {
+            healthProducer.registerHealthDataChangeListener(this);
+        }
     }
 
     @Override
@@ -45,7 +49,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Age
             int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay
 
             this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory(SA_INTEGRATION_THREAD_NAME, true));
-            this.scheduler.scheduleWithFixedDelay(() -> client.sendHealthMessage(generateHealthInfoMessage()), messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
+            this.scheduler.scheduleWithFixedDelay(() -> client.sendHealthMessage(agentHealth), messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
         }
     }
 
@@ -61,18 +65,24 @@ public class SuperAgentIntegrationService extends AbstractService implements Age
         return agentConfig.getSuperAgentIntegrationConfig().isEnabled();
     }
 
-    private String generateHealthInfoMessage() {
-        return "";
-    }
-
-    private long getPseudoCurrentTimeNanos() {
-        // The message expects the time in nanoseconds. Since this is a practical impossibility on most hardware,
-        // simply get the current ms and multiply.
-        return System.currentTimeMillis() * 1000000;
-    }
-
     @Override
     public void configChanged(String appName, AgentConfig agentConfig) {
         this.agentConfig = agentConfig;
+    }
+
+    @Override
+    public void onUnhealthyStatus(AgentHealth.Status newStatus, String... additionalInfo) {
+        if (isEnabled()) {
+            agentHealth.setUnhealthyStatus(newStatus, additionalInfo);
+        }
+    }
+
+    @Override
+    public void onHealthyStatus(AgentHealth.Category... categories) {
+        if (isEnabled()) {
+            for (AgentHealth.Category category : categories) {
+                agentHealth.setHealthyStatus(category);
+            }
+        }
     }
 }
