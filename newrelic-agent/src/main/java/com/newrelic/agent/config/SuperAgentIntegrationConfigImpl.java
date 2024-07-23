@@ -6,10 +6,9 @@ import java.util.Map;
 public class SuperAgentIntegrationConfigImpl extends BaseConfig implements SuperAgentIntegrationConfig {
     public static final String ROOT = "superagent";
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.superagent";
+    public static final String FLEET_ID = "fleet_id";
 
-    public static final String ENABLED = "enabled";
-    public static final boolean ENABLED_DEFAULT = false;
-    private final boolean enabled;
+    private final String fleetId;
 
     private final SuperAgentIntegrationHealthConfig superAgentIntegrationHealthConfig;
 
@@ -19,7 +18,8 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
         if (configProps == null) {
             configProps = Collections.emptyMap();
         }
-        enabled = getProperty(ENABLED, ENABLED_DEFAULT);
+
+        fleetId = getProperty(FLEET_ID);
         superAgentIntegrationHealthConfig = createHealthConfig();
     }
 
@@ -30,7 +30,7 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return fleetId != null;
     }
 
     @Override
@@ -41,5 +41,15 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
     @Override
     public int getHealthReportingFrequency() {
         return superAgentIntegrationHealthConfig.getHealthReportingFrequency();
+    }
+
+    @Override
+    public String getFleetId() {
+        return fleetId;
+    }
+
+    @Override
+    public String getHealthClientType() {
+        return superAgentIntegrationHealthConfig.getHealthClientType();
     }
 }

@@ -6,6 +6,6 @@
  */
 package com.newrelic.agent.superagent;
 
-public interface SuperAgentIntegrationClient {
-    void sendHealthMessage(String message);
+public interface SuperAgentIntegrationHealthClient {
+    void sendHealthMessage(AgentHealth agentHealth);
 }

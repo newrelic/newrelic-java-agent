@@ -19,6 +19,10 @@ import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
+import com.newrelic.agent.superagent.AgentHealth;
+import com.newrelic.agent.superagent.HealthDataChangeListener;
+import com.newrelic.agent.superagent.HealthDataProducer;
+import com.newrelic.agent.superagent.SuperAgentIntegrationUtils;
 import com.newrelic.api.agent.NewRelicApiImplementation;
 
 import java.lang.instrument.Instrumentation;
@@ -26,12 +30,15 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
-public class CoreServiceImpl extends AbstractService implements CoreService {
+public class CoreServiceImpl extends AbstractService implements CoreService, HealthDataProducer {
     private volatile boolean enabled = true;
     private final Instrumentation instrumentation;
     private volatile InstrumentationProxy instrumentationProxy;
+    private final List<HealthDataChangeListener> healthDataChangeListeners = new CopyOnWriteArrayList<>();
+
 
     public CoreServiceImpl(Instrumentation instrumentation) {
         super(CoreService.class.getName());
@@ -132,6 +139,7 @@ public class CoreServiceImpl extends AbstractService implements CoreService {
 
     private synchronized void shutdown() {
         try {
+            SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.SHUTDOWN);
             ServiceFactory.getServiceManager().stop();
             getLogger().info("New Relic Agent has shutdown");
         } catch (Throwable t) {
@@ -149,5 +157,8 @@ public class CoreServiceImpl extends AbstractService implements CoreService {
         return instrumentationProxy;
     }
 
-
+    @Override
+    public void registerHealthDataChangeListener(HealthDataChangeListener listener) {
+        healthDataChangeListeners.add(listener);
+    }
 }
