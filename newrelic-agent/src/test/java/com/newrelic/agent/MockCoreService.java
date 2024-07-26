@@ -14,12 +14,14 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.ServiceManagerImpl;
+import com.newrelic.agent.superagent.HealthDataChangeListener;
+import com.newrelic.agent.superagent.HealthDataProducer;
 import com.newrelic.api.agent.Logger;
 import org.mockito.Mockito;
 
 import static org.mockito.Mockito.mock;
 
-public class MockCoreService extends AbstractService implements CoreService {
+public class MockCoreService extends AbstractService implements CoreService, HealthDataProducer {
     private InstrumentationProxy instrumentation = null;
 
     public MockCoreService() {
@@ -72,4 +74,7 @@ public class MockCoreService extends AbstractService implements CoreService {
         return true;
     }
 
+    @Override
+    public void registerHealthDataChangeListener(HealthDataChangeListener listener) {
+    }
 }
