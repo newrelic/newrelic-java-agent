@@ -139,7 +139,6 @@ public class CoreServiceImpl extends AbstractService implements CoreService, Hea
 
     private synchronized void shutdown() {
         try {
-            SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.SHUTDOWN);
             ServiceFactory.getServiceManager().stop();
             getLogger().info("New Relic Agent has shutdown");
         } catch (Throwable t) {

@@ -18,12 +18,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class SuperAgentIntegrationService extends AbstractService implements AgentConfigListener, HealthDataChangeListener{
+public class SuperAgentIntegrationService extends AbstractService implements HealthDataChangeListener {
     private final String SA_INTEGRATION_THREAD_NAME = "New Relic Super Agent Integration Service";
 
-    private AgentConfig agentConfig;
+    private final AgentConfig agentConfig;
     private final SuperAgentIntegrationHealthClient client;
-    private final long startTimeNano;
     private final AgentHealth agentHealth;
 
     private ScheduledExecutorService scheduler;
@@ -31,12 +30,11 @@ public class SuperAgentIntegrationService extends AbstractService implements Age
     public SuperAgentIntegrationService(SuperAgentIntegrationHealthClient client, AgentConfig agentConfig,
             HealthDataProducer... healthProducers) {
         super(SuperAgentIntegrationService.class.getSimpleName());
+
         this.agentConfig = agentConfig;
         this.client = client;
-        this.startTimeNano = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
-        this.agentHealth = new AgentHealth(startTimeNano);
+        this.agentHealth = new AgentHealth(SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos());
 
-        ServiceFactory.getConfigService().addIAgentConfigListener(this);
         for (HealthDataProducer healthProducer : healthProducers) {
             healthProducer.registerHealthDataChangeListener(this);
         }
@@ -57,17 +55,14 @@ public class SuperAgentIntegrationService extends AbstractService implements Age
     protected void doStop() throws Exception {
         if (isEnabled()) {
             scheduler.shutdown();
+            agentHealth.setUnhealthyStatus(AgentHealth.Status.SHUTDOWN);
+            client.sendHealthMessage(agentHealth);
         }
     }
 
     @Override
     public boolean isEnabled() {
         return agentConfig.getSuperAgentIntegrationConfig().isEnabled();
-    }
-
-    @Override
-    public void configChanged(String appName, AgentConfig agentConfig) {
-        this.agentConfig = agentConfig;
     }
 
     @Override
