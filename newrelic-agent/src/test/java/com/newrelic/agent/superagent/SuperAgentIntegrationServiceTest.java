@@ -40,10 +40,10 @@ public class SuperAgentIntegrationServiceTest {
         SuperAgentIntegrationService service = new SuperAgentIntegrationService(healthClient, mockAgentConfig);
         service.doStart();
         Thread.sleep(2100);
-        service.doStop();
 
         assertTrue(healthClient.getAgentHealth().isHealthy());
         assertEquals("Healthy", healthClient.getAgentHealth().getCurrentStatus());
+        service.doStop();
     }
 
     @Test
