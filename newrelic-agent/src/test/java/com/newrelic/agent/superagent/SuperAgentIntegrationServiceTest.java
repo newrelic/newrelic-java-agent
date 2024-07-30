@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.superagent;
 
 import com.newrelic.agent.MockServiceManager;
@@ -29,7 +35,6 @@ public class SuperAgentIntegrationServiceTest {
         ServiceFactory.setServiceManager(manager);
 
         when(mockAgentConfig.getSuperAgentIntegrationConfig()).thenReturn(mockSuperAgentIntegrationConfig);
-
     }
 
     @Test
@@ -108,20 +113,5 @@ public class SuperAgentIntegrationServiceTest {
         Thread.sleep(2100);
 
         assertNull(healthClient.getAgentHealth());
-    }
-
-    //Simple health client that stores the last health message sent for unit test assertions
-    private static class SuperAgentHealthUnitTestClient implements SuperAgentIntegrationHealthClient {
-
-        private AgentHealth agentHealth;
-
-        @Override
-        public void sendHealthMessage(AgentHealth agentHealth) {
-            this.agentHealth = agentHealth;
-        }
-
-        public AgentHealth getAgentHealth() {
-            return agentHealth;
-        }
     }
 }
