@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.superagent;
 
 import com.newrelic.agent.config.SuperAgentIntegrationConfig;
@@ -12,11 +18,16 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 public class SuperAgentIntegrationHealthFileBasedClientTest {
+    private static final String HEALTH_FILE_LOCATION = "./health.yml";
     private SuperAgentIntegrationConfig mockConfig;
 
     @Before
@@ -26,7 +37,7 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
     @After
     public void cleanup() {
-        File healthFile = new File("./health.json");
+        File healthFile = new File(HEALTH_FILE_LOCATION);
         if (healthFile.exists()) {
             healthFile.delete();
         }
@@ -34,14 +45,14 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
     @Test
     public void sendHealthMessage_withValidConfig_createsHealthFile() throws IOException {
-        when(mockConfig.getHealthDeliveryLocation()).thenReturn("./health.json");
+        when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
         SuperAgentIntegrationHealthFileBasedClient client = new SuperAgentIntegrationHealthFileBasedClient(mockConfig);
 
         long startTime = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
 
         client.sendHealthMessage(agentHealth);
-        File yamlFile = new File("./health.json");
+        File yamlFile = new File(HEALTH_FILE_LOCATION);
         Yaml yaml = new Yaml();
         InputStream is = Files.newInputStream(yamlFile.toPath());
         Map<String, Object> parsedYaml = yaml.load(is);
@@ -54,7 +65,7 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
     @Test
     public void sendHealthMessage_withUnhealthyAgentInstance_createsHealthFileWithLastError() throws IOException {
-        when(mockConfig.getHealthDeliveryLocation()).thenReturn("./health.json");
+        when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
         SuperAgentIntegrationHealthFileBasedClient client = new SuperAgentIntegrationHealthFileBasedClient(mockConfig);
 
         long startTime = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
@@ -62,7 +73,7 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
         agentHealth.setUnhealthyStatus(AgentHealth.Status.INVALID_LICENSE);
 
         client.sendHealthMessage(agentHealth);
-        File yamlFile = new File("./health.json");
+        File yamlFile = new File(HEALTH_FILE_LOCATION);
         Yaml yaml = new Yaml();
         InputStream is = Files.newInputStream(yamlFile.toPath());
         Map<String, Object> parsedYaml = yaml.load(is);
