@@ -47,4 +47,13 @@ public class AgentCollectionFactory implements CollectionFactory {
                 .build(loader::apply);
         return cache::get;
     }
+
+    @Override
+    public <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader) {
+        LoadingCache<K, V> cache = Caffeine.newBuilder()
+                .initialCapacity(initialCapacity)
+                .expireAfterAccess(ageInSeconds, TimeUnit.SECONDS)
+                .build(loader::apply);
+        return cache::get;
+    }
 }

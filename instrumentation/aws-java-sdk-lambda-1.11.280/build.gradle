@@ -1,0 +1,20 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-lambda-1.11.280' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+
+    implementation("com.amazonaws:aws-java-sdk-lambda:1.12.763")
+}
+
+verifyInstrumentation {
+    // not using passesOnly to decrease the number of artifacts this is tested against
+    passes 'com.amazonaws:aws-java-sdk-lambda:[1.11.280,)'
+}
+
+site {
+    title 'AWS Lambda'
+    type 'Framework'
+}
