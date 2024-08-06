@@ -36,6 +36,9 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.superagent.AgentHealth;
+import com.newrelic.agent.superagent.HealthDataChangeListener;
+import com.newrelic.agent.superagent.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.ConnectionResponse;
@@ -58,6 +61,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -65,7 +69,8 @@ import java.util.logging.Level;
 /**
  * The RPMService acts as a stub for communication between the agent and New Relic.
  */
-public class RPMService extends AbstractService implements IRPMService, EnvironmentChangeListener, AgentConfigListener {
+public class RPMService extends AbstractService implements IRPMService, EnvironmentChangeListener,
+        AgentConfigListener {
 
     public static final String COLLECT_TRACES_KEY = "collect_traces";
     public static final String COLLECT_ERRORS_KEY = "collect_errors";
@@ -104,6 +109,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     RPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener, ConnectionListener connectionListener,
             DataSenderListener dataSenderListener, List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners) {
         super(RPMService.class.getSimpleName() + "/" + appNames.get(0));
+        Agent.LOG.log(Level.INFO, "DUF2 creating RPMService");
         appName = appNames.get(0).intern();
         AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
         dataSender = DataSenderFactory.create(config, dataSenderListener);
@@ -987,6 +993,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
+    public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
+        return (HealthDataProducer) dataSender;
+    }
+
+    @Override
     public long getConnectionTimestamp() {
         return connectionTimestamp;
     }
@@ -1004,5 +1015,4 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         // reset our error logging so that something will show up at info level if data failures persist
         last503Error.set(0);
     }
-
 }

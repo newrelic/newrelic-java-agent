@@ -10,8 +10,10 @@ package com.newrelic.agent.introspec.internal;
 import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.service.AbstractService;
+import com.newrelic.agent.superagent.HealthDataChangeListener;
+import com.newrelic.agent.superagent.HealthDataProducer;
 
-class IntrospectorCoreService extends AbstractService implements CoreService {
+class IntrospectorCoreService extends AbstractService implements CoreService, HealthDataProducer {
     private InstrumentationProxy instrumentation = null;
 
     public IntrospectorCoreService() {
@@ -48,4 +50,7 @@ class IntrospectorCoreService extends AbstractService implements CoreService {
         return true;
     }
 
+    @Override
+    public void registerHealthDataChangeListener(HealthDataChangeListener listener) {
+    }
 }
