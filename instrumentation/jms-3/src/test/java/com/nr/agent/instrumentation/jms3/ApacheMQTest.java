@@ -9,6 +9,7 @@ package com.nr.agent.instrumentation.jms3;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import com.newrelic.test.marker.Java23IncompatibleTest;
 import com.nr.agent.instrumentation.jms3.integration.JmsProviderTest;
 import com.nr.agent.instrumentation.jms3.integration.JmsTestFixture;
 import jakarta.jms.ConnectionFactory;
@@ -18,6 +19,7 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 /**
@@ -25,6 +27,9 @@ import org.junit.runner.RunWith;
  */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.jms3" })
+// Java 23 disabled the security manager by default
+// and the security manager is required for the server to run
+@Category({ Java23IncompatibleTest.class })
 public class ApacheMQTest implements JmsProviderTest {
     private static final String MESSAGE_BROKER_URL = "vm://localhost?create=false";
     private static final String QUEUE_NAME = "InstrumentationTestQueue";
