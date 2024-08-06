@@ -1,0 +1,20 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.vertx-sqlclient-4.4.4'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("io.vertx:vertx-pg-client:4.4.4")
+}
+
+verifyInstrumentation {
+    passes 'io.vertx:vertx-pg-client:[4.4.4,)'
+    excludeRegex '.*SNAPSHOT'
+    excludeRegex '.*milestone.*'
+    excludeRegex '.*alpha.*'
+    excludeRegex '.*Beta.*'
+    excludeRegex '.*CR.*'
+}
