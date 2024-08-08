@@ -28,15 +28,11 @@ import java.util.logging.Level;
 public abstract class PgSocketConnection_Instrumentation {
     @Trace
     protected <R> void doSchedule(CommandBase<R> cmd, Handler<AsyncResult<R>> handler) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - SocketConnectionBase_Instrumentation.doSchedule");
-
         if (!(handler instanceof NRSqlClientWrapper)) {
             OperationAndTableName operationAndTableName = SqlClientUtils.extractSqlFromSqlClientCommand(cmd);
             if (operationAndTableName != null) {
                 PgConnectOptions pgConnectOptions = connectOptions();
                 Segment segment = NewRelic.getAgent().getTransaction().startSegment("Query");
-
-                NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - SocketConnectionBase_Instrumentation.doSchedule - segment: {0}", segment.toString());
 
                 DatastoreParameters databaseParams = DatastoreParameters.product(DatastoreVendor.Postgres.name())
                         .collection(operationAndTableName.getTableName())
@@ -46,7 +42,6 @@ public abstract class PgSocketConnection_Instrumentation {
                         .build();
 
                 handler = new NRSqlClientWrapper(handler, segment, databaseParams);
-                NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - SocketConnectionBase_Instrumentation.doSchedule - wrapper");
             }
 
         }

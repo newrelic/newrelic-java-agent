@@ -20,10 +20,6 @@ public class SqlClientUtils {
         OperationAndTableName operationAndTableName = null;
         String sql = null;
 
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - extractSqlFromSqlClientCommand {0}", cmd);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - extractSqlFromSqlClientCommand {0}", cmd instanceof QueryCommandBase);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - extractSqlFromSqlClientCommand {0}", cmd instanceof PrepareStatementCommand);
-
         if (cmd != null) {
             if (cmd instanceof QueryCommandBase) {
                 QueryCommandBase<?> qCmd = (QueryCommandBase<?>)cmd;
@@ -35,7 +31,6 @@ public class SqlClientUtils {
             }
 
             if (sql != null) {
-                NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - extractSqlFromSqlClientCommand {0}", sql);
                 operationAndTableName = R2dbcOperation.extractFrom(sql);
             }
         }

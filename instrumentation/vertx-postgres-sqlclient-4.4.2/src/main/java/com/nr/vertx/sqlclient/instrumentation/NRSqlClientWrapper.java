@@ -16,26 +16,26 @@ import io.vertx.core.Handler;
 import java.util.logging.Level;
 
 public class NRSqlClientWrapper<E> implements Handler<E> {
-    private Handler<E> delegate;
+    private final Handler<E> delegate;
     private Token token;
     private Segment segment;
-    private DatastoreParameters params;
+    private final DatastoreParameters params;
 
-    public NRSqlClientWrapper(Handler<E> d, Segment s, DatastoreParameters p) {
-        delegate = d;
+    public NRSqlClientWrapper(Handler<E> delegate, Segment segment, DatastoreParameters dbParams) {
+        this.delegate = delegate;
         token = NewRelic.getAgent().getTransaction().getToken();
-        segment = s;
-        params = p;
+        this.segment = segment;
+        params = dbParams;
     }
 
     @Override
     @Trace(async = true)
     public void handle(E event) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF - NRSqlClientWrapper.handle - Event: {0}", event.toString());
         if (token != null) {
             token.linkAndExpire();
             token = null;
         }
+
         if (segment != null) {
             if (params != null) {
                 segment.reportAsExternal(params);
@@ -45,6 +45,7 @@ public class NRSqlClientWrapper<E> implements Handler<E> {
         } else if (params != null) {
             NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
         }
+
         if (delegate != null) {
             delegate.handle(event);
         }
