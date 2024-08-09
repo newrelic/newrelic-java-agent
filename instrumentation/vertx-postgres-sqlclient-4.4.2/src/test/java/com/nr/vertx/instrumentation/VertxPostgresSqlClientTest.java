@@ -77,7 +77,8 @@ public class VertxPostgresSqlClientTest {
         vertx = Vertx.vertx();
 
         final Router router = Router.router(vertx);
-        router.get("/db").handler(VertxPostgresSqlClientTest::handleFetchRequest);
+        router.get("/fetch").handler(VertxPostgresSqlClientTest::handleFetchRequest);
+        router.get("/insert").handler(VertxPostgresSqlClientTest::handleInsertRequest);
 
         server = vertx.createHttpServer().requestHandler(router).listen(port);
 
@@ -90,26 +91,6 @@ public class VertxPostgresSqlClientTest {
         server.result().close();
         vertx.close();
         postgres.stop();
-    }
-
-    @Trace
-    private static void handleFetchRequest(RoutingContext routingContext) {
-        performSimpleQuery().onComplete(ar -> {
-            if (ar.succeeded()) {
-                StringBuilder payload = new StringBuilder();
-                for (Row r : ar.result()) {
-                    payload.append(r.getLong("id")).append(" ").append(r.getString("name")).append("\n");
-                }
-                routingContext.response().end(payload.toString());
-            } else {
-                routingContext.response().end("Failed to fetch data from Postgres");
-            }
-        });
-    }
-
-    @Trace(dispatcher = true)
-    public static Future<RowSet<Row>> performSimpleQuery() {
-        return sqlClient.query("select * from test").execute();
     }
 
     @Test
@@ -138,7 +119,7 @@ public class VertxPostgresSqlClientTest {
         CountDownLatch latch = new CountDownLatch(1);
         HttpClient httpClient = vertx.createHttpClient();
 
-        httpClient.request(HttpMethod.GET, port,"localhost", "/db", reqAsyncResult -> {
+        httpClient.request(HttpMethod.GET, port,"localhost", "/fetch", reqAsyncResult -> {
             if (reqAsyncResult.succeeded()) {   //Request object successfully created
                 HttpClientRequest request = reqAsyncResult.result();
                 request.send(respAsyncResult -> {   //Sending the request
@@ -161,6 +142,93 @@ public class VertxPostgresSqlClientTest {
             }
         });
         latch.await();
+    }
+
+    @Test
+    public void testPgSqlClientInsert() throws InterruptedException {
+        doPgInsertTransaction();
+        // Wait for transaction to finish
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount(1000));
+        assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxPostgresSqlClientTest/performInsertQuery"));
+
+        ArrayList<TransactionTrace> traces = new ArrayList<>(introspector.getTransactionTracesForTransaction("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxPostgresSqlClientTest/performInsertQuery"));
+        ArrayList<TraceSegment> segments = new ArrayList<>(traces.get(0).getInitialTraceSegment().getChildren());
+
+        assertEquals(2, segments.size());
+        assertEquals("Java/io.vertx.sqlclient.impl.PoolImpl/query", segments.get(0).getName());
+        assertEquals("Java/io.vertx.sqlclient.impl.SqlClientBase$QueryImpl/execute", segments.get(1).getName());
+
+        ArrayList<DataStoreRequest> datastores = new ArrayList<>(introspector.getDataStores("OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxPostgresSqlClientTest/performInsertQuery"));
+        assertEquals(1, datastores.get(0).getCount());
+        assertEquals("test", datastores.get(0).getTable());
+        assertEquals("INSERT", datastores.get(0).getOperation());
+        assertEquals("Postgres", datastores.get(0).getDatastore());
+    }
+
+    public void doPgInsertTransaction() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        HttpClient httpClient = vertx.createHttpClient();
+
+        httpClient.request(HttpMethod.GET, port,"localhost", "/insert", reqAsyncResult -> {
+            if (reqAsyncResult.succeeded()) {   //Request object successfully created
+                HttpClientRequest request = reqAsyncResult.result();
+                request.send(respAsyncResult -> {   //Sending the request
+                    if (respAsyncResult.succeeded()) {
+                        HttpClientResponse response = respAsyncResult.result();
+                        latch.countDown();
+                        response.body(respBufferAsyncResult -> {  //Retrieve response
+                            if (respBufferAsyncResult.succeeded()) {
+                                System.out.println(respBufferAsyncResult.result().toString());
+                            } else {
+                                // Handle server error, for example, connection closed
+                            }
+                        });
+                    } else {
+                        // Handle server error, for example, connection closed
+                    }
+                });
+            } else {
+                // Connection error, for example, invalid server or invalid SSL certificate
+            }
+        });
+        latch.await();
+    }
+
+    @Trace
+    private static void handleFetchRequest(RoutingContext routingContext) {
+        performSimpleQuery().onComplete(ar -> {
+            if (ar.succeeded()) {
+                StringBuilder payload = new StringBuilder();
+                for (Row r : ar.result()) {
+                    payload.append(r.getLong("id")).append(" ").append(r.getString("name")).append("\n");
+                }
+                routingContext.response().end(payload.toString());
+            } else {
+                routingContext.response().end("Failed to fetch data from Postgres");
+            }
+        });
+    }
+
+    @Trace(dispatcher = true)
+    public static Future<RowSet<Row>> performSimpleQuery() {
+        return sqlClient.query("select * from test").execute();
+    }
+
+    @Trace
+    private static void handleInsertRequest(RoutingContext routingContext) {
+        performInsertQuery().onComplete(ar -> {
+            if (ar.succeeded()) {
+                routingContext.response().end("row inserted");
+            } else {
+                routingContext.response().end("Failed to insert data into table");
+            }
+        });
+    }
+
+    @Trace(dispatcher = true)
+    public static Future<RowSet<Row>> performInsertQuery() {
+        return sqlClient.query("insert into test (id, name) values (1, 'pandora')").execute();
     }
 
     private static int getAvailablePort() {
