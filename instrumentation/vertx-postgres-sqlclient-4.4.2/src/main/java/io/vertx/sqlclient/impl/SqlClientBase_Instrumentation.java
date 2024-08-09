@@ -24,28 +24,20 @@ import java.util.List;
 @Weave(type = MatchType.ExactClass, originalName = "io.vertx.sqlclient.impl.SqlClientBase")
 public abstract class SqlClientBase_Instrumentation {
     @Trace
-    public Query<RowSet<Row>> query(String sql) {
-        return Weaver.callOriginal();
-    }
+    public abstract Query<RowSet<Row>> query(String sql);
 
     @Weave(type = MatchType.ExactClass, originalName = "io.vertx.sqlclient.impl.SqlClientBase$QueryImpl")
     private static abstract class QueryImpl_Instrumentation<T, R extends SqlResult<T>>  {
         @Trace
-        public void execute(Handler<AsyncResult<R>> handler) {
-            Weaver.callOriginal();
-        }
+        public abstract void execute(Handler<AsyncResult<R>> handler);
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.vertx.sqlclient.impl.SqlClientBase$PreparedQueryImpl")
     private static abstract class PreparedQueryImpl_Instrumentation<T, R extends SqlResult<T>>  {
         @Trace
-        public void execute(Tuple arguments, Handler<AsyncResult<R>> handler) {
-            Weaver.callOriginal();
-        }
+        public abstract void execute(Tuple arguments, Handler<AsyncResult<R>> handler);
 
         @Trace
-        public void executeBatch(List<Tuple> batch, Handler<AsyncResult<R>> handler) {
-            Weaver.callOriginal();
-        }
+        public abstract void executeBatch(List<Tuple> batch, Handler<AsyncResult<R>> handler);
     }
 }
