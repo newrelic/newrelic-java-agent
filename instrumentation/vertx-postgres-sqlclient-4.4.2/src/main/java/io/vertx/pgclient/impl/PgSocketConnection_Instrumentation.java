@@ -30,21 +30,20 @@ public abstract class PgSocketConnection_Instrumentation {
     protected <R> void doSchedule(CommandBase<R> cmd, Handler<AsyncResult<R>> handler) {
         if (!(handler instanceof NRSqlClientWrapper)) {
             OperationAndTableName operationAndTableName = SqlClientUtils.extractSqlFromSqlClientCommand(cmd);
-            if (operationAndTableName != null) {
-                PgConnectOptions pgConnectOptions = connectOptions();
-                Segment segment = NewRelic.getAgent().getTransaction().startSegment("Query");
+            PgConnectOptions pgConnectOptions = connectOptions();
+            Segment segment = NewRelic.getAgent().getTransaction().startSegment("Query");
 
-                DatastoreParameters databaseParams = DatastoreParameters.product(DatastoreVendor.Postgres.name())
-                        .collection(operationAndTableName.getTableName())
-                        .operation(operationAndTableName.getOperation())
-                        .instance(pgConnectOptions.getHost(), pgConnectOptions.getPort())
-                        .databaseName(pgConnectOptions.getDatabase())
-                        .build();
+            DatastoreParameters databaseParams = DatastoreParameters.product(DatastoreVendor.Postgres.name())
+                    .collection(operationAndTableName.getTableName())
+                    .operation(operationAndTableName.getOperation())
+                    .instance(pgConnectOptions.getHost(), pgConnectOptions.getPort())
+                    .databaseName(pgConnectOptions.getDatabase())
+                    .build();
 
-                handler = new NRSqlClientWrapper(handler, segment, databaseParams);
-            }
-
+            segment.reportAsExternal(databaseParams);
+            handler = new NRSqlClientWrapper(handler, segment);
         }
+
         Weaver.callOriginal();
     }
 

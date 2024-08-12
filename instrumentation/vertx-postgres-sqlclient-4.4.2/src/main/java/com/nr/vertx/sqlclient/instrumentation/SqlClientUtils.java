@@ -17,7 +17,6 @@ import java.util.logging.Level;
 
 public class SqlClientUtils {
     public static <R> OperationAndTableName extractSqlFromSqlClientCommand(CommandBase<R> cmd) {
-        OperationAndTableName operationAndTableName = null;
         String sql = null;
 
         if (cmd != null) {
@@ -31,10 +30,13 @@ public class SqlClientUtils {
             }
 
             if (sql != null) {
-                operationAndTableName = R2dbcOperation.extractFrom(sql);
+                OperationAndTableName operationAndTableName = R2dbcOperation.extractFrom(sql);
+                if (operationAndTableName != null) {
+                    return operationAndTableName;
+                }
             }
         }
 
-        return operationAndTableName;
+        return R2dbcOperation.UNKNOWN_OPERATION_AND_TABLE_NAME;
     }
 }

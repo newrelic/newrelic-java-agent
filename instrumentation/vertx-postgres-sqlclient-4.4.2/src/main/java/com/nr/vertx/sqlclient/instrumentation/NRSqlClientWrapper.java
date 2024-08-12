@@ -19,13 +19,11 @@ public class NRSqlClientWrapper<E> implements Handler<E> {
     private final Handler<E> delegate;
     private Token token;
     private Segment segment;
-    private final DatastoreParameters params;
 
-    public NRSqlClientWrapper(Handler<E> delegate, Segment segment, DatastoreParameters dbParams) {
+    public NRSqlClientWrapper(Handler<E> delegate, Segment segment) {
         this.delegate = delegate;
         token = NewRelic.getAgent().getTransaction().getToken();
         this.segment = segment;
-        params = dbParams;
     }
 
     @Override
@@ -37,16 +35,12 @@ public class NRSqlClientWrapper<E> implements Handler<E> {
         }
 
         if (segment != null) {
-            if (params != null) {
-                segment.reportAsExternal(params);
-            }
             segment.end();
             segment = null;
-        } else if (params != null) {
-            NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
         }
 
         if (delegate != null) {
+            NewRelic.getAgent().getTracedMethod().setMetricName("Java", delegate.getClass().getName(), "handle");
             delegate.handle(event);
         }
     }
