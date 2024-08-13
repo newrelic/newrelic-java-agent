@@ -9,10 +9,12 @@ package com.newrelic.agent.trace;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
 
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -64,6 +66,11 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
     public boolean noticeTransaction(TransactionData td) {
         if (td.isSyntheticTransaction()) {
             if (pendingCount.get() < MAX_SYNTHETIC_TRANSACTION_PER_HARVEST) {
+                // TODO this probably needs to be done in harvest method below, reset transaction trace attribute on current expensive transaction
+//                markAsTransactionTraceCandidate(current, false);
+                // set transaction trace attribute on new expensive transaction
+                markAsTransactionTraceCandidate(td, true);
+
                 // Here is the window described in the first paragraph, above
                 pendingCount.incrementAndGet();
                 pending.add(td);
@@ -76,6 +83,21 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
         }
 
         return false;
+    }
+
+    private void markAsTransactionTraceCandidate(TransactionData td, boolean isTransactionTrace) {
+        if (td != null) {
+            Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+            if (intrinsicAttributes != null) {
+                intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, isTransactionTrace);
+
+                Float priority = (Float) intrinsicAttributes.get(AttributeNames.PRIORITY);
+                Float ttPriority = priority + 5;
+                intrinsicAttributes.put(AttributeNames.PRIORITY, ttPriority);
+
+                td.getTransaction().setPriorityIfNotNull(ttPriority);
+            }
+        }
     }
 
     @Override
@@ -94,8 +116,11 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
                 TransactionTrace tt = TransactionTrace.getTransactionTrace(queued);
                 tt.setSyntheticsResourceId(queued.getSyntheticsResourceId());
                 removedCount++;
+                // TODO here is where we actually choose traces
                 result.add(tt);
             } else {
+                // TODO reset transaction trace attribute on current expensive transaction
+//                markAsTransactionTraceCandidate(current, false);
                 // Add it back to be reconsidered on the next call.
                 pending.add(queued);
             }

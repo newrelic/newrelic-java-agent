@@ -1,6 +1,7 @@
 package com.newrelic.agent.service.slowtransactions;
 
 import com.google.common.collect.ImmutableMap;
+import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
@@ -128,12 +129,12 @@ public class SlowTransactionServiceTest {
 
         service.start();
 
-        verify(transactionService, never()).addTransactionListener(any());
+        verify(transactionService, never()).addTransactionListener((ExtendedTransactionListener) any());
         verify(harvestService, never()).addHarvestListener(any());
 
         service.stop();
 
-        verify(transactionService, never()).removeTransactionListener(any());
+        verify(transactionService, never()).removeTransactionListener((ExtendedTransactionListener) any());
         verify(harvestService, never()).removeHarvestListener(any());
     }
 

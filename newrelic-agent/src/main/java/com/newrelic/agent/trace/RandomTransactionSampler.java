@@ -9,12 +9,14 @@ package com.newrelic.agent.trace;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.service.ServiceFactory;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -39,6 +41,9 @@ public class RandomTransactionSampler implements ITransactionSampler {
     @Override
     public boolean noticeTransaction(TransactionData td) {
         if (expensiveTransaction.compareAndSet(null, td)) {
+            // set transaction trace attribute on new expensive transaction
+            markAsTransactionTraceCandidate(td, true);
+
             if (Agent.LOG.isLoggable(Level.FINER)) {
                 String msg = MessageFormat.format("Captured random transaction trace for {0} {1}",
                         td.getApplicationName(), td);
@@ -47,6 +52,21 @@ public class RandomTransactionSampler implements ITransactionSampler {
             return true;
         }
         return false;
+    }
+
+    private void markAsTransactionTraceCandidate(TransactionData td, boolean isTransactionTrace) {
+        if (td != null) {
+            Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+            if (intrinsicAttributes != null) {
+                intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, isTransactionTrace);
+
+                Float priority = (Float) intrinsicAttributes.get(AttributeNames.PRIORITY);
+                Float ttPriority = priority + 5;
+                intrinsicAttributes.put(AttributeNames.PRIORITY, ttPriority);
+
+                td.getTransaction().setPriorityIfNotNull(ttPriority);
+            }
+        }
     }
 
     @Override

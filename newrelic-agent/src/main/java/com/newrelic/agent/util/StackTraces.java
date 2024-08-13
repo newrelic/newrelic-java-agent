@@ -74,8 +74,8 @@ public class StackTraces {
             for (int i = 0; i < currentLength; i++) {
                 current = stackElements.get(i);
 
-                // 1 - the parentLastestFirt should match the class and method
-                // 2 - the next should exist and should equal the parentLastestSecond
+                // 1 - the parentLatestFirst should match the class and method
+                // 2 - the next should exist and should equal the parentLatestSecond
                 if (isSameClassAndMethod(current, parentLatestFirst) && ((i + 1) < currentLength)
                         && (stackElements.get(i + 1).equals(parentLatestSecond))) {
                     break;

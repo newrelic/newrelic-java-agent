@@ -1139,6 +1139,7 @@ public class Transaction {
                 getIntrinsicAttributes().put(AttributeNames.PRIORITY, getPriority());
 
                 TransactionData transactionData = new TransactionData(this, rootCounts.getTransactionSize());
+                // wrap things up
                 ServiceFactory.getTransactionService().transactionFinished(transactionData, transactionStats);
             }
         } catch (Throwable th) {

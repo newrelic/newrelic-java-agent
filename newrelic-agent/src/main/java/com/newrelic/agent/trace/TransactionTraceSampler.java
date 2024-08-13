@@ -9,6 +9,7 @@ package com.newrelic.agent.trace;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.service.ServiceFactory;
 
 import java.text.MessageFormat;
@@ -75,12 +76,32 @@ public class TransactionTraceSampler implements ITransactionSampler {
                 return false;
             }
             if (expensiveTransaction.compareAndSet(current, td)) {
+                // reset transaction trace attribute on current expensive transaction
+//                markAsTransactionTraceCandidate(current, false);
+                // set transaction trace attribute on new expensive transaction
+                markAsTransactionTraceCandidate(td, true);
+
                 if (Agent.LOG.isLoggable(Level.FINER)) {
                     String msg = MessageFormat.format("Captured expensive transaction trace for {0} {1}",
                             td.getApplicationName(), td);
                     Agent.LOG.finer(msg);
                 }
                 return true;
+            }
+        }
+    }
+
+    private void markAsTransactionTraceCandidate(TransactionData td, boolean isTransactionTrace) {
+        if (td != null) {
+            Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+            if (intrinsicAttributes != null) {
+                intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, isTransactionTrace);
+
+                Float priority = (Float) intrinsicAttributes.get(AttributeNames.PRIORITY);
+                Float ttPriority = priority + 5;
+                intrinsicAttributes.put(AttributeNames.PRIORITY, ttPriority);
+
+                td.getTransaction().setPriorityIfNotNull(ttPriority);
             }
         }
     }

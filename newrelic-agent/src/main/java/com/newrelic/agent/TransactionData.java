@@ -32,6 +32,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * TransactionData is effectively a wrapper around a Transaction instance that facilitates retrieving data from the Transaction.
+ */
 public class TransactionData {
     private final Transaction tx;
     private final int transactionSize;

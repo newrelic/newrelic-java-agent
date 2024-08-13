@@ -99,7 +99,7 @@ public class TransactionSegment implements JSONStreamAware {
             Object sql = ((SqlTracerExplainInfo) tracer).getSql();
             if (sql != null) {
                 tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, sql);
-            }
+            } // TODO set other db attributes (e.g. db.operation)? tracer.getExternalParameters().getOperation()
         }
         // this has to be a double or else the UI will get rid of the number unless it is greater than 1000.
         // do not use TimeUnit.convert - the rounding is way off for this one

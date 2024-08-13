@@ -10,6 +10,7 @@ package com.newrelic.agent.trace;
 import com.newrelic.agent.HarvestListener;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.IgnoreSilentlyException;
+import com.newrelic.agent.PriorityTransactionListener;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionListener;
 import com.newrelic.agent.config.AgentConfig;
@@ -21,6 +22,7 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.TransactionStats;
+import com.newrelic.api.agent.NewRelic;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -37,7 +39,7 @@ import java.util.logging.Level;
  *
  * This class is thread-safe.
  */
-public class TransactionTraceService extends AbstractService implements HarvestListener, TransactionListener {
+public class TransactionTraceService extends AbstractService implements HarvestListener, PriorityTransactionListener {
 
     /*-
      * This service collects transaction traces based on a complex set of interacting rules that have evolved over time.
@@ -60,7 +62,7 @@ public class TransactionTraceService extends AbstractService implements HarvestL
     /**
      * Number of samples the random sampler should capture before it stops.
      */
-    private static final int INITIAL_TRACE_LIMIT = 5;
+    private static final int INITIAL_TRACE_LIMIT = 5; // TODO look into this
     // config
     private final ThreadMXBean threadMXBean;
     private final boolean autoAppNameEnabled;
@@ -166,14 +168,17 @@ public class TransactionTraceService extends AbstractService implements HarvestL
     }
 
     private void noticeTransaction(TransactionData transactionData) {
+        // Synthetics transactions
         if (syntheticsTransactionSampler.noticeTransaction(transactionData)) {
             return;
         }
+        // Key transactions, random transaction
         for (ITransactionSampler transactionSampler : transactionSamplers) {
             if (transactionSampler.noticeTransaction(transactionData)) {
                 return;
             }
         }
+        //
         ITransactionSampler sampler = getOrCreateNamedSampler(transactionData);
         if (sampler != null) {
             sampler.noticeTransaction(transactionData);
@@ -188,19 +193,41 @@ public class TransactionTraceService extends AbstractService implements HarvestL
     public void afterHarvest(String appName) {
         List<TransactionTrace> traces = new ArrayList<>();
         if (autoAppNameEnabled) {
-            traces.addAll(getNamedSamplerTraces(appName));
+            List<TransactionTrace> transactionTraces = getNamedSamplerTraces(appName);
+            if (!transactionTraces.isEmpty()) {
+                NewRelic.getAgent().getLogger().log(Level.INFO, "Captured " + transactionTraces.size() + " transaction traces for appName " + appName);
+            }
+            traces.addAll(transactionTraces); // sampler for app name
         } else {
-            traces.addAll(getNamedSamplerTraces(TransactionTracerConfigImpl.REQUEST_CATEGORY_NAME));
-            traces.addAll(getNamedSamplerTraces(TransactionTracerConfigImpl.BACKGROUND_CATEGORY_NAME));
+            List<TransactionTrace> webTransactionTraces = getNamedSamplerTraces(TransactionTracerConfigImpl.REQUEST_CATEGORY_NAME);
+            if (!webTransactionTraces.isEmpty()) {
+                NewRelic.getAgent().getLogger().log(Level.INFO, "Captured " + webTransactionTraces.size() + " web transaction traces");
+            }
+            traces.addAll(webTransactionTraces); // sampler for web txns
+
+            List<TransactionTrace> backgroundTransactionTraces = getNamedSamplerTraces(TransactionTracerConfigImpl.BACKGROUND_CATEGORY_NAME);
+            if (!backgroundTransactionTraces.isEmpty()) {
+                NewRelic.getAgent().getLogger().log(Level.INFO, "Captured " + backgroundTransactionTraces.size() + " background transaction traces");
+            }
+            traces.addAll(backgroundTransactionTraces); // sampler for background txns
         }
-        traces.addAll(this.syntheticsTransactionSampler.harvest(appName));
+        List<TransactionTrace> syntheticTransactionTraces = this.syntheticsTransactionSampler.harvest(appName);
+        if (!syntheticTransactionTraces.isEmpty()) {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "Captured " + syntheticTransactionTraces.size() + " synthetic transaction traces");
+        }
+        traces.addAll(syntheticTransactionTraces); // sampler for synthetics
         for (ITransactionSampler transactionSampler : transactionSamplers) {
-            traces.addAll(transactionSampler.harvest(appName));
+            List<TransactionTrace> transactionTraces = transactionSampler.harvest(appName);
+            if (!transactionTraces.isEmpty()) {
+                NewRelic.getAgent().getLogger().log(Level.INFO, "Captured " + transactionTraces.size() + " " + transactionSampler.getClass().getName() + " transaction traces");
+            }
+            traces.addAll(transactionTraces);  // sampler for Key txns, random txns,
         }
 
         if (!traces.isEmpty()) {
             IRPMService rpmService = ServiceFactory.getRPMServiceManager().getOrCreateRPMService(appName);
             sendTraces(rpmService, traces);
+            NewRelic.getAgent().getLogger().log(Level.INFO, "afterHarvest#sendTraces: Captured # of traces: " + traces.size());
         }
     }
 

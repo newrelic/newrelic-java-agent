@@ -35,6 +35,8 @@ public class TransactionService extends AbstractService {
 
     private static final String TRANSACTION_SERVICE_PROCESSOR_THREAD_NAME = "New Relic Transaction Service Processor";
 
+    // TODO priorityTransactionListeners should probably be a priority queue so entries can actually be sorted
+    private final List<PriorityTransactionListener> priorityTransactionListeners = new CopyOnWriteArrayList<>();
     private final List<TransactionListener> transactionListeners = new CopyOnWriteArrayList<>();
     private final List<ExtendedTransactionListener> extendedTransactionListeners = new CopyOnWriteArrayList<>();
     private final List<TransactionStatsListener> transactionStatsListeners = new CopyOnWriteArrayList<>();
@@ -100,6 +102,7 @@ public class TransactionService extends AbstractService {
      */
     public void transactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
         try {
+            // here we go
             doProcessTransaction(transactionData, transactionStats);
             txFinishedThisHarvest.incrementAndGet();
         } catch (Exception e) {
@@ -141,8 +144,12 @@ public class TransactionService extends AbstractService {
         if (sizeLimitExceeded) {
             transactionStats.getUnscopedStats().getStats(MetricNames.SUPPORTABILITY_TRANSACTION_SIZE_CLAMP).incrementCallCount();
         }
-
         if (transactionData.getDispatcher() != null) {
+            // notify listeners that txn is finished
+            // TODO make a new PriorityTransactionListener that ensure they get notified first, use for TransactionTraceService
+            for (PriorityTransactionListener listener : priorityTransactionListeners) {
+                listener.dispatcherTransactionFinished(transactionData, transactionStats);
+            }
             for (TransactionListener listener : transactionListeners) {
                 listener.dispatcherTransactionFinished(transactionData, transactionStats);
             }
@@ -221,6 +228,7 @@ public class TransactionService extends AbstractService {
     @Override
     protected void doStop() {
         getLogger().finer("Transaction service stopping");
+        priorityTransactionListeners.clear();
         transactionListeners.clear();
         extendedTransactionListeners.clear();
         transactionStatsListeners.clear();
@@ -243,6 +251,14 @@ public class TransactionService extends AbstractService {
             scheduler.shutdownNow();
             Thread.currentThread().interrupt();
         }
+    }
+
+    public void addTransactionListener(PriorityTransactionListener listener) {
+        priorityTransactionListeners.add(listener);
+    }
+
+    public void removeTransactionListener(PriorityTransactionListener listener) {
+        priorityTransactionListeners.remove(listener);
     }
 
     public void addTransactionListener(TransactionListener listener) {

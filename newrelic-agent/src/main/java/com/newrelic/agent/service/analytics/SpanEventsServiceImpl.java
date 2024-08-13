@@ -67,6 +67,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
     @Override
     public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
         // If this transaction is sampled and span events are enabled we should generate all of the transaction segment events
+        // create spans from tracers when notified
         if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
             Tracer rootTracer = transactionData.getRootTracer();

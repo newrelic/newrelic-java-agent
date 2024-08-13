@@ -23,6 +23,7 @@ import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.SpanProxy;
 import com.newrelic.agent.tracing.W3CTraceState;
 import com.newrelic.agent.tracing.W3CTraceStateSupport;
+import com.newrelic.agent.util.StackTraces;
 import com.newrelic.agent.util.TimeConversion;
 
 import java.util.Arrays;
@@ -46,7 +47,9 @@ public class TracerToSpanEvent {
             "nr.tripId", "host.displayName", "process.instanceName", "nr.syntheticsJobId", "nr.syntheticsMonitorId",
             "nr.syntheticsResourceId",
             // Distributed Tracing intrinsics that we want on the transaction but not spans.
-            "parentSpanId", "priority", "sampled", "guid", "traceId"
+            "parentSpanId", "priority", "sampled", "guid", "traceId",
+            // Filters the transaction_trace attribute out of the intrinsics being copied to the root span, as it already gets set on all spans
+            "transaction_trace"
     ));
     private final Map<String, SpanErrorBuilder> errorBuilderForApp;
     private final AttributeFilter filter;
@@ -97,7 +100,8 @@ public class TracerToSpanEvent {
                 .setAgentAttributesMarkedForSpans(tracer.getAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
                 .setIsRootSpanEvent(isRoot)
-                .setDecider(inboundPayload == null || inboundPayload.priority == null);
+                .setDecider(inboundPayload == null || inboundPayload.priority == null)
+                .setTransactionTraceAttribute(transactionData.getIntrinsicAttributes());
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
         builder = maybeSetGraphQLAttributes(tracer, builder);

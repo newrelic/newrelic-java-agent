@@ -84,7 +84,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
             }
         }
         prefixedAttributes = transactionData.getPrefixedAttributes();
-        intrinsicAttributes = getIntrinsics(transactionData);
+        intrinsicAttributes = getIntrinsics(transactionData); // TODO do these intrinsics get added to TT? filter out transaction_trace att???
         startTime = transactionData.getWallClockStartTimeMs();
         rootTracerStartTime = tracer.getStartTimeInMilliseconds();
         sqlSegments = new LinkedList<>();
@@ -170,7 +170,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
                 parentTracer = parentTracer.getParentTracer();
             }
             if (tracer.getAgentAttribute("async_context") != null && parentTracer != null) {
-                parentTracer.setAgentAttribute(HAS_ASYNC_CHILD_ATT, Boolean.TRUE);
+                parentTracer.setAgentAttribute(HAS_ASYNC_CHILD_ATT, Boolean.TRUE); // async_wait attribute which wouldn't be on spans?
             }
             Collection<Tracer> kids = children.get(parentTracer);
             if (kids == null) {

@@ -134,7 +134,7 @@ public class SpanEventFactory {
             if (stackTraceList != null) {
                 final List<StackTraceElement> preStackTraces = StackTraces.scrubAndTruncate(stackTraceList);
                 final List<String> postParentRemovalTrace = StackTraces.toStringList(preStackTraces);
-
+                // TODO backtrace instead of code.stacktrace? what about partialtrace?
                 putAgentAttribute(AttributeNames.CODE_STACKTRACE, truncateWithEllipsis(
                         Joiner.on(',').join(postParentRemovalTrace), MAX_EVENT_ATTRIBUTE_STRING_LENGTH));
             }
@@ -153,6 +153,20 @@ public class SpanEventFactory {
         if (agentAttributes.containsKey(AttributeNames.CLM_NAMESPACE) && agentAttributes.containsKey(AttributeNames.CLM_FUNCTION)) {
             builder.putAgentAttribute(AttributeNames.CLM_NAMESPACE, agentAttributes.get(AttributeNames.CLM_NAMESPACE));
             builder.putAgentAttribute(AttributeNames.CLM_FUNCTION, agentAttributes.get(AttributeNames.CLM_FUNCTION));
+        }
+        return this;
+    }
+
+    public SpanEventFactory setTransactionTraceAttribute(Map<String, Object> intrinsicAttributes) {
+        if (intrinsicAttributes == null || intrinsicAttributes.isEmpty()) {
+            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
+            return this;
+        }
+        final Object txnTrace = intrinsicAttributes.get(AttributeNames.TRANSACTION_TRACE);
+        if (txnTrace != null) {
+            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, txnTrace);
+        } else {
+            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
         }
         return this;
     }

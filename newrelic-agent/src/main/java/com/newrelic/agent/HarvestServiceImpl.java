@@ -475,7 +475,7 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
     }
 
     private void notifyListenerAfterHarvest(String appName, HarvestListener listener) {
-        try {
+        try { // listener instanceof TransactionService
             listener.afterHarvest(appName);
         } catch (Throwable e) {
             String msg = MessageFormat.format("Error harvesting data for {0}: {1}", appName, e);
