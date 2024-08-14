@@ -47,6 +47,10 @@ public @interface Trace {
 
     /**
      * Sets the metric name for this tracer. If unspecified, the class / method name will be used.
+     *
+     * When using both nameTransaction and metricName, nameTransaction will take precendence and the
+     * transaction will use the name from the underlying tracer (typically class/method), rather than the
+     * custom name set by metricName. It is recommended to use one or the other depending on naming preferences.
      * 
      * @return The metric name for this tracer.
      * @since 1.3.0
@@ -75,6 +79,10 @@ public @interface Trace {
 
     /**
      * Names the current transaction using this tracer's metric name.
+     *
+     * When using both nameTransaction and metricName, nameTransaction will take precendence and the
+     * transaction will use the name from the underlying tracer (typically class/method), rather than the
+     * custom name set by metricName. It is recommended to use one or the other depending on naming preferences.
      * 
      * @return True if this traced method should be used to name the transaction, else false.
      * @since 3.1.0
