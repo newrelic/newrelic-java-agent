@@ -19,7 +19,10 @@ import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.api.agent.DatastoreParameters;
+import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Test;
 
 import java.net.URI;
@@ -246,6 +249,44 @@ public class SpanEventFactoryTest {
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
+    }
+
+    @Test
+    public void shouldSetInstanceOnSpanFromMessageProduceParameters() {
+        String expectedHost = "example.com";
+        Integer expectedPort = 8080;
+        MessageProduceParameters mockParameters = mock(MessageProduceParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getHost()).thenReturn(expectedHost);
+        when(mockParameters.getPort()).thenReturn(expectedPort);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedHost, agentAttrs.get("server.address"));
+        assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
+        assertEquals(expectedPort, agentAttrs.get("server.port"));
+        assertEquals("producer", target.getIntrinsics().get("span.kind"));
+    }
+
+    @Test
+    public void shouldSetInstanceOnSpanFromMessageConsumeParameters() {
+        String expectedHost = "example.com";
+        Integer expectedPort = 8080;
+        MessageConsumeParameters mockParameters = mock(MessageConsumeParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getHost()).thenReturn(expectedHost);
+        when(mockParameters.getPort()).thenReturn(expectedPort);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedHost, agentAttrs.get("server.address"));
+        assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
+        assertEquals(expectedPort, agentAttrs.get("server.port"));
+        assertEquals("consumer", target.getIntrinsics().get("span.kind"));
     }
 
     @Test

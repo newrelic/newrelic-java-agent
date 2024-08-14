@@ -25,6 +25,10 @@ import com.newrelic.agent.util.StackTraces;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 
 import java.net.URI;
@@ -197,6 +201,11 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory setKind(String kind) {
+        builder.spanKind(kind);
+        return this;
+    }
+
     // http parameter
     public SpanEventFactory setUri(URI uri) {
         if (uri == null) {
@@ -263,7 +272,7 @@ public class SpanEventFactory {
 
     // datastore parameter
     public SpanEventFactory setDatastoreComponent(String component) {
-        builder.putAgentAttribute("db.system", component);
+        builder.putAgentAttribute(AttributeNames.DB_SYSTEM, component);
         return this;
     }
 
@@ -277,13 +286,33 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setServerAddress(String host) {
-        builder.putAgentAttribute("server.address", host);
+        builder.putAgentAttribute(AttributeNames.SERVER_ADDRESS, host);
         builder.putAgentAttribute("peer.hostname", host);
         return this;
     }
 
+    public SpanEventFactory setCloudAccountId(String cloudAccountId) {
+        builder.putAgentAttribute(AttributeNames.CLOUD_ACCOUNT_ID, cloudAccountId);
+        return this;
+    }
+
+    public SpanEventFactory setCloudRegion(String region) {
+        builder.putAgentAttribute(AttributeNames.CLOUD_REGION, region);
+        return this;
+    }
+
+    public SpanEventFactory setMessagingSystem(String messagingSystem) {
+        builder.putAgentAttribute(AttributeNames.MESSAGING_SYSTEM, messagingSystem);
+        return this;
+    }
+
+    public SpanEventFactory setMessagingDestination(String messagingDestination) {
+        builder.putAgentAttribute(AttributeNames.MESSAGING_DESTINATION_NAME, messagingDestination);
+        return this;
+    }
+
     public SpanEventFactory setServerPort(int port) {
-        builder.putAgentAttribute("server.port", port);
+        builder.putAgentAttribute(AttributeNames.SERVER_PORT, port);
         return this;
     }
 
@@ -399,8 +428,40 @@ public class SpanEventFactory {
             } else {
                 setAddress(datastoreParameters.getHost(), datastoreParameters.getPathOrId());
             }
+        } else if (parameters instanceof MessageProduceParameters) {
+            MessageProduceParameters messageProduceParameters = (MessageProduceParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudAccountId(messageProduceParameters.getCloudAccountId());
+            setCloudRegion(messageProduceParameters.getCloudRegion());
+            setMessagingSystem(messageProduceParameters.getOtelLibrary());
+            setMessagingDestination(messageProduceParameters.getDestinationName());
+            setServerAddress(messageProduceParameters.getHost());
+            setServerPort(messageProduceParameters.getPort());
+            setKind("producer");
+        } else if (parameters instanceof MessageConsumeParameters) {
+            MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudAccountId(messageConsumeParameters.getCloudAccountId());
+            setCloudRegion(messageConsumeParameters.getCloudRegion());
+            setMessagingSystem(messageConsumeParameters.getOtelLibrary());
+            setMessagingDestination(messageConsumeParameters.getDestinationName());
+            setServerAddress(messageConsumeParameters.getHost());
+            setServerPort(messageConsumeParameters.getPort());
+            setKind("consumer");
         } else {
             setCategory(SpanCategory.generic);
+        }
+        return this;
+    }
+
+    public SpanEventFactory setAgentAttributesMarkedForSpans(Set<String> agentAttributesMarkedForSpans, Map<String, Object> agentAttributes) {
+        if (agentAttributesMarkedForSpans != null) {
+            for (String attributeName: agentAttributesMarkedForSpans) {
+                Object value = agentAttributes.get(attributeName);
+                if (value != null) {
+                    builder.putAgentAttribute(attributeName, value);
+                }
+            }
         }
         return this;
     }

@@ -21,6 +21,7 @@ import org.objectweb.asm.Opcodes;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -246,6 +247,11 @@ public class UltraLightTracer implements Tracer {
     }
 
     @Override
+    public void setAgentAttribute(String key, Object value, boolean addToSpan) {
+
+    }
+
+    @Override
     public void removeAgentAttribute(String key) {
     }
 
@@ -303,6 +309,11 @@ public class UltraLightTracer implements Tracer {
 
     @Override
     public com.newrelic.api.agent.ExternalParameters getExternalParameters() {
+        return null;
+    }
+
+    @Override
+    public Set<String> getAgentAttributeNamesForSpans() {
         return null;
     }
 

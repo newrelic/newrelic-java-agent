@@ -27,7 +27,7 @@ public abstract class Consumer_Instrumentation {
         RabbitAMQPMetricUtil.nameTransaction(envelope.getExchange());
         AgentBridge.getAgent().getTransaction().provideHeaders(new InboundWrapper(properties.getHeaders()));
         AgentBridge.getAgent().getTransaction(false).setTransportType(TransportType.AMQP);
-        RabbitAMQPMetricUtil.addConsumeAttributes(null, envelope.getRoutingKey(), properties);
+        RabbitAMQPMetricUtil.addConsumeAttributes(envelope.getExchange(), null, envelope.getRoutingKey(), properties);
         Weaver.callOriginal();
     }
 }

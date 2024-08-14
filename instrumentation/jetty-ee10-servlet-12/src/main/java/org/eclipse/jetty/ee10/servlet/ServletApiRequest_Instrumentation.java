@@ -11,7 +11,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.jetty.ee10.servlet.AsyncListenerFactory;
+import com.nr.agent.instrumentation.jetty12.ee10.servlet.AsyncListenerFactory;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;

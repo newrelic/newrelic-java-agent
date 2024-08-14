@@ -1,0 +1,30 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("jakarta.servlet.jsp:jakarta.servlet.jsp-api:4.0.0")
+    implementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+    implementation("jakarta.el:jakarta.el-api:6.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jsp-4' }
+}
+
+verifyInstrumentation {
+    passesOnly('jakarta.servlet.jsp:jakarta.servlet.jsp-api:[4.0.0,)') {
+        implementation("jakarta.el:jakarta.el-api:6.0.0")
+        implementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+site {
+    title 'JSP'
+    type 'Other'
+    versionOverride '[4.0,)'
+}

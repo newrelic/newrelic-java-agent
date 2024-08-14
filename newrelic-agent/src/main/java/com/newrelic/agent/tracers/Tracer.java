@@ -16,6 +16,7 @@ import com.newrelic.api.agent.ExternalParameters;
 
 import java.lang.reflect.InvocationHandler;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A tracer records information about a method invocation - primarily the start and stop time of the invocation. A
@@ -93,6 +94,11 @@ public interface Tracer extends TimedItem, ExitTracer, ErrorTracer {
     void setAgentAttribute(String key, Object value);
 
     /**
+     * Add some extra information to the invocation (Like the sql statement for a sql tracer).
+     */
+    void setAgentAttribute(String key, Object value, boolean addToSpan);
+
+    /**
      * Remove attribute.
      *
      * @param key attribute to remove
@@ -155,4 +161,10 @@ public interface Tracer extends TimedItem, ExitTracer, ErrorTracer {
 
     ExternalParameters getExternalParameters();
 
+    /**
+     * Returns the set of agent attribute names that are marked to be added to span events.
+     * <br><br>
+     * <b>Note</b>: <i>Some attributes will be added to spans even if they are not in the returned set.</i>
+     */
+    Set<String> getAgentAttributeNamesForSpans();
 }

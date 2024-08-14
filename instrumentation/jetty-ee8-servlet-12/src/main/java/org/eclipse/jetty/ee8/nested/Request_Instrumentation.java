@@ -10,7 +10,7 @@ package org.eclipse.jetty.ee8.nested;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.jetty.ee8.servlet.AsyncListenerFactory;
+import com.nr.agent.instrumentation.jetty12.ee8.servlet.AsyncListenerFactory;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletRequest;

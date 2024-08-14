@@ -11,7 +11,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.api.agent.NewRelic;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http2.Http2HeadersFrame;
+import io.netty.handler.codec.http2.Http2Headers;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -36,16 +36,23 @@ public class NettyUtil {
         AgentBridge.publicApi.setServerInfo("Netty", getNettyVersion());
     }
 
+    /*
+     * processResponse is invoked when a Netty response is encoded (see weave classes in
+     * io.netty.handler.codec package). This is where the token is stored in the Netty
+     * context pipeline is expired and the response is processed.
+     */
     public static boolean processResponse(Object msg, Token token) {
         if (token != null) {
-            if (msg instanceof HttpResponse || msg instanceof Http2HeadersFrame) {
+            if (msg instanceof HttpResponse || msg instanceof Http2Headers) {
                 com.newrelic.api.agent.Transaction tx = token.getTransaction();
                 if (tx != null) {
                     try {
                         if (msg instanceof HttpResponse) {
+                            // HTTP/1 response
                             tx.setWebResponse(new ResponseWrapper((HttpResponse) msg));
                         } else {
-                            tx.setWebResponse(new Http2ResponseWrapper((Http2HeadersFrame) msg));
+                            // HTTP/2 response
+                            tx.setWebResponse(new Http2ResponseHeaderWrapper((Http2Headers) msg));
                         }
                         tx.addOutboundResponseHeaders();
                         tx.markResponseSent();
