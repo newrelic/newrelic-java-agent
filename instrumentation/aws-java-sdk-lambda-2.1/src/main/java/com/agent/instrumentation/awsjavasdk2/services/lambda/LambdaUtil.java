@@ -9,11 +9,8 @@ package com.agent.instrumentation.awsjavasdk2.services.lambda;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudParameters;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 public class LambdaUtil {
 
@@ -74,7 +71,7 @@ public class LambdaUtil {
             // partial ARN: {account-id}:function:{function-name}
             functionName = parts[2];
             String qualifier = data.getQualifier();
-            if (qualifier == null || isVersion(qualifier)) {
+            if (qualifier == null) {
                 arn = PREFIX + data.getRegion() + ":" + functionRef;
             } else {
                 arn = PREFIX + data.getRegion() + ":" + functionRef + ":" + qualifier;
@@ -82,17 +79,12 @@ public class LambdaUtil {
         } else if (parts.length == 4) {
             // partial ARN with qualifier: {account-id}:function:{function-name}:{qualifier}
             functionName = parts[2];
-            if (isVersion(parts[3])) {
-                String partialArnWithoutVersion = functionRef.substring(0, functionRef.length() - parts[3].length() - 1);
-                arn = PREFIX + data.getRegion() + ":" + partialArnWithoutVersion;
-            } else {
-                arn = PREFIX + data.getRegion() + ":" + functionRef;
-            }
+            arn = PREFIX + data.getRegion() + ":" + functionRef;
         } else if (parts.length == 7) {
             // full ARN: arn:aws:lambda:{region}:{account-id}:function:{function-name}
             functionName = parts[6];
             String qualifier = data.getQualifier();
-            if (qualifier == null || isVersion(qualifier)) {
+            if (qualifier == null) {
                 arn = functionRef;
             } else {
                 arn = functionRef + ":" + qualifier;
@@ -100,23 +92,11 @@ public class LambdaUtil {
         } else if (parts.length == 8) {
             // full ARN with qualifier: arn:aws:lambda:{region}:{account-id}:function:{function-name}:{qualifier}
             functionName = parts[6];
-            if (isVersion(parts[7])) {
-                // removing the version from the end
-                arn = functionRef.substring(0, functionRef.length() - parts[7].length() - 1);
-            } else {
-                arn = functionRef;
-            }
+            arn = functionRef;
         }
         // reference should be invalid if the number of parts do not match any of the expected cases
 
         return new FunctionProcessedData(functionName, arn);
-    }
-
-
-    private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+$");
-
-    static boolean isVersion(String str) {
-        return VERSION_PATTERN.matcher(str).matches();
     }
 
     public static String getSimpleFunctionName(FunctionRawData functionRawData) {

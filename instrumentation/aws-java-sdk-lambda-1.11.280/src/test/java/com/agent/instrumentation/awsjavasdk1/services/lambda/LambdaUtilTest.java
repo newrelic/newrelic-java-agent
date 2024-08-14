@@ -97,7 +97,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnPartialArnWithVersion() {
         FunctionProcessedData data = LambdaUtil.processData(new FunctionRawData("123456789012:function:my-function:123", null, getRegion()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", data.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", data.getArn());
         assertEquals("my-function", data.getFunctionName());
     }
 
@@ -111,7 +111,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnPartialArnAndVersionQualifier() {
         FunctionProcessedData data = LambdaUtil.processData(new FunctionRawData("123456789012:function:my-function", "123", getRegion()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", data.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", data.getArn());
         assertEquals("my-function", data.getFunctionName());
     }
 
@@ -132,7 +132,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnFullArnWithVersion() {
         FunctionProcessedData data = LambdaUtil.processData(new FunctionRawData("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", null, getRegion()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", data.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", data.getArn());
         assertEquals("my-function", data.getFunctionName());
     }
 
@@ -146,7 +146,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnFullArnAndVersionQualifier() {
         FunctionProcessedData data = LambdaUtil.processData(new FunctionRawData("arn:aws:lambda:us-east-1:123456789012:function:my-function", "123", getRegion()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", data.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", data.getArn());
         assertEquals("my-function", data.getFunctionName());
     }
 

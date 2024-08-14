@@ -99,7 +99,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnPartialArnWithVersion() {
         FunctionProcessedData functionProcessedData = LambdaUtil.processData(new FunctionRawData("123456789012:function:my-function:123", null, getConfig()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", functionProcessedData.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", functionProcessedData.getArn());
         assertEquals("my-function", functionProcessedData.getFunctionName());
     }
 
@@ -113,7 +113,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnPartialArnAndVersionQualifier() {
         FunctionProcessedData functionProcessedData = LambdaUtil.processData(new FunctionRawData("123456789012:function:my-function", "123", getConfig()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", functionProcessedData.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", functionProcessedData.getArn());
         assertEquals("my-function", functionProcessedData.getFunctionName());
     }
 
@@ -134,7 +134,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnFullArnWithVersion() {
         FunctionProcessedData functionProcessedData = LambdaUtil.processData(new FunctionRawData("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", null, getConfig()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", functionProcessedData.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", functionProcessedData.getArn());
         assertEquals("my-function", functionProcessedData.getFunctionName());
     }
 
@@ -148,7 +148,7 @@ public class LambdaUtilTest {
     @Test
     public void testGetArnFullArnAndVersionQualifier() {
         FunctionProcessedData functionProcessedData = LambdaUtil.processData(new FunctionRawData("arn:aws:lambda:us-east-1:123456789012:function:my-function", "123", getConfig()));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function", functionProcessedData.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:my-function:123", functionProcessedData.getArn());
         assertEquals("my-function", functionProcessedData.getFunctionName());
     }
 
