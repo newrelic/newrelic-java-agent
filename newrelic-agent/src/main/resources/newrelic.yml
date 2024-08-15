@@ -247,6 +247,13 @@ common: &default_settings
     # Default is 20.
     top_n: 20
 
+    # Determines whether transaction traces are sent as JSON blobs or Span events.
+    # Sending transaction traces as Span events will ensure better linking between
+    # transaction traces and distributed traces in addition to enhancing transaction
+    # traces with additional attributes. Set to true to send transaction traces as Spans.
+    # Default is false.
+    transaction_traces_as_spans: false
+
   # Error collector captures information about uncaught exceptions and
   # sends them to New Relic for viewing.
   error_collector:

@@ -108,6 +108,13 @@ public interface TransactionTracerConfig {
     int getMaxSegments();
 
     /**
+     * Determines if transaction traces should be sent as spans or the legacy JSON blob.
+     *
+     * @return true if a transaction trace should be represented by spans, false if it should be a JSON blob
+     */
+    boolean getTransactionTracesAsSpans();
+
+    /**
      * The limit on the number of tokens to be retrieved per transaction.
      *
      * @return the maximum number of tokens

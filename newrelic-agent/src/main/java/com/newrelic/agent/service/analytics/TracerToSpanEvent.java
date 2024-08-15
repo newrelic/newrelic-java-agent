@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributesUtils;
@@ -46,7 +45,9 @@ public class TracerToSpanEvent {
             "nr.tripId", "host.displayName", "process.instanceName", "nr.syntheticsJobId", "nr.syntheticsMonitorId",
             "nr.syntheticsResourceId",
             // Distributed Tracing intrinsics that we want on the transaction but not spans.
-            "parentSpanId", "priority", "sampled", "guid", "traceId"
+            "parentSpanId", "priority", "sampled", "guid", "traceId",
+            // Filters the transaction_trace attribute out of the intrinsics being copied to the root span, as it already gets set on all spans
+            "transaction_trace"
     ));
     private final Map<String, SpanErrorBuilder> errorBuilderForApp;
     private final AttributeFilter filter;
@@ -97,7 +98,8 @@ public class TracerToSpanEvent {
                 .setAgentAttributesMarkedForSpans(tracer.getAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
                 .setIsRootSpanEvent(isRoot)
-                .setDecider(inboundPayload == null || inboundPayload.priority == null);
+                .setDecider(inboundPayload == null || inboundPayload.priority == null)
+                .setTransactionTraceAttribute(transactionData.getIntrinsicAttributes());
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
         builder = maybeSetGraphQLAttributes(tracer, builder);
@@ -129,7 +131,7 @@ public class TracerToSpanEvent {
     private SpanEventFactory maybeSetGraphQLAttributes(Tracer tracer, SpanEventFactory builder) {
         Map<String, Object> agentAttributes = tracer.getAgentAttributes();
         boolean containsGraphQLAttributes = agentAttributes.keySet().stream().anyMatch(key -> key.contains("graphql"));
-        if (containsGraphQLAttributes){
+        if (containsGraphQLAttributes) {
             agentAttributes.entrySet().stream()
                     .filter(e -> e.getKey().contains("graphql"))
                     .forEach(e -> builder.putAgentAttribute(e.getKey(), e.getValue()));

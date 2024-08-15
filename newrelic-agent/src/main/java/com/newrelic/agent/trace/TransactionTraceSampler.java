@@ -9,6 +9,7 @@ package com.newrelic.agent.trace;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.service.ServiceFactory;
 
 import java.text.MessageFormat;
@@ -75,12 +76,30 @@ public class TransactionTraceSampler implements ITransactionSampler {
                 return false;
             }
             if (expensiveTransaction.compareAndSet(current, td)) {
+                // set transaction trace attribute on new expensive transaction
+                markAsTransactionTraceCandidate(td, true);
+
                 if (Agent.LOG.isLoggable(Level.FINER)) {
-                    String msg = MessageFormat.format("Captured expensive transaction trace for {0} {1}",
-                            td.getApplicationName(), td);
+                    String msg = MessageFormat.format("Captured expensive transaction trace for {0} {1}", td.getApplicationName(), td);
                     Agent.LOG.finer(msg);
                 }
                 return true;
+            }
+        }
+    }
+
+    private void markAsTransactionTraceCandidate(TransactionData td, boolean isTransactionTrace) {
+        if (td != null) {
+            Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+            if (intrinsicAttributes != null) {
+                intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, isTransactionTrace);
+
+                // TODO determine whether it makes sense to change priority
+                Float priority = (Float) intrinsicAttributes.get(AttributeNames.PRIORITY);
+                Float ttPriority = priority + 5;
+                intrinsicAttributes.put(AttributeNames.PRIORITY, ttPriority);
+
+                td.getTransaction().setPriorityIfNotNull(ttPriority);
             }
         }
     }
@@ -91,9 +110,8 @@ public class TransactionTraceSampler implements ITransactionSampler {
      */
     protected boolean exceedsThreshold(TransactionData td) {
         if (td.getLegacyDuration() > td.getTransactionTracerConfig().getTransactionThresholdInNanos()) {
-           return true;
-        }
-        else {
+            return true;
+        } else {
             Agent.LOG.log(Level.FINER, "Transaction trace threshold not exceeded {0}", td);
             return false;
         }
@@ -123,9 +141,15 @@ public class TransactionTraceSampler implements ITransactionSampler {
             String msg = MessageFormat.format("Sending transaction trace for {0} {1}", td.getApplicationName(), td);
             Agent.LOG.finer(msg);
         }
-        TransactionTrace trace = TransactionTrace.getTransactionTrace(td);
         List<TransactionTrace> traces = new ArrayList<>(1);
-        traces.add(trace);
+
+        if (!ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
+            // Construct TransactionTrace as JSON blob
+            TransactionTrace trace = TransactionTrace.getTransactionTrace(td);
+            traces.add(trace);
+        } else {
+            // TODO anything to do here for span based TTs?
+        }
         return traces;
     }
 

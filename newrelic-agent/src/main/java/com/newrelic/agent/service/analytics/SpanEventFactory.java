@@ -12,7 +12,6 @@ import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AttributesConfig;
-import com.newrelic.agent.config.TransactionEventsConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
@@ -25,8 +24,6 @@ import com.newrelic.agent.util.StackTraces;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.MessageConsumeParameters;
-import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
@@ -129,12 +126,11 @@ public class SpanEventFactory {
      * This should be called after the span kind is set.
      */
     public SpanEventFactory setStackTraceAttributes(Map<String, Object> agentAttributes) {
-        if (builder.isClientSpan()) {
+        if (builder.isClientSpan()) { // TODO why do we only add stack to client spans?
             final List<StackTraceElement> stackTraceList = (List<StackTraceElement>) agentAttributes.get(DefaultTracer.BACKTRACE_PARAMETER_NAME);
             if (stackTraceList != null) {
                 final List<StackTraceElement> preStackTraces = StackTraces.scrubAndTruncate(stackTraceList);
                 final List<String> postParentRemovalTrace = StackTraces.toStringList(preStackTraces);
-
                 putAgentAttribute(AttributeNames.CODE_STACKTRACE, truncateWithEllipsis(
                         Joiner.on(',').join(postParentRemovalTrace), MAX_EVENT_ATTRIBUTE_STRING_LENGTH));
             }
@@ -157,12 +153,32 @@ public class SpanEventFactory {
         return this;
     }
 
+    /**
+     * This adds a transaction_trace attribute to spans indicating if
+     * the transaction was considered as a transaction trace candidate.
+     *
+     * @param intrinsicAttributes map of intrinsic attributes
+     * @return SpanEventFactory builder
+     */
+    public SpanEventFactory setTransactionTraceAttribute(Map<String, Object> intrinsicAttributes) {
+        if (intrinsicAttributes == null || intrinsicAttributes.isEmpty()) {
+            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
+            return this;
+        }
+        final Object txnTraceAttribute = intrinsicAttributes.get(AttributeNames.TRANSACTION_TRACE);
+        if (txnTraceAttribute != null) {
+            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, txnTraceAttribute);
+        } else {
+            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
+        }
+        return this;
+    }
+
     public SpanEventFactory putAllUserAttributes(Map<String, ?> userAttributes) {
         userAttributes = filter.filterUserAttributes(appName, userAttributes);
         builder.putAllUserAttributes(userAttributes);
         return this;
     }
-
 
     public SpanEventFactory putAllUserAttributesIfAbsent(Map<String, ?> userAttributes) {
         builder.putAllUserAttributesIfAbsent(filter.filterUserAttributes(appName, userAttributes));
@@ -456,7 +472,7 @@ public class SpanEventFactory {
 
     public SpanEventFactory setAgentAttributesMarkedForSpans(Set<String> agentAttributesMarkedForSpans, Map<String, Object> agentAttributes) {
         if (agentAttributesMarkedForSpans != null) {
-            for (String attributeName: agentAttributesMarkedForSpans) {
+            for (String attributeName : agentAttributesMarkedForSpans) {
                 Object value = agentAttributes.get(attributeName);
                 if (value != null) {
                     builder.putAgentAttribute(attributeName, value);

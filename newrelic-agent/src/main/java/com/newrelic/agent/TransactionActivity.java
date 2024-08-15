@@ -155,10 +155,10 @@ public class TransactionActivity {
      * Creates a TransactionActivity. Does not set the activity in the activityHolder; so it will not override whatever
      * activity is currently in progress.
      *
-     * @param transaction parent transaction
-     * @param id ID of the activity
+     * @param transaction  parent transaction
+     * @param id           ID of the activity
      * @param asyncContext name of async context; since external async spans multiple threads, this is typically the
-     * thread name that this is running on.
+     *                     thread name that this is running on.
      * @return activity
      */
     public static TransactionActivity createWithoutHolder(Transaction transaction, int id, String asyncContext) {
@@ -264,7 +264,6 @@ public class TransactionActivity {
 
     /**
      * Returns the total cpu time in nanoseconds;
-     *
      */
     public long getTotalCpuTime() {
         return totalCpuTimeInNanos;
@@ -296,8 +295,8 @@ public class TransactionActivity {
      * performed in the "hot path" of Tracer creation.
      *
      * @param newState the new state. Transitions from false to true when e.g. ignore is called on the API. Transitions
-     * back to false if an activity is reparented from a previous-ignored transaction to a non-ignored
-     * transaction.
+     *                 back to false if an activity is reparented from a previous-ignored transaction to a non-ignored
+     *                 transaction.
      */
     void setOwningTransactionIsIgnored(boolean newState) {
         activityIsIgnored = newState;
@@ -370,20 +369,22 @@ public class TransactionActivity {
         } else {
             lastTracer = tracer.getParentTracer();
             if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
-                Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, lastTracer (pointer to top of stack) set to {0}, tracer (actual tracer popped off stack) = {1}", lastTracer, tracer);
+                Agent.LOG.log(Level.FINEST,
+                        "Tracer Debug: called tracerFinished to pop tracer off stack, lastTracer (pointer to top of stack) set to {0}, tracer (actual tracer popped off stack) = {1}",
+                        lastTracer, tracer);
             }
         }
     }
 
     /**
      * A serious internal error occurred. All data associated with this activity will be lost.
-     *
+     * <p>
      * Note: We started seeing this error while investigating absurd metric values
      * (e.g. - negative durations, or call counts in the hundreds of millions)
      * The fix was to remove the ProcessPointCut and replace it with
      * a weaver instrumentation module.
      * We've left this code in place just in case we see the problem in other places.
-     *
+     * <p>
      * The offending code that produced this error looked something like this:
      * It may be worth noting that myServiceMethod() was being called by another service method
      * that was also annotated with @Trace(dispatcher = true) and that method was also
@@ -407,7 +408,9 @@ public class TransactionActivity {
      * @param opcode
      */
     private void failedDueToInconsistentTracerState(Tracer tracer, int opcode) {
-        Agent.LOG.log(Level.SEVERE, "Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for {0} ({1} != {2})", this, tracer,
+        Agent.LOG.log(Level.SEVERE,
+                "Tracer Debug: Inconsistent state! tracer (actual tracer popped off stack) != lastTracer (pointer to top of stack) for {0} ({1} != {2})", this,
+                tracer,
                 lastTracer);
         try {
             transaction.activityFailedOrIgnored(this, opcode);

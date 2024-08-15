@@ -42,6 +42,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final String SLOW_QUERY_WHITELIST = "slow_query_whitelist";
     public static final String COLLECT_SLOW_QUERIES_FROM = "collect_slow_queries_from";
     public static final String SEGMENT_LIMIT = "segment_limit";
+    public static final String TRANSACTION_TRACES_AS_SPANS = "transaction_traces_as_spans";
     public static final String STACK_TRACE_THRESHOLD = "stack_trace_threshold";
     public static final String TOKEN_LIMIT = "token_limit";
     public static final String TOP_N = "top_n";
@@ -57,6 +58,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final int DEFAULT_MAX_STACK_TRACE = 20;
     public static final String DEFAULT_RECORD_SQL = SqlObfuscator.OBFUSCATED_SETTING;
     public static final int DEFAULT_SEGMENT_LIMIT = 3000;
+    public static final boolean DEFAULT_TRANSACTION_TRACES_AS_SPANS = false;
     public static final double DEFAULT_STACK_TRACE_THRESHOLD = 0.5d; // seconds
     public static final String DEFAULT_TRANSACTION_THRESHOLD = APDEX_F;
     public static final int DEFAULT_TOKEN_LIMIT = 3000;
@@ -81,6 +83,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     private final boolean gcTimeEnabled;
     private final int maxStackTraces;
     private final int maxSegments;
+    private final boolean txnTracesAsSpans;
     private final int maxExplainPlans;
     private final int maxTokens;
     private final int topN;
@@ -106,6 +109,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
         gcTimeEnabled = getProperty(GC_TIME_ENABLED, DEFAULT_GC_TIME_ENABLED);
         maxStackTraces = getIntProperty(MAX_STACK_TRACE, DEFAULT_MAX_STACK_TRACE);
         maxSegments = getIntProperty(SEGMENT_LIMIT, DEFAULT_SEGMENT_LIMIT);
+        txnTracesAsSpans = getProperty(TRANSACTION_TRACES_AS_SPANS, DEFAULT_TRANSACTION_TRACES_AS_SPANS);
         maxExplainPlans = getIntProperty(MAX_EXPLAIN_PLANS, DEFAULT_MAX_EXPLAIN_PLANS);
         maxTokens = getIntProperty(TOKEN_LIMIT, DEFAULT_TOKEN_LIMIT);
         topN = getIntProperty(TOP_N, DEFAULT_TOP_N);
@@ -324,6 +328,11 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     @Override
     public int getMaxSegments() {
         return maxSegments;
+    }
+
+    @Override
+    public boolean getTransactionTracesAsSpans() {
+        return txnTracesAsSpans;
     }
 
     @Override

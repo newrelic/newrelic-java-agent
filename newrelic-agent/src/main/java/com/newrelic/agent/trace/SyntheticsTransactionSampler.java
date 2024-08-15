@@ -9,10 +9,13 @@ package com.newrelic.agent.trace;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.attributes.AttributeNames;
+import com.newrelic.agent.service.ServiceFactory;
 
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -30,26 +33,26 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
      * This class uses lockless concurrency to maintain a bounded buffer. The Synthetics spec says we need to retain at
      * least 20 Synthetics transactions per harvest, and I choose to interpret it as allowing the possibility of a few
      * more.
-     * 
+     *
      * One issue with Java's lockless ConcurrentLinkedQueue is that size() is a linear-time operation.
-     * 
+     *
      * So we maintain a volatile counter of the number of pending transactions (really TransactionData objects).
      * Incoming samples check the counter and return if it's greater than the limit. Otherwise, they increment the
      * counter and enqueue their item. The act of (increment, enqueue) is not synchronized, but is nonblocking so will
      * eventually complete. Multiple threads may read the counter just below the limit and choose to enqueue, leaving
      * more than the limit number of items on the queue.
-     * 
+     *
      * At harvest time, the harvester pushes a marker item on the end of the queue and the dequeues items from the head
      * until it consumes the marker. For each item it dequeues, it decrements the counter. It actually collects the
      * total number internally and then decrements the counter atomically by the entire amount so that the value won't
      * hover around 20 if incoming transactions are racing with the harvest loop; hovering around 20 is exactly what
      * this deterministic collector is supposed to prevent, because it would result in lost traces intertwingled with
      * held traces.
-     * 
+     *
      * Since there is no locking around either the (increment, enqueue) or the (dequeue, decrement) sequences, the
      * counter may not correctly indicate the actual number of items on the queue at a given point in time. But since
      * there are no blocking operations, the counter is "eventually consistent" with the sum of enqueues and dequeues.
-     * 
+     *
      * This counter behavior is perfectly adequate to prevent the sampler from consuming too much storage in the face of
      * a flood of transaction completions. But the counter value must never be used to control the number of operations
      * performed anywhere, such as in the harvester. The marker algorithm allows us to avoid using the counter in this
@@ -64,6 +67,9 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
     public boolean noticeTransaction(TransactionData td) {
         if (td.isSyntheticTransaction()) {
             if (pendingCount.get() < MAX_SYNTHETIC_TRANSACTION_PER_HARVEST) {
+                // set transaction trace attribute on new expensive transaction
+                markAsTransactionTraceCandidate(td, true);
+
                 // Here is the window described in the first paragraph, above
                 pendingCount.incrementAndGet();
                 pending.add(td);
@@ -76,6 +82,22 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
         }
 
         return false;
+    }
+
+    private void markAsTransactionTraceCandidate(TransactionData td, boolean isTransactionTrace) {
+        if (td != null) {
+            Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+            if (intrinsicAttributes != null) {
+                intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, isTransactionTrace);
+
+                // TODO determine whether it makes sense to change priority
+                Float priority = (Float) intrinsicAttributes.get(AttributeNames.PRIORITY);
+                Float ttPriority = priority + 5;
+                intrinsicAttributes.put(AttributeNames.PRIORITY, ttPriority);
+
+                td.getTransaction().setPriorityIfNotNull(ttPriority);
+            }
+        }
     }
 
     @Override
@@ -91,10 +113,15 @@ public class SyntheticsTransactionSampler implements ITransactionSampler {
         TransactionData queued;
         while ((queued = pending.poll()) != queueMarker) {
             if (appName.equals(queued.getApplicationName())) {
-                TransactionTrace tt = TransactionTrace.getTransactionTrace(queued);
-                tt.setSyntheticsResourceId(queued.getSyntheticsResourceId());
+                if (!ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
+                    // Construct TransactionTrace as JSON blob
+                    TransactionTrace tt = TransactionTrace.getTransactionTrace(queued);
+                    tt.setSyntheticsResourceId(queued.getSyntheticsResourceId());
+                    result.add(tt);
+                } else {
+                    // TODO anything to do here for span based TTs?
+                }
                 removedCount++;
-                result.add(tt);
             } else {
                 // Add it back to be reconsidered on the next call.
                 pending.add(queued);

@@ -43,6 +43,8 @@ public final class AttributeNames {
     public static final String THREAD_NAME = "jvm.thread_name";
     public static final String THREAD_ID = "thread.id";
 
+    public static final String TRANSACTION_TRACE = "transaction_trace";
+
     public static final String MESSAGE_REQUEST_PREFIX = "message.parameters.";
 
     public static final String HTTP_REQUEST_PREFIX = "request.parameters.";
