@@ -1,6 +1,6 @@
 package com.newrelic.agent.config;
 
-import com.newrelic.agent.security.deps.org.junit.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
