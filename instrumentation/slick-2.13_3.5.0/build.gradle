@@ -1,0 +1,41 @@
+apply plugin: 'scala'
+scala.zincVersion = "1.7.1"
+
+isScalaProjectEnabled(project, "scala-2.13")
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation(project(":newrelic-weaver-scala-api"))
+    implementation("org.scala-lang:scala-library:2.13.0")
+    implementation("com.typesafe.slick:slick_2.13:3.5.1")
+
+    testImplementation("com.h2database:h2:1.4.190")
+    testImplementation(project(":instrumentation:jdbc-h2")) { transitive = false }
+    testImplementation(project(":instrumentation:jdbc-generic")) { transitive = false }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.slick-2.13_3.5.0' }
+}
+
+verifyInstrumentation {
+    // scala 11 should be instrumented by another module
+    fails 'com.typesafe.slick:slick_2.11:[3.2.0,)'
+
+    //fails 'com.typesafe.slick:slick_2.12:[3.2.0, 3.5.0)'
+
+    // scala 12
+    //passes 'com.typesafe.slick:slick_2.12:[3.5.0,)'
+
+    // scala 13
+    passes 'com.typesafe.slick:slick_2.13:[3.5.0,)'
+
+    excludeRegex ".*(RC|M)[0-9].*"
+}
+
+site {
+    title 'Slick'
+    type 'Datastore'
+}
