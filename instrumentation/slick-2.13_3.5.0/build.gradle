@@ -24,13 +24,11 @@ verifyInstrumentation {
     // scala 11 should be instrumented by another module
     fails 'com.typesafe.slick:slick_2.11:[3.2.0,)'
 
-    //fails 'com.typesafe.slick:slick_2.12:[3.2.0, 3.5.0)'
-
     // scala 12
-    //passes 'com.typesafe.slick:slick_2.12:[3.5.0,)'
+    passesOnly 'com.typesafe.slick:slick_2.12:[3.5.0,)'
 
     // scala 13
-    passes 'com.typesafe.slick:slick_2.13:[3.5.0,)'
+    passesOnly 'com.typesafe.slick:slick_2.13:[3.5.0,)'
 
     excludeRegex ".*(RC|M)[0-9].*"
 }

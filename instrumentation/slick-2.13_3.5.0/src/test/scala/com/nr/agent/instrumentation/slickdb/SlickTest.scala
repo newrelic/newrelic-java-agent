@@ -30,9 +30,9 @@ import com.typesafe.config.ConfigFactory;
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global;
-import slick.driver.H2Driver.api._
+//import slick.driver.H2Driver.api._
 
-import collection.JavaConversions._
+//import collection.JavaConversions._
 
 // Copied from slick-3.0.0 module
 @RunWith(classOf[InstrumentationTestRunner])
