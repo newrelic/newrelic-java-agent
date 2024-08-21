@@ -1,0 +1,19 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.flywaydb.enterprise:flyway-core:8.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.flyway-core-8.0.0' }
+}
+
+verifyInstrumentation {
+    excludeRegex '.*.beta[0-9]'
+    passes 'org.flywaydb.enterprise:flyway-core:[8.0.0,)'
+}
+
+site {
+    title 'Flyway'
+    type 'Datastore'
+}
