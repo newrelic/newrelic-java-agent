@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -10,6 +10,7 @@ import com.newrelic.api.agent.NewRelic;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.callback.Event;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class FlywayUtils {
 
     // Map of Flyway events we're interested in with a boolean value that denotes a
     // successful or failed migration step
-    private static final Map<Event, Boolean> TARGET_EVENTS = new HashMap<>();
+    private static final EnumMap<Event, Boolean> TARGET_EVENTS = new EnumMap<>(Event.class);
     static {
         TARGET_EVENTS.put(Event.AFTER_EACH_MIGRATE, true);
         TARGET_EVENTS.put(Event.AFTER_EACH_MIGRATE_ERROR, false);
