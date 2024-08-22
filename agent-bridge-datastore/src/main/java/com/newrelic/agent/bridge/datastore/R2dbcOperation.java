@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class R2dbcOperation {
-
+    public static final OperationAndTableName UNKNOWN_OPERATION_AND_TABLE_NAME = new OperationAndTableName("unknown", "unknown");
     static final Pattern VALID_METRIC_NAME_MATCHER = Pattern.compile("[a-zA-Z0-9.$_@]+");
     static final int PATTERN_SWITCHES = Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     static final Pattern COMMENT_PATTERN = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
