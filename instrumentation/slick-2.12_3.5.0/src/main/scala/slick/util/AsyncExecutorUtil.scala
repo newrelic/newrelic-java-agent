@@ -15,7 +15,7 @@ object AsyncExecutorUtil{
     if (token != null) {
       token.linkAndExpire();
     }
-    NewRelic.getAgent.getTracedMethod.setMetricName("ORM", "Slick", "SlickQuery")
+    NewRelic.getAgent.getTracedMethod.setMetricName("ORM", "Slick", "slickQuery")
     run(setConnectionReleased)
   }
 }
