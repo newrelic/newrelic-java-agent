@@ -22,6 +22,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import scala.language.postfixOps
+
 import org.junit._
 import org.junit.runner.RunWith;
 
@@ -30,83 +32,43 @@ import com.typesafe.config.ConfigFactory;
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global;
-//import slick.driver.H2Driver.api._
+import slick.jdbc.H2Profile.api._
 
 //import collection.JavaConversions._
 
 // Copied from slick-3.0.0 module
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("slick", "org.h2"))
-class SlickTest {
-
-  @Before
-  def initData() {
-    // set up data in h2
-    val stmt :Statement = SlickTest.CONNECTION.createStatement();
-    stmt.execute("CREATE TABLE IF NOT EXISTS USER(id int primary key, first_name varchar(255), last_name varchar(255))");
-    stmt.execute("TRUNCATE TABLE USER");
-    stmt.execute("INSERT INTO USER(id, first_name, last_name) VALUES(1, 'Fakus', 'Namus')");
-    stmt.execute("INSERT INTO USER(id, first_name, last_name) VALUES(2, 'Some', 'Guy')");
-    stmt.execute("INSERT INTO USER(id, first_name, last_name) VALUES(3, 'Whatsher', 'Name')");
-    stmt.close();
-  }
-
-  /*
-   * Our slick tests rely on h2 jdbc to assert correctly. If this test fails nothing else will work.
-   */
-  @Test
-  @Ignore
-  def testJdbc() {
-    jdbcTx()
-    val introspector :Introspector = InstrumentationTestRunner.getIntrospector()
-    Assert.assertEquals(1, introspector.getFinishedTransactionCount())
-    val helper :DatastoreHelper = new DatastoreHelper("JDBC");
-    helper.assertAggregateMetrics();
-    helper.assertUnscopedOperationMetricCount("select", 1);
-  }
-
-  @Trace(dispatcher = true)
-  def jdbcTx() :Unit = {
-    val stmt :Statement = SlickTest.CONNECTION.createStatement();
-    stmt.execute("select * from USER");
-    stmt.close()
-  }
+class SlickTest_350 {
+  import SlickTest_350.slickdb
+  import SlickTest_350.users
 
   @Test
-  @Ignore
-  def testResult() {
-    // it would be cool to use asserts in a callback instead of awaiting
-    // but that would keep the transaction from finishing
-    Await.ready(slickResult(), 20 seconds)
-    val introspector :Introspector = InstrumentationTestRunner.getIntrospector()
-    awaitFinishedTx(introspector);
-    Assert.assertEquals(1, introspector.getFinishedTransactionCount())
-    val helper :DatastoreHelper = new DatastoreHelper("JDBC");
-    helper.assertAggregateMetrics();
-    helper.assertUnscopedOperationMetricCount("select", 1);
-  }
-
-  @Test
-  @Ignore
   def testCrud() {
     slickInsert();
     slickUpdate();
     slickDelete();
-    val res :String = Await.result(slickResult(), 20 seconds)
+    Await.result(slickResult(), 20 seconds)
     val introspector :Introspector = InstrumentationTestRunner.getIntrospector()
     awaitFinishedTx(introspector, 4);
-    Assert.assertEquals(4, introspector.getFinishedTransactionCount())
-
-    val helper :DatastoreHelper = new DatastoreHelper("JDBC");
-    helper.assertAggregateMetrics();
-    helper.assertUnscopedOperationMetricCount("insert", 1); // C
-    helper.assertUnscopedOperationMetricCount("select", 1); // R
-    helper.assertUnscopedOperationMetricCount("update", 1); // U
-    helper.assertUnscopedOperationMetricCount("delete", 1); // D
+    val txnNames = introspector.getTransactionNames()
+    txnNames.forEach(name => {
+      val metrics = introspector.getMetricsForTransaction(name)
+      Assert.assertTrue(metrics.containsKey("ORM/Slick/slickQuery"))
+    })
   }
 
-  val slickdb = Database.forURL(SlickTest.DB_CONNECTION, driver=SlickTest.DB_DRIVER)
-  val users = TableQuery[Users]
+  @Test
+  def testNoTxn(): Unit = {
+    //Await.result(runConcurrentQueries, 10.seconds)
+    try {
+      Await.result(runConcurrentQueries, 10.seconds)
+    } catch {
+      case _: Throwable => Assert.fail("Futures timed out running concurrent queries.")
+    }
+
+  }
+
 
   @Trace(dispatcher = true)
   def slickResult() :Future[String] = {
@@ -142,6 +104,15 @@ class SlickTest {
     })
   }
 
+  def testQuery(id: Int) = {
+    users.filter(_.id === id)
+  }
+
+  def runConcurrentQueries = Future.traverse(1 to 50) { x =>
+    val whichId = (x % 3) + 1
+    slickdb.run(testQuery(whichId).result).map { v => println(s"Query Result $x: " + v) }
+  }
+
   // introspector does not handle async tx finishing very well so we're sleeping as a workaround
   private def awaitFinishedTx(introspector :Introspector, expectedTxCount: Int = 1) {
     while(introspector.getFinishedTransactionCount() <= expectedTxCount-1) {
@@ -160,39 +131,39 @@ class Users(tag: Tag) extends Table[(Int, String, String)] (tag, "user") {
   def * = (id, first_name, last_name)
 }
 
-object SlickTest {
-  val DB_DRIVER     :String = "org.h2.Driver";
-  val DB_CONNECTION :String = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false";
-  val DB_USER       :String = "";
-  val DB_PASSWORD   :String = "";
-  val CONNECTION    :Connection = getDBConnection();
+object SlickTest_350 {
+  val DB_DRIVER: String = "org.h2.Driver";
+  val DB_CONNECTION: String = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false";
+
+  val slickdb = Database.forURL(DB_CONNECTION, DB_DRIVER)
+  val users = TableQuery[Users]
 
   @BeforeClass
   def setup() {
     // set up h2
-    Assert.assertNotNull("Unable to get h2 connection.", CONNECTION)
-    CONNECTION.setAutoCommit(true);
+    Assert.assertNotNull("Unable to create h2 db.", slickdb)
+    Assert.assertNotNull("Unable to create user table.", users)
+    Await.result(initData(), 10.seconds) //make sure we don't enter the test suite until the init task finishes
   }
 
   @AfterClass
   def teardown() {
     // tear down h2
-    if(null != CONNECTION) {
-      CONNECTION.close();
+    if (null != slickdb) {
+      slickdb.close();
     }
   }
 
-  def getDBConnection() :Connection = {
-    var dbConnection :Connection = null
-    try {
-      Class.forName(DB_DRIVER);
-      dbConnection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
-      return dbConnection;
-    } catch {
-      case e :Exception => {
-        e.printStackTrace();
-      };
-    }
-    return dbConnection;
+  def initData() = {
+    val setup = DBIO.seq(
+      // Create and populate the tables
+      users.schema.create,
+      users ++= Seq(
+        (1, "Fakus", "Namus"),
+        (2, "Some", "Guy"),
+        (3, "Whatser", "Name")
+      ))
+    slickdb.run(setup)
   }
+
 }
