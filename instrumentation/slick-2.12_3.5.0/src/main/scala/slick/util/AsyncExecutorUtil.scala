@@ -1,3 +1,11 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+
 package slick.util
 
 import com.newrelic.api.agent.{NewRelic, Token, Trace}

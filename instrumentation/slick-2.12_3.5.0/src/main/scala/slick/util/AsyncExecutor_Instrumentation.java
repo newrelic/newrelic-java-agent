@@ -1,5 +1,12 @@
-package slick.util;
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 
+
+package slick.util;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Token;
