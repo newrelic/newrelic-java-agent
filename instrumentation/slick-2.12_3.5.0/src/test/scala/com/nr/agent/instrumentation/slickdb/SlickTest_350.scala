@@ -44,9 +44,15 @@ class SlickTest_350 {
     })
   }
 
+  /*
+  This test runs 50 concurrent queries, exceeding the default number of db connections provided by slick (20).
+  A bug was discovered in the previous instrumentation for slick versions 3.5.0+, where for slick queries occurring
+  outside a transaction, the executor would eventually pause and stop taking up any new work (despite having available
+  threads). This module was created in response to that bug (see the README) and this test captures the bug's behavior.
+  It will fail if run with previous instrumentation and slick <3.5.0.
+   */
   @Test
   def testNoTxn(): Unit = {
-    //Await.result(runConcurrentQueries, 10.seconds)
     try {
       Await.result(runConcurrentQueries, 10.seconds)
     } catch {
