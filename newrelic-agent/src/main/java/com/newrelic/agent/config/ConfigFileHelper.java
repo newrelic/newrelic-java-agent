@@ -8,7 +8,6 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.DebugFlag;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.text.MessageFormat;
@@ -104,7 +103,6 @@ public class ConfigFileHelper {
         return getFileFromFilePath(System.getProperty(CONFIG_FILE_PROPERTY), ConfigFileLocationSpecifier.SYS_PROP);
     }
 
-    @Nullable
     private static File getFileFromFilePath(String filePath, ConfigFileLocationSpecifier configFileLocationSpecifier) {
         if (filePath != null) {
             File configFile = new File(filePath);
