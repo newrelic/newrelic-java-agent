@@ -7,34 +7,20 @@
 
 package com.nr.agent.instrumentation.slickdb
 
-import com.newrelic.agent.introspec.DatastoreHelper;
 import com.newrelic.agent.introspec.InstrumentationTestConfig
 import com.newrelic.agent.introspec.InstrumentationTestRunner
 import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.MetricsHelper;
-import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.api.agent.Trace;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 import scala.language.postfixOps
 
 import org.junit._
 import org.junit.runner.RunWith;
 
-import com.typesafe.config.ConfigFactory;
-
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global;
 import slick.jdbc.H2Profile.api._
-
-//import collection.JavaConversions._
 
 // Copied from slick-3.0.0 module
 @RunWith(classOf[InstrumentationTestRunner])

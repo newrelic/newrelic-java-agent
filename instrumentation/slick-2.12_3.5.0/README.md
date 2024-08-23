@@ -8,4 +8,4 @@ related to Slick's `AsyncExecutor`. This created casting issues in Slick 3.5.0+,
 these types, which have concrete implementations in the Slick source code. Our wrappers ignored critical overridden methods, 
 falling through to the default implementations and disrupting Slick's underlying concurrency mechanism. 
 
-To avoid these casting issues, we are no longer wrapping anything, except the `run` Function. 
+To avoid these casting issues, we are no longer wrapping anything, except the `run` Function.
