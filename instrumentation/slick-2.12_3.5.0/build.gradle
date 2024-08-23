@@ -1,15 +1,15 @@
 apply plugin: 'scala'
 scala.zincVersion = "1.7.1"
 
-isScalaProjectEnabled(project, "scala-2.12")
+isScalaProjectEnabled(project, "scala-2.13")
 
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
     implementation(project(":newrelic-weaver-scala-api"))
-    implementation("org.scala-lang:scala-library:2.12.7")
-    implementation("com.typesafe.slick:slick_2.12:3.2.0")
+    implementation("org.scala-lang:scala-library:2.13.0")
+    implementation("com.typesafe.slick:slick_2.13:3.5.1")
 
     testImplementation("com.h2database:h2:1.4.190")
     testImplementation(project(":instrumentation:jdbc-h2")) { transitive = false }
@@ -17,7 +17,7 @@ dependencies {
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.slick-2.12_3.2.0' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.slick-2.12_3.5.0' }
 }
 
 verifyInstrumentation {
@@ -25,10 +25,10 @@ verifyInstrumentation {
     fails 'com.typesafe.slick:slick_2.11:[3.2.0,)'
 
     // scala 12
-    passesOnly 'com.typesafe.slick:slick_2.12:[3.2.0,3.5.0)'
+    passesOnly 'com.typesafe.slick:slick_2.12:[3.5.0,)'
 
     // scala 13
-    passesOnly 'com.typesafe.slick:slick_2.13:[3.3.2,3.5.0)'
+    passesOnly 'com.typesafe.slick:slick_2.13:[3.5.0,)'
 
     excludeRegex ".*(RC|M)[0-9].*"
 }
