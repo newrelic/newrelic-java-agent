@@ -69,50 +69,50 @@ import java.util.concurrent.CompletableFuture;
 class DefaultKinesisAsyncClient_Instrumentation {
     
     public CompletableFuture<AddTagsToStreamResponse> addTagsToStream(AddTagsToStreamRequest addTagsToStreamRequest) {
-        Segment segment = KinesisUtil.startSegment("addTagsToStream");
+        Segment segment = KinesisUtil.beginSegment("addTagsToStream");
         CompletableFuture<AddTagsToStreamResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
     
     public CompletableFuture<CreateStreamResponse> createStream(CreateStreamRequest createStreamRequest) {
-        Segment segment = KinesisUtil.startSegment("createStream");
+        Segment segment = KinesisUtil.beginSegment("createStream");
         CompletableFuture<CreateStreamResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<DecreaseStreamRetentionPeriodResponse> decreaseStreamRetentionPeriod(
             DecreaseStreamRetentionPeriodRequest decreaseStreamRetentionPeriodRequest) {
-        Segment segment = KinesisUtil.startSegment("decreaseStreamRetentionPeriod");
+        Segment segment = KinesisUtil.beginSegment("decreaseStreamRetentionPeriod");
         CompletableFuture<DecreaseStreamRetentionPeriodResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
     
     public CompletableFuture<DeleteStreamResponse> deleteStream(DeleteStreamRequest deleteStreamRequest) {
-        Segment segment = KinesisUtil.startSegment("deleteStream");
+        Segment segment = KinesisUtil.beginSegment("deleteStream");
         CompletableFuture<DeleteStreamResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
     
     public CompletableFuture<DeregisterStreamConsumerResponse> deregisterStreamConsumer(DeregisterStreamConsumerRequest deregisterStreamConsumerRequest) {
-        Segment segment = KinesisUtil.startSegment("deregisterStreamConsumer");
+        Segment segment = KinesisUtil.beginSegment("deregisterStreamConsumer");
         CompletableFuture<DeregisterStreamConsumerResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
     
     public CompletableFuture<DescribeLimitsResponse> describeLimits(DescribeLimitsRequest describeLimitsRequest) {
-        Segment segment = KinesisUtil.startSegment("describeLimits");
+        Segment segment = KinesisUtil.beginSegment("describeLimits");
         CompletableFuture<DescribeLimitsResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<DescribeStreamResponse> describeStream(DescribeStreamRequest describeStreamRequest) {
-        Segment segment = KinesisUtil.startSegment("describeStream");
+        Segment segment = KinesisUtil.beginSegment("describeStream");
         CompletableFuture<DescribeStreamResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
     
     public CompletableFuture<DescribeStreamConsumerResponse> describeStreamConsumer(DescribeStreamConsumerRequest describeStreamConsumerRequest) {
-        Segment segment = KinesisUtil.startSegment("describeStreamConsumer");
+        Segment segment = KinesisUtil.beginSegment("describeStreamConsumer");
         CompletableFuture<DescribeStreamConsumerResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
@@ -124,115 +124,115 @@ class DefaultKinesisAsyncClient_Instrumentation {
     }
 
     public CompletableFuture<DisableEnhancedMonitoringResponse> disableEnhancedMonitoring(DisableEnhancedMonitoringRequest disableEnhancedMonitoringRequest) {
-        Segment segment = KinesisUtil.startSegment("disableEnhancedMonitoring");
+        Segment segment = KinesisUtil.beginSegment("disableEnhancedMonitoring");
         CompletableFuture<DisableEnhancedMonitoringResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
     public CompletableFuture<EnableEnhancedMonitoringResponse> enableEnhancedMonitoring(EnableEnhancedMonitoringRequest enableEnhancedMonitoringRequest) {
-        Segment segment = KinesisUtil.startSegment("enableEnhancedMonitoring");
+        Segment segment = KinesisUtil.beginSegment("enableEnhancedMonitoring");
         CompletableFuture<EnableEnhancedMonitoringResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<GetRecordsResponse> getRecords(GetRecordsRequest getRecordsRequest) {
-        Segment segment = KinesisUtil.startSegment("getRecords");
+        Segment segment = KinesisUtil.beginSegment("getRecords");
         CompletableFuture<GetRecordsResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<GetShardIteratorResponse> getShardIterator(GetShardIteratorRequest getShardIteratorRequest) {
-        Segment segment = KinesisUtil.startSegment("getShardIterator");
+        Segment segment = KinesisUtil.beginSegment("getShardIterator");
         CompletableFuture<GetShardIteratorResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<IncreaseStreamRetentionPeriodResponse> increaseStreamRetentionPeriod(
             IncreaseStreamRetentionPeriodRequest increaseStreamRetentionPeriodRequest) {
-        Segment segment = KinesisUtil.startSegment("increaseStreamRetentionPeriod");
+        Segment segment = KinesisUtil.beginSegment("increaseStreamRetentionPeriod");
         CompletableFuture<IncreaseStreamRetentionPeriodResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<ListShardsResponse> listShards(ListShardsRequest listShardsRequest) {
-        Segment segment = KinesisUtil.startSegment("listShards");
+        Segment segment = KinesisUtil.beginSegment("listShards");
         CompletableFuture<ListShardsResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<ListStreamConsumersResponse> listStreamConsumers(ListStreamConsumersRequest listStreamConsumersRequest) {
-        Segment segment = KinesisUtil.startSegment("listStreamConsumers");
+        Segment segment = KinesisUtil.beginSegment("listStreamConsumers");
         CompletableFuture<ListStreamConsumersResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<ListStreamsResponse> listStreams(ListStreamsRequest listStreamsRequest) {
-        Segment segment = KinesisUtil.startSegment("listStreams");
+        Segment segment = KinesisUtil.beginSegment("listStreams");
         CompletableFuture<ListStreamsResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<ListTagsForStreamResponse> listTagsForStream(ListTagsForStreamRequest listTagsForStreamRequest) {
-        Segment segment = KinesisUtil.startSegment("listTagsForStream");
+        Segment segment = KinesisUtil.beginSegment("listTagsForStream");
         CompletableFuture<ListTagsForStreamResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<MergeShardsResponse> mergeShards(MergeShardsRequest mergeShardsRequest) {
-        Segment segment = KinesisUtil.startSegment("mergeShards");
+        Segment segment = KinesisUtil.beginSegment("mergeShards");
         CompletableFuture<MergeShardsResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<PutRecordResponse> putRecord(PutRecordRequest putRecordRequest) {
-        Segment segment = KinesisUtil.startSegment("putRecord");
+        Segment segment = KinesisUtil.beginSegment("putRecord");
         CompletableFuture<PutRecordResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<PutRecordsResponse> putRecords(PutRecordsRequest putRecordsRequest) {
-        Segment segment = KinesisUtil.startSegment("putRecords");
+        Segment segment = KinesisUtil.beginSegment("putRecords");
         CompletableFuture<PutRecordsResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<RegisterStreamConsumerResponse> registerStreamConsumer(RegisterStreamConsumerRequest registerStreamConsumerRequest) {
-        Segment segment = KinesisUtil.startSegment("registerStreamConsumer");
+        Segment segment = KinesisUtil.beginSegment("registerStreamConsumer");
         CompletableFuture<RegisterStreamConsumerResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<RemoveTagsFromStreamResponse> removeTagsFromStream(RemoveTagsFromStreamRequest removeTagsFromStreamRequest) {
-        Segment segment = KinesisUtil.startSegment("removeTagsFromStream");
+        Segment segment = KinesisUtil.beginSegment("removeTagsFromStream");
         CompletableFuture<RemoveTagsFromStreamResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<SplitShardResponse> splitShard(SplitShardRequest splitShardRequest) {
-        Segment segment = KinesisUtil.startSegment("splitShard");
+        Segment segment = KinesisUtil.beginSegment("splitShard");
         CompletableFuture<SplitShardResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<StartStreamEncryptionResponse> startStreamEncryption(StartStreamEncryptionRequest startStreamEncryptionRequest) {
-        Segment segment = KinesisUtil.startSegment("startStreamEncryption");
+        Segment segment = KinesisUtil.beginSegment("startStreamEncryption");
         CompletableFuture<StartStreamEncryptionResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<StopStreamEncryptionResponse> stopStreamEncryption(StopStreamEncryptionRequest stopStreamEncryptionRequest) {
-        Segment segment = KinesisUtil.startSegment("stopStreamEncryption");
+        Segment segment = KinesisUtil.beginSegment("stopStreamEncryption");
         CompletableFuture<StopStreamEncryptionResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<Void> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest, SubscribeToShardResponseHandler asyncResponseHandler) {
-        Segment segment = KinesisUtil.startSegment("stopStreamEncryption");
+        Segment segment = KinesisUtil.beginSegment("stopStreamEncryption");
         CompletableFuture<Void> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
 
     public CompletableFuture<UpdateShardCountResponse> updateShardCount(UpdateShardCountRequest updateShardCountRequest) {
-        Segment segment = KinesisUtil.startSegment("updateShardCount");
+        Segment segment = KinesisUtil.beginSegment("updateShardCount");
         CompletableFuture<UpdateShardCountResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }

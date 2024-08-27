@@ -11,14 +11,16 @@ public class KinesisUtil {
     public static final String TRACE_CATEGORY = "Kinesis";
     private KinesisUtil() {}
 
-    public static Segment startSegment(String kinesisOperation) {
-        return NewRelic.getAgent().getTransaction().startSegment(TRACE_CATEGORY, kinesisOperation);
+    public static Segment beginSegment(String kinesisOperation) {
+        Segment segment = NewRelic.getAgent().getTransaction().startSegment(TRACE_CATEGORY, kinesisOperation);
+        segment.reportAsExternal(createCloudParams());
+        return segment;
     }
 
     public static void setTraceDetails(String kinesisOperation) {
         TracedMethod tracedMethod = NewRelic.getAgent().getTracedMethod();
         tracedMethod.setMetricName(TRACE_CATEGORY, kinesisOperation);
-        tracedMethod.reportAsExternal(CloudParameters.provider(PLATFORM).build());
+        tracedMethod.reportAsExternal(createCloudParams());
     }
     public static CloudParameters createCloudParams() {
         // Todo: add arn to cloud parameters
