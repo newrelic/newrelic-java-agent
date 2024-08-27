@@ -118,7 +118,7 @@ class DefaultKinesisAsyncClient_Instrumentation {
     }
 
     public CompletableFuture<DescribeStreamConsumerResponse> describeStreamSummary(DescribeStreamSummaryRequest describeStreamSummaryRequest) {
-        Segment segment = NewRelic.getAgent().getTransaction().startSegment("KinesisAsyncClient", "describeStreamSummary");
+        Segment segment = KinesisUtil.beginSegment( "describeStreamSummary");
         CompletableFuture<DescribeStreamConsumerResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
     }
