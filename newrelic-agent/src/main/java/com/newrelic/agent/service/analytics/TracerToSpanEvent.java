@@ -94,6 +94,7 @@ public class TracerToSpanEvent {
                 .setTimestamp(tracer.getStartTimeInMillis())
                 .setPriority(transactionData.getPriority())
                 .setExternalParameterAttributes(tracer.getExternalParameters())
+                .setAgentAttributesMarkedForSpans(tracer.getAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
                 .setIsRootSpanEvent(isRoot)
                 .setDecider(inboundPayload == null || inboundPayload.priority == null);

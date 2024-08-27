@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.zaxxer:HikariCP:2.4.1")
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.hikaricp-2.4.0'
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'com.zaxxer:HikariCP:[2.4.0,)'
+}
+
+site {
+    title 'HikariCP'
+    type 'Datastore'
+}

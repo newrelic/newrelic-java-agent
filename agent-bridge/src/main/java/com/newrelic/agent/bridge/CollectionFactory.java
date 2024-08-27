@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge;
 
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Allows instrumentation and bridge API implementations to use collections from third partly libraries without
@@ -38,4 +39,26 @@ public interface CollectionFactory {
      * @param <V> value type
      */
     <K, V> Map<K, V> createConcurrentTimeBasedEvictionMap(long ageInSeconds);
+
+    /**
+     * Wraps the provided function into one that will cache the results for future calls.
+     * @param loader the function that calculates the value.
+     * @param maxSize the max number of items to be cached.
+     * @return the cached item, or the result of the loader call.
+     * @param <K> the type of key
+     * @param <V> the type of value stored/returned
+     */
+    <K, V> Function<K, V> memorize(Function<K, V> loader, int maxSize);
+
+    /**
+     * Create a time based eviction cache in which an entry's age is determined on a last-access basis.
+     *
+     * @param <K>             key type
+     * @param <V>             cached type
+     * @param ageInSeconds    how old, in seconds, a cache entry must be to be evicted after last access
+     * @param initialCapacity the initial capacity of the cache
+     * @param loader          the function to calculate the value for a key, used if the key is not cached
+     * @return a time based concurrent cache
+     */
+    <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader);
 }

@@ -33,15 +33,18 @@ HTTP/2 works in a fundamentally different manner than HTTP/1.
 
 ## HTTP/2 Instrumentation
 
-To instrument HTTP/2 the `io.netty.handler.codec.http2.Http2FrameCodec` class is weaved and new wrappers are used to handle working
-with HTTP/2 frames instead of request/response objects.
+To instrument HTTP/2, instrumentation points are weaved where the `io.netty.handler.codec.http2.Http2Headers` are available. The `Http2Headers` are wrapped and used to collect info about the  request and response.
 
 ### Request
 
-When `Http2FrameCodec.onHttp2Frame` is invoked on a `Http2HeadersFrame` representing the request headers, `NettyDispatcher.channelRead` is called which stores
-a `token` in the context pipeline, starts a transaction, and sets/wraps the request on the transaction.
+`io.netty.handler.codec.http2.DefaultHttp2ConnectionDecoder$FrameReadListener` is weaved to start a transaction for HTTP/2 requests and process the requests headers. 
+
+When `FrameReadListener.onHeadersRead` is invoked on the `Http2Headers` request headers, `NettyDispatcher.channelRead` is called which stores
+a `token` in the Netty context pipeline, starts a transaction, and sets/wraps the request headers on the transaction.
 
 ### Response
 
-When `Http2FrameCodec.write` is invoked on a `Http2HeadersFrame` representing the response headers, `NettyUtil.processResponse` is called which uses the
-`token` in the context pipeline to get the transaction, sets/wraps the response on the transaction, and expires the `token`.
+`io.netty.handler.codec.http2.Http2FrameWriter` is weaved to process the HTTP/2 response headers.
+
+When `Http2FrameWriter.writeHeaders` is invoked on the `Http2Headers` response headers, `NettyUtil.processResponse` is called which uses the
+`token` in the Netty context pipeline to get the transaction, sets/wraps the response on the transaction, and expires the `token`.
