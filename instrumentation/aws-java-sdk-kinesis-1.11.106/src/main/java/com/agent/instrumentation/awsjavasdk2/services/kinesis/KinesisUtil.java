@@ -1,6 +1,7 @@
 package com.agent.instrumentation.awsjavasdk2.services.kinesis;
 
 import com.amazonaws.AmazonWebServiceRequest;
+import com.amazonaws.handlers.AsyncHandler_Instrumentation;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.NewRelic;
@@ -20,23 +21,36 @@ public class KinesisUtil {
     public static void setTokenForRequest(AmazonWebServiceRequest request) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             if (request != null) {
-                requestTokenMap.put(request, NewRelic.getAgent().getTransaction().getToken());
+                Token token = NewRelic.getAgent().getTransaction().getToken();
+                requestTokenMap.put(request, token);
             }
         }
     }
 
-    public static void linkAndExpireToken(AmazonWebServiceRequest request) {
+    public static void setTraceInformation(String kinesisOperation, AmazonWebServiceRequest request) {
+        Token token = KinesisUtil.getToken(request);
+        if (token != null) {
+            token.linkAndExpire();
+        }
+        KinesisUtil.cleanToken(request);
+        TracedMethod tracedMethod = NewRelic.getAgent().getTransaction().getTracedMethod();
+        KinesisUtil.setTraceDetails(kinesisOperation, tracedMethod);
+    }
+
+    public static Token getToken(AmazonWebServiceRequest request) {
         if (request != null) {
-            Token token = requestTokenMap.get(request);
-            if (token != null) {
-                token.linkAndExpire();
-            }
+            return requestTokenMap.get(request);
+        }
+        return null;
+    }
+
+    public static void cleanToken(AmazonWebServiceRequest request) {
+        if (request != null) {
             requestTokenMap.remove(request);
         }
     }
 
-    public static void setTraceDetails(String kinesisOperation) {
-        TracedMethod tracedMethod = NewRelic.getAgent().getTracedMethod();
+    public static void setTraceDetails(String kinesisOperation, TracedMethod tracedMethod) {
         tracedMethod.setMetricName(TRACE_CATEGORY, kinesisOperation);
         tracedMethod.reportAsExternal(createCloudParams());
     }

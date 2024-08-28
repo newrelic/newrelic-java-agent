@@ -44,12 +44,13 @@ import com.amazonaws.services.kinesis.model.UpdateShardCountResult;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.weaver.MatchType;
+import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
 import java.util.concurrent.Future;
 
-import static com.agent.instrumentation.awsjavasdk2.services.kinesis.KinesisUtil.requestTokenMap;
-
+@Weave(originalName ="com.amazonaws.services.kinesis.AmazonKinesisAsyncClient", type = MatchType.ExactClass)
 public class AmazonKinesisAsyncClient_Instrumentation {
 
     @Trace
@@ -181,7 +182,7 @@ public class AmazonKinesisAsyncClient_Instrumentation {
         return Weaver.callOriginal();
     }
 
-    public static void setToken(AsyncHandler_Instrumentation asyncHandler, AmazonWebServiceRequest request) {
+    private void setToken(AsyncHandler_Instrumentation asyncHandler, AmazonWebServiceRequest request) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             if (asyncHandler != null) {
                 asyncHandler.token = NewRelic.getAgent().getTransaction().getToken();

@@ -39,6 +39,8 @@ import com.amazonaws.services.kinesis.model.SplitShardRequest;
 import com.amazonaws.services.kinesis.model.SplitShardResult;
 import com.amazonaws.services.kinesis.model.UpdateShardCountRequest;
 import com.amazonaws.services.kinesis.model.UpdateShardCountResult;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -47,136 +49,117 @@ import com.newrelic.api.agent.weaver.Weaver;
 @Weave(originalName = "com.amazonaws.services.kinesis.AmazonKinesisClient", type = MatchType.ExactClass)
 public class AmazonKinesisClient_Instrumentation {
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final AddTagsToStreamResult executeAddTagsToStream(AddTagsToStreamRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("addTagsToStream");
+        KinesisUtil.setTraceInformation("addTagsToStream", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final CreateStreamResult executeCreateStream(CreateStreamRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("createStream");
+        KinesisUtil.setTraceInformation("createStream", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final DecreaseStreamRetentionPeriodResult executeDecreaseStreamRetentionPeriod(DecreaseStreamRetentionPeriodRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("decreaseStreamRetentionPeriod");
+        KinesisUtil.setTraceInformation("decreaseStreamRetentionPeriod", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final DeleteStreamResult executeDeleteStream(DeleteStreamRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("deleteStream");
+        KinesisUtil.setTraceInformation("deleteStream", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final DescribeLimitsResult executeDescribeLimits(DescribeLimitsRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("describeLimits");
+        KinesisUtil.setTraceInformation("describeLimits", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final DescribeStreamResult executeDescribeStream(DescribeStreamRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("describeStream");
+        KinesisUtil.setTraceInformation("describeStream", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final DisableEnhancedMonitoringResult executeDisableEnhancedMonitoring(DisableEnhancedMonitoringRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("disableEnhancedMonitoring");
+        KinesisUtil.setTraceInformation("disableEnhancedMonitoring", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final EnableEnhancedMonitoringResult executeEnableEnhancedMonitoring(EnableEnhancedMonitoringRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("enableEnhancedMonitoring");
+        KinesisUtil.setTraceInformation("enableEnhancedMonitoring", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final GetRecordsResult executeGetRecords(GetRecordsRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("getRecords");
+        KinesisUtil.setTraceInformation("getRecords", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final GetShardIteratorResult executeGetShardIterator(GetShardIteratorRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("getShardIterator");
+        KinesisUtil.setTraceInformation("getShardIterator", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final IncreaseStreamRetentionPeriodResult executeIncreaseStreamRetentionPeriod(IncreaseStreamRetentionPeriodRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("increaseStreamRetentionPeriod");
+        KinesisUtil.setTraceInformation("increaseStreamRetentionPeriod", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final ListStreamsResult executeListStreams(ListStreamsRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("listStreams");
+        KinesisUtil.setTraceInformation("listStreams", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final ListTagsForStreamResult executeListTagsForStream(ListTagsForStreamRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("listTagsForStream");
+        KinesisUtil.setTraceInformation("listTagsForStream", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final MergeShardsResult executeMergeShards(MergeShardsRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("mergeShards");
+        KinesisUtil.setTraceInformation("mergeShards", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final PutRecordResult executePutRecord(PutRecordRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("putRecord");
+        KinesisUtil.setTraceInformation("putRecord", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final PutRecordsResult executePutRecords(PutRecordsRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("putRecords");
+        KinesisUtil.setTraceInformation("putRecords", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final RemoveTagsFromStreamResult executeRemoveTagsFromStream(RemoveTagsFromStreamRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("removeTagsFromStream");
+        KinesisUtil.setTraceInformation("removeTagsFromStream", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final SplitShardResult executeSplitShard(SplitShardRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("splitShard");
+        KinesisUtil.setTraceInformation("splitShard", request);
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace(async = true, leaf = true)
     final UpdateShardCountResult executeUpdateShardCount(UpdateShardCountRequest request) {
-        KinesisUtil.linkAndExpireToken(request);
-        KinesisUtil.setTraceDetails("updateShardCount");
+        KinesisUtil.setTraceInformation("updateShardCount", request);
         return Weaver.callOriginal();
     }
 

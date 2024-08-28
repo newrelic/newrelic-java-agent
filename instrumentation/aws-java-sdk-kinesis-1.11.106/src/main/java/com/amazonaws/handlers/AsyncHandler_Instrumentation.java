@@ -8,7 +8,6 @@
 package com.amazonaws.handlers;
 
 import com.amazonaws.AmazonWebServiceRequest;
-import com.amazonaws.AmazonWebServiceRequest_Instrumentation;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
