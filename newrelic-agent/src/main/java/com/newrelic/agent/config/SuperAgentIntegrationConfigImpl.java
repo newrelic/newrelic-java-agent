@@ -1,7 +1,12 @@
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.Agent;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class SuperAgentIntegrationConfigImpl extends BaseConfig implements SuperAgentIntegrationConfig {
     public static final String ROOT = "superagent";
@@ -19,13 +24,23 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
             configProps = Collections.emptyMap();
         }
 
-        fleetId = getProperty(FLEET_ID);
         superAgentIntegrationHealthConfig = createHealthConfig();
+        fleetId = superAgentIntegrationHealthConfig == null ? null : getProperty(FLEET_ID);
     }
 
     private SuperAgentIntegrationHealthConfig createHealthConfig() {
         Map<String, Object> healthProps = getProperty(SuperAgentIntegrationHealthConfig.ROOT, Collections.emptyMap());
-        return new SuperAgentIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
+        SuperAgentIntegrationHealthConfig superAgentIntegrationHealthConfig;
+
+        try {
+            superAgentIntegrationHealthConfig = new SuperAgentIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
+        } catch (URISyntaxException e) {
+            Agent.LOG.log(Level.WARNING, "Configured Super Agent health delivery location is not a valid URI; " +
+                    "SuperAgent integration service will not be started");
+            superAgentIntegrationHealthConfig = null;
+        }
+
+        return superAgentIntegrationHealthConfig;
     }
 
     @Override
@@ -34,7 +49,7 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
     }
 
     @Override
-    public String getHealthDeliveryLocation() {
+    public URI getHealthDeliveryLocation() {
         return superAgentIntegrationHealthConfig.getHealthDeliveryLocation();
     }
 

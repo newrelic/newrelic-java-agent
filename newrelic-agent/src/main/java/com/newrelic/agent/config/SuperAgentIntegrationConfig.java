@@ -6,6 +6,8 @@
  */
 package com.newrelic.agent.config;
 
+import java.net.URI;
+
 public interface SuperAgentIntegrationConfig {
     /**
      * Check if the Super Agent integration service is enabled
@@ -19,7 +21,7 @@ public interface SuperAgentIntegrationConfig {
      *
      * @return the domain socket address for the health check
      */
-    String getHealthDeliveryLocation();
+    URI getHealthDeliveryLocation();
 
     /**
      * Return the frequency of the health messages sent to the Super Agent, in seconds

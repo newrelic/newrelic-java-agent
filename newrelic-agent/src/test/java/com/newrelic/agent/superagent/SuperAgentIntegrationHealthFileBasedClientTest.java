@@ -15,6 +15,8 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Map;
 
@@ -27,7 +29,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SuperAgentIntegrationHealthFileBasedClientTest {
-    private static final String HEALTH_FILE_LOCATION = "./health.yml";
+    private static URI HEALTH_FILE_LOCATION = null;
+
+    static {
+        try {
+            HEALTH_FILE_LOCATION = new URI("file://" + System.getProperty("user.dir") + "/health.yml");
+        } catch (URISyntaxException e) {
+            // ignored
+        }
+    }
+
     private SuperAgentIntegrationConfig mockConfig;
 
     @Before

@@ -14,6 +14,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -24,7 +25,7 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
     private File healthFile = null;
 
     public SuperAgentIntegrationHealthFileBasedClient(SuperAgentIntegrationConfig config) {
-        String locationFromConfig = config.getHealthDeliveryLocation();
+        URI locationFromConfig = config.getHealthDeliveryLocation();
 
         if (locationFromConfig != null) {
             this.healthFile = new File(locationFromConfig);
