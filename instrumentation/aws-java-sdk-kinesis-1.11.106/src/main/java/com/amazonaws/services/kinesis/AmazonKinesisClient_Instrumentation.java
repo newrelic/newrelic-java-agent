@@ -1,7 +1,6 @@
 package com.amazonaws.services.kinesis;
 
-import com.agent.instrumentation.awsjavasdk2.services.lambda.KinesisUtil;
-import com.amazonaws.AmazonWebServiceRequest;
+import com.agent.instrumentation.awsjavasdk2.services.kinesis.KinesisUtil;
 import com.amazonaws.services.kinesis.model.AddTagsToStreamRequest;
 import com.amazonaws.services.kinesis.model.AddTagsToStreamResult;
 import com.amazonaws.services.kinesis.model.CreateStreamRequest;

@@ -1,4 +1,4 @@
-package com.agent.instrumentation.awsjavasdk2.services.lambda;
+package com.agent.instrumentation.awsjavasdk2.services.kinesis;
 
 import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.NewRelic;

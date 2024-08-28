@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.kinesis;
 
-import com.agent.instrumentation.awsjavasdk2.services.lambda.KinesisUtil;
+import com.agent.instrumentation.awsjavasdk2.services.kinesis.KinesisUtil;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
