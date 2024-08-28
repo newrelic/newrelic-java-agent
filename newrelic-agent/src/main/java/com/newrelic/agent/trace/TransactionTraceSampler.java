@@ -76,8 +76,10 @@ public class TransactionTraceSampler implements ITransactionSampler {
                 return false;
             }
             if (expensiveTransaction.compareAndSet(current, td)) {
+                // remove the transaction trace attribute from previous expensive transaction
+                removeAsTransactionTraceCandidate(current);
                 // set transaction trace attribute on new expensive transaction
-                markAsTransactionTraceCandidate(td, true);
+                markAsTransactionTraceCandidate(td);
 
                 if (Agent.LOG.isLoggable(Level.FINER)) {
                     String msg = MessageFormat.format("Captured expensive transaction trace for {0} {1}", td.getApplicationName(), td);
@@ -88,18 +90,39 @@ public class TransactionTraceSampler implements ITransactionSampler {
         }
     }
 
-    private void markAsTransactionTraceCandidate(TransactionData td, boolean isTransactionTrace) {
-        if (td != null) {
-            Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
-            if (intrinsicAttributes != null) {
-                intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, isTransactionTrace);
+    /**
+     * When using Span based transaction traces, this will add a transaction_trace attribute to
+     * indicate that the span belongs to a trace that was a transaction trace candidate.
+     * <p>
+     * It will also increase the priority for each subsequent transaction trace candidate to guarantee
+     * that the most expensive transactions will have their spans sampled.
+     *
+     * @param td TransactionData for finished transaction
+     */
+    private void markAsTransactionTraceCandidate(TransactionData td) {
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
+            if (td != null) {
+                Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+                if (intrinsicAttributes != null) {
+                    intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, true);
+                }
+            }
+        }
+    }
 
-                // TODO determine whether it makes sense to change priority
-                Float priority = (Float) intrinsicAttributes.get(AttributeNames.PRIORITY);
-                Float ttPriority = priority + 5;
-                intrinsicAttributes.put(AttributeNames.PRIORITY, ttPriority);
-
-                td.getTransaction().setPriorityIfNotNull(ttPriority);
+    /**
+     * Removes the transaction_trace attribute from a transaction that is no
+     * longer considered as a transaction trace candidate.
+     *
+     * @param td TransactionData for finished transaction
+     */
+    private void removeAsTransactionTraceCandidate(TransactionData td) {
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
+            if (td != null) {
+                Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+                if (intrinsicAttributes != null) {
+                    intrinsicAttributes.remove(AttributeNames.TRANSACTION_TRACE);
+                }
             }
         }
     }

@@ -162,14 +162,14 @@ public class SpanEventFactory {
      */
     public SpanEventFactory setTransactionTraceAttribute(Map<String, Object> intrinsicAttributes) {
         if (intrinsicAttributes == null || intrinsicAttributes.isEmpty()) {
-            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
+//            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
             return this;
         }
         final Object txnTraceAttribute = intrinsicAttributes.get(AttributeNames.TRANSACTION_TRACE);
         if (txnTraceAttribute != null) {
             builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, txnTraceAttribute);
         } else {
-            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
+//            builder.putIntrinsic(AttributeNames.TRANSACTION_TRACE, false);
         }
         return this;
     }

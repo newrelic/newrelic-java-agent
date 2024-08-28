@@ -133,7 +133,7 @@ public class TransactionTraceService extends AbstractService implements HarvestL
         // If transaction_traces_as_spans is false, then sample transaction traces here in TransactionTraceService
         // otherwise transaction traces will be sampled in SpanEventsServiceImpl
         if (!ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
-            transactionTraceCollector.considerSamplingTransactionTrace(transactionData);
+            transactionTraceCollector.evaluateAsPotentialTransactionTrace(transactionData);
         }
     }
 }

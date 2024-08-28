@@ -31,10 +31,14 @@ import com.newrelic.api.agent.HttpParameters;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+
+import static com.newrelic.agent.attributes.AttributeNames.TRANSACTION_TRACE;
 
 /**
  * The {@link SpanEventsServiceImpl} collects span events and transmits them to the collectors.
@@ -51,9 +55,11 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
     private final Consumer<SpanEvent> eventBackendStorage;
     private final SpanEventCreationDecider spanEventCreationDecider;
     private final List<Harvestable> harvestables = new ArrayList<>();
+    private final Map<TransactionData, TransactionStats> transactionTraceCandidates = new HashMap<>();
     private final TracerToSpanEvent tracerToSpanEvent;
     private volatile SpanEventsConfig spanEventsConfig;
     private final TransactionTraceCollector transactionTraceCollector;
+    private static final String TRANSACTION_TRACES_RESERVOIR_NAME_POSTFIX = "_newrelic_transaction_traces_reservoir";
 
     public SpanEventsServiceImpl(Builder builder) {
         super(SpanEventsServiceImpl.class.getSimpleName());
@@ -68,14 +74,38 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
 
     @Override
     public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
+        if (considerAsTransactionTrace(transactionData, transactionStats)) {
+            // defer creating spans for transaction until harvest when we know which ones to capture transaction traces for
+            return;
+        }
+        createSpansFromTransaction(transactionData, transactionStats);
+    }
+
+    private boolean considerAsTransactionTrace(TransactionData transactionData, TransactionStats transactionStats) {
         // If this transaction is sampled and span events are enabled we should generate all of the transaction segment events
-        if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
+        // FIXME should we have shouldCreateSpans here???? probably not for TTs
+//        if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
+        if (isSpanEventsEnabled()) {
             // If transaction_traces_as_spans is true, then sample transaction traces here in SpanEventsServiceImpl
             // otherwise transaction traces will be sampled in TransactionTraceService
             if (ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
-                transactionTraceCollector.considerSamplingTransactionTrace(transactionData);
-            }
+                boolean isPotentialTransactionTrace = transactionTraceCollector.evaluateAsPotentialTransactionTrace(transactionData);
 
+                // defer span creation until harvest when we know which transactions to create traces for
+                if (isPotentialTransactionTrace) {
+                    // store TransactionData and TransactionStats for transaction trace candidates so
+                    // that they can be used to create spans at harvest time
+                    transactionTraceCandidates.put(transactionData, transactionStats);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void createSpansFromTransaction(TransactionData transactionData, TransactionStats transactionStats) {
+        // If this transaction is sampled and span events are enabled we should generate all of the transaction segment events
+        if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
             Tracer rootTracer = transactionData.getRootTracer();
             storeSafely(transactionData, rootTracer, true, transactionStats);
@@ -86,6 +116,17 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                     storeSafely(transactionData, tracer, false, transactionStats);
                 }
             }
+        }
+    }
+
+    /**
+     * Iterates through all the transaction trace candidates and creates spans for the transactions.
+     * <p>
+     * This allows span creation to be deferred until harvest time when transaction trace decisions have been decided.
+     */
+    private void createSpansForTransactionTraceCandidates() {
+        for (TransactionData td : transactionTraceCandidates.keySet()) {
+            createSpansFromTransaction(td, transactionTraceCandidates.get(td));
         }
     }
 
@@ -104,17 +145,64 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             // We are in "cross_process_only" mode and we have a non datastore/external tracer. Return before we create anything.
             return;
         }
-        // TODO possibly make a choice between reservoirs here. Add separate reservoir for TT spans
         String appName = transactionData.getApplicationName();
+        Map<String, Object> intrinsicAtts = transactionData.getIntrinsicAttributes();
+        if (isTransactionTrace(intrinsicAtts)) {
+            appName = getAppNameForTransactionTraceReservoir(appName);
+        }
         SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir(appName);
         if (reservoir.isFull() && reservoir.getMinPriority() >= transactionData.getPriority()) {
             // The reservoir is full and this event wouldn't make it in, so lets prevent some object allocations
             reservoir.incrementNumberOfTries();
             return;
         }
-        // TODO here is where each tracer generates a span
         SpanEvent spanEvent = tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly);
         storeEvent(spanEvent);
+    }
+
+    /**
+     * Checks if a transaction has been marked with the transaction_trace attribute.
+     *
+     * @param intrinsicAtts intrinsic attributes
+     * @return true if transaction is currently marked as a transaction trace
+     */
+    public static boolean isTransactionTrace(Map<String, Object> intrinsicAtts) {
+        if (intrinsicAtts != null && !intrinsicAtts.isEmpty() && intrinsicAtts.containsKey(TRANSACTION_TRACE)) {
+            return (boolean) intrinsicAtts.get(TRANSACTION_TRACE);
+        }
+        return false;
+    }
+
+    public static boolean isTransactionTraceReservoir(String appName) {
+        return appName.contains(TRANSACTION_TRACES_RESERVOIR_NAME_POSTFIX);
+    }
+
+    /**
+     * Creates a new span reservoir with the appName + _newrelic_transaction_traces_reservoir
+     * intended to be used only for spans associated with transaction traces to avoid sampling them.
+     *
+     * @param appName app name
+     * @return span reservoir for transaction traces
+     */
+    public static String getAppNameForTransactionTraceReservoir(String appName) {
+        if (isTransactionTraceReservoir(appName)) {
+            return appName;
+        }
+        return appName + TRANSACTION_TRACES_RESERVOIR_NAME_POSTFIX;
+    }
+
+    /**
+     * Removes the _newrelic_transaction_traces_reservoir postfix from the reservoir name so
+     * that the reservoir for the appName can be retrieved.
+     *
+     * @param appName app name
+     * @return String representing the appName for the reservoir
+     */
+    public static String stripReservoirPostfixFromAppName(String appName) {
+        if (isTransactionTraceReservoir(appName)) {
+            return appName.replace(TRANSACTION_TRACES_RESERVOIR_NAME_POSTFIX, "");
+        }
+        return appName;
     }
 
     private boolean isCrossProcessTracer(Tracer tracer) {
@@ -124,8 +212,12 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
     @Override
     public void harvestEvents(final String appName) {
         if (ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
+            // Creates the spans for each transaction trace candidate
+            createSpansForTransactionTraceCandidates();
             // This just does some clean up with the transaction trace samplers after each harvest
             transactionTraceCollector.afterHarvest(appName);
+            // Clear all transactions that were tracked as transaction trace candidates for the harvest period
+            transactionTraceCandidates.clear();
         }
 
         if (!spanEventsConfig.isEnabled() || reservoirManager.getMaxSamplesStored() <= 0) {
@@ -133,8 +225,14 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             return;
         }
         long startTimeInNanos = System.nanoTime();
-        // TODO here is where we send spans from the reservoirs
         final ReservoirManager.HarvestResult result = reservoirManager.attemptToSendReservoir(appName, collectorSender, logger);
+
+        String appNameForTransactionTraceReservoir = getAppNameForTransactionTraceReservoir(appName);
+
+        // TODO would it make sense to create a HarvestResult metric for the transaction trace span reservoir?
+        final ReservoirManager.HarvestResult transactionTraceSpansResult = reservoirManager.attemptToSendReservoir(appNameForTransactionTraceReservoir,
+                collectorSender, logger);
+
         if (result != null) {
             final long durationInNanos = System.nanoTime() - startTimeInNanos;
             ServiceFactory.getStatsService().doStatsWork(new StatsWork() {

@@ -21,6 +21,9 @@ import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import static com.newrelic.agent.service.analytics.SpanEventsServiceImpl.isTransactionTraceReservoir;
+import static com.newrelic.agent.service.analytics.SpanEventsServiceImpl.stripReservoirPostfixFromAppName;
+
 public class CollectorSpanEventReservoirManager implements ReservoirManager<SpanEvent> {
 
     private final ConfigService configService;
@@ -34,7 +37,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
 
     @Override
     public SamplingPriorityQueue<SpanEvent> getOrCreateReservoir(String appName) {
-       SamplingPriorityQueue<SpanEvent> reservoir = spanReservoirsForApp.get(appName);
+        SamplingPriorityQueue<SpanEvent> reservoir = spanReservoirsForApp.get(appName);
         if (reservoir == null) {
             reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0));
             if (reservoir == null) {
@@ -47,6 +50,13 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName, int decidedLast) {
         SpanEventsConfig spanEventsConfig = configService.getDefaultAgentConfig().getSpanEventsConfig();
         int target = spanEventsConfig.getTargetSamplesStored();
+        // TODO if TT reservoir, set target size much larger. This is just a hack to prevent TT Spans from getting sampled.
+        if (isTransactionTraceReservoir(appName)) {
+            target = 1000;
+            maxSamplesStored = 1_000_000;
+            // TODO what to do with decidedLast?
+        }
+
         return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, decidedLast, target, SPAN_EVENT_COMPARATOR);
     }
 
@@ -61,8 +71,8 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
             clearReservoir();
             return null;
         }
-
-        SpanEventsConfig config = configService.getAgentConfig(appName).getSpanEventsConfig();
+        // TODO any additional branching logic for transaction trace spans??
+        SpanEventsConfig config = configService.getAgentConfig(appName).getSpanEventsConfig(); // FIXME should probably get config for appName without reservoir
         int decidedLast = AdaptiveSampling.decidedLast(spanReservoirsForApp.get(appName), config.getTargetSamplesStored());
 
         // save a reference to the old reservoir to finish harvesting, and create a new one
@@ -74,7 +84,9 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
         }
 
         try {
-            eventSender.sendEvents(appName, config.getMaxSamplesStored(), toSend.getNumberOfTries(), Collections.unmodifiableList(toSend.asList()));
+            // here it needs to be set back to the original app name so that the TT spans get reported to the right APM entity
+            eventSender.sendEvents(stripReservoirPostfixFromAppName(appName), config.getMaxSamplesStored(), toSend.getNumberOfTries(),
+                    Collections.unmodifiableList(toSend.asList()));
             if (toSend.size() < toSend.getNumberOfTries()) {
                 int dropped = toSend.getNumberOfTries() - toSend.size();
                 logger.log(Level.FINE, "Dropped {0} span events out of {1}.", dropped, toSend.getNumberOfTries());
@@ -107,7 +119,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     public void setMaxSamplesStored(int newMax) {
         maxSamplesStored = newMax;
         ConcurrentHashMap<String, SamplingPriorityQueue<SpanEvent>> newMaxSpanReservoirs = new ConcurrentHashMap<>();
-        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0)));
+        spanReservoirsForApp.forEach((appName, reservoir) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0)));
         spanReservoirsForApp = newMaxSpanReservoirs;
     }
 

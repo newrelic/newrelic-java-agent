@@ -140,19 +140,20 @@ public class TransactionTraceCollector {
         return sampler;
     }
 
-    public void noticeTransaction(TransactionData transactionData) {
+    public boolean noticeTransaction(TransactionData transactionData) {
         if (syntheticsTransactionSampler.noticeTransaction(transactionData)) {
-            return;
+            return true;
         }
         for (ITransactionSampler transactionSampler : transactionSamplers) {
             if (transactionSampler.noticeTransaction(transactionData)) {
-                return;
+                return true;
             }
         }
         ITransactionSampler sampler = getOrCreateNamedSampler(transactionData);
         if (sampler != null) {
-            sampler.noticeTransaction(transactionData);
+            return sampler.noticeTransaction(transactionData);
         }
+        return false;
     }
 
     public void beforeHarvest(String appName, StatsEngine statsEngine) {
@@ -248,11 +249,11 @@ public class TransactionTraceCollector {
      *
      * @param transactionData TransactionData representing a given transaction that has just completed
      */
-    public void considerSamplingTransactionTrace(TransactionData transactionData) {
+    public boolean evaluateAsPotentialTransactionTrace(TransactionData transactionData) {
         if (!transactionData.getTransactionTracerConfig().isEnabled()) {
-            return;
+            return false;
         }
-        noticeTransaction(transactionData);
+        return noticeTransaction(transactionData);
     }
 
 }

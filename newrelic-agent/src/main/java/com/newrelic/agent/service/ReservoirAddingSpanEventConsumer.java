@@ -15,6 +15,9 @@ import com.newrelic.agent.model.SpanEvent;
 
 import java.util.function.Consumer;
 
+import static com.newrelic.agent.service.analytics.SpanEventsServiceImpl.getAppNameForTransactionTraceReservoir;
+import static com.newrelic.agent.service.analytics.SpanEventsServiceImpl.isTransactionTrace;
+
 public class ReservoirAddingSpanEventConsumer implements Consumer<SpanEvent> {
     private final ReservoirManager<SpanEvent> reservoirManager;
     private final ConfigService configService;
@@ -28,6 +31,9 @@ public class ReservoirAddingSpanEventConsumer implements Consumer<SpanEvent> {
     public void accept(SpanEvent spanEvent) {
         if (isSpanEventsEnabled()) {
             String appName = spanEvent.getAppName();
+            if (isTransactionTrace(spanEvent.getIntrinsics())) {
+                appName = getAppNameForTransactionTraceReservoir(appName);
+            }
             SamplingPriorityQueue<SpanEvent> reservoir = reservoirManager.getOrCreateReservoir(appName);
             reservoir.add(spanEvent);
         }

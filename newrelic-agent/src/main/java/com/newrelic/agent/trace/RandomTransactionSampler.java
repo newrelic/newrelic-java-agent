@@ -43,7 +43,7 @@ public class RandomTransactionSampler implements ITransactionSampler {
     public boolean noticeTransaction(TransactionData td) {
         if (expensiveTransaction.compareAndSet(null, td)) {
             // set transaction trace attribute on new expensive transaction
-            markAsTransactionTraceCandidate(td, true);
+            markAsTransactionTraceCandidate(td);
 
             if (Agent.LOG.isLoggable(Level.FINER)) {
                 String msg = MessageFormat.format("Captured random transaction trace for {0} {1}",
@@ -55,18 +55,22 @@ public class RandomTransactionSampler implements ITransactionSampler {
         return false;
     }
 
-    private void markAsTransactionTraceCandidate(TransactionData td, boolean isTransactionTrace) {
-        if (td != null) {
-            Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
-            if (intrinsicAttributes != null) {
-                intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, isTransactionTrace);
-
-                // TODO determine whether it makes sense to change priority
-                Float priority = (Float) intrinsicAttributes.get(AttributeNames.PRIORITY);
-                Float ttPriority = priority + 5;
-                intrinsicAttributes.put(AttributeNames.PRIORITY, ttPriority);
-
-                td.getTransaction().setPriorityIfNotNull(ttPriority);
+    /**
+     * When using Span based transaction traces, this will add a transaction_trace attribute to
+     * indicate that the span belongs to a trace that was a transaction trace candidate.
+     * <p>
+     * It will also increase the priority for each subsequent transaction trace candidate to guarantee
+     * that the most expensive transactions will have their spans sampled.
+     *
+     * @param td TransactionData for finished transaction
+     */
+    private void markAsTransactionTraceCandidate(TransactionData td) {
+        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig().getTransactionTracesAsSpans()) {
+            if (td != null) {
+                Map<String, Object> intrinsicAttributes = td.getIntrinsicAttributes();
+                if (intrinsicAttributes != null) {
+                    intrinsicAttributes.put(AttributeNames.TRANSACTION_TRACE, true);
+                }
             }
         }
     }
