@@ -22,7 +22,7 @@ import org.apache.kafka.common.Uuid;
 import org.apache.kafka.common.metrics.Metrics;
 
 @Weave(originalName = "org.apache.kafka.clients.consumer.KafkaConsumer")
-public class KafkaConsumer_Instrumentation<K, V> {
+public abstract class KafkaConsumer_Instrumentation<K, V> {
 
     // It's possible for constructors to be invoked multiple times (e.g. `C() { C("some default") }` ).
     // When this happens we don't want to register the metrics reporter multiple times.
@@ -43,11 +43,7 @@ public class KafkaConsumer_Instrumentation<K, V> {
       }
     }
 
-    public Uuid clientInstanceId(Duration timeout) {
-        return Weaver.callOriginal();
-    }
+    public abstract Uuid clientInstanceId(Duration timeout);
 
-    public Map<MetricName, ? extends Metric> metrics() {
-      return Weaver.callOriginal();
-    }
+    public abstract Map<MetricName, ? extends Metric> metrics();
 }
