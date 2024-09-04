@@ -1,4 +1,4 @@
-package producer;
+package org.apache.kafka.kafka.clients.producer;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.NewField;
