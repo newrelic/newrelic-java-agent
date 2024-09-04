@@ -11,11 +11,12 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
-import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
+
 import java.time.Duration;
 import java.util.Map;
 import java.util.logging.Level;
+
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.Uuid;
@@ -35,12 +36,12 @@ public abstract class KafkaConsumer_Instrumentation<K, V> {
         String clientId = clientInstanceId(Duration.ofSeconds(1)).toString();
         Metrics metrics = (Metrics) metrics();
 
-      if (!metricsReporterInstalled) {
-        NewRelic.getAgent().getLogger().log(Level.INFO,
-            "newrelic-kafka-clients-enhancements engaged for consumer {0}", clientId);
-        metrics.addReporter(new NewRelicMetricsReporter());
-        metricsReporterInstalled = true;
-      }
+        if (!metricsReporterInstalled) {
+            NewRelic.getAgent().getLogger().log(Level.INFO,
+                    "newrelic-kafka-clients-enhancements engaged for consumer {0}", clientId);
+            metrics.addReporter(new NewRelicMetricsReporter());
+            metricsReporterInstalled = true;
+        }
     }
 
     public abstract Uuid clientInstanceId(Duration timeout);
