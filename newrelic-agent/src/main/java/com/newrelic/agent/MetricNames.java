@@ -501,6 +501,9 @@ public class MetricNames {
     // AiMonitoring Callback Set
     public static final String SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET = "Supportability/AiMonitoringTokenCountCallback/Set";
 
+    // Super Agent Integration
+    public static final String SUPPORTABILITY_SUPERAGENT_HEALTH_REPORTING_ENABLED = "Supportability/SuperAgent/Health/enabled";
+
     /**
      * Utility method for adding supportability metrics to APIs
      *

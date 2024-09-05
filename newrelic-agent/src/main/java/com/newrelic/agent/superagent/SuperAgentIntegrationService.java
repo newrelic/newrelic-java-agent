@@ -7,11 +7,13 @@
 package com.newrelic.agent.superagent;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.DefaultThreadFactory;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -44,6 +46,8 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
     protected void doStart() throws Exception {
         if (isEnabled()) {
             Agent.LOG.log(Level.INFO, "SuperAgentIntegrationService starting");
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_SUPERAGENT_HEALTH_REPORTING_ENABLED);
+
             int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay
 
             this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory(SA_INTEGRATION_THREAD_NAME, true));
