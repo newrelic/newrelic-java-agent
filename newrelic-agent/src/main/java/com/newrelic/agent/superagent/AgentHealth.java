@@ -12,17 +12,17 @@ public class AgentHealth {
     }
 
     public enum Status {
-        HEALTHY("NR-APM-0000", "Healthy", Category.AGENT),
-        INVALID_LICENSE("NR-APM-0010", "Invalid license key (HTTP status code 401)", Category.CONFIG),
-        MISSING_LICENSE("NR-APM-0011", "License key missing in configuration", Category.CONFIG),
-        FORCED_DISCONNECT("NR-APM-0020", "Forced disconnect received from New Relic (HTTP status code 410)", Category.HARVEST),
-        HTTP_ERROR("NR-APM-0030", "HTTP error response code [%s] received from New Relic while sending data type [%s]", Category.HARVEST),
-        GC_CIRCUIT_BREAKER("NR-APM-0040", "Garbage collection circuit breaker triggered: Percent free memory %s; GC CPU time: %s", Category.CIRCUIT_BREAKER),
-        MISSING_APP_NAME("NR-APM-0050", "Missing application name in agent configuration", Category.CONFIG),
-        MAX_APP_NAMES_EXCEEDED("NR-APM-0051", "The maximum number of configured app names (3) exceeded", Category.CONFIG),
-        PROXY_ERROR("NR-APM-0060", "HTTP Proxy configuration error; response code [%s]", Category.HARVEST),
-        AGENT_DISABLED("NR-APM-0900", "Agent is disabled via configuration", Category.CONFIG),
-        SHUTDOWN("NR-APM-1000", "Agent has shutdown", Category.AGENT),;
+        HEALTHY("NR-APM-000", "Healthy", Category.AGENT),
+        INVALID_LICENSE("NR-APM-001", "Invalid license key (HTTP status code 401)", Category.CONFIG),
+        MISSING_LICENSE("NR-APM-002", "License key missing in configuration", Category.CONFIG),
+        FORCED_DISCONNECT("NR-APM-003", "Forced disconnect received from New Relic (HTTP status code 410)", Category.HARVEST),
+        HTTP_ERROR("NR-APM-004", "HTTP error response code [%s] received from New Relic while sending data type [%s]", Category.HARVEST),
+        MISSING_APP_NAME("NR-APM-005", "Missing application name in agent configuration", Category.CONFIG),
+        MAX_APP_NAMES_EXCEEDED("NR-APM-006", "The maximum number of configured app names (3) exceeded", Category.CONFIG),
+        PROXY_ERROR("NR-APM-007", "HTTP Proxy configuration error; response code [%s]", Category.HARVEST),
+        AGENT_DISABLED("NR-APM-008", "Agent is disabled via configuration", Category.CONFIG),
+        SHUTDOWN("NR-APM-099", "Agent has shutdown", Category.AGENT),
+        GC_CIRCUIT_BREAKER("NR-APM-100", "Garbage collection circuit breaker triggered: Percent free memory %s; GC CPU time: %s", Category.CIRCUIT_BREAKER),;
 
         private final String code;
         private final String description;
