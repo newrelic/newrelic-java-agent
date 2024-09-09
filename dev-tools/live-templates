@@ -1,113 +1,110 @@
 <template name="nrAtTrace" value="@com.newrelic.api.agent.Trace" description="@Trace" toReformat="true" toShortenFQNames="true">
-    <context>
-        <option name="JAVA_DECLARATION" value="true" />
-    </context>
+  <context>
+    <option name="JAVA_DECLARATION" value="true" />
+  </context>
 </template>
 <template name="nrAtTraceAsync" value="@com.newrelic.api.agent.Trace(async = true)" description="@Trace(async = true)" toReformat="true" toShortenFQNames="true">
-<context>
+  <context>
     <option name="JAVA_DECLARATION" value="true" />
-</context>
+  </context>
 </template>
 <template name="nrAtTraceDispatcher" value="@com.newrelic.api.agent.Trace(dispatcher = true)" description="@Trace(dispatcher = true)" toReformat="true" toShortenFQNames="true">
-<context>
+  <context>
     <option name="JAVA_DECLARATION" value="true" />
-</context>
+  </context>
 </template>
 <template name="nrAtWeave" value="@com.newrelic.api.agent.weaver.Weave(type = com.newrelic.api.agent.weaver.MatchType.$MATCH_TYPE$, originalName = &quot;$CLASS_NAME$&quot;)" description="@Weave(originalName = &quot;java.my.Class&quot;, type = Match..." toReformat="true" toShortenFQNames="true">
-<variable name="MATCH_TYPE" expression="enum(&quot;ExactClass&quot;, &quot;BaseClass&quot;, &quot;Interface&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="CLASS_NAME" expression="concat(currentPackage(), &quot;.&quot;, fileNameWithoutExtension())" defaultValue="" alwaysStopAt="true" />
-<context>
+  <variable name="MATCH_TYPE" expression="enum(&quot;ExactClass&quot;, &quot;BaseClass&quot;, &quot;Interface&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="CLASS_NAME" expression="concat(currentPackage(), &quot;.&quot;, fileNameWithoutExtension())" defaultValue="" alwaysStopAt="true" />
+  <context>
     <option name="JAVA_DECLARATION" value="true" />
-</context>
+  </context>
 </template>
 <template name="nrCallOriginal" value="com.newrelic.api.agent.weaver.Weaver.callOriginal();" description="Weaver.callOriginal();" toReformat="true" toShortenFQNames="true">
-<context>
+  <context>
     <option name="JAVA_EXPRESSION" value="true" />
-</context>
+    <option name="JAVA_STATEMENT" value="true" />
+  </context>
 </template>
 <template name="nrCallOriginalReturn" value="return com.newrelic.api.agent.weaver.Weaver.callOriginal();" description="return Weaver.callOriginal();" toReformat="true" toShortenFQNames="true">
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
-</context>
+  <context>
+    <option name="JAVA_STATEMENT" value="true" />
+  </context>
 </template>
 <template name="nrHttpParams" value="com.newrelic.api.agent.HttpParameters $PARAMS$ = com.newrelic.api.agent.HttpParameters&#10;                    .library($LIBRARY$)&#10;                    .uri($URI$)&#10;                    .procedure($PROC$)&#10;                    .inboundHeaders($INBOUND_HEADERS$)&#10;                    .status($STATUS_CODE$, $STATUS_TEXT$)&#10;                    .build();" description="HttpParams params = HttpParams.library()...build();" toReformat="true" toShortenFQNames="true">
-<variable name="PARAMS" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
-<variable name="LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="URI" expression="variableOfType(&quot;java/net/URI.java&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="PROC" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="INBOUND_HEADERS" expression="" defaultValue="" alwaysStopAt="true" />
-<variable name="STATUS_CODE" expression="variableOfType(&quot;int&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="STATUS_TEXT" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
-</context>
+  <variable name="PARAMS" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
+  <variable name="LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="URI" expression="variableOfType(&quot;java/net/URI.java&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="PROC" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="INBOUND_HEADERS" expression="" defaultValue="" alwaysStopAt="true" />
+  <variable name="STATUS_CODE" expression="variableOfType(&quot;int&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="STATUS_TEXT" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_STATEMENT" value="true" />
+  </context>
 </template>
 <template name="nrLog" value="com.newrelic.api.agent.NewRelic.getAgent().getLogger().log(java.util.logging.Level.$LEVEL$, &quot;$MSG$&quot;);" description="NewRelic.getAgent().getLogger().log(Level..." toReformat="true" toShortenFQNames="true">
-<variable name="LEVEL" expression="enum(&quot;SEVERE&quot;, &quot;WARNING&quot;, &quot;INFO&quot;, &quot;FINE&quot;, &quot;FINER&quot;, &quot;FINEST&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="MSG" expression="" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
-</context>
+  <variable name="LEVEL" expression="enum(&quot;SEVERE&quot;, &quot;WARNING&quot;, &quot;INFO&quot;, &quot;FINE&quot;, &quot;FINER&quot;, &quot;FINEST&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="MSG" expression="" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_STATEMENT" value="true" />
+  </context>
 </template>
 <template name="nrMessageConsumeParams" value="com.newrelic.api.agent.MessageConsumeParameters $PARAMS$ = com.newrelic.api.agent.MessageConsumeParameters&#10;                .library($LIBRARY$, $OTEL_LIBRARY$)&#10;                .destinationType($DEST_TYPE$)&#10;                .destinationName($DEST_NAME$)&#10;                .inboundHeaders($OUTBOUND_HEADERS$)&#10;                .cloudRegion($REGION$)&#10;                .cloudAccountId($ACCOUNT_ID$)&#10;                .build();" description="MessageProducerParams params = MessageProducerParams.builder()..." toReformat="true" toShortenFQNames="true">
-<variable name="PARAMS" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
-<variable name="LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="OTEL_LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="DEST_TYPE" expression="enum(&quot;com.newrelic.api.agent.DestinationType.NAMED_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.NAMED_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.EXCHANGE&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="DEST_NAME" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="OUTBOUND_HEADERS" expression="variableOfType(&quot;com.newrelic.api.agent.OutboundHeaders&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="REGION" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="ACCOUNT_ID" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
+  <variable name="PARAMS" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
+  <variable name="LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="OTEL_LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="DEST_TYPE" expression="enum(&quot;com.newrelic.api.agent.DestinationType.NAMED_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.NAMED_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.EXCHANGE&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="DEST_NAME" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="OUTBOUND_HEADERS" expression="variableOfType(&quot;com.newrelic.api.agent.OutboundHeaders&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="REGION" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="ACCOUNT_ID" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <context>
     <option name="JAVA_STATEMENT" value="true" />
-</context>
+  </context>
 </template>
 <template name="nrMessageProduceParams" value="com.newrelic.api.agent.MessageProduceParameters $PARAMS$ = com.newrelic.api.agent.MessageProduceParameters&#10;                .library($LIBRARY$, $OTEL_LIBRARY$)&#10;                .destinationType($DEST_TYPE$)&#10;                .destinationName($DEST_NAME$)&#10;                .outboundHeaders($OUTBOUND_HEADERS$)&#10;                .cloudRegion($REGION$)&#10;                .cloudAccountId($ACCOUNT_ID$)&#10;                .build();" description="MessageProducerParams params = MessageProducerParams.builder()..." toReformat="true" toShortenFQNames="true">
-<variable name="PARAMS" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
-<variable name="LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="OTEL_LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="DEST_TYPE" expression="enum(&quot;com.newrelic.api.agent.DestinationType.NAMED_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.NAMED_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.EXCHANGE&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="DEST_NAME" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="OUTBOUND_HEADERS" expression="variableOfType(&quot;com.newrelic.api.agent.OutboundHeaders&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="REGION" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="ACCOUNT_ID" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
+  <variable name="PARAMS" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
+  <variable name="LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="OTEL_LIBRARY" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="DEST_TYPE" expression="enum(&quot;com.newrelic.api.agent.DestinationType.NAMED_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_QUEUE&quot;,&quot;com.newrelic.api.agent.DestinationType.NAMED_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.TEMP_TOPIC&quot;,&quot;com.newrelic.api.agent.DestinationType.EXCHANGE&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="DEST_NAME" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="OUTBOUND_HEADERS" expression="variableOfType(&quot;com.newrelic.api.agent.OutboundHeaders&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="REGION" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="ACCOUNT_ID" expression="variableOfType(&quot;java.lang.String&quot;)" defaultValue="" alwaysStopAt="true" />
+  <context>
     <option name="JAVA_STATEMENT" value="true" />
-</context>
+  </context>
 </template>
 <template name="nrReportAsExternal" value="com.newrelic.api.agent.NewRelic.getAgent().getTracedMethod().reportAsExternal($PARAMS$);" description="NewRelic.getAgent().getTracedMethod().reportAsExternal(params);" toReformat="true" toShortenFQNames="true">
-<variable name="PARAMS" expression="variableOfType(&quot;com.newrelic.api.agent.ExternalParameters&quot;)" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
+  <variable name="PARAMS" expression="variableOfType(&quot;com.newrelic.api.agent.ExternalParameters&quot;)" defaultValue="" alwaysStopAt="true" />
+  <context>
     <option name="JAVA_STATEMENT" value="true" />
-</context>
+  </context>
 </template>
 <template name="nrSegment" value="com.newrelic.api.agent.Segment $SEGMENT$ = com.newrelic.api.agent.NewRelic.getAgent().getTransaction().startSegment(&quot;$CATEGORY$&quot;, &quot;$NAME$&quot;);" description="Segment segment = NewRelic.getAgent().getTransaction().startSegment();" toReformat="true" toShortenFQNames="true">
-<variable name="SEGMENT" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
-<variable name="CATEGORY" expression="enum(&quot;category&quot;)" defaultValue="" alwaysStopAt="true" />
-<variable name="NAME" expression="enum(&quot;optional name&quot;)" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
-</context>
+  <variable name="SEGMENT" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
+  <variable name="CATEGORY" expression="enum(&quot;category&quot;)" defaultValue="" alwaysStopAt="true" />
+  <variable name="NAME" expression="enum(&quot;optional name&quot;)" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_STATEMENT" value="true" />
+  </context>
 </template>
 <template name="nrToken" value="com.newrelic.api.agent.Token $TOKEN$ = com.newrelic.api.agent.NewRelic.getAgent().getTransaction().getToken();" description="Token token = NewRelic.getAgent().getTransaction().getToken();" toReformat="true" toShortenFQNames="true">
-<variable name="TOKEN" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
+  <variable name="TOKEN" expression="suggestVariableName()" defaultValue="" alwaysStopAt="true" />
+  <context>
     <option name="JAVA_STATEMENT" value="true" />
-</context>
+  </context>
 </template>
 <template name="nrTracedMethod" value="com.newrelic.api.agent.TracedMethod $TRACER$ = com.newrelic.api.agent.NewRelic.getAgent().getTracedMethod();" description="TracedMethod tracedMethod = NewRelic.getAgent().getTracedMethod();" toReformat="true" toShortenFQNames="true">
-<variable name="TRACER" expression="suggestVariableName()" defaultValue="tracer" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
-</context>
+  <variable name="TRACER" expression="suggestVariableName()" defaultValue="tracer" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_STATEMENT" value="true" />
+  </context>
 </template>
 <template name="nrTx" value="com.newrelic.api.agent.Transaction $TRANSACTION$ = com.newrelic.api.agent.NewRelic.getAgent().getTransaction();" description="Transaction transaction = NewRelic.getAgent().getTransaction();" toReformat="true" toShortenFQNames="true">
-<variable name="TRANSACTION" expression="enum(&quot;transaction&quot;, &quot;tx&quot;)" defaultValue="" alwaysStopAt="true" />
-<context>
-    <option name="JAVA_EXPRESSION" value="true" />
-</context>
+  <variable name="TRANSACTION" expression="enum(&quot;transaction&quot;, &quot;tx&quot;)" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_STATEMENT" value="true" />
+  </context>
 </template>
