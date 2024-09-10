@@ -228,6 +228,7 @@ public class ConfigServiceTest {
         configMap.put(AgentConfigImpl.PROXY_USER, "secret_user");
         configMap.put(AgentConfigImpl.PROXY_PASS, "secret_pass");
         configMap.put(AgentConfigImpl.PROXY_HOST, "secret_host");
+        configMap.put(AgentConfigImpl.LICENSE_KEY, "secret_key");
         createServiceManager(configMap);
 
         ConfigService configService = ServiceFactory.getServiceManager().getConfigService();
@@ -235,6 +236,8 @@ public class ConfigServiceTest {
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_USER), "****");
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_PASS), "****");
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_HOST), "****");
+        assertEquals(sanitizedSettings.get(AgentConfigImpl.LICENSE_KEY), "****");
+
     }
 
     @Test

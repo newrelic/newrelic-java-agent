@@ -130,15 +130,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     @Override
     public Map<String, Object> getSanitizedLocalSettings() {
         Map<String, Object> settings = DeepMapClone.deepCopy(fileSettings);
-        if (settings.containsKey(AgentConfigImpl.PROXY_HOST)) {
-            settings.put(AgentConfigImpl.PROXY_HOST, SANITIZED_SETTING);
-        }
-        if (settings.containsKey(AgentConfigImpl.PROXY_USER)) {
-            settings.put(AgentConfigImpl.PROXY_USER, SANITIZED_SETTING);
-        }
-        if (settings.containsKey(AgentConfigImpl.PROXY_PASS)) {
-            settings.put(AgentConfigImpl.PROXY_PASS, SANITIZED_SETTING);
-        }
+        sanitizeSettingsFromConfigMap(settings);
         return settings;
     }
 
@@ -185,6 +177,71 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     @Override
     public ExtensionsConfig getExtensionsConfig(String appName) {
         return getOrCreateAgentConfig(appName).getExtensionsConfig();
+    }
+
+    @Override
+    public Map<String, Object> getExplicitlySetConfig() {
+        Map<String, Object> localSettings = getSanitizedLocalSettings();
+        Map<String, Object> systemProperties = SystemPropertyFactory.getSystemPropertyProvider().getNewRelicPropertiesWithoutPrefix();
+        Map<String, Object> envVars = SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix();
+
+        Map<String, Object> mergedSettings = new HashMap<>(flattenLocalSettingsConfigMap("", localSettings));
+        mergedSettings.putAll(systemProperties);
+
+        // Environment variables are stored "as-is" -- not normalized in dot notation.
+        // This will loop through all existing keys we've stored, convert "." to "_"
+        // and see if that key exists in the env var map. If so, we overwrite the value
+        // in the mergedKey map with the value from the env var map
+        Map<String, Object> envVarOverrides = new HashMap<>();
+        for (Map.Entry<String, Object> entry : mergedSettings.entrySet()) {
+            String convertedKey = entry.getKey().replace(".", "_");
+            if (envVars.containsKey(convertedKey)) {
+                envVarOverrides.put(entry.getKey(), envVars.get(convertedKey));
+            }
+        }
+        mergedSettings.putAll(envVarOverrides);
+
+        return mergedSettings;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> flattenLocalSettingsConfigMap(String prefix, Map<String, Object> settings) {
+        Map<String, Object> mergedSettings = new HashMap<>();
+
+        for (Map.Entry<String, Object> entry : settings.entrySet()) {
+            String newKeySegment = entry.getKey();
+            Object settingValue = entry.getValue();
+
+            String fullKey = (prefix.length() == 0 ? "" : prefix + ".") + newKeySegment;
+            if (settingValue instanceof Map) {
+                mergedSettings.putAll(flattenLocalSettingsConfigMap(fullKey, (Map<String, Object>)settingValue));
+            } else {
+                mergedSettings.put(fullKey, settingValue);
+            }
+        }
+
+        return mergedSettings;
+    }
+
+    /**
+     * Remove sensitive values from the supplied config map. Note that this method modifies
+     * the target Map instance
+     *
+     * @param settings the target config Map
+     */
+    private void sanitizeSettingsFromConfigMap(Map<String, Object> settings) {
+        if (settings.containsKey(AgentConfigImpl.PROXY_HOST)) {
+            settings.put(AgentConfigImpl.PROXY_HOST, SANITIZED_SETTING);
+        }
+        if (settings.containsKey(AgentConfigImpl.PROXY_USER)) {
+            settings.put(AgentConfigImpl.PROXY_USER, SANITIZED_SETTING);
+        }
+        if (settings.containsKey(AgentConfigImpl.PROXY_PASS)) {
+            settings.put(AgentConfigImpl.PROXY_PASS, SANITIZED_SETTING);
+        }
+        if (settings.containsKey(AgentConfigImpl.LICENSE_KEY)) {
+            settings.put(AgentConfigImpl.LICENSE_KEY, SANITIZED_SETTING);
+        }
     }
 
     private void checkConfigFile() throws Exception {
