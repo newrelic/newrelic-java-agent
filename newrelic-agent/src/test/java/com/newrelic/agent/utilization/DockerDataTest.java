@@ -39,7 +39,7 @@ public class DockerDataTest {
 
     @Test
     public void testGetDockerIdNotLinux() {
-        Assert.assertNull(dockerData.getDockerContainerId(false));
+        Assert.assertNull(dockerData.getDockerContainerIdFromCGroups(false));
     }
     @Test
     public void testCheckLineAndGetIdValidV2() {
@@ -367,7 +367,7 @@ public class DockerDataTest {
 
     @Test
     public void getDockerContainerId_withNoDockerIdSource_returnsNull() {
-        Assert.assertNull(dockerData.getDockerContainerId(true));
+        Assert.assertNull(dockerData.getDockerContainerIdFromCGroups(true));
     }
 
     private void processFile(File file, String answer, CGroup cgroup) {
