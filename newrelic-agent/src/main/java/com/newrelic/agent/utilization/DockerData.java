@@ -209,6 +209,7 @@ public class DockerData {
 
             JSONObject jsonObject = (JSONObject) new JSONParser().parse(jsonBlob.toString());
             dockerId = (String) jsonObject.get(FARGATE_DOCKER_ID_KEY);
+            Agent.LOG.log(Level.INFO, "Retrieved ECS Fargate docker id: {0}", dockerId);
         } catch (IOException e) {
             Agent.LOG.log(Level.FINEST, "Error opening input stream retrieving AWS Fargate metadata");
         } catch (ParseException e) {
