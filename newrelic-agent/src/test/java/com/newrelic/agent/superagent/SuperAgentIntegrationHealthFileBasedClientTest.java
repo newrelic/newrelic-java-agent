@@ -92,6 +92,6 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
         assertEquals(startTime, parsedYaml.get("start_time_unix_nano"));
         assertEquals("Invalid license key (HTTP status code 401)", parsedYaml.get("status"));
         assertNotNull(parsedYaml.get("status_time_unix_nano"));
-        assertEquals("NR-APM-0010", parsedYaml.get("last_error"));
+        assertEquals("NR-APM-001", parsedYaml.get("last_error"));
     }
 }

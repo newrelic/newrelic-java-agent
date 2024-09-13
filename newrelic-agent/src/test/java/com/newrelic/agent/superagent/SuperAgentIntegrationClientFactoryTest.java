@@ -46,4 +46,9 @@ public class SuperAgentIntegrationClientFactoryTest {
         assertTrue(client instanceof SuperAgentHealthNoOpClient);
     }
 
+    @Test
+    public void createHealthClient_withNullType_returnsNoOpClient() {
+        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(null, mockConfig);
+        assertTrue(client instanceof SuperAgentHealthNoOpClient);
+    }
 }

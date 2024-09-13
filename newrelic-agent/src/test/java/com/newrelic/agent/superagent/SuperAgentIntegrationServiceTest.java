@@ -99,7 +99,7 @@ public class SuperAgentIntegrationServiceTest {
         service.doStop();
 
         assertFalse(healthClient.getAgentHealth().isHealthy());
-        assertEquals("NR-APM-1000", healthClient.getAgentHealth().getLastError());
+        assertEquals("NR-APM-099", healthClient.getAgentHealth().getLastError());
         assertEquals("Agent has shutdown", healthClient.getAgentHealth().getCurrentStatus());
     }
 

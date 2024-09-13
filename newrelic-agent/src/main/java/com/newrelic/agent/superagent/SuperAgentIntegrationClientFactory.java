@@ -19,7 +19,7 @@ public class SuperAgentIntegrationClientFactory {
         file,
     }
     public static SuperAgentIntegrationHealthClient createHealthClient(String type, SuperAgentIntegrationConfig config) {
-        SuperAgentIntegrationHealthClient client = null;
+        SuperAgentIntegrationHealthClient client;
 
         try {
             HealthClientType healthClientType = HealthClientType.valueOf(type);
@@ -34,7 +34,7 @@ public class SuperAgentIntegrationClientFactory {
                     client = NO_OP_INSTANCE;
                     break;
             }
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             Agent.LOG.log(Level.WARNING, "Invalid health client type: {0}; returning NoOp implementation", type);
             client = NO_OP_INSTANCE;
         }

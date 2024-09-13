@@ -32,13 +32,13 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
         Map<String, Object> healthProps = getProperty(SuperAgentIntegrationHealthConfig.ROOT, Collections.emptyMap());
         SuperAgentIntegrationHealthConfig superAgentIntegrationHealthConfig;
 
-        try {
             superAgentIntegrationHealthConfig = new SuperAgentIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
-        } catch (URISyntaxException e) {
-            Agent.LOG.log(Level.WARNING, "Configured Super Agent health delivery location is not a valid URI; " +
-                    "SuperAgent integration service will not be started");
-            superAgentIntegrationHealthConfig = null;
-        }
+
+            if (superAgentIntegrationHealthConfig.getHealthDeliveryLocation() == null) {
+                Agent.LOG.log(Level.WARNING, "Configured Super Agent health delivery location is not a valid URI; " +
+                        "SuperAgent integration service will not be started");
+                superAgentIntegrationHealthConfig = null;
+            }
 
         return superAgentIntegrationHealthConfig;
     }
@@ -50,12 +50,12 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
 
     @Override
     public URI getHealthDeliveryLocation() {
-        return superAgentIntegrationHealthConfig.getHealthDeliveryLocation();
+        return superAgentIntegrationHealthConfig == null ? null : superAgentIntegrationHealthConfig.getHealthDeliveryLocation();
     }
 
     @Override
     public int getHealthReportingFrequency() {
-        return superAgentIntegrationHealthConfig.getHealthReportingFrequency();
+        return superAgentIntegrationHealthConfig == null ? 0 : superAgentIntegrationHealthConfig.getHealthReportingFrequency();
     }
 
     @Override
@@ -65,6 +65,6 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
 
     @Override
     public String getHealthClientType() {
-        return superAgentIntegrationHealthConfig.getHealthClientType();
+        return superAgentIntegrationHealthConfig == null ? null : superAgentIntegrationHealthConfig.getHealthClientType();
     }
 }

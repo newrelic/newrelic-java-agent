@@ -6,7 +6,8 @@
  */
 package com.newrelic.agent.superagent;
 
-public class SuperAgentHealthUnitTestClient implements SuperAgentIntegrationHealthClient {
+public class
+SuperAgentHealthUnitTestClient implements SuperAgentIntegrationHealthClient {
 
     private AgentHealth agentHealth;
 
