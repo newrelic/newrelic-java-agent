@@ -1,0 +1,26 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    // Only supports Java 11+
+    implementation 'org.glassfish.main:glassfish-jul-extension:7.0.17'
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.glassfish-jul-extension-7' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.glassfish.main:glassfish-jul-extension:[7.0.0-M10,)'
+    excludeRegex 'org.glassfish.main:glassfish-jul-extension:.*(-M).*'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+site {
+    title 'Glassfish JUL Extension'
+    type 'Other'
+    versionOverride '[7.0.0,)'
+}
