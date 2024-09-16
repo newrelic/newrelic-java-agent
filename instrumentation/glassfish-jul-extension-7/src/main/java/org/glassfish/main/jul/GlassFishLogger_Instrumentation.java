@@ -58,7 +58,7 @@ public class GlassFishLogger_Instrumentation extends Logger {
         // Do nothing if application_logging.enabled: false
         if (isApplicationLoggingEnabled()) {
 
-            boolean shouldLog = isLoggable(record.getLevel()) && getFilter() == null || getFilter().isLoggable(record);
+            boolean shouldLog = isLoggable(record.getLevel()) && (getFilter() == null || getFilter().isLoggable(record));
             if (isApplicationLoggingMetricsEnabled() && shouldLog) {
                 // Generate log level metrics
                 NewRelic.incrementCounter("Logging/lines");
