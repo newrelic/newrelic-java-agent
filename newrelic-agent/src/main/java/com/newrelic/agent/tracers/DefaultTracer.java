@@ -853,7 +853,9 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     private void recordFaasAttributes(CloudParameters cloudParameters) {
-        setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
+        if (cloudParameters.getPlatform() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
+        }
         if (cloudParameters.getResourceId() != null) {
             setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, cloudParameters.getResourceId());
         }
