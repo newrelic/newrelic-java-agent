@@ -38,40 +38,79 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
     public Http2RequestHeaderWrapper(Http2Headers http2Headers) {
         super();
         this.http2Headers = http2Headers;
-        this.method = http2Headers.method();
-        this.path = http2Headers.path();
-        this.authority = http2Headers.authority();
+        this.method = getMethodHeader();
+        this.path = getPathHeader();
+        this.authority = getAuthorityHeader();
+        this.cookies = getCookies();
+        this.parameters = getParameters();
+    }
 
-        Set<Cookie> rawCookies = null;
-        if (http2Headers.contains(HttpHeaderNames.COOKIE)) {
-            CharSequence cookie = http2Headers.get(HttpHeaderNames.COOKIE);
-            try {
-                if (cookie != null) {
-                    rawCookies = ServerCookieDecoder.STRICT.decode(cookie.toString());
-                }
-            } catch (Exception e) {
-                AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to decode cookie: {0}", cookie);
-                rawCookies = Collections.emptySet();
-            }
-        }
-        this.cookies = rawCookies;
-
+    private Map<String, List<String>> getParameters() {
         Map<String, List<String>> params = null;
-        CharSequence path = http2Headers.path();
         try {
             String uri;
             if (path != null) {
                 uri = path.toString();
-                uri = URL_REPLACEMENT_PATTERN.matcher(uri).replaceAll("%25"); // Escape any percent signs in the URI
+                // Escape any percent signs in the URI
+                uri = URL_REPLACEMENT_PATTERN.matcher(uri).replaceAll("%25");
                 QueryStringDecoder decoderQuery = new QueryStringDecoder(uri);
                 params = decoderQuery.parameters();
-
             }
         } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to decode URI: {0}", path);
             params = new LinkedHashMap<>();
         }
-        this.parameters = params;
+        return params;
+    }
+
+    private Set<Cookie> getCookies() {
+        Set<Cookie> rawCookies = null;
+        try {
+            if (http2Headers.contains(HttpHeaderNames.COOKIE)) {
+                CharSequence cookie = http2Headers.get(HttpHeaderNames.COOKIE);
+                try {
+                    if (cookie != null) {
+                        rawCookies = ServerCookieDecoder.STRICT.decode(cookie.toString());
+                    }
+                } catch (Exception e) {
+                    AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to decode cookie: {0}", cookie);
+                    rawCookies = Collections.emptySet();
+                }
+            }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers cookies: {0}", e.getMessage());
+        }
+        return rawCookies;
+    }
+
+    private CharSequence getMethodHeader() {
+        CharSequence method = null;
+        try {
+            method = http2Headers.method();
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers method: {0}", e.getMessage());
+        }
+        return method;
+    }
+
+    private CharSequence getPathHeader() {
+        CharSequence path = null;
+        try {
+            path = http2Headers.path();
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers path: {0}", e.getMessage());
+        }
+        return path;
+    }
+
+    private CharSequence getAuthorityHeader() {
+        CharSequence authority = null;
+        try {
+            authority = http2Headers.authority();
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers authority: {0}", e.getMessage());
+        }
+        return authority;
     }
 
     @Override
@@ -84,14 +123,18 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
 
     @Override
     public String getHeader(String name) {
-        // HTTP/2 only supports lowercase headers
-        String lowerCaseHeaderName = name.toLowerCase();
-        if (lowerCaseHeaderName.equals(HttpHeaderNames.HOST.toString())) {
-            return getHost();
-        }
+        try {
+            // HTTP/2 only supports lowercase headers
+            String lowerCaseHeaderName = name.toLowerCase();
+            if (lowerCaseHeaderName.equals(HttpHeaderNames.HOST.toString())) {
+                return getHost();
+            }
 
-        if (http2Headers.contains(lowerCaseHeaderName)) {
-            return http2Headers.get(lowerCaseHeaderName).toString();
+            if (http2Headers.contains(lowerCaseHeaderName)) {
+                return http2Headers.get(lowerCaseHeaderName).toString();
+            }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers header: {0}", e.getMessage());
         }
         return null;
     }
@@ -145,10 +188,13 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
     }
 
     public String getHost() {
-        if (http2Headers.contains(HttpHeaderNames.HOST)) {
-            return http2Headers.get(HttpHeaderNames.HOST).toString();
+        try {
+            if (http2Headers.contains(HttpHeaderNames.HOST)) {
+                return http2Headers.get(HttpHeaderNames.HOST).toString();
+            }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, "host header is not present in Http2Headers");
         }
-
         if (authority == null) {
             return null;
         }
@@ -157,12 +203,16 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
 
     @Override
     public List<String> getHeaders(String name) {
-        // HTTP/2 only supports lowercase headers
-        String lowerCaseHeaderName = name.toLowerCase();
         List<String> headers = new ArrayList<>();
-        List<CharSequence> allHeaders = http2Headers.getAll(lowerCaseHeaderName);
-        for (CharSequence header : allHeaders) {
-            headers.add(header.toString());
+        try {
+            // HTTP/2 only supports lowercase headers
+            String lowerCaseHeaderName = name.toLowerCase();
+            List<CharSequence> allHeaders = http2Headers.getAll(lowerCaseHeaderName);
+            for (CharSequence header : allHeaders) {
+                headers.add(header.toString());
+            }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers headers: {0}", e.getMessage());
         }
         return headers;
     }
