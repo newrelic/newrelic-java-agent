@@ -27,7 +27,7 @@ final class DefaultLambdaClient_Instrumentation {
 
     @Trace(leaf = true)
     public InvokeResponse invoke(InvokeRequest invokeRequest) {
-        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.functionName(), invokeRequest.qualifier(), clientConfiguration);
+        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.functionName(), invokeRequest.qualifier(), clientConfiguration, this);
         CloudParameters cloudParameters = LambdaUtil.getCloudParameters(functionRawData);
         TracedMethod tracedMethod = NewRelic.getAgent().getTracedMethod();
         tracedMethod.reportAsExternal(cloudParameters);
