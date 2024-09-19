@@ -145,7 +145,6 @@ public class DefaultTracer extends AbstractTracer {
         }
 
         this.tracerFlags = (byte) tracerFlags;
-        this.guid = TransactionGuidFactory.generate16CharGuid();
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
@@ -169,7 +168,11 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public String getGuid() {
-        return guid;
+        String theGuid = this.guid;
+        if (theGuid == null) {
+            this.guid = theGuid = TransactionGuidFactory.generate16CharGuid();
+        }
+        return theGuid;
     }
 
     @Override
