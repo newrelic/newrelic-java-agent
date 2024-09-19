@@ -27,7 +27,7 @@ public abstract class AWSLambdaAsyncClient_Instrumentation {
     protected abstract String getSigningRegion();
 
     public Future<InvokeResult> invokeAsync(final InvokeRequest request, AsyncHandler<InvokeRequest, InvokeResult> asyncHandler) {
-        FunctionRawData functionRawData = new FunctionRawData(request.getFunctionName(), request.getQualifier(), getSigningRegion());
+        FunctionRawData functionRawData = new FunctionRawData(request.getFunctionName(), request.getQualifier(), getSigningRegion(), this);
         CloudParameters cloudParameters = LambdaUtil.getCloudParameters(functionRawData);
         String functionName = LambdaUtil.getSimpleFunctionName(functionRawData);
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("Lambda", "invoke/" + functionName);

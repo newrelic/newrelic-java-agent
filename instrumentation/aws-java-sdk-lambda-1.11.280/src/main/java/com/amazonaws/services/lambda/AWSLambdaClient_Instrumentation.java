@@ -15,7 +15,6 @@ import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.TracedMethod;
-import com.newrelic.api.agent.weaver.CatchAndLog;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -27,7 +26,7 @@ public abstract class AWSLambdaClient_Instrumentation {
 
     @Trace(leaf = true)
     public InvokeResult invoke(InvokeRequest invokeRequest) {
-        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.getFunctionName(), invokeRequest.getQualifier(), getSigningRegion());
+        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.getFunctionName(), invokeRequest.getQualifier(), getSigningRegion(), this);
         CloudParameters cloudParameters = LambdaUtil.getCloudParameters(functionRawData);
         TracedMethod tracedMethod = NewRelic.getAgent().getTracedMethod();
         tracedMethod.reportAsExternal(cloudParameters);
