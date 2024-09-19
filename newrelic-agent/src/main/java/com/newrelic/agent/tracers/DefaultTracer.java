@@ -853,8 +853,12 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     private void recordFaasAttributes(CloudParameters cloudParameters) {
-        setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
-        setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, cloudParameters.getResourceId());
+        if (cloudParameters.getPlatform() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
+        }
+        if (cloudParameters.getResourceId() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, cloudParameters.getResourceId());
+        }
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
