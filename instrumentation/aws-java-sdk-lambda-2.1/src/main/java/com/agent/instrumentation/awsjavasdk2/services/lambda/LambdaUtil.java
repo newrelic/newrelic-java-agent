@@ -8,6 +8,7 @@
 package com.agent.instrumentation.awsjavasdk2.services.lambda;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.CloudParameters;
 
 import java.util.function.Function;
@@ -60,13 +61,26 @@ public class LambdaUtil {
         String arn = NULL_ARN;
 
         if (parts.length == 1) {
-            // function ref is only function name
-            // does not have the account id, so cannot assemble the ARN.
+            // function name: {function-name}
+            String accountId = getAccountId(data.getSdkClient());
+            if (accountId != null) {
+                String qualifier = data.getQualifier();
+                if (qualifier == null) {
+                    arn = PREFIX + data.getRegion() + ":" + accountId + ":function:" + functionRef;
+                } else {
+                    arn = PREFIX + data.getRegion() + ":" + accountId + ":function:" + functionRef + ":" + qualifier;
+                }
+            }
             functionName = functionRef;
+
         } else if (parts.length == 2) {
-            // function ref is only function name with alias/version
-            // does not have the account id, so cannot assemble the ARN.
+            // function name + qualifier: {function-name}:{qualifier}
+            String accountId = getAccountId(data.getSdkClient());
+            if (accountId != null) {
+                arn = PREFIX + data.getRegion() + ":" + accountId + ":function:" + functionRef;
+            }
             functionName = parts[0];
+
         } else if (parts.length == 3) {
             // partial ARN: {account-id}:function:{function-name}
             functionName = parts[2];
@@ -76,10 +90,12 @@ public class LambdaUtil {
             } else {
                 arn = PREFIX + data.getRegion() + ":" + functionRef + ":" + qualifier;
             }
+
         } else if (parts.length == 4) {
             // partial ARN with qualifier: {account-id}:function:{function-name}:{qualifier}
             functionName = parts[2];
             arn = PREFIX + data.getRegion() + ":" + functionRef;
+
         } else if (parts.length == 7) {
             // full ARN: arn:aws:lambda:{region}:{account-id}:function:{function-name}
             functionName = parts[6];
@@ -89,6 +105,7 @@ public class LambdaUtil {
             } else {
                 arn = functionRef + ":" + qualifier;
             }
+
         } else if (parts.length == 8) {
             // full ARN with qualifier: arn:aws:lambda:{region}:{account-id}:function:{function-name}:{qualifier}
             functionName = parts[6];
@@ -97,6 +114,10 @@ public class LambdaUtil {
         // reference should be invalid if the number of parts do not match any of the expected cases
 
         return new FunctionProcessedData(functionName, arn);
+    }
+
+    private static String getAccountId(Object sdkClient) {
+        return AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
     }
 
     public static String getSimpleFunctionName(FunctionRawData functionRawData) {
