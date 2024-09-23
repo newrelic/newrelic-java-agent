@@ -15,6 +15,13 @@ import java.lang.reflect.InvocationHandler;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * This implementation of {@link CollectionFactory} will only be used if the agent-bridge
+ * is being used by an application and the agent is NOT being loaded. Thus, it is unlikely
+ * that the objects created by this implementation are going to receive much use.
+ * So methods in this implementation do not need to implement all functional requirements
+ * of the methods in the interface, but they should not break under low use.
+ */
 public final class AgentBridge {
     /**
      * Calls to methods on these classes will automatically be logged at FINEST.

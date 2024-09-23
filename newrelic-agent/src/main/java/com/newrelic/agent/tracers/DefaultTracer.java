@@ -30,9 +30,11 @@ import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.Strings;
+import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.InboundHeaders;
@@ -663,9 +665,11 @@ public class DefaultTracer extends AbstractTracer {
             } else if (externalParameters instanceof HttpParameters) {
                 recordExternalMetricsHttp((HttpParameters) externalParameters);
             } else if (externalParameters instanceof MessageProduceParameters) {
-                recordMessageBrokerMetrics(((MessageProduceParameters) this.externalParameters));
+                recordMessageBrokerMetrics((MessageProduceParameters) this.externalParameters);
             } else if (externalParameters instanceof MessageConsumeParameters) {
-                recordMessageBrokerMetrics(((MessageConsumeParameters) this.externalParameters));
+                recordMessageBrokerMetrics((MessageConsumeParameters) this.externalParameters);
+            } else if (externalParameters instanceof CloudParameters) {
+                recordFaasAttributes((CloudParameters) externalParameters);
             } else {
                 Agent.LOG.log(Level.SEVERE, "Unknown externalParameters type. This should not happen. {0} -- {1}",
                         externalParameters, externalParameters.getClass());
@@ -835,6 +839,12 @@ public class DefaultTracer extends AbstractTracer {
                     messageProduceParameters.getLibrary(),
                     messageProduceParameters.getDestinationType().getTypeName()));
         }
+        if (messageProduceParameters.getHost() != null) {
+            setAgentAttribute(AttributeNames.SERVER_ADDRESS, messageProduceParameters.getHost());
+        }
+        if (messageProduceParameters.getPort() != null) {
+            setAgentAttribute(AttributeNames.SERVER_PORT, messageProduceParameters.getPort());
+        }
     }
 
     private void recordMessageBrokerMetrics(MessageConsumeParameters messageConsumeParameters) {
@@ -853,6 +863,21 @@ public class DefaultTracer extends AbstractTracer {
             setMetricName(MessageFormat.format(MetricNames.MESSAGE_BROKER_CONSUME_TEMP,
                     messageConsumeParameters.getLibrary(),
                     messageConsumeParameters.getDestinationType().getTypeName()));
+        }
+        if (messageConsumeParameters.getHost() != null) {
+            setAgentAttribute(AttributeNames.SERVER_ADDRESS, messageConsumeParameters.getHost());
+        }
+        if (messageConsumeParameters.getPort() != null) {
+            setAgentAttribute(AttributeNames.SERVER_PORT, messageConsumeParameters.getPort());
+        }
+    }
+
+    private void recordFaasAttributes(CloudParameters cloudParameters) {
+        if (cloudParameters.getPlatform() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
+        }
+        if (cloudParameters.getResourceId() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, cloudParameters.getResourceId());
         }
     }
 

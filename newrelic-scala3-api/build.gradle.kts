@@ -13,22 +13,21 @@ java {
     withJavadocJar()
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            artifactId = "newrelic-scala-api_3"
-
-            from(components["java"])
-        }
-    }
-}
-
 dependencies {
     implementation("org.scala-lang:scala-library:2.13.10")
     implementation("org.scala-lang:scala3-library_3:3.3.0")
     implementation(project(":newrelic-api"))
     testImplementation(project(":instrumentation-test"))
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
+}
+
+PublishConfig.config(
+        project,
+        "New Relic Java agent Scala 3 API",
+        "The public Scala 3 API of the Java agent, and no-op implementations for safe usage without the agent."
+) {
+    artifactId = "newrelic-scala-api_3"
+    from(components["java"])
 }
 
 tasks {

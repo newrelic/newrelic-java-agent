@@ -24,8 +24,11 @@ import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.StackTraces;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.QueryConverter;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
@@ -200,6 +203,11 @@ public class SpanEventFactory {
         return this;
     }
 
+    public SpanEventFactory setKind(String kind) {
+        builder.spanKind(kind);
+        return this;
+    }
+
     // http parameter
     public SpanEventFactory setUri(URI uri) {
         if (uri == null) {
@@ -280,7 +288,7 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setServerAddress(String host) {
-        builder.putAgentAttribute("server.address", host);
+        builder.putAgentAttribute(AttributeNames.SERVER_ADDRESS, host);
         builder.putAgentAttribute("peer.hostname", host);
         return this;
     }
@@ -295,6 +303,15 @@ public class SpanEventFactory {
         return this;
     }
 
+    private void setCloudPlatform(String platform){
+        builder.putAgentAttribute(AttributeNames.CLOUD_PLATFORM, platform);
+    }
+
+    private void setCloudResourceId(String name){
+        builder.putAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, name);
+    }
+
+
     public SpanEventFactory setMessagingSystem(String messagingSystem) {
         builder.putAgentAttribute(AttributeNames.MESSAGING_SYSTEM, messagingSystem);
         return this;
@@ -306,7 +323,7 @@ public class SpanEventFactory {
     }
 
     public SpanEventFactory setServerPort(int port) {
-        builder.putAgentAttribute("server.port", port);
+        builder.putAgentAttribute(AttributeNames.SERVER_PORT, port);
         return this;
     }
 
@@ -429,6 +446,9 @@ public class SpanEventFactory {
             setCloudRegion(messageProduceParameters.getCloudRegion());
             setMessagingSystem(messageProduceParameters.getOtelLibrary());
             setMessagingDestination(messageProduceParameters.getDestinationName());
+            setServerAddress(messageProduceParameters.getHost());
+            setServerPort(messageProduceParameters.getPort());
+            setKind("producer");
         } else if (parameters instanceof MessageConsumeParameters) {
             MessageConsumeParameters messageConsumeParameters = (MessageConsumeParameters) parameters;
             setCategory(SpanCategory.generic);
@@ -436,8 +456,28 @@ public class SpanEventFactory {
             setCloudRegion(messageConsumeParameters.getCloudRegion());
             setMessagingSystem(messageConsumeParameters.getOtelLibrary());
             setMessagingDestination(messageConsumeParameters.getDestinationName());
+            setServerAddress(messageConsumeParameters.getHost());
+            setServerPort(messageConsumeParameters.getPort());
+            setKind("consumer");
+        } else if (parameters instanceof CloudParameters) {
+            CloudParameters cloudParameters = (CloudParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudPlatform(cloudParameters.getPlatform());
+            setCloudResourceId(cloudParameters.getResourceId());
         } else {
             setCategory(SpanCategory.generic);
+        }
+        return this;
+    }
+
+    public SpanEventFactory setAgentAttributesMarkedForSpans(Set<String> agentAttributesMarkedForSpans, Map<String, Object> agentAttributes) {
+        if (agentAttributesMarkedForSpans != null) {
+            for (String attributeName: agentAttributesMarkedForSpans) {
+                Object value = agentAttributes.get(attributeName);
+                if (value != null) {
+                    builder.putAgentAttribute(attributeName, value);
+                }
+            }
         }
         return this;
     }

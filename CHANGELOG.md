@@ -4,6 +4,81 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.14.0
+## New features and improvements
+
+* The Java agent supports disabling AI Monitoring at the account/organization level [1972](https://github.com/newrelic/newrelic-java-agent/pull/1972)
+* HikariCP instrumentation now captures additional metrics [1976](https://github.com/newrelic/newrelic-java-agent/pull/1976)
+* Adds new instrumentation module for `kafka-clients-metrics-3.7.0` [2001](https://github.com/newrelic/newrelic-java-agent/pull/2001)
+* Adds new instrumentation module for `jedis-5.0.0` [1969](https://github.com/newrelic/newrelic-java-agent/pull/1969)
+* Adds new instrumentation module for `vertx-sqlclient-4.4.2` [2004](https://github.com/newrelic/newrelic-java-agent/pull/2004)
+* The `newrelic-scala-api` for Scala 3 will now be published to Maven [1995](https://github.com/newrelic/newrelic-java-agent/pull/1995)
+* New AWS MQ attributes will be added to spans [1977](https://github.com/newrelic/newrelic-java-agent/pull/1977)
+* Clarify Javadoc comments for `@Trace` API [2009](https://github.com/newrelic/newrelic-java-agent/pull/2009)
+
+## Fixes
+
+* Fixes a `netty-reactor` issue that was causing high memory usage [1978](https://github.com/newrelic/newrelic-java-agent/pull/1978)
+* Netty instrumentation will start transactions for HTTP/2 requests [1994](https://github.com/newrelic/newrelic-java-agent/pull/1994)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
+## IAST
+
+- CSEC Version bump to 1.4.1 [2010](https://github.com/newrelic/newrelic-java-agent/pull/2010)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.4.1
+
+## Version 8.13.0
+## New features and improvements
+
+* Add attributes to AWS SQS spans that allow linking to SQS entities [1954](https://github.com/newrelic/newrelic-java-agent/pull/1954)
+* Add support for Graphql 22.0+ [1912](https://github.com/newrelic/newrelic-java-agent/pull/1912)
+* Add support for JSP v4 [1951](https://github.com/newrelic/newrelic-java-agent/pull/1951)
+* Add instrumentation for HikariCP 2.4.0 to replace existing extension module.[1964](https://github.com/newrelic/newrelic-java-agent/pull/1964)
+  * Note: If the [New Relic HikariCP incubator module](https://docs.newrelic.com/docs/apm/agents/java-agent/instrumentation/extension-additional-instrumentation-modules/#hikaricp-240) is currently in use, delete it from the new relic jar’s extension folder before upgrading to this version of the Java Agent.
+* Enhance CompletableFuture instrumentation for JDK11+ [1908](https://github.com/newrelic/newrelic-java-agent/pull/1908)
+* Enable RUM script injection via JSP v3 Tag library [1943](https://github.com/newrelic/newrelic-java-agent/pull/1943)
+* Fetch the docker container ID for ECS Fargate instances [1952](https://github.com/newrelic/newrelic-java-agent/pull/1952)
+
+
+## Fixes
+
+* Fix R2dbc postgresql 0.9.2 instrumentation to prevent memory leaks  [1916](https://github.com/newrelic/newrelic-java-agent/pull/1916)
+* Update vertx-web instrumentation to start transactions for HTTP/2 requests [1959](https://github.com/newrelic/newrelic-java-agent/pull/1959)
+* Update JFR Instance Naming to display correct number of JVMs  [1928](https://github.com/newrelic/newrelic-java-agent/pull/1928)
+* Close instrumentation gap for akka-http 10.2.0+ [1955](https://github.com/newrelic/newrelic-java-agent/pull/1955)
+* Start transactions in the Jetty12 core server [1950](https://github.com/newrelic/newrelic-java-agent/pull/1950)
+* Clean up dtTracers and externalTracers after exceptions to prevent memory leaks [1902](https://github.com/newrelic/newrelic-java-agent/pull/1902)
+* Add security-related class excludes during normal class transformer creation [1918](https://github.com/newrelic/newrelic-java-agent/pull/1918)
+* Add null checks to vertx 4.5.1 instrumentation [1927](https://github.com/newrelic/newrelic-java-agent/pull/1927)
+
+## IAST
+
+* CSEC Version bump to 1.4.0 [1956](https://github.com/newrelic/newrelic-java-agent/pull/1956)
+* [Changelog](https://github.com/newrelic/csec-java-agent/releases/tag/1.4.0)
+
+## Deprecations
+
+- The browser footer injection APIs have been deprecated and will be removed in a future agent release. The header injection API now adds both the header and footer scripts. [1679](https://github.com/newrelic/newrelic-java-agent/pull/1679)
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
 ## Version 8.12.0
 ## New features and improvements
 

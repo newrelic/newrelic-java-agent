@@ -503,7 +503,7 @@ public class TransactionActivity {
         if (tracer instanceof DefaultTracer) {
             DefaultTracer dt = (DefaultTracer) tracer;
             // Only check limits if in a transaction
-            dt.setAttribute("async_context", asyncContext, !tracer.isAsync(), false);
+            dt.setAttribute("async_context", asyncContext, !tracer.isAsync(), false, false);
         }
 
         if (!tracer.isAsync() && transaction != null) {

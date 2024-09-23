@@ -9,6 +9,8 @@ package com.nr.agent.instrumentation.jms11;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
+import com.newrelic.agent.bridge.messaging.BrokerInstance;
+import com.newrelic.agent.bridge.messaging.JmsProperties;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
@@ -125,12 +127,16 @@ public abstract class JmsMetricUtil {
         try {
             DestinationType destinationType = getDestinationType(dest);
             String destinationName = getDestinationName(dest == null ? message.getJMSDestination() : dest);
-            tracer.reportAsExternal(MessageProduceParameters
+            MessageProduceParameters.Build builder = MessageProduceParameters
                     .library("JMS")
                     .destinationType(destinationType)
                     .destinationName(destinationName)
-                    .outboundHeaders(new OutboundWrapper(message))
-                    .build());
+                    .outboundHeaders(new OutboundWrapper(message));
+            BrokerInstance brokerInstance = getHostAndPort(message);
+            if (brokerInstance != null) {
+                builder = builder.instance(brokerInstance.getHostName(), brokerInstance.getPort());
+            }
+            tracer.reportAsExternal(builder.build());
         } catch (JMSException exception) {
             NewRelic.getAgent().getLogger().log(Level.FINE, exception,
                     "Unable to record metrics for JMS message produce.");
@@ -146,16 +152,28 @@ public abstract class JmsMetricUtil {
         try {
             DestinationType destinationType = getDestinationType(message.getJMSDestination());
             String destinationName = getDestinationName(message.getJMSDestination());
-            tracer.reportAsExternal(MessageConsumeParameters
+            MessageConsumeParameters.Build builder = MessageConsumeParameters
                     .library("JMS")
                     .destinationType(destinationType)
                     .destinationName(destinationName)
-                    .inboundHeaders(new InboundWrapper(message))
-                    .build());
+                    .inboundHeaders(new InboundWrapper(message));
+            BrokerInstance brokerInstance = getHostAndPort(message);
+            if (brokerInstance != null) {
+                builder = builder.instance(brokerInstance.getHostName(), brokerInstance.getPort());
+            }
+            tracer.reportAsExternal(builder.build());
         } catch (JMSException exception) {
             NewRelic.getAgent().getLogger().log(Level.FINE, exception,
                     "Unable to record metrics for JMS message consume.");
         }
+    }
+
+    private static BrokerInstance getHostAndPort(Message message) throws JMSException {
+        Object obj = message.getObjectProperty(JmsProperties.NR_JMS_BROKER_INSTANCE_PROPERTY);
+        if (obj instanceof BrokerInstance) {
+            return (BrokerInstance) obj;
+        }
+        return null;
     }
 
     private static String getDestinationName(Destination destination) throws JMSException {
