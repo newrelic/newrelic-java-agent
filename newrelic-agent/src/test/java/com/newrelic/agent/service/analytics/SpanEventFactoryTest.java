@@ -238,6 +238,7 @@ public class SpanEventFactoryTest {
         when(mockParameters.getProduct()).thenReturn("MySQL");
         when(mockParameters.getHost()).thenReturn("dbserver");
         when(mockParameters.getPort()).thenReturn(3306);
+        when(mockParameters.getCloudResourceId()).thenReturn("123456789");
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
@@ -249,6 +250,7 @@ public class SpanEventFactoryTest {
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
+        assertEquals("123456789", target.getAgentAttributes().get("cloud.resource_id"));
     }
 
     @Test

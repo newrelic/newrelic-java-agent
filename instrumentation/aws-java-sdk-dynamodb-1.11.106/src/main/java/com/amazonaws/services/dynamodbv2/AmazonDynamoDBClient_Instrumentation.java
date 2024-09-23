@@ -10,6 +10,7 @@ package com.amazonaws.services.dynamodbv2;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.dynamodbv2.model.BatchGetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.BatchGetItemResult;
 import com.amazonaws.services.dynamodbv2.model.BatchWriteItemRequest;
@@ -69,21 +70,21 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final CreateTableResult executeCreateTable(CreateTableRequest createTableRequest) {
         linkAndExpire(createTableRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "createTable",
-                createTableRequest.getTableName(), endpoint);
+                createTableRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final BatchGetItemResult executeBatchGetItem(BatchGetItemRequest batchGetItemRequest) {
         linkAndExpire(batchGetItemRequest);
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchGetItem", "batch", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchGetItem", "batch", endpoint, this);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final BatchWriteItemResult executeBatchWriteItem(BatchWriteItemRequest batchWriteItemRequest) {
         linkAndExpire(batchWriteItemRequest);
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchWriteItem", "batch", endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "batchWriteItem", "batch", endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -91,7 +92,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final DeleteItemResult executeDeleteItem(DeleteItemRequest deleteItemRequest) {
         linkAndExpire(deleteItemRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteItem",
-                deleteItemRequest.getTableName(), endpoint);
+                deleteItemRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -99,14 +100,14 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final DeleteTableResult executeDeleteTable(DeleteTableRequest deleteTableRequest) {
         linkAndExpire(deleteTableRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "deleteTable",
-                deleteTableRequest.getTableName(), endpoint);
+                deleteTableRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final DescribeLimitsResult executeDescribeLimits(DescribeLimitsRequest describeLimitsRequest) {
         linkAndExpire(describeLimitsRequest);
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeLimits", null, endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeLimits", null, endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -114,7 +115,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final DescribeTableResult executeDescribeTable(DescribeTableRequest describeTableRequest) {
         linkAndExpire(describeTableRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTable",
-                describeTableRequest.getTableName(), endpoint);
+                describeTableRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -122,7 +123,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final DescribeTimeToLiveResult executeDescribeTimeToLive(DescribeTimeToLiveRequest describeTimeToLiveRequest) {
         linkAndExpire(describeTimeToLiveRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "describeTimeToLive",
-                describeTimeToLiveRequest.getTableName(), endpoint);
+                describeTimeToLiveRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -130,7 +131,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final GetItemResult executeGetItem(GetItemRequest getItemRequest) {
         linkAndExpire(getItemRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "getItem", getItemRequest.getTableName(),
-                endpoint);
+                endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -138,14 +139,14 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final ListTablesResult executeListTables(ListTablesRequest listTablesRequest) {
         linkAndExpire(listTablesRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTables",
-                listTablesRequest.getExclusiveStartTableName(), endpoint);
+                listTablesRequest.getExclusiveStartTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final ListTagsOfResourceResult executeListTagsOfResource(ListTagsOfResourceRequest listTagsOfResourceRequest) {
         linkAndExpire(listTagsOfResourceRequest);
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTagsOfResource", null, endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "listTagsOfResource", null, endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -153,7 +154,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final PutItemResult executePutItem(PutItemRequest putItemRequest) {
         linkAndExpire(putItemRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "putItem", putItemRequest.getTableName(),
-                endpoint);
+                endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -161,7 +162,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final QueryResult executeQuery(QueryRequest queryRequest) {
         linkAndExpire(queryRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "query", queryRequest.getTableName(),
-                endpoint);
+                endpoint, this);
         return Weaver.callOriginal();
 
     }
@@ -169,21 +170,21 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     @Trace(async = true, leaf = true)
     final ScanResult executeScan(ScanRequest scanRequest) {
         linkAndExpire(scanRequest);
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", scanRequest.getTableName(), endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "scan", scanRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final TagResourceResult executeTagResource(TagResourceRequest tagResourceRequest) {
         linkAndExpire(tagResourceRequest);
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "tagResource", null, endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "tagResource", null, endpoint, this);
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final UntagResourceResult executeUntagResource(UntagResourceRequest untagResourceRequest) {
         linkAndExpire(untagResourceRequest);
-        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "untagResource", null, endpoint);
+        DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "untagResource", null, endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -191,7 +192,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final UpdateItemResult executeUpdateItem(UpdateItemRequest updateItemRequest) {
         linkAndExpire(updateItemRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateItem",
-                updateItemRequest.getTableName(), endpoint);
+                updateItemRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -199,7 +200,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final UpdateTableResult executeUpdateTable(UpdateTableRequest updateTableRequest) {
         linkAndExpire(updateTableRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTable",
-                updateTableRequest.getTableName(), endpoint);
+                updateTableRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 
@@ -207,7 +208,7 @@ public abstract class AmazonDynamoDBClient_Instrumentation extends AmazonWebServ
     final UpdateTimeToLiveResult executeUpdateTimeToLive(UpdateTimeToLiveRequest updateTimeToLiveRequest) {
        linkAndExpire(updateTimeToLiveRequest);
         DynamoDBMetricUtil.metrics(NewRelic.getAgent().getTracedMethod(), "updateTimeToLive",
-                updateTimeToLiveRequest.getTableName(), endpoint);
+                updateTimeToLiveRequest.getTableName(), endpoint, this);
         return Weaver.callOriginal();
     }
 

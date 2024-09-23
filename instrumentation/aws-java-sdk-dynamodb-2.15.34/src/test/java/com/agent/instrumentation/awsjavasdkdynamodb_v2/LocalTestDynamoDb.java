@@ -3,11 +3,42 @@ package com.agent.instrumentation.awsjavasdkdynamodb_v2;
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.*;
+import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BillingMode;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeLimitsRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTimeToLiveRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
+import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
+import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.TimeToLiveSpecification;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateTimeToLiveRequest;
+import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -29,13 +60,16 @@ public class LocalTestDynamoDb {
     private LocalTestDynamoDb() throws Exception {
         port = String.valueOf(InstrumentationTestRunner.getIntrospector().getRandomPort());
         hostName = InetAddress.getLocalHost().getHostName();
-        server = ServerRunner.createServerFromCommandLineArgs(new String[]{"-inMemory", "-port", port});
+        server = ServerRunner.createServerFromCommandLineArgs(new String[]{"-disableTelemetry", "-inMemory", "-port", port});
+        AwsCredentials awsCredentials = AwsBasicCredentials.create("1234QAAAAAAAZZZZZZZZ", "secret");
         client = DynamoDbClient.builder()
-                .credentialsProvider(DefaultCredentialsProvider.builder().build())
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .endpointOverride(new URI("http://localhost:" + port))
-                .region(Region.US_WEST_1).build();
+                .region(Region.US_WEST_1)
+                .httpClient(UrlConnectionHttpClient.create())
+                .build();
         asyncClient = DynamoDbAsyncClient.builder()
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .endpointOverride(new URI("http://localhost:" + port))
                 .region(Region.US_WEST_1).build();
     }
