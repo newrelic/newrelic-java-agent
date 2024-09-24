@@ -30,6 +30,6 @@ public class SpringActuatorUtilsTest {
 
     @Test
     public void getReportableUriFromActuatorEndpoint_withEmptyPrefixConfig_returnsNull() {
-        System.out.println("----" + SpringActuatorUtils.getReportableUriFromActuatorEndpoint("actuator/health"));
+        assertNull(SpringActuatorUtils.getReportableUriFromActuatorEndpoint("actuator/health"));
     }
 }

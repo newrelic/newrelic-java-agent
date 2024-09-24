@@ -12,10 +12,11 @@ import java.util.List;
 
 public class SpringActuatorUtils {
     private static final String [] TARGET_ACTUATOR_ENDPOINT_PREFIXES;
+    private static final String [] EMPTY_PREFIX_ARRAY = new String [] {};
 
     static {
-        String configuredPrefixes = NewRelic.getAgent().getConfig().getValue("class_transformer.spring_actuator_endpoint_prefixes", "actuator/health,actuator/loggers");
-        TARGET_ACTUATOR_ENDPOINT_PREFIXES = configuredPrefixes == null ? new String[] {} : configuredPrefixes.split(",");
+        String configuredPrefixes = NewRelic.getAgent().getConfig().getValue("class_transformer.spring_actuator_endpoint_prefixes", null);
+        TARGET_ACTUATOR_ENDPOINT_PREFIXES = configuredPrefixes == null ? EMPTY_PREFIX_ARRAY : configuredPrefixes.split(",");
     }
 
     public static String normalizeActuatorUri(String uri) {
