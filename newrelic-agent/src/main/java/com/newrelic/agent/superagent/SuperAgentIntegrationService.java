@@ -45,7 +45,10 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
     @Override
     protected void doStart() throws Exception {
         if (isEnabled()) {
-            Agent.LOG.log(Level.INFO, "SuperAgentIntegrationService starting");
+            Agent.LOG.log(Level.INFO, "SuperAgentIntegrationService starting: Health file location: {0}  Frequency: {1}   Scheme: {2}",
+                    agentConfig.getSuperAgentIntegrationConfig().getHealthDeliveryLocation(),
+                    agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(),
+                    agentConfig.getSuperAgentIntegrationConfig().getHealthClientType());
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_SUPERAGENT_HEALTH_REPORTING_ENABLED);
 
             int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay

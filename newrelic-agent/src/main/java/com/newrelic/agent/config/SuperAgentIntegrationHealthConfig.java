@@ -19,7 +19,7 @@ public class SuperAgentIntegrationHealthConfig extends BaseConfig {
     private String healthClientType;
 
     public SuperAgentIntegrationHealthConfig(Map<String, Object> props, String systemPropertyPrefix) {
-        super(props, systemPropertyPrefix);
+        super(props, systemPropertyPrefix + ROOT + ".");
         frequency = getProperty(FREQUENCY, FREQUENCY_DEFAULT);
 
         // Location is in URI format; the client type is then derived from the URI scheme (file, http..)
@@ -43,7 +43,6 @@ public class SuperAgentIntegrationHealthConfig extends BaseConfig {
             try {
                 deliveryLocation = new URI(locationAsUri);
             } catch (Exception e) {
-                Agent.LOG.log(Level.WARNING, "Invalid URI specified for health file delivery location: {0}", (String)getProperty(LOCATION));
                 deliveryLocation = null;
                 return;
             }

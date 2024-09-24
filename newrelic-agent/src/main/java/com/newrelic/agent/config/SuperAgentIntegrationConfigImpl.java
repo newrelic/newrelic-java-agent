@@ -10,7 +10,7 @@ import java.util.logging.Level;
 
 public class SuperAgentIntegrationConfigImpl extends BaseConfig implements SuperAgentIntegrationConfig {
     public static final String ROOT = "superagent";
-    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.superagent";
+    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.superagent.";
     public static final String FLEET_ID = "fleet_id";
 
     private final String fleetId;
