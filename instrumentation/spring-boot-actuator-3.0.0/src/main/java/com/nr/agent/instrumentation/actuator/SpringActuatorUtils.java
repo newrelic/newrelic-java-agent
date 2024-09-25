@@ -11,40 +11,21 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.List;
 
 public class SpringActuatorUtils {
-    private static final String [] TARGET_ACTUATOR_ENDPOINT_PREFIXES;
-    private static final String [] EMPTY_PREFIX_ARRAY = new String [] {};
-
-    static {
-        String configuredPrefixes = NewRelic.getAgent().getConfig().getValue("class_transformer.spring_actuator_endpoint_prefixes", null);
-        TARGET_ACTUATOR_ENDPOINT_PREFIXES = configuredPrefixes == null ? EMPTY_PREFIX_ARRAY : configuredPrefixes.split(",");
-    }
+    public static final boolean isActuatorEndpointNamingEnabled = NewRelic.getAgent().getConfig().getValue("class_transformer.name_actuator_endpoints", false);
 
     public static String normalizeActuatorUri(String uri) {
-        if (uri != null && uri.startsWith("/")) {
-            return uri.substring(1);
-        }
-
-        return uri;
-    }
-
-    /**
-     * Check the actuator's endpoint URI and see if it matches one of the configured reportable prefixes.
-     * If so, return that prefix as the String that will be part of the transaction name.
-     *
-     * @param endpointUri the actuator endpoint URI; "actuator/loggers/com.newrrelic" for example
-     *
-     * @return the String that should be reported as part of the transaction name; "actuator/loggers"
-     * for example or null if the URI doesn't match and configured prefixes
-     */
-    public static String getReportableUriFromActuatorEndpoint(String endpointUri) {
-        if (endpointUri != null) {
-            for (String prefix : TARGET_ACTUATOR_ENDPOINT_PREFIXES) {
-                if (endpointUri.startsWith(prefix)) {
-                    return prefix;
-                }
+        String modifiedUri = null;
+        if (uri != null) {
+            // Normalize the uri by removing the leading "/" and stripping and path components
+            // other than the first two, to prevent MGI for certain actuator endpoints.
+            // For example, "/actuator/loggers/com.newrelic" will be converted into
+            // "actuator/loggers"
+            String [] parts = uri.split("/");
+            if (parts.length >= 2) {
+                 modifiedUri = parts[0] + "/" + parts[1];
             }
         }
 
-        return null;
+        return uri;
     }
 }

@@ -24,15 +24,17 @@ public class AbstractWebMvcEndpointHandlerMapping_Instrumentation {
     private static final class OperationHandler_Instrumentation {
         @Trace
         Object handle(HttpServletRequest request, Map<String, String> body) {
-            Transaction transaction = NewRelic.getAgent().getTransaction();
+            if (SpringActuatorUtils.isActuatorEndpointNamingEnabled) {
+                Transaction transaction = NewRelic.getAgent().getTransaction();
 
-            if (transaction != null) {
-                String uri = SpringActuatorUtils.normalizeActuatorUri(request.getRequestURI());
-                String reportablePrefix = SpringActuatorUtils.getReportableUriFromActuatorEndpoint(uri);
+                if (transaction != null) {
+                    String uri = SpringActuatorUtils.normalizeActuatorUri(request.getRequestURI());
+                    String reportablePrefix = "";
 
-                if (reportablePrefix != null) {
-                    transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "Spring",
-                            reportablePrefix + " (" + request.getMethod() + ")");
+                    if (reportablePrefix != null) {
+                        transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "Spring",
+                                reportablePrefix + " (" + request.getMethod() + ")");
+                    }
                 }
             }
 
