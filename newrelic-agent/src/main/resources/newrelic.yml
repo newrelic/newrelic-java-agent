@@ -394,6 +394,14 @@ common: &default_settings
     # present on the actual class, will still get named based on route and HTTP method.
     enhanced_spring_transaction_naming: false
 
+    # By default, built-in actuator endpoints and custom actuator endpoints (using the @Endpoint annotation
+    # and it's subclasses) will all be named as "OperationHandler/handle" in New Relic. Setting this
+    # to true will result in the transaction name reflecting the actual base actuator endpoint URI.
+    # For example, invoking "/actuator/loggers" or "actuator/loggers/com.newrelic" will result in the
+    # transaction name "actuator/loggers (GET)". This is to prevent MGI.
+    # Default is false.
+    name_actuator_endpoints: false
+
   # Real-time profiling using Java Flight Recorder (JFR).
   # This feature reports dimensional metrics to the ingest endpoint configured by
   # metric_ingest_uri and events to the ingest endpoint configured by event_ingest_uri.
