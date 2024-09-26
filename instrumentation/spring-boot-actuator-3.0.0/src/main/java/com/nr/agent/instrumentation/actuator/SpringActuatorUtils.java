@@ -20,12 +20,12 @@ public class SpringActuatorUtils {
             // other than the first two, to prevent MGI for certain actuator endpoints.
             // For example, "/actuator/loggers/com.newrelic" will be converted into
             // "actuator/loggers"
-            String [] parts = uri.split("/");
+            String [] parts = uri.replaceFirst("^/", "").split("/");
             if (parts.length >= 2) {
                  modifiedUri = parts[0] + "/" + parts[1];
             }
         }
 
-        return uri;
+        return modifiedUri;
     }
 }

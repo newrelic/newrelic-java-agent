@@ -29,7 +29,7 @@ public class AbstractWebMvcEndpointHandlerMapping_Instrumentation {
 
                 if (transaction != null) {
                     String uri = SpringActuatorUtils.normalizeActuatorUri(request.getRequestURI());
-                    String reportablePrefix = "";
+                    String reportablePrefix = SpringActuatorUtils.normalizeActuatorUri(uri);
 
                     if (reportablePrefix != null) {
                         transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "Spring",

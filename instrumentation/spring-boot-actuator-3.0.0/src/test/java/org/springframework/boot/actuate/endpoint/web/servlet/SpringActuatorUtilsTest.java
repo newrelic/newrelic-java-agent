@@ -27,9 +27,4 @@ public class SpringActuatorUtilsTest {
         assertEquals("actuator/health", SpringActuatorUtils.normalizeActuatorUri("/actuator/health"));
         assertEquals("actuator/health", SpringActuatorUtils.normalizeActuatorUri("actuator/health"));
     }
-
-    @Test
-    public void getReportableUriFromActuatorEndpoint_withEmptyPrefixConfig_returnsNull() {
-        assertNull(SpringActuatorUtils.getReportableUriFromActuatorEndpoint("actuator/health"));
-    }
 }
