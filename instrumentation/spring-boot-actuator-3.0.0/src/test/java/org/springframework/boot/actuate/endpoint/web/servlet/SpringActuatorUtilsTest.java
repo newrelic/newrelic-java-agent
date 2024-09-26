@@ -18,8 +18,8 @@ public class SpringActuatorUtilsTest {
     }
 
     @Test
-    public void normalizeActuatorUri_withEmptyString_returnsEmptyString() {
-        assertEquals("", SpringActuatorUtils.normalizeActuatorUri(""));
+    public void normalizeActuatorUri_withEmptyString_returnsNull() {
+        assertNull(SpringActuatorUtils.normalizeActuatorUri(""));
     }
 
     @Test
