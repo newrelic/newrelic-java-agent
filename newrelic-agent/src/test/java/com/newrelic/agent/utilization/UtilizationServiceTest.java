@@ -79,7 +79,7 @@ public class UtilizationServiceTest {
 
         UtilizationService utilizationService = Mockito.spy(new UtilizationService());
         DockerData dockerData = mock(DockerData.class);
-        when(dockerData.getDockerContainerId(false)).thenReturn("f96c541a87e1376f25461f1386cb60208cea35750eac1e24e11566f078715920");
+        when(dockerData.getDockerContainerIdFromCGroups(false)).thenReturn("f96c541a87e1376f25461f1386cb60208cea35750eac1e24e11566f078715920");
         when(utilizationService.getDockerData()).thenReturn(dockerData);
         UtilizationData oldData = utilizationService.utilizationData;
         UtilizationData newData = utilizationService.updateUtilizationData();
