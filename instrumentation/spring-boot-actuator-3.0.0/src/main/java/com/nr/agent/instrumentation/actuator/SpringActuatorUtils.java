@@ -7,6 +7,7 @@
 package com.nr.agent.instrumentation.actuator;
 
 import com.newrelic.api.agent.NewRelic;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -15,12 +16,12 @@ public class SpringActuatorUtils {
 
     public static String normalizeActuatorUri(String uri) {
         String modifiedUri = null;
-        if (uri != null) {
+        if (uri != null && uri.length() > 1) {
             // Normalize the uri by removing the leading "/" and stripping and path components
             // other than the first two, to prevent MGI for certain actuator endpoints.
             // For example, "/actuator/loggers/com.newrelic" will be converted into
             // "actuator/loggers"
-            String [] parts = uri.replaceFirst("^/", "").split("/");
+            String [] parts = uri.substring(uri.charAt(0) == '/' ? 1 : 0).split("/");
             if (parts.length >= 2) {
                  modifiedUri = parts[0] + "/" + parts[1];
             }

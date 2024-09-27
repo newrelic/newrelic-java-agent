@@ -6,6 +6,7 @@
  */
 package org.springframework.boot.actuate.endpoint.web.servlet;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.Transaction;
@@ -25,11 +26,10 @@ public class AbstractWebMvcEndpointHandlerMapping_Instrumentation {
         @Trace
         Object handle(HttpServletRequest request, Map<String, String> body) {
             if (SpringActuatorUtils.isActuatorEndpointNamingEnabled) {
-                Transaction transaction = NewRelic.getAgent().getTransaction();
+                Transaction transaction = AgentBridge.getAgent().getTransaction(false);
 
                 if (transaction != null) {
-                    String uri = SpringActuatorUtils.normalizeActuatorUri(request.getRequestURI());
-                    String reportablePrefix = SpringActuatorUtils.normalizeActuatorUri(uri);
+                    String reportablePrefix = SpringActuatorUtils.normalizeActuatorUri(request.getRequestURI());
 
                     if (reportablePrefix != null) {
                         transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "Spring",
