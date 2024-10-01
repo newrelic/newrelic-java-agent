@@ -158,7 +158,7 @@ public class MetricState {
      * @param responseMessage response message from HttpURLConnection
      * @param externalTracer  tracer of which the external call will be reported to
      */
-    void reportExternalCall(HttpURLConnection connection, Ops operation, int responseCode, String responseMessage, TracedMethod externalTracer) {
+    private void reportExternalCall(HttpURLConnection connection, Ops operation, int responseCode, String responseMessage, TracedMethod externalTracer) {
         if (connection != null) {
             // This conversion is necessary as it strips query parameters from the URI
             String uri = URISupport.getURI(connection.getURL());
