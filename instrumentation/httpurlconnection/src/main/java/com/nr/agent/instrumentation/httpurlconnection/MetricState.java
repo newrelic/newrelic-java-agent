@@ -102,8 +102,10 @@ public class MetricState {
      */
     public void inboundPostamble(HttpURLConnection connection, int responseCode, String responseMessage, Ops operation,
             TracedMethod tracer) {
+        // So the weak reference to external tracer holds an actual tracer instance (if not null) for the duration of this method.
+        TracedMethod externalTracer = getExternalTracer();
         // make sure that only the method that first invoked inboundPreamble runs this method
-        if (externalReported || getExternalTracer() != tracer) {
+        if (externalReported || externalTracer != tracer) {
             return;
         }
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
