@@ -110,7 +110,7 @@ public class MetricState {
         }
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (tx != null) {
-            reportExternalCall(connection, operation, responseCode, responseMessage);
+            reportExternalCall(connection, operation, responseCode, responseMessage, externalTracer);
         }
     }
 
@@ -144,12 +144,25 @@ public class MetricState {
      * @param responseMessage response message from HttpURLConnection
      */
     void reportExternalCall(HttpURLConnection connection, Ops operation, int responseCode, String responseMessage) {
+        reportExternalCall(connection, operation, responseCode, responseMessage, getExternalTracer());
+    }
+
+    /**
+     * Calls the reportAsExternal API. This results in a Span being created for the current TracedMethod/Segment and the Span
+     * category being set to http which represents a Span that made an external http request. This is required for external
+     * calls to be properly recorded when they are made to a host that isn't another APM entity.
+     *
+     * @param connection      HttpURLConnection instance
+     * @param operation
+     * @param responseCode    response code from HttpURLConnection
+     * @param responseMessage response message from HttpURLConnection
+     * @param externalTracer  tracer of which the external call will be reported to
+     */
+    void reportExternalCall(HttpURLConnection connection, Ops operation, int responseCode, String responseMessage, TracedMethod externalTracer) {
         if (connection != null) {
             // This conversion is necessary as it strips query parameters from the URI
             String uri = URISupport.getURI(connection.getURL());
             InboundWrapper inboundWrapper = new InboundWrapper(connection);
-
-            TracedMethod externalTracer = getExternalTracer();
 
             if (externalTracer != null) {
                 // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
