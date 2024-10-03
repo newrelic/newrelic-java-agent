@@ -145,7 +145,6 @@ public class DefaultTracer extends AbstractTracer {
         }
 
         this.tracerFlags = (byte) tracerFlags;
-        this.guid = TransactionGuidFactory.generate16CharGuid();
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
@@ -169,7 +168,10 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public String getGuid() {
-        return guid;
+        if (this.guid == null) {
+            this.guid = TransactionGuidFactory.generate16CharGuid();
+        }
+        return this.guid;
     }
 
     @Override
@@ -853,8 +855,12 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     private void recordFaasAttributes(CloudParameters cloudParameters) {
-        setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
-        setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, cloudParameters.getResourceId());
+        if (cloudParameters.getPlatform() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
+        }
+        if (cloudParameters.getResourceId() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, cloudParameters.getResourceId());
+        }
     }
 
     private <T> void recordSlowQueryData(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
