@@ -34,7 +34,7 @@ public class AgentHealthTest {
         agentHealth.setUnhealthyStatus(AgentHealth.Status.INVALID_LICENSE);
 
         assertEquals(startTime, agentHealth.getStartTimeNanos());
-        assertEquals("NR-APM-0010", agentHealth.getLastError());
+        assertEquals("NR-APM-001", agentHealth.getLastError());
         assertEquals("Invalid license key (HTTP status code 401)", agentHealth.getCurrentStatus());
     }
 
