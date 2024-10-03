@@ -18,12 +18,12 @@ public class SuperAgentIntegrationClientFactory {
         noop,
         file,
     }
-    public static SuperAgentIntegrationHealthClient createHealthClient(String type, SuperAgentIntegrationConfig config) {
+    public static SuperAgentIntegrationHealthClient createHealthClient(SuperAgentIntegrationConfig config) {
         SuperAgentIntegrationHealthClient client;
 
         try {
-            HealthClientType healthClientType = HealthClientType.valueOf(type);
-            Agent.LOG.log(Level.INFO, "Generating SuperAgent Health Client type: {0}", type);
+            HealthClientType healthClientType = HealthClientType.valueOf(config.getHealthClientType());
+            Agent.LOG.log(Level.INFO, "Generating SuperAgent Health Client type: {0}", healthClientType);
 
             switch (healthClientType) {
                 case file:
@@ -35,7 +35,7 @@ public class SuperAgentIntegrationClientFactory {
                     break;
             }
         } catch (Exception e) {
-            Agent.LOG.log(Level.WARNING, "Invalid health client type: {0}; returning NoOp implementation", type);
+            Agent.LOG.log(Level.WARNING, "Invalid health client type: {0}; returning NoOp implementation", config.getHealthClientType());
             client = NO_OP_INSTANCE;
         }
 

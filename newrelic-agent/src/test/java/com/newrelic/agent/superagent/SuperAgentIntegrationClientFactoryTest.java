@@ -28,7 +28,7 @@ public class SuperAgentIntegrationClientFactoryTest {
 
     @Test
     public void createHealthClient_withInvalidType_returnsNoOpClient() {
-        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient("foo", mockConfig);
+        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(mockConfig);
         assertTrue(client instanceof SuperAgentHealthNoOpClient);
     }
 
@@ -36,19 +36,15 @@ public class SuperAgentIntegrationClientFactoryTest {
     public void createHealthClient_withFileType_returnsFileBasedClient() throws URISyntaxException {
         URI uri = new URI(URI_TEST_STRING);
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(uri);
-        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient("file", mockConfig);
+        when(mockConfig.getHealthClientType()).thenReturn("file");
+        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(mockConfig);
         assertTrue(client instanceof SuperAgentIntegrationHealthFileBasedClient);
     }
 
     @Test
     public void createHealthClient_withNoOpType_returnsNoOpClient() {
-        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient("noop", mockConfig);
-        assertTrue(client instanceof SuperAgentHealthNoOpClient);
-    }
-
-    @Test
-    public void createHealthClient_withNullType_returnsNoOpClient() {
-        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(null, mockConfig);
+        when(mockConfig.getHealthClientType()).thenReturn("noop");
+        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(mockConfig);
         assertTrue(client instanceof SuperAgentHealthNoOpClient);
     }
 }

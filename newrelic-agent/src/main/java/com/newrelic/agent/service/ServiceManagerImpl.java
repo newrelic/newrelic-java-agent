@@ -356,9 +356,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
     private SuperAgentIntegrationService buildSuperAgentIntegrationService(AgentConfig config) {
         SuperAgentIntegrationHealthClient healthClient =
-                SuperAgentIntegrationClientFactory.createHealthClient(
-                        config.getSuperAgentIntegrationConfig().getHealthClientType(),
-                        config.getSuperAgentIntegrationConfig());
+                SuperAgentIntegrationClientFactory.createHealthClient(config.getSuperAgentIntegrationConfig());
 
         ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
         healthDataProducers.add(circuitBreakerService);

@@ -109,7 +109,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     RPMService(List<String> appNames, ConnectionConfigListener connectionConfigListener, ConnectionListener connectionListener,
             DataSenderListener dataSenderListener, List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners) {
         super(RPMService.class.getSimpleName() + "/" + appNames.get(0));
-        Agent.LOG.log(Level.INFO, "DUF2 creating RPMService");
         appName = appNames.get(0).intern();
         AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
         dataSender = DataSenderFactory.create(config, dataSenderListener);

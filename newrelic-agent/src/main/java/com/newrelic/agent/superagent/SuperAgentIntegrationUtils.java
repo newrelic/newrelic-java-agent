@@ -34,7 +34,7 @@ public class SuperAgentIntegrationUtils {
     public static void  reportUnhealthyStatusPriorToServiceStart(AgentConfig config, AgentHealth.Status status) {
         SuperAgentIntegrationConfig superAgentIntegrationConfig = config.getSuperAgentIntegrationConfig();
         if (superAgentIntegrationConfig.isEnabled()) {
-            SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(superAgentIntegrationConfig.getHealthClientType(), superAgentIntegrationConfig);
+            SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(superAgentIntegrationConfig);
             AgentHealth agentHealth = new AgentHealth(getPseudoCurrentTimeNanos());
             agentHealth.setUnhealthyStatus(status);
             client.sendHealthMessage(agentHealth);
