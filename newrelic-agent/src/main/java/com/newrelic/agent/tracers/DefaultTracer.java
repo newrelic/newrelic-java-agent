@@ -168,11 +168,10 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public String getGuid() {
-        String theGuid = this.guid;
-        if (theGuid == null) {
-            this.guid = theGuid = TransactionGuidFactory.generate16CharGuid();
+        if (this.guid == null) {
+            this.guid = TransactionGuidFactory.generate16CharGuid();
         }
-        return theGuid;
+        return this.guid;
     }
 
     @Override
