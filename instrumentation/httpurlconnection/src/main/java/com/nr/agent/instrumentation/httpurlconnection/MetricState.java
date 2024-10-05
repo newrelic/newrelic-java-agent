@@ -191,8 +191,11 @@ public class MetricState {
      */
     private void addOutboundHeadersIfNotAdded(HttpURLConnection connection) {
         if (getDtTracer() == null) {
-            setDtTracer(AgentBridge.getAgent().getTracedMethod());
-            getDtTracer().addOutboundRequestHeaders(new OutboundWrapper(connection));
+            TracedMethod tracedMethod = AgentBridge.getAgent().getTracedMethod();
+            if (tracedMethod != null) {
+                setDtTracer(tracedMethod);
+                tracedMethod.addOutboundRequestHeaders(new OutboundWrapper(connection));
+            }
         }
     }
 
