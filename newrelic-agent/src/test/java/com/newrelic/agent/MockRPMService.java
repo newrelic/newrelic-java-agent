@@ -19,6 +19,7 @@ import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.superagent.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 
 import java.util.ArrayList;
@@ -246,6 +247,11 @@ public class MockRPMService extends BaseRPMService {
     public void sendErrorData(List<TracedError> tracedErrors) throws Exception {
         this.errorTraces.addAll(tracedErrors);
         this.errorTracesSeen.addAndGet(tracedErrors.size());
+    }
+
+    @Override
+    public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
+        return null;
     }
 
     // Mock only
