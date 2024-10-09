@@ -27,7 +27,7 @@ public class CloudApiImplTest {
 
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
 
-            String accountId = "1234567890";
+            String accountId = "123456789012";
             cloudApi.setAccountInfo(CloudAccountInfo.AWS_ACCOUNT_ID, accountId);
 
             newRelic.verify(() -> NewRelic.incrementCounter("Supportability/API/Cloud/SetAccountInfo/AWS_ACCOUNT_ID/API"));
@@ -45,7 +45,7 @@ public class CloudApiImplTest {
 
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
 
-            String accountId = "1234567890";
+            String accountId = "123456789012";
             Object sdkClient = new Object();
             cloudApi.setAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID, accountId);
 

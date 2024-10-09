@@ -18,6 +18,7 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * This class implements the account info methods from the Cloud API.
@@ -40,8 +41,19 @@ public class CloudAccountInfoCache {
     }
 
     public void setAccountInfo(Object sdkClient, CloudAccountInfo cloudAccountInfo, String value) {
-        Map<CloudAccountInfo, String> accountInfo = cache.get(sdkClient);
-        accountInfo.put(cloudAccountInfo, value);
+        if (sdkClient == null) {
+            return;
+        }
+        if (value == null) {
+            Map<CloudAccountInfo, String> accountInfo = cache.getIfPresent(sdkClient);
+            if (accountInfo != null) {
+                accountInfo.remove(cloudAccountInfo);
+            }
+        }
+        if (CloudAccountInfoValidator.validate(cloudAccountInfo, value)) {
+            Map<CloudAccountInfo, String> accountInfo = cache.get(sdkClient);
+            accountInfo.put(cloudAccountInfo, value);
+        }
     }
 
     public String getAccountInfo(CloudAccountInfo cloudAccountInfo) {
@@ -65,10 +77,17 @@ public class CloudAccountInfoCache {
 
     void retrieveDataFromConfig() {
         AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+        retrieveAwsAccountId(agentConfig);
+    }
+
+    private void retrieveAwsAccountId(AgentConfig agentConfig) {
         Object awsAccountId = agentConfig.getValue("cloud.aws.account_id");
-        if (awsAccountId != null) {
-            NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_CONFIG_AWS_ACCOUNT_ID);
-            setAccountInfo(CloudAccountInfo.AWS_ACCOUNT_ID, awsAccountId.toString());
+        if (awsAccountId == null) {
+            return;
         }
+
+        NewRelic.getAgent().getLogger().log(Level.INFO, "Found AWS account ID configuration.");
+        NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_CONFIG_AWS_ACCOUNT_ID);
+        setAccountInfo(CloudAccountInfo.AWS_ACCOUNT_ID, awsAccountId.toString());
     }
 }
