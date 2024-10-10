@@ -25,7 +25,7 @@ public class CloudAccountInfoCacheTest {
 
         assertNull(cache.getAccountInfo(AWS_ACCOUNT_ID));
 
-        String accountId = "123456789";
+        String accountId = "123456789012";
         cache.setAccountInfo(AWS_ACCOUNT_ID, accountId);
 
         assertEquals(accountId, cache.getAccountInfo(AWS_ACCOUNT_ID));
@@ -38,7 +38,7 @@ public class CloudAccountInfoCacheTest {
 
         assertNull(cache.getAccountInfo(sdkClient, AWS_ACCOUNT_ID));
 
-        String accountId = "123456789";
+        String accountId = "123456789012";
         cache.setAccountInfo(sdkClient, AWS_ACCOUNT_ID, accountId);
 
         assertEquals(accountId, cache.getAccountInfo(sdkClient, AWS_ACCOUNT_ID));
@@ -50,7 +50,7 @@ public class CloudAccountInfoCacheTest {
     @Test
     public void accountInfoClientFallback() {
         CloudAccountInfoCache cache = new CloudAccountInfoCache();
-        String accountId = "123456789";
+        String accountId = "123456789012";
         cache.setAccountInfo(AWS_ACCOUNT_ID, accountId);
 
         Object sdkClient = new Object();
@@ -61,7 +61,7 @@ public class CloudAccountInfoCacheTest {
     @Test
     public void retrieveDataFromConfigAccountInfo() {
         CloudAccountInfoCache cache = new CloudAccountInfoCache();
-        String accountId = "123456789";
+        String accountId = "123456789012";
 
         ServiceManager serviceManager = mock(ServiceManager.class, RETURNS_DEEP_STUBS);
         ServiceFactory.setServiceManager(serviceManager);
