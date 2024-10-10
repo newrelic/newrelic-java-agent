@@ -24,6 +24,9 @@ public interface Cloud {
      *     The value provided to this method has priority over a value set in
      *     the agent configuration.
      * </p>
+     * <p>
+     *     Passing null as the value will remove the account information previously stored.
+     * </p>
      * @param cloudAccountInfo the type of account information being stored
      * @param value the value to store
      */
@@ -41,6 +44,9 @@ public interface Cloud {
      * <p>
      *     The value provided to this method has priority over a value set in
      *     the agent configuration or a value set using {@link #setAccountInfo(CloudAccountInfo, String)}.
+     * </p>
+     * <p>
+     *     Passing null as the value will remove the account information previously stored.
      * </p>
      * @param sdkClient the SDK client object this account information is associated with
      * @param cloudAccountInfo the type of account information being stored

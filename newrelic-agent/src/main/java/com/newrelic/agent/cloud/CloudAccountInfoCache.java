@@ -49,6 +49,7 @@ public class CloudAccountInfoCache {
             if (accountInfo != null) {
                 accountInfo.remove(cloudAccountInfo);
             }
+            return;
         }
         if (CloudAccountInfoValidator.validate(cloudAccountInfo, value)) {
             Map<CloudAccountInfo, String> accountInfo = cache.get(sdkClient);
