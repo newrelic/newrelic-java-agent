@@ -361,6 +361,11 @@ public class MetricNames {
     public static final String SUPPORTABILITY_API_SET_ACCOUNT_NAME = "SetAccountName";
     public static final String SUPPORTABILITY_API_SET_USER_ID = "SetUserId";
 
+    // Cloud API
+    public static final String SUPPORTABILITY_API_CLOUD_SET_ACCOUNT_INFO_CLIENT = "Cloud/SetAccountInfoClient/";
+    public static final String SUPPORTABILITY_API_CLOUD_SET_ACCOUNT_INFO = "Cloud/SetAccountInfo/";
+    public static final String SUPPORTABILITY_CONFIG_AWS_ACCOUNT_ID = "Supportability/Cloud/ConfigAccountInfo/aws_account_id";
+
     //Transaction supportability metrics
     public static final String SUPPORTABILITY_TRANSACTION_STARTED = "Supportability/Transaction/StartedCount";
     public static final String SUPPORTABILITY_TRANSACTION_FINISHED = "Supportability/Transaction/FinishedCount";

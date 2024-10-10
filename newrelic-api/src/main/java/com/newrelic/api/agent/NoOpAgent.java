@@ -368,6 +368,14 @@ class NoOpAgent implements Agent {
         public void setLlmTokenCountCallback(LlmTokenCountCallback llmTokenCountCallback) {}
     };
 
+    private static final Cloud CLOUD = new Cloud() {
+        @Override
+        public void setAccountInfo(CloudAccountInfo cloudAccountInfo, String value) {}
+
+        @Override
+        public void setAccountInfo(Object sdkClient, CloudAccountInfo cloudAccountInfo, String value) {}
+    };
+
     private static final Segment SEGMENT = new Segment() {
         @Override
         public void setMetricName(String... metricNameParts) {
@@ -469,6 +477,11 @@ class NoOpAgent implements Agent {
     @Override
     public AiMonitoring getAiMonitoring() {
         return AI_MONITORING;
+    }
+
+    @Override
+    public Cloud getCloud() {
+        return CLOUD;
     }
 
     @Override
