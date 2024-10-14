@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.Weaver;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -29,11 +30,13 @@ public class Util {
 
     public static Segment startSegment() {
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "DT_DEBUG: startSegment(), transaction is {0} ", txn == null ? "null (no segment created)" : "non-null (segment will be created)");
         return txn == null ? null : txn.startSegment("WebClient.exchange");
     }
 
     public static ClientRequest addHeaders(ClientRequest request, Segment segment) {
         if (segment != null) {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "DT_DEBUG: Adding DT headers because segment is non-null");
             OutboundRequestWrapper outboundHeaders = new OutboundRequestWrapper(request);
             segment.addOutboundRequestHeaders(outboundHeaders);
             request = outboundHeaders.build();
