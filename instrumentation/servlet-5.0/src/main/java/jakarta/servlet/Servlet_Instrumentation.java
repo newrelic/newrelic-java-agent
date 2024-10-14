@@ -20,6 +20,9 @@ import com.nr.instrumentation.servlet5.ServletHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.util.Collections;
+import java.util.logging.Level;
+
 @Weave(type = MatchType.Interface, originalName = "jakarta.servlet.Servlet")
 public abstract class Servlet_Instrumentation {
 
@@ -37,6 +40,11 @@ public abstract class Servlet_Instrumentation {
     public void service(ServletRequest request, ServletResponse response) {
 
         NewRelic.getAgent().getTracedMethod().setMetricName("Servlet", getClass().getName(), "service");
+
+        StringBuilder headers = new StringBuilder("DT_DEBUG: Incoming request headers...\n");
+        HttpServletRequest debugReq = (HttpServletRequest)request;
+        Collections.list(debugReq.getHeaderNames()).forEach(h -> headers.append("\t").append(h).append(" --> ").append(debugReq.getHeader(h)).append("\n"));
+        NewRelic.getAgent().getLogger().log(Level.INFO, headers.toString());
 
         ServletConfig servletConfig = getServletConfig();
         if (servletConfig != null) {
