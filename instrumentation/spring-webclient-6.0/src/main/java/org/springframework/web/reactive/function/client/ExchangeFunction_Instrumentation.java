@@ -13,6 +13,7 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.spring_webclient_60.Util;
+import org.springframework.http.HttpHeaders;
 import reactor.core.publisher.Mono;
 
 import java.util.logging.Level;
@@ -21,9 +22,11 @@ import java.util.logging.Level;
 public class ExchangeFunction_Instrumentation {
 
     public Mono<ClientResponse> exchange(ClientRequest request) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DT_DEBUG: In exchange(request)");
         Segment segment = Util.startSegment();
         request = Util.addHeaders(request, segment);
+
+        NewRelic.getAgent().getLogger().log(Level.INFO, "DT_DEBUG: In exchange(request). Outbound headers...");
+        NewRelic.getAgent().getLogger().log(Level.INFO, HttpHeaders.formatHeaders(request.headers()));
 
         Mono<ClientResponse> response = Weaver.callOriginal();
 
