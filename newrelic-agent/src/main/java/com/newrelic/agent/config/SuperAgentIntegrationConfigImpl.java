@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.Agent;
@@ -32,13 +38,13 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
         Map<String, Object> healthProps = getProperty(SuperAgentIntegrationHealthConfig.ROOT, Collections.emptyMap());
         SuperAgentIntegrationHealthConfig superAgentIntegrationHealthConfig;
 
-            superAgentIntegrationHealthConfig = new SuperAgentIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
+        superAgentIntegrationHealthConfig = new SuperAgentIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
 
-            if (superAgentIntegrationHealthConfig.getHealthDeliveryLocation() == null) {
-                Agent.LOG.log(Level.WARNING, "Configured Super Agent health delivery location is not a valid URI; " +
-                        "SuperAgent integration service will not be started");
-                superAgentIntegrationHealthConfig = null;
-            }
+        if (superAgentIntegrationHealthConfig.getHealthDeliveryLocation() == null) {
+            Agent.LOG.log(Level.WARNING, "Configured Super Agent health delivery location is not a valid URI; " +
+                    "SuperAgent integration service will not be started");
+            superAgentIntegrationHealthConfig = null;
+        }
 
         return superAgentIntegrationHealthConfig;
     }

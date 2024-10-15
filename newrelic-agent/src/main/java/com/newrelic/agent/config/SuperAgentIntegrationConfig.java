@@ -30,7 +30,17 @@ public interface SuperAgentIntegrationConfig {
      */
     int getHealthReportingFrequency();
 
+    /**
+     * Return the fleet id assigned by the super agent
+     *
+     * @return the fleet id, if available
+     */
     String getFleetId();
 
+    /**
+     * Return the health client type ("file" or "noop" for example)
+     *
+     * @return the client type
+     */
     String getHealthClientType();
 }

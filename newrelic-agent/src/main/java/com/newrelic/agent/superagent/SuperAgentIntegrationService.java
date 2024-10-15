@@ -45,7 +45,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
     @Override
     protected void doStart() throws Exception {
         if (isEnabled()) {
-            Agent.LOG.log(Level.INFO, "SuperAgentIntegrationService starting: Health file location: {0}  Frequency: {1}   Scheme: {2}",
+            Agent.LOG.log(Level.INFO, "SuperAgentIntegrationService starting: Health file location: {0}  Frequency: {1}  Scheme: {2}",
                     agentConfig.getSuperAgentIntegrationConfig().getHealthDeliveryLocation(),
                     agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(),
                     agentConfig.getSuperAgentIntegrationConfig().getHealthClientType());

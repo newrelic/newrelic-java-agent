@@ -130,6 +130,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private volatile Map<String, String> requestMetadata;
     private volatile Map<String, String> metadata;
     private final List<HealthDataChangeListener> healthDataChangeListeners = new CopyOnWriteArrayList<>();
+    private final boolean isSuperAgentEnabled;
 
     public DataSenderImpl(
             DataSenderConfig config,
@@ -162,6 +163,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         }
 
         this.httpClientWrapper = httpClientWrapper;
+        this.isSuperAgentEnabled = configService.getDefaultAgentConfig().getSuperAgentIntegrationConfig().isEnabled();
     }
 
     private void checkAuditMode() {
@@ -695,6 +697,12 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
                         Integer.toString(result.getStatusCode()), method);
                 logger.log(Level.FINER, "Connection http status code: {0}", result.getStatusCode());
                 throw HttpError.create(result.getStatusCode(), request.getURL().getHost(), data.length);
+        }
+    }
+
+    private void reportUnhealthyStatusToSuperAgent(AgentHealth.Status status, String ... additionalInfo) {
+        if (isSuperAgentEnabled) {
+            SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, status, additionalInfo);
         }
     }
 

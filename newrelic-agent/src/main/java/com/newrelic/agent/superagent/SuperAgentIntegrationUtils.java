@@ -31,7 +31,7 @@ public class SuperAgentIntegrationUtils {
         }
     }
 
-    public static void  reportUnhealthyStatusPriorToServiceStart(AgentConfig config, AgentHealth.Status status) {
+    public static void reportUnhealthyStatusPriorToServiceStart(AgentConfig config, AgentHealth.Status status) {
         SuperAgentIntegrationConfig superAgentIntegrationConfig = config.getSuperAgentIntegrationConfig();
         if (superAgentIntegrationConfig.isEnabled()) {
             SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(superAgentIntegrationConfig);

@@ -1,12 +1,15 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.config;
 
-import com.newrelic.agent.Agent;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class SuperAgentIntegrationHealthConfig extends BaseConfig {
     public static final String ROOT = "health";
@@ -14,7 +17,7 @@ public class SuperAgentIntegrationHealthConfig extends BaseConfig {
     public static final int FREQUENCY_DEFAULT = 5;  // In seconds
     public static final String LOCATION = "delivery_location";  //URI Format; ex: file://opt/tmp/health.yml
 
-    private final int frequency;;
+    private final int frequency;
     private URI deliveryLocation;
     private String healthClientType;
 
