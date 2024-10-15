@@ -205,6 +205,8 @@ public class MetricNames {
 
     public static final String TIMEOUT_ASYNC = "Java/Timeout/asyncActivityNotStarted";
 
+    public static final String SUPPORTABILITY_AZURE_SITE_EXT_INSTALL_TYPE = "Supportability/Java/InstallType";
+
     public static final String SUPPORTABILITY_JAVA_AGENTVERSION = "Supportability/Java/AgentVersion/{0}";
 
     public static final String SUPPORTABILITY_HARVEST_SERVICE_RESPONSE_TIME = "Supportability/Harvest";
