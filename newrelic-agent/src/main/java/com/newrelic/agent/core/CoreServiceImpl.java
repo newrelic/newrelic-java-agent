@@ -13,6 +13,7 @@ import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.PrivateApiImpl;
 import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.cloud.CloudApiImpl;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -77,6 +78,7 @@ public class CoreServiceImpl extends AbstractService implements CoreService, Hea
     private void initializeBridgeApis() {
         NewRelicApiImplementation.initialize();
         PrivateApiImpl.initialize(Agent.LOG);
+        CloudApiImpl.initialize();
     }
 
     /**
