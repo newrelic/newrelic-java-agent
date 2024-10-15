@@ -1,8 +1,15 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent;
 
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.SuperAgentIntegrationConfig;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.ServiceFactory;
@@ -49,6 +56,7 @@ public class AgentTest {
     public void test_emptyLicense() {
         try (MockedStatic<ConfigServiceFactory> csfMock = Mockito.mockStatic(ConfigServiceFactory.class)) {
             AgentConfig agentConfig = Mockito.mock(AgentConfig.class);
+            Mockito.when(agentConfig.getSuperAgentIntegrationConfig()).thenReturn(Mockito.mock(SuperAgentIntegrationConfig.class));
             Mockito.when(agentConfig.getLicenseKey()).thenReturn(null);
             ConfigService configService = Mockito.mock(ConfigService.class);
             Mockito.when(configService.getDefaultAgentConfig()).thenReturn(agentConfig);
@@ -64,6 +72,7 @@ public class AgentTest {
     public void test_agentDisabled2() {
         try (MockedStatic<ConfigServiceFactory> csfMock = Mockito.mockStatic(ConfigServiceFactory.class)) {
             AgentConfig agentConfig = Mockito.mock(AgentConfig.class);
+            Mockito.when(agentConfig.getSuperAgentIntegrationConfig()).thenReturn(Mockito.mock(SuperAgentIntegrationConfig.class));
             Mockito.when(agentConfig.getLicenseKey()).thenReturn("licenseKey");
             Mockito.when(agentConfig.isAgentEnabled()).thenReturn(false);
             ConfigService configService = Mockito.mock(ConfigService.class);
