@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<BugCollection version="4.7.3" sequence="0" timestamp="1728983207865" analysisTimestamp="1728983207865" release="">
+<BugCollection version="4.7.3" sequence="0" timestamp="1729069595559" analysisTimestamp="1729069595559" release="">
   <Project projectName="newrelic-agent (spotbugsMain)">
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/jfr/JfrService.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/AgentConnectionEstablishedListener.class</Jar>
@@ -243,6 +243,7 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/AgentConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ThreadProfilerConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/AttributesConfig.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/JavaVersionUtils.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/Hostname.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ExtensionsConfigImpl.class</Jar>
@@ -276,9 +277,11 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/PointCutConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/InfiniteTracingConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/JmxConfig.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/SuperAgentIntegrationHealthConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/AgentConfigHelper$ExtensionConstructor$2.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ApplicationLoggingForwardingConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/StripExceptionConfig.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/SuperAgentIntegrationConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/AgentJarHelper$1.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ConfigFileHelper.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ExpectedErrorConfigImpl.class</Jar>
@@ -307,6 +310,19 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/ErrorCollectorConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/BaseConfig.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/config/AgentConfigFactory.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentIntegrationClientFactory.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentIntegrationHealthClient.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/AgentHealth$Category.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/AgentHealth$Status.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentIntegrationHealthFileBasedClient.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/HealthDataProducer.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/HealthDataChangeListener.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentHealthNoOpClient.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentIntegrationUtils.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentIntegrationService.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentIntegrationClientFactory$HealthClientType.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/AgentHealth.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/superagent/SuperAgentIntegrationClientFactory$1.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/dispatchers/OtherDispatcher.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/dispatchers/DefaultDispatcher.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/dispatchers/Dispatcher.class</Jar>
@@ -1389,8 +1405,57 @@
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/main/resources</SrcDir>
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/main/java</SrcDir>
   </Project>
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="1" rank="15" abbrev="DLS" category="STYLE" instanceHash="7478d3b8a6b0d1ff1f2ee5aadc882845" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="563">
+    <ShortMessage>Dead store to local variable</ShortMessage>
+    <LongMessage>Dead store to configProps in new com.newrelic.agent.config.SuperAgentIntegrationConfigImpl(Map)</LongMessage>
+    <Class classname="com.newrelic.agent.config.SuperAgentIntegrationConfigImpl" primary="true">
+      <SourceLine classname="com.newrelic.agent.config.SuperAgentIntegrationConfigImpl" start="27" end="74" sourcefile="SuperAgentIntegrationConfigImpl.java" sourcepath="com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.java" relSourcepath="java/com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.java">
+        <Message>At SuperAgentIntegrationConfigImpl.java:[lines 27-74]</Message>
+      </SourceLine>
+      <Message>In class com.newrelic.agent.config.SuperAgentIntegrationConfigImpl</Message>
+    </Class>
+    <Method classname="com.newrelic.agent.config.SuperAgentIntegrationConfigImpl" name="&lt;init&gt;" signature="(Ljava/util/Map;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.newrelic.agent.config.SuperAgentIntegrationConfigImpl" start="27" end="35" startBytecode="0" endBytecode="23" sourcefile="SuperAgentIntegrationConfigImpl.java" sourcepath="com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.java" relSourcepath="java/com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.java"/>
+      <Message>In method new com.newrelic.agent.config.SuperAgentIntegrationConfigImpl(Map)</Message>
+    </Method>
+    <LocalVariable name="configProps" register="1" pc="15" role="LOCAL_VARIABLE_NAMED">
+      <Message>Local variable named configProps</Message>
+    </LocalVariable>
+    <SourceLine classname="com.newrelic.agent.config.SuperAgentIntegrationConfigImpl" primary="true" start="30" end="30" startBytecode="14" endBytecode="14" sourcefile="SuperAgentIntegrationConfigImpl.java" sourcepath="com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.java" relSourcepath="java/com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.java">
+      <Message>At SuperAgentIntegrationConfigImpl.java:[line 30]</Message>
+    </SourceLine>
+    <Property name="edu.umd.cs.findbugs.detect.DeadLocalStoreProperty.IS_PARAMETER" value="true"/>
+    <Property name="edu.umd.cs.findbugs.detect.DeadLocalStoreProperty.LOCAL_NAME" value="configProps"/>
+    <Property name="edu.umd.cs.findbugs.detect.DeadLocalStoreProperty.METHOD_RESULT" value="true"/>
+    <Property name="edu.umd.cs.findbugs.detect.DeadLocalStoreProperty.TWO_STORES_MULTIPLE_LOADS" value="true"/>
+  </BugInstance>
+  <BugCategory category="STYLE">
+    <Description>Dodgy code</Description>
+  </BugCategory>
+  <BugPattern type="DLS_DEAD_LOCAL_STORE" abbrev="DLS" category="STYLE">
+    <ShortDescription>Dead store to local variable</ShortDescription>
+    <Details><![CDATA[
+
+<p>
+This instruction assigns a value to a local variable,
+but the value is not read or used in any subsequent instruction.
+Often, this indicates an error, because the value computed is never
+used.
+</p>
+<p>
+Note that Sun's javac compiler often generates dead stores for
+final local variables. Because SpotBugs is a bytecode-based tool,
+there is no easy way to eliminate these false positives.
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugCode abbrev="DLS" cweid="563">
+    <Description>Dead local store</Description>
+  </BugCode>
   <Errors errors="0" missingClasses="0"></Errors>
-  <FindBugsSummary timestamp="Tue, 15 Oct 2024 09:06:47 +0000" total_classes="0" referenced_classes="0" total_bugs="0" total_size="0" num_packages="0" java_version="1.8.0_422" vm_version="25.422-b05" cpu_seconds="71.30" clock_seconds="38.19" peak_mbytes="533.29" alloc_mbytes="910.50" gc_seconds="1.62">
+  <FindBugsSummary timestamp="Wed, 16 Oct 2024 09:06:35 +0000" total_classes="0" referenced_classes="0" total_bugs="1" total_size="0" num_packages="1" java_version="1.8.0_422" vm_version="25.422-b05" cpu_seconds="70.71" clock_seconds="37.15" peak_mbytes="604.41" alloc_mbytes="910.50" gc_seconds="1.59" priority_1="1">
+    <FileStats path="com/newrelic/agent/config/SuperAgentIntegrationConfigImpl.java" bugCount="1" size="0" bugHash="b74984b2bf707e01c1cc5378569b969f"/>
     <FindBugsProfile></FindBugsProfile>
   </FindBugsSummary>
   <ClassFeatures></ClassFeatures>
