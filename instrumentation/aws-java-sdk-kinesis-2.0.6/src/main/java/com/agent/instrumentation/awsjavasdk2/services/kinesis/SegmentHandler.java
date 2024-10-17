@@ -24,7 +24,7 @@ public class SegmentHandler<T> {
         }
         return completableFuture.whenComplete((r, t) -> {
             try {
-                segment.reportAsExternal(Kinesis2Util.createCloudParams(streamRawData));
+                segment.reportAsExternal(KinesisUtil.createCloudParams(streamRawData));
                 segment.end();
             } catch (Throwable t1) {
                 AgentBridge.instrumentation.noticeInstrumentationError(t1, implementationTitle);

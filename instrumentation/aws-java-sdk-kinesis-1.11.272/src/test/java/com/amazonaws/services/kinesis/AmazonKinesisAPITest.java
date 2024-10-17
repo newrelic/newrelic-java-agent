@@ -36,7 +36,9 @@ import static org.mockito.Mockito.when;
 @InstrumentationTestConfig(includePrefixes = {"com.amazonaws"}, configName = "dt_enabled.yml")
 public class AmazonKinesisAPITest {
 
+    public static final String ACCOUNT_ID = "111111111111";
     public static final String STREAM_NAME = "stream-name";
+    public static final String STREAM_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name";
     @Rule
     public HttpServerRule server = new HttpServerRule();
     private AmazonKinesis kinesisClient;
@@ -54,6 +56,8 @@ public class AmazonKinesisAPITest {
                 .withCredentials(new CredProvider())
                 .withEndpointConfiguration(endpoint)
                 .build();
+        AgentBridge.cloud.setAccountInfo(kinesisClient, CloudAccountInfo.AWS_ACCOUNT_ID, ACCOUNT_ID);
+        AgentBridge.cloud.setAccountInfo(kinesisAsyncClient, CloudAccountInfo.AWS_ACCOUNT_ID, ACCOUNT_ID);
     }
 
     // HttpServerRule is flaky so only 1 test is run
@@ -64,7 +68,7 @@ public class AmazonKinesisAPITest {
         syncRequest.setStreamName(STREAM_NAME);
         txn(() -> kinesisClient.addTagsToStream(syncRequest));
         txnAsyncNoStream(() -> kinesisAsyncClient.addTagsToStreamAsync(new AddTagsToStreamRequest()));
-        assertKinesisTrace("addTagsToStream", STREAM_NAME, false);
+        assertKinesisTrace("addTagsToStream", STREAM_NAME, STREAM_ARN, false);
     }
 
     @Trace(dispatcher = true)
@@ -86,7 +90,7 @@ public class AmazonKinesisAPITest {
         }
     }
 
-    private void assertKinesisTrace(String kinesisOperation, String streamName, boolean assertSpan) {
+    private void assertKinesisTrace(String kinesisOperation, String streamName, String expectedArn, boolean assertSpan) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         final String traceName = "Kinesis/" + kinesisOperation;
         if (assertSpan) {
@@ -97,16 +101,17 @@ public class AmazonKinesisAPITest {
             assertEquals(2, kinesisSpans.size());
             for (SpanEvent kinesisSpan: kinesisSpans) {
                 assertEquals("aws_kinesis_data_streams", kinesisSpan.getAgentAttributes().get("cloud.platform"));
+                assertEquals(expectedArn, kinesisSpan.getAgentAttributes().get("cloud.resource_id"));
             }
         }
         assertTxn(kinesisOperation, streamName, "OtherTransaction/Custom/com.amazonaws.services.kinesis.AmazonKinesisAPITest/txn",
-                introspector);
+                expectedArn, introspector);
         assertTxnAsyncNoStream(kinesisOperation, "OtherTransaction/Custom/com.amazonaws.services.kinesis.AmazonKinesisAPITest/txnAsyncNoStream",
                 introspector);
 
     }
 
-    private void assertTxn(String kinesisOperation,String streamName, String transactionName, Introspector introspector) {
+    private void assertTxn(String kinesisOperation,String streamName, String transactionName, String expectedArn, Introspector introspector) {
         final String traceName = "Kinesis/" + kinesisOperation + "/" + streamName;
         Collection<TransactionTrace> transactionTraces = introspector.getTransactionTracesForTransaction(transactionName);
         TransactionTrace transactionTrace = transactionTraces.iterator().next();
@@ -115,6 +120,7 @@ public class AmazonKinesisAPITest {
         TraceSegment trace = children.get(0);
         assertEquals(traceName, trace.getName());
         assertEquals("aws_kinesis_data_streams", trace.getTracerAttributes().get("cloud.platform"));
+        assertEquals(expectedArn, trace.getTracerAttributes().get("cloud.resource_id"));
     }
 
     private void assertTxnAsyncNoStream(String kinesisOperation, String transactionName, Introspector introspector) {
@@ -133,6 +139,7 @@ public class AmazonKinesisAPITest {
         TraceSegment extTrace = asyncFunctionTraceChildren.get(0);
         assertEquals(extTraceName, extTrace.getName());
         assertEquals("aws_kinesis_data_streams", extTrace.getTracerAttributes().get("cloud.platform"));
+        assertNull(extTrace.getTracerAttributes().get("cloud.resource_id"));
     }
 
     private static class CredProvider implements AWSCredentialsProvider {

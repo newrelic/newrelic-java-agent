@@ -1,4 +1,4 @@
-package com.agent.instrumentation.awsjavasdk2.services.kinesis;
+package com.agent.instrumentation.awsjavasdk12.services.kinesis;
 
 public class StreamProcessedData {
     private final String streamName;
