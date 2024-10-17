@@ -1,6 +1,7 @@
 package com.agent.instrumentation.awsjavasdk1.services.kinesis;
 
 import com.amazonaws.AmazonWebServiceRequest;
+import com.amazonaws.util.AwsHostNameUtils;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.NewRelic;
@@ -18,7 +19,13 @@ public class KinesisUtil {
 
     public static final Map<AmazonWebServiceRequest, Token> requestTokenMap = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
+    private static final Function<StreamRawData, StreamProcessedData> CACHE =
+            AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, KinesisUtil::processStreamData);
     private KinesisUtil() {}
+
+    public static String getRegion(String serviceName, URI endpoint) {
+        return AwsHostNameUtils.parseRegion(endpoint.getHost(), serviceName);
+    }
 
     public static void setTokenForRequest(AmazonWebServiceRequest request) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
@@ -29,14 +36,14 @@ public class KinesisUtil {
         }
     }
 
-    public static void setTraceInformation(String kinesisOperation, AmazonWebServiceRequest request, String streamName) {
+    public static void setTraceInformation(String kinesisOperation, AmazonWebServiceRequest request, StreamRawData streamRawData) {
         Token token = KinesisUtil.getToken(request);
         if (token != null) {
             token.linkAndExpire();
         }
         KinesisUtil.cleanToken(request);
         TracedMethod tracedMethod = NewRelic.getAgent().getTransaction().getTracedMethod();
-        KinesisUtil.setTraceDetails(kinesisOperation, tracedMethod, streamName);
+        KinesisUtil.setTraceDetails(kinesisOperation, tracedMethod, streamRawData);
     }
 
     public static Token getToken(AmazonWebServiceRequest request) {
@@ -52,22 +59,49 @@ public class KinesisUtil {
         }
     }
 
-    public static void setTraceDetails(String kinesisOperation, TracedMethod tracedMethod, String streamName) {
-        String traceName = createTraceName(kinesisOperation, streamName);
+    public static void setTraceDetails(String kinesisOperation, TracedMethod tracedMethod, StreamRawData streamRawData) {
+        String traceName = createTraceName(kinesisOperation, streamRawData);
         tracedMethod.setMetricName(TRACE_CATEGORY, traceName);
-        tracedMethod.reportAsExternal(createCloudParams());
+        tracedMethod.reportAsExternal(createCloudParams(streamRawData));
     }
 
-    public static String createTraceName(String kinesisOperation, String streamName) {
+    public static String createTraceName(String kinesisOperation, StreamRawData streamRawData) {
+        String streamName = CACHE.apply(streamRawData).getStreamName();
         if (streamName != null && !streamName.isEmpty()) {
             return kinesisOperation + "/" + streamName;
         }
         return kinesisOperation;
     }
 
-    public static CloudParameters createCloudParams() {
-        return CloudParameters.provider(PLATFORM).build();
+    public static CloudParameters createCloudParams(StreamRawData streamRawData) {
+        return CloudParameters.provider(PLATFORM)
+                .resourceId(CACHE.apply(streamRawData).getCloudResourceId())
+                .build();
     }
 
+    public static StreamProcessedData processStreamData(StreamRawData streamRawData) {
+        String cloudResourceId = createCloudResourceId(streamRawData);
+        String streamName = streamRawData.getStreamName();
+        return new StreamProcessedData(streamName, cloudResourceId);
+    }
+
+    public static String createCloudResourceId(StreamRawData streamRawData) {
+        String accountId = streamRawData.getAccountId();
+        if (accountId == null || accountId.isEmpty()) {
+            return null;
+        }
+
+        String streamName = streamRawData.getStreamName();
+        if (streamName == null || streamName.isEmpty()) {
+            return null;
+        }
+
+        String region = streamRawData.getRegion();
+        if (region == null || region.isEmpty()) {
+            return null;
+        }
+
+        return "arn:aws:kinesis:" + region + ':' + accountId + ":stream/" + streamRawData.getStreamName();
+    }
 
 }
