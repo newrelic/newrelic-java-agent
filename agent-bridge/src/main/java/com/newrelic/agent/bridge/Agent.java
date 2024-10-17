@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.api.agent.Cloud;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.NewRelic;
 
