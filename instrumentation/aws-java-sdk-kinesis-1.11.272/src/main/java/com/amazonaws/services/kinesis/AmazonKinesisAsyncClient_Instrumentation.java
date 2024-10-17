@@ -1,6 +1,7 @@
 package com.amazonaws.services.kinesis;
 
-import com.agent.instrumentation.awsjavasdk1.services.kinesis.KinesisUtil;
+import com.agent.instrumentation.awsjavasdk12.services.kinesis.KinesisUtil;
+import com.agent.instrumentation.awsjavasdk12.services.kinesis.StreamRawData;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.handlers.AsyncHandler_Instrumentation;
 import com.amazonaws.services.kinesis.model.AddTagsToStreamRequest;
@@ -25,6 +26,8 @@ import com.amazonaws.services.kinesis.model.GetShardIteratorRequest;
 import com.amazonaws.services.kinesis.model.GetShardIteratorResult;
 import com.amazonaws.services.kinesis.model.IncreaseStreamRetentionPeriodRequest;
 import com.amazonaws.services.kinesis.model.IncreaseStreamRetentionPeriodResult;
+import com.amazonaws.services.kinesis.model.ListShardsRequest;
+import com.amazonaws.services.kinesis.model.ListShardsResult;
 import com.amazonaws.services.kinesis.model.ListStreamsRequest;
 import com.amazonaws.services.kinesis.model.ListStreamsResult;
 import com.amazonaws.services.kinesis.model.ListTagsForStreamRequest;
@@ -39,6 +42,10 @@ import com.amazonaws.services.kinesis.model.RemoveTagsFromStreamRequest;
 import com.amazonaws.services.kinesis.model.RemoveTagsFromStreamResult;
 import com.amazonaws.services.kinesis.model.SplitShardRequest;
 import com.amazonaws.services.kinesis.model.SplitShardResult;
+import com.amazonaws.services.kinesis.model.StartStreamEncryptionRequest;
+import com.amazonaws.services.kinesis.model.StartStreamEncryptionResult;
+import com.amazonaws.services.kinesis.model.StopStreamEncryptionRequest;
+import com.amazonaws.services.kinesis.model.StopStreamEncryptionResult;
 import com.amazonaws.services.kinesis.model.UpdateShardCountRequest;
 import com.amazonaws.services.kinesis.model.UpdateShardCountResult;
 import com.newrelic.agent.bridge.AgentBridge;
@@ -178,6 +185,26 @@ public class AmazonKinesisAsyncClient_Instrumentation {
     @Trace
     public Future<UpdateShardCountResult> updateShardCountAsync(UpdateShardCountRequest request,
             AsyncHandler_Instrumentation<UpdateShardCountRequest, UpdateShardCountResult> asyncHandler) {
+        setToken(asyncHandler, request);
+        return Weaver.callOriginal();
+    }
+
+    @Trace
+    public Future<ListShardsResult> listShardsAsync(ListShardsRequest request, AsyncHandler_Instrumentation<ListShardsRequest, ListShardsResult> asyncHandler) {
+        setToken(asyncHandler, request);
+        return Weaver.callOriginal();
+    }
+
+    @Trace
+    public Future<StartStreamEncryptionResult> startStreamEncryptionAsync(StartStreamEncryptionRequest request,
+            AsyncHandler_Instrumentation<StartStreamEncryptionRequest, StartStreamEncryptionResult> asyncHandler) {
+        setToken(asyncHandler, request);
+        return Weaver.callOriginal();
+    }
+
+    @Trace
+    public Future<StopStreamEncryptionResult> stopStreamEncryptionAsync(StopStreamEncryptionRequest request,
+            AsyncHandler_Instrumentation<StopStreamEncryptionRequest, StopStreamEncryptionResult> asyncHandler) {
         setToken(asyncHandler, request);
         return Weaver.callOriginal();
     }

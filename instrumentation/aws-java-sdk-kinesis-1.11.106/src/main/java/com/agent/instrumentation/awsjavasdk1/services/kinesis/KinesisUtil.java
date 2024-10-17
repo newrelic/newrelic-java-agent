@@ -1,14 +1,15 @@
-package com.agent.instrumentation.awsjavasdk2.services.kinesis;
+package com.agent.instrumentation.awsjavasdk1.services.kinesis;
 
 import com.amazonaws.AmazonWebServiceRequest;
-import com.amazonaws.handlers.AsyncHandler_Instrumentation;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.TracedMethod;
 
+import java.net.URI;
 import java.util.Map;
+import java.util.function.Function;
 
 public class KinesisUtil {
 
@@ -16,6 +17,7 @@ public class KinesisUtil {
     public static final String TRACE_CATEGORY = "Kinesis";
 
     public static final Map<AmazonWebServiceRequest, Token> requestTokenMap = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
+
     private KinesisUtil() {}
 
     public static void setTokenForRequest(AmazonWebServiceRequest request) {
@@ -27,14 +29,14 @@ public class KinesisUtil {
         }
     }
 
-    public static void setTraceInformation(String kinesisOperation, AmazonWebServiceRequest request) {
+    public static void setTraceInformation(String kinesisOperation, AmazonWebServiceRequest request, String streamName) {
         Token token = KinesisUtil.getToken(request);
         if (token != null) {
             token.linkAndExpire();
         }
         KinesisUtil.cleanToken(request);
         TracedMethod tracedMethod = NewRelic.getAgent().getTransaction().getTracedMethod();
-        KinesisUtil.setTraceDetails(kinesisOperation, tracedMethod);
+        KinesisUtil.setTraceDetails(kinesisOperation, tracedMethod, streamName);
     }
 
     public static Token getToken(AmazonWebServiceRequest request) {
@@ -50,14 +52,22 @@ public class KinesisUtil {
         }
     }
 
-    public static void setTraceDetails(String kinesisOperation, TracedMethod tracedMethod) {
-        tracedMethod.setMetricName(TRACE_CATEGORY, kinesisOperation);
+    public static void setTraceDetails(String kinesisOperation, TracedMethod tracedMethod, String streamName) {
+        String traceName = createTraceName(kinesisOperation, streamName);
+        tracedMethod.setMetricName(TRACE_CATEGORY, traceName);
         tracedMethod.reportAsExternal(createCloudParams());
     }
 
+    public static String createTraceName(String kinesisOperation, String streamName) {
+        if (streamName != null && !streamName.isEmpty()) {
+            return kinesisOperation + "/" + streamName;
+        }
+        return kinesisOperation;
+    }
+
     public static CloudParameters createCloudParams() {
-        // Todo: add arn to cloud parameters
         return CloudParameters.provider(PLATFORM).build();
     }
+
 
 }

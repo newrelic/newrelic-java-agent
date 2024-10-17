@@ -8,14 +8,14 @@ import com.newrelic.api.agent.TracedMethod;
 
 import java.util.function.Function;
 
-public class Kinesis2Util {
+public class KinesisUtil {
 
     public static final String PLATFORM = "aws_kinesis_data_streams";
     public static final String TRACE_CATEGORY = "Kinesis";
 
     private static final Function<StreamRawData, StreamProcessedData> CACHE =
-            AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, Kinesis2Util::processStreamData);
-    private Kinesis2Util() {}
+            AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, KinesisUtil::processStreamData);
+    private KinesisUtil() {}
 
     public static Segment beginSegment(String kinesisOperation, StreamRawData streamRawData) {
         String traceName = createTraceName(kinesisOperation, streamRawData);
@@ -30,12 +30,6 @@ public class Kinesis2Util {
         tracedMethod.setMetricName(TRACE_CATEGORY, traceName);
         tracedMethod.reportAsExternal(createCloudParams(streamRawData));
     }
-    public static CloudParameters createCloudParams(StreamRawData streamRawData) {
-        // Todo: add arn to cloud parameters
-        return CloudParameters.provider(PLATFORM)
-                .resourceId(CACHE.apply(streamRawData).getArn())
-                .build();
-    }
 
     public static String createTraceName(String kinesisOperation, StreamRawData streamRawData) {
         String streamName = CACHE.apply(streamRawData).getStreamName();
@@ -44,11 +38,16 @@ public class Kinesis2Util {
         }
         return kinesisOperation;
     }
+    public static CloudParameters createCloudParams(StreamRawData streamRawData) {
+        return CloudParameters.provider(PLATFORM)
+                .resourceId(CACHE.apply(streamRawData).getCloudResourceId())
+                .build();
+    }
 
     public static StreamProcessedData processStreamData(StreamRawData streamRawData) {
         String cloudResourceId = createCloudResourceId(streamRawData);
         String streamName = processStreamName(streamRawData, cloudResourceId);
-        return new StreamProcessedData(streamName, createCloudResourceId(streamRawData));
+        return new StreamProcessedData(streamName, cloudResourceId);
     }
 
     public static String processStreamName(StreamRawData streamRawData, String cloudResourceId) {
