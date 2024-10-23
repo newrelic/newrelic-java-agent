@@ -14,11 +14,13 @@ import com.newrelic.agent.bridge.external.URISupport;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
 
 /**
  * <p>
@@ -112,11 +114,16 @@ public class MetricState {
     }
 
     public void handleException(TracedMethod tracer, Exception e) {
+        NewRelic.noticeError(e);
+
         if (externalTracer != tracer) {
             return;
         }
 
         if (!externalReported && e instanceof UnknownHostException) {
+            NewRelic.getAgent().getLogger().log(Level.INFO, e, "UnknownHostException occurred in HttpURLConnection client");
+            NewRelic.getAgent().getLogger().log(Level.INFO, e, "UnknownHostException occurred in HttpURLConnection client for Transaction: " + NewRelic.getAgent().getTransaction() + ", TracedMethod: " + tracer.getMetricName());
+
             externalTracer.reportAsExternal(GenericParameters
                     .library(LIBRARY)
                     .uri(UNKNOWN_HOST)
