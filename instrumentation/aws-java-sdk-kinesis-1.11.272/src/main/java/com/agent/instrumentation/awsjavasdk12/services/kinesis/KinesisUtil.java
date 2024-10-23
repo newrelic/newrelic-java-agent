@@ -90,10 +90,12 @@ public class KinesisUtil {
             return null;
         }
 
-        return "arn:aws:kinesis:" +
-                streamRawData.getRegion() +
-                ':' + accountId +
-                ":stream/" + streamRawData.getStreamName();
+        String region = streamRawData.getRegion();
+        if (region == null || region.isEmpty()) {
+            return null;
+        }
+
+        return "arn:aws:kinesis:" + region + ':' + accountId + ":stream/" + streamRawData.getStreamName();
     }
 
 }

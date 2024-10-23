@@ -24,9 +24,6 @@ public class StreamRawData {
     }
 
     public String getRegion() {
-        if (region == null) {
-            return "";
-        }
         return region;
     }
 
