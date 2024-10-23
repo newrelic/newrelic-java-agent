@@ -36,7 +36,7 @@ public class StreamRawData {
     public String getRegion() {
         Region option = config.option(AwsClientOption.AWS_REGION);
         if (option == null) {
-            return "";
+            return null;
         }
         return config.option(AwsClientOption.AWS_REGION).toString();
     }

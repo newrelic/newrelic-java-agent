@@ -74,7 +74,17 @@ public class KinesisUtil {
             // Check if the arn is a consumer ARN and extract the stream ARN from it.
             int consumerPrefixIdx = cloudResourceId.lastIndexOf("/consumer/");
             if (-1 < consumerPrefixIdx && consumerPrefixIdx < cloudResourceId.length()) {
-                return cloudResourceId.substring(0, consumerPrefixIdx);
+                cloudResourceId = cloudResourceId.substring(0, consumerPrefixIdx);
+            }
+            // check if a partial arn without region
+            if (cloudResourceId.startsWith("arn:aws:kinesis::")) {
+
+                String region = streamRawData.getRegion();
+                if (region == null || region.isEmpty()) {
+                    return null;
+                }
+
+                cloudResourceId = "arn:aws:kinesis:" + region + cloudResourceId.substring(16);
             }
             return cloudResourceId;
         }
@@ -88,11 +98,12 @@ public class KinesisUtil {
         if (streamName == null || streamName.isEmpty()) {
             return null;
         }
+        String region = streamRawData.getRegion();
+        if (region == null || region.isEmpty()) {
+            return null;
+        }
 
-        return "arn:aws:kinesis:" +
-                streamRawData.getRegion() +
-                ':' + accountId +
-                ":stream/" + streamRawData.getStreamName();
+        return "arn:aws:kinesis:" + region + ':' + accountId + ":stream/" + streamRawData.getStreamName();
     }
 
 }
