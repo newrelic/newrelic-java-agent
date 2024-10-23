@@ -323,7 +323,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         transactionSizeLimit = getIntProperty(TRANSACTION_SIZE_LIMIT, DEFAULT_TRANSACTION_SIZE_LIMIT) * 1024;
         waitForRPMConnect = getProperty(WAIT_FOR_RPM_CONNECT, DEFAULT_WAIT_FOR_RPM_CONNECT);
         startupTimingEnabled = getProperty(STARTUP_TIMING, DEFAULT_STARTUP_TIMING);
-        sendJvmProps = getProperty(SEND_JVM_PROPS, true);
+        sendJvmProps = getProperty(SEND_JVM_PROPS, false);
         litemode = getProperty(LITE_MODE, false);
         legacyAsyncApiSkipSuspend = getProperty(LEGACY_ASYNC_API_SKIP_SUSPEND, false);
         caBundlePath = initSSLConfig();

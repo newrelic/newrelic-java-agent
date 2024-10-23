@@ -103,26 +103,27 @@ public class EnvironmentTest {
 
     @Test
     public void testJvmProp() {
-        // the default should be false
+        // should not send JVM props by default
         String randomProp = "hello";
         System.setProperty(randomProp, "true");
         AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
         try {
             Environment env = new Environment(config, "c:\\test\\log");
-            Assert.assertNotNull(env.getVariable("JVM arguments"));
+            Assert.assertNull(env.getVariable("JVM arguments"));
         } finally {
             System.clearProperty(randomProp);
         }
 
-        // but you can set it to true
+        // setting to true will send the JVM props
         String property = "newrelic.config." + AgentConfigImpl.SEND_JVM_PROPS;
-        System.setProperty(property, "false");
+        System.setProperty(property, "true");
         config = AgentConfigFactory.createAgentConfig(null, null, null);
         try {
             Environment env = new Environment(config, "c:\\test\\log");
-            Assert.assertNull(env.getVariable("JVM arguments"));
+            Assert.assertNotNull(env.getVariable("JVM arguments"));
         } finally {
             System.clearProperty(property);
         }
+
     }
 }
