@@ -74,6 +74,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String METRIC_INGEST_URI = "metric_ingest_uri";
     public static final String EVENT_INGEST_URI = "event_ingest_uri";
     public static final String METRIC_DEBUG = "metric_debug";
+    public static final String OBFUSCATE_JVM_PROPS = "obfuscate_jvm_props";
     public static final String PLATFORM_INFORMATION_ENABLED = "platform_information_enabled";
     public static final String PORT = "port";
     public static final String PROXY_HOST = "proxy_host";
@@ -275,6 +276,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final TransactionTracerConfigImpl transactionTracerConfig;
     private final UtilizationDataConfig utilizationConfig;
 
+    private final ObfuscateJvmPropsConfig obfuscateJvmPropsConfig;
+
     private final Map<String, Object> flattenedProperties;
     private final CommandParserConfig commandParserConfig;
 
@@ -370,6 +373,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         commandParserConfig = initCommandParserConfig();
         normalizationRuleConfig = new NormalizationRuleConfig(props);
         slowTransactionsConfig = initSlowTransactionsConfig();
+        obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
 
         Map<String, Object> flattenedProps = new HashMap<>();
         flatten("", props, flattenedProps);
@@ -782,6 +786,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         Map<String, Object> props = nestedProps(CLASS_TRANSFORMER);
         boolean addSecurityExcludes = getProperty("security") != null;
         return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode, addSecurityExcludes);
+    }
+
+    private ObfuscateJvmPropsConfig initObfuscateJvmPropsConfig() {
+        Map<String, Object> props = nestedProps(OBFUSCATE_JVM_PROPS);
+        return new ObfuscateJvmPropsConfigImpl(props);
     }
 
     private CircuitBreakerConfig initCircuitBreakerConfig() {
@@ -1229,6 +1238,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public AttributesConfig getAttributesConfig() {
         return attributesConfig;
     }
+
+    @Override
+
+    public ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig() {return obfuscateJvmPropsConfig;}
 
     @Override
     public ReinstrumentConfig getReinstrumentConfig() {

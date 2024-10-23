@@ -10,6 +10,7 @@ package com.newrelic.agent.environment;
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.ObfuscateJvmPropsConfig;
 import com.newrelic.agent.samplers.MemorySampler;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONStreamAware;
@@ -24,6 +25,7 @@ import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -86,6 +88,11 @@ public class Environment implements JSONStreamAware, Cloneable {
             if (config.isSendJvmProps()) {
                 RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
                 List<String> inputArguments = fixInputArguments(runtimeMXBean.getInputArguments());
+                ObfuscateJvmPropsConfig obfuscateJvmPropsConfig = config.getObfuscateJvmPropsConfig();
+                if (obfuscateJvmPropsConfig.isEnabled()) {
+                   Set<String> allow = obfuscateJvmPropsConfig.getAllowedJvmProps();
+                    inputArguments = obfuscateProps(inputArguments, allow);
+                }
                 environmentMap.add(Arrays.asList("JVM arguments", inputArguments));
             }
         }
@@ -131,6 +138,24 @@ public class Environment implements JSONStreamAware, Cloneable {
         String instanceName = config.getProperty("instance_name");
 
         agentIdentity = new AgentIdentity(dispatcher, null, serverPort, instanceName);
+    }
+
+    private List<String> obfuscateProps(List<String> inputArguments, Set<String> allow) {
+        // This should read the list of inputArguments and obfuscate it according to the allow list scheme
+        List<String> sanitizedProps = new ArrayList<>();
+        for (String arg: inputArguments) {
+            String tmpArg = arg;
+            if (shouldObfuscate(arg, allow)) { tmpArg = JvmPropObfuscator.obfuscate(arg);}
+            sanitizedProps.add(tmpArg);
+        }
+        return sanitizedProps;
+    }
+
+    private boolean shouldObfuscate(String arg, Set<String> allow) {
+        for (String prop: allow) {
+            if (arg.startsWith(prop)) { return false;}
+        }
+        return true;
     }
 
     public void addEnvironmentChangeListener(EnvironmentChangeListener listener) {
