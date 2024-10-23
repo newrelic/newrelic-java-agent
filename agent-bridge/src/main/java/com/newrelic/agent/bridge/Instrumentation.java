@@ -12,7 +12,6 @@ import java.lang.reflect.Method;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
-import com.newrelic.api.agent.Trace;
 
 public interface Instrumentation {
 
@@ -58,6 +57,10 @@ public interface Instrumentation {
     ExitTracer createSqlTracer(Object invocationTarget, int signatureId, String metricName, int flags);
 
     ExitTracer createScalaTxnTracer();
+
+    default ExitTracer createTracer(String metricName, int flags) {
+        return null;
+    }
 
     /**
      * Returns the current transaction. This should not be called directly - instead use {@link Agent#getTransaction()}.
