@@ -72,6 +72,8 @@ public class DefaultKinesisAsyncClientTest {
     public static final String ACCOUNT_ID = "111111111111";
     public static final String STREAM_NAME = "stream-name";
     public static final String STREAM_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name";
+    public static final String STREAM_PARTIAL_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name";
+    public static final String CONSUMER_PARTIAL_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name/consumer/myconsumer:1";
     public static final String CONSUMER_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name/consumer/myconsumer:1";
     public KinesisAsyncClient kinesisAsyncClient;
     public HttpExecuteResponse response;
@@ -125,6 +127,12 @@ public class DefaultKinesisAsyncClientTest {
     }
 
     @Test
+    public void testDeregisterStreamConsumerWithPartialConsumerArn() {
+        txn(() -> kinesisAsyncClient.deregisterStreamConsumer(DeregisterStreamConsumerRequest.builder().consumerARN(CONSUMER_PARTIAL_ARN).build()));
+        assertKinesisTrace("Kinesis/deregisterStreamConsumer/stream-name", STREAM_ARN, false);
+    }
+
+    @Test
     public void testDescribeLimits() {
         txn(() -> kinesisAsyncClient.describeLimits(DescribeLimitsRequest.builder().build()));
         assertKinesisTrace("Kinesis/describeLimits", null, false);
@@ -169,6 +177,12 @@ public class DefaultKinesisAsyncClientTest {
     @Test
     public void testGetRecords() {
         txn(() -> kinesisAsyncClient.getRecords(GetRecordsRequest.builder().streamARN(STREAM_ARN).build()));
+        assertKinesisTrace("Kinesis/getRecords/stream-name", STREAM_ARN, false);
+    }
+
+    @Test
+    public void testGetRecordsWithPartialStreamArn() {
+        txn(() -> kinesisAsyncClient.getRecords(GetRecordsRequest.builder().streamARN(STREAM_PARTIAL_ARN).build()));
         assertKinesisTrace("Kinesis/getRecords/stream-name", STREAM_ARN, false);
     }
 
