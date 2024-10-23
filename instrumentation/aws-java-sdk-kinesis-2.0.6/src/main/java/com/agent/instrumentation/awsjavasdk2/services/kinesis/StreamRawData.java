@@ -4,6 +4,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudAccountInfo;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.regions.Region;
 
 import java.util.Objects;
 
@@ -33,6 +34,10 @@ public class StreamRawData {
     }
 
     public String getRegion() {
+        Region option = config.option(AwsClientOption.AWS_REGION);
+        if (option == null) {
+            return "";
+        }
         return config.option(AwsClientOption.AWS_REGION).toString();
     }
 
