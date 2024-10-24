@@ -17,26 +17,28 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 
 public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentIntegrationHealthClient {
     private Yaml yamlWriter;
-
     private File healthFile = null;
+    private boolean isValid = false;
+
+    private final Random rnd = new Random();
 
     public SuperAgentIntegrationHealthFileBasedClient(SuperAgentIntegrationConfig config) {
         URI locationFromConfig = config.getHealthDeliveryLocation();
 
-        if (locationFromConfig != null) {
-            this.healthFile = new File(locationFromConfig);
+        File fileFolder = createHealthFileFolderInstance(locationFromConfig);
+        if (fileFolder != null) {
+            this.healthFile = new File(fileFolder, generateHealthFilename());
 
             DumperOptions yamlDumperOptions = new DumperOptions();
             yamlDumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             yamlDumperOptions.setPrettyFlow(true);
             yamlWriter = new Yaml(yamlDumperOptions);
-        } else {
-            Agent.LOG.log(Level.WARNING, "superagent.health.delivery_location is not set. " +
-                    "Health messages will not be generated");
+            isValid = true;
         }
     }
 
@@ -57,6 +59,11 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
         }
     }
 
+    @Override
+    public boolean isValid() {
+        return isValid;
+    }
+
     private Map<String, Object> createHeathMessageMap(AgentHealth agentHealth) {
         Map<String, Object> healthMap = new HashMap<>();
 
@@ -64,10 +71,30 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
         healthMap.put("status", agentHealth.getCurrentStatus());
         healthMap.put("start_time_unix_nano", agentHealth.getStartTimeNanos());
         healthMap.put("status_time_unix_nano", SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos());
+        healthMap.put("agent_run_id", agentHealth.getAgentRunId());
         if (!agentHealth.isHealthy()) {
             healthMap.put("last_error", agentHealth.getLastError());
         }
 
         return healthMap;
+    }
+    
+    private File createHealthFileFolderInstance(URI location) {
+        File fileFolder = null;
+        if (location != null) {
+            fileFolder = new File(location);
+            if (!(fileFolder.isDirectory() && fileFolder.canWrite())) {
+                Agent.LOG.log(Level.WARNING, "superagent.health.delivery_location is not a valid folder. " +
+                        "Health messages will not be generated.  Configured location: {0}  isFolder: {1}  canWrite: {2}",
+                        fileFolder.getAbsolutePath(), fileFolder.isDirectory(), fileFolder.canWrite());
+                fileFolder = null;
+            }
+        }
+        
+        return fileFolder;
+    }
+
+    private String generateHealthFilename() {
+        return "health_" + rnd.nextInt(Integer.MAX_VALUE) + ".yml";
     }
 }

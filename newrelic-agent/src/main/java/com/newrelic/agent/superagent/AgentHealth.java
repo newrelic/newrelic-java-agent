@@ -60,10 +60,11 @@ public class AgentHealth {
 
     private final long startTimeNanos;
     private Status status;
-
+    private String agentRunId;
     AgentHealth(long startTimeNanos) {
         this.startTimeNanos = startTimeNanos;
         status = Status.HEALTHY;
+        agentRunId = "";
     }
 
     void setUnhealthyStatus(Status newStatus, String... additionalInfo) {
@@ -76,6 +77,10 @@ public class AgentHealth {
         if (category == status.category) {
             status = Status.HEALTHY;
         }
+    }
+
+    void setAgentRunId(String agentRunId) {
+        this.agentRunId = agentRunId;
     }
 
     public boolean isHealthy() {
@@ -92,5 +97,9 @@ public class AgentHealth {
 
     public long getStartTimeNanos() {
         return startTimeNanos;
+    }
+
+    public String getAgentRunId() {
+        return agentRunId;
     }
 }

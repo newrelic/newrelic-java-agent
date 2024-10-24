@@ -33,7 +33,7 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
     static {
         try {
-            HEALTH_FILE_LOCATION = new URI("file://" + System.getProperty("user.dir") + "/health.yml");
+            HEALTH_FILE_LOCATION = new URI("file://" + System.getProperty("user.dir"));
         } catch (URISyntaxException e) {
             // ignored
         }
@@ -48,9 +48,11 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
     @After
     public void cleanup() {
-        File healthFile = new File(HEALTH_FILE_LOCATION);
-        if (healthFile.exists()) {
-            healthFile.delete();
+        File[] healthFiles = getGeneratedHealthFiles();
+        if (healthFiles != null) {
+            for (File f : healthFiles) {
+                f.delete();
+            }
         }
     }
 
@@ -61,17 +63,21 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
         long startTime = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
+        agentHealth.setAgentRunId("runid");
 
         client.sendHealthMessage(agentHealth);
-        File yamlFile = new File(HEALTH_FILE_LOCATION);
+        File[] yamlFiles = getGeneratedHealthFiles();
         Yaml yaml = new Yaml();
-        InputStream is = Files.newInputStream(yamlFile.toPath());
+        InputStream is = Files.newInputStream(yamlFiles[0].toPath());
         Map<String, Object> parsedYaml = yaml.load(is);
         assertTrue((boolean)parsedYaml.get("healthy"));
         assertEquals(startTime, parsedYaml.get("start_time_unix_nano"));
         assertEquals("Healthy", parsedYaml.get("status"));
         assertNotNull(parsedYaml.get("status_time_unix_nano"));
         assertNull(parsedYaml.get("last_error"));
+        assertEquals("runid", parsedYaml.get("agent_run_id"));
+
+        assertTrue(client.isValid());
     }
 
     @Test
@@ -84,14 +90,30 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
         agentHealth.setUnhealthyStatus(AgentHealth.Status.INVALID_LICENSE);
 
         client.sendHealthMessage(agentHealth);
-        File yamlFile = new File(HEALTH_FILE_LOCATION);
+        File[] yamlFiles = getGeneratedHealthFiles();
         Yaml yaml = new Yaml();
-        InputStream is = Files.newInputStream(yamlFile.toPath());
+        InputStream is = Files.newInputStream(yamlFiles[0].toPath());
         Map<String, Object> parsedYaml = yaml.load(is);
         assertFalse((boolean)parsedYaml.get("healthy"));
         assertEquals(startTime, parsedYaml.get("start_time_unix_nano"));
         assertEquals("Invalid license key (HTTP status code 401)", parsedYaml.get("status"));
         assertNotNull(parsedYaml.get("status_time_unix_nano"));
         assertEquals("NR-APM-001", parsedYaml.get("last_error"));
+
+        assertTrue(client.isValid());
+    }
+
+    @Test
+    public void constructor_withInvalidLocation_setsValidToFalse() throws URISyntaxException {
+        when(mockConfig.getHealthDeliveryLocation()).thenReturn(new URI("file:///foo/bar/zzzzzzzz"));
+        SuperAgentIntegrationHealthFileBasedClient client = new SuperAgentIntegrationHealthFileBasedClient(mockConfig);
+
+        assertFalse(client.isValid());
+    }
+
+    private File[] getGeneratedHealthFiles() {
+        File yamlFile = new File(HEALTH_FILE_LOCATION);
+        File[] files = yamlFile.listFiles((dir, name) -> name.matches( "health_.*\\.yml" ));
+        return (files != null && files.length > 0) ? files : null;
     }
 }

@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.introspec.internal;
 
+import com.newrelic.agent.AgentConnectionEstablishedListener;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.errors.TracedError;
@@ -181,4 +182,7 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     protected void doStop() {
     }
 
+    @Override
+    public void addAgentConnectionEstablishedListener(AgentConnectionEstablishedListener listener) {
+    }
 }
