@@ -198,6 +198,17 @@ This command creates custom jars that we can share with customers.
 This workflow checks that the repository conforms to New Relic standards. It will create issues for non conformities.
 
 ---
+### Dependency Graph Submission
+[dependency-submission.yml](dependency-submission.yml)
+
+This workflow generates and submits a dependency graph to the GitHub Dependency Submission API. The graph is used to trigger Dependabot Alerts for vulnerable 
+dependencies, and to populate the Dependency Graph insights view in GitHub.
+
+#### Triggers
+
+- automatic on merge to main
+
+---
 
 ## Release workflows
 
