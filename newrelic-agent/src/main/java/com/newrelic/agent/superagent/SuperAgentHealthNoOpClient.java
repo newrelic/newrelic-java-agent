@@ -11,4 +11,9 @@ public class SuperAgentHealthNoOpClient implements SuperAgentIntegrationHealthCl
     public void sendHealthMessage(AgentHealth agentHealth) {
 
     }
+
+    @Override
+    public boolean isValid() {
+        return true;
+    }
 }

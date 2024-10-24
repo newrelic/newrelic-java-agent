@@ -7,20 +7,24 @@
 package com.newrelic.agent.superagent;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.AgentConnectionEstablishedListener;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.api.agent.NewRelic;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class SuperAgentIntegrationService extends AbstractService implements HealthDataChangeListener {
+public class SuperAgentIntegrationService extends AbstractService implements HealthDataChangeListener, AgentConnectionEstablishedListener {
     private final String SA_INTEGRATION_THREAD_NAME = "New Relic Super Agent Integration Service";
 
     private final AgentConfig agentConfig;
@@ -53,6 +57,9 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
 
             int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay
 
+            // Register for this event so we can update the agent_run_id
+            ServiceFactory.getRPMService().addAgentConnectionEstablishedListener(this);
+
             this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory(SA_INTEGRATION_THREAD_NAME, true));
             this.scheduler.scheduleWithFixedDelay(() -> client.sendHealthMessage(agentHealth), messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
         }
@@ -69,7 +76,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
 
     @Override
     public boolean isEnabled() {
-        return agentConfig.getSuperAgentIntegrationConfig().isEnabled();
+        return agentConfig.getSuperAgentIntegrationConfig().isEnabled() && client.isValid();
     }
 
     @Override
@@ -86,5 +93,10 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
                 agentHealth.setHealthyStatus(category);
             }
         }
+    }
+
+    @Override
+    public void onEstablished(String appName, String agentRunToken, Map<String, String> requestMetadata) {
+        agentHealth.setAgentRunId(agentRunToken);
     }
 }

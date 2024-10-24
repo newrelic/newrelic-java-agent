@@ -1014,4 +1014,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         // reset our error logging so that something will show up at info level if data failures persist
         last503Error.set(0);
     }
+
+    @Override
+    public void addAgentConnectionEstablishedListener(AgentConnectionEstablishedListener listener) {
+        if (listener != null) {
+            this.agentConnectionEstablishedListeners.add(listener);
+        }
+    }
 }

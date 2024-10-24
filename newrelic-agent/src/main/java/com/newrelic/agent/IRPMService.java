@@ -92,5 +92,7 @@ public interface IRPMService extends Service {
 
     void sendErrorData(List<TracedError> tracedErrors) throws Exception;
 
+    void addAgentConnectionEstablishedListener(AgentConnectionEstablishedListener listener);
+
     HealthDataProducer getHttpDataSenderAsHealthDataProducer();
 }

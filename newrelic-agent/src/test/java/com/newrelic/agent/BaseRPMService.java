@@ -189,4 +189,8 @@ public abstract class BaseRPMService implements IRPMService {
         return false;
     }
 
+    @Override
+    public void addAgentConnectionEstablishedListener(AgentConnectionEstablishedListener listener) {
+
+    }
 }
