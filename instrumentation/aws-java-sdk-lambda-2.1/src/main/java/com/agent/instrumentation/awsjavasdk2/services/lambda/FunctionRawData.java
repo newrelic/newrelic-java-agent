@@ -9,6 +9,7 @@ package com.agent.instrumentation.awsjavasdk2.services.lambda;
 
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.regions.Region;
 
 import java.lang.ref.WeakReference;
 import java.util.Objects;
@@ -22,7 +23,6 @@ public class FunctionRawData {
     // the code only cares about the region, but the config is stored
     // to prevent unnecessary calls to get the region
     private final WeakReference<SdkClientConfiguration> config;
-    private String awsRegion;
     private final WeakReference<Object> sdkClient;
 
     public FunctionRawData(String functionRef, String qualifier, SdkClientConfiguration config, Object sdkClient) {
@@ -41,16 +41,14 @@ public class FunctionRawData {
     }
 
     public String getRegion() {
-        if (awsRegion == null) {
-            SdkClientConfiguration config = this.config.get();
-            if (config != null) {
-                Object region = config.option(AwsClientOption.AWS_REGION);
-                if (region != null) {
-                    awsRegion = region.toString();
-                }
+        SdkClientConfiguration config = this.config.get();
+        if (config != null) {
+            Region region = config.option(AwsClientOption.AWS_REGION);
+            if (region != null) {
+                return region.id();
             }
         }
-        return awsRegion;
+        return null;
     }
 
     public Object getSdkClient() {

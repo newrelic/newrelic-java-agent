@@ -26,7 +26,7 @@ public abstract class AWSLambdaClient_Instrumentation {
 
     @Trace(leaf = true)
     public InvokeResult invoke(InvokeRequest invokeRequest) {
-        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.getFunctionName(), invokeRequest.getQualifier(), getSigningRegion(), this);
+        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.getFunctionName(), invokeRequest.getQualifier(), this.getSigningRegion(), this);
         CloudParameters cloudParameters = LambdaUtil.getCloudParameters(functionRawData);
         TracedMethod tracedMethod = NewRelic.getAgent().getTracedMethod();
         tracedMethod.reportAsExternal(cloudParameters);
