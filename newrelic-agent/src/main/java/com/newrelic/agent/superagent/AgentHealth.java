@@ -61,6 +61,7 @@ public class AgentHealth {
     private final long startTimeNanos;
     private Status status;
     private String agentRunId;
+
     AgentHealth(long startTimeNanos) {
         this.startTimeNanos = startTimeNanos;
         status = Status.HEALTHY;

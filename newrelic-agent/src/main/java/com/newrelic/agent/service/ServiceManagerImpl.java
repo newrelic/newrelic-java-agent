@@ -11,7 +11,6 @@ import com.newrelic.InfiniteTracing;
 import com.newrelic.InfiniteTracingConfig;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.AgentConnectionEstablishedListener;
-import com.newrelic.agent.ConnectionListener;
 import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.GCService;
 import com.newrelic.agent.HarvestService;
