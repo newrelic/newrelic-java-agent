@@ -10,14 +10,27 @@ package com.agent.instrumentation.awsjavasdk2.services.lambda;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.CloudParameters;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LambdaUtil {
 
     private static final String PLATFORM = "aws_lambda";
     private static final String NULL_ARN = "";
+    private static final FunctionProcessedData NULL_DATA = new FunctionProcessedData(NULL_ARN, NULL_ARN);
     private static final String PREFIX = "arn:aws:lambda:";
+    private static final Pattern FUNC_REF_PATTERN = Pattern.compile(
+            "(arn:(aws[a-zA-Z-]*)?:lambda:)?" + // arn prefix
+            "((?<region>[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}):)?" + // region
+            "((?<accountId>\\d{12}):)?" + // account id
+            "(function:)?" + // constant
+            "(?<functionName>[a-zA-Z0-9-\\.]+)" + // function name (only required part)
+            "(:(?<qualifier>\\$LATEST|[a-zA-Z0-9-]+))?"); // qualifier: version or alias
+
     private static final Function<FunctionRawData, FunctionProcessedData> CACHE =
             AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, LambdaUtil::processData);
 
@@ -53,66 +66,48 @@ public class LambdaUtil {
      */
     // Visible for testing
     static FunctionProcessedData processData(FunctionRawData data) {
-        String functionRef = data.getFunctionRef();
-
-        String[] parts = functionRef.split(":");
-
-        String functionName = NULL_ARN;
         String arn = NULL_ARN;
 
-        if (parts.length == 1) {
-            // function name: {function-name}
-            String accountId = getAccountId(data.getSdkClient());
-            if (accountId != null) {
-                String qualifier = data.getQualifier();
-                if (qualifier == null) {
-                    arn = PREFIX + data.getRegion() + ":" + accountId + ":function:" + functionRef;
-                } else {
-                    arn = PREFIX + data.getRegion() + ":" + accountId + ":function:" + functionRef + ":" + qualifier;
-                }
-            }
-            functionName = functionRef;
-
-        } else if (parts.length == 2) {
-            // function name + qualifier: {function-name}:{qualifier}
-            String accountId = getAccountId(data.getSdkClient());
-            if (accountId != null) {
-                arn = PREFIX + data.getRegion() + ":" + accountId + ":function:" + functionRef;
-            }
-            functionName = parts[0];
-
-        } else if (parts.length == 3) {
-            // partial ARN: {account-id}:function:{function-name}
-            functionName = parts[2];
-            String qualifier = data.getQualifier();
-            if (qualifier == null) {
-                arn = PREFIX + data.getRegion() + ":" + functionRef;
-            } else {
-                arn = PREFIX + data.getRegion() + ":" + functionRef + ":" + qualifier;
-            }
-
-        } else if (parts.length == 4) {
-            // partial ARN with qualifier: {account-id}:function:{function-name}:{qualifier}
-            functionName = parts[2];
-            arn = PREFIX + data.getRegion() + ":" + functionRef;
-
-        } else if (parts.length == 7) {
-            // full ARN: arn:aws:lambda:{region}:{account-id}:function:{function-name}
-            functionName = parts[6];
-            String qualifier = data.getQualifier();
-            if (qualifier == null) {
-                arn = functionRef;
-            } else {
-                arn = functionRef + ":" + qualifier;
-            }
-
-        } else if (parts.length == 8) {
-            // full ARN with qualifier: arn:aws:lambda:{region}:{account-id}:function:{function-name}:{qualifier}
-            functionName = parts[6];
-            arn = functionRef;
+        String functionRef = data.getFunctionRef();
+        Matcher matcher = FUNC_REF_PATTERN.matcher(functionRef);
+        if (!matcher.matches()) {
+            return NULL_DATA;
         }
-        // reference should be invalid if the number of parts do not match any of the expected cases
 
+        String region = matcher.group("region");
+        String accountId = matcher.group("accountId");
+        String qualifier = matcher.group("qualifier");
+        String functionName = matcher.group("functionName");
+
+        if (functionName == null) {
+            // will not be able to add any data
+            NewRelic.getAgent().getLogger().log(Level.INFO, "aws-lambda: Unable to assemble ARN: " + functionRef);
+            return NULL_DATA;
+        }
+
+        if (region == null) {
+            // if region is not provided, we will try to get it from the SDK client
+            region = data.getRegion();
+        }
+
+        if (accountId == null) {
+            // if account id is not provided, we will try to get it from the config
+            accountId = getAccountId(data.getSdkClient());
+        }
+
+        if (region != null && accountId != null) {
+            if (qualifier == null) {
+                qualifier = data.getQualifier();
+            }
+
+            if (qualifier == null || qualifier.isEmpty() || "$LATEST".equals(qualifier)) {
+                arn = PREFIX + region + ":" + accountId + ":function:" + functionName;
+            } else {
+                arn = PREFIX + region + ":" + accountId + ":function:" + functionName + ":" + qualifier;
+            }
+        } else {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "aws-lambda: Missing information to assemble ARN.");
+        }
         return new FunctionProcessedData(functionName, arn);
     }
 

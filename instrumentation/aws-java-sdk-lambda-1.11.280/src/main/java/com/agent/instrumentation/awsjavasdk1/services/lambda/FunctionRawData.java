@@ -9,6 +9,7 @@ package com.agent.instrumentation.awsjavasdk1.services.lambda;
 
 import java.lang.ref.WeakReference;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Data necessary to calculate the ARN. This class is used as the key for the ARN cache.
@@ -16,10 +17,10 @@ import java.util.Objects;
 public class FunctionRawData {
     private final String functionRef;
     private final String qualifier;
-    private final String region;
+    private final Supplier<String> region;
     private final WeakReference<Object> sdkClient;
 
-    public FunctionRawData(String functionRef, String qualifier, String region, Object sdkClient) {
+    public FunctionRawData(String functionRef, String qualifier, Supplier<String> region, Object sdkClient) {
         this.functionRef = functionRef;
         this.qualifier = qualifier;
         this.region = region;
@@ -35,7 +36,7 @@ public class FunctionRawData {
     }
 
     public String getRegion() {
-        return region;
+        return region.get();
     }
 
     public Object getSdkClient() {
