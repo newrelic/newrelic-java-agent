@@ -23,8 +23,12 @@ public class KinesisUtil {
             AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, KinesisUtil::processStreamData);
     private KinesisUtil() {}
 
-    public static String getRegion(String serviceName, URI endpoint) {
-        return AwsHostNameUtils.parseRegion(endpoint.getHost(), serviceName);
+    public static String getRegion(String serviceName, URI endpoint, String overrideRegion) {
+        String parsedRegion = AwsHostNameUtils.parseRegion(endpoint.getHost(), serviceName);
+        if (parsedRegion != null && !parsedRegion.isEmpty()) {
+            return parsedRegion;
+        }
+        return overrideRegion;
     }
 
     public static void setTokenForRequest(AmazonWebServiceRequest request) {
