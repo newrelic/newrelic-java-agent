@@ -88,11 +88,7 @@ public class Environment implements JSONStreamAware, Cloneable {
             if (config.isSendJvmProps()) {
                 RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
                 List<String> inputArguments = fixInputArguments(runtimeMXBean.getInputArguments());
-                ObfuscateJvmPropsConfig obfuscateJvmPropsConfig = config.getObfuscateJvmPropsConfig();
-                if (obfuscateJvmPropsConfig.isEnabled()) {
-                   Set<String> allow = obfuscateJvmPropsConfig.getAllowedJvmProps();
-                    inputArguments = obfuscateProps(inputArguments, allow);
-                }
+                inputArguments = obfuscateProps(inputArguments, config.getObfuscateJvmPropsConfig());
                 environmentMap.add(Arrays.asList("JVM arguments", inputArguments));
             }
         }
@@ -140,22 +136,23 @@ public class Environment implements JSONStreamAware, Cloneable {
         agentIdentity = new AgentIdentity(dispatcher, null, serverPort, instanceName);
     }
 
-    private List<String> obfuscateProps(List<String> inputArguments, Set<String> allow) {
-        // This should read the list of inputArguments and obfuscate it according to the allow list scheme
-        List<String> sanitizedProps = new ArrayList<>();
-        for (String arg: inputArguments) {
-            String tmpArg = arg;
-            if (shouldObfuscate(arg, allow)) { tmpArg = JvmPropObfuscator.obfuscate(arg);}
-            sanitizedProps.add(tmpArg);
+    @VisibleForTesting
+    protected List<String> obfuscateProps(List<String> inputArgs, ObfuscateJvmPropsConfig jvmPropsConfig) {
+        if (!jvmPropsConfig.isEnabled()) {
+            return inputArgs;
         }
-        return sanitizedProps;
-    }
-
-    private boolean shouldObfuscate(String arg, Set<String> allow) {
-        for (String prop: allow) {
-            if (arg.startsWith(prop)) { return false;}
+        List<String> sanitized = new ArrayList<>();
+        for (String prop: inputArgs) {
+            String[] propNameAndVal = prop.split("=");
+            String propName = propNameAndVal[0];
+            //small optimization: apply the rules only if the prop has a value after an equals sign
+            if (propNameAndVal.length > 1 && jvmPropsConfig.shouldObfuscate(propName)) {
+                sanitized.add(propName + "=obfuscated");
+            } else {
+                sanitized.add(prop);
+            }
         }
-        return true;
+        return sanitized;
     }
 
     public void addEnvironmentChangeListener(EnvironmentChangeListener listener) {
