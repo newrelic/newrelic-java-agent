@@ -46,6 +46,9 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Representation of a Span
+ */
 public class ExitTracerSpan implements ReadWriteSpan {
     static final String OTEL_LIBRARY_VERSION = "otel.library.version";
     static final AttributeKey<String> OTEL_LIBRARY_NAME = AttributeKey.stringKey("otel.library.name");

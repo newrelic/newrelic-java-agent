@@ -14,6 +14,9 @@ import com.newrelic.api.agent.TracedMethod;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.sdk.trace.ExitTracerSpan;
 
+/**
+ * Helper class for managing the OpenTelemetry Context
+ */
 class ContextHelper {
     private ContextHelper() {
     }

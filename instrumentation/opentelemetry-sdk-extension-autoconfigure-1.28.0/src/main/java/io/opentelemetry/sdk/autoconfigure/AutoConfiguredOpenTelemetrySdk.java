@@ -14,6 +14,10 @@ import com.newrelic.api.agent.weaver.Weaver;
 
 import java.util.logging.Level;
 
+/**
+ * Weaved to autoconfigure the OpenTelemetrySDK properties
+ * and resources for compatability with New Relic.
+ */
 @Weave(type = MatchType.ExactClass)
 public class AutoConfiguredOpenTelemetrySdk {
 

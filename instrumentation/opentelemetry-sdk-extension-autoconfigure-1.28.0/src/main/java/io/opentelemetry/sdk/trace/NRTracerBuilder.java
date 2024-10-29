@@ -14,6 +14,11 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.TracerBuilder;
 
+/**
+ * New Relic Java agent implementation of an OpenTelemetry
+ * TracerBuilder, which is a factory for building OpenTelemetry Tracers.
+ * An OpenTelemetry Tracer can then be used to create OpenTelemetry Spans.
+ */
 class NRTracerBuilder implements TracerBuilder {
     private final String instrumentationScopeName;
     private final TracerSharedState sharedState;

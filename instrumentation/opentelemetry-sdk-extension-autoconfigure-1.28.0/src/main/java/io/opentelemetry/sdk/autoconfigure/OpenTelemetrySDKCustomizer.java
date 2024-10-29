@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
+/**
+ * Helper class for customizing OpenTelemetrySDK properties
+ * and resources for compatability with New Relic.
+ */
 final class OpenTelemetrySDKCustomizer {
     static final AttributeKey<String> SERVICE_INSTANCE_ID_ATTRIBUTE_KEY = AttributeKey.stringKey("service.instance.id");
 

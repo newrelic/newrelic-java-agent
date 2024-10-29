@@ -12,6 +12,9 @@ import io.opentelemetry.api.common.AttributesBuilder;
 
 import java.util.Map;
 
+/**
+ * Helper class for adding attributes to Spans
+ */
 public class AttributesHelper {
     private AttributesHelper() {
     }

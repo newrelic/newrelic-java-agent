@@ -34,6 +34,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+/**
+ * New Relic Java agent implementation of an OpenTelemetry SpanBuilder,
+ * which is used to construct Span instances. Instead of starting an OpenTelemetry
+ * Span, this implementation will create a New Relic Java agent Tracer to time
+ * the executing code and will potentially start a New Relic Java agent Transaction
+ * based on the detected SpanKind type.
+ */
 class NRSpanBuilder implements SpanBuilder {
     private static final Span NO_OP_SPAN = OpenTelemetry.noop().getTracer("").spanBuilder("").startSpan();
     private final Instrumentation instrumentation;
@@ -134,6 +141,13 @@ class NRSpanBuilder implements SpanBuilder {
         return this;
     }
 
+    /**
+     * Called when starting an OpenTelemetry Span and will result in a New Relic
+     * Java agent Tracer being created for each OpenTelemetry Span. Depending on
+     * the SpanKind type, this method may start a New Relic Java agent Transaction.
+     *
+     * @return OpenTelemetry Span
+     */
     @Override
     public Span startSpan() {
         SpanContext parentSpanContext = this.parentSpanContext == null ?
@@ -152,7 +166,7 @@ class NRSpanBuilder implements SpanBuilder {
         if (SpanKind.INTERNAL != spanKind) {
             tracer.addCustomAttribute("span.kind", spanKind.name());
         }
-        // REVIEW - we're not picking up the global resources
+        // TODO REVIEW - we're not picking up the global resources
         return onStart(new ExitTracerSpan(tracer, instrumentationLibraryInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), attributes,
                 endHandler));
     }
@@ -213,6 +227,7 @@ class NRSpanBuilder implements SpanBuilder {
                 return (String) attributes.get("http.request.method");
             }
         };
+
         final ExtendedResponse response = new ExtendedResponse() {
 
             @Override
