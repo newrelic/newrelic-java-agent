@@ -22,6 +22,13 @@ import com.newrelic.agent.config.AgentConfigImpl;
 
 public class EnvironmentTest {
 
+    @After
+    public void clearObfuscateJvmPropsSettings() {
+        System.clearProperty("newrelic.config.obfuscate_jvm_props.enabled");
+        System.clearProperty("newrelic.config.obfuscate_jvm_props.allow");
+        System.clearProperty("newrelic.config.obfuscate_jvm_props.block");
+    }
+
     @Test
     public void overrideServerPort() throws Exception {
         System.setProperty("newrelic.config.appserver_port", "666");
@@ -248,12 +255,5 @@ public class EnvironmentTest {
         AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
         Environment env = new Environment(config, "c:\\test\\log");
         return env.obfuscateProps(props, config.getObfuscateJvmPropsConfig());
-    }
-
-    @After
-    public void clearObfuscateJvmPropsSettings() {
-        System.clearProperty("newrelic.config.obfuscate_jvm_props.enabled");
-        System.clearProperty("newrelic.config.obfuscate_jvm_props.allow");
-        System.clearProperty("newrelic.config.obfuscate_jvm_props.block");
     }
 }
