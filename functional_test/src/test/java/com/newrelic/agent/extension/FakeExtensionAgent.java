@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.AiMonitoring;
+import com.newrelic.api.agent.Cloud;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
@@ -41,6 +42,11 @@ public class FakeExtensionAgent implements Agent {
 
     @Override
     public AiMonitoring getAiMonitoring() {
+        return null;
+    }
+
+    @Override
+    public Cloud getCloud() {
         return null;
     }
 
