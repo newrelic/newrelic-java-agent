@@ -132,7 +132,7 @@ public class EnvironmentTest {
     //bunch of jvm props tests
 
     @Test
-    public void obfuscateJvmProps_defaultIsTrue() {
+    public void obfuscateJvmProps_obfuscatesByDefault() {
         List<String> props = exampleJvmProps();
         List<String> obfuscatedProps = getObfuscatedProps(props);
         //nothing has been configured, all values should be obfuscated
@@ -170,6 +170,23 @@ public class EnvironmentTest {
     }
 
     @Test
+    public void obfuscateJvmProps_doesNotTouchXPrefixes_unlessOverridden() {
+        //we should leave -X and -XX alone even if they have equals signs unless overridden via configuration
+        System.setProperty("newrelic.config.obfuscate_jvm_props.block", "-XX:MaxNewSize");
+        List<String> props = new ArrayList<>();
+        props.add("-XX:MaxNewSize=256m");
+        props.add("-XX:MaxPermSize=128m");
+        props.add("-Xsomething=234");
+        List<String> obfuscatedProps = getObfuscatedProps(props);
+
+        Assert.assertEquals(3, obfuscatedProps.size());
+        Assert.assertTrue(obfuscatedProps.contains("-XX:MaxNewSize=obfuscated"));
+        Assert.assertTrue(obfuscatedProps.contains("-XX:MaxPermSize=128m"));
+        Assert.assertTrue(obfuscatedProps.contains("-Xsomething=234"));
+
+    }
+
+    @Test
     public void obfuscateJvmProps_allowAndBlock() {
         System.setProperty("newrelic.config.obfuscate_jvm_props.allow", "-Dprop.A, -Dprop.B*");
         List<String> props = exampleJvmProps();
@@ -186,7 +203,7 @@ public class EnvironmentTest {
     @Test
     public void obfuscateJvmProps_specificityAlwaysWins() {
         //when there is overlap, the more specific rule should always apply
-        //ie propA.extended and propB.extended rules apply regardless of which list they belong to
+        //so propA.extended and propB.extended rules apply regardless of which list they belong to
         System.setProperty("newrelic.config.obfuscate_jvm_props.allow", "-Dprop.A.extended, -Dprop.B*");
         System.setProperty("newrelic.config.obfuscate_jvm_props.block", "-Dprop.A*, -Dprop.B.extended");
         List<String> props = exampleJvmProps();

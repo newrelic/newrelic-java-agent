@@ -1,8 +1,5 @@
 package com.newrelic.agent.config;
 
-import com.newrelic.agent.attributes.ExcludeIncludeFilter;
-import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
-
 import java.util.*;
 
 public class ObfuscateJvmPropsConfigImpl extends BaseConfig implements ObfuscateJvmPropsConfig {
@@ -15,20 +12,18 @@ public class ObfuscateJvmPropsConfigImpl extends BaseConfig implements Obfuscate
     private static final Set<String> DEFAULT_ALLOW = new HashSet<>();
 
     static {
-        DEFAULT_ALLOW.add("-XX*");
+        //the standard and extended JVM props should be allowed through by default
         DEFAULT_ALLOW.add("-X*");
     }
     private final boolean isEnabled;
     private final Set<String> blockList;
     private final Set<String> allowList;
-    private final ExcludeIncludeFilter filter;
 
     public ObfuscateJvmPropsConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
         isEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
         blockList = initializeBlock();
         allowList = initializeAllow();
-        filter = new ExcludeIncludeFilterImpl("obfuscate_jvm_props", blockList, allowList, false);
     }
 
     @Override
@@ -37,9 +32,10 @@ public class ObfuscateJvmPropsConfigImpl extends BaseConfig implements Obfuscate
     }
 
     @Override
-    public boolean shouldObfuscate(String prop) {
-        return !filter.shouldInclude(prop);
-    }
+    public Set<String> getAllow() { return allowList; }
+
+    @Override
+    public Set<String> getBlock() { return blockList; }
 
     private Set<String> initializeBlock() {
         return new HashSet<>(getUniqueStrings(BLOCK));
