@@ -15,6 +15,7 @@ import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.GCService;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
 import com.newrelic.agent.ThreadService;
@@ -78,6 +79,10 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.StatsWork;
+import com.newrelic.agent.superagent.HealthDataProducer;
+import com.newrelic.agent.superagent.SuperAgentIntegrationClientFactory;
+import com.newrelic.agent.superagent.SuperAgentIntegrationHealthClient;
+import com.newrelic.agent.superagent.SuperAgentIntegrationService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
@@ -88,6 +93,7 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -149,6 +155,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile SourceLanguageService sourceLanguageService;
     private volatile ExpirationService expirationService;
     private volatile SlowTransactionService slowTransactionService;
+    private volatile SuperAgentIntegrationService superAgentIntegrationService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -281,6 +288,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         slowTransactionService = new SlowTransactionService(config);
 
+        superAgentIntegrationService = buildSuperAgentIntegrationService(config);
+
         asyncTxService.start();
         threadService.start();
         statsService.start();
@@ -314,6 +323,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.start();
         spanEventsService.start();
         slowTransactionService.start();
+        superAgentIntegrationService.start();
 
         startServices();
 
@@ -342,6 +352,21 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
                 .build();
 
         return InfiniteTracing.initialize(infiniteTracingConfig, NewRelic.getAgent().getMetricAggregator());
+    }
+
+    private SuperAgentIntegrationService buildSuperAgentIntegrationService(AgentConfig config) {
+        SuperAgentIntegrationHealthClient healthClient =
+                SuperAgentIntegrationClientFactory.createHealthClient(config.getSuperAgentIntegrationConfig());
+
+        ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
+        healthDataProducers.add(circuitBreakerService);
+        healthDataProducers.add((HealthDataProducer) coreService);
+        for (IRPMService service : ServiceFactory.getRPMServiceManager().getRPMServices()) {
+            healthDataProducers.add(service.getHttpDataSenderAsHealthDataProducer());
+        }
+
+        return new SuperAgentIntegrationService(healthClient, config,
+                healthDataProducers.toArray(new HealthDataProducer[]{}));
     }
 
     @Override
@@ -385,6 +410,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.stop();
         spanEventsService.stop();
         slowTransactionService.stop();
+        superAgentIntegrationService.stop();
         stopServices();
     }
 

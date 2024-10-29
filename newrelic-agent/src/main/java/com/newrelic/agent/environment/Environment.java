@@ -11,9 +11,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ObfuscateJvmPropsConfig;
 import com.newrelic.agent.samplers.MemorySampler;
+import com.newrelic.api.agent.NewRelic;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONStreamAware;
 
@@ -42,6 +45,7 @@ public class Environment implements JSONStreamAware, Cloneable {
     private static final String LOGICAL_CORE_KEY = "Logical Processors";
     private static final String TOTAL_MEMORY_MB = "Total Physical Memory (MB)";
     private static final String SOLR_VERSION_KEY = "Solr Version";
+    private static final String AZURE_SITE_EXT_INSTALL_TYPE = "AzureSiteExtension";
     private static final Pattern JSON_WORKAROUND = Pattern.compile("\\\\+$");
     private static final String OBFUSCATED = "=obfuscated";
 
@@ -127,6 +131,13 @@ public class Environment implements JSONStreamAware, Cloneable {
         }
 
         addVariable("Framework", "java");
+
+        if (isAzureSiteExtenstionInstall()) {
+            // Yes this is intentional, since we only have a single installation type for the site extension
+            addVariable(AZURE_SITE_EXT_INSTALL_TYPE, AZURE_SITE_EXT_INSTALL_TYPE);
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AZURE_SITE_EXT_INSTALL_TYPE + "/" +
+                    AZURE_SITE_EXT_INSTALL_TYPE);
+        }
 
         Number appServerPort = config.getProperty("appserver_port");
         Integer serverPort = null;
@@ -309,5 +320,12 @@ public class Environment implements JSONStreamAware, Cloneable {
         if (info.length == 2) {
             setServerInfo(info[0], info[1]);
         }
+    }
+
+    private boolean isAzureSiteExtenstionInstall() {
+        // Currently, the only "install type" we support is the Azure site extension, which is detected
+        // by the presence of a specific environment variable with a non-null/non-empty value
+        final String AZURE_SITE_EXT_VAR = "NEW_RELIC_METADATA_AZURE_APP_SERVICE_NAME";
+        return StringUtils.isNotBlank(System.getenv(AZURE_SITE_EXT_VAR));
     }
 }
