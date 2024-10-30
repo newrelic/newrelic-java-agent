@@ -1251,7 +1251,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
-    public ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig() { return obfuscateJvmPropsConfig; }
+    public ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig() {
+        return obfuscateJvmPropsConfig;
+    }
 
     @Override
     public ReinstrumentConfig getReinstrumentConfig() {
