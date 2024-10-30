@@ -3,16 +3,17 @@ package com.agent.instrumentation.awsjavasdk1.services.kinesis;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudAccountInfo;
 
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 public class StreamRawData {
     private final String streamName;
-    private final Object client;
+    private final WeakReference<Object> client;
     private final String region;
 
     public StreamRawData(String streamName, Object client, String region) {
         this.streamName = streamName;
-        this.client = client;
+        this.client = new WeakReference<>(client);
         this.region = region;
     }
 
@@ -20,7 +21,7 @@ public class StreamRawData {
         return streamName;
     }
     public String getAccountId() {
-        return AgentBridge.cloud.getAccountInfo(client, CloudAccountInfo.AWS_ACCOUNT_ID);
+        return AgentBridge.cloud.getAccountInfo(client.get(), CloudAccountInfo.AWS_ACCOUNT_ID);
     }
 
     public String getRegion() {

@@ -19,8 +19,8 @@ public class KinesisUtil {
 
     public static final Map<AmazonWebServiceRequest, Token> requestTokenMap = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
-    private static final Function<StreamRawData, StreamProcessedData> CACHE =
-            AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, KinesisUtil::processStreamData);
+    private static final Function<StreamRawData, String> ARN_CACHE =
+            AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, KinesisUtil::createArn);
     private KinesisUtil() {}
 
     public static String getRegion(String serviceName, URI endpoint, String overrideRegion) {
@@ -44,8 +44,8 @@ public class KinesisUtil {
         Token token = KinesisUtil.getToken(request);
         if (token != null) {
             token.linkAndExpire();
+            KinesisUtil.cleanToken(request);
         }
-        KinesisUtil.cleanToken(request);
         TracedMethod tracedMethod = NewRelic.getAgent().getTransaction().getTracedMethod();
         KinesisUtil.setTraceDetails(kinesisOperation, tracedMethod, streamRawData);
     }
@@ -70,7 +70,7 @@ public class KinesisUtil {
     }
 
     public static String createTraceName(String kinesisOperation, StreamRawData streamRawData) {
-        String streamName = CACHE.apply(streamRawData).getStreamName();
+        String streamName = streamRawData.getStreamName();
         if (streamName != null && !streamName.isEmpty()) {
             return kinesisOperation + "/" + streamName;
         }
@@ -79,17 +79,11 @@ public class KinesisUtil {
 
     public static CloudParameters createCloudParams(StreamRawData streamRawData) {
         return CloudParameters.provider(PLATFORM)
-                .resourceId(CACHE.apply(streamRawData).getCloudResourceId())
+                .resourceId(ARN_CACHE.apply(streamRawData))
                 .build();
     }
 
-    public static StreamProcessedData processStreamData(StreamRawData streamRawData) {
-        String cloudResourceId = createCloudResourceId(streamRawData);
-        String streamName = streamRawData.getStreamName();
-        return new StreamProcessedData(streamName, cloudResourceId);
-    }
-
-    public static String createCloudResourceId(StreamRawData streamRawData) {
+    public static String createArn(StreamRawData streamRawData) {
         String accountId = streamRawData.getAccountId();
         if (accountId == null || accountId.isEmpty()) {
             return null;
@@ -105,7 +99,7 @@ public class KinesisUtil {
             return null;
         }
 
-        return "arn:aws:kinesis:" + region + ':' + accountId + ":stream/" + streamRawData.getStreamName();
+        return "arn:aws:kinesis:" + region + ':' + accountId + ":stream/" + streamName;
     }
 
 }

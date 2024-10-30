@@ -6,19 +6,20 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.regions.Region;
 
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 public class StreamRawData {
     private final String streamName;
     private final String providedArn;
-    private final Object client;
-    private final SdkClientConfiguration config;
+    private final WeakReference<Object> clientRef;
+    private final WeakReference<SdkClientConfiguration> configRef;
 
     public StreamRawData(String streamName, String providedArn, Object client, SdkClientConfiguration config) {
         this.streamName = streamName;
         this.providedArn = providedArn;
-        this.client = client;
-        this.config = config;
+        this.clientRef = new WeakReference<>(client);
+        this.configRef = new WeakReference<>(config);
     }
 
     public String getStreamName() {
@@ -30,15 +31,19 @@ public class StreamRawData {
     }
 
     public String getAccountId() {
-        return AgentBridge.cloud.getAccountInfo(client, CloudAccountInfo.AWS_ACCOUNT_ID);
+        return AgentBridge.cloud.getAccountInfo(clientRef.get(), CloudAccountInfo.AWS_ACCOUNT_ID);
     }
 
     public String getRegion() {
+        SdkClientConfiguration config = configRef.get();
+        if (config == null) {
+            return null;
+        }
         Region option = config.option(AwsClientOption.AWS_REGION);
         if (option == null) {
             return null;
         }
-        return config.option(AwsClientOption.AWS_REGION).toString();
+        return option.toString();
     }
 
     @Override
@@ -52,13 +57,13 @@ public class StreamRawData {
         StreamRawData that = (StreamRawData) o;
         return Objects.equals(streamName, that.streamName) &&
                 Objects.equals(providedArn, that.providedArn) &&
-                Objects.equals(client, that.client) &&
+                Objects.equals(clientRef, that.clientRef) &&
                 // config uses Object.equals, so should be fast
-                Objects.equals(config, that.config);
+                Objects.equals(configRef, that.configRef);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(streamName, providedArn, client, config);
+        return Objects.hash(streamName, providedArn, clientRef, configRef);
     }
 }
