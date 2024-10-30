@@ -424,6 +424,7 @@ public class SpanEventFactory {
             setDatabaseCollection(datastoreParameters.getCollection());
             setDatabaseOperation(datastoreParameters.getOperation());
             setServerAddress(datastoreParameters.getHost());
+            setCloudResourceId(datastoreParameters.getCloudResourceId());
             setKindFromUserAttributes();
             if (datastoreParameters.getPort() != null) {
                 setServerPort(datastoreParameters.getPort());
