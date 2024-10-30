@@ -46,24 +46,6 @@ public class DynamoDBMetricUtilTest {
     }
 
     @Test
-    public void testFindRegionFromHost() {
-        String dynamoDbEndpoint = "dynamodb.us-west-2.amazonaws.com";
-        assertEquals("us-west-2", DynamoDBMetricUtil.findRegionFromHost(dynamoDbEndpoint));
-
-        String fipsEndpoint = "dynamodb-fips.my-region.amazonaws.com";
-        assertEquals("my-region", DynamoDBMetricUtil.findRegionFromHost(fipsEndpoint));
-
-        String localhost = "localhost";
-        assertNull(DynamoDBMetricUtil.findRegionFromHost(localhost));
-
-        // null
-        assertNull(DynamoDBMetricUtil.findRegionFromHost(null));
-        assertNull(DynamoDBMetricUtil.findRegionFromHost("dynamodb.ms-region.azure.com"));
-        assertNull(DynamoDBMetricUtil.findRegionFromHost("dynamodb-fips.gg-region.gcp.com"));
-        assertNull(DynamoDBMetricUtil.findRegionFromHost("cosmosdb.us-east-1.amazonaws.com"));
-    }
-
-    @Test
     public void testFindRegion_fromRegion() {
         String host = "dynamodb.us-west-2.amazonaws.com";
         SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()

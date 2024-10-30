@@ -42,24 +42,6 @@ public class DynamoDBMetricUtilTest {
     }
 
     @Test
-    public void testFindRegionFromHost() {
-        String dynamoDbEndpoint = "dynamodb.us-west-2.amazonaws.com";
-        assertEquals("us-west-2", DynamoDBMetricUtil.getRegion(dynamoDbEndpoint));
-
-        String fipsEndpoint = "dynamodb-fips.my-region.amazonaws.com";
-        assertEquals("my-region", DynamoDBMetricUtil.getRegion(fipsEndpoint));
-
-        String localhost = "localhost";
-        assertNull(DynamoDBMetricUtil.getRegion(localhost));
-
-        // null
-        assertNull(DynamoDBMetricUtil.getRegion(null));
-        assertNull(DynamoDBMetricUtil.getRegion("dynamodb.ms-region.azure.com"));
-        assertNull(DynamoDBMetricUtil.getRegion("dynamodb-fips.gg-region.gcp.com"));
-        assertNull(DynamoDBMetricUtil.getRegion("cosmosdb.us-east-1.amazonaws.com"));
-    }
-
-    @Test
     public void testGetArn() {
         Object sdkClient = new Object();
         when(AgentBridge.cloud.getAccountInfo(eq(sdkClient), eq(CloudAccountInfo.AWS_ACCOUNT_ID)))

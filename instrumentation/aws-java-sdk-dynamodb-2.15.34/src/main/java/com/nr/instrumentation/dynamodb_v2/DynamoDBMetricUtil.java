@@ -7,6 +7,7 @@ import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TracedMethod;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.regions.Region;
@@ -71,7 +72,8 @@ public abstract class DynamoDBMetricUtil {
     static String findRegion(SdkClientConfiguration clientConfig, String host) {
         Boolean endpointOverridden = clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN);
         if (endpointOverridden == Boolean.TRUE) { // endpointOverridden could be null
-            return findRegionFromHost(host);
+            Region dynamodb = AwsHostNameUtils.parseSigningRegion(host, "dynamodb").orElse(null);
+            return dynamodb == null ? null : dynamodb.id();
         }
 
         Region awsRegion = clientConfig.option(AwsClientOption.AWS_REGION);
@@ -79,37 +81,6 @@ public abstract class DynamoDBMetricUtil {
             return awsRegion.id();
         }
 
-        return null;
-    }
-
-    // visible for testing
-    static String findRegionFromHost(String host) {
-        if (host == null) {
-            return null;
-        }
-        if (!host.startsWith("dynamodb")) {
-            return null;
-        }
-
-        final int afterDynamoDb = 8; // "dynamodb".length()
-        if (host.charAt(afterDynamoDb) == '.') {
-            // dynamodb.{region}.amazonaws.com
-            int secondPeriod = host.indexOf('.', afterDynamoDb + 1);
-            if (secondPeriod > 0 && host.startsWith(".amazonaws.com", secondPeriod)) {
-                return host.substring(afterDynamoDb + 1, secondPeriod);
-            } else {
-                return null;
-            }
-        } else if (host.startsWith("-fips.", afterDynamoDb)) {
-            // dynamodb-fips.{region}.amazonaws.com
-            final int firstPeriod = 13; // "dynamodb-fips".length()
-            int secondPeriod = host.indexOf('.', firstPeriod + 1);
-            if (secondPeriod > 0 && host.startsWith(".amazonaws.com", secondPeriod)) {
-                return host.substring(firstPeriod + 1, secondPeriod);
-            } else {
-                return null;
-            }
-        }
         return null;
     }
 
