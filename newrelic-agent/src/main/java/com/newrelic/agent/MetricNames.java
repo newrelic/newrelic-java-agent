@@ -205,6 +205,8 @@ public class MetricNames {
 
     public static final String TIMEOUT_ASYNC = "Java/Timeout/asyncActivityNotStarted";
 
+    public static final String SUPPORTABILITY_AZURE_SITE_EXT_INSTALL_TYPE = "Supportability/Java/InstallType";
+
     public static final String SUPPORTABILITY_JAVA_AGENTVERSION = "Supportability/Java/AgentVersion/{0}";
 
     public static final String SUPPORTABILITY_HARVEST_SERVICE_RESPONSE_TIME = "Supportability/Harvest";
@@ -505,6 +507,9 @@ public class MetricNames {
 
     // AiMonitoring Callback Set
     public static final String SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET = "Supportability/AiMonitoringTokenCountCallback/Set";
+
+    // Super Agent Integration
+    public static final String SUPPORTABILITY_SUPERAGENT_HEALTH_REPORTING_ENABLED = "Supportability/SuperAgent/Health/enabled";
 
     /**
      * Utility method for adding supportability metrics to APIs

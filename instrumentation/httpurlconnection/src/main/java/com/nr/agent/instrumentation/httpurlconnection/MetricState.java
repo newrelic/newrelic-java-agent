@@ -16,6 +16,7 @@ import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.OutboundHeaders;
 
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -48,8 +49,8 @@ public class MetricState {
 
     // the guids for these tracers are swapped so the DT is attached to the tracer that
     // has the external
-    private TracedMethod dtTracer;
-    private TracedMethod externalTracer;
+    private WeakReference<TracedMethod> dtTracerRef;
+    private WeakReference<TracedMethod> externalTracerRef;
     private boolean externalReported = false;
 
     /**
@@ -79,12 +80,12 @@ public class MetricState {
      * @param tracer      traced method that will be the external
      */
     public void inboundPreamble(boolean isConnected, HttpURLConnection connection, TracedMethod tracer) {
-        if (externalReported || externalTracer != null) {
+        if (externalReported || getExternalTracer() != null) {
             // another method already ran the preamble
             return;
         }
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
-        externalTracer = tracer;
+        setExternalTracer(tracer);
 
         if (!isConnected && tracer.isMetricProducer() && tx != null) {
             addOutboundHeadersIfNotAdded(connection);
@@ -101,18 +102,21 @@ public class MetricState {
      */
     public void inboundPostamble(HttpURLConnection connection, int responseCode, String responseMessage, Ops operation,
             TracedMethod tracer) {
+        // So the weak reference to external tracer holds an actual tracer instance (if not null) for the duration of this method.
+        TracedMethod externalTracer = getExternalTracer();
         // make sure that only the method that first invoked inboundPreamble runs this method
         if (externalReported || externalTracer != tracer) {
             return;
         }
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         if (tx != null) {
-            reportExternalCall(connection, operation, responseCode, responseMessage);
+            reportExternalCall(connection, operation, responseCode, responseMessage, externalTracer);
         }
     }
 
     public void handleException(TracedMethod tracer, Exception e) {
-        if (externalTracer != tracer) {
+        TracedMethod externalTracer = getExternalTracer();
+        if (externalTracer != tracer || externalTracer == null) {
             return;
         }
 
@@ -125,8 +129,8 @@ public class MetricState {
             externalReported = true;
         }
 
-        dtTracer = null;
-        externalTracer = null;
+        setDtTracer(null);
+        setExternalTracer(null);
     }
 
     /**
@@ -140,26 +144,44 @@ public class MetricState {
      * @param responseMessage response message from HttpURLConnection
      */
     void reportExternalCall(HttpURLConnection connection, Ops operation, int responseCode, String responseMessage) {
+        reportExternalCall(connection, operation, responseCode, responseMessage, getExternalTracer());
+    }
+
+    /**
+     * Calls the reportAsExternal API. This results in a Span being created for the current TracedMethod/Segment and the Span
+     * category being set to http which represents a Span that made an external http request. This is required for external
+     * calls to be properly recorded when they are made to a host that isn't another APM entity.
+     *
+     * @param connection      HttpURLConnection instance
+     * @param operation
+     * @param responseCode    response code from HttpURLConnection
+     * @param responseMessage response message from HttpURLConnection
+     * @param externalTracer  tracer of which the external call will be reported to
+     */
+    private void reportExternalCall(HttpURLConnection connection, Ops operation, int responseCode, String responseMessage, TracedMethod externalTracer) {
         if (connection != null) {
             // This conversion is necessary as it strips query parameters from the URI
             String uri = URISupport.getURI(connection.getURL());
             InboundWrapper inboundWrapper = new InboundWrapper(connection);
 
-            // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
-            // Calling reportAsExternal is what causes an HTTP span to be created
-            externalTracer.reportAsExternal(HttpParameters
-                    .library(LIBRARY)
-                    .uri(URI.create(uri))
-                    .procedure(operation.label)
-                    .inboundHeaders(inboundWrapper)
-                    .status(responseCode, responseMessage)
-                    .build());
+            if (externalTracer != null) {
+                // This will result in External rollup metrics being generated (e.g. External/all, External/allWeb, External/allOther, External/{HOST}/all)
+                // Calling reportAsExternal is what causes an HTTP span to be created
+                externalTracer.reportAsExternal(HttpParameters
+                        .library(LIBRARY)
+                        .uri(URI.create(uri))
+                        .procedure(operation.label)
+                        .inboundHeaders(inboundWrapper)
+                        .status(responseCode, responseMessage)
+                        .build());
 
-            // need to call this method to set addedOutboundRequestHeaders in the Tracer
-            externalTracer.addOutboundRequestHeaders(DummyHeaders.INSTANCE);
-            GuidSwapper.swap(dtTracer, externalTracer);
-            dtTracer = null;
-            externalTracer = null;
+                // need to call this method to set addedOutboundRequestHeaders in the Tracer
+                externalTracer.addOutboundRequestHeaders(DummyHeaders.INSTANCE);
+                GuidSwapper.swap(getDtTracer(), externalTracer);
+            }
+
+            setDtTracer(null);
+            setExternalTracer(null);
             externalReported = true;
         }
     }
@@ -168,10 +190,26 @@ public class MetricState {
      * Checks whether outboundheaders (DT/CAT) were already added and if not, add them to the connection.
      */
     private void addOutboundHeadersIfNotAdded(HttpURLConnection connection) {
-        if (dtTracer == null) {
-            dtTracer = AgentBridge.getAgent().getTracedMethod();
-            dtTracer.addOutboundRequestHeaders(new OutboundWrapper(connection));
+        if (getDtTracer() == null) {
+            setDtTracer(AgentBridge.getAgent().getTracedMethod());
+            getDtTracer().addOutboundRequestHeaders(new OutboundWrapper(connection));
         }
+    }
+
+    private TracedMethod getDtTracer() {
+        return dtTracerRef != null ? dtTracerRef.get() : null;
+    }
+
+    private void setDtTracer(TracedMethod tracedMethod) {
+        dtTracerRef = tracedMethod != null ? new WeakReference<>(tracedMethod) : null;
+    }
+
+    private TracedMethod getExternalTracer() {
+        return externalTracerRef != null ? externalTracerRef.get() : null;
+    }
+
+    private void setExternalTracer(TracedMethod tracedMethod) {
+        externalTracerRef = tracedMethod != null ? new WeakReference<>(tracedMethod) : null;
     }
 
     public enum Ops {

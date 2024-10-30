@@ -15,7 +15,7 @@
 </template>
 <template name="nrAtWeave" value="@com.newrelic.api.agent.weaver.Weave(type = com.newrelic.api.agent.weaver.MatchType.$MATCH_TYPE$, originalName = &quot;$CLASS_NAME$&quot;)" description="@Weave(originalName = &quot;java.my.Class&quot;, type = Match..." toReformat="true" toShortenFQNames="true">
   <variable name="MATCH_TYPE" expression="enum(&quot;ExactClass&quot;, &quot;BaseClass&quot;, &quot;Interface&quot;)" defaultValue="" alwaysStopAt="true" />
-  <variable name="CLASS_NAME" expression="concat(currentPackage(), &quot;.&quot;, fileNameWithoutExtension())" defaultValue="" alwaysStopAt="true" />
+  <variable name="CLASS_NAME" expression="regularExpression(concat(currentPackage(), &quot;.&quot;, fileNameWithoutExtension()), &quot;_.*&quot;, &quot;&quot;)&quot;" defaultValue="" alwaysStopAt="true" />
   <context>
     <option name="JAVA_DECLARATION" value="true" />
   </context>
@@ -29,6 +29,13 @@
 <template name="nrCallOriginalReturn" value="return com.newrelic.api.agent.weaver.Weaver.callOriginal();" description="return Weaver.callOriginal();" toReformat="true" toShortenFQNames="true">
   <context>
     <option name="JAVA_STATEMENT" value="true" />
+  </context>
+</template>
+<template name="nrConfig" value="com.newrelic.api.agent.NewRelic.getAgent().getConfig().getValue(&quot;$NAME$&quot;, $VALUE$);" description="NewRelic.getAgent().getConfig().getValue(...)" toReformat="true" toShortenFQNames="true">
+  <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true" />
+  <variable name="VALUE" expression="" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_EXPRESSION" value="true" />
   </context>
 </template>
 <template name="nrHttpParams" value="com.newrelic.api.agent.HttpParameters $PARAMS$ = com.newrelic.api.agent.HttpParameters&#10;                    .library($LIBRARY$)&#10;                    .uri($URI$)&#10;                    .procedure($PROC$)&#10;                    .inboundHeaders($INBOUND_HEADERS$)&#10;                    .status($STATUS_CODE$, $STATUS_TEXT$)&#10;                    .build();" description="HttpParams params = HttpParams.library()...build();" toReformat="true" toShortenFQNames="true">
