@@ -10,11 +10,6 @@ public class ObfuscateJvmPropsConfigImpl extends BaseConfig implements Obfuscate
     private static final String ENABLED = "enabled";
     private static final boolean DEFAULT_ENABLED = true;
     private static final Set<String> DEFAULT_ALLOW = Collections.singleton("-X*");
-
-    static {
-        //the standard and extended JVM props should be allowed through by default
-        DEFAULT_ALLOW.add("-X*");
-    }
     private final boolean isEnabled;
     private final Set<String> blockList;
     private final Set<String> allowList;
