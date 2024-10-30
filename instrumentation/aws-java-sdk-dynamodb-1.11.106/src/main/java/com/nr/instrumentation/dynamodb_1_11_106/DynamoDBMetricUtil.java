@@ -51,6 +51,11 @@ public abstract class DynamoDBMetricUtil {
 
     // visible for testing
     static String getArn(String tableName, Object sdkClient, String host) {
+        if (host == null) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. Host is null.");
+            return null;
+        }
+
         String accountId = AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
         if (accountId == null) {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. No account information provided.");
