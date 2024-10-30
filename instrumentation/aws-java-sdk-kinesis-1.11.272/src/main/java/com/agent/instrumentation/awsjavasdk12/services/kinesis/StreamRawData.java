@@ -8,12 +8,12 @@ import java.util.Objects;
 
 public class StreamRawData {
     private final String streamName;
-    private final WeakReference<Object> client;
+    private final String accountId;
     private final String region;
 
     public StreamRawData(String streamName, Object client, String region) {
         this.streamName = streamName;
-        this.client = new WeakReference<>(client);
+        this.accountId = AgentBridge.cloud.getAccountInfo(client, CloudAccountInfo.AWS_ACCOUNT_ID);
         this.region = region;
     }
 
@@ -21,7 +21,7 @@ public class StreamRawData {
         return streamName;
     }
     public String getAccountId() {
-        return AgentBridge.cloud.getAccountInfo(client.get(), CloudAccountInfo.AWS_ACCOUNT_ID);
+        return accountId;
     }
 
     public String getRegion() {
@@ -38,12 +38,12 @@ public class StreamRawData {
         }
         StreamRawData that = (StreamRawData) o;
         return Objects.equals(streamName, that.streamName) &&
-                Objects.equals(client, that.client) &&
+                Objects.equals(accountId, that.accountId) &&
                 Objects.equals(region, that.region);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(streamName, client, region);
+        return Objects.hash(streamName, accountId, region);
     }
 }

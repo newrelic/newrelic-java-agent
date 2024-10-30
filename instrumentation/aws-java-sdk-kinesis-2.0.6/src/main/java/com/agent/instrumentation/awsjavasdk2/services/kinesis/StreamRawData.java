@@ -6,20 +6,19 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.regions.Region;
 
-import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 public class StreamRawData {
     private final String streamName;
     private final String providedArn;
-    private final WeakReference<Object> clientRef;
-    private final WeakReference<SdkClientConfiguration> configRef;
+    private final String accountId;
+    private final String region;
 
     public StreamRawData(String streamName, String providedArn, Object client, SdkClientConfiguration config) {
         this.streamName = streamName;
         this.providedArn = providedArn;
-        this.clientRef = new WeakReference<>(client);
-        this.configRef = new WeakReference<>(config);
+        this.accountId = AgentBridge.cloud.getAccountInfo(client, CloudAccountInfo.AWS_ACCOUNT_ID);
+        this.region = getRegionFromConfig(config);
     }
 
     public String getStreamName() {
@@ -31,19 +30,11 @@ public class StreamRawData {
     }
 
     public String getAccountId() {
-        return AgentBridge.cloud.getAccountInfo(clientRef.get(), CloudAccountInfo.AWS_ACCOUNT_ID);
+        return accountId;
     }
 
     public String getRegion() {
-        SdkClientConfiguration config = configRef.get();
-        if (config == null) {
-            return null;
-        }
-        Region option = config.option(AwsClientOption.AWS_REGION);
-        if (option == null) {
-            return null;
-        }
-        return option.toString();
+        return region;
     }
 
     @Override
@@ -57,13 +48,23 @@ public class StreamRawData {
         StreamRawData that = (StreamRawData) o;
         return Objects.equals(streamName, that.streamName) &&
                 Objects.equals(providedArn, that.providedArn) &&
-                Objects.equals(clientRef, that.clientRef) &&
-                // config uses Object.equals, so should be fast
-                Objects.equals(configRef, that.configRef);
+                Objects.equals(region, that.region) &&
+                Objects.equals(accountId, that.accountId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(streamName, providedArn, clientRef, configRef);
+        return Objects.hash(streamName, providedArn, region, accountId);
+    }
+
+    private static String getRegionFromConfig(SdkClientConfiguration config) {
+        if (config == null) {
+            return null;
+        }
+        Region option = config.option(AwsClientOption.AWS_REGION);
+        if (option == null) {
+            return null;
+        }
+        return option.toString();
     }
 }

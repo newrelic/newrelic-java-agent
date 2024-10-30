@@ -2,18 +2,18 @@ package com.agent.instrumentation.awsjavasdk2.services.kinesis;
 
 public class StreamProcessedData {
     private final String streamName;
-    private final String cloudResourceId;
+    private final String arn;
 
-    public StreamProcessedData(String streamName, String cloudResourceId) {
+    public StreamProcessedData(String streamName, String arn) {
         this.streamName = streamName;
-        this.cloudResourceId = cloudResourceId;
+        this.arn = arn;
     }
 
     public String getStreamName() {
         return streamName;
     }
 
-    public String getCloudResourceId() {
-        return cloudResourceId;
+    public String getArn() {
+        return arn;
     }
 }

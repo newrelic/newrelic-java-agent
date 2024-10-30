@@ -40,53 +40,53 @@ public class KinesisUtil {
     }
     public static CloudParameters createCloudParams(StreamRawData streamRawData) {
         return CloudParameters.provider(PLATFORM)
-                .resourceId(CACHE.apply(streamRawData).getCloudResourceId())
+                .resourceId(CACHE.apply(streamRawData).getArn())
                 .build();
     }
 
     public static StreamProcessedData processStreamData(StreamRawData streamRawData) {
-        String cloudResourceId = createCloudResourceId(streamRawData);
-        String streamName = processStreamName(streamRawData, cloudResourceId);
-        return new StreamProcessedData(streamName, cloudResourceId);
+        String arn = createArn(streamRawData);
+        String streamName = processStreamName(streamRawData, arn);
+        return new StreamProcessedData(streamName, arn);
     }
 
-    public static String processStreamName(StreamRawData streamRawData, String cloudResourceId) {
+    public static String processStreamName(StreamRawData streamRawData, String arn) {
         if (streamRawData.getStreamName() != null && !streamRawData.getStreamName().isEmpty()) {
             return streamRawData.getStreamName();
-        } else if (cloudResourceId != null) {
+        } else if (arn != null) {
             // Stream names can be extracted from ARNs.
-            int streamPrefixIdx = cloudResourceId.lastIndexOf("stream/");
+            int streamPrefixIdx = arn.lastIndexOf("stream/");
             int streamNameIdx = streamPrefixIdx + 7;
 
-            int consumerPrefixIdx = cloudResourceId.lastIndexOf("/consumer/");
-            int endIdx = consumerPrefixIdx > streamNameIdx ? consumerPrefixIdx : cloudResourceId.length();
+            int consumerPrefixIdx = arn.lastIndexOf("/consumer/");
+            int endIdx = consumerPrefixIdx > streamNameIdx ? consumerPrefixIdx : arn.length();
 
-            if (0 <= streamPrefixIdx && streamPrefixIdx < (cloudResourceId.length() - 1)) {
-                return cloudResourceId.substring(streamNameIdx, endIdx);
+            if (0 <= streamPrefixIdx && streamPrefixIdx < (arn.length() - 1)) {
+                return arn.substring(streamNameIdx, endIdx);
             }
         }
         return "";
     }
 
-    public static String createCloudResourceId(StreamRawData streamRawData) {
+    public static String createArn(StreamRawData streamRawData) {
         if (streamRawData.getProvidedArn() != null && !streamRawData.getProvidedArn().isEmpty()) {
-            String cloudResourceId = streamRawData.getProvidedArn();
+            String arn = streamRawData.getProvidedArn();
             // Check if the arn is a consumer ARN and extract the stream ARN from it.
-            int consumerPrefixIdx = cloudResourceId.lastIndexOf("/consumer/");
-            if (-1 < consumerPrefixIdx && consumerPrefixIdx < cloudResourceId.length()) {
-                cloudResourceId = cloudResourceId.substring(0, consumerPrefixIdx);
+            int consumerPrefixIdx = arn.lastIndexOf("/consumer/");
+            if (-1 < consumerPrefixIdx && consumerPrefixIdx < arn.length()) {
+                arn = arn.substring(0, consumerPrefixIdx);
             }
             // check if a partial arn without region
-            if (cloudResourceId.startsWith("arn:aws:kinesis::")) {
+            if (arn.startsWith("arn:aws:kinesis::")) {
 
                 String region = streamRawData.getRegion();
                 if (region == null || region.isEmpty()) {
                     return null;
                 }
 
-                cloudResourceId = "arn:aws:kinesis:" + region + cloudResourceId.substring(16);
+                arn = "arn:aws:kinesis:" + region + arn.substring(16);
             }
-            return cloudResourceId;
+            return arn;
         }
 
         String accountId = streamRawData.getAccountId();
