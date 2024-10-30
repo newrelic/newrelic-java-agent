@@ -1,11 +1,13 @@
 package software.amazon.awssdk.services.kinesis;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionTrace;
+import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.Trace;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.services.kinesis.model.GetRecordsRequest;
 import software.amazon.awssdk.services.kinesis.model.GetShardIteratorRequest;
 import software.amazon.awssdk.services.kinesis.model.IncreaseStreamRetentionPeriodRequest;
 import software.amazon.awssdk.services.kinesis.model.ListShardsRequest;
+import software.amazon.awssdk.services.kinesis.model.ListStreamConsumersRequest;
 import software.amazon.awssdk.services.kinesis.model.ListStreamsRequest;
 import software.amazon.awssdk.services.kinesis.model.ListTagsForStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.MergeShardsRequest;
@@ -65,6 +68,13 @@ import static org.mockito.Mockito.when;
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"software.amazon.awssdk"}, configName = "dt_enabled.yml")
 public class DefaultKinesisAsyncClientTest {
+
+    public static final String ACCOUNT_ID = "111111111111";
+    public static final String STREAM_NAME = "stream-name";
+    public static final String STREAM_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name";
+    public static final String STREAM_PARTIAL_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name";
+    public static final String CONSUMER_PARTIAL_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name/consumer/myconsumer:1";
+    public static final String CONSUMER_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name/consumer/myconsumer:1";
     public KinesisAsyncClient kinesisAsyncClient;
     public HttpExecuteResponse response;
 
@@ -77,162 +87,195 @@ public class DefaultKinesisAsyncClientTest {
                 .credentialsProvider(new CredProvider())
                 .region(Region.US_EAST_1)
                 .build();
+        AgentBridge.cloud.setAccountInfo(kinesisAsyncClient, CloudAccountInfo.AWS_ACCOUNT_ID, ACCOUNT_ID);
     }
 
     @Test
     public void testAddTagsToStream() {
-        txn(() -> kinesisAsyncClient.addTagsToStream(AddTagsToStreamRequest.builder().build()));
-        assertKinesisTrace("Kinesis/addTagsToStream", true);
+        txn(() -> kinesisAsyncClient.addTagsToStream(AddTagsToStreamRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/addTagsToStream/stream-name", STREAM_ARN, true);
     }
 
     @Test
     public void testCreateStream() {
-        txn(() -> kinesisAsyncClient.createStream(CreateStreamRequest.builder().build()));
-        assertKinesisTrace("Kinesis/createStream", false);
+        txn(() -> kinesisAsyncClient.createStream(CreateStreamRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/createStream/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testDecreaseStreamRetentionPeriod() {
-        txn(() -> kinesisAsyncClient.decreaseStreamRetentionPeriod(DecreaseStreamRetentionPeriodRequest.builder().build()));
-        assertKinesisTrace("Kinesis/decreaseStreamRetentionPeriod", false);
+        txn(() -> kinesisAsyncClient.decreaseStreamRetentionPeriod(DecreaseStreamRetentionPeriodRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/decreaseStreamRetentionPeriod/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testDeleteStream() {
-        txn(() -> kinesisAsyncClient.deleteStream(DeleteStreamRequest.builder().build()));
-        assertKinesisTrace("Kinesis/deleteStream", false);
+        txn(() -> kinesisAsyncClient.deleteStream(DeleteStreamRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/deleteStream/stream-name", STREAM_ARN, false);
     }
 
     @Test
-    public void testDeregisterStreamConsumer() {
-        txn(() -> kinesisAsyncClient.deregisterStreamConsumer(DeregisterStreamConsumerRequest.builder().build()));
-        assertKinesisTrace("Kinesis/deregisterStreamConsumer", false);
+    public void testDeregisterStreamConsumerWithStreamArn() {
+        txn(() -> kinesisAsyncClient.deregisterStreamConsumer(DeregisterStreamConsumerRequest.builder().streamARN(STREAM_ARN).build()));
+        assertKinesisTrace("Kinesis/deregisterStreamConsumer/stream-name", STREAM_ARN, false);
+    }
+
+    @Test
+    public void testDeregisterStreamConsumerWithConsumerArn() {
+        txn(() -> kinesisAsyncClient.deregisterStreamConsumer(DeregisterStreamConsumerRequest.builder().consumerARN(CONSUMER_ARN).build()));
+        assertKinesisTrace("Kinesis/deregisterStreamConsumer/stream-name", STREAM_ARN, false);
+    }
+
+    @Test
+    public void testDeregisterStreamConsumerWithPartialConsumerArn() {
+        txn(() -> kinesisAsyncClient.deregisterStreamConsumer(DeregisterStreamConsumerRequest.builder().consumerARN(CONSUMER_PARTIAL_ARN).build()));
+        assertKinesisTrace("Kinesis/deregisterStreamConsumer/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testDescribeLimits() {
         txn(() -> kinesisAsyncClient.describeLimits(DescribeLimitsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/describeLimits", false);
+        assertKinesisTrace("Kinesis/describeLimits", null, false);
     }
 
     @Test
     public void testDescribeStream() {
-        txn(() -> kinesisAsyncClient.describeStream(DescribeStreamRequest.builder().build()));
-        assertKinesisTrace("Kinesis/describeStream", false);
+        txn(() -> kinesisAsyncClient.describeStream(DescribeStreamRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/describeStream/stream-name", STREAM_ARN, false);
     }
 
     @Test
-    public void testDescribeStreamConsumer() {
-        txn(() -> kinesisAsyncClient.describeStreamConsumer(DescribeStreamConsumerRequest.builder().build()));
-        assertKinesisTrace("Kinesis/describeStreamConsumer", false);
+    public void testDescribeStreamConsumerWithStreamArn() {
+        txn(() -> kinesisAsyncClient.describeStreamConsumer(DescribeStreamConsumerRequest.builder().streamARN(STREAM_ARN).build()));
+        assertKinesisTrace("Kinesis/describeStreamConsumer/stream-name", STREAM_ARN, false);
+    }
+
+    @Test
+    public void testDescribeStreamConsumerWithConsumerArn() {
+        txn(() -> kinesisAsyncClient.describeStreamConsumer(DescribeStreamConsumerRequest.builder().consumerARN(CONSUMER_ARN).build()));
+        assertKinesisTrace("Kinesis/describeStreamConsumer/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testDescribeStreamSummary() {
-        txn(() -> kinesisAsyncClient.describeStreamSummary(DescribeStreamSummaryRequest.builder().build()));
-        assertKinesisTrace("Kinesis/describeStreamSummary", false);
+        txn(() -> kinesisAsyncClient.describeStreamSummary(DescribeStreamSummaryRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/describeStreamSummary/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void DisableEnhancedMonitoring() {
-        txn(() -> kinesisAsyncClient.disableEnhancedMonitoring(DisableEnhancedMonitoringRequest.builder().build()));
-        assertKinesisTrace("Kinesis/disableEnhancedMonitoring", false);
+        txn(() -> kinesisAsyncClient.disableEnhancedMonitoring(DisableEnhancedMonitoringRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/disableEnhancedMonitoring/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testEnableEnhancedMonitoring() {
-        txn(() -> kinesisAsyncClient.enableEnhancedMonitoring(EnableEnhancedMonitoringRequest.builder().build()));
-        assertKinesisTrace("Kinesis/enableEnhancedMonitoring", false);
+        txn(() -> kinesisAsyncClient.enableEnhancedMonitoring(EnableEnhancedMonitoringRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/enableEnhancedMonitoring/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testGetRecords() {
-        txn(() -> kinesisAsyncClient.getRecords(GetRecordsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/getRecords", false);
+        txn(() -> kinesisAsyncClient.getRecords(GetRecordsRequest.builder().streamARN(STREAM_ARN).build()));
+        assertKinesisTrace("Kinesis/getRecords/stream-name", STREAM_ARN, false);
+    }
+
+    @Test
+    public void testGetRecordsWithPartialStreamArn() {
+        txn(() -> kinesisAsyncClient.getRecords(GetRecordsRequest.builder().streamARN(STREAM_PARTIAL_ARN).build()));
+        assertKinesisTrace("Kinesis/getRecords/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testGetShardIterator() {
-        txn(() -> kinesisAsyncClient.getShardIterator(GetShardIteratorRequest.builder().build()));
-        assertKinesisTrace("Kinesis/getShardIterator", false);
+        txn(() -> kinesisAsyncClient.getShardIterator(GetShardIteratorRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/getShardIterator/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testIncreaseStreamRetentionPeriod() {
-        txn(() -> kinesisAsyncClient.increaseStreamRetentionPeriod(IncreaseStreamRetentionPeriodRequest.builder().build()));
-        assertKinesisTrace("Kinesis/increaseStreamRetentionPeriod", false);
+        txn(() -> kinesisAsyncClient.increaseStreamRetentionPeriod(IncreaseStreamRetentionPeriodRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/increaseStreamRetentionPeriod/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testListShards() {
-        txn(() -> kinesisAsyncClient.listShards(ListShardsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/listShards", false);
+        txn(() -> kinesisAsyncClient.listShards(ListShardsRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/listShards/stream-name", STREAM_ARN, false);
+    }
+
+    @Test
+    public void testListStreamConsumers() {
+        ListStreamConsumersRequest request = ListStreamConsumersRequest.builder().streamARN(STREAM_ARN).build();
+        txn(() -> kinesisAsyncClient.listStreamConsumers(request));
+        assertKinesisTrace("Kinesis/listStreamConsumers/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testListStreams() {
-        txn(() -> kinesisAsyncClient.listStreams(ListStreamsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/listStreams", false);
+        ListStreamsRequest listStreamsRequest = ListStreamsRequest.builder().build();
+        txn(() -> kinesisAsyncClient.listStreams(listStreamsRequest));
+        assertKinesisTrace("Kinesis/listStreams", null, false);
     }
 
     @Test
     public void testListTagsForStream() {
-        txn(() -> kinesisAsyncClient.listTagsForStream(ListTagsForStreamRequest.builder().build()));
-        assertKinesisTrace("Kinesis/listTagsForStream", false);
+        txn(() -> kinesisAsyncClient.listTagsForStream(ListTagsForStreamRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/listTagsForStream/stream-name", STREAM_ARN,false);
     }
 
     @Test
     public void testMergeShards() {
-        txn(() -> kinesisAsyncClient.mergeShards(MergeShardsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/mergeShards", false);
+        txn(() -> kinesisAsyncClient.mergeShards(MergeShardsRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/mergeShards/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testPutRecord() {
-        txn(() -> kinesisAsyncClient.putRecord(PutRecordRequest.builder().build()));
-        assertKinesisTrace("Kinesis/putRecord", false);
+        txn(() -> kinesisAsyncClient.putRecord(PutRecordRequest.builder().streamARN(STREAM_ARN).build()));
+        assertKinesisTrace("Kinesis/putRecord/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testPutRecords() {
-        txn(() -> kinesisAsyncClient.putRecords(PutRecordsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/putRecords", false);
+        txn(() -> kinesisAsyncClient.putRecords(PutRecordsRequest.builder().streamARN(STREAM_ARN).build()));
+        assertKinesisTrace("Kinesis/putRecords/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testRegisterStreamConsumer() {
-        txn(() -> kinesisAsyncClient.registerStreamConsumer(RegisterStreamConsumerRequest.builder().build()));
-        assertKinesisTrace("Kinesis/registerStreamConsumer", false);
+        txn(() -> kinesisAsyncClient.registerStreamConsumer(RegisterStreamConsumerRequest.builder().streamARN(STREAM_ARN).build()));
+        assertKinesisTrace("Kinesis/registerStreamConsumer/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testRemoveTagsFromStream() {
-        txn(() -> kinesisAsyncClient.removeTagsFromStream(RemoveTagsFromStreamRequest.builder().build()));
-        assertKinesisTrace("Kinesis/removeTagsFromStream", false);
+        txn(() -> kinesisAsyncClient.removeTagsFromStream(RemoveTagsFromStreamRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/removeTagsFromStream/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testSplitShard() {
-        txn(() -> kinesisAsyncClient.splitShard(SplitShardRequest.builder().build()));
-        assertKinesisTrace("Kinesis/splitShard", false);
+        txn(() -> kinesisAsyncClient.splitShard(SplitShardRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/splitShard/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testStartStreamEncryption() {
-        txn(() -> kinesisAsyncClient.startStreamEncryption(StartStreamEncryptionRequest.builder().build()));
-        assertKinesisTrace("Kinesis/startStreamEncryption", false);
+        txn(() -> kinesisAsyncClient.startStreamEncryption(StartStreamEncryptionRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/startStreamEncryption/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testStopStreamEncryption() {
-        txn(() -> kinesisAsyncClient.stopStreamEncryption(StopStreamEncryptionRequest.builder().build()));
-        assertKinesisTrace("Kinesis/stopStreamEncryption", false);
+        txn(() -> kinesisAsyncClient.stopStreamEncryption(StopStreamEncryptionRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/stopStreamEncryption/stream-name", STREAM_ARN,false);
     }
 
     @Test
     public void testUpdateShardCount() {
-        txn(() -> kinesisAsyncClient.updateShardCount(UpdateShardCountRequest.builder().build()));
-        assertKinesisTrace("Kinesis/updateShardCount", false);
+        txn(() -> kinesisAsyncClient.updateShardCount(UpdateShardCountRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/updateShardCount/stream-name", STREAM_ARN, false);
     }
 
     @Trace(dispatcher = true)
@@ -240,7 +283,7 @@ public class DefaultKinesisAsyncClientTest {
         supplier.get();
     }
 
-    private void assertKinesisTrace(String traceName, boolean assertSpan) {
+    private void assertKinesisTrace(String traceName, String expectedArn, boolean assertSpan) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         if (assertSpan) {
             // Span events fail to be generated when enough transactions are done in succession
@@ -249,15 +292,21 @@ public class DefaultKinesisAsyncClientTest {
                     .findFirst().orElse(null);
             assertNotNull(kinesisSpan);
             assertEquals("aws_kinesis_data_streams", kinesisSpan.getAgentAttributes().get("cloud.platform"));
+            assertEquals(expectedArn, kinesisSpan.getAgentAttributes().get("cloud.resource_id"));
         }
         Collection<TransactionTrace> transactionTraces = introspector.getTransactionTracesForTransaction(
                 "OtherTransaction/Custom/software.amazon.awssdk.services.kinesis.DefaultKinesisAsyncClientTest/txn");
         TransactionTrace transactionTrace = transactionTraces.iterator().next();
         List<TraceSegment> children = transactionTrace.getInitialTraceSegment().getChildren();
         assertEquals(1, children.size());
-        TraceSegment trace = children.get(0);
+        TraceSegment trace = children.stream()
+                .filter(t -> traceName.equals(t.getName()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(trace);
         assertEquals(traceName, trace.getName());
         assertEquals("aws_kinesis_data_streams", trace.getTracerAttributes().get("cloud.platform"));
+        assertEquals(expectedArn, trace.getTracerAttributes().get("cloud.resource_id"));
     }
 
     // This mock SdkAsyncHttpClient allows testing the AWS SDK without making actual HTTP requests.

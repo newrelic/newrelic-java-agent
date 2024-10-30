@@ -1,9 +1,8 @@
 package com.amazonaws.services.kinesis;
 
-import com.agent.instrumentation.awsjavasdk1.services.kinesis.KinesisUtil;
-import com.agent.instrumentation.awsjavasdk1.services.kinesis.StreamRawData;
+import com.agent.instrumentation.awsjavasdk12.services.kinesis.KinesisUtil;
+import com.agent.instrumentation.awsjavasdk12.services.kinesis.StreamRawData;
 import com.amazonaws.AmazonWebServiceClient;
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.kinesis.model.AddTagsToStreamRequest;
 import com.amazonaws.services.kinesis.model.AddTagsToStreamResult;
 import com.amazonaws.services.kinesis.model.CreateStreamRequest;
@@ -26,6 +25,8 @@ import com.amazonaws.services.kinesis.model.GetShardIteratorRequest;
 import com.amazonaws.services.kinesis.model.GetShardIteratorResult;
 import com.amazonaws.services.kinesis.model.IncreaseStreamRetentionPeriodRequest;
 import com.amazonaws.services.kinesis.model.IncreaseStreamRetentionPeriodResult;
+import com.amazonaws.services.kinesis.model.ListShardsRequest;
+import com.amazonaws.services.kinesis.model.ListShardsResult;
 import com.amazonaws.services.kinesis.model.ListStreamsRequest;
 import com.amazonaws.services.kinesis.model.ListStreamsResult;
 import com.amazonaws.services.kinesis.model.ListTagsForStreamRequest;
@@ -40,6 +41,10 @@ import com.amazonaws.services.kinesis.model.RemoveTagsFromStreamRequest;
 import com.amazonaws.services.kinesis.model.RemoveTagsFromStreamResult;
 import com.amazonaws.services.kinesis.model.SplitShardRequest;
 import com.amazonaws.services.kinesis.model.SplitShardResult;
+import com.amazonaws.services.kinesis.model.StartStreamEncryptionRequest;
+import com.amazonaws.services.kinesis.model.StartStreamEncryptionResult;
+import com.amazonaws.services.kinesis.model.StopStreamEncryptionRequest;
+import com.amazonaws.services.kinesis.model.StopStreamEncryptionResult;
 import com.amazonaws.services.kinesis.model.UpdateShardCountRequest;
 import com.amazonaws.services.kinesis.model.UpdateShardCountResult;
 import com.newrelic.api.agent.Trace;
@@ -48,141 +53,139 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
 @Weave(originalName = "com.amazonaws.services.kinesis.AmazonKinesisClient", type = MatchType.ExactClass)
-public abstract class AmazonKinesisClient_Instrumentation extends AmazonWebServiceClient {
-    public AmazonKinesisClient_Instrumentation(ClientConfiguration clientConfiguration) {
-        super(clientConfiguration);
-    }
+public abstract class AmazonKinesisClient_Instrumentation {
+    abstract protected String getSigningRegion();
 
     @Trace(async = true, leaf = true)
     final AddTagsToStreamResult executeAddTagsToStream(AddTagsToStreamRequest request) {
-        KinesisUtil.setTraceInformation("addTagsToStream", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("addTagsToStream", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final CreateStreamResult executeCreateStream(CreateStreamRequest request) {
-        KinesisUtil.setTraceInformation("createStream", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("createStream", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final DecreaseStreamRetentionPeriodResult executeDecreaseStreamRetentionPeriod(DecreaseStreamRetentionPeriodRequest request) {
-        KinesisUtil.setTraceInformation("decreaseStreamRetentionPeriod", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("decreaseStreamRetentionPeriod", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final DeleteStreamResult executeDeleteStream(DeleteStreamRequest request) {
-        KinesisUtil.setTraceInformation("deleteStream", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("deleteStream", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final DescribeLimitsResult executeDescribeLimits(DescribeLimitsRequest request) {
-        KinesisUtil.setTraceInformation("describeLimits", request, new StreamRawData(null, this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("describeLimits", request, new StreamRawData(null, this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final DescribeStreamResult executeDescribeStream(DescribeStreamRequest request) {
-        KinesisUtil.setTraceInformation("describeStream", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("describeStream", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final DisableEnhancedMonitoringResult executeDisableEnhancedMonitoring(DisableEnhancedMonitoringRequest request) {
-        KinesisUtil.setTraceInformation("disableEnhancedMonitoring", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("disableEnhancedMonitoring", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final EnableEnhancedMonitoringResult executeEnableEnhancedMonitoring(EnableEnhancedMonitoringRequest request) {
-        KinesisUtil.setTraceInformation("enableEnhancedMonitoring", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("enableEnhancedMonitoring", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final GetRecordsResult executeGetRecords(GetRecordsRequest request) {
-        KinesisUtil.setTraceInformation("getRecords", request, new StreamRawData(null, this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("getRecords", request, new StreamRawData(null, this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final GetShardIteratorResult executeGetShardIterator(GetShardIteratorRequest request) {
-        KinesisUtil.setTraceInformation("getShardIterator", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("getShardIterator", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final IncreaseStreamRetentionPeriodResult executeIncreaseStreamRetentionPeriod(IncreaseStreamRetentionPeriodRequest request) {
-        KinesisUtil.setTraceInformation("increaseStreamRetentionPeriod", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("increaseStreamRetentionPeriod", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final ListStreamsResult executeListStreams(ListStreamsRequest request) {
-        KinesisUtil.setTraceInformation("listStreams", request, new StreamRawData(null, this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("listStreams", request, new StreamRawData(null, this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final ListTagsForStreamResult executeListTagsForStream(ListTagsForStreamRequest request) {
-        KinesisUtil.setTraceInformation("listTagsForStream", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("listTagsForStream", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final MergeShardsResult executeMergeShards(MergeShardsRequest request) {
-        KinesisUtil.setTraceInformation("mergeShards", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("mergeShards", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final PutRecordResult executePutRecord(PutRecordRequest request) {
-        KinesisUtil.setTraceInformation("putRecord", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("putRecord", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final PutRecordsResult executePutRecords(PutRecordsRequest request) {
-        KinesisUtil.setTraceInformation("putRecords", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("putRecords", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final RemoveTagsFromStreamResult executeRemoveTagsFromStream(RemoveTagsFromStreamRequest request) {
-        KinesisUtil.setTraceInformation("removeTagsFromStream", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("removeTagsFromStream", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final SplitShardResult executeSplitShard(SplitShardRequest request) {
-        KinesisUtil.setTraceInformation("splitShard", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("splitShard", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
     @Trace(async = true, leaf = true)
     final UpdateShardCountResult executeUpdateShardCount(UpdateShardCountRequest request) {
-        KinesisUtil.setTraceInformation("updateShardCount", request, new StreamRawData(request.getStreamName(), this, 
-            KinesisUtil.getRegion(getServiceNameIntern(), endpoint, getSignerRegionOverride())));
+        KinesisUtil.setTraceInformation("updateShardCount", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
+        return Weaver.callOriginal();
+    }
+
+    @Trace(async = true, leaf = true)
+    final ListShardsResult executeListShards(ListShardsRequest request) {
+        KinesisUtil.setTraceInformation("listShards", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
+        return Weaver.callOriginal();
+    }
+
+    @Trace(async = true, leaf = true)
+    final StartStreamEncryptionResult executeStartStreamEncryption(StartStreamEncryptionRequest request) {
+        KinesisUtil.setTraceInformation("startStreamEncryption", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
+        return Weaver.callOriginal();
+
+    }
+
+    @Trace(async = true, leaf = true)
+    final StopStreamEncryptionResult executeStopStreamEncryption(StopStreamEncryptionRequest request) {
+        KinesisUtil.setTraceInformation("stopStreamEncryption", request, new StreamRawData(request.getStreamName(), this, getSigningRegion()));
         return Weaver.callOriginal();
     }
 
