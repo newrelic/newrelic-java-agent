@@ -7,6 +7,8 @@
 
 package org.apache.logging.log4j.core.config;
 
+import com.newrelic.agent.bridge.logging.LinkingMetadataHolder;
+import com.newrelic.agent.bridge.logging.Log4jUtils;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
@@ -14,8 +16,11 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
 import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.LogEvent_Instrumentation;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingForwardingEnabled;
@@ -35,8 +40,14 @@ public class LoggerConfig_Instrumentation {
         }
     }
 
-    protected void callAppenders(LogEvent event) {
+    protected void callAppenders(LogEvent_Instrumentation event) {
+        LinkingMetadataHolder agentLinkingMetadata = Log4jUtils.getLinkingMetadataFromCache(event);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "callappend: {0}", event);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "callappend: {0}", agentLinkingMetadata);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "callappend: {0}", NewRelic.getAgent().getTransaction());
+
         // Do nothing if application_logging.enabled: false
+        Map<String, String> aqentLinkingMetadata = null;
         if (isApplicationLoggingEnabled()) {
             // Do nothing if logger has parents and isAdditive is set to true to avoid duplicated counters and logs
             if (getParent() == null || !isAdditive()) {
@@ -48,11 +59,17 @@ public class LoggerConfig_Instrumentation {
 
                 if (isApplicationLoggingForwardingEnabled()) {
                     // Record and send LogEvent to New Relic
-                    recordNewRelicLogEvent(event);
+                    agentLinkingMetadata = Log4jUtils.getLinkingMetadataFromCache(event);
+                    recordNewRelicLogEvent((LogEvent) event, agentLinkingMetadata);
                 }
             }
         }
+
         Weaver.callOriginal();
+
+        if (agentLinkingMetadata.isValid()) {
+            Log4jUtils.removeLinkingMetadataFromCache(event);
+        }
     }
 
     public LoggerConfig getParent() {

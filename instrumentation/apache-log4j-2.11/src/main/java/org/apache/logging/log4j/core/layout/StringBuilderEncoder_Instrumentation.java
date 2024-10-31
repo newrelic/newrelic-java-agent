@@ -16,7 +16,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.getLinkingMetada
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingLocalDecoratingEnabled;
 
-@Weave(originalName = "org.apache.logging.log4j.core.layout.StringBuilderEncoder", type = MatchType.BaseClass)
+//@Weave(originalName = "org.apache.logging.log4j.core.layout.StringBuilderEncoder", type = MatchType.BaseClass)
 public class StringBuilderEncoder_Instrumentation {
 
     public void encode(final StringBuilder source, final ByteBufferDestination destination) {

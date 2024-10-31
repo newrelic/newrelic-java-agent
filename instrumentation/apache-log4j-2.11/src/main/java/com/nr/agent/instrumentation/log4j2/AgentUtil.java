@@ -9,6 +9,7 @@ package com.nr.agent.instrumentation.log4j2;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
+import com.newrelic.agent.bridge.logging.LinkingMetadataHolder;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import org.apache.logging.log4j.Level;
@@ -39,7 +40,7 @@ public class AgentUtil {
      *
      * @param event to parse
      */
-    public static void recordNewRelicLogEvent(LogEvent event) {
+    public static void recordNewRelicLogEvent(LogEvent event, LinkingMetadataHolder linkingMetadata) {
         if (event != null) {
             Message message = event.getMessage();
             Throwable throwable = event.getThrown();
@@ -107,7 +108,11 @@ public class AgentUtil {
                     logEventMap.put(LOGGER_FQCN, loggerFqcn);
                 }
 
-                AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
+                if (linkingMetadata != null) {
+                    AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap, linkingMetadata);
+                } else {
+                    AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
+                }
             }
         }
     }

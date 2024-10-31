@@ -7,6 +7,8 @@
 
 package org.apache.logging.log4j.core.layout;
 
+import com.newrelic.agent.bridge.logging.LinkingMetadataHolder;
+import com.newrelic.agent.bridge.logging.Log4jUtils;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -15,6 +17,7 @@ import org.apache.logging.log4j.core.util.StringBuilderWriter;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.BLOB_PREFIX;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.getLinkingMetadataBlob;
@@ -43,10 +46,11 @@ abstract class AbstractJacksonLayout_Instrumentation {
                     int indexToModifyJson = getIndexToModifyJson(writerString);
                     if (foundIndexToInsertLinkingMetadata(indexToModifyJson)) {
                         // Replace the JSON string with modified version that includes NR-LINKING metadata
-                        if (event != null && event.agentLinkingMetadata != null && (!event.agentLinkingMetadata.isEmpty())) {
+                        LinkingMetadataHolder agentLinkingMetadata = Log4jUtils.getLinkingMetadataFromCache(event);
+                        if (agentLinkingMetadata.isValid()) {
                             // Get linking metadata stored on LogEvent if available. This ensures that
                             // the trace.id and span.id will be available when using an async appender.
-                            modified = new StringBuilder(writerString).insert(indexToModifyJson, getLinkingMetadataBlobFromMap(event.agentLinkingMetadata))
+                            modified = new StringBuilder(writerString).insert(indexToModifyJson, getLinkingMetadataBlobFromMap(agentLinkingMetadata.getLinkingMetadata()))
                                     .toString();
                         } else {
                             // Get linking metadata from current thread if it is not available on LogEvent.

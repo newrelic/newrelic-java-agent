@@ -7,6 +7,7 @@
 package com.newrelic.agent.bridge.logging;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.NewField;
 
 import java.lang.reflect.Field;
@@ -16,6 +17,23 @@ import java.util.logging.Level;
 public class Log4jUtils {
 
     private static final Map<Object, Object> linkingMetadataReflectFieldCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
+
+    private static final Map<Object, LinkingMetadataHolder> logEventToLinkingMetadataCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
+
+    public static void addLinkingMetadataToCache(Object logEvent, LinkingMetadataHolder metadata) {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "metadata add:: {0}", logEvent.toString());
+        logEventToLinkingMetadataCache.put(logEvent, metadata);
+    }
+
+    public static LinkingMetadataHolder getLinkingMetadataFromCache(Object logEvent) {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "metadata get:: {0}", logEvent.toString());
+        return logEventToLinkingMetadataCache.get(logEvent);
+    }
+
+    public static void removeLinkingMetadataFromCache(Object logEvent) {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "metadata remove:: {0}", logEvent.toString());
+        logEventToLinkingMetadataCache.remove(logEvent);
+    }
 
     /**
      * Gets the agent linking metadata from a LogEvent from Log4j.

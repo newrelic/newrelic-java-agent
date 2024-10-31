@@ -23,6 +23,7 @@ import com.newrelic.agent.attributes.DisabledExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
 import com.newrelic.agent.attributes.LogAttributeValidator;
+import com.newrelic.agent.bridge.logging.LinkingMetadataHolder;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
@@ -40,6 +41,7 @@ import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.util.NoOpQueue;
 import com.newrelic.api.agent.Logs;
+import com.newrelic.api.agent.NewRelic;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -228,25 +230,49 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         Transaction transaction = ServiceFactory.getTransactionService().getTransaction(false);
         // Not in a Transaction or an existing Transaction is not in progress or is ignored
         if (transaction == null || !transaction.isInProgress() || transaction.isIgnore()) {
-            String applicationName = ServiceFactory.getRPMService().getApplicationName();
-
-            if (transaction != null && transaction.getApplicationName() != null) {
-                applicationName = transaction.getApplicationName();
-            }
-
-            AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig(applicationName);
-
-            if (!getIsEnabledForApp(agentConfig, applicationName)) {
-                reservoirForApp.remove(applicationName);
-                return;
-            }
-            createAndStoreEvent(applicationName, attributes);
-        // In a Transaction that is in progress and not ignored
+            recordLogEventWithoutTransaction(attributes);
         } else {
             // Store log events on the transaction
             transaction.getLogEventData().recordLogEvent(attributes);
         }
         MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
+    }
+
+    @Override
+    public void recordLogEvent(Map<LogAttributeKey, ?> attributes, LinkingMetadataHolder linkingMetadata) {
+        if (logEventsDisabled() || attributes == null || attributes.isEmpty()) {
+            return;
+        }
+
+        Transaction transaction = linkingMetadata.getTransaction();
+        // Not in a Transaction or an existing Transaction is not in progress or is ignored
+        if (transaction == null || !transaction.isInProgress() || transaction.isIgnore()) {
+            recordLogEventWithoutTransaction(attributes);
+        } else {
+            // Store log events on the transaction
+            transaction.getLogEventData().recordLogEvent(attributes, linkingMetadata);
+        }
+        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
+    }
+
+    /**
+     * Records a LogEvent that is not associated with a transaction.
+     *
+     * @param attributes A map of log event data (e.g. log message, log timestamp, log level)
+     *                   Each key should be a String and each value should be a String, Number, or Boolean.
+     *                   For map values that are not String, Number, or Boolean object types the toString value will be used.
+     */
+    private void recordLogEventWithoutTransaction(Map<LogAttributeKey, ?> attributes) {
+        String applicationName = ServiceFactory.getRPMService().getApplicationName();
+
+        AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig(applicationName);
+
+        if (!getIsEnabledForApp(agentConfig, applicationName)) {
+            reservoirForApp.remove(applicationName);
+            return;
+        }
+
+        createAndStoreEvent(applicationName, attributes);
     }
 
     /**
@@ -516,8 +542,23 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     private static LogEvent createValidatedEvent(Map<LogAttributeKey, ?> attributes, ExcludeIncludeFilter contextDataKeyFilter) {
         Map<String, String> logEventLinkingMetadata = AgentLinkingMetadata.getLogEventLinkingMetadata(TraceMetadataImpl.INSTANCE,
                 ServiceFactory.getConfigService(), ServiceFactory.getRPMService());
-        // Initialize new logEventAttributes map with agent linking metadata
-        Map<String, Object> logEventAttributes = new HashMap<>(logEventLinkingMetadata);
+
+        return createValidatedEvent(attributes, contextDataKeyFilter, logEventLinkingMetadata);
+    }
+
+    /**
+     * Create a validated log event with the supplied linking metadata
+     *
+     * @param attributes Map of attributes to create a LogEvent from
+     * @param contextDataKeyFilter
+     *
+     * @return The new LogEvent
+     */
+    private static LogEvent createValidatedEvent(Map<LogAttributeKey, ?> attributes, ExcludeIncludeFilter contextDataKeyFilter,
+            Map<String, String> linkingMetadata) {
+        Map<String, Object> logEventAttributes = new HashMap<>(linkingMetadata);
+
+        NewRelic.getAgent().getLogger().log(Level.INFO, "in createValidatedEvent ");
 
         LogEvent event = new LogEvent(logEventAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
@@ -558,7 +599,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         }
         return event;
     }
-
     /**
      * Validate attributes and add them to LogEvents
      */
@@ -614,18 +654,37 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             }
 
             LogEvent event = createValidatedEvent(attributes, contextDataKeyFilter);
-            if (events.offer(event)) {
-                Agent.LOG.log(Level.FINEST, "Added event of type {0} in Transaction.", LOG_EVENT_TYPE);
-            } else {
-                // Too many events are cached on the transaction, send directly to the reservoir.
-                String applicationName = ServiceFactory.getRPMService().getApplicationName();
-                ServiceFactory.getServiceManager().getLogSenderService().storeEvent(applicationName, event);
+            offerEvent(event);
+        }
+
+        @Override
+        public void recordLogEvent(Map<LogAttributeKey, ?> attributes, Map<String, String> linkingMetadata) {
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
+                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
+                return;
             }
+
+            LogEvent event = createValidatedEvent(attributes, contextDataKeyFilter, linkingMetadata);
+            offerEvent(event);
         }
 
         @VisibleForTesting
         public List<LogEvent> getEventsForTesting() {
             return new ArrayList<>(events);
+        }
+
+        private void offerEvent(LogEvent event) {
+            if (events.offer(event)) {
+                Agent.LOG.log(Level.FINEST, "Added event of type {0} in Transaction.", LOG_EVENT_TYPE);
+            } else {
+                // Too many events are cached on the transaction, send directly to the reservoir.
+                sendDirectlyToReservoir(event);
+            }
+        }
+
+        private void sendDirectlyToReservoir(LogEvent event) {
+            String applicationName = ServiceFactory.getRPMService().getApplicationName();
+            ServiceFactory.getServiceManager().getLogSenderService().storeEvent(applicationName, event);
         }
     }
 }

@@ -7,10 +7,13 @@
 
 package org.apache.logging.log4j.core;
 
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.logging.LinkingMetadataHolder;
+import com.newrelic.agent.bridge.logging.Log4jUtils;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.ThreadContext;
@@ -18,20 +21,25 @@ import org.apache.logging.log4j.core.impl.ThrowableProxy;
 import org.apache.logging.log4j.core.time.Instant;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.util.ReadOnlyStringMap;
-
 import java.util.Map;
 
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingLocalDecoratingEnabled;
 
 @Weave(originalName = "org.apache.logging.log4j.core.LogEvent", type = MatchType.Interface)
 public abstract class LogEvent_Instrumentation {
 
-    /*
-     * In cases where the LogEvent is sent to an AsyncAppender, getLinkingMetadata would get called on a new thread and the trace.id and span.id
-     * would be missing. To work around this we save the linking metadata on the LogEvent on the thread where it was created and use it later.
-     */
-    @NewField
-    public Map<String, String> agentLinkingMetadata = isApplicationLoggingLocalDecoratingEnabled() ? NewRelic.getAgent().getLinkingMetadata() : null;
+    @WeaveAllConstructors
+    public LogEvent_Instrumentation() {
+        if (isApplicationLoggingEnabled()) {
+            LinkingMetadataHolder holder =
+                    new LinkingMetadataHolder(NewRelic.getAgent().getTransaction(), AgentBridge.getAgent().getLinkingMetadata());
+            Map<String, String> linkingMetadata = AgentBridge.getAgent().getLinkingMetadata();
+            if (holder.isValid()) {
+                Log4jUtils.addLinkingMetadataToCache(this, holder);
+            }
+        }
+    }
 
     public abstract LogEvent toImmutable();
 

@@ -87,6 +87,10 @@ class IntrospectorLogSenderService implements LogSenderService {
     }
 
     @Override
+    public void recordLogEvent(Map<LogAttributeKey, ?> attributes, Map<String, String> linkingMetadata) {
+    }
+
+    @Override
     public Logs getTransactionLogs(AgentConfig config) {
         return this;
     }
