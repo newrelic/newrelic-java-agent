@@ -7,7 +7,6 @@
 package com.newrelic.agent.superagent;
 
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.RPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.SuperAgentIntegrationConfig;

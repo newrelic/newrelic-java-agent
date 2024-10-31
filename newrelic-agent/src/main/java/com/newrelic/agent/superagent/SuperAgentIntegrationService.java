@@ -7,18 +7,12 @@
 package com.newrelic.agent.superagent;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.AgentConnectionEstablishedListener;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.service.AbstractService;
-import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.ServiceManager;
-import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.api.agent.NewRelic;
 
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

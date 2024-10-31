@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -25,8 +24,6 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
     private Yaml yamlWriter;
     private File healthFile = null;
     private boolean isValid = false;
-
-    private final Random rnd = new Random();
 
     public SuperAgentIntegrationHealthFileBasedClient(SuperAgentIntegrationConfig config) {
         URI locationFromConfig = config.getHealthDeliveryLocation();
