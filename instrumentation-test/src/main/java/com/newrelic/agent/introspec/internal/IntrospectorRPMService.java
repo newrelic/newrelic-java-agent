@@ -181,8 +181,4 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     @Override
     protected void doStop() {
     }
-
-    @Override
-    public void addAgentConnectionEstablishedListener(AgentConnectionEstablishedListener listener) {
-    }
 }

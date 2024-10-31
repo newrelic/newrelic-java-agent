@@ -26,22 +26,18 @@ public class SuperAgentIntegrationServiceTest {
     AgentConfig mockAgentConfig;
     SuperAgentIntegrationConfig mockSuperAgentIntegrationConfig;
     RPMServiceManager mockRPMServiceManager;
-    RPMService mockRPMService;
     AgentHealth mockAgentHealth;
 
     @Before
     public void before() {
         mockAgentConfig = mock(AgentConfig.class);
         mockSuperAgentIntegrationConfig = mock(SuperAgentIntegrationConfig.class);
-        mockRPMService = mock(RPMService.class);
         mockAgentHealth = mock(AgentHealth.class);
         mockRPMServiceManager = mock(RPMServiceManager.class);
 
         MockServiceManager manager = new MockServiceManager();
         manager.setRPMServiceManager(mockRPMServiceManager);
         ServiceFactory.setServiceManager(manager);
-
-        when(mockRPMServiceManager.getRPMService()).thenReturn(mockRPMService);
 
         when(mockAgentConfig.getSuperAgentIntegrationConfig()).thenReturn(mockSuperAgentIntegrationConfig);
         when(mockAgentConfig.getSuperAgentIntegrationConfig()).thenReturn(mockSuperAgentIntegrationConfig);

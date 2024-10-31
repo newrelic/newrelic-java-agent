@@ -18,6 +18,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentIntegrationHealthClient {
@@ -71,7 +72,6 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
         healthMap.put("status", agentHealth.getCurrentStatus());
         healthMap.put("start_time_unix_nano", agentHealth.getStartTimeNanos());
         healthMap.put("status_time_unix_nano", SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos());
-        healthMap.put("agent_run_id", agentHealth.getAgentRunId());
         if (!agentHealth.isHealthy()) {
             healthMap.put("last_error", agentHealth.getLastError());
         }
@@ -95,6 +95,9 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
     }
 
     private String generateHealthFilename() {
-        return "health_" + rnd.nextInt(Integer.MAX_VALUE) + ".yml";
+        StringBuilder sb = new StringBuilder("health-")
+                .append(UUID.randomUUID().toString().replace("-", ""))
+                .append(".yml");
+        return sb.toString();
     }
 }

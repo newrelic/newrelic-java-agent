@@ -31,13 +31,11 @@ public class AgentHealthTest {
     public void classGetters_returnCorrectValues() {
         long startTime = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
-        agentHealth.setAgentRunId("runid");
         agentHealth.setUnhealthyStatus(AgentHealth.Status.INVALID_LICENSE);
 
         assertEquals(startTime, agentHealth.getStartTimeNanos());
         assertEquals("NR-APM-001", agentHealth.getLastError());
         assertEquals("Invalid license key (HTTP status code 401)", agentHealth.getCurrentStatus());
-        assertEquals("runid", agentHealth.getAgentRunId());
     }
 
     @Test

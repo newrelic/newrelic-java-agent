@@ -63,7 +63,6 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
         long startTime = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
-        agentHealth.setAgentRunId("runid");
 
         client.sendHealthMessage(agentHealth);
         File[] yamlFiles = getGeneratedHealthFiles();
@@ -75,7 +74,6 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
         assertEquals("Healthy", parsedYaml.get("status"));
         assertNotNull(parsedYaml.get("status_time_unix_nano"));
         assertNull(parsedYaml.get("last_error"));
-        assertEquals("runid", parsedYaml.get("agent_run_id"));
 
         assertTrue(client.isValid());
     }
@@ -113,7 +111,7 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
 
     private File[] getGeneratedHealthFiles() {
         File yamlFile = new File(HEALTH_FILE_LOCATION);
-        File[] files = yamlFile.listFiles((dir, name) -> name.matches( "health_.*\\.yml" ));
+        File[] files = yamlFile.listFiles((dir, name) -> name.matches( "health-.*\\.yml" ));
         return (files != null && files.length > 0) ? files : null;
     }
 }

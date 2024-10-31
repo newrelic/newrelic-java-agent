@@ -24,9 +24,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class SuperAgentIntegrationService extends AbstractService implements HealthDataChangeListener, AgentConnectionEstablishedListener {
-    private final String SA_INTEGRATION_THREAD_NAME = "New Relic Super Agent Integration Service";
-
+public class SuperAgentIntegrationService extends AbstractService implements HealthDataChangeListener {
     private final AgentConfig agentConfig;
     private final SuperAgentIntegrationHealthClient client;
     private final AgentHealth agentHealth;
@@ -57,10 +55,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
 
             int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay
 
-            // Register for this event so we can update the agent_run_id
-            ServiceFactory.getRPMService().addAgentConnectionEstablishedListener(this);
-
-            this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory(SA_INTEGRATION_THREAD_NAME, true));
+            this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic Super Agent Integration Service", true));
             this.scheduler.scheduleWithFixedDelay(() -> client.sendHealthMessage(agentHealth), messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
         }
     }
@@ -93,10 +88,5 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
                 agentHealth.setHealthyStatus(category);
             }
         }
-    }
-
-    @Override
-    public void onEstablished(String appName, String agentRunToken, Map<String, String> requestMetadata) {
-        agentHealth.setAgentRunId(agentRunToken);
     }
 }
