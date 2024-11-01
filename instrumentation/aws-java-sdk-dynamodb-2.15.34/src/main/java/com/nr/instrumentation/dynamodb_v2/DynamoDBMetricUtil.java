@@ -7,7 +7,6 @@ import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TracedMethod;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.regions.Region;
@@ -58,7 +57,7 @@ public abstract class DynamoDBMetricUtil {
             return null;
         }
 
-        String region = findRegion(clientConfiguration, host);
+        String region = findRegion(clientConfiguration);
         if (region == null) {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. Region is null.");
             return null;
@@ -69,19 +68,11 @@ public abstract class DynamoDBMetricUtil {
     }
 
     // visible for testing
-    static String findRegion(SdkClientConfiguration clientConfig, String host) {
-        Boolean endpointOverridden = clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN);
-        if (endpointOverridden == Boolean.TRUE) { // endpointOverridden could be null
-            Region dynamodb = AwsHostNameUtils.parseSigningRegion(host, "dynamodb").orElse(null);
-            return dynamodb == null ? null : dynamodb.id();
-        }
-
+    static String findRegion(SdkClientConfiguration clientConfig) {
+        // it is possible to specify an endpoint, and it may not match the region of the client
+        // unfortunately early versions of the v2 SDK do not provide info when that happens
         Region awsRegion = clientConfig.option(AwsClientOption.AWS_REGION);
-        if (awsRegion != null) {
-            return awsRegion.id();
-        }
-
-        return null;
+        return awsRegion == null ? null : awsRegion.id();
     }
 
     private static Integer getPort(URI endpoint) {

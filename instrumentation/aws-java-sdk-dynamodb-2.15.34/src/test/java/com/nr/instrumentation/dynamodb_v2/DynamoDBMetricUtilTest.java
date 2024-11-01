@@ -46,32 +46,18 @@ public class DynamoDBMetricUtilTest {
     }
 
     @Test
-    public void testFindRegion_fromRegion() {
-        String host = "dynamodb.us-west-2.amazonaws.com";
+    public void testFindRegion() {
         SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
                 .option(AwsClientOption.AWS_REGION, Region.US_WEST_2)
-                .option(SdkClientOption.ENDPOINT, URI.create("https://" + host))
                 .build();
-        assertEquals("us-west-2", DynamoDBMetricUtil.findRegion(clientConfig, host));
-    }
-
-    @Test
-    public void testFindRegion_fromEndpoint() {
-        String host = "dynamodb.ap-east-1.amazonaws.com";
-        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
-                .option(AwsClientOption.AWS_REGION, Region.US_WEST_2)
-                .option(SdkClientOption.ENDPOINT, URI.create("https://" + host))
-                .option(SdkClientOption.ENDPOINT_OVERRIDDEN, Boolean.TRUE)
-                .build();
-        assertEquals("ap-east-1", DynamoDBMetricUtil.findRegion(clientConfig, host));
+        assertEquals("us-west-2", DynamoDBMetricUtil.findRegion(clientConfig));
     }
 
     @Test
     public void testFindRegion_fail() {
         SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
                 .build();
-        String host = null;
-        assertNull(DynamoDBMetricUtil.findRegion(clientConfig, host));
+        assertNull(DynamoDBMetricUtil.findRegion(clientConfig));
     }
 
 
