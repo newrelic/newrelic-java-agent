@@ -17,16 +17,16 @@ import org.apache.pekko.util.Timeout
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.language.postfixOps
 
 class HttpServer(val routes: Route = RouteService.defaultRoute) {
-  implicit val system = ActorSystem()
-  implicit val executor = system.dispatcher
+  implicit val system: ActorSystem = ActorSystem()
+  implicit val executor: ExecutionContext = system.dispatcher
   implicit val timeout: Timeout = 60 seconds
 
   val config = ConfigFactory.load()
-  val logger = Logging(system, getClass)
+  val logger = Logging(system, "hallo")
 
   var handle: Future[ServerBinding] = _
 

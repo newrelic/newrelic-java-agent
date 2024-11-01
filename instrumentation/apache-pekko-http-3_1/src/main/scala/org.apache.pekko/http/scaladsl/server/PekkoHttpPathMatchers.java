@@ -32,7 +32,7 @@ public class PekkoHttpPathMatchers {
     @Weave(type = MatchType.ExactClass, originalName = "org.apache.pekko.http.scaladsl.server.PathMatchers$Remaining$")
     public static class PekkoHttpRemaining$ {
 
-        public PathMatcher.Matched<Tuple1<String>> apply(final Uri.Path path) {
+        public PathMatcher.Matching<Tuple1<String>> apply(final Uri.Path path) {
             PathMatcher.Matched<Tuple1<String>> matched = Weaver.callOriginal();
             PathMatcherUtils.appendRemaining("Remaining", path, matched);
             return matched;
@@ -43,7 +43,7 @@ public class PekkoHttpPathMatchers {
     @Weave(type = MatchType.ExactClass, originalName = "org.apache.pekko.http.scaladsl.server.PathMatchers$RemainingPath$")
     public static class PekkoHttpRemainingPath$ {
 
-        public PathMatcher.Matched<Tuple1<String>> apply(final Uri.Path path) {
+        public PathMatcher.Matching<Tuple1<String>> apply(final Uri.Path path) {
             PathMatcher.Matched<Tuple1<String>> matched = Weaver.callOriginal();
             PathMatcherUtils.appendRemaining("RemainingPath", path, matched);
             return matched;

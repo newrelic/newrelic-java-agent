@@ -33,9 +33,9 @@ class StatusCheckActor extends Actor with Timers {
 
   override def receive: Receive = {
     case Ping(id) if id < 100 =>
-      sender ! "Ping_OK"
+      sender() ! "Ping_OK"
     case Ping(id) =>
-      lastSender = Some(sender)
+      lastSender = Some(sender())
     case Pong =>
       lastSender.foreach(_ ! "Pong_OK")
       lastSender = None

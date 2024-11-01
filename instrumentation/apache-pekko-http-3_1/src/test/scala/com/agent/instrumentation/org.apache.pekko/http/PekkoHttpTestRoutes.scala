@@ -69,27 +69,27 @@ class PekkoHttpTestRoutes {
   }
 
   val routes: Route = rejectEmptyResponse {
-    customDirective { _: Option[String] =>
+    customDirective { (_: Option[String]) =>
       pathPrefix("custom-directive") {
         pathPrefix("v2") {
           pathPrefix("docs") {
-            parameters(Symbol("parameter")) { parameterId: String =>
-              get { ctx: RequestContext =>
+            parameters(Symbol("parameter")) { (parameterId: String) =>
+              get { (ctx: RequestContext) =>
                 ctx.complete("CustomDirectiveDocsParam: " + parameterId)
               }
             } ~
               path(Segment) { segment =>
-                get { ctx: RequestContext =>
+                get { (ctx: RequestContext) =>
                   ctx.complete("CustomDirectiveDocsSegment: " + segment)
                 }
               } ~
               path(Segment / "details") { segment =>
-                get { ctx: RequestContext =>
+                get { (ctx: RequestContext) =>
                   ctx.complete("CustomDirectiveDocsSegmentDetails: " + segment)
                 }
               } ~
               path(Segment / "details" / "test") { segment =>
-                get { ctx: RequestContext =>
+                get { (ctx: RequestContext) =>
                   ctx.complete("CustomDirectiveDocsSegmentDetailsTest: " + segment)
                 }
               }
@@ -112,7 +112,7 @@ class PekkoHttpTestRoutes {
         } ~
         pekkoStreamDirective { implicit data => {
           path("prefix-first") {
-            get { ctx: RequestContext =>
+            get { (ctx: RequestContext) =>
               ctx.complete("prefix-first")
             }
           } ~
@@ -124,7 +124,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("prefix-first-second") {
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 ctx.complete("prefix-first-second")
               }
             } ~
@@ -136,7 +136,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("simple" / "route") {
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 ctx.complete("Simple Route")
               }
             } ~
@@ -148,7 +148,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("uuid" / JavaUUID) { uuid =>
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 ctx.complete("UUID: " + uuid.toString)
               }
             } ~
@@ -160,7 +160,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("regex" / """\d+""".r) { digit =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("Regex: " + digit)
               }
             } ~
@@ -172,7 +172,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("map" / Map("red" -> 1, "green" -> 2, "blue" -> 3)) { value =>
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 ctx.complete("Map: " + value)
               }
             } ~
@@ -184,7 +184,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("segment" / "foo" ~ Segment) { segment =>
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 ctx.complete("Segment: " + segment)
               }
             } ~
@@ -197,12 +197,12 @@ class PekkoHttpTestRoutes {
             } ~
             pathPrefix("pathend") {
               pathEnd {
-                get { ctx: RequestContext =>
+                get {( ctx: RequestContext )=>
                   ctx.complete("PathEnd")
                 }
               } ~
                 path(Segment) { segment =>
-                  get { ctx: RequestContext =>
+                  get {( ctx: RequestContext )=>
                     ctx.complete("PathEnd: " + segment)
                   }
                 }
@@ -224,7 +224,7 @@ class PekkoHttpTestRoutes {
                 }
             } ~
             path("remainingpath" / RemainingPath) { remainingpath =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("RemainingPath: " + remainingpath)
               }
             } ~
@@ -236,7 +236,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("remain" ~ Remaining) { remaining =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("Remain: " + remaining)
               }
             } ~
@@ -248,7 +248,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("int" / IntNumber) { number =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("IntNumber: " + number)
               }
             } ~
@@ -260,7 +260,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("long" / LongNumber) { number =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("LongNumber: " + number)
               }
             } ~
@@ -272,7 +272,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("hexint" / HexIntNumber) { number =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("HexIntNumber: " + number)
               }
             } ~
@@ -284,7 +284,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("hexlong" / HexLongNumber) { number =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("HexLongNumber: " + number)
               }
             } ~
@@ -296,7 +296,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("double" / DoubleNumber) { number =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("DoubleNumber: " + number)
               }
             } ~
@@ -308,7 +308,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("segments" / Segments) { segments =>
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 val result = segments.mkString(",")
                 ctx.complete("Segments: " + result)
               }
@@ -322,7 +322,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("repeat" / IntNumber.repeat(2, 3, separator = Slash) / "complex") { segments =>
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 val result = segments.mkString(",")
                 ctx.complete("Repeat: " + result)
               }
@@ -336,13 +336,13 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("zerorepeat" / IntNumber.repeat(0, 2, separator = Slash)) { segments =>
-              get { ctx: RequestContext =>
+              get { (ctx: RequestContext) =>
                 val result = segments.mkString(",")
                 ctx.complete("ZeroRepeat: " + result)
               }
             } ~
             path("pipe" / ("i" ~ IntNumber | "h" ~ HexIntNumber)) { number =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("Pipe: " + number)
               }
             } ~
@@ -354,7 +354,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             path("pipe" / "optional" / "X" ~ IntNumber.? / ("edit" | "create")) { number =>
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("Pipe + Optional: " + number.orNull)
               }
             } ~
@@ -366,7 +366,7 @@ class PekkoHttpTestRoutes {
               }
             } ~
             pathPrefix("match" ~ !"nomatch") {
-              get { ctx: RequestContext =>
+              get {( ctx: RequestContext )=>
                 ctx.complete("Negation")
               }
             } ~
@@ -379,23 +379,23 @@ class PekkoHttpTestRoutes {
             } ~
             pathPrefix("v1") {
               pathPrefix("containers") {
-                parameters(Symbol("parameter")) { parameterId: String =>
-                  get { ctx: RequestContext =>
+                parameters(Symbol("parameter")) { (parameterId: String) =>
+                  get {( ctx: RequestContext )=>
                     ctx.complete("ContainersParam: " + parameterId)
                   }
                 } ~
                   path(Segment) { segment =>
-                    get { ctx: RequestContext =>
+                    get {( ctx: RequestContext )=>
                       ctx.complete("ContainersSegment: " + segment)
                     }
                   } ~
                   path(Segment / "details") { segment =>
-                    get { ctx: RequestContext =>
+                    get {( ctx: RequestContext )=>
                       ctx.complete("ContainersSegmentDetails: " + segment)
                     }
                   } ~
                   path(Segment / "details" / "test") { segment =>
-                    get { ctx: RequestContext =>
+                    get {( ctx: RequestContext )=>
                       ctx.complete("ContainersSegmentDetailsTest: " + segment)
                     }
                   }
