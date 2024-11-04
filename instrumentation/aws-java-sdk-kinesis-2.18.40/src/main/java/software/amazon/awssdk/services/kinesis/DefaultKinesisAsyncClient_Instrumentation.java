@@ -1,8 +1,8 @@
 package software.amazon.awssdk.services.kinesis;
 
-import com.agent.instrumentation.awsjavasdk2.services.kinesis.KinesisUtil;
-import com.agent.instrumentation.awsjavasdk2.services.kinesis.SegmentHandler;
-import com.agent.instrumentation.awsjavasdk2.services.kinesis.StreamRawData;
+import com.agent.instrumentation.awsjavasdk218.services.kinesis.KinesisUtil;
+import com.agent.instrumentation.awsjavasdk218.services.kinesis.SegmentHandler;
+import com.agent.instrumentation.awsjavasdk218.services.kinesis.StreamRawData;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;

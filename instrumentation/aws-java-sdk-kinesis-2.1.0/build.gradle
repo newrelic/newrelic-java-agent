@@ -1,10 +1,10 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("software.amazon.awssdk:kinesis:2.20.45")
+    implementation("software.amazon.awssdk:kinesis:2.1.0")
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-kinesis-2.0.6' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-kinesis-2.1.0' }
 }
 
 verifyInstrumentation {
