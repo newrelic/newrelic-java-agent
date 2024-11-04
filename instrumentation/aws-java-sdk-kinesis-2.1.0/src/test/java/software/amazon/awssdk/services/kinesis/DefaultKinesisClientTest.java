@@ -170,7 +170,7 @@ public class DefaultKinesisClientTest {
     @Test
     public void testGetRecords() {
         txn(() -> kinesisClient.getRecords(GetRecordsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/getRecords/stream-name", null, false);
+        assertKinesisTrace("Kinesis/getRecords", null, false);
     }
 
     @Test
@@ -220,12 +220,12 @@ public class DefaultKinesisClientTest {
     @Test
     public void testPutRecord() {
         txn(() -> kinesisClient.putRecord(PutRecordRequest.builder().build()));
-        assertKinesisTrace("Kinesis/putRecord/stream-name", STREAM_ARN, false);
+        assertKinesisTrace("Kinesis/putRecord", null, false);
     }
 
     @Test
     public void testPutRecords() {
-        txn(() -> kinesisClient.putRecords(PutRecordsRequest.builder().build()));
+        txn(() -> kinesisClient.putRecords(PutRecordsRequest.builder().streamName(STREAM_NAME).build()));
         assertKinesisTrace("Kinesis/putRecords/stream-name", STREAM_ARN, false);
     }
 

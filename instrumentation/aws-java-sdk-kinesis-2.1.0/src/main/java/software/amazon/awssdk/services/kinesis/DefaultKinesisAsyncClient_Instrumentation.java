@@ -101,7 +101,7 @@ class DefaultKinesisAsyncClient_Instrumentation {
     }
     
     public CompletableFuture<DeregisterStreamConsumerResponse> deregisterStreamConsumer(DeregisterStreamConsumerRequest request) {
-        String streamArn = null;
+        String streamArn = request.streamARN();
         String consumerArn = request.consumerARN();
         String arn = streamArn != null && !streamArn.isEmpty() ? streamArn : consumerArn;
         StreamRawData streamRawData = new StreamRawData(null, arn, this, clientConfiguration);
@@ -125,7 +125,7 @@ class DefaultKinesisAsyncClient_Instrumentation {
     }
     
     public CompletableFuture<DescribeStreamConsumerResponse> describeStreamConsumer(DescribeStreamConsumerRequest request) {
-        String streamArn = null;
+        String streamArn = request.streamARN();
         String consumerArn = request.consumerARN();
         String arn = streamArn != null && !streamArn.isEmpty() ? streamArn : consumerArn;
         StreamRawData streamRawData = new StreamRawData(null, arn, this, clientConfiguration);
@@ -184,7 +184,7 @@ class DefaultKinesisAsyncClient_Instrumentation {
     }
 
     public CompletableFuture<ListStreamConsumersResponse> listStreamConsumers(ListStreamConsumersRequest request) {
-        StreamRawData streamRawData = new StreamRawData(null, null, this, clientConfiguration);
+        StreamRawData streamRawData = new StreamRawData(null, request.streamARN(), this, clientConfiguration);
         Segment segment = KinesisUtil.beginSegment("listStreamConsumers", streamRawData);
         CompletableFuture<ListStreamConsumersResponse>  response = Weaver.callOriginal();
         return new SegmentHandler<>(streamRawData, response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();
@@ -226,7 +226,7 @@ class DefaultKinesisAsyncClient_Instrumentation {
     }
 
     public CompletableFuture<RegisterStreamConsumerResponse> registerStreamConsumer(RegisterStreamConsumerRequest request) {
-        StreamRawData streamRawData = new StreamRawData(null, null, this, clientConfiguration);
+        StreamRawData streamRawData = new StreamRawData(null, request.streamARN(), this, clientConfiguration);
         Segment segment = KinesisUtil.beginSegment("registerStreamConsumer", streamRawData);
         CompletableFuture<RegisterStreamConsumerResponse> response = Weaver.callOriginal();
         return new SegmentHandler<>(streamRawData, response, segment, Weaver.getImplementationTitle()).newSegmentCompletionStage();

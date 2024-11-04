@@ -92,7 +92,7 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public DeregisterStreamConsumerResponse deregisterStreamConsumer(DeregisterStreamConsumerRequest request) {
-        String streamArn = null;
+        String streamArn = request.streamARN();
         String consumerArn = request.consumerARN();
         String arn = streamArn != null && !streamArn.isEmpty() ? streamArn : consumerArn;
         KinesisUtil.setTraceDetails("deregisterStreamConsumer", new StreamRawData(null, arn, this, clientConfiguration));
@@ -113,7 +113,7 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public DescribeStreamConsumerResponse describeStreamConsumer(DescribeStreamConsumerRequest request) {
-        String streamArn = null;
+        String streamArn = request.streamARN();
         String consumerArn = request.consumerARN();
         String arn = streamArn != null && !streamArn.isEmpty() ? streamArn : consumerArn;
         KinesisUtil.setTraceDetails("describeStreamConsumer", new StreamRawData(null, arn, this, clientConfiguration));
@@ -164,7 +164,7 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public ListStreamConsumersResponse listStreamConsumers(ListStreamConsumersRequest request) {
-        KinesisUtil.setTraceDetails("listStreamConsumers", new StreamRawData(null, null, this, clientConfiguration));
+        KinesisUtil.setTraceDetails("listStreamConsumers", new StreamRawData(null, request.streamARN(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
@@ -199,7 +199,7 @@ class DefaultKinesisClient_Instrumentation {
     }
     @Trace(leaf=true)
     public RegisterStreamConsumerResponse registerStreamConsumer(RegisterStreamConsumerRequest request) {
-        KinesisUtil.setTraceDetails("registerStreamConsumer", new StreamRawData(null, null, this, clientConfiguration));
+        KinesisUtil.setTraceDetails("registerStreamConsumer", new StreamRawData(null, request.streamARN(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 

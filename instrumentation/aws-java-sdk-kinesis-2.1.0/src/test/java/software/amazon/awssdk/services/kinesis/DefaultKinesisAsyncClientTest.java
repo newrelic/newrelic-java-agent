@@ -177,7 +177,7 @@ public class DefaultKinesisAsyncClientTest {
     @Test
     public void testGetRecords() {
         txn(() -> kinesisAsyncClient.getRecords(GetRecordsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/getRecords/stream-name", null, false);
+        assertKinesisTrace("Kinesis/getRecords", null, false);
     }
 
     @Test
@@ -202,7 +202,7 @@ public class DefaultKinesisAsyncClientTest {
     public void testListStreamConsumers() {
         ListStreamConsumersRequest request = ListStreamConsumersRequest.builder().streamARN(STREAM_ARN).build();
         txn(() -> kinesisAsyncClient.listStreamConsumers(request));
-        assertKinesisTrace("Kinesis/listStreamConsumers/stream-name", null, false);
+        assertKinesisTrace("Kinesis/listStreamConsumers/stream-name", STREAM_ARN, false);
     }
 
     @Test
@@ -226,20 +226,20 @@ public class DefaultKinesisAsyncClientTest {
 
     @Test
     public void testPutRecord() {
-        txn(() -> kinesisAsyncClient.putRecord(PutRecordRequest.builder().build()));
-        assertKinesisTrace("Kinesis/putRecord/stream-name", null, false);
+        txn(() -> kinesisAsyncClient.putRecord(PutRecordRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/putRecord/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testPutRecords() {
-        txn(() -> kinesisAsyncClient.putRecords(PutRecordsRequest.builder().build()));
-        assertKinesisTrace("Kinesis/putRecords/stream-name", null, false);
+        txn(() -> kinesisAsyncClient.putRecords(PutRecordsRequest.builder().streamName(STREAM_NAME).build()));
+        assertKinesisTrace("Kinesis/putRecords/stream-name", STREAM_ARN, false);
     }
 
     @Test
     public void testRegisterStreamConsumer() {
         txn(() -> kinesisAsyncClient.registerStreamConsumer(RegisterStreamConsumerRequest.builder().streamARN(STREAM_ARN).build()));
-        assertKinesisTrace("Kinesis/registerStreamConsumer/stream-name", null, false);
+        assertKinesisTrace("Kinesis/registerStreamConsumer/stream-name", STREAM_ARN, false);
     }
 
     @Test
