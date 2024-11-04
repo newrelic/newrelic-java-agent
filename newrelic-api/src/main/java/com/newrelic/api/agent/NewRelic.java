@@ -47,7 +47,7 @@ public final class NewRelic {
      * @since 1.3.0
      */
     public static void recordResponseTimeMetric(String name, long millis) {
-        getAgent().getMetricAggregator().recordMetric(name, millis);
+        getAgent().getMetricAggregator().recordResponseTimeMetric(name, millis);
     }
 
     /**
