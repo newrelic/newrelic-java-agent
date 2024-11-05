@@ -68,7 +68,7 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public AddTagsToStreamResponse addTagsToStream(AddTagsToStreamRequest request) {
-        KinesisUtil.setTraceDetails("addTagsToStream", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("addTagsToStream", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
@@ -80,13 +80,13 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public DecreaseStreamRetentionPeriodResponse decreaseStreamRetentionPeriod(DecreaseStreamRetentionPeriodRequest request) {
-        KinesisUtil.setTraceDetails("decreaseStreamRetentionPeriod", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("decreaseStreamRetentionPeriod", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public DeleteStreamResponse deleteStream(DeleteStreamRequest request) {
-        KinesisUtil.setTraceDetails("deleteStream", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("deleteStream", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
@@ -107,7 +107,7 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public DescribeStreamResponse describeStream(DescribeStreamRequest request) {
-        KinesisUtil.setTraceDetails("describeStream", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("describeStream", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
@@ -122,43 +122,43 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public DescribeStreamSummaryResponse describeStreamSummary(DescribeStreamSummaryRequest request) {
-        KinesisUtil.setTraceDetails("describeStreamSummary", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("describeStreamSummary", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
     
     @Trace(leaf=true)
     public DisableEnhancedMonitoringResponse disableEnhancedMonitoring(DisableEnhancedMonitoringRequest request) {
-        KinesisUtil.setTraceDetails("disableEnhancedMonitoring", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("disableEnhancedMonitoring", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public EnableEnhancedMonitoringResponse enableEnhancedMonitoring(EnableEnhancedMonitoringRequest request) {
-        KinesisUtil.setTraceDetails("enableEnhancedMonitoring", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("enableEnhancedMonitoring", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public GetRecordsResponse getRecords(GetRecordsRequest request) {
-        KinesisUtil.setTraceDetails("getRecords", new StreamRawData(null, request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("getRecords", new StreamRawData(null, null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
     
     @Trace(leaf=true)
     public GetShardIteratorResponse getShardIterator(GetShardIteratorRequest request) {
-        KinesisUtil.setTraceDetails("getShardIterator", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("getShardIterator", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public IncreaseStreamRetentionPeriodResponse increaseStreamRetentionPeriod(IncreaseStreamRetentionPeriodRequest request) {
-        KinesisUtil.setTraceDetails("increaseStreamRetentionPeriod", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("increaseStreamRetentionPeriod", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public ListShardsResponse listShards(ListShardsRequest request) {
-        KinesisUtil.setTraceDetails("listShards", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("listShards", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
@@ -176,25 +176,25 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public ListTagsForStreamResponse listTagsForStream(ListTagsForStreamRequest request) {
-        KinesisUtil.setTraceDetails("listTagsForStream", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("listTagsForStream", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public MergeShardsResponse mergeShards(MergeShardsRequest request) {
-        KinesisUtil.setTraceDetails("mergeShards", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("mergeShards", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public PutRecordResponse putRecord(PutRecordRequest request) {
-        KinesisUtil.setTraceDetails("putRecord", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("putRecord", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public PutRecordsResponse putRecords(PutRecordsRequest request) {
-        KinesisUtil.setTraceDetails("putRecords", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("putRecords", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
     @Trace(leaf=true)
@@ -206,31 +206,31 @@ class DefaultKinesisClient_Instrumentation {
 
     @Trace(leaf=true)
     public RemoveTagsFromStreamResponse removeTagsFromStream(RemoveTagsFromStreamRequest request) {
-        KinesisUtil.setTraceDetails("removeTagsFromStream", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("removeTagsFromStream", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public SplitShardResponse splitShard(SplitShardRequest request) {
-        KinesisUtil.setTraceDetails("splitShard", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("splitShard", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
     @Trace(leaf=true)
     public StartStreamEncryptionResponse startStreamEncryption(StartStreamEncryptionRequest request) {
-        KinesisUtil.setTraceDetails("startStreamEncryption", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("startStreamEncryption", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
     
     @Trace(leaf=true)
     public StopStreamEncryptionResponse stopStreamEncryption(StopStreamEncryptionRequest request) {
-        KinesisUtil.setTraceDetails("stopStreamEncryption", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("stopStreamEncryption", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
     
     @Trace(leaf=true)
     public UpdateShardCountResponse updateShardCount(UpdateShardCountRequest request) {
-        KinesisUtil.setTraceDetails("updateShardCount", new StreamRawData(request.streamName(), request.streamARN(), this, clientConfiguration));
+        KinesisUtil.setTraceDetails("updateShardCount", new StreamRawData(request.streamName(), null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
     
