@@ -47,7 +47,6 @@ public class InboundHeaderState {
     public InboundHeaderState(Transaction tx, InboundHeaders inboundHeaders) {
         this.tx = tx;
         this.inboundHeaders = inboundHeaders;
-        NewRelic.getAgent().getLogger().log(Level.INFO, "NR-335227 debug: inbound headers = " + inboundHeaders + " for txn " + tx.getGuid());
         if (inboundHeaders == null) {
             this.synState = SyntheticsState.NONE;
             this.synInfoState = SyntheticsInfoState.NONE;
@@ -60,7 +59,6 @@ public class InboundHeaderState {
                 this.synInfoState = parseSyntheticsInfoHeader();
             }
             if (tx.getAgentConfig().getDistributedTracingConfig().isEnabled() && tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
-                NewRelic.getAgent().getLogger().log(Level.INFO, "NR-335227 debug: parsing DT headers");
                 parseDistributedTraceHeaders();
                 this.catState = CatState.NONE;
             } else if (tx.getCrossProcessConfig().isCrossApplicationTracing()) {

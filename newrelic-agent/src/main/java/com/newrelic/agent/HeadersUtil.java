@@ -256,17 +256,14 @@ public class HeadersUtil {
      */
     public static void parseAndAcceptDistributedTraceHeaders(Transaction tx, InboundHeaders inboundHeaders) {
         List<String> traceParent = HeadersUtil.getTraceParentHeader(inboundHeaders);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "NR-335227 debug: traceParent=" + traceParent);
         if (traceParent != null && !traceParent.isEmpty()) {
             List<String> traceState = HeadersUtil.getTraceStateHeader(inboundHeaders);
             W3CTracePayload w3CTracePayload = W3CTracePayload.parseHeaders(tx, traceParent, traceState);
-            NewRelic.getAgent().getLogger().log(Level.INFO, "NR-335227 debug: tracePayload=" + w3CTracePayload);
             if (w3CTracePayload != null) {
                 if (w3CTracePayload.getPayload() != null) {
                     tx.acceptDistributedTracePayload(w3CTracePayload.getPayload());
                 }
                 if (w3CTracePayload.getTraceParent() != null) {
-                    NewRelic.getAgent().getLogger().log(Level.INFO, "NR-335227 debug: setting initializing parent to parent with trace: " + w3CTracePayload.getTraceParent().getTraceId());
                     tx.getSpanProxy().setInitiatingW3CTraceParent(w3CTracePayload.getTraceParent());
                 }
                 if (w3CTracePayload.getTraceState() != null) {
@@ -276,7 +273,6 @@ public class HeadersUtil {
         }
         else {
             String tracePayload = HeadersUtil.getNewRelicTraceHeader(inboundHeaders);
-            NewRelic.getAgent().getLogger().log(Level.INFO, "NR-335227 debug: traceParent was null or empty. NR trace payload: " + tracePayload);
             if (tracePayload != null) {
                 tx.acceptDistributedTracePayload(tracePayload);
             }
