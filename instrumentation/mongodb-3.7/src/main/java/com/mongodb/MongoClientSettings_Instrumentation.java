@@ -14,6 +14,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongodb.NewRelicCommandListener;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Weave(type = MatchType.ExactClass, originalName = "com/mongodb/MongoClientSettings")
@@ -21,9 +22,7 @@ public class MongoClientSettings_Instrumentation {
 
     @Weave(type = MatchType.ExactClass, originalName = "com/mongodb/MongoClientSettings$Builder")
     public static class Builder {
-
-        @NewField
-        private final AtomicBoolean listenerAdded = new AtomicBoolean(false);
+        private List<CommandListener> commandListeners;
 
         // Gotta match the existing constructor
         private Builder() {
@@ -34,7 +33,7 @@ public class MongoClientSettings_Instrumentation {
         }
 
         public MongoClientSettings_Instrumentation build() {
-            if (listenerAdded.compareAndSet(false, true)) {
+            if (commandListeners.stream().noneMatch(o -> o instanceof NewRelicCommandListener)) {
                 addCommandListener(new NewRelicCommandListener());
             }
             return Weaver.callOriginal();
