@@ -34,11 +34,18 @@ public class ConfigServiceFactory {
 
     public static ConfigService createConfigService(Logger log, boolean checkConfig) throws ConfigurationException, ForceDisconnectException {
         File configFile = getConfigFile(log);
-        Map<String, Object> configSettings = getConfigurationFileSettings(configFile, log);
+        Map<String, Object> configSettings = null;
+        ConfigurationException fileParseException = null;
+        try {
+            configSettings = getConfigurationFileSettings(configFile, log);
+        } catch (ConfigurationException ce) {
+            fileParseException = ce;
+        }
         Map<String, Object> deObfuscatedSettings = new ObscuringConfig(
                 configSettings, AgentConfigImpl.SYSTEM_PROPERTY_ROOT).getDeobscuredProperties();
         AgentConfig config = AgentConfigImpl.createAgentConfig(deObfuscatedSettings);
-        validateConfig(config);
+
+        validateConfig(config, fileParseException);
         return new ConfigServiceImpl(config, configFile, deObfuscatedSettings, checkConfig);
     }
 
@@ -73,7 +80,11 @@ public class ConfigServiceFactory {
     }
 
     @VisibleForTesting
-    public static void validateConfig(AgentConfig config) throws ConfigurationException, ForceDisconnectException {
+    public static void validateConfig(AgentConfig config, ConfigurationException fileParseException) throws ConfigurationException, ForceDisconnectException {
+        if (fileParseException != null) {
+            SuperAgentIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.CONFIG_FILE_PARSE_ERROR);
+            throw fileParseException;
+        }
         if (config.getApplicationName() == null) {
             SuperAgentIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.MISSING_APP_NAME);
             throw new ConfigurationException("The agent requires an application name. Check the app_name setting in newrelic.yml");

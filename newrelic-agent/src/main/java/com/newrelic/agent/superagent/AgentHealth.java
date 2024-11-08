@@ -21,6 +21,8 @@ public class AgentHealth {
         MAX_APP_NAMES_EXCEEDED("NR-APM-006", "The maximum number of configured app names (3) exceeded", Category.CONFIG),
         PROXY_ERROR("NR-APM-007", "HTTP Proxy configuration error; response code [%s]", Category.HARVEST),
         AGENT_DISABLED("NR-APM-008", "Agent is disabled via configuration", Category.CONFIG),
+        INITIAL_CONNECT_FAILURE("NR-APM-009", "Failed to connect to New Relic data collector", Category.HARVEST),
+        CONFIG_FILE_PARSE_ERROR("NR-APM-010", "Agent config file is not able to be parsed", Category.CONFIG),
         SHUTDOWN("NR-APM-099", "Agent has shutdown", Category.AGENT),
         GC_CIRCUIT_BREAKER("NR-APM-100", "Garbage collection circuit breaker triggered: Percent free memory %s; GC CPU time: %s", Category.CIRCUIT_BREAKER),;
 
