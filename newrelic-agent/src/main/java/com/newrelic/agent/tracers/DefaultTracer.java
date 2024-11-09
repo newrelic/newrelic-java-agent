@@ -28,9 +28,11 @@ import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.Strings;
+import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.InboundHeaders;
@@ -143,7 +145,6 @@ public class DefaultTracer extends AbstractTracer {
         }
 
         this.tracerFlags = (byte) tracerFlags;
-        this.guid = TransactionGuidFactory.generate16CharGuid();
     }
 
     public DefaultTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
@@ -167,7 +168,10 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public String getGuid() {
-        return guid;
+        if (this.guid == null) {
+            this.guid = TransactionGuidFactory.generate16CharGuid();
+        }
+        return this.guid;
     }
 
     @Override
@@ -664,6 +668,8 @@ public class DefaultTracer extends AbstractTracer {
                 recordMessageBrokerMetrics((MessageProduceParameters) this.externalParameters);
             } else if (externalParameters instanceof MessageConsumeParameters) {
                 recordMessageBrokerMetrics((MessageConsumeParameters) this.externalParameters);
+            } else if (externalParameters instanceof CloudParameters) {
+                recordFaasAttributes((CloudParameters) externalParameters);
             } else {
                 Agent.LOG.log(Level.SEVERE, "Unknown externalParameters type. This should not happen. {0} -- {1}",
                         externalParameters, externalParameters.getClass());
@@ -845,6 +851,15 @@ public class DefaultTracer extends AbstractTracer {
         }
         if (messageConsumeParameters.getPort() != null) {
             setAgentAttribute(AttributeNames.SERVER_PORT, messageConsumeParameters.getPort());
+        }
+    }
+
+    private void recordFaasAttributes(CloudParameters cloudParameters) {
+        if (cloudParameters.getPlatform() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_PLATFORM, cloudParameters.getPlatform());
+        }
+        if (cloudParameters.getResourceId() != null) {
+            setAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, cloudParameters.getResourceId());
         }
     }
 

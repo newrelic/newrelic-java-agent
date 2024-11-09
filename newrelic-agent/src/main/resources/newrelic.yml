@@ -356,6 +356,24 @@ common: &default_settings
     # the regex if you have more complex start head elements (attributes for example). The defined pattern is case-insensitive.
     tag_lib_head_pattern: '<head>'
 
+  # By default, the agent sends JVM input arguments to New Relic, where they are visible as Environment data.
+  # Set to false to disable the sending of JVM props.
+  send_jvm_props: true
+
+  # Before sending JVM props to New Relic, the agent will obfuscate all data in a prop after an = sign.
+  # For example, the property -Dmy.prop=my-value will be sent to New Relic as -Dmy.prop=obfuscated.
+  # By default, the standard and extended JVM props (those beginning with -X*) are sent unobfuscated.
+  # Available since agent 8.16.0.
+  obfuscate_jvm_props:
+    #To disable this feature, and send all JVM props unobfuscated, set enabled to false. The default is true.
+    #enabled: true
+
+    # A comma separated list of JVM property names whose values should be sent to New Relic unobfuscated.
+    #allow:
+
+    # A comma separated list of JVM property names whose values should be sent to New Relic obfuscated.
+    #block:
+
   # Class transformer can be used to disable all agent instrumentation or specific instrumentation modules.
   # All instrumentation modules can be found here: https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation
   class_transformer:
@@ -393,6 +411,14 @@ common: &default_settings
     # over from previous agent versions. "Standard" controllers, with all relevant annotations
     # present on the actual class, will still get named based on route and HTTP method.
     enhanced_spring_transaction_naming: false
+
+    # By default, built-in actuator endpoints and custom actuator endpoints (using the @Endpoint annotation
+    # and it's subclasses) will all be named as "OperationHandler/handle" in New Relic. Setting this
+    # to true will result in the transaction name reflecting the actual base actuator endpoint URI.
+    # For example, invoking "/actuator/loggers" or "actuator/loggers/com.newrelic" will result in the
+    # transaction name "actuator/loggers (GET)". This is to prevent MGI.
+    # Default is false.
+    name_actuator_endpoints: false
 
   # Real-time profiling using Java Flight Recorder (JFR).
   # This feature reports dimensional metrics to the ingest endpoint configured by

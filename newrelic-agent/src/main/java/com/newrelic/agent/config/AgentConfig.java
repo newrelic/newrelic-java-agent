@@ -189,6 +189,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     AttributesConfig getAttributesConfig();
 
+    ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig();
+
     /**
      * The agent language (java).
      */
@@ -352,5 +354,7 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     InfiniteTracingConfig getInfiniteTracingConfig();
 
     SlowTransactionsConfig getSlowTransactionsConfig();
+
+    SuperAgentIntegrationConfig getSuperAgentIntegrationConfig();
 
 }

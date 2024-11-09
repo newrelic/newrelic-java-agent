@@ -9,8 +9,14 @@ package com.newrelic.agent.environment;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.attributes.ExcludeIncludeFilter;
+import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.ObfuscateJvmPropsConfig;
 import com.newrelic.agent.samplers.MemorySampler;
+import com.newrelic.api.agent.NewRelic;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONStreamAware;
 
@@ -24,6 +30,7 @@ import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -38,7 +45,9 @@ public class Environment implements JSONStreamAware, Cloneable {
     private static final String LOGICAL_CORE_KEY = "Logical Processors";
     private static final String TOTAL_MEMORY_MB = "Total Physical Memory (MB)";
     private static final String SOLR_VERSION_KEY = "Solr Version";
+    private static final String AZURE_SITE_EXT_INSTALL_TYPE = "AzureSiteExtension";
     private static final Pattern JSON_WORKAROUND = Pattern.compile("\\\\+$");
+    private static final String OBFUSCATED = "=obfuscated";
 
     private final List<EnvironmentChangeListener> listeners = new CopyOnWriteArrayList<>();
     private final List<List<?>> environmentMap = new ArrayList<>();
@@ -86,6 +95,7 @@ public class Environment implements JSONStreamAware, Cloneable {
             if (config.isSendJvmProps()) {
                 RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
                 List<String> inputArguments = fixInputArguments(runtimeMXBean.getInputArguments());
+                inputArguments = obfuscateProps(inputArguments, config.getObfuscateJvmPropsConfig());
                 environmentMap.add(Arrays.asList("JVM arguments", inputArguments));
             }
         }
@@ -122,6 +132,13 @@ public class Environment implements JSONStreamAware, Cloneable {
 
         addVariable("Framework", "java");
 
+        if (isAzureSiteExtenstionInstall()) {
+            // Yes this is intentional, since we only have a single installation type for the site extension
+            addVariable(AZURE_SITE_EXT_INSTALL_TYPE, AZURE_SITE_EXT_INSTALL_TYPE);
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AZURE_SITE_EXT_INSTALL_TYPE + "/" +
+                    AZURE_SITE_EXT_INSTALL_TYPE);
+        }
+
         Number appServerPort = config.getProperty("appserver_port");
         Integer serverPort = null;
         if (appServerPort != null) {
@@ -131,6 +148,36 @@ public class Environment implements JSONStreamAware, Cloneable {
         String instanceName = config.getProperty("instance_name");
 
         agentIdentity = new AgentIdentity(dispatcher, null, serverPort, instanceName);
+    }
+
+    @VisibleForTesting
+    protected List<String> obfuscateProps(List<String> inputArgs, ObfuscateJvmPropsConfig jvmPropsConfig) {
+        if (!jvmPropsConfig.isEnabled()) {
+            return inputArgs;
+        }
+        ExcludeIncludeFilter filter = createJvmPropsFilter(jvmPropsConfig);
+        List<String> sanitized = new ArrayList<>();
+        for (String prop: inputArgs) {
+            String[] propNameAndVal = prop.split("=");
+            String propName = propNameAndVal[0];
+            //small optimization: apply the filter rules only if the prop has a value after an equals sign
+            if (propNameAndVal.length > 1 && shouldObfuscate(propName, filter)) {
+                sanitized.add(propName + OBFUSCATED);
+            } else {
+                sanitized.add(prop);
+            }
+        }
+        return sanitized;
+    }
+
+    private boolean shouldObfuscate(String arg, ExcludeIncludeFilter filter) {
+        return !filter.shouldInclude(arg);
+    }
+
+    private ExcludeIncludeFilter createJvmPropsFilter(ObfuscateJvmPropsConfig jvmPropsConfig) {
+        Set<String> block = jvmPropsConfig.getBlock();
+        Set<String> allow = jvmPropsConfig.getAllow();
+        return new ExcludeIncludeFilterImpl("obfuscate_jvm_props", block, allow, false);
     }
 
     public void addEnvironmentChangeListener(EnvironmentChangeListener listener) {
@@ -273,5 +320,12 @@ public class Environment implements JSONStreamAware, Cloneable {
         if (info.length == 2) {
             setServerInfo(info[0], info[1]);
         }
+    }
+
+    private boolean isAzureSiteExtenstionInstall() {
+        // Currently, the only "install type" we support is the Azure site extension, which is detected
+        // by the presence of a specific environment variable with a non-null/non-empty value
+        final String AZURE_SITE_EXT_VAR = "NEW_RELIC_METADATA_AZURE_APP_SERVICE_NAME";
+        return StringUtils.isNotBlank(System.getenv(AZURE_SITE_EXT_VAR));
     }
 }

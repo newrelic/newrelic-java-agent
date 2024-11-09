@@ -1,0 +1,14 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("software.amazon.awssdk:kinesis:2.1.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-kinesis-2.1.0' }
+}
+
+verifyInstrumentation {
+    passes 'software.amazon.awssdk:kinesis:[2.1.0,)'
+    exclude 'software.amazon.awssdk:kinesis:2.17.200' // this version failed the test, but the next one works again.
+    excludeRegex '.*-preview-[0-9a-f]+'
+}

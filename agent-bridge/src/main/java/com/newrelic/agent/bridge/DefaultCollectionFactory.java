@@ -43,4 +43,12 @@ public class DefaultCollectionFactory implements CollectionFactory {
             return loader.apply(k1);
         });
     }
+
+    /**
+     * Note: In this implementation, this method will return the loader function as is.
+     */
+    @Override
+    public <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader) {
+        return loader;
+    }
 }

@@ -70,6 +70,13 @@ public interface Agent {
      */
     AiMonitoring getAiMonitoring();
 
+    /**
+     * Provides access to the Cloud API.
+     *
+     * @since 8.15.0
+     */
+    Cloud getCloud();
+
     ErrorApi getErrorApi();
 
     /**

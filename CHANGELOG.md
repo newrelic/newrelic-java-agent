@@ -4,6 +4,63 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.15.0
+## New features and improvements
+
+- Addition of AWS Lambda SDK instrumentation by @meiao in [1998](https://github.com/newrelic/newrelic-java-agent/pull/1998)
+- Reporting of Flyway migration events by @jtduffy in [2021](https://github.com/newrelic/newrelic-java-agent/pull/2021)
+- Add support for using an environment variable for config file location by @jtduffy in [2022](https://github.com/newrelic/newrelic-java-agent/pull/2022)
+- Support AWS Kinesis V1 and V2 SDKs by @obenkenobi in [2031](https://github.com/newrelic/newrelic-java-agent/pull/2031)
+- Addition of kafka-clients-node-metrics-3.7.0 Instrumentation module by @deleonenriqueta in [2039](https://github.com/newrelic/newrelic-java-agent/pull/2039)
+- Add instrumentation for glassfish-jul-extension logging library by @jasonjkeller in [2049](https://github.com/newrelic/newrelic-java-agent/pull/2049)
+- Java 23 support by @jasonjkeller in [2055](https://github.com/newrelic/newrelic-java-agent/pull/2055)
+- Support reporting of ECS Fargate Docker ids by @jtduffy in [2050](https://github.com/newrelic/newrelic-java-agent/pull/2050)
+- Actuator endpoint transaction naming for Spring Boot 3 by @jtduffy in [2077](https://github.com/newrelic/newrelic-java-agent/pull/2077)
+
+## Fixes
+
+- Slick 3.5.0 instrumentation bug fix by @kanderson250 in [2025](https://github.com/newrelic/newrelic-java-agent/pull/2025)
+- Protect against Http2Headers methods throwing exceptions in Netty instrumentation by @jasonjkeller in [2042](https://github.com/newrelic/newrelic-java-agent/pull/2042)
+- Fix an issue where the Kinesis instrumentation is generating ERROR logs due to a NullPointerException by @obenkenobi in [2052](https://github.com/newrelic/newrelic-java-agent/pull/2052)
+
+## IAST
+
+- CSEC version bump to 1.5 by @jtduffy in [2076](https://github.com/newrelic/newrelic-java-agent/pull/2076)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.5.0
+
+## Version 8.14.0
+## New features and improvements
+
+* The Java agent supports disabling AI Monitoring at the account/organization level [1972](https://github.com/newrelic/newrelic-java-agent/pull/1972)
+* HikariCP instrumentation now captures additional metrics [1976](https://github.com/newrelic/newrelic-java-agent/pull/1976)
+* Adds new instrumentation module for `kafka-clients-metrics-3.7.0` [2001](https://github.com/newrelic/newrelic-java-agent/pull/2001)
+* Adds new instrumentation module for `jedis-5.0.0` [1969](https://github.com/newrelic/newrelic-java-agent/pull/1969)
+* Adds new instrumentation module for `vertx-sqlclient-4.4.2` [2004](https://github.com/newrelic/newrelic-java-agent/pull/2004)
+* The `newrelic-scala-api` for Scala 3 will now be published to Maven [1995](https://github.com/newrelic/newrelic-java-agent/pull/1995)
+* New AWS MQ attributes will be added to spans [1977](https://github.com/newrelic/newrelic-java-agent/pull/1977)
+* Clarify Javadoc comments for `@Trace` API [2009](https://github.com/newrelic/newrelic-java-agent/pull/2009)
+
+## Fixes
+
+* Fixes a `netty-reactor` issue that was causing high memory usage [1978](https://github.com/newrelic/newrelic-java-agent/pull/1978)
+* Netty instrumentation will start transactions for HTTP/2 requests [1994](https://github.com/newrelic/newrelic-java-agent/pull/1994)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `spring-3.0.0`
+- `netty-3.4`
+- `Struts v1`
+
+## IAST
+
+- CSEC Version bump to 1.4.1 [2010](https://github.com/newrelic/newrelic-java-agent/pull/2010)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.4.1
+
 ## Version 8.13.0
 ## New features and improvements
 
@@ -28,13 +85,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Add security-related class excludes during normal class transformer creation [1918](https://github.com/newrelic/newrelic-java-agent/pull/1918)
 * Add null checks to vertx 4.5.1 instrumentation [1927](https://github.com/newrelic/newrelic-java-agent/pull/1927)
 
-
-
 ## IAST
 
 * CSEC Version bump to 1.4.0 [1956](https://github.com/newrelic/newrelic-java-agent/pull/1956)
 * [Changelog](https://github.com/newrelic/csec-java-agent/releases/tag/1.4.0)
-
 
 ## Deprecations
 

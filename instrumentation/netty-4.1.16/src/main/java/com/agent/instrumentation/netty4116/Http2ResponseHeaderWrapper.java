@@ -7,10 +7,13 @@
 
 package com.agent.instrumentation.netty4116;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http2.Http2Headers;
+
+import java.util.logging.Level;
 
 public class Http2ResponseHeaderWrapper extends ExtendedResponse {
     private final Http2Headers http2Headers;
@@ -26,23 +29,29 @@ public class Http2ResponseHeaderWrapper extends ExtendedResponse {
 
     @Override
     public void setHeader(String name, String value) {
-        // HTTP/2 only supports lowercase headers
-        String lowerCaseHeaderName = name.toLowerCase();
         try {
+            // HTTP/2 only supports lowercase headers
+            String lowerCaseHeaderName = name.toLowerCase();
             http2Headers.set(lowerCaseHeaderName, value);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to set Http2Headers header: {0}", e.getMessage());
         }
     }
 
     @Override
     public int getStatus() {
-        CharSequence status = http2Headers.status();
-        if (status == null) {
-            return -1;
-        }
         try {
-            return Integer.parseInt(status.toString());
-        } catch (NumberFormatException e) {
+            CharSequence status = http2Headers.status();
+            if (status == null) {
+                return -1;
+            }
+            try {
+                return Integer.parseInt(status.toString());
+            } catch (NumberFormatException e) {
+                return -1;
+            }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers status: {0}", e.getMessage());
             return -1;
         }
     }
@@ -55,26 +64,34 @@ public class Http2ResponseHeaderWrapper extends ExtendedResponse {
 
     @Override
     public String getContentType() {
-        if (http2Headers.contains(HttpHeaderNames.CONTENT_TYPE)) {
-            CharSequence contentType = http2Headers.get(HttpHeaderNames.CONTENT_TYPE);
-            if (contentType != null) {
-                return contentType.toString();
+        try {
+            if (http2Headers.contains(HttpHeaderNames.CONTENT_TYPE)) {
+                CharSequence contentType = http2Headers.get(HttpHeaderNames.CONTENT_TYPE);
+                if (contentType != null) {
+                    return contentType.toString();
+                }
             }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers content-type: {0}", e.getMessage());
         }
         return null;
     }
 
     @Override
     public long getContentLength() {
-        if (http2Headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
-            CharSequence contentLength = http2Headers.get(HttpHeaderNames.CONTENT_LENGTH);
-            if (contentLength != null) {
-                try {
-                    return Long.parseLong(contentLength.toString());
-                } catch (NumberFormatException e) {
-                    return -1;
+        try {
+            if (http2Headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
+                CharSequence contentLength = http2Headers.get(HttpHeaderNames.CONTENT_LENGTH);
+                if (contentLength != null) {
+                    try {
+                        return Long.parseLong(contentLength.toString());
+                    } catch (NumberFormatException e) {
+                        return -1;
+                    }
                 }
             }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers content-length: {0}", e.getMessage());
         }
         return -1;
     }
