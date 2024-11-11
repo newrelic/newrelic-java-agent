@@ -22,7 +22,7 @@ public class MongoClientSettings_Instrumentation {
 
     @Weave(type = MatchType.ExactClass, originalName = "com/mongodb/MongoClientSettings$Builder")
     public static class Builder {
-        private List<CommandListener> commandListeners;
+        private List<CommandListener> commandListeners = Weaver.callOriginal();
 
         // Gotta match the existing constructor
         private Builder() {
