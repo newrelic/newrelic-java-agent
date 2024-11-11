@@ -464,66 +464,71 @@ common: &default_settings
     agent:
       enabled: false
 
+    # This configuration allows users to specify a unique test identifier when running IAST Scan with CI/CD
+    iast_test_identifier: 'run-id'
+
       # Security controllers
-      scan_controllers:
-        # The scan_request_rate_limit configuration allows to specify maximum number of replay request played per minute.
-        # The maximum is 3600 and the minimum is 12 replay request per minute.
-        iast_scan_request_rate_limit: 3600 # Number of IAST replay request played per minute, Default is 3600
+    scan_controllers:
+      # The scan_request_rate_limit configuration allows to specify maximum number of replay request played per minute.
+      # The maximum is 3600 and the minimum is 12 replay request per minute.
+      iast_scan_request_rate_limit: 3600 # Number of IAST replay request played per minute, Default is 3600
+      # This configuration allows users to the number of application instances for a specific entity where IAST analysis is performed.
+      scan_instance_count: 0 # Values are 1 or 0, 0 signifies run on all application instances
 
-      # The scan_schedule configuration allows to specify when IAST scans should be executed
-      scan_schedule:
-        # The delay field specifies the delay in minutes before the IAST scan starts. This allows to schedule the scan to start at a later time.
-        delay: 0        #In minutes, default is 0 min
-        # The duration field specifies the duration of the IAST scan in minutes. This determines how long the scan will run.
-        duration: 0      #In minutes, default is forever
+    # The scan_schedule configuration allows to specify when IAST scans should be executed
+    scan_schedule:
+      # The delay field specifies the delay in minutes before the IAST scan starts. This allows to schedule the scan to start at a later time.
+      delay: 0        #In minutes, default is 0 min
+      # The duration field specifies the duration of the IAST scan in minutes. This determines how long the scan will run.
+      duration: 0      #In minutes, default is forever
 
-        # The schedule field specifies a cron expression that defines when the IAST scan should start.
-        #schedule: ""   #By default, schedule is inactive
+      # The schedule field specifies a cron expression that defines when the IAST scan should start.
+      #schedule: ""   #By default, schedule is inactive
 
-        # Allow continuously sample collection of IAST events
-        always_sample_traces: false # Default is false
+      # Allow continuously sample collection of IAST events
+      always_sample_traces: false # Default is false
 
-      # The exclude_from_iast_scan configuration allows to specify APIs, parameters, and categories that should not be scanned by Security Agents.
-      exclude_from_iast_scan:
-        # The api field specifies list of APIs using regular expression (regex) patterns that follow the syntax of Perl 5. The regex pattern should provide a complete match for the URL without the endpoint.
-        # Example:
-        #   api:
-        #    - .*account.*
-        #    - .*/\api\/v1\/.*?\/login
-        api: [ ]
+    # The exclude_from_iast_scan configuration allows to specify APIs, parameters, and categories that should not be scanned by Security Agents.
+    exclude_from_iast_scan:
+      # The api field specifies list of APIs using regular expression (regex) patterns that follow the syntax of Perl 5. The regex pattern should provide a complete match for the URL without the endpoint.
+      # Example:
+      #   api:
+      #    - .*account.*
+      #    - .*/\api\/v1\/.*?\/login
+      api: [ ]
 
-        # The parameters configuration allows users to specify headers, query parameters, and body keys that should be excluded from IAST scans.
-        # Example:
-        #   http_request_parameters:
-        #    header:
-        #      - X-Forwarded-For
-        #    query:
-        #      - username
-        #      - password
-        #    body:
-        #      - account.email
-        #      - account.contact
-        http_request_parameters:
-          # A list of HTTP header keys. If a request includes any headers with these keys, the corresponding IAST scan will be skipped.
-          header: [ ]
-          # A list of query parameter keys. The presence of these parameters in the request's query string will lead to skipping the IAST scan.
-          query: [ ]
-          # A list of keys within the request body. If these keys are found in the body content, the IAST scan will be omitted.
-          body: [ ]
+      # The parameters configuration allows users to specify headers, query parameters, and body keys that should be excluded from IAST scans.
+      # Example:
+      #   http_request_parameters:
+      #    header:
+      #      - X-Forwarded-For
+      #    query:
+      #      - username
+      #      - password
+      #    body:
+      #      - account.email
+      #      - account.contact
+      http_request_parameters:
+        # A list of HTTP header keys. If a request includes any headers with these keys, the corresponding IAST scan will be skipped.
+        header: [ ]
+        # A list of query parameter keys. The presence of these parameters in the request's query string will lead to skipping the IAST scan.
+        query: [ ]
+        # A list of keys within the request body. If these keys are found in the body content, the IAST scan will be omitted.
+        body: [ ]
 
-        # The iast_detection_category configuration allows to specify which categories of vulnerabilities should not be detected by Security Agents.
-        # If any of these categories are set to true, Security Agents will not generate events or flag vulnerabilities for that category.
-        iast_detection_category:
-          insecure_settings: false
-          invalid_file_access: false
-          sql_injection: false
-          nosql_injection: false
-          ldap_injection: false
-          javascript_injection: false
-          command_injection: false
-          xpath_injection: false
-          ssrf: false
-          rxss: false
+      # The iast_detection_category configuration allows to specify which categories of vulnerabilities should not be detected by Security Agents.
+      # If any of these categories are set to true, Security Agents will not generate events or flag vulnerabilities for that category.
+      iast_detection_category:
+        insecure_settings: false
+        invalid_file_access: false
+        sql_injection: false
+        nosql_injection: false
+        ldap_injection: false
+        javascript_injection: false
+        command_injection: false
+        xpath_injection: false
+        ssrf: false
+        rxss: false
 
     # Deprecated!!! Instead, please use iast_detection_category to disable vulnerabilities category by IAST,
     # These are the category of security events that can be detected. Set to false to disable detection of
