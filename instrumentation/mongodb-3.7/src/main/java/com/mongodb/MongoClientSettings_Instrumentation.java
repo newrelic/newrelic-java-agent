@@ -15,6 +15,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.mongodb.NewRelicCommandListener;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Weave(type = MatchType.ExactClass, originalName = "com/mongodb/MongoClientSettings")
@@ -33,9 +34,25 @@ public class MongoClientSettings_Instrumentation {
         }
 
         public MongoClientSettings_Instrumentation build() {
-            if (commandListeners.stream().noneMatch(o -> o instanceof NewRelicCommandListener)) {
+            boolean nrCommandListenerFound = false;
+
+            // For some reason, using a lambda here instead of a for-each caused issues
+            // with the class loading. For example:
+            //    if (commandListeners.stream().noneMatch(o -> o instanceof NewRelicCommandListener)) {
+            //        addCommandListener(new NewRelicCommandListener());
+            //    }
+            // Specifically it looks like the instance of check in the lambda is what's causing issues.
+
+            for (CommandListener commandListener : commandListeners) {
+                if (commandListener instanceof NewRelicCommandListener) {
+                    nrCommandListenerFound = true;
+                    break;
+                }
+            }
+            if (!nrCommandListenerFound) {
                 addCommandListener(new NewRelicCommandListener());
             }
+
             return Weaver.callOriginal();
         }
     }
