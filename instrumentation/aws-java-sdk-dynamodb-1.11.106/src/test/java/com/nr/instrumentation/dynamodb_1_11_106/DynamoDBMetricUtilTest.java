@@ -7,6 +7,7 @@
 
 package com.nr.instrumentation.dynamodb_1_11_106;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.CloudApi;
 import com.newrelic.api.agent.CloudAccountInfo;
@@ -21,7 +22,9 @@ import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,11 +32,14 @@ import static org.mockito.Mockito.when;
 public class DynamoDBMetricUtilTest {
 
     private CloudApi previousCloudApi;
+    private AWSCredentialsProvider credentialsProvider;
 
     @Before
     public void setup() {
         previousCloudApi = AgentBridge.cloud;
         AgentBridge.cloud = mock(CloudApi.class);
+        credentialsProvider = mock(AWSCredentialsProvider.class, RETURNS_DEEP_STUBS);
+        when(credentialsProvider.getCredentials().getAWSAccessKeyId()).thenReturn("accessKey");
     }
 
     @After
@@ -49,7 +55,19 @@ public class DynamoDBMetricUtilTest {
         String table = "test";
         String host = "dynamodb.us-east-2.amazonaws.com";
 
-        String arn = DynamoDBMetricUtil.getArn(table, sdkClient, host);
+        String arn = DynamoDBMetricUtil.getArn(table, sdkClient, host, credentialsProvider);
+        assertEquals("arn:aws:dynamodb:us-east-2:123456789:table/test", arn);
+    }
+
+    @Test
+    public void testGetArn_withAccessKey() {
+        Object sdkClient = new Object();
+        String table = "test";
+        String host = "dynamodb.us-east-2.amazonaws.com";
+
+        when(AgentBridge.cloud.decodeAwsAccountId(anyString())).thenReturn("123456789");
+
+        String arn = DynamoDBMetricUtil.getArn(table, sdkClient, host, credentialsProvider);
         assertEquals("arn:aws:dynamodb:us-east-2:123456789:table/test", arn);
     }
 
@@ -59,9 +77,10 @@ public class DynamoDBMetricUtilTest {
         String table = "test";
         String host = "dynamodb.us-east-2.amazonaws.com";
 
-        String arn = DynamoDBMetricUtil.getArn(table, sdkClient, host);
+        String arn = DynamoDBMetricUtil.getArn(table, sdkClient, host, credentialsProvider);
         assertNull(arn);
     }
+
 
     @Test
     public void testGetArn_withoutTable() {
@@ -70,7 +89,7 @@ public class DynamoDBMetricUtilTest {
                 .thenReturn("123456789");
         String host = "dynamodb.us-east-2.amazonaws.com";
 
-        String arn = DynamoDBMetricUtil.getArn(null, sdkClient, host);
+        String arn = DynamoDBMetricUtil.getArn(null, sdkClient, host, credentialsProvider);
         assertNull(arn);
     }
 
@@ -81,7 +100,7 @@ public class DynamoDBMetricUtilTest {
                 .thenReturn("123456789");
         String table = "test";
 
-        String arn = DynamoDBMetricUtil.getArn(table, sdkClient, null);
+        String arn = DynamoDBMetricUtil.getArn(table, sdkClient, null, credentialsProvider);
         assertNull(arn);
     }
 
@@ -95,7 +114,7 @@ public class DynamoDBMetricUtilTest {
         String operation = "getItem";
         URI endpoint = URI.create("https://dynamodb.us-east-2.amazonaws.com");
 
-        DynamoDBMetricUtil.metrics(tracedMethod, operation, table, endpoint, sdkClient);
+        DynamoDBMetricUtil.metrics(tracedMethod, operation, table, endpoint, sdkClient, credentialsProvider);
 
         ArgumentCaptor<DatastoreParameters> externalParamsCaptor = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracedMethod).reportAsExternal(externalParamsCaptor.capture());

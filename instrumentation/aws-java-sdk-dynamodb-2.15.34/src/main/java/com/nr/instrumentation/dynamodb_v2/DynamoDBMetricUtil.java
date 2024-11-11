@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2021 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.nr.instrumentation.dynamodb_v2;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -6,6 +12,8 @@ import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TracedMethod;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -30,7 +38,7 @@ public abstract class DynamoDBMetricUtil {
                 host = endpoint.getHost();
                 port = getPort(endpoint);
             }
-            arn = getArn(tableName, sdkClient, clientConfiguration, host);
+            arn = getArn(tableName, sdkClient, clientConfiguration);
         }
         DatastoreParameters params = DatastoreParameters
                 .product(PRODUCT)
@@ -45,13 +53,7 @@ public abstract class DynamoDBMetricUtil {
     }
 
     // visible for testing
-    static String getArn(String tableName, Object sdkClient, SdkClientConfiguration clientConfiguration, String host) {
-        String accountId = AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
-        if (accountId == null) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. No account information provided.");
-            return null;
-        }
-
+    static String getArn(String tableName, Object sdkClient, SdkClientConfiguration clientConfiguration) {
         if (tableName == null) {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. Table name is null.");
             return null;
@@ -62,9 +64,32 @@ public abstract class DynamoDBMetricUtil {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. Region is null.");
             return null;
         }
-
+        String accountId = getAccountId(sdkClient, clientConfiguration);
+        if (accountId == null) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Unable to assemble ARN. Unable to retrieve account information.");
+            return null;
+        }
         // arn:${Partition}:dynamodb:${Region}:${Account}:table/${TableName}
         return "arn:aws:dynamodb:" + region + ":" + accountId + ":table/" + tableName;
+    }
+
+    private static String getAccountId(Object sdkClient, SdkClientConfiguration clientConfiguration) {
+        String accountId = AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
+        if (accountId != null) {
+            return accountId;
+        }
+
+        AwsCredentialsProvider credentialsProvider = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER);
+        if (credentialsProvider != null) {
+            AwsCredentials credentials = credentialsProvider.resolveCredentials();
+            if (credentials != null) {
+                String accessKey = credentials.accessKeyId();
+                if (accessKey != null) {
+                    return AgentBridge.cloud.decodeAwsAccountId(accessKey);
+                }
+            }
+        }
+        return null;
     }
 
     // visible for testing
@@ -90,4 +115,3 @@ public abstract class DynamoDBMetricUtil {
         return null;
     }
 }
-

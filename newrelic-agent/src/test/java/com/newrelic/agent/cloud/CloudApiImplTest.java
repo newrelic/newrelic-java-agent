@@ -7,8 +7,10 @@
 
 package com.newrelic.agent.cloud;
 
+import com.newrelic.agent.bridge.CloudApi;
 import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.NewRelic;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 
@@ -20,11 +22,18 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CloudApiImplTest {
 
+    private CloudApi cloudApi;
+    private CloudAccountInfoCache cache;
+
+    @Before
+    public void setup() {
+        cache = mock(CloudAccountInfoCache.class);
+        AwsAccountDecoder decoder = mock(AwsAccountDecoder.class);
+        cloudApi = new CloudApiImpl(cache, decoder);
+    }
+
     @Test
     public void setAccountInfo() {
-        CloudAccountInfoCache cache = mock(CloudAccountInfoCache.class);
-        CloudApiImpl cloudApi = new CloudApiImpl(cache);
-
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
 
             String accountId = "123456789012";
@@ -41,7 +50,7 @@ public class CloudApiImplTest {
     @Test
     public void setAccountInfoClient() {
         CloudAccountInfoCache cache = mock(CloudAccountInfoCache.class);
-        CloudApiImpl cloudApi = new CloudApiImpl(cache);
+        CloudApiImpl cloudApi = new CloudApiImpl(cache, AwsAccountDecoderImpl.newInstance());
 
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
 
@@ -60,7 +69,7 @@ public class CloudApiImplTest {
     @Test
     public void getAccountInfo() {
         CloudAccountInfoCache cache = mock(CloudAccountInfoCache.class);
-        CloudApiImpl cloudApi = new CloudApiImpl(cache);
+        CloudApiImpl cloudApi = new CloudApiImpl(cache, AwsAccountDecoderImpl.newInstance());
 
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
 
@@ -76,7 +85,7 @@ public class CloudApiImplTest {
     @Test
     public void getAccountInfoClient() {
         CloudAccountInfoCache cache = mock(CloudAccountInfoCache.class);
-        CloudApiImpl cloudApi = new CloudApiImpl(cache);
+        CloudApiImpl cloudApi = new CloudApiImpl(cache, AwsAccountDecoderImpl.newInstance());
 
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
 
