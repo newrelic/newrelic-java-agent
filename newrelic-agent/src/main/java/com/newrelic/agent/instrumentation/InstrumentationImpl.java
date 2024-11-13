@@ -31,8 +31,6 @@ import com.newrelic.agent.instrumentation.methodmatchers.NameMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.NotMethodMatcher;
 import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
-import com.newrelic.agent.profile.ProfilerService;
-import com.newrelic.agent.profile.v2.TransactionProfileService;
 import com.newrelic.agent.profile.v2.TransactionProfileSession;
 import com.newrelic.agent.reinstrument.PeriodicRetransformer;
 import com.newrelic.agent.service.ServiceFactory;
@@ -379,26 +377,14 @@ public class InstrumentationImpl implements Instrumentation {
 
     private ExitTracer noticeTracer(int signatureId, int tracerFlags, Tracer result) {
         try {
-            ProfilerService profilerService = ServiceFactory.getProfilerService();
-            if (profilerService != null) {
-                TransactionProfileService transactionProfileService = profilerService.getTransactionProfileService();
-                if (transactionProfileService != null) {
-                    TransactionProfileSession transactionProfileSession = transactionProfileService.getTransactionProfileSession();
-                    if (transactionProfileSession != null) {
-                        if (transactionProfileSession.isActive()) {
-                            transactionProfileSession.noticeTracerStart(signatureId, tracerFlags, result);
-                        }
-                    } else {
-                        logger.log(Level.FINEST, "Unable to noticeTracer due to null TransactionProfileSession. This may affect thread profile v2.");
-                    }
-                } else {
-                    logger.log(Level.FINEST, "Unable to noticeTracer due to null TransactionProfileService. This may affect thread profile v2.");
-                }
-            } else {
-                logger.log(Level.FINEST, "Unable to noticeTracer due to null ProfilerService. This may affect thread profile v2.");
+            TransactionProfileSession transactionProfileSession = ServiceFactory.getProfilerService()
+                    .getTransactionProfileService()
+                    .getTransactionProfileSession();
+            if (transactionProfileSession.isActive()) {
+                transactionProfileSession.noticeTracerStart(signatureId, tracerFlags, result);
             }
         } catch (Throwable t) {
-            logger.log(Level.FINEST, t, "exception in noticeTracer: {0}. This may affect thread profile v2.");
+            logger.log(Level.FINEST, "Exception in noticeTracer. This may affect thread profile v2. Tracer: {0}. Error message: {1}", result, t.getMessage());
         }
         return result;
     }
