@@ -31,6 +31,8 @@ import com.newrelic.agent.instrumentation.methodmatchers.NameMethodMatcher;
 import com.newrelic.agent.instrumentation.methodmatchers.NotMethodMatcher;
 import com.newrelic.agent.instrumentation.tracing.TraceDetails;
 import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
+import com.newrelic.agent.profile.ProfilerService;
+import com.newrelic.agent.profile.v2.TransactionProfileService;
 import com.newrelic.agent.profile.v2.TransactionProfileSession;
 import com.newrelic.agent.reinstrument.PeriodicRetransformer;
 import com.newrelic.agent.service.ServiceFactory;
@@ -90,7 +92,7 @@ public class InstrumentationImpl implements Instrumentation {
 
     static double getAutoAsyncLinkRateLimitInSeconds(ClassTransformerConfig classTransformerConfig) {
         long rateLimitInMillis = classTransformerConfig.getAutoAsyncLinkRateLimit();
-        return (double)rateLimitInMillis / (double) TimeUnit.SECONDS.toMillis(1);
+        return (double) rateLimitInMillis / (double) TimeUnit.SECONDS.toMillis(1);
     }
 
     /**
@@ -360,12 +362,12 @@ public class InstrumentationImpl implements Instrumentation {
         }
     }
 
-  @Override
-  public ExitTracer createScalaTxnTracer() {
-    return createTracer(null, SCALA_API_TXN_CLASS_SIGNATURE_ID, null, SCALA_API_TRACER_FLAGS);
-  }
+    @Override
+    public ExitTracer createScalaTxnTracer() {
+        return createTracer(null, SCALA_API_TXN_CLASS_SIGNATURE_ID, null, SCALA_API_TRACER_FLAGS);
+    }
 
-  private boolean overSegmentLimit(TransactionActivity transactionActivity) {
+    private boolean overSegmentLimit(TransactionActivity transactionActivity) {
         Transaction transaction;
         if (transactionActivity == null) {
             transaction = Transaction.getTransaction(false);
@@ -377,14 +379,26 @@ public class InstrumentationImpl implements Instrumentation {
 
     private ExitTracer noticeTracer(int signatureId, int tracerFlags, Tracer result) {
         try {
-            TransactionProfileSession transactionProfileSession = ServiceFactory.getProfilerService()
-                    .getTransactionProfileService()
-                    .getTransactionProfileSession();
-            if (transactionProfileSession.isActive()) {
-                transactionProfileSession.noticeTracerStart(signatureId, tracerFlags, result);
+            ProfilerService profilerService = ServiceFactory.getProfilerService();
+            if (profilerService != null) {
+                TransactionProfileService transactionProfileService = profilerService.getTransactionProfileService();
+                if (transactionProfileService != null) {
+                    TransactionProfileSession transactionProfileSession = transactionProfileService.getTransactionProfileSession();
+                    if (transactionProfileSession != null) {
+                        if (transactionProfileSession.isActive()) {
+                            transactionProfileSession.noticeTracerStart(signatureId, tracerFlags, result);
+                        }
+                    } else {
+                        logger.log(Level.FINEST, "Unable to noticeTracer due to null TransactionProfileSession. This may affect thread profile v2.");
+                    }
+                } else {
+                    logger.log(Level.FINEST, "Unable to noticeTracer due to null TransactionProfileService. This may affect thread profile v2.");
+                }
+            } else {
+                logger.log(Level.FINEST, "Unable to noticeTracer due to null ProfilerService. This may affect thread profile v2.");
             }
         } catch (Throwable t) {
-            logger.log(Level.FINEST, t, "exception in noticeTracer: {0}. This may affect thread profile v2.", result);
+            logger.log(Level.FINEST, t, "exception in noticeTracer: {0}. This may affect thread profile v2.");
         }
         return result;
     }
@@ -583,7 +597,7 @@ public class InstrumentationImpl implements Instrumentation {
                 NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument", instrumented ? 1f : 0f);
             }
         } else {
-            NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument",0f);
+            NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument", 0f);
         }
     }
 
@@ -610,7 +624,8 @@ public class InstrumentationImpl implements Instrumentation {
         if (shouldRetransform) {
             logger.log(Level.FINE, "Retransforming {0}.{1} for instrumentation.", stackTraceElement.getClassName(), stackTraceElement.getMethodName());
             try {
-                PeriodicRetransformer.INSTANCE.queueRetransform(ImmutableSet.of(ClassLoader.getSystemClassLoader().loadClass(stackTraceElement.getClassName())));
+                PeriodicRetransformer.INSTANCE.queueRetransform(
+                        ImmutableSet.of(ClassLoader.getSystemClassLoader().loadClass(stackTraceElement.getClassName())));
                 logger.log(Level.FINE, "Retransformed {0}", stackTraceElement.getClassName());
             } catch (ClassNotFoundException e) {
                 // the system classloader may not be able to see the class - try to find the class in loaded classes
