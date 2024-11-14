@@ -9,7 +9,9 @@ package com.agent.instrumentation.awsjavasdk2.services.lambda;
 
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.regions.Region;
 
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 /**
@@ -20,12 +22,14 @@ public class FunctionRawData {
     private final String qualifier;
     // the code only cares about the region, but the config is stored
     // to prevent unnecessary calls to get the region
-    private final SdkClientConfiguration config;
+    private final WeakReference<SdkClientConfiguration> config;
+    private final WeakReference<Object> sdkClient;
 
-    public FunctionRawData(String functionRef, String qualifier, SdkClientConfiguration config) {
+    public FunctionRawData(String functionRef, String qualifier, SdkClientConfiguration config, Object sdkClient) {
         this.functionRef = functionRef;
         this.qualifier = qualifier;
-        this.config = config;
+        this.config = new WeakReference<>(config);
+        this.sdkClient = new WeakReference<>(sdkClient);
     }
 
     public String getFunctionRef() {
@@ -37,7 +41,18 @@ public class FunctionRawData {
     }
 
     public String getRegion() {
-        return config.option(AwsClientOption.AWS_REGION).toString();
+        SdkClientConfiguration config = this.config.get();
+        if (config != null) {
+            Region region = config.option(AwsClientOption.AWS_REGION);
+            if (region != null) {
+                return region.id();
+            }
+        }
+        return null;
+    }
+
+    public Object getSdkClient() {
+        return sdkClient.get();
     }
 
     @Override
@@ -49,13 +64,20 @@ public class FunctionRawData {
             return false;
         }
         FunctionRawData that = (FunctionRawData) o;
-        return Objects.equals(functionRef, that.functionRef) && Objects.equals(qualifier, that.qualifier) &&
+        if (sdkClient.get() == null || that.sdkClient.get() == null ||
+            config.get() == null || that.config.get() == null) {
+            return false;
+        }
+        return Objects.equals(functionRef, that.functionRef) &&
+                Objects.equals(qualifier, that.qualifier) &&
                 // config uses Object.equals, so should be fast
-                Objects.equals(config, that.config);
+                Objects.equals(config.get(), that.config.get()) &&
+                // sdkClient uses Object.equals, so should be fast
+                Objects.equals(sdkClient.get(), that.sdkClient.get());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(functionRef, qualifier, config);
+        return Objects.hash(functionRef, qualifier, config.get(), sdkClient.get());
     }
 }

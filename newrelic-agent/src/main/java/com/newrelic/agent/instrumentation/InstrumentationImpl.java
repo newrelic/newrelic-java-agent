@@ -93,7 +93,7 @@ public class InstrumentationImpl implements Instrumentation {
 
     static double getAutoAsyncLinkRateLimitInSeconds(ClassTransformerConfig classTransformerConfig) {
         long rateLimitInMillis = classTransformerConfig.getAutoAsyncLinkRateLimit();
-        return (double)rateLimitInMillis / (double) TimeUnit.SECONDS.toMillis(1);
+        return (double) rateLimitInMillis / (double) TimeUnit.SECONDS.toMillis(1);
     }
 
     /**
@@ -365,7 +365,7 @@ public class InstrumentationImpl implements Instrumentation {
 
     @Override
     public ExitTracer createScalaTxnTracer() {
-      return createTracer(null, SCALA_API_TXN_CLASS_SIGNATURE_ID, null, SCALA_API_TRACER_FLAGS);
+        return createTracer(null, SCALA_API_TXN_CLASS_SIGNATURE_ID, null, SCALA_API_TRACER_FLAGS);
     }
 
     @Override
@@ -392,7 +392,7 @@ public class InstrumentationImpl implements Instrumentation {
                 transactionProfileSession.noticeTracerStart(signatureId, tracerFlags, result);
             }
         } catch (Throwable t) {
-            logger.log(Level.FINEST, t, "exception in noticeTracer: {0}. This may affect thread profile v2.", result);
+            logger.log(Level.FINEST, "Exception in noticeTracer. This may affect thread profile v2. Tracer: {0}. Error message: {1}", result, t.getMessage());
         }
         return result;
     }
@@ -591,7 +591,7 @@ public class InstrumentationImpl implements Instrumentation {
                 NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument", instrumented ? 1f : 0f);
             }
         } else {
-            NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument",0f);
+            NewRelic.recordMetric("Supportability/InstrumentationImpl/instrument", 0f);
         }
     }
 
@@ -618,7 +618,8 @@ public class InstrumentationImpl implements Instrumentation {
         if (shouldRetransform) {
             logger.log(Level.FINE, "Retransforming {0}.{1} for instrumentation.", stackTraceElement.getClassName(), stackTraceElement.getMethodName());
             try {
-                PeriodicRetransformer.INSTANCE.queueRetransform(ImmutableSet.of(ClassLoader.getSystemClassLoader().loadClass(stackTraceElement.getClassName())));
+                PeriodicRetransformer.INSTANCE.queueRetransform(
+                        ImmutableSet.of(ClassLoader.getSystemClassLoader().loadClass(stackTraceElement.getClassName())));
                 logger.log(Level.FINE, "Retransformed {0}", stackTraceElement.getClassName());
             } catch (ClassNotFoundException e) {
                 // the system classloader may not be able to see the class - try to find the class in loaded classes

@@ -35,6 +35,15 @@ public class JettyRequest extends ExtendedRequest {
     }
 
     @Override
+    public List<String> getHeaders(String name) {
+        Enumeration<String> headers = request.getHeaders().getValues(name);
+        if (headers == null) {
+            return Collections.emptyList();
+        }
+        return Collections.list(headers);
+    }
+
+    @Override
     public String getRequestURI() {
         return request.getHttpURI().getPath();
     }
@@ -88,4 +97,5 @@ public class JettyRequest extends ExtendedRequest {
         }
         return null;
     }
+
 }

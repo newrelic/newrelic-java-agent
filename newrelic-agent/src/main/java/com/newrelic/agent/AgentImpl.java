@@ -17,6 +17,7 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.AiMonitoring;
+import com.newrelic.api.agent.Cloud;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
@@ -142,6 +143,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     @Override
     public AiMonitoring getAiMonitoring() {
         return new AiMonitoringImpl();
+    }
+
+    @Override
+    public Cloud getCloud() {
+        return AgentBridge.cloud;
     }
 
     @Override

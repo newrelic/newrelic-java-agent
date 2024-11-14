@@ -322,8 +322,10 @@ public class SpanEventFactory {
         return this;
     }
 
-    public SpanEventFactory setServerPort(int port) {
-        builder.putAgentAttribute(AttributeNames.SERVER_PORT, port);
+    public SpanEventFactory setServerPort(Integer port) {
+        if (port != null) {
+            builder.putAgentAttribute(AttributeNames.SERVER_PORT, port);
+        }
         return this;
     }
 
@@ -426,6 +428,7 @@ public class SpanEventFactory {
             setDatabaseCollection(datastoreParameters.getCollection());
             setDatabaseOperation(datastoreParameters.getOperation());
             setServerAddress(datastoreParameters.getHost());
+            setCloudResourceId(datastoreParameters.getCloudResourceId());
             setKindFromUserAttributes();
             if (datastoreParameters.getPort() != null) {
                 setServerPort(datastoreParameters.getPort());

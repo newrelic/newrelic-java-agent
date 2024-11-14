@@ -1,0 +1,50 @@
+# Workflow: Dependency Graph Submission and Vulnerability Reporting
+#
+# Trigger: This workflow runs on every merge to the main branch.
+#
+# Purpose: It generates and submits a dependency graph to the GitHub Dependency Submission API. The graph is used to
+# trigger Dependabot Alerts for vulnerable dependencies, and to populate the Dependency Graph insights view in GitHub.
+#
+# Excludes:
+# - Test-only dependencies
+
+name: Dependency Submission
+
+on:
+  push:
+    branches: [ 'main' ]
+
+permissions:
+  contents: write
+
+jobs:
+  dependency-submission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # pin@v4
+        with:
+          ref: 'main'
+
+      - name: Set gradle.properties Workaround
+        shell: bash
+        run: |
+          echo "jdk8=/tmp" >> gradle.properties
+          echo "jdk11=/tmp" >> gradle.properties
+          echo "jdk17=/tmp" >> gradle.properties
+          echo "jdk21=/tmp" >> gradle.properties
+
+      - name: Setup Java
+        uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # pin@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@d156388eb19639ec20ade50009f3d199ce1e2808 # pin@v4
+        with:
+          dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath|instrumentation.*'
+          dependency-graph-include-configurations: '.*(includeInJar|shadowIntoJar).*'
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
