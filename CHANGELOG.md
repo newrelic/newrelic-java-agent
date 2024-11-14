@@ -4,6 +4,38 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.16.0
+## New features and improvements
+
+- Obfuscate JVM properties by @kanderson250 in [2114](https://github.com/newrelic/newrelic-java-agent/pull/2114)
+The Java agent will now obfuscate values passed to JVM properties. For example: `-Dprop=12345` will now be sent as `-Dprop=obfuscated`. The [documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#jvm-properties-obfuscation) has information on how to disable obfuscation and how to add exceptions.
+
+- Cloud API by @meiao in [2081](https://github.com/newrelic/newrelic-java-agent/pull/2081)
+The Cloud API allows cloud provider account information to be provided to the agent. This will allow the agent to populate the `cloud.resource_id` attribute in calls to select cloud services.
+The [API documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/api-guides/guide-using-java-agent-api/#additional) has information on how to use it programmatically.
+This information can also be provided using a [configuration option](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#aws-account_id).
+
+- Support distributed tracing for Kafka Stream 3.7.x by @deleonenriqueta in [2095](https://github.com/newrelic/newrelic-java-agent/pull/2095)
+- Report if agent was installed via Azure site extension by @jtduffy in [2094](https://github.com/newrelic/newrelic-java-agent/pull/2094)
+- Lazy initialization of GUIDs on DefaultTracers by @yuzawa-san in [2088](https://github.com/newrelic/newrelic-java-agent/pull/2088)
+- Java HttpClient:  Addition of status code to reported externals by @jtduffy in [2089](https://github.com/newrelic/newrelic-java-agent/pull/2089)
+- AWS Lambda: populate `cloud.resource_id` using data from Cloud API by @meiao in [2115](https://github.com/newrelic/newrelic-java-agent/pull/2115)
+- Kinesis Data Streams: populate `cloud.resource_id` by @obenkenobi in [2112](https://github.com/newrelic/newrelic-java-agent/pull/2112)
+- DynamoDB: populate `cloud.resource_id` by @meiao in [2113](https://github.com/newrelic/newrelic-java-agent/pull/2113)
+
+## Fixes
+
+- Use recordResponseTimeMetric instead of recordMetric by @Matzz in [2128](https://github.com/newrelic/newrelic-java-agent/pull/2128)
+- Use WeakReference HttpUrlConnection instrumentation by @obenkenobi in [2082](https://github.com/newrelic/newrelic-java-agent/pull/2082)
+- Update to JFR daemon 1.13.0 by @jasonjkeller in [2129](https://github.com/newrelic/newrelic-java-agent/pull/2129)
+  This update changes the HTTP client used, which caused problems with some proxies.
+
+## IAST
+
+- CSEC version bump to 1.5.1 [2076](https://github.com/newrelic/newrelic-java-agent/pull/2076)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.5.1
+
+
 ## Version 8.15.0
 ## New features and improvements
 
