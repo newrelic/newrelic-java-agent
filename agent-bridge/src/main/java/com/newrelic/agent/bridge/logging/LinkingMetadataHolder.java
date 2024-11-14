@@ -12,16 +12,10 @@ import com.newrelic.api.agent.Transaction;
 import java.util.Map;
 
 public class LinkingMetadataHolder {
-    private final Transaction transaction;
     private final Map<String, String> linkingMetadata;
 
-    public LinkingMetadataHolder(Transaction transaction, Map<String, String> linkingMetadata) {
-        this.transaction = transaction;
+    public LinkingMetadataHolder(Map<String, String> linkingMetadata) {
         this.linkingMetadata = linkingMetadata;
-    }
-
-    public Transaction getTransaction() {
-        return transaction;
     }
 
     public Map<String, String> getLinkingMetadata() {
@@ -29,6 +23,6 @@ public class LinkingMetadataHolder {
     }
 
     public boolean isValid() {
-        return  !(transaction instanceof NoOpTransaction) && linkingMetadata != null;
+        return  linkingMetadata != null;
     }
 }

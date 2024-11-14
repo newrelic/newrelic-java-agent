@@ -9,6 +9,7 @@ package org.apache.logging.log4j.core.layout;
 
 import com.newrelic.agent.bridge.logging.LinkingMetadataHolder;
 import com.newrelic.agent.bridge.logging.Log4jUtils;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -18,6 +19,7 @@ import org.apache.logging.log4j.core.util.StringBuilderWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
+import java.util.logging.Level;
 
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.BLOB_PREFIX;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.getLinkingMetadataBlob;
@@ -40,7 +42,12 @@ abstract class AbstractJacksonLayout_Instrumentation {
             String modified = writerString;
 
             // Append linking metadata to the log message if local decorating is enabled
-            if (isApplicationLoggingEnabled() && isApplicationLoggingLocalDecoratingEnabled()) {
+            //if (isApplicationLoggingEnabled() && isApplicationLoggingLocalDecoratingEnabled()) {
+            if (true) {
+
+                NewRelic.getAgent().getLogger().log(Level.INFO, "jacksonlayout: {0}", System.identityHashCode(event));
+                //NewRelic.getAgent().getLogger().log(Level.INFO, "jacksonlayout - {0}", Log4jUtils.getLinkingMetadataFromCache(event));
+
                 // It is possible that the log might already have NR-LINKING metadata from JUL instrumentation
                 if (!writerString.contains(BLOB_PREFIX)) {
                     int indexToModifyJson = getIndexToModifyJson(writerString);

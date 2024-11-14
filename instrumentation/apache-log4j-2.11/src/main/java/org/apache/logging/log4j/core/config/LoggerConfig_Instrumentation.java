@@ -42,7 +42,7 @@ public class LoggerConfig_Instrumentation {
 
     protected void callAppenders(LogEvent_Instrumentation event) {
         LinkingMetadataHolder agentLinkingMetadata = Log4jUtils.getLinkingMetadataFromCache(event);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "callappend: {0}", event);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "callappend: {0}", System.identityHashCode(event));
         NewRelic.getAgent().getLogger().log(Level.INFO, "callappend: {0}", agentLinkingMetadata);
         NewRelic.getAgent().getLogger().log(Level.INFO, "callappend: {0}", NewRelic.getAgent().getTransaction());
 
@@ -59,17 +59,17 @@ public class LoggerConfig_Instrumentation {
 
                 if (isApplicationLoggingForwardingEnabled()) {
                     // Record and send LogEvent to New Relic
-                    agentLinkingMetadata = Log4jUtils.getLinkingMetadataFromCache(event);
-                    recordNewRelicLogEvent((LogEvent) event, agentLinkingMetadata);
+                    //agentLinkingMetadata = Log4jUtils.getLinkingMetadataFromCache(event);
+                    recordNewRelicLogEvent((LogEvent) event);
                 }
             }
         }
 
         Weaver.callOriginal();
 
-        if (agentLinkingMetadata.isValid()) {
-            Log4jUtils.removeLinkingMetadataFromCache(event);
-        }
+        //if (agentLinkingMetadata.isValid()) {
+        //    Log4jUtils.removeLinkingMetadataFromCache(event);
+        //}
     }
 
     public LoggerConfig getParent() {

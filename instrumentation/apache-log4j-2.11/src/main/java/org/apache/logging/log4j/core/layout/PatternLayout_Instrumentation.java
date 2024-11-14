@@ -51,7 +51,7 @@ public abstract class PatternLayout_Instrumentation {
         NewRelic.getAgent().getLogger().log(Level.INFO, "toText - {0}", Log4jUtils.getLinkingMetadataFromCache(event));
 
         // Append linking metadata to the log message if local decorating is enabled
-        if (originalLogStringBuilder != null && isApplicationLoggingEnabled() && isApplicationLoggingLocalDecoratingEnabled()) {
+        if (originalLogStringBuilder != null) { // && isApplicationLoggingEnabled() && isApplicationLoggingLocalDecoratingEnabled()) {
             appendAgentMetadata(originalLogStringBuilder, event);
         }
 

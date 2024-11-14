@@ -238,23 +238,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
     }
 
-    @Override
-    public void recordLogEvent(Map<LogAttributeKey, ?> attributes, LinkingMetadataHolder linkingMetadata) {
-        if (logEventsDisabled() || attributes == null || attributes.isEmpty()) {
-            return;
-        }
-
-        Transaction transaction = linkingMetadata.getTransaction();
-        // Not in a Transaction or an existing Transaction is not in progress or is ignored
-        if (transaction == null || !transaction.isInProgress() || transaction.isIgnore()) {
-            recordLogEventWithoutTransaction(attributes);
-        } else {
-            // Store log events on the transaction
-            transaction.getLogEventData().recordLogEvent(attributes, linkingMetadata);
-        }
-        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_RECORD_LOG_EVENT);
-    }
-
     /**
      * Records a LogEvent that is not associated with a transaction.
      *
@@ -500,7 +483,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         int droppedLogEvents = reservoir.getNumberOfTries() - reservoir.size();
         if (droppedLogEvents >= 0) {
-            statsEngine.getStats(MetricNames.LOGGING_FORWARDING_DROPPED).incrementCallCount(droppedLogEvents);
+            statsEngine.getStats(MetricNames. LOGGING_FORWARDING_DROPPED).incrementCallCount(droppedLogEvents);
         } else {
             Agent.LOG.log(Level.FINE, "Invalid dropped log events value of {0}. This must be a non-negative value.", droppedLogEvents);
         }
@@ -654,17 +637,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             }
 
             LogEvent event = createValidatedEvent(attributes, contextDataKeyFilter);
-            offerEvent(event);
-        }
-
-        @Override
-        public void recordLogEvent(Map<LogAttributeKey, ?> attributes, Map<String, String> linkingMetadata) {
-            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isHighSecurity()) {
-                Agent.LOG.log(Level.FINER, "Event of type {0} not collected due to high security mode being enabled.", LOG_EVENT_TYPE);
-                return;
-            }
-
-            LogEvent event = createValidatedEvent(attributes, contextDataKeyFilter, linkingMetadata);
             offerEvent(event);
         }
 

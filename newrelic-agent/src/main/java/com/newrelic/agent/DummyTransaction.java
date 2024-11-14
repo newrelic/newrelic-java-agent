@@ -667,10 +667,6 @@ public class DummyTransaction extends Transaction {
         @Override
         public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
         }
-
-        @Override
-        public void recordLogEvent(Map<LogAttributeKey, ?> attributes, Map<String, String> linkingMetadata) {
-        }
     }
 
     static final class DummyCrossProcessState implements CrossProcessTransactionState {

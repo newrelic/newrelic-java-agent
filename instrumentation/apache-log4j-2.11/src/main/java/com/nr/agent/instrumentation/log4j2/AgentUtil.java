@@ -40,7 +40,7 @@ public class AgentUtil {
      *
      * @param event to parse
      */
-    public static void recordNewRelicLogEvent(LogEvent event, LinkingMetadataHolder linkingMetadata) {
+    public static void recordNewRelicLogEvent(LogEvent event) {
         if (event != null) {
             Message message = event.getMessage();
             Throwable throwable = event.getThrown();
@@ -108,11 +108,7 @@ public class AgentUtil {
                     logEventMap.put(LOGGER_FQCN, loggerFqcn);
                 }
 
-                if (linkingMetadata != null) {
-                    AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap, linkingMetadata);
-                } else {
-                    AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
-                }
+                AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
             }
         }
     }

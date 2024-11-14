@@ -22,9 +22,4 @@ class NoOpLogs implements Logs {
     public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
 
     }
-
-    @Override
-    public void recordLogEvent(Map<LogAttributeKey, ?> attributes, Map<String, String> linkingMetadata){
-
-    }
 }

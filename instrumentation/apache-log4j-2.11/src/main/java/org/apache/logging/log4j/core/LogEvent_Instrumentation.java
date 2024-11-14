@@ -32,9 +32,7 @@ public abstract class LogEvent_Instrumentation {
     @WeaveAllConstructors
     public LogEvent_Instrumentation() {
         if (isApplicationLoggingEnabled()) {
-            LinkingMetadataHolder holder =
-                    new LinkingMetadataHolder(NewRelic.getAgent().getTransaction(), AgentBridge.getAgent().getLinkingMetadata());
-            Map<String, String> linkingMetadata = AgentBridge.getAgent().getLinkingMetadata();
+            LinkingMetadataHolder holder = new LinkingMetadataHolder(AgentBridge.getAgent().getLinkingMetadata());
             if (holder.isValid()) {
                 Log4jUtils.addLinkingMetadataToCache(this, holder);
             }

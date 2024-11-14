@@ -25,11 +25,10 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLog
 public class RingBufferLogEventTranslator_Instrumentation {
     public void translateTo(final RingBufferLogEvent event, final long sequence) {
         if (isApplicationLoggingEnabled()) {
-            LinkingMetadataHolder holder =
-                    new LinkingMetadataHolder(NewRelic.getAgent().getTransaction(), AgentBridge.getAgent().getLinkingMetadata());
-            NewRelic.getAgent().getLogger().log(Level.INFO, "translateTo: {0}", event);
-            NewRelic.getAgent().getLogger().log(Level.INFO, "translateTo: {0}", NewRelic.getAgent().getTransaction());
-            NewRelic.getAgent().getLogger().log(Level.INFO, "translateTo: {0}", holder);
+            LinkingMetadataHolder holder = new LinkingMetadataHolder(AgentBridge.getAgent().getLinkingMetadata());
+            NewRelic.getAgent().getLogger().log(Level.INFO, "ringbuffer: {0}", System.identityHashCode(event));
+            NewRelic.getAgent().getLogger().log(Level.INFO, "ringbuffer: {0}", NewRelic.getAgent().getTransaction());
+            NewRelic.getAgent().getLogger().log(Level.INFO, "ringbuffer: {0}", holder.getLinkingMetadata());
             if (holder.isValid()) {
                 Log4jUtils.addLinkingMetadataToCache(event, holder);
             }
