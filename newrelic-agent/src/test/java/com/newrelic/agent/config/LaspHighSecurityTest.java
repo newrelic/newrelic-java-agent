@@ -35,7 +35,7 @@ public class LaspHighSecurityTest {
         assertTrue(agentConfig.laspEnabled());
         assertTrue(agentConfig.isHighSecurity());
         try {
-            ConfigServiceFactory.validateConfig(agentConfig);
+            ConfigServiceFactory.validateConfig(agentConfig, null);
             fail();
         } catch (ForceDisconnectException ex) {
         }

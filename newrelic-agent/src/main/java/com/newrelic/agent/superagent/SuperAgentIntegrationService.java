@@ -9,9 +9,7 @@ package com.newrelic.agent.superagent;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.service.AbstractService;
-import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.api.agent.NewRelic;
 
@@ -21,8 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class SuperAgentIntegrationService extends AbstractService implements HealthDataChangeListener {
-    private final String SA_INTEGRATION_THREAD_NAME = "New Relic Super Agent Integration Service";
-
     private final AgentConfig agentConfig;
     private final SuperAgentIntegrationHealthClient client;
     private final AgentHealth agentHealth;
@@ -53,7 +49,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
 
             int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay
 
-            this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory(SA_INTEGRATION_THREAD_NAME, true));
+            this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic Super Agent Integration Service", true));
             this.scheduler.scheduleWithFixedDelay(() -> client.sendHealthMessage(agentHealth), messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
         }
     }
@@ -69,7 +65,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
 
     @Override
     public boolean isEnabled() {
-        return agentConfig.getSuperAgentIntegrationConfig().isEnabled();
+        return agentConfig.getSuperAgentIntegrationConfig().isEnabled() && client.isValid();
     }
 
     @Override

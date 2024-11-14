@@ -15,6 +15,11 @@ public class SuperAgentHealthUnitTestClient implements SuperAgentIntegrationHeal
         this.agentHealth = agentHealth;
     }
 
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
     public AgentHealth getAgentHealth() {
         return agentHealth;
     }

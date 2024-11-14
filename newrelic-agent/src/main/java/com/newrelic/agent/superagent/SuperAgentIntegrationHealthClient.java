@@ -8,4 +8,6 @@ package com.newrelic.agent.superagent;
 
 public interface SuperAgentIntegrationHealthClient {
     void sendHealthMessage(AgentHealth agentHealth);
+
+    boolean isValid();
 }

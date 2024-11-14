@@ -7,6 +7,7 @@
 package com.newrelic.agent.superagent;
 
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.SuperAgentIntegrationConfig;
 import com.newrelic.agent.service.ServiceFactory;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 public class SuperAgentIntegrationServiceTest {
     AgentConfig mockAgentConfig;
     SuperAgentIntegrationConfig mockSuperAgentIntegrationConfig;
+    RPMServiceManager mockRPMServiceManager;
     AgentHealth mockAgentHealth;
 
     @Before
@@ -30,10 +32,13 @@ public class SuperAgentIntegrationServiceTest {
         mockAgentConfig = mock(AgentConfig.class);
         mockSuperAgentIntegrationConfig = mock(SuperAgentIntegrationConfig.class);
         mockAgentHealth = mock(AgentHealth.class);
+        mockRPMServiceManager = mock(RPMServiceManager.class);
 
         MockServiceManager manager = new MockServiceManager();
+        manager.setRPMServiceManager(mockRPMServiceManager);
         ServiceFactory.setServiceManager(manager);
 
+        when(mockAgentConfig.getSuperAgentIntegrationConfig()).thenReturn(mockSuperAgentIntegrationConfig);
         when(mockAgentConfig.getSuperAgentIntegrationConfig()).thenReturn(mockSuperAgentIntegrationConfig);
     }
 
