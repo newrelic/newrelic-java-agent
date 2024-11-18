@@ -25,11 +25,6 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
 
     public SuperAgentIntegrationConfigImpl(Map<String, Object> configProps) {
         super(configProps, SYSTEM_PROPERTY_ROOT);
-
-        if (configProps == null) {
-            configProps = Collections.emptyMap();
-        }
-
         superAgentIntegrationHealthConfig = createHealthConfig();
         fleetId = superAgentIntegrationHealthConfig == null ? null : getProperty(FLEET_ID);
     }
