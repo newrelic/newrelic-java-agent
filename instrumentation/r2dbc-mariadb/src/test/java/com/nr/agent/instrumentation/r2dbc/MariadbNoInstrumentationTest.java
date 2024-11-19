@@ -32,7 +32,8 @@ public class MariadbNoInstrumentationTest {
         mariaDb.start();
         mariaDb.createDB(databaseName);
         mariaDb.source("users.sql", "user", "password", databaseName);
-        ConnectionFactory connectionFactory = ConnectionFactories.get(builder.getURL(databaseName).replace("mysql", "mariadb").replace("jdbc", "r2dbc").replace("localhost", "user:password@localhost"));
+        ConnectionFactory connectionFactory = ConnectionFactories.get(
+                builder.getURL(databaseName).replace("mysql", "mariadb").replace("jdbc", "r2dbc").replace("localhost", "user:password@localhost"));
         connection = Mono.from(connectionFactory.create()).block();
     }
 
