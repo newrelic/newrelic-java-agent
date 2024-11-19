@@ -1444,7 +1444,7 @@
          <br/>
       </p>
       <h2>Metrics</h2>
-      <p>50831 lines of code analyzed,
+      <p>50829 lines of code analyzed,
 	in 1364 classes, 
 	in 92 packages.</p>
       <table width="500" cellpadding="5" cellspacing="2">
@@ -1455,8 +1455,8 @@
          </tr>
          <tr class="tablerow0">
             <td>High Priority Warnings</td>
-            <td align="right">1</td>
-            <td align="right">0.02</td>
+            <td align="right"/>
+            <td align="right">0.00</td>
          </tr>
          <tr class="tablerow1">
             <td>Medium Priority Warnings</td>
@@ -1468,10 +1468,10 @@
                <b>Total Warnings</b>
             </td>
             <td align="right">
-               <b>1</b>
+               <b>0</b>
             </td>
             <td align="right">
-               <b>0.02</b>
+               <b>0.00</b>
             </td>
          </tr>
       </table>
@@ -1485,9 +1485,6 @@
       <h2>Contents</h2>
       <ul>
          <li>
-            <a href="#Warnings_STYLE">Dodgy code Warnings</a>
-         </li>
-         <li>
             <a href="#Details">Details</a>
          </li>
       </ul>
@@ -1499,62 +1496,17 @@
          </tr>
          <tr class="tablerow0">
             <td>
-               <a href="#Warnings_STYLE">Dodgy code Warnings</a>
-            </td>
-            <td align="right">1</td>
-         </tr>
-         <tr class="tablerow1">
-            <td>
                <b>Total</b>
             </td>
             <td align="right">
-               <b>1</b>
+               <b>0</b>
             </td>
          </tr>
       </table>
       <h1>Warnings</h1>
       <p>Click on a warning row to see full context information.</p>
-      <h2>
-         <a name="Warnings_STYLE">Dodgy code Warnings</a>
-      </h2>
-      <table class="warningtable" width="100%" cellspacing="0">
-         <tr class="tableheader">
-            <th align="left">Code</th>
-            <th align="left">Warning</th>
-         </tr>
-         <tr class="tablerow1" onclick="toggleRow('d2e1538');">
-            <td>
-               <span class="priority-1">DLS</span>
-            </td>
-            <td>Dead store to configProps in new com.newrelic.agent.config.SuperAgentIntegrationConfigImpl(Map)</td>
-         </tr>
-         <tr class="detailrow1">
-            <td/>
-            <td>
-               <p id="d2e1538" style="display: none;">
-                  <a href="#DLS_DEAD_LOCAL_STORE">Bug type DLS_DEAD_LOCAL_STORE (click for details)</a>
-                  <br/>In class com.newrelic.agent.config.SuperAgentIntegrationConfigImpl<br/>In method new com.newrelic.agent.config.SuperAgentIntegrationConfigImpl(Map)<br/>Local variable named configProps<br/>At SuperAgentIntegrationConfigImpl.java:[line 30]</p>
-            </td>
-         </tr>
-      </table>
       <h1>
          <a name="Details">Details</a>
       </h1>
-      <h2>
-         <a name="DLS_DEAD_LOCAL_STORE">DLS_DEAD_LOCAL_STORE: Dead store to local variable</a>
-      </h2>
-
-<p>
-This instruction assigns a value to a local variable,
-but the value is not read or used in any subsequent instruction.
-Often, this indicates an error, because the value computed is never
-used.
-</p>
-<p>
-Note that Sun's javac compiler often generates dead stores for
-final local variables. Because SpotBugs is a bytecode-based tool,
-there is no easy way to eliminate these false positives.
-</p>
-
-    </body>
+   </body>
 </html>
