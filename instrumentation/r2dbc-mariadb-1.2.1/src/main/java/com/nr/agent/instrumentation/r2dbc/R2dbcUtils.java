@@ -37,11 +37,27 @@ public class R2dbcUtils {
                         .product("MariaDB")
                         .collection(sqlOperation.getTableName())
                         .operation(sqlOperation.getOperation())
-                        .instance(client.getConf().getHost(), client.getConf().getPort())
-                        .databaseName(client.getConf().getDatabase())
+                        .instance(client.getHostAddress().getHost(), client.getHostAddress().getPort())
+                        .databaseName(client.getContext().getDatabase())
                         .slowQuery(sql, R2dbcObfuscator.MYSQL_QUERY_CONVERTER)
                         .build());
             }
         };
     }
+
+    public static DatastoreParameters getParams(String sql, Client client) {
+        OperationAndTableName sqlOperation = R2dbcOperation.extractFrom(sql);
+        if (sqlOperation == null) {
+            return null;
+        }
+        return DatastoreParameters
+                .product("MariaDB")
+                .collection(sqlOperation.getTableName())
+                .operation(sqlOperation.getOperation())
+                .instance(client.getHostAddress().getHost(), client.getHostAddress().getPort())
+                .databaseName(client.getContext().getDatabase())
+                .slowQuery(sql, R2dbcObfuscator.MYSQL_QUERY_CONVERTER)
+                .build();
+    }
+
 }
