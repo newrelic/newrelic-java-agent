@@ -14,11 +14,18 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+/**
+ * This implementation of {@link CollectionFactory} will only be used if the agent-bridge
+ * is being used by an application and the agent is NOT being loaded. Thus, it is unlikely
+ * that the objects created by this implementation are going to receive much use.
+ * So methods in this implementation do not need to implement all functional requirements
+ * of the methods in the interface, but they should not break under low use.
+ */
 public class DefaultCollectionFactory implements CollectionFactory {
 
     @Override
     public <K, V> Map<K, V> createConcurrentWeakKeyedMap() {
-        return Collections.synchronizedMap(new WeakHashMap<K, V>());
+        return Collections.synchronizedMap(new WeakHashMap<>());
     }
 
     /**
@@ -36,12 +43,14 @@ public class DefaultCollectionFactory implements CollectionFactory {
     @Override
     public <K, V> Function<K, V> memorize(Function<K, V> loader, int maxSize) {
         Map<K, V> map = new ConcurrentHashMap<>();
-        return k -> map.computeIfAbsent(k, k1 -> {
+
+        return k -> {
             if (map.size() >= maxSize) {
-                map.remove(map.keySet().iterator().next());
+                V value = map.get(k);
+                return value == null ? loader.apply(k) : value;
             }
-            return loader.apply(k1);
-        });
+            return map.computeIfAbsent(k, loader);
+        };
     }
 
     /**

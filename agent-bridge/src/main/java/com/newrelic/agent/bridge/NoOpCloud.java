@@ -34,4 +34,9 @@ public class NoOpCloud implements CloudApi {
     public String getAccountInfo(Object sdkClient, CloudAccountInfo cloudAccountInfo) {
         return null;
     }
+
+    @Override
+    public String decodeAwsAccountId(String accessKey) {
+        return null;
+    }
 }

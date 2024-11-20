@@ -28,4 +28,10 @@ public interface CloudApi extends Cloud {
      * If no data was recorded for the SDK client, the general account information will be returned.
      */
     String getAccountInfo(Object sdkClient, CloudAccountInfo cloudAccountInfo);
+
+    /**
+     * Decode the account id from the given access key.
+     * This method becomes a noop and always returns null if the config "cloud.aws.account_decoding" is set to false.
+     */
+    String decodeAwsAccountId(String accessKey);
 }
