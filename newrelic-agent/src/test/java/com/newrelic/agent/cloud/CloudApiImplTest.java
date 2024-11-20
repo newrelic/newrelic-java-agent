@@ -14,21 +14,24 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class CloudApiImplTest {
 
     private CloudApi cloudApi;
     private CloudAccountInfoCache cache;
+    private AwsAccountDecoder decoder;
 
     @Before
     public void setup() {
         cache = mock(CloudAccountInfoCache.class);
-        AwsAccountDecoder decoder = mock(AwsAccountDecoder.class);
+        decoder = mock(AwsAccountDecoder.class);
         cloudApi = new CloudApiImpl(cache, decoder);
     }
 
@@ -68,15 +71,10 @@ public class CloudApiImplTest {
 
     @Test
     public void getAccountInfo() {
-        CloudAccountInfoCache cache = mock(CloudAccountInfoCache.class);
-        CloudApiImpl cloudApi = new CloudApiImpl(cache, AwsAccountDecoderImpl.newInstance());
-
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
-
             cloudApi.getAccountInfo(CloudAccountInfo.AWS_ACCOUNT_ID);
 
             newRelic.verifyNoInteractions();
-
             verify(cache).getAccountInfo(eq(CloudAccountInfo.AWS_ACCOUNT_ID));
             verifyNoMoreInteractions(cache);
         }
@@ -84,18 +82,23 @@ public class CloudApiImplTest {
 
     @Test
     public void getAccountInfoClient() {
-        CloudAccountInfoCache cache = mock(CloudAccountInfoCache.class);
-        CloudApiImpl cloudApi = new CloudApiImpl(cache, AwsAccountDecoderImpl.newInstance());
-
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
-
             Object sdkClient = new Object();
             cloudApi.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
 
             newRelic.verifyNoInteractions();
-
             verify(cache).getAccountInfo(eq(sdkClient), eq(CloudAccountInfo.AWS_ACCOUNT_ID));
             verifyNoMoreInteractions(cache);
         }
+    }
+
+    @Test
+    public void decodeAccount() {
+        when(decoder.decodeAccount(anyString())).thenReturn("123456789012");
+
+        String someString = "someString";
+        cloudApi.decodeAwsAccountId(someString);
+
+        verify(decoder).decodeAccount(eq(someString));
     }
 }

@@ -10,6 +10,7 @@ package com.newrelic.agent.cloud;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class AwsAccountDecoderImplTest {
 
@@ -21,6 +22,8 @@ public class AwsAccountDecoderImplTest {
 
         accountId = decoder.decodeAccount("FKKYQAAAAAAAZZZZZZZZ");
         assertEquals("1", accountId);
-    }
 
+        accountId = decoder.decodeAccount("shortValue");
+        assertNull(accountId);
+    }
 }
