@@ -21,13 +21,13 @@ public class W3CTraceParentParser {
             return null;
         }
         if (traceParentHeaders.size() > 1) {
-            ServiceFactory.getStatsService().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_PARENT_HEADER_COUNT);
-            Agent.LOG.log(Level.WARNING, "Multiple traceparent headers found on inbound request.");
             // Multiple values ok if all are equal
             String first = traceParentHeaders.get(0);
             for (String header : traceParentHeaders) {
                 if (!header.equals(first)) {
-                   return null;
+                    ServiceFactory.getStatsService().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_PARENT_HEADER_COUNT);
+                    Agent.LOG.log(Level.WARNING, "Multiple, different, traceparent headers found on inbound request.");
+                    return null;
                 }
             }
         }
