@@ -65,7 +65,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
 
     @Override
     public boolean isEnabled() {
-        return agentConfig.getSuperAgentIntegrationConfig().isEnabled() && client.isValid();
+        return agentConfig.getSuperAgentIntegrationConfig().isEnabled() && client != null && client.isValid();
     }
 
     @Override

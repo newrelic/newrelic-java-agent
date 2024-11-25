@@ -35,7 +35,7 @@ public class SuperAgentIntegrationConfigImpl extends BaseConfig implements Super
 
         superAgentIntegrationHealthConfig = new SuperAgentIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
 
-        if (superAgentIntegrationHealthConfig.getHealthDeliveryLocation() == null) {
+        if (isEnabled() && superAgentIntegrationHealthConfig.getHealthDeliveryLocation() == null) {
             Agent.LOG.log(Level.WARNING, "Configured Super Agent health delivery location is not a valid URI; " +
                     "SuperAgent integration service will not be started");
             superAgentIntegrationHealthConfig = null;
