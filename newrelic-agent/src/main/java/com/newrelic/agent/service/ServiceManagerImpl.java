@@ -91,6 +91,7 @@ import com.newrelic.agent.utilization.UtilizationService;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -355,14 +356,17 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     }
 
     private SuperAgentIntegrationService buildSuperAgentIntegrationService(AgentConfig config) {
-        SuperAgentIntegrationHealthClient healthClient =
-                SuperAgentIntegrationClientFactory.createHealthClient(config.getSuperAgentIntegrationConfig());
-
         ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
-        healthDataProducers.add(circuitBreakerService);
-        healthDataProducers.add((HealthDataProducer) coreService);
-        for (IRPMService service : ServiceFactory.getRPMServiceManager().getRPMServices()) {
-            healthDataProducers.add(service.getHttpDataSenderAsHealthDataProducer());
+        SuperAgentIntegrationHealthClient healthClient = null;
+
+        if (config.getSuperAgentIntegrationConfig() != null && StringUtils.isNotEmpty(config.getSuperAgentIntegrationConfig().getFleetId())) {
+            healthClient = SuperAgentIntegrationClientFactory.createHealthClient(config.getSuperAgentIntegrationConfig());
+
+            healthDataProducers.add(circuitBreakerService);
+            healthDataProducers.add((HealthDataProducer) coreService);
+            for (IRPMService service : ServiceFactory.getRPMServiceManager().getRPMServices()) {
+                healthDataProducers.add(service.getHttpDataSenderAsHealthDataProducer());
+            }
         }
 
         return new SuperAgentIntegrationService(healthClient, config,
