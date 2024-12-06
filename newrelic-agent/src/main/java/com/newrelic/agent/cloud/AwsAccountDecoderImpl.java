@@ -71,7 +71,7 @@ class AwsAccountDecoderImpl implements AwsAccountDecoder {
      * AwsAccountDecoder.
      */
     static AwsAccountDecoder newInstance() {
-        if (NewRelic.getAgent().getConfig().getValue("cloud.aws.account_decoding", true)) {
+        if (NewRelic.getAgent().getConfig().getValue("cloud.aws.account_decoding.enabled", true)) {
             NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/Aws/AccountDecode/enabled");
             return new AwsAccountDecoderImpl();
         } else {

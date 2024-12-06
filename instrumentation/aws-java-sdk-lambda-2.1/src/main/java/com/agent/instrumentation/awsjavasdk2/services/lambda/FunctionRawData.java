@@ -7,6 +7,8 @@
 
 package com.agent.instrumentation.awsjavasdk2.services.lambda;
 
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.regions.Region;
@@ -46,6 +48,20 @@ public class FunctionRawData {
             Region region = config.option(AwsClientOption.AWS_REGION);
             if (region != null) {
                 return region.id();
+            }
+        }
+        return null;
+    }
+
+    public String getAccessKey() {
+        SdkClientConfiguration config = this.config.get();
+        if (config != null) {
+            AwsCredentialsProvider credentialsProvider = config.option(AwsClientOption.CREDENTIALS_PROVIDER);
+            if (credentialsProvider != null) {
+                AwsCredentials awsCredentials = credentialsProvider.resolveCredentials();
+                if (awsCredentials != null) {
+                    return awsCredentials.accessKeyId();
+                }
             }
         }
         return null;
