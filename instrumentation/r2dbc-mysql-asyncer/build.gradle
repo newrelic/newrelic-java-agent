@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("io.asyncer:r2dbc-mysql:1.2.0")
+    testImplementation("ch.vorburger.mariaDB4j:mariaDB4j:2.2.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.r2dbc-mysql-asyncer' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.asyncer:r2dbc-mysql:[1.1.3,)'
+}
+
+site {
+    title 'MySQL R2DBC ASYNCER'
+    type 'Datastore'
+}
