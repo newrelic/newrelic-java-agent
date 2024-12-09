@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Weave(type = MatchType.ExactClass, originalName = "io.asyncer.r2dbc.mysql.TextParametrizedStatement")
+@Weave(type = MatchType.ExactClass, originalName = "io.asyncer.r2dbc.mysql.TextParameterizedStatement")
 final class TextParameterizedStatement_Instrumentation extends ParameterizedStatementSupport_Instrumentation {
     protected Flux<MySqlResult> execute(List<Binding> bindings) {
         Flux<MySqlResult> request = Weaver.callOriginal();
