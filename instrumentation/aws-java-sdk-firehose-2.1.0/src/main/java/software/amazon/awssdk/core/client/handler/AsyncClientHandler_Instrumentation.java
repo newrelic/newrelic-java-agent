@@ -11,18 +11,14 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import java.util.concurrent.CompletableFuture;
 
 @Weave(originalName = "software.amazon.awssdk.core.client.handler.AsyncClientHandler", type = MatchType.Interface)
-public class AsyncClientHandler_Instrumentation {
+public abstract class AsyncClientHandler_Instrumentation {
     // This prevents further traces from forming when using the async client
     @Trace(leaf = true, excludeFromTransactionTrace = true)
-    public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
-            ClientExecutionParams<InputT, OutputT> executionParams) {
-        return Weaver.callOriginal();
-    }
+    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams);
 
     @Trace(leaf = true, excludeFromTransactionTrace = true)
-    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
+    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
-            AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
-        return Weaver.callOriginal();
-    }
+            AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer);
 }
