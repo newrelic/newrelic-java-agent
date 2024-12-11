@@ -35,9 +35,13 @@ import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.util.ASMifier;
+import org.objectweb.asm.util.Printer;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.ArrayList;
@@ -546,6 +550,13 @@ public final class WeaveUtils {
      * @return byte array representing the specified class node
      */
     public static byte[] convertToClassBytes(ClassNode classNode, ClassInformationFinder classInfoFinder) {
+        boolean shouldDump = classNode.name.equals("io/ktor/samples/clientmultipart/MultipartAppKt$main$1$1");
+        if (shouldDump) {
+            Printer printer = new ASMifier();
+            PrintWriter output = new PrintWriter(System.out, true);
+            TraceClassVisitor traceClassVisitor= new TraceClassVisitor(null, printer, output);
+            classNode.accept(traceClassVisitor);
+        }
         ClassWriter cw = new PatchedClassWriter(ClassWriter.COMPUTE_FRAMES, classInfoFinder);
         classNode.accept(cw);
         return cw.toByteArray();
