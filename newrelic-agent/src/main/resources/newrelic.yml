@@ -437,6 +437,18 @@ common: &default_settings
     # Default is false.
     audit_logging: false
 
+    # The time interval, in seconds, of how often JFR data is sent to New Relic.
+    # The default is 10 seconds.
+    harvest_interval: 10
+
+    # The size of the queue used to store JFR events. Increasing this can reduce gaps in JFR reported data
+    # but can also cause resource issues in the agent or cause data to be dropped if backend pipeline
+    # limits are exceeded.
+    # See: https://docs.newrelic.com/docs/data-apis/ingest-apis/event-api/introduction-event-api/#limits
+    #      https://docs.newrelic.com/docs/data-apis/ingest-apis/metric-api/metric-api-limits-restricted-attributes/
+    # Default is 250000
+    queue_size: 250000
+
   # User-configurable custom labels for this agent.  Labels are name-value pairs.
   # There is a maximum of 64 labels per agent.  Names and values are limited to 255 characters.
   # Names and values may not contain colons (:) or semicolons (;).
