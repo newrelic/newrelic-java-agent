@@ -1,4 +1,4 @@
-package io.r2dbc.mssql.client;
+package io.asyncer.r2dbc.mysql.client;
 
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
@@ -9,7 +9,7 @@ import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Transaction;
-import io.r2dbc.mssql.MssqlResult;
+import io.asyncer.r2dbc.mysql.api.MySqlResult;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
 import reactor.netty.Connection;
@@ -19,7 +19,7 @@ import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
 public class R2dbcUtils {
-    public static Flux<MssqlResult> wrapRequest(Flux<MssqlResult> request, String sql, Client client) {
+    public static Flux<MySqlResult> wrapRequest(Flux<MySqlResult> request, String sql, Client client) {
         if(request != null) {
             Transaction transaction = NewRelic.getAgent().getTransaction();
             if(transaction != null && !(transaction instanceof NoOpTransaction)) {
@@ -38,12 +38,12 @@ public class R2dbcUtils {
             InetSocketAddress socketAddress = extractSocketAddress(client);
             if (sqlOperation != null && socketAddress != null) {
                 segment.reportAsExternal(DatastoreParameters
-                        .product(DatastoreVendor.MSSQL.name())
+                        .product(DatastoreVendor.MySQL.name())
                         .collection(sqlOperation.getTableName())
                         .operation(sqlOperation.getOperation())
                         .instance(socketAddress.getHostName(), socketAddress.getPort())
                         .databaseName(null)
-                        .slowQuery(sql, R2dbcObfuscator.QUERY_CONVERTER)
+                        .slowQuery(sql, R2dbcObfuscator.MYSQL_QUERY_CONVERTER)
                         .build());
             }
         };
@@ -55,7 +55,8 @@ public class R2dbcUtils {
                 ReactorNettyClient_Instrumentation instrumentedClient = (ReactorNettyClient_Instrumentation) client;
                 if(instrumentedClient.remoteAddress != null && instrumentedClient.remoteAddress instanceof InetSocketAddress) {
                     return (InetSocketAddress) instrumentedClient.remoteAddress;
-                }            }
+                }
+            }
             return null;
         } catch(Exception exception) {
             return null;
