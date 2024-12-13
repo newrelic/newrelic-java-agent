@@ -30,7 +30,7 @@ public class AwsUtilDecoderDisabledTest {
     @Test
     public void decodeAccount() {
         try (MockedStatic<NewRelic> newRelicMockedStatic = Mockito.mockStatic(NewRelic.class, Answers.RETURNS_DEEP_STUBS)) {
-            newRelicMockedStatic.when(() -> NewRelic.getAgent().getConfig().getValue(eq("cloud.aws.account_decoding"), any()))
+            newRelicMockedStatic.when(() -> NewRelic.getAgent().getConfig().getValue(eq("cloud.aws.account_decoding.enabled"), any()))
                     .thenReturn(false);
 
             AwsAccountDecoder decoder = AwsAccountDecoderImpl.newInstance();
