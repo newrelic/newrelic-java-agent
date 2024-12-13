@@ -7,17 +7,22 @@
 
 package com.agent.instrumentation.awsjavasdk1.services.lambda;
 
+import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Token;
 
+import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LambdaUtil {
+
+    private static final Map<InvokeRequest, Token> TOKEN_MAP = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
     private static final String PLATFORM = "aws_lambda";
     private static final String NULL_ARN = "";
@@ -90,7 +95,7 @@ public class LambdaUtil {
 
         if (accountId == null) {
             // if account id is not provided, we will try to get it from the config
-            accountId = getAccountId(data.getSdkClient());
+            accountId = getAccountId(data.getSdkClient(), data.getAccessKey());
         }
 
         if (region != null && accountId != null) {
@@ -109,11 +114,29 @@ public class LambdaUtil {
         return new FunctionProcessedData(functionName, arn);
     }
 
-    private static String getAccountId(Object sdkClient) {
-        return AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
+    private static String getAccountId(Object sdkClient, String accessKey) {
+        String accountId = AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
+        if (accountId == null && accessKey != null) {
+            accountId = AgentBridge.cloud.decodeAwsAccountId(accessKey);
+        }
+        return accountId;
     }
 
     public static String getSimpleFunctionName(FunctionRawData functionRawData) {
         return CACHE.apply(functionRawData).getFunctionName();
+    }
+
+    /*
+     * The following are almost the same as a Token in a @NewField.
+     * These are here and not in a @NewField because the weaver was misbehaving
+     * trying to rewrite the @NewField methods.
+     */
+    public static Token getToken(InvokeRequest request) {
+        return TOKEN_MAP.remove(request);
+    }
+
+    public static void setTokenForRequest(InvokeRequest request) {
+        Token token = NewRelic.getAgent().getTransaction().getToken();
+        TOKEN_MAP.put(request, token);
     }
 }

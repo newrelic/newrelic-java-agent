@@ -25,7 +25,7 @@ final class DefaultLambdaClient_Instrumentation {
 
     private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
 
-    @Trace(leaf = true)
+    @Trace
     public InvokeResponse invoke(InvokeRequest invokeRequest) {
         FunctionRawData functionRawData = new FunctionRawData(invokeRequest.functionName(), invokeRequest.qualifier(), clientConfiguration, this);
         CloudParameters cloudParameters = LambdaUtil.getCloudParameters(functionRawData);
