@@ -59,6 +59,7 @@ public class SourceLibraryDetector implements Runnable {
     void detectSourceLanguages() {
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         detectJava();
+        detectScala3(systemClassLoader);
         detectScala(systemClassLoader);
         detectKotlin(systemClassLoader);
         detectClojure(systemClassLoader);
@@ -86,6 +87,21 @@ public class SourceLibraryDetector implements Runnable {
             recordJvmVendorMetric("Corretto");
         } else {
             recordJvmVendorMetric("Other");
+        }
+    }
+
+    private void detectScala3(ClassLoader systemClassLoader) {
+        try {
+            //scala3-library removed all methods referencing the version number, so we just capture the major version
+            //by checking for a class introduced in the scala 3 API.
+            Class<?> aClass = Class.forName("scala.deriving.Mirror", true, systemClassLoader);
+            if (aClass != null) {
+                recordSourceLanguageMetric("scala", "3.x");
+            }
+        } catch (ClassNotFoundException cnfe){
+            Agent.LOG.log(Level.FINEST, format("Class ''{0}'' was not found; scala3 is not present in the classpath", "scala.deriving.Mirror"));
+        } catch (Exception e) {
+            Agent.LOG.log(Level.FINEST, format("Exception occurred while trying to determine scala3 version", e.getMessage()));
         }
     }
 
