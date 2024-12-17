@@ -104,6 +104,9 @@ public class AgentAttributeSenderTest {
             Set<String> expected = Sets.newHashSet("abc.thread", "request.many", "message.many", "key1", "key2", "key4", "message.bool");
 
             verifyOutput(t.getUserAttributes(), expected);
+        } catch (Exception e) {
+            System.out.println("JGB Exception in testCustomAttributesInTransaction: "+e);
+            System.out.println("JGB e.message: "+e.getMessage());
 
         } finally {
             Transaction.clearTransaction();
