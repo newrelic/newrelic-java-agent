@@ -22,6 +22,8 @@ import com.newrelic.api.agent.NewRelicApiImplementation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,10 +35,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+@RunWith(Parameterized.class)
 public class AgentAttributeSenderTest {
 
     private static final String APP_NAME = "NAME";
     private MockServiceManager manager;
+
+    @Parameterized.Parameters
+    public static Object[][] data() {
+        return new Object[1000][0]; // run X times, where [X][]
+    }
 
     @Before
     public void setup() {
