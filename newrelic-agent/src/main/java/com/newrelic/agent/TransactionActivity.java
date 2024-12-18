@@ -309,7 +309,7 @@ public class TransactionActivity {
      * @param tracer
      */
     public Tracer tracerStarted(Tracer tracer) {
-        Agent.LOG.log(Level.INFO, "JGB tracerStarted: ", tracer);
+//        Agent.LOG.log(Level.INFO, "JGB tracerStarted: ", tracer);
 //        StackTraceElement[] elems = Thread.currentThread().getStackTrace();
 //        if (elems != null) {
 //            for (int i = 0; i < elems.length && i < 3; i++) {
@@ -331,7 +331,7 @@ public class TransactionActivity {
      */
     public Tracer addTracerToStack(Tracer tracer) {
         if (isTracerStartLocked()) {
-            Agent.LOG.log(Level.INFO, "JGB tracerStarted ignored: tracerStartLock is already active");
+//            Agent.LOG.log(Level.INFO, "JGB tracerStarted ignored: tracerStartLock is already active");
             return null;
         }
 
@@ -503,7 +503,7 @@ public class TransactionActivity {
     private void setRootTracer(Tracer tracer) {
         rootTracer = tracer;
         lastTracer = tracer;
-        Agent.LOG.log(Level.INFO, "JGB Tracer Debug: called setRootTracer, lastTracer (pointer to top of stack) and rootTracer set to {0}", tracer);
+//        Agent.LOG.log(Level.INFO, "JGB Tracer Debug: called setRootTracer, lastTracer (pointer to top of stack) and rootTracer set to {0}", tracer);
         if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
             Agent.LOG.log(Level.FINEST, "Tracer Debug: called setRootTracer, lastTracer (pointer to top of stack) and rootTracer set to {0}", tracer);
         }
