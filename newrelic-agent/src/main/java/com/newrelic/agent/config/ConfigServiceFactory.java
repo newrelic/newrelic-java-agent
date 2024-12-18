@@ -9,8 +9,8 @@ package com.newrelic.agent.config;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.ForceDisconnectException;
-import com.newrelic.agent.superagent.AgentHealth;
-import com.newrelic.agent.superagent.SuperAgentIntegrationUtils;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.api.agent.Logger;
 
 import java.io.File;
@@ -82,15 +82,15 @@ public class ConfigServiceFactory {
     @VisibleForTesting
     public static void validateConfig(AgentConfig config, ConfigurationException fileParseException) throws ConfigurationException, ForceDisconnectException {
         if (fileParseException != null) {
-            SuperAgentIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.CONFIG_FILE_PARSE_ERROR);
+            AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.CONFIG_FILE_PARSE_ERROR);
             throw fileParseException;
         }
         if (config.getApplicationName() == null) {
-            SuperAgentIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.MISSING_APP_NAME);
+            AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.MISSING_APP_NAME);
             throw new ConfigurationException("The agent requires an application name. Check the app_name setting in newrelic.yml");
         }
         if (config.getApplicationNames().size() > 3) {
-            SuperAgentIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.MAX_APP_NAMES_EXCEEDED);
+            AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.MAX_APP_NAMES_EXCEEDED);
             throw new ConfigurationException("The agent does not support more than three application names. Check the app_name setting in newrelic.yml");
         }
         if (config.isHighSecurity() && config.laspEnabled()) {

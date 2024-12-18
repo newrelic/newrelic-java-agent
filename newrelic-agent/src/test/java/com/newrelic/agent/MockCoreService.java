@@ -14,8 +14,8 @@ import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.ServiceManagerImpl;
-import com.newrelic.agent.superagent.HealthDataChangeListener;
-import com.newrelic.agent.superagent.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.api.agent.Logger;
 import org.mockito.Mockito;
 

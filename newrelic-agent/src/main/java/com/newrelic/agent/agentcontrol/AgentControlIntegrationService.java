@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
@@ -18,20 +18,20 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class SuperAgentIntegrationService extends AbstractService implements HealthDataChangeListener {
+public class AgentControlIntegrationService extends AbstractService implements HealthDataChangeListener {
     private final AgentConfig agentConfig;
-    private final SuperAgentIntegrationHealthClient client;
+    private final AgentControlIntegrationHealthClient client;
     private final AgentHealth agentHealth;
 
     private ScheduledExecutorService scheduler;
 
-    public SuperAgentIntegrationService(SuperAgentIntegrationHealthClient client, AgentConfig agentConfig,
+    public AgentControlIntegrationService(AgentControlIntegrationHealthClient client, AgentConfig agentConfig,
             HealthDataProducer... healthProducers) {
-        super(SuperAgentIntegrationService.class.getSimpleName());
+        super(AgentControlIntegrationService.class.getSimpleName());
 
         this.agentConfig = agentConfig;
         this.client = client;
-        this.agentHealth = new AgentHealth(SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos());
+        this.agentHealth = new AgentHealth(AgentControlIntegrationUtils.getPseudoCurrentTimeNanos());
 
         for (HealthDataProducer healthProducer : healthProducers) {
             healthProducer.registerHealthDataChangeListener(this);
@@ -41,15 +41,15 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
     @Override
     protected void doStart() throws Exception {
         if (isEnabled()) {
-            Agent.LOG.log(Level.INFO, "SuperAgentIntegrationService starting: Health file location: {0}  Frequency: {1}  Scheme: {2}",
-                    agentConfig.getSuperAgentIntegrationConfig().getHealthDeliveryLocation(),
-                    agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(),
-                    agentConfig.getSuperAgentIntegrationConfig().getHealthClientType());
-            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_SUPERAGENT_HEALTH_REPORTING_ENABLED);
+            Agent.LOG.log(Level.INFO, "AgentControlIntegrationService starting: Health file location: {0}  Frequency: {1}  Scheme: {2}",
+                    agentConfig.getAgentControlIntegrationConfig().getHealthDeliveryLocation(),
+                    agentConfig.getAgentControlIntegrationConfig().getHealthReportingFrequency(),
+                    agentConfig.getAgentControlIntegrationConfig().getHealthClientType());
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CONTROL_HEALTH_REPORTING_ENABLED);
 
-            int messageSendFrequency = agentConfig.getSuperAgentIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay
+            int messageSendFrequency = agentConfig.getAgentControlIntegrationConfig().getHealthReportingFrequency(); //Used for both repeat frequency and initial delay
 
-            this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic Super Agent Integration Service", true));
+            this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic Agent Control Integration Service", true));
             this.scheduler.scheduleWithFixedDelay(() -> client.sendHealthMessage(agentHealth), messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
         }
     }
@@ -65,7 +65,7 @@ public class SuperAgentIntegrationService extends AbstractService implements Hea
 
     @Override
     public boolean isEnabled() {
-        return agentConfig.getSuperAgentIntegrationConfig().isEnabled() && client != null && client.isValid();
+        return agentConfig.getAgentControlIntegrationConfig().isEnabled() && client != null && client.isValid();
     }
 
     @Override

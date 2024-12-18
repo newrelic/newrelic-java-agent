@@ -14,18 +14,18 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class SuperAgentIntegrationConfigTest {
+public class AgentControlIntegrationConfigTest {
     @Test
-    public void superAgentConfig_withValidProperties_createsValidConfig() {
-        Map<String, Object> superAgentConfigProps = new HashMap<>();
+    public void agentControlConfig_withValidProperties_createsValidConfig() {
+        Map<String, Object> agentControlConfigProps = new HashMap<>();
         Map<String, Object> healthConfigProps = new HashMap<>();
-        superAgentConfigProps.put("fleet_id", "12345");
+        agentControlConfigProps.put("fleet_id", "12345");
 
         healthConfigProps.put("delivery_location", "file:///foo/bar");
         healthConfigProps.put("frequency", 5);
-        superAgentConfigProps.put("health", healthConfigProps);
+        agentControlConfigProps.put("health", healthConfigProps);
 
-        SuperAgentIntegrationConfig config = new SuperAgentIntegrationConfigImpl(superAgentConfigProps);
+        AgentControlIntegrationConfig config = new AgentControlIntegrationConfigImpl(agentControlConfigProps);
         assertEquals("12345", config.getFleetId());
         assertEquals(5, config.getHealthReportingFrequency());
         assertEquals("file", config.getHealthClientType());
@@ -33,15 +33,15 @@ public class SuperAgentIntegrationConfigTest {
     }
 
     @Test
-    public void superAgentConfig_withInvalidLocation_nullsFleetId() {
-        Map<String, Object> superAgentConfigProps = new HashMap<>();
+    public void agentControlConfig_withInvalidLocation_nullsFleetId() {
+        Map<String, Object> agentControlConfigProps = new HashMap<>();
         Map<String, Object> healthConfigProps = new HashMap<>();
-        superAgentConfigProps.put("fleet_id", "12345");
+        agentControlConfigProps.put("fleet_id", "12345");
 
         healthConfigProps.put("delivery_location", "");
-        superAgentConfigProps.put("health", healthConfigProps);
+        agentControlConfigProps.put("health", healthConfigProps);
 
-        SuperAgentIntegrationConfig config = new SuperAgentIntegrationConfigImpl(superAgentConfigProps);
+        AgentControlIntegrationConfig config = new AgentControlIntegrationConfigImpl(agentControlConfigProps);
         assertNull(config.getFleetId());
     }
 }
