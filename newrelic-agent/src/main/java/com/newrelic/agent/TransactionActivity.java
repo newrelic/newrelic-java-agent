@@ -310,12 +310,12 @@ public class TransactionActivity {
      */
     public Tracer tracerStarted(Tracer tracer) {
         Agent.LOG.log(Level.INFO, "JGB tracerStarted: ", tracer);
-        StackTraceElement[] elems = Thread.currentThread().getStackTrace();
-        if (elems != null) {
-            for (int i = 0; i < elems.length && i < 3; i++) {
-                Agent.LOG.log(Level.INFO, "JGB -> "+elems[i].getClassName() + "." + elems[i].getMethodName());
-            }
-        }
+//        StackTraceElement[] elems = Thread.currentThread().getStackTrace();
+//        if (elems != null) {
+//            for (int i = 0; i < elems.length && i < 3; i++) {
+//                Agent.LOG.log(Level.INFO, "JGB -> "+elems[i].getClassName() + "." + elems[i].getMethodName());
+//            }
+//        }
         Tracer tr = addTracerToStack(tracer);
         if (tr != null && getTransaction() != null && tr.isTransactionSegment()) {
             getTransaction().getTransactionCounts().addTracer();
