@@ -45,7 +45,7 @@ jobs:
 
       - name: Run unit tests that do not require a forked JVM (attempt 1)
         id: run_tests_1
-#        continue-on-error: true
+        continue-on-error: true
         timeout-minutes: 20
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PnonForkedTests --continue
 
