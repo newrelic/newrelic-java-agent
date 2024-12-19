@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
 public interface HealthDataChangeListener {
     void onUnhealthyStatus(AgentHealth.Status newStatus, String... additionalInfo);

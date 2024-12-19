@@ -4,9 +4,9 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
-import com.newrelic.agent.config.SuperAgentIntegrationConfig;
+import com.newrelic.agent.config.AgentControlIntegrationConfig;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,19 +17,19 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SuperAgentIntegrationClientFactoryTest {
+public class AgentControlIntegrationClientFactoryTest {
     private final String URI_TEST_STRING = "file://" + System.getProperty("user.dir") + "/health.yml";
-    private SuperAgentIntegrationConfig mockConfig;
+    private AgentControlIntegrationConfig mockConfig;
 
     @Before
     public void setup() {
-        mockConfig = mock(SuperAgentIntegrationConfig.class);
+        mockConfig = mock(AgentControlIntegrationConfig.class);
     }
 
     @Test
     public void createHealthClient_withInvalidType_returnsNoOpClient() {
-        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(mockConfig);
-        assertTrue(client instanceof SuperAgentHealthNoOpClient);
+        AgentControlIntegrationHealthClient client = AgentControlIntegrationClientFactory.createHealthClient(mockConfig);
+        assertTrue(client instanceof AgentControlHealthNoOpClientControl);
     }
 
     @Test
@@ -37,14 +37,14 @@ public class SuperAgentIntegrationClientFactoryTest {
         URI uri = new URI(URI_TEST_STRING);
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(uri);
         when(mockConfig.getHealthClientType()).thenReturn("file");
-        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(mockConfig);
-        assertTrue(client instanceof SuperAgentIntegrationHealthFileBasedClient);
+        AgentControlIntegrationHealthClient client = AgentControlIntegrationClientFactory.createHealthClient(mockConfig);
+        assertTrue(client instanceof AgentControlControlIntegrationHealthFileBasedClient);
     }
 
     @Test
     public void createHealthClient_withNoOpType_returnsNoOpClient() {
         when(mockConfig.getHealthClientType()).thenReturn("noop");
-        SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(mockConfig);
-        assertTrue(client instanceof SuperAgentHealthNoOpClient);
+        AgentControlIntegrationHealthClient client = AgentControlIntegrationClientFactory.createHealthClient(mockConfig);
+        assertTrue(client instanceof AgentControlHealthNoOpClientControl);
     }
 }

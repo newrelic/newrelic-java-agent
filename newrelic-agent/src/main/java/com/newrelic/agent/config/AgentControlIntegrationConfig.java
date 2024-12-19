@@ -8,30 +8,30 @@ package com.newrelic.agent.config;
 
 import java.net.URI;
 
-public interface SuperAgentIntegrationConfig {
+public interface AgentControlIntegrationConfig {
     /**
-     * Check if the Super Agent integration service is enabled
+     * Check if the Agent Control integration service is enabled
      *
-     * @return <code>true</code> if the Super Agent Health Check service is enabled, else <code>false</code>.
+     * @return <code>true</code> if the Agent Control Health Check service is enabled, else <code>false</code>.
      */
     boolean isEnabled();
 
     /**
-     * Get the domain socket listener address
+     * Get the health reporting location information
      *
-     * @return the domain socket address for the health check
+     * @return the location info for the health check
      */
     URI getHealthDeliveryLocation();
 
     /**
-     * Return the frequency of the health messages sent to the Super Agent, in seconds
+     * Return the frequency of the health messages reported to Agent Control, in seconds
      *
      * @return the health check frequency, in seconds
      */
     int getHealthReportingFrequency();
 
     /**
-     * Return the fleet id assigned by the super agent
+     * Return the fleet id assigned by Agent Control
      *
      * @return the fleet id, if available
      */

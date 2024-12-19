@@ -4,30 +4,30 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.config.SuperAgentIntegrationConfig;
+import com.newrelic.agent.config.AgentControlIntegrationConfig;
 
 import java.util.logging.Level;
 
-public class SuperAgentIntegrationClientFactory {
-    private static final SuperAgentIntegrationHealthClient NO_OP_INSTANCE = new SuperAgentHealthNoOpClient();
+public class AgentControlIntegrationClientFactory {
+    private static final AgentControlIntegrationHealthClient NO_OP_INSTANCE = new AgentControlHealthNoOpClientControl();
 
     public enum HealthClientType {
         noop,
         file,
     }
-    public static SuperAgentIntegrationHealthClient createHealthClient(SuperAgentIntegrationConfig config) {
-        SuperAgentIntegrationHealthClient client;
+    public static AgentControlIntegrationHealthClient createHealthClient(AgentControlIntegrationConfig config) {
+        AgentControlIntegrationHealthClient client;
 
         try {
             HealthClientType healthClientType = HealthClientType.valueOf(config.getHealthClientType());
-            Agent.LOG.log(Level.INFO, "Generating SuperAgent Health Client type: {0}", healthClientType);
+            Agent.LOG.log(Level.INFO, "Generating Agent Control Health Client type: {0}", healthClientType);
 
             switch (healthClientType) {
                 case file:
-                    client = new SuperAgentIntegrationHealthFileBasedClient(config);
+                    client = new AgentControlControlIntegrationHealthFileBasedClient(config);
                     break;
 
                 default:

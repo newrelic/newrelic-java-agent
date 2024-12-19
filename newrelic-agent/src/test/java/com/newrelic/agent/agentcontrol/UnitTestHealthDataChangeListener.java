@@ -1,4 +1,4 @@
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
 public class UnitTestHealthDataChangeListener implements HealthDataChangeListener {
     private AgentHealth.Status lastStatus = null;

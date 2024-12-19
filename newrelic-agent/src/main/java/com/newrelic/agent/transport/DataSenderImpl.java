@@ -31,10 +31,10 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
-import com.newrelic.agent.superagent.AgentHealth;
-import com.newrelic.agent.superagent.HealthDataChangeListener;
-import com.newrelic.agent.superagent.HealthDataProducer;
-import com.newrelic.agent.superagent.SuperAgentIntegrationUtils;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.trace.TransactionTrace;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -130,7 +130,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private volatile Map<String, String> requestMetadata;
     private volatile Map<String, String> metadata;
     private final List<HealthDataChangeListener> healthDataChangeListeners = new CopyOnWriteArrayList<>();
-    private final boolean isSuperAgentEnabled;
+    private final boolean isAgentControlEnabled;
 
     public DataSenderImpl(
             DataSenderConfig config,
@@ -163,7 +163,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         }
 
         this.httpClientWrapper = httpClientWrapper;
-        this.isSuperAgentEnabled = configService.getDefaultAgentConfig().getSuperAgentIntegrationConfig().isEnabled();
+        this.isAgentControlEnabled = configService.getDefaultAgentConfig().getAgentControlIntegrationConfig().isEnabled();
     }
 
     private void checkAuditMode() {
@@ -625,7 +625,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
 
         recordDataUsageMetrics(method, payloadJsonSent, payloadJsonReceived);
 
-        SuperAgentIntegrationUtils.reportHealthyStatus(healthDataChangeListeners, AgentHealth.Category.HARVEST, AgentHealth.Category.CONFIG);
+        AgentControlIntegrationUtils.reportHealthyStatus(healthDataChangeListeners, AgentHealth.Category.HARVEST, AgentHealth.Category.CONFIG);
 
         if (dataSenderListener != null) {
             dataSenderListener.dataSent(method, encoding, uri, data);
@@ -672,7 +672,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         switch (result.getStatusCode()) {
             case HttpResponseCode.PROXY_AUTHENTICATION_REQUIRED:
                 // agent receives a 407 response due to a misconfigured proxy (not from NR backend), throw exception
-                SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.PROXY_ERROR,
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.PROXY_ERROR,
                         Integer.toString(result.getStatusCode()), method);
                 final String authField = result.getProxyAuthenticateHeader();
                 if (authField != null) {
@@ -682,27 +682,21 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
                 }
             case HttpResponseCode.UNAUTHORIZED:
                 // received 401 Unauthorized, throw exception instead of parsing LicenseException from 200 response body
-                SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.INVALID_LICENSE);
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.INVALID_LICENSE);
                 throw new LicenseException(parseExceptionMessage(result.getResponseBody()));
             case HttpResponseCode.CONFLICT:
                 // received 409 Conflict, throw exception instead of parsing ForceRestartException from 200 response body
                 throw new ForceRestartException(parseExceptionMessage(result.getResponseBody()));
             case HttpResponseCode.GONE:
                 // received 410 Gone, throw exception instead of parsing ForceDisconnectException from 200 response body
-                SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.FORCED_DISCONNECT);
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.FORCED_DISCONNECT);
                 throw new ForceDisconnectException(parseExceptionMessage(result.getResponseBody()));
             default:
                 // response is bad (neither 200 nor 202), throw generic HttpError exception
-                SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.HTTP_ERROR,
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.HTTP_ERROR,
                         Integer.toString(result.getStatusCode()), method);
                 logger.log(Level.FINER, "Connection http status code: {0}", result.getStatusCode());
                 throw HttpError.create(result.getStatusCode(), request.getURL().getHost(), data.length);
-        }
-    }
-
-    private void reportUnhealthyStatusToSuperAgent(AgentHealth.Status status, String ... additionalInfo) {
-        if (isSuperAgentEnabled) {
-            SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, status, additionalInfo);
         }
     }
 

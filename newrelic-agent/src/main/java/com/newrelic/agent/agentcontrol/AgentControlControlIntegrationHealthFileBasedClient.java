@@ -4,10 +4,10 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.config.SuperAgentIntegrationConfig;
+import com.newrelic.agent.config.AgentControlIntegrationConfig;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -20,12 +20,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentIntegrationHealthClient {
+public class AgentControlControlIntegrationHealthFileBasedClient implements AgentControlIntegrationHealthClient {
     private Yaml yamlWriter;
     private File healthFile = null;
     private boolean isValid = false;
 
-    public SuperAgentIntegrationHealthFileBasedClient(SuperAgentIntegrationConfig config) {
+    public AgentControlControlIntegrationHealthFileBasedClient(AgentControlIntegrationConfig config) {
         URI locationFromConfig = config.getHealthDeliveryLocation();
 
         File fileFolder = createHealthFileFolderInstance(locationFromConfig);
@@ -49,10 +49,10 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
                 fw.close();
 
                 if (Agent.LOG.isFinestEnabled() && Agent.isDebugEnabled()) {
-                    Agent.LOG.log(Level.FINEST, "Wrote SA health file: {0}", healthFile.getAbsolutePath());
+                    Agent.LOG.log(Level.FINEST, "Wrote agent control health file: {0}", healthFile.getAbsolutePath());
                 }
             } catch (IOException e) {
-                Agent.LOG.log(Level.WARNING, "Error writing health message to file: {0}", e.getMessage());
+                Agent.LOG.log(Level.WARNING, "Error writing agent control health message to file: {0}", e.getMessage());
             }
         }
     }
@@ -68,7 +68,7 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
         healthMap.put("healthy", agentHealth.isHealthy());
         healthMap.put("status", agentHealth.getCurrentStatus());
         healthMap.put("start_time_unix_nano", agentHealth.getStartTimeNanos());
-        healthMap.put("status_time_unix_nano", SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos());
+        healthMap.put("status_time_unix_nano", AgentControlIntegrationUtils.getPseudoCurrentTimeNanos());
         if (!agentHealth.isHealthy()) {
             healthMap.put("last_error", agentHealth.getLastError());
         }
@@ -81,7 +81,7 @@ public class SuperAgentIntegrationHealthFileBasedClient implements SuperAgentInt
         if (location != null) {
             fileFolder = new File(location);
             if (!(fileFolder.isDirectory() && fileFolder.canWrite())) {
-                Agent.LOG.log(Level.WARNING, "superagent.health.delivery_location is not a valid folder. " +
+                Agent.LOG.log(Level.WARNING, "agent_control.health.delivery_location is not a valid folder. " +
                         "Health messages will not be generated.  Configured location: {0}  isFolder: {1}  canWrite: {2}",
                         fileFolder.getAbsolutePath(), fileFolder.isDirectory(), fileFolder.canWrite());
                 fileFolder = null;

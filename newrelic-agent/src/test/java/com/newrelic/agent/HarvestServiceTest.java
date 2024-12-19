@@ -22,7 +22,7 @@ import com.newrelic.agent.stats.StatsEngineImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.StatsWork;
-import com.newrelic.agent.superagent.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.api.agent.Logger;
 import org.junit.After;
 import org.junit.Assert;
