@@ -59,8 +59,8 @@ public class AsyncTransactionServiceTest {
 
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
         for (int i=0;i<25;i++) {
-            if (0 == ServiceFactory.getAsyncTxService().cacheSizeForTesting()) break;
             System.out.println("JGB cache size: "+ServiceFactory.getAsyncTxService().cacheSizeForTesting());
+            if (0 == ServiceFactory.getAsyncTxService().cacheSizeForTesting()) break;
             try { Thread.sleep(1000); } catch (Exception e) {}
         }
 
