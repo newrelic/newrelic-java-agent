@@ -58,6 +58,11 @@ public class AsyncTransactionServiceTest {
         Thread.sleep(5000);
 
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
+        for (int i=0;i<25;i++) {
+            if (0 == ServiceFactory.getAsyncTxService().cacheSizeForTesting()) break;
+            System.out.println("JGB cache size: "+ServiceFactory.getAsyncTxService().cacheSizeForTesting());
+            try { Thread.sleep(1000); } catch (Exception e) {}
+        }
 
         assertEquals(0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("myFirstKey"));
