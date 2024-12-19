@@ -84,7 +84,8 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
         PENDING_ACTIVITIES.cleanUp();
         Agent.LOG.log(Level.INFO, "Cleaning up the pending activities cache,\r\n" +
                 "    timeout millis: "+PENDING_ACTIVITIES.policy().expireAfterWrite().get().getExpiresAfter(TimeUnit.MILLISECONDS)+"\r\n" +
-                "    cache: "+PENDING_ACTIVITIES);
+                "    cache: "+PENDING_ACTIVITIES+"\r\n" +
+                "    age of myFirstKey millis: "+PENDING_ACTIVITIES.policy().expireAfterWrite().get().ageOf("myFirstKey", TimeUnit.MILLISECONDS).get());
     }
 
     /*
