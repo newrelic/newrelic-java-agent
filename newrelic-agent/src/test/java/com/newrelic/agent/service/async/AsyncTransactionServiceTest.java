@@ -56,12 +56,13 @@ public class AsyncTransactionServiceTest {
         assertEquals(2, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
 
         Thread.sleep(5000);
-
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
+
         for (int i=0;i<25;i++) {
             System.out.println("JGB cache size: "+ServiceFactory.getAsyncTxService().cacheSizeForTesting());
             if (0 == ServiceFactory.getAsyncTxService().cacheSizeForTesting()) break;
             try { Thread.sleep(1000); } catch (Exception e) {}
+            ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
         }
 
         assertEquals("Cache should be empty", 0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
