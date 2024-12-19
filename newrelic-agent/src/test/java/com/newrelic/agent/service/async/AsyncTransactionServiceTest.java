@@ -64,7 +64,7 @@ public class AsyncTransactionServiceTest {
             try { Thread.sleep(1000); } catch (Exception e) {}
         }
 
-        assertEquals(0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
+        assertEquals("Cache should be empty", 0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("myFirstKey"));
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("mySecondKey"));
 
