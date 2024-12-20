@@ -79,7 +79,7 @@ jobs:
 
       - name: Capture build reports (non forked)
         # If previous step fails, run this step regardless
-        if: failure()
+#        if: failure()
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: non-forked-tests-results-java-${{ matrix.java-version }}
@@ -126,7 +126,7 @@ jobs:
             **/build/reports/jacoco/**
 
       - name: Capture build reports (forked)
-        if: failure()
+#        if: failure()
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: forked-tests-results-java-${{ matrix.java-version }}
