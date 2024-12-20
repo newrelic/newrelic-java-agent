@@ -82,7 +82,7 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
 
     protected void cleanUpPendingTransactions() {
         PENDING_ACTIVITIES.cleanUp();
-        Agent.LOG.log(Level.INFO, "Cleaning up the pending activities cache.");
+        Agent.LOG.log(Level.FINER, "Cleaning up the pending activities cache.");
     }
 
     /*
