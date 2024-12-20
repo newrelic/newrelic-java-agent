@@ -4,9 +4,9 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
-import com.newrelic.agent.config.SuperAgentIntegrationConfig;
+import com.newrelic.agent.config.AgentControlIntegrationConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SuperAgentIntegrationHealthFileBasedClientTest {
+public class AgentControlIntegrationHealthFileBasedClientTest {
     private static URI HEALTH_FILE_LOCATION = null;
 
     static {
@@ -39,11 +39,11 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
         }
     }
 
-    private SuperAgentIntegrationConfig mockConfig;
+    private AgentControlIntegrationConfig mockConfig;
 
     @Before
     public void setup() {
-        mockConfig = mock(SuperAgentIntegrationConfig.class);
+        mockConfig = mock(AgentControlIntegrationConfig.class);
     }
 
     @After
@@ -59,9 +59,9 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
     @Test
     public void sendHealthMessage_withValidConfig_createsHealthFile() throws IOException {
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
-        SuperAgentIntegrationHealthFileBasedClient client = new SuperAgentIntegrationHealthFileBasedClient(mockConfig);
+        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
 
-        long startTime = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
+        long startTime = AgentControlIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
 
         client.sendHealthMessage(agentHealth);
@@ -81,9 +81,9 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
     @Test
     public void sendHealthMessage_withUnhealthyAgentInstance_createsHealthFileWithLastError() throws IOException {
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
-        SuperAgentIntegrationHealthFileBasedClient client = new SuperAgentIntegrationHealthFileBasedClient(mockConfig);
+        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
 
-        long startTime = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
+        long startTime = AgentControlIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
         agentHealth.setUnhealthyStatus(AgentHealth.Status.INVALID_LICENSE);
 
@@ -104,7 +104,7 @@ public class SuperAgentIntegrationHealthFileBasedClientTest {
     @Test
     public void constructor_withInvalidLocation_setsValidToFalse() throws URISyntaxException {
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(new URI("file:///foo/bar/zzzzzzzz"));
-        SuperAgentIntegrationHealthFileBasedClient client = new SuperAgentIntegrationHealthFileBasedClient(mockConfig);
+        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
 
         assertFalse(client.isValid());
     }

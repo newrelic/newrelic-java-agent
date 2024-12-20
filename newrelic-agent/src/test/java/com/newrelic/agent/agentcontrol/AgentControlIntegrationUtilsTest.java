@@ -4,11 +4,9 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.SuperAgentIntegrationConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class SuperAgentIntegrationUtilsTest {
+public class AgentControlIntegrationUtilsTest {
     private HealthDataChangeListener mockListener;
 
     @Before
@@ -33,19 +31,19 @@ public class SuperAgentIntegrationUtilsTest {
     @Test
     public void getPseudoCurrentTimeNanos_returnsTimeInNanos() {
         long testTime = System.currentTimeMillis();
-        long time = SuperAgentIntegrationUtils.getPseudoCurrentTimeNanos();
+        long time = AgentControlIntegrationUtils.getPseudoCurrentTimeNanos();
         assertTrue(time >= testTime * 1000000);
     }
 
     @Test
     public void reportUnhealthyStatus_updatesHealthListeners() {
-        SuperAgentIntegrationUtils.reportUnhealthyStatus(Collections.singletonList(mockListener), AgentHealth.Status.GC_CIRCUIT_BREAKER);
+        AgentControlIntegrationUtils.reportUnhealthyStatus(Collections.singletonList(mockListener), AgentHealth.Status.GC_CIRCUIT_BREAKER);
         verify(mockListener).onUnhealthyStatus(AgentHealth.Status.GC_CIRCUIT_BREAKER);
     }
 
     @Test
     public void reportHealthyStatus_updatesHealthListeners() {
-        SuperAgentIntegrationUtils.reportHealthyStatus(Collections.singletonList(mockListener), AgentHealth.Category.HARVEST);
+        AgentControlIntegrationUtils.reportHealthyStatus(Collections.singletonList(mockListener), AgentHealth.Category.HARVEST);
         verify(mockListener).onHealthyStatus(AgentHealth.Category.HARVEST);
     }
 }

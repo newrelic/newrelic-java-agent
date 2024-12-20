@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.URI;
 import java.util.Map;
 
-public class SuperAgentIntegrationHealthConfig extends BaseConfig {
+public class AgentControlIntegrationHealthConfig extends BaseConfig {
     public static final String ROOT = "health";
     public static final String FREQUENCY = "frequency";
     public static final int FREQUENCY_DEFAULT = 5;  // In seconds
@@ -21,7 +21,7 @@ public class SuperAgentIntegrationHealthConfig extends BaseConfig {
     private URI deliveryLocation;
     private String healthClientType;
 
-    public SuperAgentIntegrationHealthConfig(Map<String, Object> props, String systemPropertyPrefix) {
+    public AgentControlIntegrationHealthConfig(Map<String, Object> props, String systemPropertyPrefix) {
         super(props, systemPropertyPrefix + ROOT + ".");
         frequency = getProperty(FREQUENCY, FREQUENCY_DEFAULT);
 

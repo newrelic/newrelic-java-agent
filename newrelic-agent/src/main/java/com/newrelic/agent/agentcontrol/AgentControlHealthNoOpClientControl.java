@@ -4,9 +4,9 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
-public class SuperAgentHealthNoOpClient implements SuperAgentIntegrationHealthClient {
+public class AgentControlHealthNoOpClientControl implements AgentControlIntegrationHealthClient {
     @Override
     public void sendHealthMessage(AgentHealth agentHealth) {
 

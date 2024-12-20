@@ -4,14 +4,14 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.superagent;
+package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.SuperAgentIntegrationConfig;
+import com.newrelic.agent.config.AgentControlIntegrationConfig;
 
 import java.util.List;
 
-public class SuperAgentIntegrationUtils {
+public class AgentControlIntegrationUtils {
     public static long getPseudoCurrentTimeNanos() {
         // The message expects the time in nanoseconds. Since this is a practical impossibility on most hardware,
         // simply get the current ms and multiply.
@@ -32,9 +32,9 @@ public class SuperAgentIntegrationUtils {
     }
 
     public static void reportUnhealthyStatusPriorToServiceStart(AgentConfig config, AgentHealth.Status status) {
-        SuperAgentIntegrationConfig superAgentIntegrationConfig = config.getSuperAgentIntegrationConfig();
-        if (superAgentIntegrationConfig.isEnabled()) {
-            SuperAgentIntegrationHealthClient client = SuperAgentIntegrationClientFactory.createHealthClient(superAgentIntegrationConfig);
+        AgentControlIntegrationConfig agentControlIntegrationConfig = config.getAgentControlIntegrationConfig();
+        if (agentControlIntegrationConfig.isEnabled()) {
+            AgentControlIntegrationHealthClient client = AgentControlIntegrationClientFactory.createHealthClient(agentControlIntegrationConfig);
             AgentHealth agentHealth = new AgentHealth(getPseudoCurrentTimeNanos());
             agentHealth.setUnhealthyStatus(status);
             client.sendHealthMessage(agentHealth);
