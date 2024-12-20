@@ -27,7 +27,9 @@ public class AsyncTransactionServiceTest {
 
     @Test(timeout = 90000)
     public void testAsyncTransactionServiceNoTimeout() throws Exception {
+        System.out.println("JGB AsyncTxServiceA: "+ServiceFactory.getAsyncTxService());
         TransactionAsyncUtility.createServiceManager(createConfigMap(90000));
+        System.out.println("JGB AsyncTxServiceB: "+ServiceFactory.getAsyncTxService());
 
         Transaction.clearTransaction();
         TokenImpl token = new TokenImpl(null);
@@ -45,7 +47,9 @@ public class AsyncTransactionServiceTest {
 
     @Test(timeout = 90000)
     public void testAsyncTransactionServiceForceTimeout() throws Exception {
+        System.out.println("JGB AsyncTxService1: "+ServiceFactory.getAsyncTxService());
         TransactionAsyncUtility.createServiceManager(createConfigMap(1));
+        System.out.println("JGB AsyncTxService2: "+ServiceFactory.getAsyncTxService());
         System.out.println("JGB timeout in test secs: "+ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec());
 
         assertEquals(0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
