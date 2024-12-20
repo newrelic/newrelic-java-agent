@@ -71,6 +71,7 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
         // default set to 3 minutes (180), must match the behavior in TimedTokenSet: expireAfterAccess with same timeout
         long timeoutSec = ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec();
         long timeOutMilli = TimeConversion.convertToMilliWithLowerBound(timeoutSec, TimeUnit.SECONDS, 250L);
+        System.out.println("JGB cache timeout millis: "+timeOutMilli);
 
         return Caffeine.newBuilder()
                 .expireAfterWrite(timeOutMilli, TimeUnit.MILLISECONDS)

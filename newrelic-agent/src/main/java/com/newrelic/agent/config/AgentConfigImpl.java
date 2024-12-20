@@ -521,8 +521,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private int initTokenTimeout() {
         if (getProperty(ASYNC_TIMEOUT) != null) {
             Agent.LOG.log(Level.INFO, "The property async_timeout is deprecated. Change to token_timeout");
+            System.out.println("Getting async_timeout: "+getProperty("async_timeout", 180));
             return getProperty("async_timeout", 180);
         }
+        System.out.println("Getting token_timeout: "+getProperty("token_timeout", 180));
 
         return getProperty("token_timeout", 180);
     }
