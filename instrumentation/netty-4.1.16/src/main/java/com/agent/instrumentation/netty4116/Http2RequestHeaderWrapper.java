@@ -15,6 +15,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.util.AsciiString;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,12 +29,14 @@ import java.util.regex.Pattern;
 
 public class Http2RequestHeaderWrapper extends ExtendedRequest {
     private static final Pattern URL_REPLACEMENT_PATTERN = Pattern.compile("(?i)%(?![\\da-f]{2})");
+    private static final String GRPC_HEADER_UTIL_CLASS = "io.grpc.netty.GrpcHttp2HeadersUtils.GrpcHttp2RequestHeaders";
     private final Set<Cookie> cookies;
     private final Map<String, List<String>> parameters;
     private final Http2Headers http2Headers;
     private final CharSequence method;
     private final CharSequence path;
     private final CharSequence authority;
+    private final boolean isGRPCHttp2;
 
     public Http2RequestHeaderWrapper(Http2Headers http2Headers) {
         super();
@@ -43,6 +46,7 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
         this.authority = getAuthorityHeader();
         this.cookies = getCookies();
         this.parameters = getParameters();
+        this.isGRPCHttp2 = http2Headers.getClass().getName().equals(GRPC_HEADER_UTIL_CLASS);
     }
 
     private Map<String, List<String>> getParameters() {
@@ -124,6 +128,13 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
     @Override
     public String getHeader(String name) {
         try {
+            
+            if(isGRPCHttp2) {
+                // GRPC HTTP2 expects an AsciiString
+                AsciiString asciiString = new AsciiString(name);
+                return http2Headers.get(asciiString).toString();
+                
+            }
             // HTTP/2 only supports lowercase headers
             String lowerCaseHeaderName = name.toLowerCase();
             if (lowerCaseHeaderName.equals(HttpHeaderNames.HOST.toString())) {
@@ -134,7 +145,10 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
                 return http2Headers.get(lowerCaseHeaderName).toString();
             }
         } catch (Exception e) {
-            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers header: {0}", e.getMessage());
+            String errorMsg = e.getMessage();
+            if(!errorMsg.equals("AsciiString expected. Was: java.lang.String")) {
+                AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers header: {0}", e.getMessage());
+            }
         }
         return null;
     }
@@ -205,12 +219,19 @@ public class Http2RequestHeaderWrapper extends ExtendedRequest {
     public List<String> getHeaders(String name) {
         List<String> headers = new ArrayList<>();
         try {
-            // HTTP/2 only supports lowercase headers
-            String lowerCaseHeaderName = name.toLowerCase();
-            List<CharSequence> allHeaders = http2Headers.getAll(lowerCaseHeaderName);
+        	List<CharSequence> allHeaders = Collections.emptyList();
+            if (!isGRPCHttp2) {
+                // HTTP/2 only supports lowercase headers
+                String lowerCaseHeaderName = name.toLowerCase();
+                allHeaders = http2Headers.getAll(lowerCaseHeaderName);
+            } else {
+                // GRPC only accepts AsciiString
+                AsciiString asciiName = new AsciiString(name);
+                allHeaders = http2Headers.getAll(asciiName);                
+            }
             for (CharSequence header : allHeaders) {
                 headers.add(header.toString());
-            }
+            } 
         } catch (Exception e) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to get Http2Headers headers: {0}", e.getMessage());
         }
