@@ -13,9 +13,7 @@ import com.newrelic.agent.TransactionAsyncUtility;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.service.ServiceFactory;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,9 +24,7 @@ public class AsyncTransactionServiceTest {
 
     @Test(timeout = 90000)
     public void testAsyncTransactionService() throws Exception {
-        System.out.println("JGB AsyncTxServiceA: "+ServiceFactory.getAsyncTxService());
         TransactionAsyncUtility.createServiceManager(createConfigMap(90000));
-        System.out.println("JGB AsyncTxServiceB: "+ServiceFactory.getAsyncTxService());
 
         Transaction.clearTransaction();
         TokenImpl token = new TokenImpl(null);
@@ -63,7 +59,7 @@ public class AsyncTransactionServiceTest {
         // respect whatever the timeout is, even though we tried to set it to 1 second above
         // that value may have been set by a previous test (in GHA) and the 1 above will NOT overwrite
         // this means it will likely take >3 mins in GHA, but at least it shouldn't fail on the first run every time
-        long tokenTimeoutMillis = ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec();
+        long tokenTimeoutMillis = ServiceFactory.getAsyncTxService().getTimeoutMillisForTesting();
         Thread.sleep(tokenTimeoutMillis + 5000);
 
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();

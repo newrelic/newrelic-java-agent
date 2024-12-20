@@ -184,6 +184,10 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
         return PENDING_ACTIVITIES.asMap().size();
     }
 
+    protected long getTimeoutMillisForTesting() {
+        return PENDING_ACTIVITIES.policy().expireAfterWrite().get().getExpiresAfter(TimeUnit.MILLISECONDS);
+    }
+
     @Override
     public void afterHarvest(String appName) {
         // do nothing
