@@ -13,17 +13,20 @@ import com.newrelic.agent.TransactionAsyncUtility;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.service.ServiceFactory;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AsyncTransactionServiceTest {
 
     @Test(timeout = 90000)
-    public void testAsyncTransactionService() throws Exception {
+    public void testAsyncTransactionServiceNoTimeout() throws Exception {
         TransactionAsyncUtility.createServiceManager(createConfigMap(90000));
 
         Transaction.clearTransaction();
@@ -41,8 +44,9 @@ public class AsyncTransactionServiceTest {
     }
 
     @Test(timeout = 90000)
-    public void testAsyncTransactionServiceTimeout() throws Exception {
+    public void testAsyncTransactionServiceForceTimeout() throws Exception {
         TransactionAsyncUtility.createServiceManager(createConfigMap(1));
+        System.out.println("JGB timeout in test secs: "+ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec());
 
         assertEquals(0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
         ServiceFactory.getAsyncTxService().beforeHarvest("test", null);
