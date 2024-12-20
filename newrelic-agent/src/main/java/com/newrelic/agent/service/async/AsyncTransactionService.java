@@ -69,7 +69,9 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
     // The implementation class is threadsafe.
     private static final Cache<Object, Token> makeCache(RemovalListener<Object, Token> removalListener) {
         // default set to 3 minutes (180), must match the behavior in TimedTokenSet: expireAfterAccess with same timeout
+        System.out.println("JGB making cache");
         long timeoutSec = ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec();
+        System.out.println("JGB cache timeout secs: "+timeoutSec);
         long timeOutMilli = TimeConversion.convertToMilliWithLowerBound(timeoutSec, TimeUnit.SECONDS, 250L);
         System.out.println("JGB cache timeout millis: "+timeOutMilli);
 
