@@ -60,6 +60,9 @@ public class AsyncTransactionServiceTest {
         assertEquals(2, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
 
         // wait for the timeout
+        // respect whatever the timeout is, even though we tried to set it to 1 second above
+        // that value may have been set by a previous test (in GHA) and the 1 above will NOT overwrite
+        // this means it will likely take >3 mins in GHA, but at least it shouldn't fail on the first run every time
         long tokenTimeoutMillis = ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec();
         Thread.sleep(tokenTimeoutMillis + 5000);
 
