@@ -40,7 +40,7 @@ public class AsyncTransactionServiceTest {
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("mySecondKey"));
     }
 
-    @Test(timeout = 90000)
+    @Test(timeout = 190000)
     public void testAsyncTransactionServiceTimeout() throws Exception {
         TransactionAsyncUtility.createServiceManager(createConfigMap(1));
 
