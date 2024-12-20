@@ -55,8 +55,6 @@ public class BasicRequestRootTracer extends DefaultTracer implements Transaction
 
         Tracer rootTracer = transaction.getTransactionActivity().getRootTracer();
         if (rootTracer != null) {
-            System.out.println("JGB rootTracer: "+rootTracer);
-            System.out.println("JGB MetricName: "+rootTracer.getMetricName());
             throw new SkipTracerException();
         }
     }

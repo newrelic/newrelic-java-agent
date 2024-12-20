@@ -22,11 +22,10 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AsyncTransactionServiceTest {
 
     @Test(timeout = 90000)
-    public void testAsyncTransactionServiceNoTimeout() throws Exception {
+    public void testAsyncTransactionService() throws Exception {
         System.out.println("JGB AsyncTxServiceA: "+ServiceFactory.getAsyncTxService());
         TransactionAsyncUtility.createServiceManager(createConfigMap(90000));
         System.out.println("JGB AsyncTxServiceB: "+ServiceFactory.getAsyncTxService());
@@ -46,11 +45,8 @@ public class AsyncTransactionServiceTest {
     }
 
     @Test(timeout = 90000)
-    public void testAsyncTransactionServiceForceTimeout() throws Exception {
-        System.out.println("JGB AsyncTxService1: "+ServiceFactory.getAsyncTxService());
+    public void testAsyncTransactionServiceTimeout() throws Exception {
         TransactionAsyncUtility.createServiceManager(createConfigMap(1));
-        System.out.println("JGB AsyncTxService2: "+ServiceFactory.getAsyncTxService());
-        System.out.println("JGB timeout in test secs: "+ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec());
 
         assertEquals(0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
         ServiceFactory.getAsyncTxService().beforeHarvest("test", null);
@@ -63,17 +59,13 @@ public class AsyncTransactionServiceTest {
         assertFalse(ServiceFactory.getAsyncTxService().putIfAbsent("mySecondKey", token));
         assertEquals(2, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
 
-        Thread.sleep(5000);
+        // wait for the timeout
+        long tokenTimeoutMillis = ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec();
+        Thread.sleep(tokenTimeoutMillis + 5000);
+
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
 
-        for (int i=0;i<25;i++) {
-            System.out.println("JGB cache size: "+ServiceFactory.getAsyncTxService().cacheSizeForTesting());
-            if (0 == ServiceFactory.getAsyncTxService().cacheSizeForTesting()) break;
-            try { Thread.sleep(1000); } catch (Exception e) {}
-            ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
-        }
-
-        assertEquals("Cache should be empty", 0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
+        assertEquals(0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("myFirstKey"));
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("mySecondKey"));
 
