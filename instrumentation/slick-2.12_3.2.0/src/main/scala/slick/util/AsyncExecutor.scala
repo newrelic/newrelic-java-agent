@@ -8,21 +8,15 @@
 package slick.util
 
 
-import com.newrelic.api.agent.weaver.{SkipIfPresent, Weave, Weaver}
-import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
-import com.newrelic.api.agent.NewRelic
-import java.util.logging.Level
-import java.io.Closeable
-import java.lang.Runnable
-
 import com.newrelic.agent.bridge.AgentBridge
-import com.newrelic.agent.bridge.TracedMethod
 import com.newrelic.api.agent.Trace
+import com.newrelic.api.agent.weaver.Weaver
 import com.newrelic.api.agent.weaver.internal.WeavePackageType
+import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
+import com.nr.agent.instrumentation.Utils
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import slick.util.AsyncExecutor
 
 @ScalaWeave(`type` = ScalaMatchType.Object, originalName="slick.util.AsyncExecutor")
 class WeavedAsyncExecutor {
@@ -80,23 +74,18 @@ class NewRelicExecutionContext(delegatee :ExecutionContext) extends ExecutionCon
 }
 
 class NewRelicRunnable(var runnable :Runnable) extends Runnable {
-  @Trace(async = true)
-  override def run() {
-    try {
-      AgentBridge.currentApiSource.set(WeavePackageType.INTERNAL)
 
-      if(AgentBridge.getAgent().startAsyncActivity(runnable)) {
-        val tm = AgentBridge.getAgent().getTransaction().getTracedMethod().asInstanceOf[TracedMethod]
-        tm.setMetricName("ORM", "Slick",  "slickQuery")
-      }
-    } catch {
-      case t: Throwable => {
-        AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
-      }
-      case _ => ;
+  private val tokenAndRefCount = Utils.getThreadTokenAndRefCount()
+
+  @Trace(async = true)
+  override def run(): Unit = {
+    try {
+      Utils.setThreadTokenAndRefCount(tokenAndRefCount)
+      runnable.run()
     } finally {
+      Utils.clearThreadTokenAndRefCount(tokenAndRefCount)
       AgentBridge.currentApiSource.remove()
     }
-    runnable.run()
   }
+
 }
