@@ -4,6 +4,45 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.17.0
+## New features and improvements
+
+- Add support for jdbc-mariadb 3.0.0 till latest and r2dbc-mariadb 1.1.2 till latest - credit to @dhilpipre - clone of 2142 by @jtduffy in [2146](https://github.com/newrelic/newrelic-java-agent/pull/2146)
+- Auto discover AWS account ID in the DynamoDB instrumentation by @meiao in [2148](https://github.com/newrelic/newrelic-java-agent/pull/2148)
+- Auto discover AWS account ID in the Lambda sdk instrumentation by @meiao in [2167](https://github.com/newrelic/newrelic-java-agent/pull/2167)
+- Support pekko-http on scala 3 for versions 1.0.0 till latest by @kanderson250 in [2163](https://github.com/newrelic/newrelic-java-agent/pull/2163)
+- Allow JFR queue size and harvest interval to be configured via agent config by @jtduffy in [2168](https://github.com/newrelic/newrelic-java-agent/pull/2168)
+  New configs are:
+```
+  jfr:
+    # The time interval, in seconds, of how often JFR data is sent to New Relic.
+    # The default is 10 seconds.
+    harvest_interval: 10
+
+    # The size of the queue used to store JFR events. Increasing this can reduce gaps in JFR reported data
+    # but can also cause resource issues in the agent or cause data to be dropped if backend pipeline
+    # limits are exceeded.
+    # See: https://docs.newrelic.com/docs/data-apis/ingest-apis/event-api/introduction-event-api/#limits
+    #      https://docs.newrelic.com/docs/data-apis/ingest-apis/metric-api/metric-api-limits-restricted-attributes/
+    # Default is 250000
+    queue_size: 250000
+```
+- Add AWS Firehose SDK Instrumentation for versions 2.1.0 till latest by @obenkenobi in [2149](https://github.com/newrelic/newrelic-java-agent/pull/2149)
+- Implement a new instrumentation module for r2dbc-mysql 1.1.3+ by @jbedell-newrelic in [2169](https://github.com/newrelic/newrelic-java-agent/pull/2169)
+- Memory usage reduced for the r2dbc-mssql and m2dbc-mysql modules by @jbedell-newrelic in [2169](https://github.com/newrelic/newrelic-java-agent/pull/2169)
+- Log when multiple, different, traceparent headers found on inbound request and only report `invalid parent header count` supportability metric when that scenario occurs by @jtduffy in [2154](https://github.com/newrelic/newrelic-java-agent/pull/2154)
+- Expected NPE in noticeTracer no longer logs full stack trace by @jasonjkeller in [2143](https://github.com/newrelic/newrelic-java-agent/pull/2143)
+
+## Fixes
+
+- Resolved a potential token timeout issue with the reactor-3.3.0 module by @jbedell-newrelic in [2169](https://github.com/newrelic/newrelic-java-agent/pull/2169)
+
+## IAST
+
+- CSEC version bump to 1.6.0 [2173](https://github.com/newrelic/newrelic-java-agent/pull/2173)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.6.0
+
+
 ## Version 8.16.0
 ## New features and improvements
 
