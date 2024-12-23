@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-@Category(RequiresFork.class)
+@Category(RequiresFork.class) // Token Timeout is stored as a static and will not get the new value from the test if this is not forked
 public class AsyncTransactionServiceTest {
 
     @Test(timeout = 90000)
