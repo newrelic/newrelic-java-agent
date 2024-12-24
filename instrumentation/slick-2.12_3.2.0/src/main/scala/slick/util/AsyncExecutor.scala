@@ -13,7 +13,6 @@ import com.newrelic.api.agent.{Trace, TracedMethod}
 import com.newrelic.api.agent.weaver.Weaver
 import com.newrelic.api.agent.weaver.internal.WeavePackageType
 import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
-import com.nr.agent.instrumentation.Utils
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -74,29 +73,25 @@ class NewRelicExecutionContext(delegatee :ExecutionContext) extends ExecutionCon
 }
 
 class NewRelicRunnable(var runnable :Runnable) extends Runnable {
-  private val tokenAndRefCount = Utils.getThreadTokenAndRefCount()
+  private val token = com.newrelic.api.agent.NewRelic.getAgent.getTransaction.getToken
   @Trace(async = true)
   override def run() {
     try {
-      try {
-        Utils.setThreadTokenAndRefCount(tokenAndRefCount);
-        AgentBridge.currentApiSource.set(WeavePackageType.INTERNAL)
+      token.linkAndExpire()
+      AgentBridge.currentApiSource.set(WeavePackageType.INTERNAL)
 
-        if(AgentBridge.getAgent().startAsyncActivity(runnable)) {
-          val tm = AgentBridge.getAgent().getTransaction().getTracedMethod().asInstanceOf[TracedMethod]
-          tm.setMetricName("ORM", "Slick",  "slickQuery")
-        }
-      } catch {
-        case t: Throwable => {
-          AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
-        }
-        case _ => ;
-      } finally {
-        AgentBridge.currentApiSource.remove()
+      if(AgentBridge.getAgent().startAsyncActivity(runnable)) {
+        val tm = AgentBridge.getAgent().getTransaction().getTracedMethod().asInstanceOf[TracedMethod]
+        tm.setMetricName("ORM", "Slick",  "slickQuery")
       }
-      runnable.run()
+    } catch {
+      case t: Throwable => {
+        AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
+      }
+      case _ => ;
     } finally {
-      Utils.clearThreadTokenAndRefCount(tokenAndRefCount);
+      AgentBridge.currentApiSource.remove()
     }
+    runnable.run()
   }
 }
