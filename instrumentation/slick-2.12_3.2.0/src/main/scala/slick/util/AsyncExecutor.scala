@@ -9,7 +9,7 @@ package slick.util
 
 
 import com.newrelic.agent.bridge.AgentBridge
-import com.newrelic.api.agent.Trace
+import com.newrelic.api.agent.{Trace, TracedMethod}
 import com.newrelic.api.agent.weaver.Weaver
 import com.newrelic.api.agent.weaver.internal.WeavePackageType
 import com.newrelic.api.agent.weaver.scala.{ScalaMatchType, ScalaWeave}
@@ -74,18 +74,29 @@ class NewRelicExecutionContext(delegatee :ExecutionContext) extends ExecutionCon
 }
 
 class NewRelicRunnable(var runnable :Runnable) extends Runnable {
-
   private val tokenAndRefCount = Utils.getThreadTokenAndRefCount()
-
   @Trace(async = true)
-  override def run(): Unit = {
+  override def run() {
     try {
-      Utils.setThreadTokenAndRefCount(tokenAndRefCount)
+      try {
+        Utils.setThreadTokenAndRefCount(tokenAndRefCount);
+        AgentBridge.currentApiSource.set(WeavePackageType.INTERNAL)
+
+        if(AgentBridge.getAgent().startAsyncActivity(runnable)) {
+          val tm = AgentBridge.getAgent().getTransaction().getTracedMethod().asInstanceOf[TracedMethod]
+          tm.setMetricName("ORM", "Slick",  "slickQuery")
+        }
+      } catch {
+        case t: Throwable => {
+          AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
+        }
+        case _ => ;
+      } finally {
+        AgentBridge.currentApiSource.remove()
+      }
       runnable.run()
     } finally {
-      Utils.clearThreadTokenAndRefCount(tokenAndRefCount)
-      AgentBridge.currentApiSource.remove()
+      Utils.clearThreadTokenAndRefCount(tokenAndRefCount);
     }
   }
-
 }
