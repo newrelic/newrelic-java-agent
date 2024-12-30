@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 
 public class AgentUtilsTest {
     private static final String LOG_JSON_WITH_MESSAGE_FIELD_ESCAPED_QUOTE_COMMA = "{\"instant\" : {\"epochSecond\" : 1734983121,\"nanoOfSecond\" : 537701000},\"level\" : \"INFO\",\"loggerName\" : \"org.hibernate.validator.internal.util.Version\",\"message\" : \"info \\\"bar\\\",\",\"endOfBatch\" : true,\"loggerFqcn\" : \"org.hibernate.validator.internal.util.logging.Log_$logger\"}\n";
-    private static final String LOG_JSON_WITH_MESSAGE_LAST_FIELD_ESCAPED_QUOTE_COMMA = "{\"instant\": {\"epochSecond\": 1734983121,\"nanoOfSecond\": 537701000},\"level\": \"INFO\",\"loggerName\": \"org.hibernate.validator.internal.util.Version\",\"endOfBatch\": true,\"loggerFqcn\": \"org.hibernate.validator.internal.util.logging.Log_$logger\",\"message\": \"info \\\"bar\\\",\"}";
+    private static final String LOG_JSON_WITH_MESSAGE_LAST_FIELD_ESCAPED_QUOTE_BRACE = "{\"instant\": {\"epochSecond\": 1734983121,\"nanoOfSecond\": 537701000},\"level\": \"INFO\",\"loggerName\": \"org.hibernate.validator.internal.util.Version\",\"endOfBatch\": true,\"loggerFqcn\": \"org.hibernate.validator.internal.util.logging.Log_$logger\",\"message\": \"info \\\"bar\\\",\"}";
     private static final String LOG_JSON_WITH_MESSAGE_FIELD = "{\"instant\" : {\"epochSecond\" : 1734983121,\"nanoOfSecond\" : 537701000},\"level\" : \"INFO\",\"loggerName\" : \"org.hibernate.validator.internal.util.Version\",\"message\" : \"normal msg text\",\"endOfBatch\" : true,\"loggerFqcn\" : \"org.hibernate.validator.internal.util.logging.Log_$logger\"}\n";
     private static final String LOG_JSON_NO_MESSAGE_FIELD = "{\"instant\": {\"epochSecond\": 1734983121,\"nanoOfSecond\": 537701000},\"level\": \"INFO\",\"loggerName\": \"org.hibernate.validator.internal.util.Version\",\"endOfBatch\": true,\"loggerFqcn\": \"org.hibernate.validator.internal.util.logging.Log_$logger\",\"foobar\": \"info \\\"bar\\\",\"}";
 
@@ -49,7 +49,7 @@ public class AgentUtilsTest {
     @Test
     public void getIndexToModifyJson_withMessageField_findsProperIndex() {
         assertEquals(175, AgentUtils.getIndexToModifyJson(LOG_JSON_WITH_MESSAGE_FIELD_ESCAPED_QUOTE_COMMA));
-        assertEquals(262, AgentUtils.getIndexToModifyJson(LOG_JSON_WITH_MESSAGE_LAST_FIELD_ESCAPED_QUOTE_COMMA));
+        assertEquals(262, AgentUtils.getIndexToModifyJson(LOG_JSON_WITH_MESSAGE_LAST_FIELD_ESCAPED_QUOTE_BRACE));
     }
 
     @Test
