@@ -21,7 +21,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLog
 
 public class AgentUtils {
     // Detect the end of the "message" field when it's not the last field -- ",
-    private static final Pattern JSON_MESSAGE_VALUE_END = Pattern.compile("\"message\".+?[^\\\\](\",)");
+    private static final Pattern JSON_MESSAGE_VALUE_END = Pattern.compile("\"message\".+?[^\\\\]((\",)|(\"}))");
     // Detect the end of the "message" field when it is the last field -- "}
     private static final Pattern JSON_MESSAGE_VALUE_END2 = Pattern.compile("\"message\".+?(\"})");
 
@@ -40,13 +40,13 @@ public class AgentUtils {
         if (matcher.find()) {
             // Group 1 in the match is the ", char sequence
             index = matcher.start(1);
-        } else {
+        } /*else {
             matcher = JSON_MESSAGE_VALUE_END2.matcher(writerString);
             if (matcher.find()) {
                 // Group 1 in the match is "}
                 index = matcher.start(1);
             }
-        }
+        }*/
 
         return index;
     }

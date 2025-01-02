@@ -15,6 +15,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 
 import static org.mockito.Mockito.*;
@@ -59,16 +62,60 @@ public class AgentUtilsTest {
 
     @Test
     public void writeLinkingMetadata_addsMetadataProperly() {
-        // This simply validates that the NR_LINKING payload is being inserted into the message properly even
-        // though the payload is incomplete
         when(mockConfig.getValue(anyString(), anyBoolean())).thenReturn(true);
 
         StringBuilder sb = new StringBuilder(LOG_JSON_WITH_MESSAGE_FIELD_ESCAPED_QUOTE_COMMA);
         AgentUtils.writeLinkingMetadata(mockLockEvent, sb);
         assertTrue(sb.toString().contains("\"message\" : \"info \\\"bar\\\", NR-LINKING|\""));
 
+        sb = new StringBuilder(LOG_JSON_WITH_MESSAGE_LAST_FIELD_ESCAPED_QUOTE_BRACE);
+        AgentUtils.writeLinkingMetadata(mockLockEvent, sb);
+        assertTrue(sb.toString().contains("\"message\": \"info \\\"bar\\\", NR-LINKING|\"}"));
+
         sb = new StringBuilder(LOG_JSON_WITH_MESSAGE_FIELD);
         AgentUtils.writeLinkingMetadata(mockLockEvent, sb);
         assertTrue(sb.toString().contains("\"message\" : \"normal msg text NR-LINKING|\""));
+
+        sb = new StringBuilder(LOG_JSON_NO_MESSAGE_FIELD);
+        AgentUtils.writeLinkingMetadata(mockLockEvent, sb);
+        assertFalse(sb.toString().contains("NR-LINKING|"));
+
+    }
+
+    // Leaving these next two methods here in case anyone wants to run a simple performance test of the regex matching.
+    // Simple uncomment the @Test annotation and run like a normal test.
+    //@Test
+    public void simplePerfTest() {
+        final String JSON_TEMPLATE = "{\"instant\" : {\"epochSecond\" : 1734983121,\"nanoOfSecond\" : 537701000},\"level\" : \"INFO\",\"loggerName\" : \"org.hibernate.validator.internal.util.Version\",\"message\" : \"{MSG_VAL}\",\"endOfBatch\" : true,\"loggerFqcn\" : \"org.hibernate.validator.internal.util.logging.Log_$logger\"}\n";
+        final String ESCAPED_QUOTE_COMMA = "info \\\"bar\\\",";
+        final int LOOP_SIZE = 1000000;
+        Random random = new Random();
+        List<String> randomStringList = new ArrayList<>();
+
+        // Gen up a list of random Strings so we don't spend cycles in the actual timing loop creating them
+        for (int i=0; i<LOOP_SIZE; i++) {
+            randomStringList.add(generateRandomStr(10));
+        }
+
+        long start = System.currentTimeMillis();
+        for (int i=0; i<LOOP_SIZE; i++) {
+            if (random.nextInt(101) >= 90) {
+                AgentUtils.getIndexToModifyJson(JSON_TEMPLATE.replace("{MSG_VAL}", ESCAPED_QUOTE_COMMA));
+            } else {
+                AgentUtils.getIndexToModifyJson(JSON_TEMPLATE.replace("{MSG_VAL}", randomStringList.get(i)));
+            }
+        }
+        System.out.println("Time ---> " + (System.currentTimeMillis() - start));
+    }
+
+    private static String generateRandomStr(int length) {
+        String CANDIDATE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i ++) {
+            sb.append(CANDIDATE_CHARS.charAt(random.nextInt(26)));
+        }
+
+        return sb.toString();
     }
 }
