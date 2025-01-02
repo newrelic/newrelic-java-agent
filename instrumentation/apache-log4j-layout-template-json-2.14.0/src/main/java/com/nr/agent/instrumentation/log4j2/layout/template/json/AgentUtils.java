@@ -20,10 +20,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLog
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingLocalDecoratingEnabled;
 
 public class AgentUtils {
-    // Detect the end of the "message" field when it's not the last field -- ",
     private static final Pattern JSON_MESSAGE_VALUE_END = Pattern.compile("\"message\".+?[^\\\\]((\",)|(\"}))");
-    // Detect the end of the "message" field when it is the last field -- "}
-    private static final Pattern JSON_MESSAGE_VALUE_END2 = Pattern.compile("\"message\".+?(\"})");
 
     /**
      * Checks pretty or compact JSON layout strings for a series of characters and returns the index of
@@ -40,13 +37,7 @@ public class AgentUtils {
         if (matcher.find()) {
             // Group 1 in the match is the ", char sequence
             index = matcher.start(1);
-        } /*else {
-            matcher = JSON_MESSAGE_VALUE_END2.matcher(writerString);
-            if (matcher.find()) {
-                // Group 1 in the match is "}
-                index = matcher.start(1);
-            }
-        }*/
+        }
 
         return index;
     }
