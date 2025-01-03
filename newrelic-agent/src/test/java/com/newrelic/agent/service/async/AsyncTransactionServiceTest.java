@@ -58,12 +58,6 @@ public class AsyncTransactionServiceTest {
         assertFalse(ServiceFactory.getAsyncTxService().putIfAbsent("mySecondKey", token));
         assertEquals(2, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
 
-        // wait for the timeout
-        // respect whatever the timeout is, even though we tried to set it to 1 second above
-        // that value may have been set by a previous test (in GHA) and the 1 above will NOT overwrite
-        // this means it will likely take >3 mins in GHA, but at least it shouldn't fail on the first run every time
-//        long tokenTimeoutMillis = ServiceFactory.getAsyncTxService().getTimeoutMillisForTesting();
-//        Thread.sleep(tokenTimeoutMillis + 5000);
         Thread.sleep( 5000);
 
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
