@@ -9,6 +9,7 @@ package com.newrelic.agent;
 
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.api.agent.Logs;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -31,6 +32,7 @@ import com.newrelic.api.agent.Insights;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class TransactionData {
     private final Transaction tx;
@@ -166,6 +168,10 @@ public class TransactionData {
         return tx.isErrorReportableAndNotIgnored();
     }
 
+    public boolean hasErrorThatIsNotExpected() {
+        return tx.isErrorNotExpected();
+    }
+
     /**
      * A rough approximation of the transaction size (how much memory we are using with our tracers)
      */
@@ -257,9 +263,18 @@ public class TransactionData {
         if (!isWebTransaction() && !tx.getAgentConfig().isApdexTSet(getPriorityTransactionName().getName())) {
             return null;
         }
+
+        if (isApdexFrustrating()) {
+            return ApdexPerfZone.FRUSTRATING;
+        }
+
         long responseTimeInMillis = tx.getTransactionTimer().getResponseTimeInMilliseconds() + tx.getExternalTime();
         long apdexTInMillis = tx.getAgentConfig().getApdexTInMillis(getPriorityTransactionName().getName());
         return ApdexPerfZoneDetermination.getZone(responseTimeInMillis, apdexTInMillis);
+    }
+
+    public boolean isApdexFrustrating() {
+        return hasReportableErrorThatIsNotIgnored() && hasErrorThatIsNotExpected();
     }
 
     public String parentType() {
