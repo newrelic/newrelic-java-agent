@@ -13,13 +13,16 @@ import com.newrelic.agent.TransactionAsyncUtility;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
 
+@Category(RequiresFork.class) // Token Timeout is stored as a static and will not get the new value from the test if this is not forked
 public class AsyncTransactionServiceTest {
 
     @Test(timeout = 90000)
