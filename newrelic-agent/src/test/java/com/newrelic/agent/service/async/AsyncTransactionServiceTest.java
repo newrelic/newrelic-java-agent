@@ -58,7 +58,7 @@ public class AsyncTransactionServiceTest {
         assertFalse(ServiceFactory.getAsyncTxService().putIfAbsent("mySecondKey", token));
         assertEquals(2, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
 
-        Thread.sleep( 5000);
+        Thread.sleep(5000);
 
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
 
