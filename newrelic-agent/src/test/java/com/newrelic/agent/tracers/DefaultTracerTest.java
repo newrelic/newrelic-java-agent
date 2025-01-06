@@ -725,6 +725,7 @@ public class DefaultTracerTest {
                 .operation("query")
                 .instance("databaseServer", 1234)
                 .databaseName("dbName")
+                .cloudResourceId("cloudResourceId")
                 .build());
         tracer.finish(0, null);
 
@@ -745,6 +746,7 @@ public class DefaultTracerTest {
         assertEquals("dbName", spanEvent.getAgentAttributes().get("db.instance"));
         assertEquals("databaseServer:1234", spanEvent.getAgentAttributes().get("peer.address"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));
+        assertEquals("cloudResourceId", spanEvent.getAgentAttributes().get("cloud.resource_id"));
         assertClmAbsent(spanEvent);
     }
 

@@ -18,15 +18,17 @@ import com.newrelic.api.agent.CloudAccountInfo;
 public class CloudApiImpl implements CloudApi {
 
     private final CloudAccountInfoCache accountInfoCache;
+    private final AwsAccountDecoder awsAccountDecoder;
 
     private CloudApiImpl() {
-        this(new CloudAccountInfoCache());
+        this(new CloudAccountInfoCache(), AwsAccountDecoderImpl.newInstance());
         accountInfoCache.retrieveDataFromConfig();
     }
 
     // for testing
-    CloudApiImpl(CloudAccountInfoCache accountInfoCache) {
+    CloudApiImpl(CloudAccountInfoCache accountInfoCache, AwsAccountDecoder awsAccountDecoder) {
         this.accountInfoCache = accountInfoCache;
+        this.awsAccountDecoder = awsAccountDecoder;
     }
 
     // calling this method more than once will invalidate any Cloud API calls to set account info
@@ -56,6 +58,11 @@ public class CloudApiImpl implements CloudApi {
     public String getAccountInfo(Object sdkClient, CloudAccountInfo cloudAccountInfo) {
         // not recording metrics because this is for the internal API
         return accountInfoCache.getAccountInfo(sdkClient, cloudAccountInfo);
+    }
+
+    @Override
+    public String decodeAwsAccountId(String accessKey) {
+        return awsAccountDecoder.decodeAccount(accessKey);
     }
 
 }

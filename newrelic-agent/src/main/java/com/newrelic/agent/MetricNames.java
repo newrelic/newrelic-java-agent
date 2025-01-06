@@ -496,6 +496,8 @@ public class MetricNames {
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS = "Supportability/JfrService/Started/Success";
     public static final String SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS = "Supportability/JfrService/Stopped/Success";
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
+    public static final String SUPPORTABILITY_JFR_SERVICE_CONFIGURED_QUEUE_SIZE = "Supportability/JfrService/Config/QueueSize";
+    public static final String SUPPORTABILITY_JFR_SERVICE_CONFIGURED_HARVEST_INTERVAL = "Supportability/JfrService/Config/HarvestInterval";
 
     // Error Grouping
     public static final String SUPPORTABILITY_ERROR_GROUPING_CALLBACK_ENABLED = "Supportability/ErrorGrouping/Callback/enabled";
@@ -509,7 +511,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET = "Supportability/AiMonitoringTokenCountCallback/Set";
 
     // Super Agent Integration
-    public static final String SUPPORTABILITY_SUPERAGENT_HEALTH_REPORTING_ENABLED = "Supportability/SuperAgent/Health/enabled";
+    public static final String SUPPORTABILITY_AGENT_CONTROL_HEALTH_REPORTING_ENABLED = "Supportability/AgentControl/Health/enabled";
 
     /**
      * Utility method for adding supportability metrics to APIs

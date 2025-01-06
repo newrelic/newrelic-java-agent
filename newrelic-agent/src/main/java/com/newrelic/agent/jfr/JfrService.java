@@ -51,6 +51,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
+            NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_HARVEST_INTERVAL, jfrConfig.getHarvestInterval());
+            NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_QUEUE_SIZE, jfrConfig.getQueueSize());
 
             try {
                 final DaemonConfig daemonConfig = buildDaemonConfig();
@@ -147,6 +149,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
             .auditLogging(jfrConfig.auditLoggingEnabled())
             .metricsUri(URI.create(defaultAgentConfig.getMetricIngestUri()))
             .eventsUri(URI.create(defaultAgentConfig.getEventIngestUri()))
+            .harvestInterval(jfrConfig.getHarvestInterval())
+            .queueSize(jfrConfig.getQueueSize())
             .proxyHost(defaultAgentConfig.getProxyHost())
             .proxyScheme(defaultAgentConfig.getProxyScheme())
             .proxyPort(defaultAgentConfig.getProxyPort())

@@ -7,11 +7,11 @@
 
 package com.agent.instrumentation.awsjavasdk1.services.lambda;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.CloudApi;
 import com.newrelic.agent.bridge.NoOpCloud;
-import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.CloudParameters;
 import org.junit.After;
 import org.junit.Before;
@@ -23,13 +23,15 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class LambdaUtilTest {
+
+    private AWSCredentialsProvider credentialsProvider;
 
     @Before
     public void before() {
         AgentBridge.cloud = mock(CloudApi.class);
+        credentialsProvider = mock(AWSCredentialsProvider.class);
     }
 
     @After
@@ -65,6 +67,6 @@ public class LambdaUtilTest {
     }
 
     private FunctionRawData data(String functionRef, String qualifier) {
-        return new FunctionRawData(functionRef, qualifier, Regions.US_EAST_1.getName(), this);
+        return new FunctionRawData(functionRef, qualifier, Regions.US_EAST_1.getName(), this, credentialsProvider);
     }
 }

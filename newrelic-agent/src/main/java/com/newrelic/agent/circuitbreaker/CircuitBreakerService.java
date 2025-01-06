@@ -17,10 +17,10 @@ import com.newrelic.agent.config.CircuitBreakerConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.superagent.AgentHealth;
-import com.newrelic.agent.superagent.HealthDataChangeListener;
-import com.newrelic.agent.superagent.HealthDataProducer;
-import com.newrelic.agent.superagent.SuperAgentIntegrationUtils;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -187,7 +187,7 @@ public class CircuitBreakerService extends AbstractService implements HarvestLis
             Agent.LOG.log(Level.WARNING, "Circuit breaker tripped at memory {0}%  GC CPU time {1}%", percentageFreeMemory,
                     gcCpuTimePercentage);
 
-            SuperAgentIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.GC_CIRCUIT_BREAKER,
+            AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.GC_CIRCUIT_BREAKER,
                     String.valueOf(percentageFreeMemory), String.valueOf(gcCpuTimePercentage));
 
             return true;
@@ -232,7 +232,7 @@ public class CircuitBreakerService extends AbstractService implements HarvestLis
     public void reset() {
         tripped = 0;
         Agent.LOG.log(Level.FINE, "Circuit breaker reset");
-        SuperAgentIntegrationUtils.reportHealthyStatus(healthDataChangeListeners, AgentHealth.Category.CIRCUIT_BREAKER);
+        AgentControlIntegrationUtils.reportHealthyStatus(healthDataChangeListeners, AgentHealth.Category.CIRCUIT_BREAKER);
         logWarning.set(true);
     }
 

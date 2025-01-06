@@ -1,0 +1,20 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("org.mariadb:r2dbc-mariadb:1.2.1")
+    testImplementation("ch.vorburger.mariaDB4j:mariaDB4j:2.2.1")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.r2dbc-mariadb-1.2.1' }
+}
+
+verifyInstrumentation {
+    passes 'org.mariadb:r2dbc-mariadb:[1.2.1,)'
+    excludeRegex(".*(alpha|beta|rc).*")
+}
+
+site {
+    title 'MariaDB R2DBC'
+    type 'Datastore'
+}

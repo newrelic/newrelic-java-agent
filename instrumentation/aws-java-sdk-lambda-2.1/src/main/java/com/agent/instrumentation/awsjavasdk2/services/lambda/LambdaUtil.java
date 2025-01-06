@@ -92,7 +92,7 @@ public class LambdaUtil {
 
         if (accountId == null) {
             // if account id is not provided, we will try to get it from the config
-            accountId = getAccountId(data.getSdkClient());
+            accountId = getAccountId(data.getSdkClient(), data.getAccessKey());
         }
 
         if (region != null && accountId != null) {
@@ -111,8 +111,12 @@ public class LambdaUtil {
         return new FunctionProcessedData(functionName, arn);
     }
 
-    private static String getAccountId(Object sdkClient) {
-        return AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
+    private static String getAccountId(Object sdkClient, String accessKey) {
+        String accountId = AgentBridge.cloud.getAccountInfo(sdkClient, CloudAccountInfo.AWS_ACCOUNT_ID);
+        if (accountId == null && accessKey != null) {
+            accountId = AgentBridge.cloud.decodeAwsAccountId(accessKey);
+        }
+        return accountId;
     }
 
     public static String getSimpleFunctionName(FunctionRawData functionRawData) {

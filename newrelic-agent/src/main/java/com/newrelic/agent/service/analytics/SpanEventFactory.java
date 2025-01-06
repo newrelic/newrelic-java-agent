@@ -29,8 +29,6 @@ import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.QueryConverter;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
-import com.newrelic.api.agent.MessageConsumeParameters;
-import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 
 import java.net.URI;

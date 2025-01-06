@@ -71,8 +71,6 @@ jobs:
           echo "server/weblogic.py" >> $excluded_tests
           echo "basic_features/inf_tracing_test.py" >> $excluded_tests
           echo "security/lasp_msg_params.py" >> $excluded_tests
-          echo "framework/pekko/pekko.py" >> $excluded_tests
-          echo "framework/pekko/pekkohttp.py" >> $excluded_tests
           # The files below are not tests
           echo "trace/client.py" >> $excluded_tests
           echo "trace/server.py" >> $excluded_tests
@@ -177,6 +175,15 @@ jobs:
           ref: ${{ inputs.cache-ref || 'main' }}
           token: ${{ secrets.AITPAT }}
           path: appcache4
+          lfs: true
+
+      - name: Checkout Cache 5
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        with:
+          repository: newrelic/java-ait-cache-5
+          ref: ${{ inputs.cache-ref || 'main' }}
+          token: ${{ secrets.AITPAT }}
+          path: appcache5
           lfs: true
 
       # Consolidate caches into one directory
