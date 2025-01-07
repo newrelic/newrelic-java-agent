@@ -297,7 +297,11 @@ public class PreparedMatch {
     }
 
     private MethodNode prepare(ClassMatch classMatch, MethodNode matchedMethod, Map<Method, CallOriginalReplacement> callOriginalReplacementMap) {
-
+        if (matchedMethod.name.equals("invokeSuspend")) {
+            System.out.println("Weave method before prepare (in PreparedMatch):");
+            WeaveUtils.printAllInstructions(matchedMethod);
+            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
+        }
         // remove JSR instructions
         MethodNode prepared = MethodProcessors.removeJSRInstructions(matchedMethod);
 
@@ -333,6 +337,11 @@ public class PreparedMatch {
                 endOfOriginal = replacementResult.getEndOfOriginalMethodLabelNode();
 
                 prepared = replacementResult.getResult();
+                if (matchedMethod.name.equals("invokeSuspend")) {
+                    System.out.println("Weave method after callOriginal() replacement (in PreparedMatch):");
+                    WeaveUtils.printAllInstructions(prepared);
+                    System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
+                }
 
                 // write the error trap
                 prepared = ErrorTrapWeaveMethodsProcessor.writeErrorTrap(prepared, errorHandleClassNode,
@@ -385,6 +394,12 @@ public class PreparedMatch {
         // rewrite new fields to use the extension class
         if (extension != null) {
             prepared = extension.rewriteNewFieldCalls(prepared);
+        }
+
+        if (matchedMethod.name.equals("invokeSuspend")) {
+            System.out.println("Weave method, fully prepared (in PreparedMatch):");
+            WeaveUtils.printAllInstructions(prepared);
+            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
         }
 
         return prepared;
