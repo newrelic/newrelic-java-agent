@@ -68,6 +68,10 @@ public class AmazonSQS_Instrumentation {
         return Weaver.callOriginal();
     }
 
+    /*
+     * Headers are used as inner classes to avoid class loading errors when running instrumentation tests
+     * */
+
     public static class SQSRequestHeaders implements Headers {
 
         private SendMessageRequest request = null;

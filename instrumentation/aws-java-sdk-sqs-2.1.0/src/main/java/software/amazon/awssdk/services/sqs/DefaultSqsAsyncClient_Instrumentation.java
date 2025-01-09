@@ -111,7 +111,7 @@ class DefaultSqsAsyncClient_Instrumentation {
     }
 
     /*
-    * Headers are used as inner classes to avoid class loading errors when running instrumentation te
+    * Headers are used as inner classes to avoid class loading errors when running instrumentation tests
     * */
 
     public class SQSRequestHeaders implements Headers {
