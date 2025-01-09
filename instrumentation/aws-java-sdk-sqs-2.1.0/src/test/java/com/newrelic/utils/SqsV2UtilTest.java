@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -13,11 +13,11 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class MetricUtilTest {
+public class SqsV2UtilTest {
 
     @Test
     public void testGenerateProduceMetricsGoodQueueName() {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics("path/myQueue");
+        MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics("path/myQueue");
         Assert.assertEquals("SQS", messageProduceParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageProduceParameters.getOtelLibrary());
         Assert.assertEquals("myQueue", messageProduceParameters.getDestinationName());
@@ -28,7 +28,7 @@ public class MetricUtilTest {
 
     @Test
     public void testGenerateProduceMetricsBadQueueName() {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics("path");
+        MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics("path");
         Assert.assertEquals("SQS", messageProduceParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageProduceParameters.getOtelLibrary());
         Assert.assertEquals("unknown", messageProduceParameters.getDestinationName());
@@ -39,7 +39,7 @@ public class MetricUtilTest {
 
     @Test
     public void testGenerateConsumeMetricsGoodQueueName() {
-        MessageConsumeParameters messageConsumeParameters = MetricUtil.generateExternalConsumeMetrics("path/myQueue");
+        MessageConsumeParameters messageConsumeParameters = SqsV2Util.generateExternalConsumeMetrics("path/myQueue");
         Assert.assertEquals("SQS", messageConsumeParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageConsumeParameters.getOtelLibrary());
         Assert.assertEquals("myQueue", messageConsumeParameters.getDestinationName());
@@ -50,7 +50,7 @@ public class MetricUtilTest {
 
     @Test
     public void testGenerateConsumeMetricsBadQueueName() {
-        MessageConsumeParameters messageConsumeParameters = MetricUtil.generateExternalConsumeMetrics("path");
+        MessageConsumeParameters messageConsumeParameters = SqsV2Util.generateExternalConsumeMetrics("path");
         Assert.assertEquals("SQS", messageConsumeParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageConsumeParameters.getOtelLibrary());
         Assert.assertEquals("unknown", messageConsumeParameters.getDestinationName());
@@ -61,7 +61,7 @@ public class MetricUtilTest {
 
     @Test
     public void testGenerateConsumeAwsUrl() {
-        MessageConsumeParameters messageConsumeParameters = MetricUtil.generateExternalConsumeMetrics("https://sqs.us-east-2.amazonaws.com/123456789012/MyQueue");
+        MessageConsumeParameters messageConsumeParameters = SqsV2Util.generateExternalConsumeMetrics("https://sqs.us-east-2.amazonaws.com/123456789012/MyQueue");
         Assert.assertEquals("SQS", messageConsumeParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageConsumeParameters.getOtelLibrary());
         Assert.assertEquals("MyQueue", messageConsumeParameters.getDestinationName());
@@ -72,7 +72,7 @@ public class MetricUtilTest {
 
     @Test
     public void testGenerateConsumeOtherUrl() {
-        MessageConsumeParameters messageConsumeParameters = MetricUtil.generateExternalConsumeMetrics("https://localhost/123456789012/MyQueue");
+        MessageConsumeParameters messageConsumeParameters = SqsV2Util.generateExternalConsumeMetrics("https://localhost/123456789012/MyQueue");
         Assert.assertEquals("SQS", messageConsumeParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageConsumeParameters.getOtelLibrary());
         Assert.assertEquals("MyQueue", messageConsumeParameters.getDestinationName());
@@ -83,7 +83,7 @@ public class MetricUtilTest {
 
     @Test
     public void testGenerateProduceAwsUrl() {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics("https://sqs.us-east-2.amazonaws.com/123456789012/MyQueue");
+        MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics("https://sqs.us-east-2.amazonaws.com/123456789012/MyQueue");
         Assert.assertEquals("SQS", messageProduceParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageProduceParameters.getOtelLibrary());
         Assert.assertEquals("MyQueue", messageProduceParameters.getDestinationName());
@@ -94,7 +94,7 @@ public class MetricUtilTest {
 
     @Test
     public void testGenerateProduceOtherUrl() {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics("https://localhost/123456789012/MyQueue");
+        MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics("https://localhost/123456789012/MyQueue");
         Assert.assertEquals("SQS", messageProduceParameters.getLibrary());
         Assert.assertEquals("aws_sqs", messageProduceParameters.getOtelLibrary());
         Assert.assertEquals("MyQueue", messageProduceParameters.getDestinationName());

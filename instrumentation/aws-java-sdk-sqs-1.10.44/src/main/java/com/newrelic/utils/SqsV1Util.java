@@ -14,10 +14,12 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.Weaver;
 
-public class MetricUtil {
+public class SqsV1Util {
 
     public static final String LIBRARY = "SQS";
     public static final String OTEL_LIBRARY = "aws_sqs";
+
+    public static final String[] DT_HEADERS = new String[] {"newrelic","NEWRELIC","NewRelic","tracestate","TraceState","TRACESTATE"};
 
     public static MessageProduceParameters generateExternalProduceMetrics(String queueUrl) {
         DestinationData destinationData = DestinationData.parse(queueUrl);
