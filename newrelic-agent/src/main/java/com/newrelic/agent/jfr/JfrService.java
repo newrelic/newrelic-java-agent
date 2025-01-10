@@ -136,7 +136,11 @@ public class JfrService extends AbstractService implements AgentConfigListener {
             logger.error(e.getMessage());
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
-        return String.format("%s:%s", host, appPort);
+        if (appPort != null) {
+            return String.format("%s:%s", host, appPort);
+        } else {
+            return host;
+        }
     }
 
     @VisibleForTesting
