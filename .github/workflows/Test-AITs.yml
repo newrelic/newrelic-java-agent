@@ -197,8 +197,13 @@ jobs:
 
       # looks like docker is not properly sanitized between runs in GHA
       # so its disk space may be pilling up and blows up during our tests
-      - name: Clean Docker image data
-        run: docker rmi $(docker images -q)
+      # other cleanups were suggested on runner-images repo
+      - name: Clean up disk
+        run: |
+          docker rmi $(docker images -q)
+          sudo apt clean
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
 
       ## JDK Installs
 
