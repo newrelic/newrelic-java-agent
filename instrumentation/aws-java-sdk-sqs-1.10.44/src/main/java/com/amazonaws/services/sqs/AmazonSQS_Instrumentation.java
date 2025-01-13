@@ -35,7 +35,7 @@ import java.util.Map;
 @Weave(type = MatchType.Interface, originalName = "com.amazonaws.services.sqs.AmazonSQS")
 public class AmazonSQS_Instrumentation {
 
-    @Trace(leaf = true)
+    @Trace
     public SendMessageBatchResult sendMessageBatch(SendMessageBatchRequest sendMessageBatchRequest) {
         MessageProduceParameters messageProduceParameters = SqsV1Util.generateExternalProduceMetrics(sendMessageBatchRequest.getQueueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
@@ -43,7 +43,7 @@ public class AmazonSQS_Instrumentation {
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf = true)
+    @Trace
     public SendMessageResult sendMessage(SendMessageRequest sendMessageRequest) {
         MessageProduceParameters messageProduceParameters = SqsV1Util.generateExternalProduceMetrics(sendMessageRequest.getQueueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
