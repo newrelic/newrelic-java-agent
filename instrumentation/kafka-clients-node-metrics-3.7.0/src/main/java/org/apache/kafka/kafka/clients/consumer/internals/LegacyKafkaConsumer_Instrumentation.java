@@ -30,17 +30,20 @@ import java.util.logging.Level;
 
 @Weave(originalName = "org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer")
 public abstract class LegacyKafkaConsumer_Instrumentation<K, V> {
+
+    private final Metrics metrics = Weaver.callOriginal();
+    private final String clientId = Weaver.callOriginal();
+    private final ConsumerMetadata metadata = Weaver.callOriginal();
     // It's possible for constructors to be invoked multiple times (e.g. `C() { C("some default") }` ).
     // When this happens we don't want to register the metrics reporter multiple times.
     @NewField
     private boolean metricsReporterInstalled;
 
-    private final Metrics metrics = Weaver.callOriginal();
-    private final ConsumerMetadata metadata = Weaver.callOriginal();
-
     @WeaveAllConstructors
     public LegacyKafkaConsumer_Instrumentation() {
         if (!metricsReporterInstalled) {
+            NewRelic.getAgent().getLogger().log(Level.INFO,
+                    "newrelic-kafka-clients-enhancements engaged for consumer {0}", clientId);
             metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, metadata.fetch().nodes()));
             metricsReporterInstalled = true;
         }
