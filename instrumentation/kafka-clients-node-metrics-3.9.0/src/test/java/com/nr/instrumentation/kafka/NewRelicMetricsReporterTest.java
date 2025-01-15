@@ -4,8 +4,12 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.Node;
+import org.apache.kafka.common.metrics.Gauge;
 import org.apache.kafka.common.metrics.KafkaMetric;
+import org.apache.kafka.common.metrics.MetricConfig;
+import org.apache.kafka.common.utils.Time;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,8 +39,8 @@ import static org.mockito.Mockito.when;
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
 public class NewRelicMetricsReporterTest {
     private Introspector introspector;
-    private static final KafkaMetric METRIC1 = getMetricMock("metric1", 42.0f);
-    private static final KafkaMetric METRIC2 = getMetricMock("metric2", 11.0f);
+    private static final KafkaMetric METRIC1 = kafkaMetric("metric1", null, 42.0f);
+    private static final KafkaMetric METRIC2 = kafkaMetric("metric2", null, 11.0f);
 
     @Before
     public void setup() {
@@ -104,8 +109,7 @@ public class NewRelicMetricsReporterTest {
 
     @Test
     public void nodeTopicMetrics() throws InterruptedException{
-        KafkaMetric metricWithTopic = getMetricMock("topicMetric", 20.0f);
-        when(metricWithTopic.metricName().tags().get("topic")).thenReturn("hhgg");
+        KafkaMetric metricWithTopic = kafkaMetric("topicMetric", "hhgg", 20.0f);
         List<KafkaMetric> initialMetrics = Arrays.asList(metricWithTopic);
 
         NewRelicMetricsReporter reporter = initMetricsReporter(initialMetrics, Collections.emptyList());
@@ -140,15 +144,18 @@ public class NewRelicMetricsReporterTest {
         return metricsReporter;
     }
 
-    protected static KafkaMetric getMetricMock(String name, Object value) {
-        KafkaMetric metric = mock(KafkaMetric.class, RETURNS_DEEP_STUBS);
-        when(metric.metricName().group())
-                .thenReturn("group");
-        when(metric.metricName().name())
-                .thenReturn(name);
-        when(metric.metricValue())
+    private static KafkaMetric kafkaMetric(String name, String topic, float value) {
+        Gauge<Float> valueProvider = mock(Gauge.class);
+        when(valueProvider.value(any(), anyLong()))
                 .thenReturn(value);
-        return metric;
+
+        Map<String, String> tags = topic == null ?
+                Collections.emptyMap() :
+                Collections.singletonMap("topic", topic);
+
+        MetricName metricName = new MetricName(name, "group", "descr", tags);
+        MetricConfig config = new MetricConfig();
+        return new KafkaMetric(new Object(), metricName, valueProvider, config, Time.SYSTEM);
     }
 
 
