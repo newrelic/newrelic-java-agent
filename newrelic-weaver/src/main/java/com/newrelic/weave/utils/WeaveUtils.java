@@ -15,6 +15,7 @@ import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.weave.MethodKey;
+import org.objectweb.asm.tree.analysis.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.commons.Method;

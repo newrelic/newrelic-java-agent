@@ -7,7 +7,9 @@
 
 package com.newrelic.weave;
 
+import com.newrelic.weave.utils.ReturnInsnProcessor;
 import com.newrelic.weave.utils.WeaveUtils;
+import org.objectweb.asm.tree.*;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -16,8 +18,6 @@ import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.commons.MethodRemapper;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TryCatchBlockNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -133,6 +133,9 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             } else {
                 // Copy the MethodNode before modifying the instructions list (which is not thread safe)
                 MethodNode methodNodeCopy = WeaveUtils.copy(method.method);
+                if (name.equals("invokeSuspend")) {
+                    methodNodeCopy = ReturnInsnProcessor.clearReturnStacks(owner, methodNodeCopy);
+                }
                 methodNodeCopy.instructions.resetLabels();
                 InliningAdapter originalInliner = method.inliner;
 

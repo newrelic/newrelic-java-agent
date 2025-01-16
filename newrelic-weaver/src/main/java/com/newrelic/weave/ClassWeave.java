@@ -265,6 +265,13 @@ public class ClassWeave {
 
         final String weaveClassName = match.getWeaveName();
         final String originalClassName = match.getOriginalName();
+
+        //EXPERIMENTAL - analyze the bytecode of the targetMethod
+//        if (targetMethod.name.equals("invokeSuspend")){
+//            WeaveUtils.printMethodNodeStackSizes(originalClassName, targetMethod);
+//            WeaveUtils.analyzeReturnStacks(originalClassName, targetMethod);
+//        }
+
         Set<MethodNode> toInline = new HashSet<>();
         if (weaveMethod.name.equals(WeaveUtils.INIT_NAME)) {
             // we weave every potential top-level constructor
@@ -280,22 +287,22 @@ public class ClassWeave {
         }
 
         // inline original invocation
-        if (weaveMethod.name.equals("invokeSuspend")) {
-            System.out.println("Composite node before inlining:");
-            WeaveUtils.printAllInstructions(composite);
-            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
-
-            System.out.println("Target node before inlining:");
-            WeaveUtils.printAllInstructions(targetMethod);
-            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
-        }
+//        if (weaveMethod.name.equals("invokeSuspend")) {
+//            System.out.println("Composite node before inlining:");
+//            WeaveUtils.printAllInstructions(composite);
+//            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
+//
+//            System.out.println("Target node before inlining:");
+//            WeaveUtils.printAllInstructions(targetMethod);
+//            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
+//        }
         composite = MethodProcessors.inlineMethods(WeaveUtils.INLINER_PREFIX + weaveClassName, toInline, target.name,
                 composite);
-        if (weaveMethod.name.equals("invokeSuspend")) {
-            System.out.println("Composite node after inlining:");
-            WeaveUtils.printAllInstructions(composite);
-            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
-        }
+//        if (weaveMethod.name.equals("invokeSuspend")) {
+//            System.out.println("Composite node after inlining:");
+//            WeaveUtils.printAllInstructions(composite);
+//            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
+//        }
         // the inliner sometimes like to sneak in some jsr instructions. Sneaky inliner!
         composite = MethodProcessors.removeJSRInstructions(composite);
 
