@@ -132,10 +132,7 @@ class DefaultSqsAsyncClient_Instrumentation {
             if(messageAttributes != null) {
                 MessageAttributeValue value = messageAttributes.get(name);
                 if (value != null && value.dataType().equalsIgnoreCase("string")) {
-                    String valueString = value.stringValue();
-                    if (valueString != null) {
-                        return valueString;
-                    }
+                    return value.stringValue();
                 }
             }
 

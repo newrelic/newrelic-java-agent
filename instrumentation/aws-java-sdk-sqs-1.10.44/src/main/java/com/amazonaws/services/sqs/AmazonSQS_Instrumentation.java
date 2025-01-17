@@ -83,10 +83,7 @@ public class AmazonSQS_Instrumentation {
             if(messageAttributes != null) {
                 MessageAttributeValue value = messageAttributes.get(name);
                 if (value != null && value.getDataType().equalsIgnoreCase("string")) {
-                    String valueString = value.getStringValue();
-                    if (valueString != null) {
-                        return valueString;
-                    }
+                    return value.getStringValue();
                 }
             }
             Map<String, String> customRequestHeaders = request.getCustomRequestHeaders();
