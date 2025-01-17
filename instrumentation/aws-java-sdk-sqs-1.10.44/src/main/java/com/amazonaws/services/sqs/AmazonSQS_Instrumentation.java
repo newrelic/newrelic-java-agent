@@ -97,12 +97,11 @@ public class AmazonSQS_Instrumentation {
         }
         @Override
         public Collection<String> getHeaders(String name) {
-            List<String> list = new ArrayList<String>();
             String value = getHeader(name);
             if(value != null) {
-                list.add(value);
+                return Collections.singletonList(value);
             }
-            return list;
+            return Collections.emptyList();
         }
         @Override
         public void setHeader(String name, String value) {
