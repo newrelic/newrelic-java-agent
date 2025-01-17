@@ -13,12 +13,14 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
+import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.api.agent.Trace;
+import com.newrelic.utils.SqsV1Util;
 import org.elasticmq.NodeAddress;
 import org.elasticmq.rest.sqs.SQSRestServer;
 import org.elasticmq.rest.sqs.SQSRestServerBuilder;
@@ -27,7 +29,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.amazonaws.services.sqs" }, configName = "dt_enabled.yml")
@@ -67,7 +75,13 @@ public class SqsClientTest {
     @Test
     public void testSendMessage() {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        sendMessageRequest();
+        SendMessageRequest request = sendMessageRequest();
+
+        Set<String> dtHeaders = new HashSet<>(Arrays.asList(SqsV1Util.DT_HEADERS));
+        boolean containsDtHeaders = request.getMessageAttributes().entrySet().stream().anyMatch(e ->
+                dtHeaders.contains(e.getKey()) && e.getValue() != null && !e.getValue().getStringValue().isEmpty());
+        assertTrue("Message request must contain headers", containsDtHeaders);
+
         assertEquals(1, introspector.getFinishedTransactionCount(10000));
 
         String txName = introspector.getTransactionNames().iterator().next();
@@ -77,8 +91,16 @@ public class SqsClientTest {
     @Test
     public void testSendMessageBatch() {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        sendMessageBatch();
+        SendMessageBatchRequest request = sendMessageBatch();
         assertEquals(1, introspector.getFinishedTransactionCount(10000));
+
+        Set<String> dtHeaders = new HashSet<>(Arrays.asList(SqsV1Util.DT_HEADERS));
+        assertFalse("Batch request must contain at least one entry", request.getEntries().isEmpty());
+        for (SendMessageBatchRequestEntry entry: request.getEntries()) {
+            boolean containsDtHeaders = entry.getMessageAttributes().entrySet().stream().anyMatch(e ->
+                    dtHeaders.contains(e.getKey()) && e.getValue() != null && !e.getValue().getStringValue().isEmpty());
+            assertTrue("Message entry must contain headers", containsDtHeaders);
+        }
 
         String txName = introspector.getTransactionNames().iterator().next();
         checkScopedMetricCount(txName, "MessageBroker/SQS/Queue/Produce/Named/" + QUEUE_NAME, 1);
@@ -95,15 +117,24 @@ public class SqsClientTest {
     }
 
     @Trace(dispatcher = true)
-    private void sendMessageRequest() {
+    private SendMessageRequest sendMessageRequest() {
         SendMessageRequest request = (new SendMessageRequest()).withQueueUrl(queueUrl).withMessageBody("body");
         sqsClient.sendMessage(request);
+        return request;
     }
 
     @Trace(dispatcher = true)
-    private void sendMessageBatch() {
-        SendMessageBatchRequest request = (new SendMessageBatchRequest()).withQueueUrl(queueUrl);
-        sqsClient.sendMessageBatch(request);
+    private SendMessageBatchRequest sendMessageBatch() {
+        SendMessageBatchRequestEntry entry = new SendMessageBatchRequestEntry();
+        SendMessageBatchRequest request = (new SendMessageBatchRequest()).withQueueUrl(queueUrl)
+                .withEntries(entry);
+        try {
+            sqsClient.sendMessageBatch(request);
+        } catch (Exception e) {
+            // Do nothing
+        }
+
+        return request;
     }
 
     @Trace(dispatcher = true)
