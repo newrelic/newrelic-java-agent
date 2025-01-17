@@ -2,9 +2,11 @@ package com.nr.instrumentation.kafka;
 
 import com.newrelic.api.agent.NewRelic;
 import org.apache.kafka.common.MetricName;
+import org.apache.kafka.common.Node;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,23 +28,22 @@ public class NewRelicMetricsReporter implements MetricsReporter {
 
     private final ConcurrentHashMap<MetricName, CachedKafkaMetric> metrics = new ConcurrentHashMap<>();
     private final FiniteMetricRecorder recorder = new FiniteMetricRecorder();
+    private final NodeTopicRegistry nodeTopicRegistry;
+
+    public NewRelicMetricsReporter(ClientType clientType, Collection<Node> nodes) {
+        nodeTopicRegistry = new NodeTopicRegistry(clientType, nodes);
+    }
 
     @Override
     public void init(List<KafkaMetric> metrics) {
         NewRelic.getAgent().getLogger().log(Level.INFO,
-                "newrelic-kafka-clients-enhancements: initializing with SUPPORTS_CUMULATIVE_SUM={0}",
-                CumulativeSumSupport.isCumulativeSumSupported());
+                "newrelic-kafka-clients-enhancements: initializing. This version of Kafka does not support cumulative sum.");
 
         for (final KafkaMetric metric : metrics) {
             registerMetric(metric);
         }
 
-        future = SCHEDULER.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                report();
-            }
-        }, 0, REPORTING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
+        future = SCHEDULER.scheduleAtFixedRate(this::report, 0, REPORTING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
@@ -52,8 +53,6 @@ public class NewRelicMetricsReporter implements MetricsReporter {
 
     @Override
     public void metricRemoval(KafkaMetric metric) {
-        metrics.remove(metric.metricName());
-
         final CachedKafkaMetric cachedMetric = metrics.remove(metric.metricName());
         if (cachedMetric != null) {
             debugLog("newrelic-kafka-clients-enhancements: deregister metric: {0}", cachedMetric.displayName());
@@ -66,6 +65,8 @@ public class NewRelicMetricsReporter implements MetricsReporter {
             future.cancel(false);
             future = null;
         }
+        metrics.clear();
+        nodeTopicRegistry.close();
     }
 
     @Override
@@ -80,10 +81,14 @@ public class NewRelicMetricsReporter implements MetricsReporter {
             return;
         }
 
-        if (TOPIC_METRICS_DISABLED && metric.metricName().tags().get("topic") != null) {
+        String topic = metric.metricName().tags().get("topic");
+        if (TOPIC_METRICS_DISABLED && topic != null) {
             debugLog("newrelic-kafka-clients-enhancements: skipping topic metric registration: {0}",
                     MetricNameUtil.buildDisplayName(metric));
             return;
+        }
+        if (nodeTopicRegistry.register(topic)) {
+            debugLog("newrelic-kafka-clients-enhancements: register node topic metric for topic: {0}", topic);
         }
 
         final CachedKafkaMetric cachedMetric = CachedKafkaMetrics.newCachedKafkaMetric(metric);
@@ -102,6 +107,8 @@ public class NewRelicMetricsReporter implements MetricsReporter {
         for (final CachedKafkaMetric metric : metrics.values()) {
             metric.report(recorder);
         }
+
+        nodeTopicRegistry.report(recorder);
     }
 
     private void debugLog(String message) {

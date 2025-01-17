@@ -14,7 +14,7 @@ import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.ClientType;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
-import org.apache.kafka.clients.Metadata;
+import org.apache.kafka.clients.consumer.internals.ConsumerMetadata;
 import org.apache.kafka.common.metrics.Metrics;
 
 import java.util.logging.Level;
@@ -24,7 +24,7 @@ public class KafkaConsumer_Instrumentation<K, V> {
 
     private final Metrics metrics = Weaver.callOriginal();
     private final String clientId = Weaver.callOriginal();
-    private final Metadata metadata = Weaver.callOriginal();
+    private final ConsumerMetadata metadata = Weaver.callOriginal();
     // It's possible for constructors to be invoked multiple times (e.g. `C() { C("some default") }` ).
     // When this happens we don't want to register the metrics reporter multiple times.
     @NewField
