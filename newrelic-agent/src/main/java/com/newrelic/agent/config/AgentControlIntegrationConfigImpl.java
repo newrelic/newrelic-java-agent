@@ -7,7 +7,6 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.Agent;
-import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.util.Collections;
@@ -17,37 +16,36 @@ import java.util.logging.Level;
 public class AgentControlIntegrationConfigImpl extends BaseConfig implements AgentControlIntegrationConfig {
     public static final String ROOT = "agent_control";
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.agent_control.";
-    public static final String FLEET_ID = "fleet_id";
+    public static final String ENABLED = "enabled";
 
-    private final String fleetId;
+    private boolean enabled;
+    public static final boolean ENABLED_DEFAULT = false;
 
-    private final AgentControlIntegrationHealthConfig agentControlIntegrationHealthConfig;
+
+    private AgentControlIntegrationHealthConfig agentControlIntegrationHealthConfig;
 
     public AgentControlIntegrationConfigImpl(Map<String, Object> configProps) {
         super(configProps, SYSTEM_PROPERTY_ROOT);
-        agentControlIntegrationHealthConfig = createHealthConfig();
-        String tmpFleetId = getProperty(FLEET_ID);
+        enabled = getProperty(ENABLED, ENABLED_DEFAULT);
 
-        if (StringUtils.isNotEmpty(tmpFleetId) && agentControlIntegrationHealthConfig.getHealthDeliveryLocation() == null) {
-            Agent.LOG.log(Level.WARNING, "Configured Super Agent health delivery location is not a valid URI; " +
-                    "Agent Control integration service will not be started");
-            fleetId = null;
-        } else {
-            fleetId = tmpFleetId;
+        if (enabled) {
+            agentControlIntegrationHealthConfig = createHealthConfig();
+            if (agentControlIntegrationHealthConfig.getHealthDeliveryLocation() == null) {
+                Agent.LOG.log(Level.WARNING, "Configured Agent Control health delivery location is not a valid URI; " +
+                        "Agent Control integration service will not be started");
+                enabled = false;
+            }
         }
     }
 
     private AgentControlIntegrationHealthConfig createHealthConfig() {
         Map<String, Object> healthProps = getProperty(AgentControlIntegrationHealthConfig.ROOT, Collections.emptyMap());
-        AgentControlIntegrationHealthConfig agentControlIntegrationHealthConfig;
-
-        agentControlIntegrationHealthConfig = new AgentControlIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
-        return agentControlIntegrationHealthConfig;
+        return new AgentControlIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
     }
 
     @Override
     public boolean isEnabled() {
-        return fleetId != null;
+        return enabled;
     }
 
     @Override
@@ -58,11 +56,6 @@ public class AgentControlIntegrationConfigImpl extends BaseConfig implements Age
     @Override
     public int getHealthReportingFrequency() {
         return agentControlIntegrationHealthConfig == null ? 0 : agentControlIntegrationHealthConfig.getHealthReportingFrequency();
-    }
-
-    @Override
-    public String getFleetId() {
-        return fleetId;
     }
 
     @Override
