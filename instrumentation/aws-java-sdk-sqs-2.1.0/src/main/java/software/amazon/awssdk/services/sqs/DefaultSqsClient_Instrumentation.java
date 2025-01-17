@@ -101,8 +101,7 @@ class DefaultSqsClient_Instrumentation {
             if(messageAttributes != null) {
                 MessageAttributeValue value = messageAttributes.get(name);
                 if (value != null && value.dataType().equalsIgnoreCase("string")) {
-                    String valueString = value.stringValue();
-                    return valueString;
+                    return value.stringValue();
                 }
             }
 
@@ -188,8 +187,7 @@ class DefaultSqsClient_Instrumentation {
                 if(value != null) {
                     String dataType = value.dataType();
                     if(dataType.equalsIgnoreCase("String")) {
-                        String stringValue = value.stringValue();
-                        return stringValue;
+                        return value.stringValue();
                     }
                 }
             }
@@ -256,9 +254,7 @@ class DefaultSqsClient_Instrumentation {
             }
             builder.messageAttributes(updatedAttributes);
 
-            SendMessageBatchRequestEntry updated = builder.build();
-
-            return updated;
+            return builder.build();
         }
     }
 

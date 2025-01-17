@@ -221,8 +221,7 @@ class DefaultSqsAsyncClient_Instrumentation {
                 if(value != null) {
                     String dataType = value.dataType();
                     if(dataType.equalsIgnoreCase("String")) {
-                        String stringValue = value.stringValue();
-                        if(stringValue != null) return stringValue;
+                        return value.stringValue();
                     }
                 }
             }
