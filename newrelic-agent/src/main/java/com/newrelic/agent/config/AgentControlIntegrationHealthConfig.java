@@ -9,13 +9,26 @@ package com.newrelic.agent.config;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 public class AgentControlIntegrationHealthConfig extends BaseConfig {
     public static final String ROOT = "health";
     public static final String FREQUENCY = "frequency";
     public static final int FREQUENCY_DEFAULT = 5;  // In seconds
-    public static final String LOCATION = "delivery_location";  //URI Format; ex: file://opt/tmp/health.yml
+
+    public static final String LOCATION = "delivery_location";  //URI Format; ex: file://opt/tmp
+    public static final URI LOCATION_DEFAULT;
+
+    static {
+        URI tmpLocationDefault = null;
+        try {
+            tmpLocationDefault = new URI ("file:///newrelic/apm/health");
+        } catch (URISyntaxException ignored) {
+            // Can never happen
+        }
+        LOCATION_DEFAULT = tmpLocationDefault;
+    }
 
     private final int frequency;
     private URI deliveryLocation;
@@ -49,14 +62,15 @@ public class AgentControlIntegrationHealthConfig extends BaseConfig {
                 deliveryLocation = null;
                 return;
             }
-
-            healthClientType = deliveryLocation.getScheme();
-
-            // Ensure the URI contains the scheme and path
-            if (StringUtils.isAnyEmpty(healthClientType, deliveryLocation.getPath())) {
-                deliveryLocation = null;
-            }
+        } else {
+            deliveryLocation = LOCATION_DEFAULT;
         }
 
+        healthClientType = deliveryLocation.getScheme();
+
+        // Ensure the URI contains the scheme and path
+        if (StringUtils.isAnyEmpty(healthClientType, deliveryLocation.getPath())) {
+            deliveryLocation = null;
+        }
     }
 }
