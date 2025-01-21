@@ -38,7 +38,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "com.amazonaws.services.sqs" }, configName = "dt_enabled.yml")
+@InstrumentationTestConfig(includePrefixes = { "com.amazonaws.services.sqs", "com.newrelic.utils" }, configName = "dt_enabled.yml")
 public class SqsClientTest {
 
     private static AmazonSQSClient sqsClient;
