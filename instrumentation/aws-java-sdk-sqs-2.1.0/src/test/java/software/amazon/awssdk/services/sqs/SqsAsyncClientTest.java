@@ -36,7 +36,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.sqs" }, configName = "dt_enabled.yml")
+@InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.sqs", "com.newrelic.utils" }, configName = "dt_enabled.yml")
 public class SqsAsyncClientTest {
 
     private static SqsAsyncClient sqsClient;
