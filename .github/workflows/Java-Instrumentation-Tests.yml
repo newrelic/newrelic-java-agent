@@ -24,7 +24,7 @@ jobs:
     name: Java ${{ matrix.java-version }}
     timeout-minutes: 120
     # needs: install-all-java
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     env:
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
