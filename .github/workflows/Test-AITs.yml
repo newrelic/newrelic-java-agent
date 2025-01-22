@@ -313,7 +313,7 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
           echo "still complains of file not found"
           sudo apt-get install virtualenv
-          virtualenv -p /usr/bin/python3.8 .
+          virtualenv -p /usr/bin/python3.12 .
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
           ZULU11=${JDK_zulu_11} \
