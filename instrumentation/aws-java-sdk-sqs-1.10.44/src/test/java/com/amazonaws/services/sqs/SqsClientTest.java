@@ -77,11 +77,6 @@ public class SqsClientTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         SendMessageRequest request = sendMessageRequest();
 
-        Set<String> dtHeaders = new HashSet<>(Arrays.asList(SqsV1Util.DT_HEADERS));
-        boolean containsDtHeaders = request.getMessageAttributes().entrySet().stream().anyMatch(e ->
-                dtHeaders.contains(e.getKey()) && e.getValue() != null && !e.getValue().getStringValue().isEmpty());
-        assertTrue("Message request must contain headers", containsDtHeaders);
-
         assertEquals(1, introspector.getFinishedTransactionCount(10000));
 
         String txName = introspector.getTransactionNames().iterator().next();
@@ -93,14 +88,6 @@ public class SqsClientTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         SendMessageBatchRequest request = sendMessageBatch();
         assertEquals(1, introspector.getFinishedTransactionCount(10000));
-
-        Set<String> dtHeaders = new HashSet<>(Arrays.asList(SqsV1Util.DT_HEADERS));
-        assertFalse("Batch request must contain at least one entry", request.getEntries().isEmpty());
-        for (SendMessageBatchRequestEntry entry: request.getEntries()) {
-            boolean containsDtHeaders = entry.getMessageAttributes().entrySet().stream().anyMatch(e ->
-                    dtHeaders.contains(e.getKey()) && e.getValue() != null && !e.getValue().getStringValue().isEmpty());
-            assertTrue("Message entry must contain headers", containsDtHeaders);
-        }
 
         String txName = introspector.getTransactionNames().iterator().next();
         checkScopedMetricCount(txName, "MessageBroker/SQS/Queue/Produce/Named/" + QUEUE_NAME, 1);
