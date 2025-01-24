@@ -298,11 +298,11 @@ public class ClassWeave {
 //        }
         composite = MethodProcessors.inlineMethods(WeaveUtils.INLINER_PREFIX + weaveClassName, toInline, target.name,
                 composite);
-//        if (weaveMethod.name.equals("invokeSuspend")) {
-//            System.out.println("Composite node after inlining:");
-//            WeaveUtils.printAllInstructions(composite);
-//            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
-//        }
+        if (weaveMethod.name.equals("invokeSuspend")) {
+            System.out.println("Composite node after inlining:");
+            WeaveUtils.printAllInstructions(composite);
+            System.out.println("\n\n\n ~~~~~~~~~~~~~~~~~~~ \n\n\n");
+        }
         // the inliner sometimes like to sneak in some jsr instructions. Sneaky inliner!
         composite = MethodProcessors.removeJSRInstructions(composite);
 

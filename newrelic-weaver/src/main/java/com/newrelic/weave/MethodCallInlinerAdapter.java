@@ -19,12 +19,7 @@ import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.commons.MethodRemapper;
 import org.objectweb.asm.commons.Remapper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
     /**
@@ -113,7 +108,6 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             }
             int access = opcode == Opcodes.INVOKESTATIC ? Opcodes.ACC_STATIC : 0;
             inliner.inliner = new InliningAdapter(api, access, desc, this, mv, inliner.remapper);
-
         }
         inliner.method.accept(inliner.inliner);
     }
@@ -133,8 +127,10 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             } else {
                 // Copy the MethodNode before modifying the instructions list (which is not thread safe)
                 MethodNode methodNodeCopy = WeaveUtils.copy(method.method);
-                if (name.equals("invokeSuspend")) {
-                    methodNodeCopy = ReturnInsnProcessor.clearReturnStacks(owner, methodNodeCopy);
+                if (shouldClearReturnStacks(owner, name, desc)){
+                    MethodNode result = WeaveUtils.newMethodNode(methodNodeCopy);
+                    methodNodeCopy.accept(new ClearReturnAdapter(owner, methodNodeCopy, result));
+                    methodNodeCopy = result;
                 }
                 methodNodeCopy.instructions.resetLabels();
                 InliningAdapter originalInliner = method.inliner;
@@ -146,6 +142,32 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             inliners.put(key, method);
         }
         return method;
+    }
+
+    /*
+    Only the invokeSuspend method of kotlin coroutines has been known to leave return stacks untidy.
+     */
+    private boolean shouldClearReturnStacks(String owner, String name, String desc) {
+        final String invokeSuspendOwner = WeaveUtils.INLINER_PREFIX + "kotlin/coroutines/jvm/internal/BaseContinuationImpl";
+        final String invokeSuspendName = "invokeSuspend";
+        final String invokeSuspendDesc = "(Ljava/lang/Object;)Ljava/lang/Object;";
+        return invokeSuspendOwner.equals(owner) && invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
+    }
+
+    class ClearReturnAdapter extends MethodNode {
+        String owner;
+        public ClearReturnAdapter(String owner, MethodNode source, MethodVisitor next) {
+            super(WeaveUtils.ASM_API_LEVEL, source.access, source.name, source.desc, source.signature, source.exceptions.toArray(new String[source.exceptions.size()]));
+            this.mv = next;
+            this.owner = owner;
+        }
+
+        @Override
+        public void visitEnd() {
+            System.out.println("In visitEnd of OtherClearReturnAdapter for owner: " + owner + " and name: " + name + " and desc " + desc);
+            ReturnInsnProcessor.clearReturnStacks(owner, this);
+            accept(mv);
+        }
     }
 
     class InliningAdapter extends LocalVariablesSorter {
