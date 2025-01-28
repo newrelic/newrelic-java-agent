@@ -74,7 +74,7 @@ public class ReturnInsnProcessor {
     }
 
     /*
-     * Compute the size of the operand stack at each return instruction.
+     * Compute the size of the operand stack at each return instruction exceeding the EXPECTED_RETURN_STACK_SIZE of 1.
      * Only applies to methods returning I (int type) or A (reference type).
      *
      * @param owner The owning class
@@ -88,7 +88,7 @@ public class ReturnInsnProcessor {
         Map<AbstractInsnNode, Integer> rtStacks = new HashMap<>();
         for (int j = 0; j < method.instructions.size(); ++j) {
             AbstractInsnNode insn = method.instructions.get(j);
-            if (insn.getOpcode() == Opcodes.IRETURN && insn.getOpcode() == Opcodes.ARETURN) {
+            if (insn.getOpcode() == Opcodes.IRETURN || insn.getOpcode() == Opcodes.ARETURN) {
                 Frame<BasicValue> f = frames[j];
                 if (f != null && f.getStackSize() > EXPECTED_RETURN_STACK_SIZE) {
                     rtStacks.put(insn, f.getStackSize());
