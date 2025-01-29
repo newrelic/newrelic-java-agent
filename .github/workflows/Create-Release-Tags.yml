@@ -11,14 +11,11 @@ jobs:
   create_release_tags:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
-        with:
-          ref: ${{ inputs.agent-ref }}
       - name: Create release tags for K8s Init Container
         run: |
-          RELEASE_TITLE="New Relic Java Agent ${GITHUB_REF}.0"
-          RELEASE_TAG="${GITHUB_REF}.0_java"
-          RELEASE_NOTES="Automated release for [Java Agent ${GITHUB_REF}](https://github.com/newrelic/newrelic-java-agent/releases/tag/${GITHUB_REF})"
+          RELEASE_TITLE="New Relic Java Agent ${{ inputs.agent-ref }}.0"
+          RELEASE_TAG="${{ inputs.agent-ref }}.0_java"
+          RELEASE_NOTES="Automated release for [Java Agent ${{ inputs.agent-ref }}](https://github.com/newrelic/newrelic-java-agent/releases/tag/${{ inputs.agent-ref }})"
           gh auth login --with-token <<< $GH_RELEASE_TOKEN
           echo "newrelic/newrelic-agent-init-container - Releasing \"${RELEASE_TITLE}\" with tag ${RELEASE_TAG}"
           gh release create "${RELEASE_TAG}" --title="${RELEASE_TITLE}" --repo=newrelic/newrelic-agent-init-container --notes="${RELEASE_NOTES}"
