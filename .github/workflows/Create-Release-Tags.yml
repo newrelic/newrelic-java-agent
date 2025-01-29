@@ -2,10 +2,9 @@ name: Create release tags
 on:
   workflow_dispatch: # Allow manual trigger
     inputs:
-      agent-ref:
-        description: 'The ref (release tag) to create init containers for'
-        required: false
-        default: 'main'
+      agent-version:
+        description: 'The release tag to create init containers for, including the v. Eg v8.12.0’. '
+        required: true
         type: string
 jobs:
   create_release_tags:
@@ -13,9 +12,9 @@ jobs:
     steps:
       - name: Create release tags for K8s Init Container
         run: |
-          RELEASE_TITLE="New Relic Java Agent ${{ inputs.agent-ref }}.0"
-          RELEASE_TAG="${{ inputs.agent-ref }}.0_java"
-          RELEASE_NOTES="Automated release for [Java Agent ${{ inputs.agent-ref }}](https://github.com/newrelic/newrelic-java-agent/releases/tag/${{ inputs.agent-ref }})"
+          RELEASE_TITLE="New Relic Java Agent ${{ inputs.agent-version }}.0"
+          RELEASE_TAG="${{ inputs.agent-version }}.0_java"
+          RELEASE_NOTES="Automated release for [Java Agent ${{ inputs.agent-version }}](https://github.com/newrelic/newrelic-java-agent/releases/tag/${{ inputs.agent-version }})"
           gh auth login --with-token <<< $GH_RELEASE_TOKEN
           echo "newrelic/newrelic-agent-init-container - Releasing \"${RELEASE_TITLE}\" with tag ${RELEASE_TAG}"
           gh release create "${RELEASE_TAG}" --title="${RELEASE_TITLE}" --repo=newrelic/newrelic-agent-init-container --notes="${RELEASE_NOTES}"
