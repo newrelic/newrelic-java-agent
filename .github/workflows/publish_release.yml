@@ -53,14 +53,3 @@ jobs:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew $GRADLE_OPTIONS :newrelic-opentelemetry-agent-extension:publish -Prelease=true
-
-      - name: Create release tags for K8s Init Container
-        run: |
-          RELEASE_TITLE="New Relic Java Agent ${GITHUB_REF}.0"
-          RELEASE_TAG="${GITHUB_REF}.0_java"
-          RELEASE_NOTES="Automated release for [Java Agent ${GITHUB_REF}](https://github.com/newrelic/newrelic-java-agent/releases/tag/${GITHUB_REF})"
-          gh auth login --with-token <<< $GH_RELEASE_TOKEN
-          echo "newrelic/newrelic-agent-init-container - Releasing \"${RELEASE_TITLE}\" with tag ${RELEASE_TAG}"
-          gh release create "${RELEASE_TAG}" --title="${RELEASE_TITLE}" --repo=newrelic/newrelic-agent-init-container --notes="${RELEASE_NOTES}"
-        env:
-          GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
