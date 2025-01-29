@@ -33,6 +33,7 @@ import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
+import com.newrelic.test.marker.RequiresFork;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -40,6 +41,7 @@ import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
@@ -54,6 +56,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
+@Category(RequiresFork.class)
 @RunWith(Parameterized.class)
 public class W3CTraceContextCrossAgentTest {
     private MockServiceManager serviceManager;

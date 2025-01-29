@@ -31,8 +31,10 @@ import com.newrelic.agent.service.analytics.InsightsServiceImpl.TransactionInsig
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
@@ -51,6 +53,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
+@Category(RequiresFork.class)
 public class InsightsServiceImplTest {
 
     private static final String appName = "Dude";

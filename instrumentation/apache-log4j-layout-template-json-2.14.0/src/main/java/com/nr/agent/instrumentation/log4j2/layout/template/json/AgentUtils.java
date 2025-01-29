@@ -10,6 +10,8 @@ import com.newrelic.agent.bridge.logging.Log4jUtils;
 import org.apache.logging.log4j.core.LogEvent;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.BLOB_PREFIX;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.getLinkingMetadataBlob;
@@ -18,6 +20,8 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLog
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingLocalDecoratingEnabled;
 
 public class AgentUtils {
+    private static final Pattern JSON_MESSAGE_VALUE_END = Pattern.compile("\"message\".+?[^\\\\]((\",)|(\"}))");
+
     /**
      * Checks pretty or compact JSON layout strings for a series of characters and returns the index of
      * the characters or -1 if they were not found. This is used to find the log "message" substring
@@ -27,17 +31,14 @@ public class AgentUtils {
      * @return positive int if index was found, else -1
      */
     public static int getIndexToModifyJson(String writerString) {
-        int msgIndex = writerString.indexOf("message");
-        if (msgIndex < 0) {
-            return msgIndex;
-        }
-        // If the "message" field is before other fields in the json string
-        int index = writerString.indexOf("\",", msgIndex);
+        int index = -1;
+        Matcher matcher = JSON_MESSAGE_VALUE_END.matcher(writerString);
 
-        if (index < 0 ) {
-            // If "message" is the last field in the json string
-            index = writerString.indexOf("\"}", msgIndex);
+        if (matcher.find()) {
+            // Group 1 in the match is the ", char sequence
+            index = matcher.start(1);
         }
+
         return index;
     }
 

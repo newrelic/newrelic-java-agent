@@ -271,7 +271,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final SpanEventsConfig spanEventsConfig;
     private final SqlTraceConfig sqlTraceConfig;
     private final StripExceptionConfig stripExceptionConfig;
-    private final SuperAgentIntegrationConfig superAgentIntegrationConfig;
+    private final AgentControlIntegrationConfig agentControlIntegrationConfig;
     private final ThreadProfilerConfig threadProfilerConfig;
     private final TransactionEventsConfig transactionEventsConfig;
     private final TransactionTracerConfigImpl transactionTracerConfig;
@@ -375,7 +375,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         normalizationRuleConfig = new NormalizationRuleConfig(props);
         slowTransactionsConfig = initSlowTransactionsConfig();
         obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
-        superAgentIntegrationConfig = initSuperAgentHealthCheckConfig();
+        agentControlIntegrationConfig = initAgentControlHealthCheckConfig();
 
         Map<String, Object> flattenedProps = new HashMap<>();
         flatten("", props, flattenedProps);
@@ -842,8 +842,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return new SlowTransactionsConfigImpl(props);
     }
 
-    private SuperAgentIntegrationConfig initSuperAgentHealthCheckConfig() {
-        return new SuperAgentIntegrationConfigImpl(nestedProps(SuperAgentIntegrationConfigImpl.ROOT));
+    private AgentControlIntegrationConfig initAgentControlHealthCheckConfig() {
+        return new AgentControlIntegrationConfigImpl(nestedProps(AgentControlIntegrationConfigImpl.ROOT));
     }
 
     @Override
@@ -1068,8 +1068,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
-    public SuperAgentIntegrationConfig getSuperAgentIntegrationConfig() {
-        return superAgentIntegrationConfig;
+    public AgentControlIntegrationConfig getAgentControlIntegrationConfig() {
+        return agentControlIntegrationConfig;
     }
 
     private Object findPropertyInMap(String[] property, Map<String, Object> map) {

@@ -41,6 +41,8 @@ public class HttpAsyncClient_Instrumentation {
         Segment segment = InstrumentationUtils.startAsyncSegment();
 
         HttpRequest request = ((BasicRequestProducer_Instrumentation)requestProducer).nrRequest;
+        // null out the NewField to prevent memory issues
+        ((BasicRequestProducer_Instrumentation)requestProducer).nrRequest = null;
         InstrumentationUtils.doOutboundCAT(request, segment);
         Token token = NewRelic.getAgent().getTransaction().getToken();
 

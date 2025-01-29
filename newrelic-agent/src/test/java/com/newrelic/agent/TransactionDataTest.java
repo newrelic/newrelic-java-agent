@@ -13,6 +13,7 @@ import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.dispatchers.Dispatcher;
+import com.newrelic.agent.model.ApdexPerfZone;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.sql.SlowQueryListener;
 import com.newrelic.agent.tracers.Tracer;
@@ -327,4 +328,21 @@ public class TransactionDataTest {
         Assert.assertEquals(MessageFormat.format(" {0}ms {1}", String.valueOf(expected), ex), result);
     }
 
+    @Test
+    public void isApdexFrustrating_returnsTrue_whenErrorIsPresent() {
+        Mockito.when(tx.isErrorReportableAndNotIgnored()).thenReturn(true);
+        Mockito.when(tx.isErrorNotExpected()).thenReturn(true);
+
+        TransactionData txd = getTxData(tx);
+        Assert.assertTrue(txd.isApdexFrustrating());
+    }
+
+    @Test
+    public void isApdexFrustrating_returnsFalse_whenNoErrorIsPresent() {
+        Mockito.when(tx.isErrorReportableAndNotIgnored()).thenReturn(false);
+        Mockito.when(tx.isErrorNotExpected()).thenReturn(false);
+
+        TransactionData txd = getTxData(tx);
+        Assert.assertFalse(txd.isApdexFrustrating());
+    }
 }
