@@ -2,9 +2,10 @@ name: Create release tags
 on:
   workflow_dispatch: # Allow manual trigger
     inputs:
-      releaseTag:
-        description: 'Agent release tag to create init containers for'
-        required: true
+      agent-ref:
+        description: 'The ref (release tag) to create init containers for'
+        required: false
+        default: 'main'
         type: string
 jobs:
   create_release_tags:
@@ -12,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
-          ref: ${{ inputs.releaseTag }}
+          ref: ${{ inputs.agent-ref }}
       - name: Create release tags for K8s Init Container
         run: |
           RELEASE_TITLE="New Relic Java Agent ${GITHUB_REF}.0"
