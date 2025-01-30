@@ -168,7 +168,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final int DEFAULT_PORT = 80;
     public static final String DEFAULT_PROXY_HOST = null;
     public static final int DEFAULT_PROXY_PORT = 8080;
-    public static final String DEFAULT_PROXY_SCHEME = null;
+    public static final String DEFAULT_PROXY_SCHEME = "http";
     public static final boolean DEFAULT_PUT_FOR_DATA_SEND_ENABLED = false;
     public static final String DEFAULT_SECURITY_POLICIES_TOKEN = "";
     public static final boolean DEFAULT_SEND_DATA_ON_EXIT = false;

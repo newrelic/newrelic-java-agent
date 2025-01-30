@@ -59,6 +59,7 @@ public class JfrServiceTest {
         when(agentConfig.getMetricIngestUri()).thenReturn(DEFAULT_METRIC_INGEST_URI);
         when(agentConfig.getEventIngestUri()).thenReturn(DEFAULT_EVENT_INGEST_URI);
         when(agentConfig.getLicenseKey()).thenReturn("test_1234_license_key");
+        when(agentConfig.getProxyScheme()).thenReturn("http");
         when(agentConfig.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
                 .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
     }
@@ -75,6 +76,7 @@ public class JfrServiceTest {
         assertEquals(DEFAULT_EVENT_INGEST_URI, daemonConfig.getEventsUri().toString());
         assertEquals(22, daemonConfig.getHarvestInterval().getSeconds());
         assertEquals(300_000, (int)daemonConfig.getQueueSize());
+        assertEquals("http", daemonConfig.getProxyScheme());
     }
 
     @Test
