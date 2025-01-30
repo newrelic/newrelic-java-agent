@@ -1,4 +1,4 @@
-name: Create release tags
+name: Create init-container release tags
 on:
   workflow_dispatch: # Allow manual trigger
     inputs:
@@ -8,7 +8,7 @@ on:
         type: string
 jobs:
   create_release_tags:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Create release tags for K8s Init Container
         run: |
