@@ -15,38 +15,20 @@ import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.weave.MethodKey;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.AnnotationNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.InnerClassNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.*;
+import org.objectweb.asm.util.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -536,6 +518,39 @@ public final class WeaveUtils {
         ClassNode result = new SynchronizedClassNode(ASM_API_LEVEL);
         reader.accept(result, ClassReader.SKIP_FRAMES);
         return result;
+    }
+
+    /**
+     * Utility method to print human-readable bytecode instructions of a MethodNode.
+     *
+     * @param mn the node to print
+     */
+    public static void printAllInstructions(MethodNode mn) {
+        for (AbstractInsnNode insn : mn.instructions) {
+            System.out.println(stringifyInstruction(insn));
+        }
+    }
+
+    public static String stringifyInstruction(AbstractInsnNode node) {
+        Textifier p = new Textifier(WeaveUtils.ASM_API_LEVEL) {
+            @Override
+            protected void appendLabel(Label l) {
+                if (labelNames == null) {
+                    labelNames = new HashMap<>();
+                }
+                String name = labelNames.get(l);
+                if (name == null) {
+                    name = l.toString();
+                    labelNames.put(l, name);
+                }
+                stringBuilder.append(name);
+            }
+        };
+        TraceMethodVisitor mv = new TraceMethodVisitor(p);
+        node.accept(mv);
+        StringWriter sw = new StringWriter();
+        p.print(new PrintWriter(sw));
+        return sw.toString().replace('\n', ' ');
     }
 
     /**
