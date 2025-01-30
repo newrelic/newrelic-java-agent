@@ -15,7 +15,6 @@ import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.weave.MethodKey;
-import org.objectweb.asm.tree.analysis.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.commons.Method;
@@ -521,6 +520,11 @@ public final class WeaveUtils {
         return result;
     }
 
+    /**
+     * Utility method to print human-readable bytecode instructions of a MethodNode.
+     *
+     * @param mn the node to print
+     */
     public static void printAllInstructions(MethodNode mn) {
         for (AbstractInsnNode insn : mn.instructions) {
             System.out.println(stringifyInstruction(insn));
@@ -557,13 +561,6 @@ public final class WeaveUtils {
      * @return byte array representing the specified class node
      */
     public static byte[] convertToClassBytes(ClassNode classNode, ClassInformationFinder classInfoFinder) {
-        boolean shouldDump = classNode.name.equals("io/ktor/samples/clientmultipart/MultipartAppKt$main$1$1");
-        if (shouldDump) {
-//            Printer printer = new Textifier();
-//            PrintWriter output = new PrintWriter(System.out, true);
-//            TraceClassVisitor traceClassVisitor= new TraceClassVisitor(null, printer, output);
-//            classNode.accept(traceClassVisitor);
-        }
         ClassWriter cw = new PatchedClassWriter(ClassWriter.COMPUTE_FRAMES, classInfoFinder);
         classNode.accept(cw);
         return cw.toByteArray();
