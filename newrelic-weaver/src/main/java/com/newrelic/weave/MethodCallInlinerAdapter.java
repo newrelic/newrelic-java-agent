@@ -148,10 +148,11 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
     Only the invokeSuspend method of kotlin coroutines has been known to leave return stacks untidy.
      */
     private boolean shouldClearReturnStacks(String owner, String name, String desc) {
-        final String invokeSuspendOwner = WeaveUtils.INLINER_PREFIX + "kotlin/coroutines/jvm/internal/BaseContinuationImpl";
+        //owner depends on where the instrumentation is eventually implemented
+        //final String invokeSuspendOwner = WeaveUtils.INLINER_PREFIX + "kotlin/coroutines/jvm/internal/BaseContinuationImpl";
         final String invokeSuspendName = "invokeSuspend";
         final String invokeSuspendDesc = "(Ljava/lang/Object;)Ljava/lang/Object;";
-        return invokeSuspendOwner.equals(owner) && invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
+        return invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
     }
 
     class ClearReturnAdapter extends MethodNode {
