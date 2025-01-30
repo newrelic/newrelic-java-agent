@@ -127,7 +127,7 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             } else {
                 // Copy the MethodNode before modifying the instructions list (which is not thread safe)
                 MethodNode methodNodeCopy = WeaveUtils.copy(method.method);
-                if (shouldClearReturnStacks(owner, name, desc)){
+                if (shouldClearReturnStacks(name, desc)){
                     MethodNode result = WeaveUtils.newMethodNode(methodNodeCopy);
                     methodNodeCopy.accept(new ClearReturnAdapter(owner, methodNodeCopy, result));
                     methodNodeCopy = result;
@@ -142,33 +142,6 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             inliners.put(key, method);
         }
         return method;
-    }
-
-    /*
-    Only the invokeSuspend method of kotlin coroutines has been known to leave return stacks untidy.
-     */
-    private boolean shouldClearReturnStacks(String owner, String name, String desc) {
-        //owner depends on where the instrumentation is eventually implemented
-        //final String invokeSuspendOwner = WeaveUtils.INLINER_PREFIX + "kotlin/coroutines/jvm/internal/BaseContinuationImpl";
-        final String invokeSuspendName = "invokeSuspend";
-        final String invokeSuspendDesc = "(Ljava/lang/Object;)Ljava/lang/Object;";
-        return invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
-    }
-
-    class ClearReturnAdapter extends MethodNode {
-        String owner;
-        public ClearReturnAdapter(String owner, MethodNode source, MethodVisitor next) {
-            super(WeaveUtils.ASM_API_LEVEL, source.access, source.name, source.desc, source.signature, source.exceptions.toArray(new String[source.exceptions.size()]));
-            this.mv = next;
-            this.owner = owner;
-        }
-
-        @Override
-        public void visitEnd() {
-            System.out.println("In visitEnd of OtherClearReturnAdapter for owner: " + owner + " and name: " + name + " and desc " + desc);
-            ReturnInsnProcessor.clearReturnStacks(owner, this);
-            accept(mv);
-        }
     }
 
     class InliningAdapter extends LocalVariablesSorter {
@@ -257,6 +230,42 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             // an access exception with the WebSphere security manager. The newLocal method seems to
             // do about the same thing but a little more. anyway, the tests pass..
             return caller.newLocal(type);
+        }
+    }
+
+    /**
+    Flags method nodes requiring additional return insn processing, which for now is only invokeSuspend.
+    */
+    private boolean shouldClearReturnStacks(String name, String desc) {
+        final String invokeSuspendName = "invokeSuspend";
+        final String invokeSuspendDesc = "(Ljava/lang/Object;)Ljava/lang/Object;";
+        return invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
+    }
+
+    /**
+    This adapter checks a method's return instructions, adding additional POPs prior to return instructions
+    if the return is made with extra (>1) operands on the stack.
+
+    ReturnInsnProcessor.clearReturnStacks is placed in visitEnd() of this adapter, rather than called directly on
+    the source node, for thread safety reasons. Our thread safety strategy is to synchronize on the accept method
+    of the source node, and require that all modifications to bytecode be initiated by an invocation of accept():
+
+    source.accept(new ClearReturnAdapter(owner, source, next)) //conforms to thread-safe model
+
+    ReturnInsnProcessor.clearReturnStacks(owner, source) //does not conform to thread-safe model
+     */
+    class ClearReturnAdapter extends MethodNode {
+        String owner;
+        public ClearReturnAdapter(String owner, MethodNode source, MethodVisitor next) {
+            super(WeaveUtils.ASM_API_LEVEL, source.access, source.name, source.desc, source.signature, source.exceptions.toArray(new String[source.exceptions.size()]));
+            this.mv = next;
+            this.owner = owner;
+        }
+
+        @Override
+        public void visitEnd() {
+            ReturnInsnProcessor.clearReturnStacks(owner, this);
+            accept(mv);
         }
     }
 

@@ -42,6 +42,12 @@ public class WeaveCoroutineTest {
         SampleCoroutineKt.doThreeSuspends();
     }
 
+    @Test
+    public void nestedSuspendsShouldNotThrow() throws IOException {
+        WeaveTestUtils.weaveAndAddToContextClassloader("com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doNestedSuspends$1$1", "com.newrelic.weave.weavepackage.testclasses.Weave_SampleCoroutine");
+        SampleCoroutineKt.doNestedSuspends();
+    }
+
     //The original method and weaved method are hard to compare directly, because the weaved method includes
     //a bunch of extra New Relic Stuff. This just checks we added some pops (as expected).
     @Test

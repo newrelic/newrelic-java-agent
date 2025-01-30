@@ -22,11 +22,21 @@ fun doNoSuspends() = runBlocking {
     }
 }
 
+fun doNestedSuspends() = runBlocking{
+    launch {
+        nested()
+    }
+}
 suspend fun doWorld() {
     println("World!")
 }
 
 fun doOtherWorld() {
     print("Non-suspending world!")
+}
+
+suspend fun nested(){
+    delay(1000L)
+    doWorld()
 }
 
