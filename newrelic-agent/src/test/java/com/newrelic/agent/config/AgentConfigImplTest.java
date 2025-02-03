@@ -272,6 +272,21 @@ public class AgentConfigImplTest {
     }
 
     @Test
+    public void proxyScheme() {
+        Map<String, Object> localMap = new HashMap<>();
+        localMap.put(AgentConfigImpl.PROXY_SCHEME, "foo");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertEquals("foo", config.getProxyScheme());
+    }
+
+    @Test
+    public void proxySchemeDefault() {
+        AgentConfig config = AgentConfigImpl.createAgentConfig(new HashMap<>());
+        assertEquals(AgentConfigImpl.DEFAULT_PROXY_SCHEME, config.getProxyScheme());
+    }
+
+    @Test
     public void sendEnvironmentInfo() {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.SEND_ENVIRONMENT_INFO, !AgentConfigImpl.DEFAULT_SEND_ENVIRONMENT_INFO);
