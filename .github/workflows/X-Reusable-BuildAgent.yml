@@ -16,7 +16,7 @@ on:
 jobs:
   # build the agent and saves Gradle's cache so all modules can use the cache
   build-agent:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       # we use this in env var for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}

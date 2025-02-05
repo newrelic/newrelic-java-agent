@@ -14,7 +14,7 @@ on:
 jobs:
   create_custom_jar:
     name: Create jar
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       # we use this in env var for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}

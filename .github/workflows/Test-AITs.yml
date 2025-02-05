@@ -47,7 +47,7 @@ jobs:
 
   list-tests:
     name: List tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       tests: ${{ steps.read-single-test.outputs.tests || steps.read-tests.outputs.tests }}
     steps:
@@ -117,7 +117,7 @@ jobs:
     name: ${{ matrix.tests }}
     needs: [ build-agent, list-tests ]
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # Determine if easier to make the env strings below part of the matrix
     strategy:
       fail-fast: false
@@ -318,7 +318,7 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
           echo "still complains of file not found"
           sudo apt-get install virtualenv
-          virtualenv -p /usr/bin/python3.8 .
+          virtualenv -p /usr/bin/python3.10 .
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
           ZULU11=${JDK_zulu_11} \
@@ -369,7 +369,7 @@ jobs:
 
   notify-if-negative-values:
     needs: [ tests ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Download artifact(s) # surely there is a way to only download the negative_value_*.txt artifacts?
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4

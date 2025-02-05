@@ -267,7 +267,7 @@ jobs:
     secrets: inherit
 
   another-job:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: build-agent
     steps:
       - name: Retrieve agent from cache
