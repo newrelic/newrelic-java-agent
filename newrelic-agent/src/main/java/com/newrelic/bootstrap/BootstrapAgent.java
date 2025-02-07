@@ -16,7 +16,6 @@ import com.newrelic.agent.modules.HttpModuleUtil;
 import com.newrelic.agent.modules.HttpModuleUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -44,6 +43,14 @@ public class BootstrapAgent {
 
     public static URL getAgentJarUrl() {
         return BootstrapAgent.class.getProtectionDomain().getCodeSource().getLocation();
+    }
+
+    public static URL getOtelJarUrl() {
+        try {
+            return EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.OTEL_JAR_NAME).toURI().toURL();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -157,15 +164,17 @@ public class BootstrapAgent {
                 // because java.sql is loaded by the platform loader, so we skipped loading agent-bridge-datastore for Java 9+ versions.
                 // We now need to give the agent-bridge-datastore url and the platform classloader (as the parent classloader).
                 URL url = BootstrapLoader.getDatastoreJarURL();
-                codeSource = new URL[] { getAgentJarUrl(), url };
+                codeSource = new URL[] { getAgentJarUrl(), getOtelJarUrl(), url };
             } else {
                 // agent-bridge-datastore.jar was already added to the classpath by the System/App classloader via BootstrapLoader
-                codeSource = new URL[] { getAgentJarUrl() };
+                codeSource = new URL[] { getAgentJarUrl(), getOtelJarUrl() };
             }
             // When we have come through the above 'else' path (java versions < 9) the agentClassLoaderParent will be null. This is okay
             // because the url provides the jar and all the agent classes. The weaver, agent-api, agent-bridge, and agent-datastore
             // jars have already been added to the classpath and loaded by the com.newrelic.BootstrapLoader (which is loaded by AppClassLoader) for this case.
-            ClassLoader classLoader = new JVMAgentClassLoader(codeSource, agentClassLoaderParent);
+            ClassLoader classLoader = new JVMAgentOtelClassLoader(codeSource, agentClassLoaderParent);
+            // TODO probably good to have a flag here to use otel or not.
+            // if otel is not used (or the file cannot be read), the JVMAgentClassLoader should be used instead
 
             redefineJavaBaseModule(inst, classLoader);
             addReadUnnamedModuleToHttpModule(inst, agentClassLoaderParent);

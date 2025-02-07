@@ -52,6 +52,9 @@ public class BootstrapLoader {
     public static final String API_JAR_NAME = "newrelic-api";
 
     public static final String WEAVER_API_JAR_NAME = "newrelic-weaver-api";
+    // need to figure out how to remove the version from the file name (in build.gradle)
+    public static final String OTEL_JAR_NAME = "opentelemetry-javaagent-2.13.1";
+    public static final String OTEL_EXPORTER_JAR_NAME = "opentelemetry-exporter-otlp-1.47.0";
 
     public static final String NEWRELIC_SECURITY_AGENT = "newrelic-security-agent";
 
@@ -132,8 +135,10 @@ public class BootstrapLoader {
      */
     public static Collection<URL> getJarURLs() throws ClassNotFoundException, IOException {
         List<URL> urls = new ArrayList<>();
+        // need to double-check whether otel javaagent should be here
         for (String name : new String[] { AGENT_BRIDGE_JAR_NAME, AGENT_BRIDGE_DATASTORE_JAR_NAME,
-                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API }) {
+                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API, OTEL_JAR_NAME,
+                OTEL_EXPORTER_JAR_NAME }) {
             File jarFileInAgent = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(name);
             urls.add(jarFileInAgent.toURI().toURL());
         }

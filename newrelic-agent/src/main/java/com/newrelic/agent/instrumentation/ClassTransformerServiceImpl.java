@@ -57,7 +57,6 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
     private InstrumentationContextManager contextManager;
     private TraceMatchTransformer traceMatchTransformer;
     private ClassLoaderClassTransformer classLoaderClassTransformer = null;
-    private final InstrumentationImpl instrumentation;
     private final ScheduledExecutorService executor;
     private final Instrumentation extensionInstrumentation;
     private final AtomicReference<Set<ClassMatchVisitorFactory>> retransformClassMatchers = new AtomicReference<>(
@@ -82,8 +81,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
         // pick up
         extensionInstrumentation = new ExtensionInstrumentation(instrumentationProxy);
 
-        instrumentation = new InstrumentationImpl(logger, classTransformerConfig);
-        AgentBridge.instrumentation = instrumentation;
+        AgentBridge.instrumentation = new InstrumentationImpl(logger, classTransformerConfig);
 
         ThreadFactory factory = new DefaultThreadFactory("New Relic Retransformer", true);
         executor = Executors.newSingleThreadScheduledExecutor(factory);

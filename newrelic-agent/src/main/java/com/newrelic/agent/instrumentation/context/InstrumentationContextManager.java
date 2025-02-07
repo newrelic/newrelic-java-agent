@@ -18,6 +18,7 @@ import com.newrelic.agent.instrumentation.classmatchers.ScalaTraitMatcher;
 import com.newrelic.agent.instrumentation.classmatchers.TraceLambdaVisitor;
 import com.newrelic.agent.instrumentation.ejb3.EJBAnnotationVisitor;
 import com.newrelic.agent.instrumentation.ejb4.EJB4AnnotationVisitor;
+import com.newrelic.agent.instrumentation.otel.OtelInstrumentationService;
 import com.newrelic.agent.instrumentation.tracing.TraceClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassLoaderClassTransformer;
 import com.newrelic.agent.instrumentation.weaver.ClassWeaverService;
@@ -52,6 +53,7 @@ public class InstrumentationContextManager {
     private final Set<String> classloaderExclusions;
     private final Instrumentation instrumentation;
     private final ClassWeaverService classWeaverService;
+    private final OtelInstrumentationService otelInstrumentationService;
 
     /**
      * The {@link ClassFileTransformer} which is registered with the jvm.
@@ -67,6 +69,7 @@ public class InstrumentationContextManager {
     public InstrumentationContextManager(Instrumentation instrumentation) {
         this.instrumentation = instrumentation;
         this.classWeaverService = new ClassWeaverService(instrumentation);
+        this.otelInstrumentationService = new OtelInstrumentationService();
 
         // these matchers only modify the InstrumentationContext, they don't actually transform classes
         matchVisitors.put(new ScalaTraitMatcher(), NO_OP_TRANSFORMER);

@@ -157,6 +157,11 @@ public class CoreServiceImpl extends AbstractService implements CoreService, Hea
     }
 
     @Override
+    public Instrumentation getRealInstrumentation() {
+        return instrumentation;
+    }
+
+    @Override
     public void registerHealthDataChangeListener(HealthDataChangeListener listener) {
         healthDataChangeListeners.add(listener);
     }

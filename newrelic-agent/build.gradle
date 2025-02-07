@@ -52,6 +52,12 @@ dependencies {
     implementation("javax.servlet:javax.servlet-api:3.0.1")
     // end remove
 
+    // these are otel classes used in the newrelic-agent, the real files will be in the opentelemetry-javaagent
+    implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${otelJavaagentVersion}-alpha")
+    implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${otelJavaagentVersion}-alpha")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${otelJavaagentVersion}")
+
+
     jarIntoJar project(":newrelic-api")
     jarIntoJar project(":agent-bridge")
     jarIntoJar project(":agent-bridge-datastore")
@@ -59,6 +65,13 @@ dependencies {
     jarIntoJar project(":newrelic-weaver-scala-api")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
+
+    // this jar has some shaded version of fore mentioned otel dependencies as well as their instrumentation modules.
+    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent:${otelJavaagentVersion}")
+    shadowIntoJar("io.opentelemetry:opentelemetry-exporter-otlp:1.47.0")
+
+
+
 
     shadowIntoJar( group: 'commons-codec', name: 'commons-codec') {
         version {
@@ -181,6 +194,10 @@ task relocatedShadowJar(type: ShadowJar) {
     ].each {
         relocate(it, "com.newrelic.agent.deps.$it")
     }
+
+    // This is for agent code that uses the OTel API and have to find the shaded version in their jar
+    // this is a bit hacky and could change on a future otel release
+    relocate("io.opentelemetry.instrumentation.api", "io.opentelemetry.javaagent.shaded.instrumentation.api")
 
     // This has to happen here because it uses the class relocation rules to accomplish its task
     transform(Log4j2PluginsCacheFileTransformer)
