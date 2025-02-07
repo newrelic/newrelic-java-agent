@@ -35,6 +35,10 @@ import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
+import io.opentelemetry.javaagent.OpenTelemetryAgent;
+import io.opentelemetry.javaagent.bootstrap.AgentInitializer;
+import io.opentelemetry.javaagent.bootstrap.InstrumentationHolder;
+import io.opentelemetry.javaagent.bootstrap.JavaagentFileHolder;
 import org.objectweb.asm.ClassReader;
 
 import java.io.ByteArrayOutputStream;
@@ -238,6 +242,18 @@ public final class Agent {
         }
         lifecycleObserver.agentStarted();
         initialiseNewRelicSecurityIfAllowed(inst);
+        try {
+            File otelJarFile = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.OPENTELEMETRY_JAVAAGENT);
+//            OpenTelemetryAgent.premain("OpenTelemetry", inst);
+
+            // These three methods are copied from OpenTelemetryAgent.premain because directly calling
+            // OpenTelemetryAgent.premain was bombing out on the installBootstrapJar method
+            InstrumentationHolder.setInstrumentation(inst);
+            JavaagentFileHolder.setJavaagentFile(otelJarFile);
+            AgentInitializer.initialize(inst, otelJarFile, true);
+        } catch (Throwable t) {
+            System.err.println(MessageFormat.format("Error bootstrapping OTel agent: {0}", t));
+        }
     }
 
     private static void initialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
@@ -308,6 +324,7 @@ public final class Agent {
             // Now that we know the agent is enabled, add the ApiClassTransformer
             BootstrapLoader.forceCorrectNewRelicApi(inst);
             BootstrapLoader.forceCorrectNewRelicSecurityApi(inst);
+            BootstrapLoader.forceCorrectOpenTelemetryApi(inst);
 
             // init problem classes before class transformer service is active
             InitProblemClasses.loadInitialClasses();
