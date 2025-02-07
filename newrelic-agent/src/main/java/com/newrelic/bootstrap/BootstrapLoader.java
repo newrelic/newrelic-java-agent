@@ -52,6 +52,7 @@ public class BootstrapLoader {
     public static final String API_JAR_NAME = "newrelic-api";
 
     public static final String WEAVER_API_JAR_NAME = "newrelic-weaver-api";
+    public static final String OTEL_JAR_NAME = "opentelemetry-javaagent-tooling";
 
     public static final String NEWRELIC_SECURITY_AGENT = "newrelic-security-agent";
 
@@ -133,7 +134,7 @@ public class BootstrapLoader {
     public static Collection<URL> getJarURLs() throws ClassNotFoundException, IOException {
         List<URL> urls = new ArrayList<>();
         for (String name : new String[] { AGENT_BRIDGE_JAR_NAME, AGENT_BRIDGE_DATASTORE_JAR_NAME,
-                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API }) {
+                API_JAR_NAME, WEAVER_API_JAR_NAME, NEWRELIC_SECURITY_AGENT, NEWRELIC_SECURITY_API, OTEL_JAR_NAME }) {
             File jarFileInAgent = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(name);
             urls.add(jarFileInAgent.toURI().toURL());
         }
@@ -159,6 +160,7 @@ public class BootstrapLoader {
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(WEAVER_API_JAR_NAME)));
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_API)));
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT)));
+            addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(OTEL_JAR_NAME)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

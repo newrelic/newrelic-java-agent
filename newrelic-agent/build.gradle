@@ -59,6 +59,7 @@ dependencies {
     jarIntoJar project(":newrelic-weaver-scala-api")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
+    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${otelVersion}")
 
     shadowIntoJar( group: 'commons-codec', name: 'commons-codec') {
         version {
