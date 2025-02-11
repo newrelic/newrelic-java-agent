@@ -519,6 +519,23 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // Initialize new logEventAttributes map with agent linking metadata
         Map<String, Object> logEventAttributes = new HashMap<>(logEventLinkingMetadata);
 
+        ApplicationLoggingConfig appLoggingConfig = ServiceFactory.getConfigService()
+                .getDefaultAgentConfig()
+                .getApplicationLoggingConfig();
+
+        Map<String, String> rawLabels = appLoggingConfig.getLoggingLabels();
+        System.out.println("LogSenderServiceImpl.createValidatedEvent: rawLabels = " + rawLabels);
+        boolean labelsEnabled = appLoggingConfig.isLoggingLabelsEnabled();
+
+
+        if (rawLabels != null && labelsEnabled && appLoggingConfig.isEnabled()) {
+            System.out.println("LogSenderServiceImpl.createValidatedEvent: rawLabels = " + rawLabels);
+            for (Map.Entry<String, String> label : rawLabels.entrySet()) {
+                String labelKey = "tags." + label.getKey();
+                logEventAttributes.put(labelKey, label.getValue());
+            }
+        }
+
         LogEvent event = new LogEvent(logEventAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
