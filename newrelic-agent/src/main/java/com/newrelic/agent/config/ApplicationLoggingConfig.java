@@ -8,6 +8,8 @@
 package com.newrelic.agent.config;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Configuration for application logging features. These settings do not pertain to agent logs.
@@ -69,4 +71,10 @@ public interface ApplicationLoggingConfig {
      * @return a list of Strings
      */
     List<String> getForwardingContextDataExclude();
+
+    boolean isLoggingLabelsEnabled();
+
+    Map<String, String> getLoggingLabels();
+
+    Set<String> getLoggingLabelsExcludes();
 }
