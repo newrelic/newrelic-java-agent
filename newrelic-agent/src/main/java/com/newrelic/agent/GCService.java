@@ -68,6 +68,7 @@ public class GCService extends AbstractService implements HarvestListener {
                 garbageCollector = new GarbageCollector(gcBean);
                 garbageCollectors.put(gcBean.getName(), garbageCollector);
             }
+            NewRelic.getAgent().getLogger().log(Level.INFO, "GC Debug: There are {0} collectors registered", garbageCollectors.size());
             // tmp modification: move out of else block
             // to test possible edge case
             garbageCollector.recordGC(gcBean, statsEngine);
