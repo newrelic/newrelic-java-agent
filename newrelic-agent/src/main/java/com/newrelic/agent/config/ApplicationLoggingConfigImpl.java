@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
 
@@ -25,6 +26,10 @@ import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
  *       enabled: false
  *       include:
  *       exclude:
+ *     labels:
+ *       enabled: false
+ *       labels:
+ *       excludes:
  *   metrics:
  *     enabled: true
  *   local_decorating:
@@ -35,6 +40,7 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public static final String METRICS = "metrics";
     public static final String FORWARDING = "forwarding";
     public static final String LOCAL_DECORATING = "local_decorating";
+    public static final String LABELS = "labels";
 
     public static final boolean DEFAULT_ENABLED = true;
     public static final String ENABLED = "enabled";
@@ -42,6 +48,7 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     private final ApplicationLoggingMetricsConfig applicationLoggingMetricsConfig;
     private final ApplicationLoggingLocalDecoratingConfig applicationLoggingLocalDecoratingConfig;
     private final ApplicationLoggingForwardingConfig applicationLoggingForwardingConfig;
+    private final ApplicationLoggingLabelsConfig applicationLoggingLabelsConfig;
 
     private final boolean applicationLoggingEnabled;
 
@@ -51,6 +58,7 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
         applicationLoggingMetricsConfig = createApplicationLoggingMetricsConfig();
         applicationLoggingLocalDecoratingConfig = createApplicationLoggingLocalDecoratingConfig();
         applicationLoggingForwardingConfig = createApplicationLoggingForwardingConfig(highSecurity);
+        applicationLoggingLabelsConfig = createApplicationLoggingLabelsConfig();
     }
 
     private ApplicationLoggingMetricsConfig createApplicationLoggingMetricsConfig() {
@@ -66,6 +74,12 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     private ApplicationLoggingForwardingConfig createApplicationLoggingForwardingConfig(boolean highSecurity) {
         Map<String, Object> forwardingProps = getProperty(FORWARDING, Collections.emptyMap());
         return new ApplicationLoggingForwardingConfig(forwardingProps, SYSTEM_PROPERTY_ROOT, highSecurity);
+    }
+
+    private ApplicationLoggingLabelsConfig createApplicationLoggingLabelsConfig() {
+        Map<String, Object> labelsProps = getProperty(LABELS, Collections.emptyMap());
+        System.out.println("ApplicationLoggingConfigImpl createApplicationLoggingLabelsConfig: labelsProps = " + labelsProps);
+        return new ApplicationLoggingLabelsConfig(labelsProps, SYSTEM_PROPERTY_ROOT);
     }
 
     static ApplicationLoggingConfigImpl createApplicationLoggingConfig(Map<String, Object> settings, boolean highSecurity) {
@@ -114,4 +128,20 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public List<String> getForwardingContextDataExclude() {
         return applicationLoggingForwardingConfig.contextDataExclude();
     }
+
+    @Override
+    public boolean isLoggingLabelsEnabled() {
+        return applicationLoggingEnabled && applicationLoggingLabelsConfig.getEnabled();
+    }
+
+    @Override
+    public Map<String, String> getLoggingLabels() {
+        return applicationLoggingLabelsConfig.getLogLabels();
+    }
+
+    @Override
+    public Set<String> getLoggingLabelsExcludes() {
+        return applicationLoggingLabelsConfig.getExcludeSet();
+    }
 }
+
