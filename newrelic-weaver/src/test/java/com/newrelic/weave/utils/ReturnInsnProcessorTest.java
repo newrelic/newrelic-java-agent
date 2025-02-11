@@ -1,6 +1,5 @@
 package com.newrelic.weave.utils;
 
-import net.bytebuddy.asm.Advice;
 import org.junit.Test;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
