@@ -214,6 +214,7 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
         }
         if (apdexPerfZone != null) {
             obj.put("apdexPerfZone", apdexPerfZone.getZone());
+            obj.put("nr.apdexPerfZone", apdexPerfZone.getZone());
         }
 
         DistributedTracingConfig distributedTracingConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
