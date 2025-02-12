@@ -1,0 +1,32 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.micronaut:micronaut-core:4.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-core-4.0.0',
+            'Implementation-Title-Alias': 'micronaut-core' }
+}
+
+verifyInstrumentation {
+    passesOnly('io.micronaut:micronaut-core:[4.0.0,4.3.0)')
+    excludeRegex 'io.micronaut:micronaut-core:.*(RC|M)[0-9]*$'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
+}
