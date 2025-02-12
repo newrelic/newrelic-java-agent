@@ -76,7 +76,9 @@ public class TransactionEventTest {
         assertEquals(1, jsonArray.size());
 
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(9, jsonObject.size());
+        assertEquals(10, jsonObject.size());
+        assertEquals("S", jsonObject.get("nr.apdexPerfZone"));
+        assertEquals("S", jsonObject.get("apdexPerfZone"));
         assertEquals(startTime, jsonObject.get("timestamp"));
         assertEquals(metricName, jsonObject.get("name"));
         assertEquals(duration, ((Number) jsonObject.get("duration")).floatValue(), Float.NaN);
@@ -110,7 +112,7 @@ public class TransactionEventTest {
         assertEquals(1, jsonArray.size());
 
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(11, jsonObject.size());
+        assertEquals(12, jsonObject.size());
         assertEquals(startTime, jsonObject.get("timestamp"));
         assertEquals(metricName, jsonObject.get("name"));
         assertEquals(duration, ((Number) jsonObject.get("duration")).floatValue(), Float.NaN);
@@ -146,7 +148,7 @@ public class TransactionEventTest {
         assertEquals(2, jsonArray.size());
 
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(9, jsonObject.size());
+        assertEquals(10, jsonObject.size());
         assertEquals(startTime, jsonObject.get("timestamp"));
         assertEquals(metricName, jsonObject.get("name"));
         assertEquals(duration, ((Number) jsonObject.get("duration")).floatValue(), Float.NaN);
@@ -183,7 +185,7 @@ public class TransactionEventTest {
         assertEquals(1, jsonArray.size());
 
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(9, jsonObject.size());
+        assertEquals(10, jsonObject.size());
         assertEquals(startTime, jsonObject.get("timestamp"));
         assertEquals(metricName, jsonObject.get("name"));
         assertEquals(duration, ((Number) jsonObject.get("duration")).floatValue(), Float.NaN);
@@ -221,7 +223,7 @@ public class TransactionEventTest {
         assertEquals(3, jsonArray.size());
 
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(9, jsonObject.size());
+        assertEquals(10, jsonObject.size());
         assertEquals(startTime, jsonObject.get("timestamp"));
         assertEquals(metricName, jsonObject.get("name"));
         assertEquals(duration, ((Number) jsonObject.get("duration")).floatValue(), Float.NaN);
@@ -269,7 +271,7 @@ public class TransactionEventTest {
         assertEquals(3, jsonArray.size());
 
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(9, jsonObject.size());
+        assertEquals(10, jsonObject.size());
         assertEquals(startTime, jsonObject.get("timestamp"));
         assertEquals(metricName, jsonObject.get("name"));
         assertEquals(duration, ((Number) jsonObject.get("duration")).floatValue(), Float.NaN);
@@ -398,7 +400,7 @@ public class TransactionEventTest {
                 .build();
         JSONArray jsonArray = (JSONArray) AgentHelper.serializeJSON(event);
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(9, jsonObject.size());
+        assertEquals(10, jsonObject.size());
         // These should only be set when using CAT, not DT as the agent does by default as of 7.3.0
         assertNull(jsonObject.get("nr.pathHash"));
         assertNull(jsonObject.get("nr.referringPathHash"));
@@ -413,7 +415,7 @@ public class TransactionEventTest {
                 .build();
         JSONArray jsonArray = (JSONArray) AgentHelper.serializeJSON(event);
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(12, jsonObject.size());
+        assertEquals(13, jsonObject.size());
         assertEquals("101", jsonObject.get("nr.syntheticsResourceId"));
         assertEquals("102", jsonObject.get("nr.syntheticsMonitorId"));
         assertEquals("103", jsonObject.get("nr.syntheticsJobId"));
@@ -429,7 +431,7 @@ public class TransactionEventTest {
                 .build();
         JSONArray jsonArray = (JSONArray) AgentHelper.serializeJSON(event);
         JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-        assertEquals(12, jsonObject.size());
+        assertEquals(13, jsonObject.size());
         assertEquals("cli", jsonObject.get("nr.syntheticsInitiator"));
         assertEquals("scheduled", jsonObject.get("nr.syntheticsType"));
         assertEquals("val1", jsonObject.get("nr.syntheticsKey1"));
