@@ -72,7 +72,7 @@ public class XmlRpcPointCut extends TracerFactoryPointCut {
             this.library = library;
         }
 
-        private void finish() {
+        private void doFinish() {
             try {
                 NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
                         .library(library)
@@ -92,13 +92,13 @@ public class XmlRpcPointCut extends TracerFactoryPointCut {
 
         @Override
         public void finish(int opcode, Object returnValue) {
-            finish();
+            doFinish();
             super.finish(opcode, returnValue);
         }
 
         @Override
         public void finish(Throwable throwable) {
-            finish();
+            doFinish();
             super.finish(throwable);
         }
     }
