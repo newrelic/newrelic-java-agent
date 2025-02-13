@@ -35,7 +35,7 @@ public class AgentCollectionFactory implements CollectionFactory {
      */
     @Override
     public <K, V> Map<K, V> createConcurrentTimeBasedEvictionMap(long ageInSeconds) {
-        Cache<K, V> cache = Caffeine.newBuilder().initialCapacity(32).expireAfterWrite(ageInSeconds, TimeUnit.SECONDS).executor(Runnable::run).build();
+        Cache<K, V> cache = Caffeine.newBuilder().initialCapacity(32).expireAfterAccess(ageInSeconds, TimeUnit.SECONDS).executor(Runnable::run).build();
         return cache.asMap();
     }
 
