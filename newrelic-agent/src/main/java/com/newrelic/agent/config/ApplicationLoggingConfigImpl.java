@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
 
@@ -24,6 +25,9 @@ import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
  *     context_data:
  *       enabled: false
  *       include:
+ *       exclude:
+ *     labels:
+ *       enabled: false
  *       exclude:
  *   metrics:
  *     enabled: true
@@ -114,4 +118,20 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public List<String> getForwardingContextDataExclude() {
         return applicationLoggingForwardingConfig.contextDataExclude();
     }
+
+    @Override
+    public boolean isLogLabelsEnabled() {
+        return applicationLoggingEnabled && applicationLoggingForwardingConfig.isLogLabelsEnabled();
+    }
+
+    @Override
+    public Map<String, String> removeExcludedLogLabels(Map<String, String> labels) {
+        return applicationLoggingForwardingConfig.removeExcludedLabels(labels);
+    }
+
+    @Override
+    public Set<String> getLogLabelsExcludeSet() {
+        return applicationLoggingForwardingConfig.getLoggingLabelsExcludes();
+    }
 }
+
