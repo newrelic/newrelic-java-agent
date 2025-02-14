@@ -46,4 +46,15 @@ public class ApplicationLoggingLabelsConfigTest {
         assertFalse(config.isExcluded("test3"));
     }
 
+    @Test
+    public void testLabelsIsDisabledByDefault() {
+        ApplicationLoggingLabelsConfig config = new ApplicationLoggingLabelsConfig(new HashMap<>(), PARENT_ROOT + LABELS);
+        assertFalse( "Labels should set to false by default", config.getEnabled());
+    }
+
+    @Test
+    public void testLabelsExcludeDefaultsToEmptySet() {
+        ApplicationLoggingLabelsConfig config = new ApplicationLoggingLabelsConfig(new HashMap<>(), PARENT_ROOT + LABELS);
+        assertTrue("Excluded set should be empty by default", config.getExcludeSet().isEmpty());
+    }
 }
