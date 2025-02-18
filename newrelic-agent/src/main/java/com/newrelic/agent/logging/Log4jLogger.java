@@ -20,6 +20,9 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -30,7 +33,7 @@ import java.util.logging.Level;
 
 import static com.newrelic.agent.logging.FileAppenderFactory.FILE_APPENDER_NAME;
 
-class Log4jLogger implements IAgentLogger {
+class Log4jLogger implements IAgentLogger, Resource {
 
     /**
      * The name of the console appender.
@@ -48,6 +51,12 @@ class Log4jLogger implements IAgentLogger {
     private final Logger logger;
     private final Map<String, IAgentLogger> childLoggers = new ConcurrentHashMap<>();
 
+    private String fileName;
+    private long logLimitBytes;
+    private int fileCount;
+    private boolean isDaily;
+    private String path;
+
     /**
      * Creates this Log4jLogger.
      *
@@ -64,6 +73,9 @@ class Log4jLogger implements IAgentLogger {
             ctx.updateLoggers();
             FineFilter.getFineFilter().start();
         }
+
+//        error("JGB registering with Core");
+        Core.getGlobalContext().register(this);
     }
 
     @Override
@@ -252,6 +264,51 @@ class Log4jLogger implements IAgentLogger {
     }
 
     /**
+     * Stops the file appender for the taking of a checkpoint
+     */
+    public void stopFileAppender() {
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig(logger.getName());
+
+        Appender checkpointFileAppender = loggerConfig.getAppenders().get(FILE_APPENDER_NAME);
+        if (checkpointFileAppender != null) {
+            // remove it from the list, so we don't try to write to it any longer
+            // this could cause missed messages in the log file, but would still
+            // go to the console
+            System.out.println("JGB Removing file appender, current list: ");
+            for (Appender a : loggerConfig.getAppenders().values()) {
+                System.out.println("    JGB "+a.getName());
+            }
+            // TODO should me make sure there is a console appender here?
+            loggerConfig.removeAppender(checkpointFileAppender.getName());
+            // stop to close the open file
+            checkpointFileAppender.stop();
+            ctx.updateLoggers();
+            System.out.println("JGB Removed file appender, current list: ");
+            for (Appender a : loggerConfig.getAppenders().values()) {
+                System.out.println("    JGB "+a.getName());
+            }
+        }
+    }
+
+    /**
+     * Starts the file appender after a restore
+     */
+    public void startFileAppender() {
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig(logger.getName());
+
+        Appender checkpointFileAppender = loggerConfig.getAppenders().get(FILE_APPENDER_NAME);
+        if (checkpointFileAppender == null && fileName != null) { // don't add it if it's already  there
+            System.out.println("JGB startFileAppender: " + fileName + "; " + logLimitBytes + "; " + fileCount + "; " + isDaily + "; " + path);
+            addFileAppender(fileName, logLimitBytes, fileCount, isDaily, path);
+            ctx.updateLoggers();
+        }
+    }
+
+    /**
      * Adds a file appender.
      *
      * @param fileName Name of the appender.
@@ -259,6 +316,13 @@ class Log4jLogger implements IAgentLogger {
      * @param fileCount The number of files.
      */
     public void addFileAppender(String fileName, long logLimitBytes, int fileCount, boolean isDaily, String path) {
+        this.fileName = fileName;
+        this.logLimitBytes = logLimitBytes;
+        this.fileCount = fileCount;
+        this.isDaily = isDaily;
+        this.path = path;
+        System.out.println("JGB addFileAppender: "+fileName+"; "+logLimitBytes+"; "+fileCount+"; "+isDaily+"; "+path);
+
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();
         LoggerConfig loggerConfig = config.getLoggerConfig(logger.getName());
@@ -477,6 +541,19 @@ class Log4jLogger implements IAgentLogger {
             }
             logger.log(level, pattern, part1, part2, part3, part4);
         }
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        System.out.println("JGB stopping file appender");
+        stopFileAppender();
+        // TODO what should we do with any log messages that come in after ths, but before the shutdown?
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        System.out.println("JGB starting file appender");
+        startFileAppender();
     }
 
 }
