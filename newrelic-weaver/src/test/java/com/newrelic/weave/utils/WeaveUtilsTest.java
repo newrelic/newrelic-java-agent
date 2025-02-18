@@ -21,6 +21,12 @@ import java.io.PrintStream;
 
 import org.objectweb.asm.Opcodes;
 
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.ICONST_1;
+import static org.objectweb.asm.Opcodes.ICONST_2;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.POP;
+
 public class WeaveUtilsTest {
 
     @Test
@@ -69,16 +75,16 @@ public class WeaveUtilsTest {
     }
 
     @Test
-    public void testPrintAllInstructions(){
+    public void testPrintAllInstructions() {
         //intercept std out
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outContent));
 
-        int[] opcodeList = {Opcodes.ICONST_1, Opcodes.POP, Opcodes.ICONST_2, Opcodes.DUP, Opcodes.DUP, Opcodes.IRETURN};
+        int[] opcodeList = { ICONST_1, POP, ICONST_2, DUP, DUP, IRETURN };
         MethodNode mn = new MethodNode(Opcodes.ASM9, Opcodes.ACC_PUBLIC, "myMethod", "()I", null, null);
         InsnList insns = mn.instructions;
-        for (int opcode: opcodeList) {
+        for (int opcode : opcodeList) {
             insns.add(new InsnNode(opcode));
         }
         WeaveUtils.printAllInstructions(mn);

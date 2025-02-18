@@ -1,8 +1,16 @@
 package com.newrelic.weave.utils;
 
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.*;
-import org.objectweb.asm.tree.analysis.*;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.BasicInterpreter;
+import org.objectweb.asm.tree.analysis.BasicValue;
+import org.objectweb.asm.tree.analysis.Frame;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +57,7 @@ public class ReturnInsnProcessor {
     All other return types will return an empty InsnList.
      */
 
-    private static InsnList insnsBeforeReturn(int opcode, int stackSize, int varIndex){
+    private static InsnList insnsBeforeReturn(int opcode, int stackSize, int varIndex) {
         InsnList insns = new InsnList();
         int store;
         int load;
@@ -58,7 +66,7 @@ public class ReturnInsnProcessor {
                 store = Opcodes.ASTORE;
                 load = Opcodes.ALOAD;
                 break;
-            case Opcodes.IRETURN :
+            case Opcodes.IRETURN:
                 store = Opcodes.ISTORE;
                 load = Opcodes.ILOAD;
                 break;
@@ -66,7 +74,7 @@ public class ReturnInsnProcessor {
                 return insns;
         }
         insns.add(new VarInsnNode(store, varIndex));
-        for (int i = stackSize; i > EXPECTED_RETURN_STACK_SIZE; i--){
+        for (int i = stackSize; i > EXPECTED_RETURN_STACK_SIZE; i--) {
             insns.add(new InsnNode(Opcodes.POP));
         }
         insns.add(new VarInsnNode(load, varIndex));
@@ -97,7 +105,5 @@ public class ReturnInsnProcessor {
         }
         return rtStacks;
     }
-
-
 
 }
