@@ -297,7 +297,6 @@ public class PreparedMatch {
     }
 
     private MethodNode prepare(ClassMatch classMatch, MethodNode matchedMethod, Map<Method, CallOriginalReplacement> callOriginalReplacementMap) {
-
         // remove JSR instructions
         MethodNode prepared = MethodProcessors.removeJSRInstructions(matchedMethod);
 
