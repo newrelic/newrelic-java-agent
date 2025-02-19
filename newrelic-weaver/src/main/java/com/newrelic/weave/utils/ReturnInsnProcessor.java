@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.newrelic.weave.utils;
 
 import org.objectweb.asm.Opcodes;
@@ -32,6 +39,8 @@ public class ReturnInsnProcessor {
             stacks = getReturnStacks(owner, mn);
         } catch (AnalyzerException e) {
             //Something went wrong calculating return stacks, leave the method unmodified.
+            //This is a silent failure that indicates that the source (client) bytecode is invalid.
+            //This should never happen!
             return;
         }
         if (stacks != null && !stacks.isEmpty()) {

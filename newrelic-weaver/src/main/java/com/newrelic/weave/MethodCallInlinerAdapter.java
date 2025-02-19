@@ -241,6 +241,8 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
 
     /**
      * Flags method nodes requiring additional return insn processing, which for now is only invokeSuspend.
+     * For future reference, if other code surfaces a bytecode verification failure (such as an ArrayIndexOutOfBoundsException),
+     * modify this guard to process additional methods beyond invokeSuspend.
      */
     private boolean shouldClearReturnStacks(String name, String desc) {
         final String invokeSuspendName = "invokeSuspend";
