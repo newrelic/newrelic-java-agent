@@ -20,6 +20,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /*
 This test checks whether weaving is successful for a class known to generate bytecode with extra operands on the stack.
@@ -106,6 +107,23 @@ public class WeaveCoroutineTest {
         int popsAfter = countInsnsWithOpcode(weavedInvokeSuspend, Opcodes.POP);
 
         assertEquals(popsBefore, popsAfter);
+    }
+
+    //We added a feature flag to disable the return insn processing.
+    //Setting this flag should allow the original error to throw.
+    @Test
+    public void featureFlagOnThrowsAIOOBException() throws IOException {
+        //This property has to be set at weave time, so it has to be run with a new class.
+        System.setProperty("newrelic.config.class_transformer.clear_return_stacks", "false");
+
+        try {
+            WeaveTestUtils.weaveAndAddToContextClassloader("com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doExpectedErrorSuspend$1$1",
+                    "com.newrelic.weave.weavepackage.testclasses.Weave_SampleCoroutine");
+            fail("Feature flag clear_return_stacks should throw AIOOBException during weaving.");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+
+        System.clearProperty("newrelic.config.class_transformer.clear_return_stacks");
     }
 
     private MethodNode getNodeNamed(List<MethodNode> methods, String targetName) {

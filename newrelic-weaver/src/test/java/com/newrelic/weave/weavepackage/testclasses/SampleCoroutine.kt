@@ -32,6 +32,12 @@ fun doNoSuspends() = runBlocking {
     }
 }
 
+fun doExpectedErrorSuspend() = runBlocking {
+    launch {
+        doWorld();
+    }
+}
+
 fun doNestedSuspends() = runBlocking{
     launch {
         nested()

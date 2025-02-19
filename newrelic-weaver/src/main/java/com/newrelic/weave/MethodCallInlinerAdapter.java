@@ -245,9 +245,20 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
      * modify this guard to process additional methods beyond invokeSuspend.
      */
     private boolean shouldClearReturnStacks(String name, String desc) {
+        if (clearReturnStacksDisabled()) {
+            return false;
+        }
         final String invokeSuspendName = "invokeSuspend";
         final String invokeSuspendDesc = "(Ljava/lang/Object;)Ljava/lang/Object;";
         return invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
+    }
+
+    /**
+     * Feature flag to disable return stack processing.
+     */
+    private boolean clearReturnStacksDisabled () {
+        String sysProp = System.getProperty("newrelic.config.class_transformer.clear_return_stacks");
+        return ("false").equalsIgnoreCase(sysProp);
     }
 
     /**
