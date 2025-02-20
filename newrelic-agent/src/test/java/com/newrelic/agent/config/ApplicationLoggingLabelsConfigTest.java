@@ -1,6 +1,7 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.SaveSystemPropertyProviderRule;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -18,11 +19,16 @@ import static org.junit.Assert.assertTrue;
 public class ApplicationLoggingLabelsConfigTest {
 
     @Rule
-    public SaveSystemPropertyProviderRule saveSystemPropertyProviderRule = new SaveSystemPropertyProviderRule();
+    public SaveSystemPropertyProviderRule saveSystemPropertyProviderRule;
 
     public static final String ENV_VAR_ENABLE = "NEW_RELIC_APPLICATION_LOGGING_FORWARDING_LABELS_ENABLED";
     public static final String ENV_VAR_EXCLUDE = "NEW_RELIC_APPLICATION_LOGGING_FORWARDING_LABELS_EXCLUDE";
     private static final String PARENT_ROOT = "newrelic.config.application_logging.";
+
+    @Before
+    public void setup() {
+        saveSystemPropertyProviderRule = new SaveSystemPropertyProviderRule();
+    }
 
     @Test
     public void testDefaultLabelsConfig() {
@@ -36,8 +42,7 @@ public class ApplicationLoggingLabelsConfigTest {
 
     @Test
     public void testSettingExcludeViaSystemProps() {
-        Properties props = new Properties();
-        props.put("newrelic.config.application_logging.forwarding.labels.exclude", "test1, test2");
+        Properties props = createSystemProperties("newrelic.config.application_logging.forwarding.labels.exclude", "test1, test2");
 
         SystemPropertyFactory.setSystemPropertyProvider(
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props), //only test the system property
@@ -72,8 +77,7 @@ public class ApplicationLoggingLabelsConfigTest {
 
     @Test
     public void canEnableLabelsViaSystemProperty() {
-        Properties props = new Properties();
-        props.put(PARENT_ROOT + "forwarding.labels.enabled", "true");
+        Properties props = createSystemProperties(PARENT_ROOT + "forwarding.labels.enabled", "true");
 
         SystemPropertyFactory.setSystemPropertyProvider(
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props), //only test the system property
@@ -85,8 +89,7 @@ public class ApplicationLoggingLabelsConfigTest {
 
     @Test
     public void canDisableLabelsViaSystemProperty() {
-        Properties props = new Properties();
-        props.put(PARENT_ROOT + "forwarding.labels.enabled", "false");
+        Properties props = createSystemProperties(PARENT_ROOT + "forwarding.labels.enabled", "false");
 
         SystemPropertyFactory.setSystemPropertyProvider(
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props), //only test the system property
@@ -125,8 +128,7 @@ public class ApplicationLoggingLabelsConfigTest {
     @Test
     public void canEnableLabelsViaEnvVarsOverSysProps() {
         Map<String, String> envVars = Collections.singletonMap(ENV_VAR_ENABLE, "true");
-        Properties props = new Properties();
-        props.put(PARENT_ROOT + "forwarding.labels.enabled", "false");
+        Properties props = createSystemProperties(PARENT_ROOT + "forwarding.labels.enabled", "false");
 
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envVars)));
@@ -138,8 +140,7 @@ public class ApplicationLoggingLabelsConfigTest {
     @Test
     public void canDisableLabelsViaEnvVarsOverSysProps() {
         Map<String, String> envVars = Collections.singletonMap(ENV_VAR_ENABLE, "false");
-        Properties props = new Properties();
-        props.put(PARENT_ROOT + "forwarding.labels.enabled", "true");
+        Properties props = createSystemProperties(PARENT_ROOT + "forwarding.labels.enabled", "true");
 
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envVars)));
@@ -201,46 +202,54 @@ public class ApplicationLoggingLabelsConfigTest {
     @Test
     public void testRemoveExcludeLabelsRemoveCorrectly() {
         Map<String, Object> props = new HashMap<>();
-        props.put("exclude", Arrays.asList("exclude1", "exclude2", "exclude3"));
+        props.put("exclude", Arrays.asList("label4", "label5", "label6"));
 
         ApplicationLoggingLabelsConfig config = new ApplicationLoggingLabelsConfig(props, PARENT_ROOT);
-        Map<String, String> labels = new HashMap<>();
-        labels.put("exclude1", "value1");
-        labels.put("exclude2", "value2");
-        labels.put("exclude3", "value3");
-        labels.put("include1", "value1");
-        labels.put("include2", "value2");
-        labels.put("include3", "value3");
+        Map<String, String> labels = createLabelsMap();
+        labels.put("label4", "value4");
+        labels.put("label5", "value5");
+        labels.put("label6", "value6");
+
+        assertEquals(6, labels.size());
+        assertTrue(labels.containsKey("label1"));
+        assertTrue(labels.containsKey("label2"));
+        assertTrue(labels.containsKey("label3"));
+        assertTrue(labels.containsKey("label4"));
+        assertTrue(labels.containsKey("label5"));
+        assertTrue(labels.containsKey("label6"));
 
         Map<String, String> filteredLabels = config.removeExcludedLabels(labels);
 
         assertEquals(3, filteredLabels.size());
-        assertTrue(filteredLabels.containsKey("include1"));
-        assertTrue(filteredLabels.containsKey("include2"));
-        assertTrue(filteredLabels.containsKey("include3"));
+        assertTrue(filteredLabels.containsKey("label1"));
+        assertTrue(filteredLabels.containsKey("label2"));
+        assertTrue(filteredLabels.containsKey("label3"));
     }
 
     @Test
     public void testRemoveExcludedLabelsWhenNoExcludes() {
-        Map<String, Object> props = new HashMap<>();
-        ApplicationLoggingLabelsConfig config = new ApplicationLoggingLabelsConfig(props, PARENT_ROOT);
-        Map<String, String> labels = new HashMap<>();
-        labels.put("exclude1", "value1");
-        labels.put("exclude2", "value2");
-        labels.put("exclude3", "value3");
-        labels.put("include1", "value1");
-        labels.put("include2", "value2");
-        labels.put("include3", "value3");
-
+        ApplicationLoggingLabelsConfig config = new ApplicationLoggingLabelsConfig(new HashMap<>(), PARENT_ROOT);
+        Map<String, String> labels = createLabelsMap();
         Map<String, String> filteredLabels = config.removeExcludedLabels(labels);
 
-        assertEquals(6, filteredLabels.size());
-        assertTrue(filteredLabels.containsKey("exclude1"));
-        assertTrue(filteredLabels.containsKey("exclude2"));
-        assertTrue(filteredLabels.containsKey("exclude3"));
-        assertTrue(filteredLabels.containsKey("include1"));
-        assertTrue(filteredLabels.containsKey("include2"));
-        assertTrue(filteredLabels.containsKey("include3"));
+        assertEquals(3, filteredLabels.size());
+        assertTrue(filteredLabels.containsKey("label1"));
+        assertTrue(filteredLabels.containsKey("label2"));
+        assertTrue(filteredLabels.containsKey("label3"));
+    }
+
+    private Properties createSystemProperties(String key, String value) {
+        Properties properties = new Properties();
+        properties.put(key, value);
+        return properties;
+    }
+
+    private Map<String, String> createLabelsMap() {
+        Map<String, String> labelsMap = new HashMap<>();
+        labelsMap.put("label1", "value1");
+        labelsMap.put("label2", "value2");
+        labelsMap.put("label3", "value3");
+        return labelsMap;
     }
 
 }
