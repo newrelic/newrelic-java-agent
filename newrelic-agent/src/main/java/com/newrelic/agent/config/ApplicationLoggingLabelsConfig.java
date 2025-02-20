@@ -11,6 +11,7 @@ public class ApplicationLoggingLabelsConfig extends BaseConfig {
     public static final String ROOT = "labels";
     public static final String ENABLED = "enabled";
     public static final String EXCLUDE = "exclude";
+    public static final boolean DEFAULT_ENABLED = false;
 
     private final boolean enabled;
     private final Set<String> excludeSet;
@@ -18,21 +19,31 @@ public class ApplicationLoggingLabelsConfig extends BaseConfig {
     /**
      * Constructor to initialize LogLabelsConfig from configuration properties.
      *
-     * @param props Map containing configuration properties.
+     * @param props      Map containing configuration properties.
+     * @param parentRoot Root path for the configuration properties.
      */
     public ApplicationLoggingLabelsConfig(Map<String, Object> props, String parentRoot) {
         super(props, parentRoot + ROOT + ".");
-        enabled = props.containsKey(ENABLED) && (boolean) props.get(ENABLED);
-        excludeSet = initExcludes(props);
+
+        excludeSet = initExcludes(getProperty(EXCLUDE));
+        enabled = getProperty(ENABLED, DEFAULT_ENABLED);
     }
 
-    private Set<String> initExcludes(Map<String, Object> props) {
-        List<String> excludeList = (List<String>) props.getOrDefault(EXCLUDE, Collections.emptyList());
-        if (excludeList == null) {
-            return Collections.emptySet();
+    private Set<String> initExcludes(Object excludes) {
+        Set<String> formattedExcludes = new HashSet<>();
+        if (excludes instanceof List<?>) {
+            for (Object listItem : (List<?>) excludes) {
+                formattedExcludes.add(listItem.toString().trim());
+            }
+        } else if (excludes instanceof String) {
+            formattedExcludes.addAll(parseExcludesString((String) excludes));
         }
+        return formattedExcludes;
+    }
+
+    private Set<String> parseExcludesString(String excludes) {
         Set<String> excludeSet = new HashSet<>();
-        for (String exclude : excludeList) {
+        for (String exclude : excludes.split(",")) {
             String trimmedExclude = exclude.trim();
             if (!trimmedExclude.isEmpty()) {
                 excludeSet.add(trimmedExclude);
@@ -40,12 +51,6 @@ public class ApplicationLoggingLabelsConfig extends BaseConfig {
         }
         return excludeSet;
     }
-
-    public boolean getEnabled() { return enabled; }
-
-    public Set<String> getExcludeSet() { return excludeSet; }
-
-    public boolean isExcluded(String label) { return getExcludeSet().contains(label); }
 
     public Map<String, String> removeExcludedLabels(Map<String, String> labels) {
         Map<String, String> filteredLabels = new HashMap<>();
@@ -56,4 +61,17 @@ public class ApplicationLoggingLabelsConfig extends BaseConfig {
         }
         return filteredLabels;
     }
+
+    public boolean isExcluded(String label) {
+        return getExcludeSet().contains(label);
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    public Set<String> getExcludeSet() {
+        return excludeSet;
+    }
+
 }
