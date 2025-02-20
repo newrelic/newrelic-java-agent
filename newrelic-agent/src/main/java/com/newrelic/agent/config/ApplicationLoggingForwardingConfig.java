@@ -85,7 +85,7 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
         return loggingLabelsConfig.removeExcludedLabels(labels);
     }
 
-    public Set<String> getLoggingLabelsExcludes() {
+    public Set<String> getLoggingLabelsExcludeSet() {
         return loggingLabelsConfig.getExcludeSet();
     }
 }
