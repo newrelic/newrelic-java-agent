@@ -13,6 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Configuration class for adding tags to application logs.
+ * <p>
+ * This class is used to parse configuration properties, applying tag exclusions
+ * and managing feature enablement.
+ */
+
 public class ApplicationLoggingLabelsConfig extends BaseConfig {
     public static final String ROOT = "labels";
     public static final String ENABLED = "enabled";
