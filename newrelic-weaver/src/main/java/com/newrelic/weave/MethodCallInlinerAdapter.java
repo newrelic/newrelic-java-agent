@@ -255,6 +255,7 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
 
     /**
      * Feature flag to disable return stack processing.
+     * To use this feature flag, set -Dnewrelic.config.class_transformer.clear_return_stacks=false at JVM startup.
      */
     private boolean clearReturnStacksDisabled() {
         String enabled = System.getProperty("newrelic.config.class_transformer.clear_return_stacks", "true");
