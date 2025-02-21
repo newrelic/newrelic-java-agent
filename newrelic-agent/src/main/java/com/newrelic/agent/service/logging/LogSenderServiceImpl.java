@@ -60,6 +60,10 @@ import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
 public class LogSenderServiceImpl extends AbstractService implements LogSenderService {
     // Whether the service as a whole is enabled. Disabling shuts down all log events.
     private volatile boolean forwardingEnabled;
+    // Whether the labels are enabled for log events
+    private static boolean logLabelsEnabled;
+    // Labels to be added to log events
+    private static Map<String, String> labels;
     // Key is the app name, value is if it is enabled - should be a limited number of names
     private final ConcurrentMap<String, Boolean> isEnabledForApp = new ConcurrentHashMap<>();
     // Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
@@ -121,11 +125,11 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
             boolean metricsEnabled = appLoggingConfig.isMetricsEnabled();
             boolean localDecoratingEnabled = appLoggingConfig.isLocalDecoratingEnabled();
-            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled);
+            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled);
         }
     };
 
-    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled) {
+    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled) {
         StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
 
         if (forwardingEnabled) {
@@ -145,6 +149,12 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         } else {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED);
         }
+
+        if (logLabelsEnabled) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LABELS_JAVA_ENABLED);
+        } else {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LABELS_JAVA_DISABLED);
+        }
     }
 
     private final List<Harvestable> harvestables = new ArrayList<>();
@@ -157,6 +167,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         maxSamplesStored = (int) (appLoggingConfig.getMaxSamplesStored()*(reportPeriodInMillis / 60000.0));
         forwardingEnabled = appLoggingConfig.isForwardingEnabled();
         contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
+        logLabelsEnabled = appLoggingConfig.isLogLabelsEnabled();
+        labels = appLoggingConfig.removeExcludedLogLabels(config.getLabelsConfig().getLabels());
 
         isEnabledForApp.put(config.getApplicationName(), forwardingEnabled);
     }
@@ -518,6 +530,13 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                 ServiceFactory.getConfigService(), ServiceFactory.getRPMService());
         // Initialize new logEventAttributes map with agent linking metadata
         Map<String, Object> logEventAttributes = new HashMap<>(logEventLinkingMetadata);
+
+        if (labels != null && logLabelsEnabled) {
+            for (Map.Entry<String, String> label : labels.entrySet()) {
+                String labelKey = "tags." + label.getKey();
+                logEventAttributes.put(labelKey, label.getValue());
+            }
+        }
 
         LogEvent event = new LogEvent(logEventAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
