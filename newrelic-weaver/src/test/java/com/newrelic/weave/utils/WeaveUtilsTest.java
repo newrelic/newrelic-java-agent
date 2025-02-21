@@ -11,9 +11,21 @@ import com.newrelic.weave.WeaveTestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+
+import org.objectweb.asm.Opcodes;
+
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.ICONST_1;
+import static org.objectweb.asm.Opcodes.ICONST_2;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.POP;
 
 public class WeaveUtilsTest {
 
@@ -62,4 +74,26 @@ public class WeaveUtilsTest {
         Assert.assertFalse(WeaveUtils.isEmptyConstructor(generatedNonEmptyInnerCtor));
     }
 
+    @Test
+    public void testPrintAllInstructions() {
+        //intercept std out
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        int[] opcodeList = { ICONST_1, POP, ICONST_2, DUP, DUP, IRETURN };
+        MethodNode mn = new MethodNode(Opcodes.ASM9, Opcodes.ACC_PUBLIC, "myMethod", "()I", null, null);
+        InsnList insns = mn.instructions;
+        for (int opcode : opcodeList) {
+            insns.add(new InsnNode(opcode));
+        }
+        WeaveUtils.printAllInstructions(mn);
+
+        String actual = outContent.toString().trim().replaceAll("\\s+", " ");
+        String expected = "ICONST_1 POP ICONST_2 DUP DUP IRETURN";
+        Assert.assertEquals(expected, actual);
+
+        //replace std out
+        System.setOut(originalOut);
+    }
 }
