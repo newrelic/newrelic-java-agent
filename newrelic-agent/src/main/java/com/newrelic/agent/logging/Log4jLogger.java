@@ -66,6 +66,7 @@ class Log4jLogger implements IAgentLogger, Resource {
         logger = LogManager.getLogger(name);
 
         if (isAgentRoot) {
+            Core.getGlobalContext().register(this);
             LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
             Configuration config = ctx.getConfiguration();
             LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
@@ -73,9 +74,6 @@ class Log4jLogger implements IAgentLogger, Resource {
             ctx.updateLoggers();
             FineFilter.getFineFilter().start();
         }
-
-//        error("JGB registering with Core");
-        Core.getGlobalContext().register(this);
     }
 
     @Override

@@ -12,6 +12,10 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.AgentJarHelper;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;
+import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 
 import java.io.File;
 import java.net.URL;
@@ -97,8 +101,8 @@ class Log4jLogManager implements IAgentLogManager {
                     }
                 }
 
-                System.setProperty(CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
-                System.setProperty(LEGACY_CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
+                //System.setProperty(CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
+                //System.setProperty(LEGACY_CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
                 // Log4j won't be able to find log4j-provider.properties because it isn't on the classpath (it's in our agent) so this sets it manually
                 System.setProperty(CONTEXT_FACTORY_PROP, "org.apache.logging.log4j.core.impl.Log4jContextFactory");
 
@@ -110,6 +114,15 @@ class Log4jLogManager implements IAgentLogManager {
                 // I've no idea why, but using anything other than the legacy style property here can cause a segfault
                 System.setProperty(LEGACY_CLASSLOADER_PROP, "true");
                 System.setProperty(CLASSLOADER_PROP, "true");
+
+                // crac testing w/o log4j.xml file
+                ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationBuilderFactory.newConfigurationBuilder();
+                builder.setConfigurationName("Default");
+                builder.add(builder.newRootLogger(Level.INFO));
+                builder.setShutdownHook("disable");
+                builder.add(builder.newLogger("com.newrelic.agent.deps.org.reflections", Level.OFF));
+                Configurator.initialize(builder.build());
+                /////////////
 
                 try {
                     logger = createRootLogger(name);
