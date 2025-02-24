@@ -12,7 +12,6 @@ import scala.jdk.CollectionConverters._
 import org.junit.{After, Assert, Before, Test}
 
 import java.net.URL
-import java.util.Arrays
 import scala.io.Source
 import scala.util.{Try, Using}
 import scala.concurrent.Future
@@ -23,7 +22,7 @@ import java.util.concurrent.Executors
 
 @RunWith(classOf[InstrumentationTestRunner])
 @InstrumentationTestConfig(includePrefixes = Array("org.http4s", "cats.effect"))
-class BlazeServerBuilderSchmest {
+class BlazeServerBuilderTest {
 
   val blazeServer = new Http4sTestServer(HttpRoutes.of[IO] {
     case GET -> Root / "hello" / name =>
