@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<BugCollection version="4.7.3" sequence="0" timestamp="1740388060189" analysisTimestamp="1740388060189" release="">
+<BugCollection version="4.7.3" sequence="0" timestamp="1740474422523" analysisTimestamp="1740474422523" release="">
   <Project projectName="newrelic-weaver (spotbugsMain)">
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/ClassWeave$1.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/PreparedMatch$2.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/MethodProcessors$4.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/MethodCallInlinerAdapter$ClearReturnAdapter.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/ErrorTrapWeaveMethodsProcessor.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/PreparedMatch$AnnotationInfo.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/ClassMatch$NewInnerClassInfoCollector.class</Jar>
@@ -61,10 +62,12 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/ClassInformationFinder.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/BootstrapLoader$2.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/ClassInformation$CollectAnnotationsVisitor$1.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/ReturnInsnProcessor.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/ReferenceUtils$1.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/ReferenceUtils$ClassRenamingVisitor.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/ClassLoaderFinder.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/ClassInformation.class</Jar>
+    <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/utils/WeaveUtils$6.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/MethodProcessors$9.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/WeaveViolationFilter.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/MethodCallInlinerAdapter.class</Jar>
@@ -135,6 +138,7 @@
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/MethodProcessors$5.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/PreparedExtension.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/build/classes/java/main/com/newrelic/weave/ClassMatch.class</Jar>
+    <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/1.8.21/67f57e154437cd9e6e9cf368394b95814836ff88/kotlin-stdlib-jdk8-1.8.21.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver-api/build/classes/java/main</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver-scala-api/build/classes/java/main</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver-scala-api/build/classes/scala/main</AuxClasspathEntry>
@@ -142,16 +146,21 @@
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-util/9.7/c0655519f24d92af2202cb681cd7c1569df6ead6/asm-util-9.7.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/30.1.1-jre/87e0fd1df874ea3cbe577702fe6f17068b790fd8/guava-30.1.1-jre.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/com.github.ben-manes.caffeine/caffeine/2.9.3/b162491f768824d21487551873f9b3b374a7fe19/caffeine-2.9.3.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.8.21/7473b8cd3c0ef9932345baf569bc398e8a717046/kotlin-stdlib-jdk7-1.8.21.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.8.21/43d50ab85bc7587adfe3dda3dbe579e5f8d51265/kotlin-stdlib-1.8.21.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-analysis/9.7/e4a258b7eb96107106c0599f0061cfc1832fe07a/asm-analysis-9.7.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.7/e446a17b175bfb733b87c5c2560ccb4e57d69f1a/asm-tree-9.7.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.7/73d7b3086e14beb604ced229c302feff6449723/asm-9.7.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.checkerframework/checker-qual/3.19.0/838b42bb6f7f73315167b359d24649845cef1c48/checker-qual-3.19.0.jar</AuxClasspathEntry>
     <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/com.google.errorprone/error_prone_annotations/2.10.0/9bc20b94d3ac42489cf6ce1e42509c86f6f861a1/error_prone_annotations-2.10.0.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.8.21/d749cd5ae25da36d06e5028785038e24f9d37976/kotlin-stdlib-common-1.8.21.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>/home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar</AuxClasspathEntry>
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/src/main/resources</SrcDir>
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/src/main/java</SrcDir>
+    <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-weaver/src/main/kotlin</SrcDir>
   </Project>
   <Errors errors="0" missingClasses="0"></Errors>
-  <FindBugsSummary timestamp="Mon, 24 Feb 2025 09:07:40 +0000" total_classes="0" referenced_classes="0" total_bugs="0" total_size="0" num_packages="0" java_version="1.8.0_442" vm_version="25.442-b06" cpu_seconds="27.18" clock_seconds="16.70" peak_mbytes="414.08" alloc_mbytes="910.50" gc_seconds="0.61">
+  <FindBugsSummary timestamp="Tue, 25 Feb 2025 09:07:02 +0000" total_classes="0" referenced_classes="0" total_bugs="0" total_size="0" num_packages="0" java_version="1.8.0_442" vm_version="25.442-b06" cpu_seconds="28.91" clock_seconds="17.17" peak_mbytes="416.88" alloc_mbytes="910.50" gc_seconds="0.57">
     <FindBugsProfile></FindBugsProfile>
   </FindBugsSummary>
   <ClassFeatures></ClassFeatures>
