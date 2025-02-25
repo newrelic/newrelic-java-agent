@@ -37,6 +37,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 
 import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
@@ -54,15 +57,23 @@ import java.util.zip.GZIPInputStream;
 
 import static com.newrelic.agent.transport.DataSenderImpl.GZIP_ENCODING;
 
-public class ApacheHttpClientWrapper implements HttpClientWrapper {
+public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     private final ApacheProxyManager proxyManager;
-    private final PoolingHttpClientConnectionManager connectionManager;
-    private final CloseableHttpClient httpClient;
+    private PoolingHttpClientConnectionManager connectionManager;
+    private CloseableHttpClient httpClient;
+    private SSLContext sslContext;
+    private final int defaultTimeoutInMillis;
 
     public ApacheHttpClientWrapper(ApacheProxyManager proxyManager, SSLContext sslContext, int defaultTimeoutInMillis) {
         this.proxyManager = proxyManager;
         this.connectionManager = createHttpClientConnectionManager(sslContext);
         this.httpClient = createHttpClient(defaultTimeoutInMillis);
+
+        this.sslContext = sslContext;
+        this.defaultTimeoutInMillis = defaultTimeoutInMillis;
+
+        System.out.println("JGB Registering Core Resource: ApacheHttpClientWrapper");
+        Core.getGlobalContext().register(this);
     }
 
     private static final String USER_AGENT_HEADER_VALUE = initUserHeaderValue();
@@ -259,4 +270,19 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper {
         }
         return new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
     }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        System.out.println("JGB stopping httpClient to collector");
+        connectionManager.close();
+        httpClient.close();
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        connectionManager = createHttpClientConnectionManager(sslContext);
+        httpClient = createHttpClient(defaultTimeoutInMillis);
+        System.out.println("JGB started httpClient to collector");
+    }
+
 }
