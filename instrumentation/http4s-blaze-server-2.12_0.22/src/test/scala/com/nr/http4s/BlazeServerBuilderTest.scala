@@ -1,18 +1,18 @@
 package com.nr.http4s
 
 import cats.effect.{IO, Resource}
-import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner, Introspector, TransactionTrace}
+import com.newrelic.agent.introspec.{InstrumentationTestConfig, InstrumentationTestRunner, Introspector, TransactionEvent, TransactionTrace}
 import org.http4s.Method.GET
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.HttpRoutes
 import org.junit.runner.RunWith
+
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
 import java.util.concurrent.Executors
-
 import collection.JavaConverters._
 import org.junit.{After, Assert, Before, Test}
 
@@ -58,6 +58,8 @@ class BlazeServerBuilderTest {
     Assert.assertEquals("Trace present", 1, traces.size)
     Assert.assertEquals("Transaction name correct", Some("WebTransaction/HTTP4s/BlazeServerHandler"), webTxnName)
 
+    val txns = introspector.getTransactionEvents("WebTransaction/HTTP4s/BlazeServerHandler")
+    txns.forEach(assertWebAttributes)
   }
 
   @Test
@@ -79,4 +81,13 @@ class BlazeServerBuilderTest {
   private def getTraces(introspector: Introspector): Iterable[TransactionTrace] =
     introspector.getTransactionNames.asScala.flatMap(transactionName => introspector.getTransactionTracesForTransaction(transactionName).asScala)
 
+  private def assertWebAttributes(t: TransactionEvent): Unit = {
+    //original implementations of the server instrumentation did not include response attributes
+    val actualAttrs: scala.collection.mutable.Map[String, AnyRef] = t.getAttributes.asScala
+
+    val expectedReqAttrs = List("request.uri", "request.method")
+    val expectedResAttrs = List("httpResponseCode", "http.statusCode") //don't care whether we send standard or legacy, but one of these should be there
+    Assert.assertTrue("Transaction should include web request attributes", expectedReqAttrs.forall(actualAttrs.contains))
+    Assert.assertTrue("Transaction should include web response attributes", expectedResAttrs.exists(actualAttrs.contains))
+  }
 }
