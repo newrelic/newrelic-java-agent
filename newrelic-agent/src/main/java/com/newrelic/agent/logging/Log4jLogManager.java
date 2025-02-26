@@ -101,8 +101,6 @@ class Log4jLogManager implements IAgentLogManager {
                     }
                 }
 
-                //System.setProperty(CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
-                //System.setProperty(LEGACY_CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
                 // Log4j won't be able to find log4j-provider.properties because it isn't on the classpath (it's in our agent) so this sets it manually
                 System.setProperty(CONTEXT_FACTORY_PROP, "org.apache.logging.log4j.core.impl.Log4jContextFactory");
 
@@ -115,22 +113,21 @@ class Log4jLogManager implements IAgentLogManager {
                 System.setProperty(LEGACY_CLASSLOADER_PROP, "true");
                 System.setProperty(CLASSLOADER_PROP, "true");
 
-                // crac testing w/o log4j.xml file
+                // Config log4j2 programmatically rather than with an external file
                 ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationBuilderFactory.newConfigurationBuilder();
                 builder.setConfigurationName("Default");
                 builder.add(builder.newRootLogger(Level.INFO));
                 builder.setShutdownHook("disable");
                 builder.add(builder.newLogger("com.newrelic.agent.deps.org.reflections", Level.OFF));
                 Configurator.initialize(builder.build());
-                /////////////
 
                 try {
                     logger = createRootLogger(name);
                 } finally {
                     // Our logger is configured, restore back to original setting.
                     // be sure to remove our properties
-                    System.getProperties().remove(CONFIG_FILE_PROP);
-                    System.getProperties().remove(LEGACY_CONFIG_FILE_PROP);
+                    //System.getProperties().remove(CONFIG_FILE_PROP);
+                    //System.getProperties().remove(LEGACY_CONFIG_FILE_PROP);
 
                     System.getProperties().remove(CONTEXT_FACTORY_PROP);
 
@@ -160,9 +157,6 @@ class Log4jLogManager implements IAgentLogManager {
         if (logManagerProp != null && !logManagerProp.contains(WS_LOG_MANAGER)) {
             clearLog4jSystemProperty(JAVA_UTIL_LOG_MANAGER, storedSystemProps);
         }
-
-        clearLog4jSystemProperty(CONFIG_FILE_PROP, storedSystemProps);
-        clearLog4jSystemProperty(LEGACY_CONFIG_FILE_PROP, storedSystemProps);
 
         clearLog4jSystemProperty(CONTEXT_SELECT_PROP, storedSystemProps);
         clearLog4jSystemProperty(LEGACY_CONTEXT_SELECT_PROP, storedSystemProps);
