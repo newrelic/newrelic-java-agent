@@ -72,7 +72,6 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
         this.sslContext = sslContext;
         this.defaultTimeoutInMillis = defaultTimeoutInMillis;
 
-        System.out.println("JGB Registering Core Resource: ApacheHttpClientWrapper");
         Core.getGlobalContext().register(this);
     }
 
@@ -273,16 +272,18 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
 
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
-        System.out.println("JGB stopping httpClient to collector");
+        Agent.LOG.info("Stopping collector connection for CRaC checkpoint");
+        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_AGENT_CRAC_CHECKPOINT);
         connectionManager.close();
         httpClient.close();
     }
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
+        Agent.LOG.info("Restarting collector connection for CRaC restore");
+        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_AGENT_CRAC_RESTORE);
         connectionManager = createHttpClientConnectionManager(sslContext);
         httpClient = createHttpClient(defaultTimeoutInMillis);
-        System.out.println("JGB started httpClient to collector");
     }
 
 }

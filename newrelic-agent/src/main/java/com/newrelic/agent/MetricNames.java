@@ -414,6 +414,9 @@ public class MetricNames {
 
     public static final String SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS = "Supportability/Agent/Collector/Connect/BackoffAttempts";
 
+    public static final String SUPPORTABILITY_AGENT_CRAC_CHECKPOINT = "Supportability/Agent/CracCheckpoint";
+    public static final String SUPPORTABILITY_AGENT_CRAC_RESTORE = "Supportability/Agent/CracRestore";
+
     // expected errors
     public static final String SUPPORTABILITY_API_EXPECTED_ERROR_API_MESSAGE = "ExpectedError/Api/Message";
     public static final String SUPPORTABILITY_API_EXPECTED_ERROR_API_THROWABLE = "ExpectedError/Api/Throwable";

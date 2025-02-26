@@ -274,19 +274,10 @@ class Log4jLogger implements IAgentLogger, Resource {
             // remove it from the list, so we don't try to write to it any longer
             // this could cause missed messages in the log file, but would still
             // go to the console
-            System.out.println("JGB Removing file appender, current list: ");
-            for (Appender a : loggerConfig.getAppenders().values()) {
-                System.out.println("    JGB "+a.getName());
-            }
-            // TODO should me make sure there is a console appender here?
             loggerConfig.removeAppender(checkpointFileAppender.getName());
             // stop to close the open file
             checkpointFileAppender.stop();
             ctx.updateLoggers();
-            System.out.println("JGB Removed file appender, current list: ");
-            for (Appender a : loggerConfig.getAppenders().values()) {
-                System.out.println("    JGB "+a.getName());
-            }
         }
     }
 
@@ -300,7 +291,6 @@ class Log4jLogger implements IAgentLogger, Resource {
 
         Appender checkpointFileAppender = loggerConfig.getAppenders().get(FILE_APPENDER_NAME);
         if (checkpointFileAppender == null && fileName != null) { // don't add it if it's already  there
-            System.out.println("JGB startFileAppender: " + fileName + "; " + logLimitBytes + "; " + fileCount + "; " + isDaily + "; " + path);
             addFileAppender(fileName, logLimitBytes, fileCount, isDaily, path);
             ctx.updateLoggers();
         }
@@ -319,7 +309,6 @@ class Log4jLogger implements IAgentLogger, Resource {
         this.fileCount = fileCount;
         this.isDaily = isDaily;
         this.path = path;
-        System.out.println("JGB addFileAppender: "+fileName+"; "+logLimitBytes+"; "+fileCount+"; "+isDaily+"; "+path);
 
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();
@@ -543,14 +532,15 @@ class Log4jLogger implements IAgentLogger, Resource {
 
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
-        System.out.println("JGB stopping file appender");
+        Agent.LOG.info("Stopping Log4jLogger for CRaC checkpoint, log messages may be missing from the log file between here and restore, but should still appear in the console ");
         stopFileAppender();
         // TODO what should we do with any log messages that come in after ths, but before the shutdown?
+        // should we try to store them and write them after restore?
     }
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
-        System.out.println("JGB starting file appender");
+        Agent.LOG.info("Restarting Log4jLogger for CRaC restore");
         startFileAppender();
     }
 
