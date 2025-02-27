@@ -119,6 +119,19 @@ common: &default_settings
       # Default is 10000. Setting to 0 will disable.
       #max_samples_stored: 10000
 
+      # Provides the ability to add custom tags(labels) to agent forwarded logs. Labels are
+      # pulled from the top-level 'labels' section (located near the bottom of this config file).
+      # Default is false.
+      labels:
+
+        # When true, custom tags (labels) will be added to agent forwarded logs.
+        enabled: false
+
+        # A comma separated list of label keys that should NOT be added to application logs.
+        # Example:
+        #   exclude: label_name1,label_name2
+        exclude:
+
       # Whether the log events should include context from loggers with support for that.
       context_data:
 
