@@ -15,13 +15,14 @@ import java.util.regex.Pattern;
 
 public class GeneratedClassDetector implements ClassMatchVisitorFactory {
 
+    private static final Pattern PROXY_REGEX = Pattern.compile("(.*)proxy(.*)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern CGLIB_REGEX = Pattern.compile("(.*)cglib(.*)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern GENERATED_REGEX = Pattern.compile("(.*)generated(.*)", Pattern.CASE_INSENSITIVE);
+
     /**
      * Return true if the class name is likely the name of generated class. Package private for testability.
      */
-    public static final boolean isGenerated(String className) {
-        final Pattern proxy = Pattern.compile("(.*)proxy(.*)", Pattern.CASE_INSENSITIVE);
-        final Pattern cglib = Pattern.compile("(.*)cglib(.*)", Pattern.CASE_INSENSITIVE);
-        final Pattern generated = Pattern.compile("(.*)generated(.*)", Pattern.CASE_INSENSITIVE);
+    static boolean isGenerated(String className) {
 
         if (className == null) {
             return false;
@@ -31,8 +32,8 @@ public class GeneratedClassDetector implements ClassMatchVisitorFactory {
             return true;
         }
 
-        return (generated.matcher(className).find() || cglib.matcher(className).find() ||
-                proxy.matcher(className).find());
+        return (GENERATED_REGEX.matcher(className).find() || CGLIB_REGEX.matcher(className).find() ||
+                PROXY_REGEX.matcher(className).find());
     }
 
     @Override
