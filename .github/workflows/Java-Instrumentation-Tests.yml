@@ -20,11 +20,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [ 8, 11, 17, 21, 22 ]
+        java-version: [ 8, 11, 17, 21, 23 ]
     name: Java ${{ matrix.java-version }}
     timeout-minutes: 120
     # needs: install-all-java
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}

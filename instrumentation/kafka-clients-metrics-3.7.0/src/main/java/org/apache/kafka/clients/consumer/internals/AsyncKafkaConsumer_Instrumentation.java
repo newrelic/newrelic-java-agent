@@ -1,9 +1,17 @@
+/*
+ *
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package org.apache.kafka.clients.consumer.internals;
 
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.kafka.ClientType;
 import com.nr.instrumentation.kafka.NewRelicMetricsReporter;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.metrics.Metrics;
@@ -25,11 +33,7 @@ public class AsyncKafkaConsumer_Instrumentation<K, V> {
     public AsyncKafkaConsumer_Instrumentation() {
         if (!initialized) {
             List<Node> nodes = metadata.fetch().nodes();
-            Set<String> nodeNames = new HashSet<>(nodes.size());
-            for (Node node : nodes) {
-                nodeNames.add(node.host() + ":" + node.port());
-            }
-            metrics.addReporter(new NewRelicMetricsReporter(nodeNames, NewRelicMetricsReporter.Mode.CONSUMER));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, nodes));
             initialized = true;
         }
     }

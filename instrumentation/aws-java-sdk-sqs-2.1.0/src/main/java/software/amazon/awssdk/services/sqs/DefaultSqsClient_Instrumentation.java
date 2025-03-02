@@ -14,36 +14,62 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.utils.MetricUtil;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import com.newrelic.utils.SQSBatchRequestHeaders;
+import com.newrelic.utils.SQSRequestHeaders;
+import com.newrelic.utils.SqsV2Util;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Weave(type = MatchType.ExactClass, originalName = "software.amazon.awssdk.services.sqs.DefaultSqsClient")
 class DefaultSqsClient_Instrumentation {
 
     @Trace
     public SendMessageBatchResponse sendMessageBatch(SendMessageBatchRequest sendMessageBatchRequest) {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl());
+        List<SendMessageBatchRequestEntry> updatedEntries = new ArrayList<>();
+        for (SendMessageBatchRequestEntry entry : sendMessageBatchRequest.entries()) {
+            SQSBatchRequestHeaders headers = new SQSBatchRequestHeaders(entry);
+            NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
+            updatedEntries.add(headers.updatedEntry());
+        }
+        sendMessageBatchRequest = sendMessageBatchRequest.toBuilder().entries(updatedEntries).build();
+
+        MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
+
         return Weaver.callOriginal();
     }
 
     @Trace
     public SendMessageResponse sendMessage(SendMessageRequest sendMessageRequest) {
-        MessageProduceParameters messageProduceParameters = MetricUtil.generateExternalProduceMetrics(sendMessageRequest.queueUrl());
+        SQSRequestHeaders headers = new SQSRequestHeaders(sendMessageRequest);
+        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
+        sendMessageRequest = headers.getUpdatedRequest();
+
+        MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics(sendMessageRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
+
         return Weaver.callOriginal();
     }
 
     @Trace
     public ReceiveMessageResponse receiveMessage(ReceiveMessageRequest receiveMessageRequest) {
-        MessageConsumeParameters messageConsumeParameters = MetricUtil.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl());
+        ArrayList<String> updatedMessageAttrNames = new ArrayList<>(receiveMessageRequest.messageAttributeNames());
+        Collections.addAll(updatedMessageAttrNames, SqsV2Util.DT_HEADERS);
+        receiveMessageRequest = receiveMessageRequest.toBuilder().messageAttributeNames(updatedMessageAttrNames).build();
+
+        MessageConsumeParameters messageConsumeParameters = SqsV2Util.generateExternalConsumeMetrics(receiveMessageRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageConsumeParameters);
+
         return Weaver.callOriginal();
     }
+
 }

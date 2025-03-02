@@ -36,6 +36,7 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.ConnectionResponse;
@@ -65,7 +66,8 @@ import java.util.logging.Level;
 /**
  * The RPMService acts as a stub for communication between the agent and New Relic.
  */
-public class RPMService extends AbstractService implements IRPMService, EnvironmentChangeListener, AgentConfigListener {
+public class RPMService extends AbstractService implements IRPMService, EnvironmentChangeListener,
+        AgentConfigListener {
 
     public static final String COLLECT_TRACES_KEY = "collect_traces";
     public static final String COLLECT_ERRORS_KEY = "collect_errors";
@@ -987,6 +989,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
+    public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
+        return (HealthDataProducer) dataSender;
+    }
+
+    @Override
     public long getConnectionTimestamp() {
         return connectionTimestamp;
     }
@@ -1004,5 +1011,4 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         // reset our error logging so that something will show up at info level if data failures persist
         last503Error.set(0);
     }
-
 }

@@ -238,6 +238,7 @@ public class SpanEventFactoryTest {
         when(mockParameters.getProduct()).thenReturn("MySQL");
         when(mockParameters.getHost()).thenReturn("dbserver");
         when(mockParameters.getPort()).thenReturn(3306);
+        when(mockParameters.getCloudResourceId()).thenReturn("123456789");
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
@@ -249,6 +250,7 @@ public class SpanEventFactoryTest {
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
+        assertEquals("123456789", target.getAgentAttributes().get("cloud.resource_id"));
     }
 
     @Test
@@ -287,6 +289,22 @@ public class SpanEventFactoryTest {
         assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
         assertEquals(expectedPort, agentAttrs.get("server.port"));
         assertEquals("consumer", target.getIntrinsics().get("span.kind"));
+    }
+
+    @Test
+    public void shouldSetCloudResourceIdOnSpanFromDatastoreParameters() {
+        String expectedArn = "arn:aws:dynamodb:us-west-1:123456789012:tableName";
+        DatastoreParameters mockParameters = mock(DatastoreParameters.class);
+        when(mockParameters.getOperation()).thenReturn("putItem");
+        when(mockParameters.getCollection()).thenReturn("tableName");
+        when(mockParameters.getProduct()).thenReturn("DynamoDB");
+        when(mockParameters.getHost()).thenReturn("dbserver");
+        when(mockParameters.getPort()).thenReturn(1234);
+        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
     }
 
     @Test

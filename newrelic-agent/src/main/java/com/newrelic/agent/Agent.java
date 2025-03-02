@@ -25,6 +25,8 @@ import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
@@ -290,12 +292,15 @@ public final class Agent {
             ServiceManager serviceManager = new ServiceManagerImpl(coreService, configService);
             ServiceFactory.setServiceManager(serviceManager);
 
-            if (isLicenseKeyEmpty(serviceManager.getConfigService().getDefaultAgentConfig().getLicenseKey())) {
+            AgentConfig agentConfig = serviceManager.getConfigService().getDefaultAgentConfig();
+            if (isLicenseKeyEmpty(agentConfig.getLicenseKey())) {
+                AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(agentConfig, AgentHealth.Status.MISSING_LICENSE);
                 LOG.error("license_key is empty in the config. Not starting New Relic Agent.");
                 return false;
             }
 
             if (!serviceManager.getConfigService().getDefaultAgentConfig().isAgentEnabled()) {
+                AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(agentConfig, AgentHealth.Status.AGENT_DISABLED);
                 LOG.warning("agent_enabled is false in the config. Not starting New Relic Agent.");
                 return false;
             }

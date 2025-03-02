@@ -59,6 +59,7 @@ class IntrospectorImpl implements Introspector, ExtendedTransactionListener, Tra
         com.newrelic.api.agent.NewRelicApiImplementation.initialize();
         com.newrelic.agent.PrivateApiImpl.initialize(Agent.LOG);
         AgentBridge.instrumentation = new InstrumentationImpl(Agent.LOG);
+        com.newrelic.agent.cloud.CloudApiImpl.initialize();
         return manager;
     }
 

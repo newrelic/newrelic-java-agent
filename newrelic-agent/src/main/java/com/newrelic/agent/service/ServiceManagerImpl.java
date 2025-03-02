@@ -15,6 +15,7 @@ import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.GCService;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
 import com.newrelic.agent.ThreadService;
@@ -78,6 +79,10 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.StatsWork;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationClientFactory;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationHealthClient;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
@@ -86,8 +91,10 @@ import com.newrelic.agent.utilization.UtilizationService;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -149,6 +156,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile SourceLanguageService sourceLanguageService;
     private volatile ExpirationService expirationService;
     private volatile SlowTransactionService slowTransactionService;
+    private volatile AgentControlIntegrationService agentControlIntegrationService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -281,6 +289,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         slowTransactionService = new SlowTransactionService(config);
 
+        agentControlIntegrationService = buildAgentControlIntegrationService(config);
+
         asyncTxService.start();
         threadService.start();
         statsService.start();
@@ -314,6 +324,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.start();
         spanEventsService.start();
         slowTransactionService.start();
+        agentControlIntegrationService.start();
 
         startServices();
 
@@ -342,6 +353,24 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
                 .build();
 
         return InfiniteTracing.initialize(infiniteTracingConfig, NewRelic.getAgent().getMetricAggregator());
+    }
+
+    private AgentControlIntegrationService buildAgentControlIntegrationService(AgentConfig config) {
+        ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
+        AgentControlIntegrationHealthClient healthClient = null;
+
+        if (config.getAgentControlIntegrationConfig() != null && config.getAgentControlIntegrationConfig().isEnabled()) {
+            healthClient = AgentControlIntegrationClientFactory.createHealthClient(config.getAgentControlIntegrationConfig());
+
+            healthDataProducers.add(circuitBreakerService);
+            healthDataProducers.add((HealthDataProducer) coreService);
+            for (IRPMService service : ServiceFactory.getRPMServiceManager().getRPMServices()) {
+                healthDataProducers.add(service.getHttpDataSenderAsHealthDataProducer());
+            }
+        }
+
+        return new AgentControlIntegrationService(healthClient, config,
+                healthDataProducers.toArray(new HealthDataProducer[]{}));
     }
 
     @Override
@@ -385,6 +414,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.stop();
         spanEventsService.stop();
         slowTransactionService.stop();
+        agentControlIntegrationService.stop();
         stopServices();
     }
 

@@ -19,10 +19,26 @@ public class ConfigFileHelper {
 
     public static final String NEW_RELIC_YAML_FILE = "newrelic.yml";
 
+    private static final String CONFIG_FILE_ENVIRONMENT_VARIABLE = "NEWRELIC_FILE";
     private static final String CONFIG_FILE_PROPERTY = "newrelic.config.file";
     private static final String NEW_RELIC_HOME_DIRECTORY_PROPERTY = "newrelic.home";
     private static final String NEW_RELIC_HOME_DIRECTORY_ENVIRONMENT_VARIABLE = "NEWRELIC_HOME";
     private static final String[] SEARCH_DIRECTORIES = { ".", "conf", "config", "etc" };
+
+    private static enum ConfigFileLocationSpecifier {
+        ENV_VAR("environment variable"),
+        SYS_PROP("system property");
+
+        private final String friendlyName;
+
+        ConfigFileLocationSpecifier(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+
+        public String getFriendlyName() {
+            return this.friendlyName;
+        }
+    }
 
     /**
      * Find the New Relic configuration file.
@@ -30,7 +46,12 @@ public class ConfigFileHelper {
      * @return the configuration file or null
      */
     public static File findConfigFile() {
-        File configFile = findFromProperty();
+        File configFile = findFromEnvVariable();
+        if (configFile != null) {
+            return configFile;
+        }
+
+        configFile = findFromProperty();
         if (configFile != null) {
             return configFile;
         }
@@ -40,9 +61,7 @@ public class ConfigFileHelper {
             if (DebugFlag.DEBUG) {
                 System.err.println(MessageFormat.format("New Relic home directory: {0}", parentDir));
             }
-        }
 
-        if (parentDir != null) {
             configFile = findConfigFile(parentDir);
             if (configFile != null) {
                 return configFile;
@@ -67,23 +86,36 @@ public class ConfigFileHelper {
     }
 
     /**
+     * Find the configuration file from a environment variable.
+     *
+     * @return the configuration file or null
+     */
+    private static File findFromEnvVariable() {
+        return getFileFromFilePath(System.getenv(CONFIG_FILE_ENVIRONMENT_VARIABLE), ConfigFileLocationSpecifier.ENV_VAR);
+    }
+
+    /**
      * Find the configuration file from a System property.
      *
      * @return the configuration file or null
      */
     private static File findFromProperty() {
-        String filePath = System.getProperty(CONFIG_FILE_PROPERTY);
+        return getFileFromFilePath(System.getProperty(CONFIG_FILE_PROPERTY), ConfigFileLocationSpecifier.SYS_PROP);
+    }
+
+    private static File getFileFromFilePath(String filePath, ConfigFileLocationSpecifier configFileLocationSpecifier) {
         if (filePath != null) {
             File configFile = new File(filePath);
             if (configFile.exists()) {
                 return configFile;
             }
             System.err.println(MessageFormat.format(
-                    "The configuration file {0} specified with the {1} property does not exist",
-                    configFile.getAbsolutePath(), CONFIG_FILE_PROPERTY));
+                    "The configuration file {0} specified with the {1} [{2}] does not exist",
+                    configFile.getAbsolutePath(), configFileLocationSpecifier.getFriendlyName(), filePath));
         }
         return null;
     }
+
 
     /**
      * Find the New Relic home directory.

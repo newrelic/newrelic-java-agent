@@ -17,11 +17,17 @@ import com.newrelic.agent.config.CircuitBreakerConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -43,13 +49,15 @@ import java.util.logging.Level;
  * <br>
  * The default memory and gc thresholds are set in {@link CircuitBreakerConfig}.
  */
-public class CircuitBreakerService extends AbstractService implements HarvestListener, AgentConfigListener {
+public class CircuitBreakerService extends AbstractService implements HarvestListener, AgentConfigListener, HealthDataProducer {
     private static final int TRACER_SAMPLING_RATE = 1000;
 
     private volatile int tripped = 0;
     private final CircuitBreakerConfig circuitBreakerConfig;
     private volatile GarbageCollectorMXBean oldGenGCBeanCached = null;
     private final ReentrantLock lock = new ReentrantLock();
+    private final List<HealthDataChangeListener> healthDataChangeListeners = new CopyOnWriteArrayList<>();
+
 
     /**
      * Map of application names to booleans that indicates whether the data to be reported at harvest is incomplete for
@@ -178,6 +186,10 @@ public class CircuitBreakerService extends AbstractService implements HarvestLis
         if (gcCpuTimePercentage >= gcCPUThreshold && percentageFreeMemory <= freeMemoryThreshold) {
             Agent.LOG.log(Level.WARNING, "Circuit breaker tripped at memory {0}%  GC CPU time {1}%", percentageFreeMemory,
                     gcCpuTimePercentage);
+
+            AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.GC_CIRCUIT_BREAKER,
+                    String.valueOf(percentageFreeMemory), String.valueOf(gcCpuTimePercentage));
+
             return true;
         }
         return false;
@@ -220,6 +232,7 @@ public class CircuitBreakerService extends AbstractService implements HarvestLis
     public void reset() {
         tripped = 0;
         Agent.LOG.log(Level.FINE, "Circuit breaker reset");
+        AgentControlIntegrationUtils.reportHealthyStatus(healthDataChangeListeners, AgentHealth.Category.CIRCUIT_BREAKER);
         logWarning.set(true);
     }
 
@@ -362,5 +375,10 @@ public class CircuitBreakerService extends AbstractService implements HarvestLis
 
     public static SamplingCounter createTracerSamplerCounter() {
         return new SamplingCounter(TRACER_SAMPLING_RATE);
+    }
+
+    @Override
+    public void registerHealthDataChangeListener(HealthDataChangeListener listener) {
+        healthDataChangeListeners.add(listener);
     }
 }

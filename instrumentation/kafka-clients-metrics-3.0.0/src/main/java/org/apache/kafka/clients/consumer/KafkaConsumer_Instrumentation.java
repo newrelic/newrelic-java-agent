@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.nr.instrumentation.kafka.ClientType;
 import org.apache.kafka.clients.consumer.internals.ConsumerMetadata;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.metrics.Metrics;
@@ -41,11 +42,7 @@ public class KafkaConsumer_Instrumentation<K, V> {
     public KafkaConsumer_Instrumentation() {
         if (!initialized) {
             List<Node> nodes = metadata.fetch().nodes();
-            Set<String> nodeNames = new HashSet<>(nodes.size());
-            for (Node node : nodes) {
-                nodeNames.add(node.host() + ":" + node.port());
-            }
-            metrics.addReporter(new NewRelicMetricsReporter(nodeNames, NewRelicMetricsReporter.Mode.CONSUMER));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, nodes));
             initialized = true;
         }
     }

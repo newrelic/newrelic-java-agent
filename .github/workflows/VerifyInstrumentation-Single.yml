@@ -15,7 +15,7 @@ on:
 jobs:
   verify-module:
     name: Verify Instrumentation (${{ github.event.inputs.module || inputs.module }})
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       MODULE: ${{ github.event.inputs.module || inputs.module }}
       AWS_KEY: ${{ secrets.aws-secret-access-key }}

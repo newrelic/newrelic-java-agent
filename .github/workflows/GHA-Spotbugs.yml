@@ -17,7 +17,7 @@ on:
 jobs:
   spotbugs:
     timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
@@ -78,7 +78,7 @@ jobs:
 
   publish:
     needs: spotbugs
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     concurrency: gh-pages
     env:
       BRANCH_NAME: ${{ inputs.agent-ref || 'main' }}

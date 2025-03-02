@@ -12,7 +12,6 @@ import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AttributesConfig;
-import com.newrelic.agent.config.TransactionEventsConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanCategory;
@@ -24,9 +23,8 @@ import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.StackTraces;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.MessageConsumeParameters;
-import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
@@ -301,6 +299,15 @@ public class SpanEventFactory {
         return this;
     }
 
+    private void setCloudPlatform(String platform){
+        builder.putAgentAttribute(AttributeNames.CLOUD_PLATFORM, platform);
+    }
+
+    private void setCloudResourceId(String name){
+        builder.putAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, name);
+    }
+
+
     public SpanEventFactory setMessagingSystem(String messagingSystem) {
         builder.putAgentAttribute(AttributeNames.MESSAGING_SYSTEM, messagingSystem);
         return this;
@@ -311,8 +318,10 @@ public class SpanEventFactory {
         return this;
     }
 
-    public SpanEventFactory setServerPort(int port) {
-        builder.putAgentAttribute(AttributeNames.SERVER_PORT, port);
+    public SpanEventFactory setServerPort(Integer port) {
+        if (port != null) {
+            builder.putAgentAttribute(AttributeNames.SERVER_PORT, port);
+        }
         return this;
     }
 
@@ -415,6 +424,7 @@ public class SpanEventFactory {
             setDatabaseCollection(datastoreParameters.getCollection());
             setDatabaseOperation(datastoreParameters.getOperation());
             setServerAddress(datastoreParameters.getHost());
+            setCloudResourceId(datastoreParameters.getCloudResourceId());
             setKindFromUserAttributes();
             if (datastoreParameters.getPort() != null) {
                 setServerPort(datastoreParameters.getPort());
@@ -448,6 +458,11 @@ public class SpanEventFactory {
             setServerAddress(messageConsumeParameters.getHost());
             setServerPort(messageConsumeParameters.getPort());
             setKind("consumer");
+        } else if (parameters instanceof CloudParameters) {
+            CloudParameters cloudParameters = (CloudParameters) parameters;
+            setCategory(SpanCategory.generic);
+            setCloudPlatform(cloudParameters.getPlatform());
+            setCloudResourceId(cloudParameters.getResourceId());
         } else {
             setCategory(SpanCategory.generic);
         }

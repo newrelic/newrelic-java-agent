@@ -42,6 +42,8 @@ public final class AgentBridge {
 
     public static volatile AsyncApi asyncApi = new NoOpAsyncApi();
 
+    public static volatile CloudApi cloud = NoOpCloud.INSTANCE;
+
     public static volatile CollectionFactory collectionFactory = new DefaultCollectionFactory();
 
     /**
