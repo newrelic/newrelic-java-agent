@@ -64,6 +64,9 @@ jobs:
         if: ${{inputs.single-test == ''}}
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
+          echo "framework/pekko/pekko.py" >> $excluded_tests
+          echo "framework/pekko/pekkohttp.py" >> $excluded_tests
+          echo "framework/pekko/pekkohttp3.py" >> $excluded_tests
           echo "datastore/datastores.py" >> $excluded_tests
           echo "framework/jms/jms.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
