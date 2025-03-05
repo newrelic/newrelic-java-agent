@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.config;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +90,11 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     @Override
     public boolean isLocalDecoratingEnabled() {
         return applicationLoggingEnabled && applicationLoggingLocalDecoratingConfig.getEnabled();
+    }
+
+    @VisibleForTesting
+    public ApplicationLoggingLocalDecoratingConfig getLocalDecoratingConfig() {
+        return applicationLoggingLocalDecoratingConfig;
     }
 
     @Override

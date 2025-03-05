@@ -54,8 +54,11 @@ public class MergeServerDataTest {
                 "    \"beacon\": \"staging-bam.nr-data.net\",\n" +
                 "    \"collect_analytics_events\": true,\n" +
                 "    \"agent_config\": {\n" +
-                "      \"application_logging.forwarding.max_samples_stored\": 10001, \n" +
                 "      \"application_logging.enabled\": false, \n" +
+                "      \"application_logging.forwarding.enabled\": false, \n" +
+                "      \"application_logging.forwarding.max_samples_stored\": 10001, \n" +
+                "      \"application_logging.local_decorating.enabled\": true, \n" +
+                "      \"application_logging.metrics.enabled\": false, \n" +
                 "      \"transaction_tracer.explain_enabled\": true,\n" +
                 "      \"transaction_tracer.transaction_threshold\": 0.005,\n" +
                 "      \"transaction_tracer.enabled\": true,\n" +
@@ -110,7 +113,10 @@ public class MergeServerDataTest {
         assertEquals(false, config.isCustomInstrumentationEditorAllowed());
         assertTrue(config.getAttributesConfig().attributesRootInclude().isEmpty());
         assertEquals(true, config.getApplicationLoggingConfig().isEnabled());
+        assertEquals(true, config.getApplicationLoggingConfig().isForwardingEnabled());
         assertEquals(10000, config.getApplicationLoggingConfig().getMaxSamplesStored());
+        assertEquals(false, ((ApplicationLoggingConfigImpl)config.getApplicationLoggingConfig()).getLocalDecoratingConfig().getEnabled());
+        assertEquals(true, config.getApplicationLoggingConfig().isMetricsEnabled());
     }
 
     @Test
@@ -144,7 +150,10 @@ public class MergeServerDataTest {
         assertEquals(true, config.isCustomInstrumentationEditorAllowed());
         assertTrue(config.getAttributesConfig().attributesRootInclude().isEmpty());
         assertEquals(false, config.getApplicationLoggingConfig().isEnabled());
+        assertEquals(false, config.getApplicationLoggingConfig().isForwardingEnabled());
         assertEquals(10001, config.getApplicationLoggingConfig().getMaxSamplesStored());
+        assertEquals(true, ((ApplicationLoggingConfigImpl)config.getApplicationLoggingConfig()).getLocalDecoratingConfig().getEnabled());
+        assertEquals(false, config.getApplicationLoggingConfig().isMetricsEnabled());
     }
 
     @Test
