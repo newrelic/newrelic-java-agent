@@ -56,6 +56,9 @@ public class AgentConfigFactory {
     public static final String COLLECT_SPAN_EVENTS = SPAN_EVENTS_PREFIX + SpanEventsConfig.COLLECT_SPAN_EVENTS;
     public static final String COLLECT_CUSTOM_INSIGHTS_EVENTS = CUSTOM_INSIGHT_EVENTS_PREFIX + InsightsConfigImpl.COLLECT_CUSTOM_EVENTS;
     public static final String RECORD_SQL = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.RECORD_SQL;
+    public static final String APPLICATION_LOGGING_ENABLED =  AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR + ApplicationLoggingConfigImpl.ENABLED;
+    public static final String APPLICATION_LOGGING_MAX_SAMPLES_STORED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
+            ApplicationLoggingConfigImpl.FORWARDING + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED;
     @Deprecated
     public static final String SLOW_QUERY_WHITELIST = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.SLOW_QUERY_WHITELIST;
     public static final String COLLECT_SLOW_QUERIES_FROM = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM;
@@ -208,6 +211,9 @@ public class AgentConfigFactory {
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
         addServerProp(DistributedTracingConfig.ACCOUNT_ID, serverData.get(DistributedTracingConfig.ACCOUNT_ID), settings);
         addServerProp("agent_home", ConfigFileHelper.getNewRelicDirectory().getAbsolutePath(), settings);
+
+        addServerProp(APPLICATION_LOGGING_MAX_SAMPLES_STORED, agentData.get(APPLICATION_LOGGING_MAX_SAMPLES_STORED), settings);
+        addServerProp(APPLICATION_LOGGING_ENABLED, agentData.get(APPLICATION_LOGGING_ENABLED), settings);
         if (AgentJarHelper.getAgentJarDirectory() != null) {
             addServerProp("agent_jar_location", AgentJarHelper.getAgentJarDirectory().getAbsolutePath(), settings);
         }

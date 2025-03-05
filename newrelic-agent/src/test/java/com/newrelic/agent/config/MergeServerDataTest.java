@@ -54,6 +54,8 @@ public class MergeServerDataTest {
                 "    \"beacon\": \"staging-bam.nr-data.net\",\n" +
                 "    \"collect_analytics_events\": true,\n" +
                 "    \"agent_config\": {\n" +
+                "      \"application_logging.forwarding.max_samples_stored\": 10001, \n" +
+                "      \"application_logging.enabled\": false, \n" +
                 "      \"transaction_tracer.explain_enabled\": true,\n" +
                 "      \"transaction_tracer.transaction_threshold\": 0.005,\n" +
                 "      \"transaction_tracer.enabled\": true,\n" +
@@ -107,6 +109,8 @@ public class MergeServerDataTest {
         assertEquals(true, config.getAttributesConfig().isEnabledRoot());
         assertEquals(false, config.isCustomInstrumentationEditorAllowed());
         assertTrue(config.getAttributesConfig().attributesRootInclude().isEmpty());
+        assertEquals(true, config.getApplicationLoggingConfig().isEnabled());
+        assertEquals(10000, config.getApplicationLoggingConfig().getMaxSamplesStored());
     }
 
     @Test
@@ -139,6 +143,8 @@ public class MergeServerDataTest {
         assertEquals(true, config.getAttributesConfig().isEnabledRoot());
         assertEquals(true, config.isCustomInstrumentationEditorAllowed());
         assertTrue(config.getAttributesConfig().attributesRootInclude().isEmpty());
+        assertEquals(false, config.getApplicationLoggingConfig().isEnabled());
+        assertEquals(10001, config.getApplicationLoggingConfig().getMaxSamplesStored());
     }
 
     @Test
