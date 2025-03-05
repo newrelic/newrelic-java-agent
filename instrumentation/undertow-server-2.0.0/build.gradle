@@ -1,0 +1,18 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.undertow:undertow-core:2.0.0.Final")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.undertow-server-2.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.undertow:undertow-core:[2.0.0.Final,)'
+}
+
+site {
+    title 'Undertow'
+    type 'Framework'
+}
