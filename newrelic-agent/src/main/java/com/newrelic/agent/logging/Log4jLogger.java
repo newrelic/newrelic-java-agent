@@ -532,10 +532,8 @@ class Log4jLogger implements IAgentLogger, Resource {
 
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
-        Agent.LOG.info("Stopping Log4jLogger for CRaC checkpoint, log messages may be missing from the log file between here and restore, but should still appear in the console ");
+        Agent.LOG.info("Stopping Log4jLogger for CRaC checkpoint, log messages may be missing from the log file between here and restore, but should still appear in the console");
         stopFileAppender();
-        // TODO what should we do with any log messages that come in after ths, but before the shutdown?
-        // should we try to store them and write them after restore?
     }
 
     @Override

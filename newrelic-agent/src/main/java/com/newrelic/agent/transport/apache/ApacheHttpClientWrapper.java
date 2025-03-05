@@ -14,6 +14,7 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpClientWrapper;
 import com.newrelic.agent.transport.ReadResult;
+import com.newrelic.api.agent.NewRelic;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -273,7 +274,7 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         Agent.LOG.info("Stopping collector connection for CRaC checkpoint");
-        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_AGENT_CRAC_CHECKPOINT);
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_CHECKPOINT);
         connectionManager.close();
         httpClient.close();
     }
@@ -281,7 +282,7 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
         Agent.LOG.info("Restarting collector connection for CRaC restore");
-        MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_AGENT_CRAC_RESTORE);
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_RESTORE);
         connectionManager = createHttpClientConnectionManager(sslContext);
         httpClient = createHttpClient(defaultTimeoutInMillis);
     }
