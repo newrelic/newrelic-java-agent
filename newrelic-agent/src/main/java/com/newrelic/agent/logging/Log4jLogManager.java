@@ -143,8 +143,9 @@ class Log4jLogManager implements IAgentLogManager {
             clearLog4jSystemProperty(JAVA_UTIL_LOG_MANAGER, storedSystemProps);
         }
 
-        System.getProperties().remove(CONFIG_FILE_PROP);
-        
+        clearLog4jSystemProperty(CONFIG_FILE_PROP, storedSystemProps);
+        clearLog4jSystemProperty(LEGACY_CONFIG_FILE_PROP, storedSystemProps);
+
         clearLog4jSystemProperty(CONTEXT_SELECT_PROP, storedSystemProps);
         clearLog4jSystemProperty(LEGACY_CONTEXT_SELECT_PROP, storedSystemProps);
 
