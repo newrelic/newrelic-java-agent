@@ -99,7 +99,8 @@ class Log4jLogManager implements IAgentLogManager {
                 // This is in place in case we need to revert the programmatic initialization of our logger to
                 // use the log4j XML config file. This has to use a system property or env var because the config
                 // service is not properly bootstrapped yet.
-                if (Boolean.getBoolean("agent_root_logger_init_with_file") || Boolean.parseBoolean(System.getenv("NEWRELIC_AGENT_ROOT_LOGGER_INIT_WITH_FILE"))) {
+                if (Boolean.getBoolean("newrelic.config.agent_root_logger_init_with_file") ||
+                        Boolean.parseBoolean(System.getenv("NEW_RELIC_AGENT_ROOT_LOGGER_INIT_WITH_FILE"))) {
                     initLog4jViaFile(jarFileName);
                 } else {
                     initLog4jViaConfigurationBuilder();
@@ -142,6 +143,8 @@ class Log4jLogManager implements IAgentLogManager {
             clearLog4jSystemProperty(JAVA_UTIL_LOG_MANAGER, storedSystemProps);
         }
 
+        System.getProperties().remove(CONFIG_FILE_PROP);
+        
         clearLog4jSystemProperty(CONTEXT_SELECT_PROP, storedSystemProps);
         clearLog4jSystemProperty(LEGACY_CONTEXT_SELECT_PROP, storedSystemProps);
 
