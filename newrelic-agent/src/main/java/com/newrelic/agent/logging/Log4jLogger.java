@@ -20,6 +20,9 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -30,7 +33,7 @@ import java.util.logging.Level;
 
 import static com.newrelic.agent.logging.FileAppenderFactory.FILE_APPENDER_NAME;
 
-class Log4jLogger implements IAgentLogger {
+class Log4jLogger implements IAgentLogger, Resource {
 
     /**
      * The name of the console appender.
@@ -48,6 +51,12 @@ class Log4jLogger implements IAgentLogger {
     private final Logger logger;
     private final Map<String, IAgentLogger> childLoggers = new ConcurrentHashMap<>();
 
+    private String fileName;
+    private long logLimitBytes;
+    private int fileCount;
+    private boolean isDaily;
+    private String path;
+
     /**
      * Creates this Log4jLogger.
      *
@@ -57,6 +66,7 @@ class Log4jLogger implements IAgentLogger {
         logger = LogManager.getLogger(name);
 
         if (isAgentRoot) {
+            Core.getGlobalContext().register(this);
             LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
             Configuration config = ctx.getConfiguration();
             LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
@@ -252,6 +262,41 @@ class Log4jLogger implements IAgentLogger {
     }
 
     /**
+     * Stops the file appender for the taking of a checkpoint
+     */
+    public void stopFileAppender() {
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig(logger.getName());
+
+        Appender checkpointFileAppender = loggerConfig.getAppenders().get(FILE_APPENDER_NAME);
+        if (checkpointFileAppender != null) {
+            // remove it from the list, so we don't try to write to it any longer
+            // this could cause missed messages in the log file, but would still
+            // go to the console
+            loggerConfig.removeAppender(checkpointFileAppender.getName());
+            // stop to close the open file
+            checkpointFileAppender.stop();
+            ctx.updateLoggers();
+        }
+    }
+
+    /**
+     * Starts the file appender after a restore
+     */
+    public void startFileAppender() {
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig(logger.getName());
+
+        Appender checkpointFileAppender = loggerConfig.getAppenders().get(FILE_APPENDER_NAME);
+        if (checkpointFileAppender == null && fileName != null) { // don't add it if it's already  there
+            addFileAppender(fileName, logLimitBytes, fileCount, isDaily, path);
+            ctx.updateLoggers();
+        }
+    }
+
+    /**
      * Adds a file appender.
      *
      * @param fileName Name of the appender.
@@ -259,6 +304,12 @@ class Log4jLogger implements IAgentLogger {
      * @param fileCount The number of files.
      */
     public void addFileAppender(String fileName, long logLimitBytes, int fileCount, boolean isDaily, String path) {
+        this.fileName = fileName;
+        this.logLimitBytes = logLimitBytes;
+        this.fileCount = fileCount;
+        this.isDaily = isDaily;
+        this.path = path;
+
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();
         LoggerConfig loggerConfig = config.getLoggerConfig(logger.getName());
@@ -477,6 +528,18 @@ class Log4jLogger implements IAgentLogger {
             }
             logger.log(level, pattern, part1, part2, part3, part4);
         }
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        Agent.LOG.info("Stopping Log4jLogger for CRaC checkpoint, log messages may be missing from the log file between here and restore, but should still appear in the console");
+        stopFileAppender();
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        Agent.LOG.info("Restarting Log4jLogger for CRaC restore");
+        startFileAppender();
     }
 
 }

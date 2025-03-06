@@ -11,9 +11,15 @@ import com.google.common.io.Resources;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.AgentJarHelper;
+import com.newrelic.api.agent.NewRelic;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;
+import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -78,27 +84,6 @@ class Log4jLogManager implements IAgentLogManager {
                 // and we want to clear any other log4j system properties
                 clearAllLog4jSystemProperties(systemProps);
 
-                URL log4jConfigXmlUrl = null;
-                if (jarFileName.endsWith(".jar")) {
-                    // it isn't enough to specify the jar, we have to specify the path within the jar
-                    log4jConfigXmlUrl = new URL(new StringBuilder("jar:file:")
-                            .append(jarFileName)
-                            .append("!")
-                            .append(AGENT_JAR_LOG4J_CONFIG_FILE)
-                            .toString());
-                } else {
-                    // we likely have received a path to a set of class files (this happens when running tests)
-                    try {
-                        // guava's Resources class is usually smart enough to figure out where to find the log4j2.xml file
-                        log4jConfigXmlUrl = Resources.getResource(this.getClass(), AGENT_JAR_LOG4J_CONFIG_FILE);
-                    } catch (IllegalArgumentException iae) {
-                        // fallback on path
-                        log4jConfigXmlUrl = new File(jarFileName).toURI().toURL();
-                    }
-                }
-
-                System.setProperty(CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
-                System.setProperty(LEGACY_CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
                 // Log4j won't be able to find log4j-provider.properties because it isn't on the classpath (it's in our agent) so this sets it manually
                 System.setProperty(CONTEXT_FACTORY_PROP, "org.apache.logging.log4j.core.impl.Log4jContextFactory");
 
@@ -110,6 +95,16 @@ class Log4jLogManager implements IAgentLogManager {
                 // I've no idea why, but using anything other than the legacy style property here can cause a segfault
                 System.setProperty(LEGACY_CLASSLOADER_PROP, "true");
                 System.setProperty(CLASSLOADER_PROP, "true");
+
+                // This is in place in case we need to revert the programmatic initialization of our logger to
+                // use the log4j XML config file. This has to use a system property or env var because the config
+                // service is not properly bootstrapped yet.
+                if (Boolean.getBoolean("newrelic.config.agent_root_logger_init_with_file") ||
+                        Boolean.parseBoolean(System.getenv("NEW_RELIC_AGENT_ROOT_LOGGER_INIT_WITH_FILE"))) {
+                    initLog4jViaFile(jarFileName);
+                } else {
+                    initLog4jViaConfigurationBuilder();
+                }
 
                 try {
                     logger = createRootLogger(name);
@@ -273,6 +268,39 @@ class Log4jLogManager implements IAgentLogManager {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void initLog4jViaConfigurationBuilder() {
+        ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationBuilderFactory.newConfigurationBuilder();
+        builder.setConfigurationName("Default");
+        builder.add(builder.newRootLogger(Level.INFO));
+        builder.setShutdownHook("disable");
+        builder.add(builder.newLogger("com.newrelic.agent.deps.org.reflections", Level.OFF));
+        Configurator.initialize(builder.build());
+    }
+
+    private void initLog4jViaFile(String jarFileName) throws MalformedURLException {
+        URL log4jConfigXmlUrl = null;
+        if (jarFileName.endsWith(".jar")) {
+            // it isn't enough to specify the jar, we have to specify the path within the jar
+            log4jConfigXmlUrl = new URL(new StringBuilder("jar:file:")
+                    .append(jarFileName)
+                    .append("!")
+                    .append(AGENT_JAR_LOG4J_CONFIG_FILE)
+                    .toString());
+        } else {
+            // we likely have received a path to a set of class files (this happens when running tests)
+            try {
+                // guava's Resources class is usually smart enough to figure out where to find the log4j2.xml file
+                log4jConfigXmlUrl = Resources.getResource(this.getClass(), AGENT_JAR_LOG4J_CONFIG_FILE);
+            } catch (IllegalArgumentException iae) {
+                // fallback on path
+                log4jConfigXmlUrl = new File(jarFileName).toURI().toURL();
+            }
+        }
+
+        System.setProperty(CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
+        System.setProperty(LEGACY_CONFIG_FILE_PROP, log4jConfigXmlUrl.toString());
     }
 
     @Override
