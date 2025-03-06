@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package io.undertow.server;
 
 import com.newrelic.api.agent.NewRelic;
@@ -20,12 +26,9 @@ public abstract class HttpServerExchange_Instrumentation {
     public HttpServerExchange_Instrumentation(final ServerConnection connection, final HeaderMap requestHeaders,
             final HeaderMap responseHeaders,  long maxEntitySize) {
         this.token = NewRelic.getAgent().getTransaction().getToken();
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- HttpServerExchange_Instrumentation constructor");
     }
 
     private void invokeExchangeCompleteListeners() {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- HttpServerExchange_Instrumentation invokeExchangeCompleteListeners");
-
         Weaver.callOriginal();
 
         if (token != null) {
@@ -35,8 +38,6 @@ public abstract class HttpServerExchange_Instrumentation {
     }
 
     public HttpServerExchange_Instrumentation dispatch(Executor executor, Runnable runnable) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- HttpServerExchange_Instrumentation dispatch");
-
         if (!(runnable instanceof RunnableWrapper)) {
             RunnableWrapper wrapper = new RunnableWrapper(runnable, token);
             runnable = wrapper;

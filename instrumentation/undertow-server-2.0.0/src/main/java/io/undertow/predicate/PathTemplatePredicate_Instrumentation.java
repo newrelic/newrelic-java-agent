@@ -1,9 +1,14 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package io.undertow.predicate;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.undertow.Util;
@@ -22,8 +27,6 @@ public abstract class PathTemplatePredicate_Instrumentation {
         boolean result = Weaver.callOriginal();
 
         if (result) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- Predicate resolve() " + value.getTemplateString());
-            NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- Predicate " + exchange.getRequestPath());
             Util.setWebRequestAndResponse(exchange);
             Util.addTransactionNamedByParameter(Util.NamedBySource.PathTemplatePredicate);
             NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "Undertow",

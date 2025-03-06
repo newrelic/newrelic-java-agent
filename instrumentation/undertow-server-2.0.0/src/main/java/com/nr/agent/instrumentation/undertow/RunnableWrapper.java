@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.nr.agent.instrumentation.undertow;
 
 import com.newrelic.api.agent.NewRelic;
@@ -10,15 +16,11 @@ public class RunnableWrapper implements Runnable {
     private Token token;
 
     public RunnableWrapper(Runnable delegate, Token token) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- RunnableWrapper constructor");
-
         this.delegate = delegate;
         this.token = token;
     }
 
     public void run() {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- RunnableWrapper run()");
-
         if (token != null) {
             token.link();
             token = null;

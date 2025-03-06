@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package io.undertow.server;
 
 import com.newrelic.api.agent.NewRelic;
@@ -24,23 +30,16 @@ public abstract class RoutingHandler_Instrumentation {
             PathTemplateMatcher<RoutingMatch_Instrumentation> matcher = matches.get(exchange.getRequestMethod());
 
             if (matcher != null) {
-                NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- RoutingHandler_Instrumentation handleRequest matcher " + exchange.getRequestPath());
-
                 PathTemplateMatcher.PathMatchResult<RoutingMatch_Instrumentation> match = matcher.match(exchange.getRelativePath());
 
                 if (match != null) {
                     Util.setWebRequestAndResponse(exchange);
-                    NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- RoutingHandler_Instrumentation handleRequest match " + match.getMatchedTemplate());
-
                     Util.addTransactionNamedByParameter(Util.NamedBySource.RoutingHandler);
                     NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "Undertow",
                             Util.createTransactionName(match.getMatchedTemplate(), exchange.getRequestMethod().toString()));
                 }
             }
         }
-
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- RoutingHandler_Instrumentation handleRequest exchange response " + exchange.getResponseContentLength());
-        NewRelic.getAgent().getLogger().log(Level.INFO, "DUF-- RoutingHandler_Instrumentation handleRequest exchange response " + exchange.getStatusCode());
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.undertow.server.RoutingHandler$RoutingMatch")

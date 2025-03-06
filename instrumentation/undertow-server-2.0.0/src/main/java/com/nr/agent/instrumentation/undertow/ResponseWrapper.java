@@ -1,10 +1,15 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.nr.agent.instrumentation.undertow;
 
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HeaderMap;
-import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 
