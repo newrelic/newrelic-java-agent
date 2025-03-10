@@ -145,14 +145,17 @@ public class FinalClassTransformer implements ContextClassTransformer {
     }
 
     private void writeClassFiles(String className, InstrumentationContext context, byte[] classBytes) {
+        PrintWriter oldFileWriter = null;
+        PrintWriter newFileWriter = null;
         try {
             File old = File.createTempFile(className.replace('/', '_'), ".old", BootstrapLoader.getTempDir());
-            Utils.print(context.bytes, new PrintWriter(old));
-
+            oldFileWriter = new PrintWriter(old);
+            Utils.print(context.bytes, oldFileWriter);
             Agent.LOG.debug("Wrote " + old.getAbsolutePath());
-            File newFile = File.createTempFile(className.replace('/', '_'), ".new", BootstrapLoader.getTempDir());
 
-            Utils.print(classBytes, new PrintWriter(newFile));
+            File newFile = File.createTempFile(className.replace('/', '_'), ".new", BootstrapLoader.getTempDir());
+            newFileWriter = new PrintWriter(newFile);
+            Utils.print(classBytes, newFileWriter);
             Agent.LOG.debug("Wrote " + newFile.getAbsolutePath());
 
             File newClassFile = File.createTempFile(className.replace('/', '_'), ".new.class", BootstrapLoader.getTempDir());
@@ -162,6 +165,9 @@ public class FinalClassTransformer implements ContextClassTransformer {
             Agent.LOG.debug("Wrote " + newClassFile.getAbsolutePath());
         } catch (Throwable t) {
             Agent.LOG.log(Level.FINEST, t, "Error writing debug bytecode for {0}", className);
+        } finally {
+            if (oldFileWriter != null) oldFileWriter.close();
+            if (newFileWriter != null) newFileWriter.close();
         }
     }
 
