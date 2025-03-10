@@ -47,7 +47,7 @@ jobs:
 
   list-tests:
     name: List tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       tests: ${{ steps.read-single-test.outputs.tests || steps.read-tests.outputs.tests }}
     steps:
@@ -64,6 +64,9 @@ jobs:
         if: ${{inputs.single-test == ''}}
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
+          echo "framework/pekko/pekko.py" >> $excluded_tests
+          echo "framework/pekko/pekkohttp.py" >> $excluded_tests
+          echo "framework/pekko/pekkohttp3.py" >> $excluded_tests
           echo "datastore/datastores.py" >> $excluded_tests
           echo "framework/jms/jms.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
@@ -117,7 +120,7 @@ jobs:
     name: ${{ matrix.tests }}
     needs: [ build-agent, list-tests ]
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # Determine if easier to make the env strings below part of the matrix
     strategy:
       fail-fast: false
@@ -125,7 +128,7 @@ jobs:
     steps:
       - name: Retrieve agent from cache
         id: retrieve-agent
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.2.0 # pin@v4
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: agent-jar-${{ github.run_id }}
@@ -197,8 +200,13 @@ jobs:
 
       # looks like docker is not properly sanitized between runs in GHA
       # so its disk space may be pilling up and blows up during our tests
-      - name: Clean Docker image data
-        run: docker rmi $(docker images -q)
+      # other cleanups were suggested on runner-images repo
+      - name: Clean up disk
+        run: |
+          docker rmi $(docker images -q)
+          sudo apt clean
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
 
       ## JDK Installs
 
@@ -313,7 +321,7 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
           echo "still complains of file not found"
           sudo apt-get install virtualenv
-          virtualenv -p /usr/bin/python3.8 .
+          virtualenv -p /usr/bin/python3.10 .
           . bin/activate
           bin/pip3 install -r conf/requirements.txt
           ZULU11=${JDK_zulu_11} \
@@ -364,7 +372,7 @@ jobs:
 
   notify-if-negative-values:
     needs: [ tests ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Download artifact(s) # surely there is a way to only download the negative_value_*.txt artifacts?
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4

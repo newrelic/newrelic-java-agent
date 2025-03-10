@@ -228,6 +228,8 @@ public class MetricNames {
     public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_ENABLED = "Supportability/Logging/Labels/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_DISABLED = "Supportability/Logging/Labels/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED = "Supportability/Logging/LocalDecorating/Java/disabled";
 

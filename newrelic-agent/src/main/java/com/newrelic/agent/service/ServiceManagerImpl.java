@@ -359,7 +359,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
         AgentControlIntegrationHealthClient healthClient = null;
 
-        if (config.getAgentControlIntegrationConfig() != null && StringUtils.isNotEmpty(config.getAgentControlIntegrationConfig().getFleetId())) {
+        if (config.getAgentControlIntegrationConfig() != null && config.getAgentControlIntegrationConfig().isEnabled()) {
             healthClient = AgentControlIntegrationClientFactory.createHealthClient(config.getAgentControlIntegrationConfig());
 
             healthDataProducers.add(circuitBreakerService);

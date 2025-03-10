@@ -16,6 +16,7 @@ import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.*;
@@ -37,6 +38,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     private final JfrConfig jfrConfig;
     private final AgentConfig defaultAgentConfig;
     private JfrController jfrController;
+
+    private final String JFR_SERVICE_THREAD_NAME = "New Relic JFR Service";
 
     public JfrService(JfrConfig jfrConfig, AgentConfig defaultAgentConfig) {
         super(JfrService.class.getSimpleName());
@@ -67,16 +70,16 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                 uploader.readyToSend(new EventConverter(commonAttrs, pattern));
                 jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
 
-                ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor();
+                ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory(JFR_SERVICE_THREAD_NAME, true));
                 jfrMonitorService.submit(
-                    () -> {
-                        try {
-                            startJfrLoop();
-                        } catch (JfrRecorderException e) {
-                            Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
-                            jfrController.shutdown();
-                        }
-                    });
+                        () -> {
+                            try {
+                                startJfrLoop();
+                            } catch (JfrRecorderException e) {
+                                Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
+                                jfrController.shutdown();
+                            }
+                        });
             } catch (Throwable t) {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
             }
@@ -136,7 +139,11 @@ public class JfrService extends AbstractService implements AgentConfigListener {
             logger.error(e.getMessage());
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
-        return String.format("%s:%s", host, appPort);
+        if (appPort != null) {
+            return String.format("%s:%s", host, appPort);
+        } else {
+            return host;
+        }
     }
 
     @VisibleForTesting

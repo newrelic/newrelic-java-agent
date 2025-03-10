@@ -11,7 +11,7 @@ on:
 jobs:
   copy-to-s3:
     name: Copy ${{ inputs.version_number }} to S3 (Prod)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Self
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
