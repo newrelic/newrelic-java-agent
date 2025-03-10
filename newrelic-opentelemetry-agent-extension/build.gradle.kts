@@ -47,21 +47,26 @@ PublishConfig.config(
 
 var agent = configurations.create("agent")
 
-var openTelemetryAgentVersion = "1.31.0"
-var openTelemetryInstrumentationVersion = "1.31.0-alpha"
+var openTelemetryAgentVersion = "2.12.0"
+var openTelemetryInstrumentationVersion = "2.12.0-alpha"
 var openTelemetrySemConvVersion = "1.22.0-alpha"
-var openTelemetryProtoVersion = "1.0.0-alpha"
+var openTelemetryProtoVersion = "1.5.0-alpha"
 
 dependencies {
     implementation(project(":newrelic-api"))
 
     implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:${openTelemetryInstrumentationVersion}"))
     compileOnly("io.opentelemetry:opentelemetry-api")
-    compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
     compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
     compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap")
     compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+    compileOnly("com.google.auto.service:auto-service:1.1.1")
     implementation("io.opentelemetry.semconv:opentelemetry-semconv:${openTelemetrySemConvVersion}")
+
+    implementation(project(":agent-bridge"))
+//    implementation(project(":newrelic-weaver-api"))
+
 
     testImplementation("io.opentelemetry:opentelemetry-api")
     testImplementation("io.opentelemetry:opentelemetry-sdk-testing")

@@ -9,6 +9,7 @@ package com.newrelic.bootstrap;
 
 import com.newrelic.api.agent.security.NewRelicSecurity;
 import io.opentelemetry.javaagent.OpenTelemetryAgent;
+import io.opentelemetry.javaagent.shaded.instrumentation.api.instrumenter.InstrumenterBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -129,6 +130,13 @@ public class BootstrapLoader {
         // FIXME do we even need to transform this OpenTelemetryAgent class?
         instrProxy.addTransformer(new ApiClassTransformer(OPENTELEMETRY_AGENT_INTERNAL_CLASS_NAME, bytes), true);
         instrProxy.retransformClasses(OpenTelemetryAgent.class);
+
+        // InstrumenterBuilder
+//        JarEntry jarEntry2 = openTelemetryAgentJarFile.getJarEntry("io/opentelemetry/javaagent/shaded/instrumentation/api/instrumenter/InstrumenterBuilder" + ".class");
+//        final byte[] bytes2 = read(openTelemetryAgentJarFile.getInputStream(jarEntry2), true);
+//        instrProxy.addTransformer(new ApiClassTransformer("io/opentelemetry/javaagent/shaded/instrumentation/api/instrumenter/InstrumenterBuilder", bytes2), true);
+//        instrProxy.retransformClasses(InstrumenterBuilder.class);
+
 
 //        JarFile openTelemetryBootstrapJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(OPENTELEMETRY_JAVAAGENT_BOOTSTRAP));
 //        JarFile openTelemetryToolingJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(OPENTELEMETRY_JAVAAGENT_TOOLING));

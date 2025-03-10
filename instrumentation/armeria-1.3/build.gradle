@@ -1,0 +1,22 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    implementation 'com.linecorp.armeria:armeria:1.3.0'
+//    implementation 'com.linecorp.armeria:armeria:1.19.0'
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.armeria-1.3' }
+}
+
+verifyInstrumentation {
+    passesOnly 'com.linecorp.armeria:armeria:[1.3.0,)'
+//    excludeRegex ".*(alpha|RC).*"
+}
+
+
+site {
+    title 'Armeria'
+    type 'Framework'
+}

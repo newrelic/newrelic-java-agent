@@ -85,6 +85,10 @@ public class NewRelicExtensionInstaller implements BeforeAgentListener, IgnoredT
                     "com.newrelic.opentelemetry.OpenTelemetryNewRelic",
                     "com.newrelic.opentelemetry.OpenTelemetryTracedMethod",
                     "com.newrelic.opentelemetry.OpenTelemetryTransaction"
+//                    ,
+//                    "com.newrelic.opentelemetry.DemoAutoConfigurationCustomizerProvider",
+//                    "com.newrelic.opentelemetry.DemoIdGenerator",
+//                    "com.newrelic.opentelemetry.DemoSpanProcessor"
             );
             for (String className : classNames) {
                 helperClassNameToBytes.put(className, helperClassFileLocator.locate(className).resolve());
