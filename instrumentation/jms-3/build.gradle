@@ -19,7 +19,7 @@ test {
     // throw an exception if security manager is not enabled.
     // They have a ticket regarding this: https://issues.apache.org/jira/browse/ARTEMIS-4975
     // but it is unlikely the fix can be used here because it will likely not be Java 8 compatible.
-    if (project.hasProperty("test23")) {
+    if (project.hasProperty("test24")) {
         jvmArgs += '-Djava.security.manager=allow'
     }
 }
