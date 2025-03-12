@@ -14,6 +14,7 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpClientWrapper;
 import com.newrelic.agent.transport.ReadResult;
+import com.newrelic.api.agent.NewRelic;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -37,6 +38,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 
 import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
@@ -54,15 +58,22 @@ import java.util.zip.GZIPInputStream;
 
 import static com.newrelic.agent.transport.DataSenderImpl.GZIP_ENCODING;
 
-public class ApacheHttpClientWrapper implements HttpClientWrapper {
+public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     private final ApacheProxyManager proxyManager;
-    private final PoolingHttpClientConnectionManager connectionManager;
-    private final CloseableHttpClient httpClient;
+    private PoolingHttpClientConnectionManager connectionManager;
+    private CloseableHttpClient httpClient;
+    private SSLContext sslContext;
+    private final int defaultTimeoutInMillis;
 
     public ApacheHttpClientWrapper(ApacheProxyManager proxyManager, SSLContext sslContext, int defaultTimeoutInMillis) {
         this.proxyManager = proxyManager;
         this.connectionManager = createHttpClientConnectionManager(sslContext);
         this.httpClient = createHttpClient(defaultTimeoutInMillis);
+
+        this.sslContext = sslContext;
+        this.defaultTimeoutInMillis = defaultTimeoutInMillis;
+
+        Core.getGlobalContext().register(this);
     }
 
     private static final String USER_AGENT_HEADER_VALUE = initUserHeaderValue();
@@ -259,4 +270,21 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper {
         }
         return new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
     }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        Agent.LOG.info("Stopping collector connection for CRaC checkpoint");
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_CHECKPOINT);
+        connectionManager.close();
+        httpClient.close();
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        Agent.LOG.info("Restarting collector connection for CRaC restore");
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_RESTORE);
+        connectionManager = createHttpClientConnectionManager(sslContext);
+        httpClient = createHttpClient(defaultTimeoutInMillis);
+    }
+
 }
