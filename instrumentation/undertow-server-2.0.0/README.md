@@ -58,3 +58,33 @@ Example code of supported handlers are below.
             unmatchedPathHandler
     );
 ```
+
+### Full Example using RoutingHandler
+```java
+public class UndertowHttpServer {
+
+    public static void main(String[] args) throws IOException {
+        RoutingHandler routingHandler = new RoutingHandler();
+        routingHandler.get("/greet/{name}", exchange -> {
+            String name = exchange.getQueryParameters().get("name").getFirst();
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+            exchange.setStatusCode(200);
+            exchange.getResponseSender().send("Hello, " + name + "!");
+        }).get("/static", exchange -> {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+            exchange.setStatusCode(200);
+            exchange.getResponseSender().send("Static static static");
+        });
+
+        System.out.println("Building Undertow server");
+        Undertow.Builder builder = Undertow.builder();
+        Undertow undertow = builder
+                .addHttpListener(8080, "localhost")
+                .setHandler(routingHandler)
+                .build();
+
+        System.out.println("Undertow started");
+        undertow.start();
+    }
+}
+```
