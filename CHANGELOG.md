@@ -4,6 +4,25 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.19.0
+## New features and improvements
+
+- Support Adding Labels to APM Forwarded Logs by @deleonenriqueta [2238](https://github.com/newrelic/newrelic-java-agent/pull/2238)
+- Update Config File to Include APM Forwarded Log Labels Options by @deleonenriqueta [2246](https://github.com/newrelic/newrelic-java-agent/pull/2246)
+- Add response attributes for http4s server modules by @kanderson250 [2243](https://github.com/newrelic/newrelic-java-agent/pull/2243)
+- Default proxy_scheme setting to "http" by @jtduffy [2230](https://github.com/newrelic/newrelic-java-agent/pull/2230)
+- Add support for server-side application logging configs by @obenkenobi [2259](https://github.com/newrelic/newrelic-java-agent/pull/2259)
+
+## Fixes
+- invokeSuspend edge case fix by @kanderson250 [2228](https://github.com/newrelic/newrelic-java-agent/pull/2228)
+- Rename and reenable aws sqs modules by @kanderson250 [2258](https://github.com/newrelic/newrelic-java-agent/pull/2258)
+- Update JFR service to run as a daemon by @kanderson250 [2245](https://github.com/newrelic/newrelic-java-agent/pull/2245)
+
+## IAST
+- CSEC Version bump to 1.6.1 [2252](https://github.com/newrelic/newrelic-java-agent/pull/2252)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.6.1
+
+
 ## Version 8.18.0
 ## New features and improvements
 
