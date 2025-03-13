@@ -9,7 +9,9 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.undertow:undertow-core:[2.0.0.Final,)'
+    passesOnly 'io.undertow:undertow-core:[1.1.0.Final,)'
+    excludeRegex 'io.undertow:undertow-core:.*\\.(Alpha|Beta|CR)[0-9]+'
+    excludeRegex 'com.typesafe.akka:akka-http_2.13:.*-[0-9a-f]{8}$'
 }
 
 site {
