@@ -25,7 +25,7 @@ public class Connectors_Instrumentation {
         // classes get invoked to rename it. If we used the actual requestPath from the exchange, it could result
         // in a bunch of unique transactions names being produced.
         Util.addTransactionNamedByParameter(Util.NamedBySource.ConnectorInstrumentation);
-        transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, "Undertow",
+        transaction.setTransactionName(TransactionNamePriority.REQUEST_URI, false, "Undertow",
                 Util.createTransactionName("{connectors_placeholder_name}/", exchange.getRequestMethod().toString()));
 
         Weaver.callOriginal();

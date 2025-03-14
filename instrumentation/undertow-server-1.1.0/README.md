@@ -1,5 +1,13 @@
 # Undertow Server Standalone Instrumentation
 
+__Note:__ This module is disabled by default in order to not conflict with any Wildfly instrumentation module.
+If you wish to enable the undertow-server module, add the following to your agent configuration file:
+```yaml
+  class_transformer:
+    com.newrelic.instrumentation.undertow-server-1.1.0:
+      enabled: true
+```
+
 This module is intended for applications using Undertow in stand alone mode, using any of the following
 route handlers:
 - io.undertow.server.RoutingHandler
@@ -8,6 +16,8 @@ route handlers:
 
 If any other handler is used, the transaction will be named `{connectors_placeholder_name}/`. This is
 to prevent an explosion of unique transaction names when parameterized request paths are used.
+
+This instrumentation module is not compatible with any Wildfly instrumentation modules.
 
 Example code of supported handlers are below.
 
