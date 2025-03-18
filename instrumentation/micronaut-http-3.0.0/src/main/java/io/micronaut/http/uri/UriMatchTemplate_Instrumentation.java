@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-@Weave(originalName = "io.micronaut.http.filter.ClientFilterChain", type = MatchType.ExactClass)
+@Weave(originalName = "io.micronaut.http.uri.UriMatchTemplate", type = MatchType.ExactClass)
 public abstract class UriMatchTemplate_Instrumentation {
     private final Pattern matchPattern = Weaver.callOriginal();
     @NewField
