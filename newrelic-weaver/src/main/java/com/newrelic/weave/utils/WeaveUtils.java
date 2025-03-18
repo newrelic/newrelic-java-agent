@@ -755,10 +755,33 @@ public final class WeaveUtils {
     /**
      * Update class versions to the max supported runtime class version.
      */
-    public static void updateClassVersion(ClassNode node) {
-        if (node.version < RUNTIME_MAX_SUPPORTED_CLASS_VERSION) {
+    public static void updateClassVersion(ClassNode node, ClassNode target) {
+        if (shouldKeepOriginalClassVersion()){
+            node.version = target.version;
+        } else if (node.version < RUNTIME_MAX_SUPPORTED_CLASS_VERSION) {
             node.version = RUNTIME_MAX_SUPPORTED_CLASS_VERSION;
         }
+    }
+
+    private static boolean shouldKeepOriginalClassVersion() {
+        return isScala212();
+    }
+
+    private static boolean isScala212() {
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        final String SCALA_VERSION_CLASS = "scala.util.Properties";
+        final String SCALA_VERSION_METHOD = "versionNumberString";
+        try {
+            // Scala has a static versionNumberString method that can be invoked to get the version number.
+            // A scala 3 app will also capture this metric, because scala 3 includes the scala 2.13 library.
+            Class<?> aClass = Class.forName(SCALA_VERSION_CLASS, true, systemClassLoader);
+            if (aClass != null) {
+                String version = (String) aClass.getMethod(SCALA_VERSION_METHOD).invoke(null);
+                return version.contains("2.12");
+            }
+        } catch (Exception e) {
+        }
+        return false;
     }
 
     /**
