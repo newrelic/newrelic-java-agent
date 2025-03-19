@@ -924,7 +924,7 @@ public class DefaultTracerTest {
         DefaultTracer span5Tracer = new OtherRootTracer(txB, new ClassMethodSignature("class",
                 "span5", "()V"), null, DefaultTracer.NULL_METRIC_NAME_FORMATTER);
         txB.getTransactionActivity().tracerStarted(span5Tracer);
-        span5Tracer.getTransaction().acceptDistributedTracePayload(payload);
+        span5Tracer.getTransaction().acceptDistributedTracePayload(payload, null);
 
         txB.setTransactionName(com.newrelic.api.agent.TransactionNamePriority.CUSTOM_HIGH, true, "Transaction B");
         txB.setThrowable(new Throwable(), TransactionErrorPriority.API, false);

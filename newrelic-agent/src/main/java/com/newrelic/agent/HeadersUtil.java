@@ -261,7 +261,7 @@ public class HeadersUtil {
             W3CTracePayload w3CTracePayload = W3CTracePayload.parseHeaders(tx, traceParent, traceState);
             if (w3CTracePayload != null) {
                 if (w3CTracePayload.getPayload() != null) {
-                    tx.acceptDistributedTracePayload(w3CTracePayload.getPayload());
+                    tx.acceptDistributedTracePayload(w3CTracePayload.getPayload(), w3CTracePayload.getTraceParent());
                 }
                 if (w3CTracePayload.getTraceParent() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceParent(w3CTracePayload.getTraceParent());
