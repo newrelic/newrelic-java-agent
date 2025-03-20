@@ -763,6 +763,23 @@ public final class WeaveUtils {
         }
     }
 
+    /**
+     * This resolves IllegalAccessErrors that occur when the agent is run on a Scala 2.12 + Java 11 application.
+     *
+     * Scala 2.12 always emits Java 8-level bytecode (i.e., Scala 2.12 apps secretly compile to Java 8 even if they are built and run with higher versions of Java).
+     * This bytecode is exempt from a restriction imposed by the JVM for Java 9 and higher, which prohibits the assignment of final fields outside of constructors. Scala 2.12 deliberately exploits this loophole,
+     * and generates Java 8 classes that assign final fields in trait setters.
+     *
+     * Because these Scala 2.12 classes are compiled to Java 8 and are exempt from the restriction, nothing bad happens.
+     *
+     * However, if a user runs Scala 2.12 + Java 11 + New Relic Java Agent:
+     *   - Scala secretly compiles classes to Java 8
+     *   - The agent updates classfiles to the runtime version (Java 11)
+     *   - The Java 11 class files are subject to the JVM's final field assignment restriction, and an IllegalAccessError is thrown.
+     *
+     *  To fix this, we need to keep the original class version for Scala 2.12 classes.
+     */
+
     private static boolean shouldKeepOriginalClassVersion() {
         return isScala212();
     }
