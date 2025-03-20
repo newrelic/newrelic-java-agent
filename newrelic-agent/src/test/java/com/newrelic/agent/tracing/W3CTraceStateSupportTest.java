@@ -120,7 +120,7 @@ public class W3CTraceStateSupportTest extends BaseDistributedTraceTest {
                 Collections.singletonList("02-12341234123412341234123412341234-4321432143214321-01"),
                 Arrays.asList("190@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05---1563574856827")).getPayload();
         assertNotNull(inboundPayload);
-        transaction.acceptDistributedTracePayload(inboundPayload);
+        transaction.acceptDistributedTracePayload(inboundPayload, null);
 
         transaction.createDistributedTracePayload("meatball!");
         String[] outboundPayload = new W3CTraceStateHeader(true, true).create(transaction.getSpanProxy()).split("-");
@@ -159,7 +159,7 @@ public class W3CTraceStateSupportTest extends BaseDistributedTraceTest {
                 Arrays.asList("190@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05-1-0.789-1563574856827", "congo@=0-qzx932-abc123",
                         "congo@=0-very-qzx932-abc123")).getPayload();
         assertNotNull(inboundPayload);
-        transaction.acceptDistributedTracePayload(inboundPayload);
+        transaction.acceptDistributedTracePayload(inboundPayload, null);
 
         String newSpanId = TransactionGuidFactory.generate16CharGuid();
         transaction.createDistributedTracePayload(newSpanId);
