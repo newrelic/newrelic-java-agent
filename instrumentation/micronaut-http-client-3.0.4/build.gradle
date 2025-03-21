@@ -1,0 +1,25 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.micronaut:micronaut-http-client:3.1.0")
+    implementation("io.projectreactor:reactor-core:3.4.8")
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-http-client-3.0.0',
+                'Implementation-Title-Alias': 'micronaut-http-client'
+    }
+}
+
+verifyInstrumentation {
+
+    passes('io.micronaut:micronaut-http-client:[3.1.0,)') {
+        implementation("io.projectreactor:reactor-core:3.4.8")
+    }
+    excludeRegex 'io.micronaut:micronaut-http-client:.*(RC|M)[0-9]*$'
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
+}

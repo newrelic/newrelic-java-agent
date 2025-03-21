@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.micronaut:micronaut-inject:1.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-inject',
+            'Implementation-Title-Alias': 'micronaut-inject' }
+}
+
+verifyInstrumentation {
+    passesOnly('io.micronaut:micronaut-inject:[1.0.0,)')
+    excludeRegex 'io.micronaut:micronaut-inject:.*(RC|M)[0-9]*$'
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
+}
