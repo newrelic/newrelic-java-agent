@@ -20,7 +20,7 @@ import org.reactivestreams.Publisher;
 public abstract class HttpClientFilter_Instrumentation {
 
     @Trace
-    public Publisher<? extends HttpResponse<?>> doFilter(MutableHttpRequest<?> request, ClientFilterChain_Instrumentation chain) {
+    public Publisher<? extends HttpResponse<?>> doFilter(MutableHttpRequest<?> request, ClientFilterChain chain) {
         NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HttpClientFilter", getClass().getSimpleName(), "doFilter");
         return Weaver.callOriginal();
     }

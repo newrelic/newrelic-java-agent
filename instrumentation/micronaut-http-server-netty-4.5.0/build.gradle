@@ -1,32 +1,29 @@
-
-// Build.gradle generated for instrumentation module micronaut-http-netty-2
-
-apply plugin: 'java'
-
-targetCompatibility=JavaVersion.VERSION_17
-
 dependencies {
-   implementation 'io.micronaut:micronaut-http-server-netty:4.5.0'
-   implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.11'
+    implementation(project(":agent-bridge"))
+    implementation("io.micronaut:micronaut-http-server-netty:4.5.0")
+    implementation("io.projectreactor:reactor-core:3.5.11")
 
-   // New Relic Java Agent dependencies
-   implementation 'com.newrelic.agent.java:newrelic-agent:7.4.0'
-   implementation 'com.newrelic.agent.java:newrelic-api:7.4.0'
-   implementation fileTree(include: ['*.jar'], dir: '../libs')
-   implementation fileTree(include: ['*.jar'], dir: '../test-lib')
 }
 
 jar {
-  manifest {
-    attributes 'Implementation-Title': 'com.newrelic.instrumentation.labs.micronaut-http-server-netty-4.5'
-    attributes 'Implementation-Vendor': 'New Relic Labs'
-    attributes 'Implementation-Vendor-Id': 'com.newrelic.labs'
-    attributes 'Implementation-Version': 1.0
-  }
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-http-server-netty-4.5.0',
+                'Implementation-Title-Alias': 'micronaut-http-server-netty'
+    }
 }
 
 verifyInstrumentation {
-  passes 'io.micronaut:micronaut-http-server-netty:[4.5.0,4.6.0)'
-  excludeRegex '.*RC.'
-  excludeRegex '.*M.'
+
+    passesOnly('io.micronaut:micronaut-http-server-netty:[4.5.0,4.6.0)')
+    excludeRegex 'io.micronaut:micronaut-http-server-netty:.*(RC|M)[0-9]*$'
+}
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
 }

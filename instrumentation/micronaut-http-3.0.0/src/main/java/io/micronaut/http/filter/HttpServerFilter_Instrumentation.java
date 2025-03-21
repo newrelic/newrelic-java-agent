@@ -21,7 +21,7 @@ import org.reactivestreams.Publisher;
 public abstract class HttpServerFilter_Instrumentation {
 
     @Trace(dispatcher = true)
-    public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain_Instrumentation chain) {
+    public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain chain) {
         NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HttpServerFilter", getClass().getSimpleName(), "doFilter");
         Transaction transaction = NewRelic.getAgent().getTransaction();
         if (!transaction.isWebTransaction()) {

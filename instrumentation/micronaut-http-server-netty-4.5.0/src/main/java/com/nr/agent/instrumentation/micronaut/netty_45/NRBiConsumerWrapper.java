@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.micronaut.netty_4;
+package com.nr.agent.instrumentation.micronaut.netty_45;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;

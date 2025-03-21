@@ -13,13 +13,13 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.micronaut.netty_43.NRBiConsumerWrapper;
+import com.nr.agent.instrumentation.micronaut.netty_45.NRBiConsumerWrapper;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
 import java.util.function.BiConsumer;
 
-@Weave(originalName = "io.micronaut.http.reactive.execution.ReactorExecutionFlowImpl", type = MatchType.ExactClass)
+@Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.reactive.execution.ReactorExecutionFlowImpl")
 abstract class ReactorExecutionFlowImpl_Instrumentation {
 
     @NewField
