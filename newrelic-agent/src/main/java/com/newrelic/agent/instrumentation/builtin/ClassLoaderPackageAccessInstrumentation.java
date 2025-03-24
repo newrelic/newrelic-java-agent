@@ -24,11 +24,11 @@ import com.newrelic.api.agent.weaver.Weaver;
 @Weave(type = MatchType.ExactClass, originalName = "java.lang.ClassLoader")
 public class ClassLoaderPackageAccessInstrumentation {
 
-    private void checkPackageAccess(Class<?> cls, ProtectionDomain pd) {
-        if (cls.isAnnotationPresent(InstrumentedClass.class)) {
-            return;
-        }
-        Weaver.callOriginal();
-    }
+//    private void checkPackageAccess(Class<?> cls, ProtectionDomain pd) {
+//        if (cls.isAnnotationPresent(InstrumentedClass.class)) {
+//            return;
+//        }
+//        Weaver.callOriginal();
+//    }
 
 }

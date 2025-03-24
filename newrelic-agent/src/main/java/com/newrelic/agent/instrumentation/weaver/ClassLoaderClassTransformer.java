@@ -373,6 +373,12 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
                                                                    cache, skipMethods);
                 // Do the weaving and use our "non-findResource" cache from above
                 newBytes = packageWeaveResult.getCompositeBytes(cache);
+                if (className.equals("java/lang/ClassLoader")){
+                    //WeaveUtils.printClassFrames(newBytes);
+                    //WeaveUtils.createReadableClassFileFromByteArray(newBytes, className, "ClassLoader", "/Users/katherineanderson/Downloads");
+                    //VerifierImpl.verify(ClassFile(newBytes), s -> System.out.println(s));
+                }
+
                 if (newBytes != null) {
                     Agent.LOG.log(Level.FINE, "ClassLoaderClassTransformer patched {0} -- {1}", loader, className);
                     return newBytes;

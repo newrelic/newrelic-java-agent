@@ -11,7 +11,9 @@ import com.google.common.collect.ObjectArrays;
 import com.newrelic.weave.utils.SynchronizedClassNode;
 import com.newrelic.weave.utils.WeaveUtils;
 import com.newrelic.weave.weavepackage.WeavePackage;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -24,6 +26,8 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Collection;
+import java.io.File;
 
 /**
  * Weaves a match (original and weave classes) into a target class.

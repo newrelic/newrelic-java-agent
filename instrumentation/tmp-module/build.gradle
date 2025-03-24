@@ -1,0 +1,13 @@
+//plugins {
+//    id "org.jetbrains.kotlin.jvm"
+//}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.tmp-module',
+            'Implementation-Title-Alias': 'tmp-module',
+            'Weave-Violation-Filter': 'METHOD_MISSING_REQUIRED_ANNOTATIONS,CLASS_MISSING_REQUIRED_ANNOTATIONS' }
+}

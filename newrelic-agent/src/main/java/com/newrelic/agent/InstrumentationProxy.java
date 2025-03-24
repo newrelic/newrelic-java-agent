@@ -15,6 +15,7 @@ import com.newrelic.agent.util.InstrumentationWrapper;
 import com.newrelic.agent.util.asm.Utils;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.Streams;
+import com.newrelic.weave.utils.WeaveUtils;
 import org.objectweb.asm.ClassReader;
 
 import java.lang.instrument.ClassDefinition;

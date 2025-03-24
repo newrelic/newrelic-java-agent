@@ -44,15 +44,15 @@ public abstract class AgentClassLoaderInstrumentation {
      * @param name the name of the class we are loading
      * @return the loaded Class
      */
-    public Class<?> loadClass(String name) {
-        if (isNewRelicClass(name)) {
-            Class<?> clazz = loadNewRelicClass(name);
-            if (clazz != null) {
-                return clazz;
-            }
-        }
-        return Weaver.callOriginal();
-    }
+//    public Class<?> loadClass(String name) throws ClassNotFoundException {
+////        if (isNewRelicClass(name)) {
+////            Class<?> clazz = loadNewRelicClass(name);
+////            if (clazz != null) {
+////                return clazz;
+////            }
+////        }
+//        return Weaver.callOriginal();
+//    }
 
     /**
      * Delegate class loading to the agent's ClassLoader if we aren't currently trying to hijack this ClassLoader.

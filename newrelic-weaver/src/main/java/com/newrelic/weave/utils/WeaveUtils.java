@@ -36,9 +36,15 @@ import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.BasicInterpreter;
+import org.objectweb.asm.tree.analysis.BasicValue;
+import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -544,6 +550,112 @@ public final class WeaveUtils {
         return result;
     }
 
+    //make an analyzer
+
+    private static void printMethodAnalysis(String owner, MethodNode method) throws AnalyzerException {
+        System.out.println("Analyzing method: " + method.name);
+        BasicInterpreter interpreter = new BasicInterpreter();
+        Analyzer<BasicValue> a = new Analyzer<>(interpreter);
+        Frame<BasicValue>[] frames = a.analyze(owner, method);
+        Map<AbstractInsnNode, Integer> rtStacks = new HashMap<>();
+        for (int j = 0; j < method.instructions.size(); ++j) {
+            AbstractInsnNode insn = method.instructions.get(j);
+            Frame<BasicValue> frame = frames[j];
+            if (frame != null) {
+                System.out.println("Locals: " + stringLocals(frame) + " stack: " + stringStack(frame) + " " + stringifyInstruction(insn));
+            }
+        }
+    }
+
+    private static String stringLocals(Frame<BasicValue> frame) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < frame.getLocals(); i++) {
+            BasicValue value = frame.getLocal(i);
+            sb.append(value);
+            sb.append(" . ");
+        }
+        return sb.toString();
+    }
+
+    private static String stringStack(Frame<BasicValue> frame) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < frame.getStackSize(); i++) {
+            BasicValue value = frame.getStack(i);
+            sb.append(value);
+            sb.append(" . ");
+        }
+        return sb.toString();
+    }
+
+    //print class node
+    public static void printClassFrames(byte [] classBytes) {
+        ClassReader reader = new ClassReader(classBytes);
+        ClassNode cn = new ClassNode();
+        reader.accept(cn, 0);
+        for (MethodNode methodNode : cn.methods) {
+            try {
+                printMethodAnalysis(cn.name, methodNode);
+            } catch (AnalyzerException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    //TEMPORARY
+
+    public static void getInstructionAtBCI(int bci, byte [] classBytes) {
+        int bciMargin = 3;
+        ClassReader reader = new ClassReader(classBytes);
+        ClassNode cn = new ClassNode();
+        reader.accept(cn, 0);
+        for (MethodNode methodNode : cn.methods) {
+            int currentBytecodeIndex = 0;
+            for (AbstractInsnNode instruction : methodNode.instructions) {
+                if (instruction.getType() != AbstractInsnNode.LABEL &&
+                        instruction.getType() != AbstractInsnNode.LINE &&
+                        instruction.getType() != AbstractInsnNode.FRAME) {
+
+                    if (currentBytecodeIndex > bci - bciMargin || currentBytecodeIndex < bci + bciMargin) {
+                        if (currentBytecodeIndex == bci) {
+                            System.out.print("Target Instruction >>>>>");
+                        }
+                        System.out.println("bci: " + currentBytecodeIndex + " " + stringifyInstruction(instruction));
+                    }
+                    currentBytecodeIndex++;
+                }
+
+            }
+            System.out.println("Finished instrumenting method: " + methodNode.name);
+        }
+    }
+
+    public static void createReadableClassFileFromClassNode(ClassNode cn, String originalName, String targetName, String destDir) {
+        if (targetName == null || originalName.contains(targetName)) {
+            System.out.println("Weaved composite ClassLoader");
+            ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            cn.accept(cw);
+            byte[] classBytes = cw.toByteArray();
+            createReadableClassFileFromByteArray(classBytes, originalName, null, destDir);
+        }
+    }
+
+    public static void createReadableClassFileFromByteArray(byte[] classBytes, String originalName, String targetName, String destDir){
+        if (targetName == null || originalName.contains(targetName)) {
+            final File MY_DIRECTORY = new File(destDir);
+            try {
+                File newFile = File.createTempFile(originalName.replace('/', '_'), ".new", MY_DIRECTORY);
+                PrintWriter pw = new PrintWriter(newFile);
+                ClassReader cr = new ClassReader(classBytes);
+                org.objectweb.asm.util.TraceClassVisitor mv = new org.objectweb.asm.util.TraceClassVisitor(pw);
+                cr.accept(mv, ClassReader.EXPAND_FRAMES);
+                pw.flush();
+                System.out.println("Wrote " + newFile.getAbsolutePath());
+            } catch (IOException e) {
+                System.out.println("Error writing ClassLoader files");
+            }
+        }
+    }
+
     /**
      * Utility method to print human-readable bytecode instructions of a MethodNode.
      *
@@ -1044,3 +1156,5 @@ public final class WeaveUtils {
     }
 
 }
+
+

@@ -113,6 +113,7 @@ public class BootstrapLoader {
     }
 
     private static void addJarToClassPath(Instrumentation instrProxy, JarFile jarfile) {
+
         instrProxy.appendToBootstrapClassLoaderSearch(jarfile);
     }
 
