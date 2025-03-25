@@ -293,7 +293,6 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
         if (observedClassLoaders.containsKey(superName) ||
                 classloadersToInclude.contains(reader.getClassName()) || classloadersToInclude.contains(superName)) {
             byte[] finalClassBytes = transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, null, null);
-            //WeaveUtils.createReadableClassFileFromByteArray(finalClassBytes, true, className, "ClassLoader", "/Users/katherineanderson/Downloads");
             return finalClassBytes;
         }
         return null;
@@ -324,11 +323,6 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
             // This ClassCache will only consult the map of the observedClassLoaders that we pass in, so
             // we don't need to worry about it possibly using findResource() when we call validate(cache).
             ClassCache cache = new ClassCache(new ClassLoaderClassFinder(observedClassLoaders));
-
-            //DEBUG TIME: how does the base classloader fare???
-            if(className.equals("java/lang/ClassLoader")){
-                WeaveUtils.forceVisitationOfClassFile(classfileBuffer, cache);
-            }
 
             PackageValidationResult result;
             if (className.equals("java/lang/ClassLoader")) {
@@ -381,11 +375,6 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
                                                                    cache, skipMethods);
                 // Do the weaving and use our "non-findResource" cache from above
                 newBytes = packageWeaveResult.getCompositeBytes(cache);
-                if (className.equals("java/lang/ClassLoader")){
-                    //WeaveUtils.printClassFrames(newBytes);
-                    //WeaveUtils.createReadableClassFileFromByteArray(newBytes, className, "ClassLoader", "/Users/katherineanderson/Downloads");
-                    //VerifierImpl.verify(ClassFile(newBytes), s -> System.out.println(s));
-                }
 
                 if (newBytes != null) {
                     Agent.LOG.log(Level.FINE, "ClassLoaderClassTransformer patched {0} -- {1}", loader, className);
