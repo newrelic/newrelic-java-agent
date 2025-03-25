@@ -547,7 +547,6 @@ public final class WeaveUtils {
 
     public static void createReadableClassFileFromClassNode(ClassNode cn, boolean isNew, String originalName, String targetName, String destDir) {
         if (targetName == null || originalName.contains(targetName)) {
-            System.out.println("Weaved composite ClassLoader");
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cn.accept(cw);
             byte[] classBytes = cw.toByteArray();

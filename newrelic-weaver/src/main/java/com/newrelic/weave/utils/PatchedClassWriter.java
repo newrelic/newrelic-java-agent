@@ -57,9 +57,6 @@ class PatchedClassWriter extends ClassWriter {
 
     @Override
     protected String getCommonSuperClass(final String type1, final String type2) {
-        if ((type1.equals(THROWABLE_NAME) && type2.equals(EXCEPTION_NAME)) || (type2.equals(THROWABLE_NAME) && type1.equals(EXCEPTION_NAME))){
-            System.out.println("Comparing an Exception and a Throwable.");
-        }
         if (type1.equals(type2)) {
             return type1;
         }

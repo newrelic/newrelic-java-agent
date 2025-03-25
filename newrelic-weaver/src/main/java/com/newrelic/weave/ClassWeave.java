@@ -72,7 +72,6 @@ public class ClassWeave {
     }
 
     private void weave() {
-        WeaveUtils.createReadableClassFileFromClassNode(target, false, target.name, "ClassLoader", "/Users/katherineanderson/Downloads");
         weavedMethods.clear();
         // copy target to composite without any jsr instructions
         target.accept(new ClassVisitor(WeaveUtils.ASM_API_LEVEL, composite) {
