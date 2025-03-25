@@ -603,6 +603,12 @@ public final class WeaveUtils {
 
     //TEMPORARY
 
+    public static void forceVisitationOfClassFile(byte[] classBytes, ClassInformationFinder classInfoFinder) {
+        ClassReader reader = new ClassReader(classBytes);
+        ClassWriter cw = new PatchedClassWriter(ClassWriter.COMPUTE_FRAMES, classInfoFinder);
+        reader.accept(cw, ClassReader.EXPAND_FRAMES);
+    }
+
     public static void getInstructionAtBCI(int bci, byte [] classBytes) {
         int bciMargin = 3;
         ClassReader reader = new ClassReader(classBytes);
@@ -629,21 +635,22 @@ public final class WeaveUtils {
         }
     }
 
-    public static void createReadableClassFileFromClassNode(ClassNode cn, String originalName, String targetName, String destDir) {
+    public static void createReadableClassFileFromClassNode(ClassNode cn, boolean isNew, String originalName, String targetName, String destDir) {
         if (targetName == null || originalName.contains(targetName)) {
             System.out.println("Weaved composite ClassLoader");
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cn.accept(cw);
             byte[] classBytes = cw.toByteArray();
-            createReadableClassFileFromByteArray(classBytes, originalName, null, destDir);
+            createReadableClassFileFromByteArray(classBytes, isNew, originalName, null, destDir);
         }
     }
 
-    public static void createReadableClassFileFromByteArray(byte[] classBytes, String originalName, String targetName, String destDir){
+    public static void createReadableClassFileFromByteArray(byte[] classBytes, boolean isNew, String originalName, String targetName, String destDir){
+        String suffix = isNew ? ".new" : ".old";
         if (targetName == null || originalName.contains(targetName)) {
             final File MY_DIRECTORY = new File(destDir);
             try {
-                File newFile = File.createTempFile(originalName.replace('/', '_'), ".new", MY_DIRECTORY);
+                File newFile = File.createTempFile(originalName.replace('/', '_'), suffix, MY_DIRECTORY);
                 PrintWriter pw = new PrintWriter(newFile);
                 ClassReader cr = new ClassReader(classBytes);
                 org.objectweb.asm.util.TraceClassVisitor mv = new org.objectweb.asm.util.TraceClassVisitor(pw);

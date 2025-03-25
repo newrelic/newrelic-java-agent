@@ -21,6 +21,8 @@ import org.objectweb.asm.ClassWriter;
  * the class structure without actually loading any classes.
  */
 class PatchedClassWriter extends ClassWriter {
+    private final String THROWABLE_NAME = "java/lang/Throwable";
+    private final String EXCEPTION_NAME = "java/lang/Exception";
     private final ClassInformationFinder classInfoFinder;
 
     PatchedClassWriter(int flags, ClassInformationFinder classInfoFinder) {
@@ -55,6 +57,9 @@ class PatchedClassWriter extends ClassWriter {
 
     @Override
     protected String getCommonSuperClass(final String type1, final String type2) {
+        if ((type1.equals(THROWABLE_NAME) && type2.equals(EXCEPTION_NAME)) || (type2.equals(THROWABLE_NAME) && type1.equals(EXCEPTION_NAME))){
+            System.out.println("Comparing an Exception and a Throwable.");
+        }
         if (type1.equals(type2)) {
             return type1;
         }
@@ -105,6 +110,9 @@ class PatchedClassWriter extends ClassWriter {
         }
 
         if (null == commonSuperType) {
+            if ((type1.equals(THROWABLE_NAME) && type2.equals(EXCEPTION_NAME)) || (type2.equals(THROWABLE_NAME) && type1.equals(EXCEPTION_NAME))) {
+                return THROWABLE_NAME;
+            }
             return WeaveUtils.JAVA_LANG_OBJECT_NAME;
         }
 

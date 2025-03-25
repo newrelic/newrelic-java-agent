@@ -292,7 +292,9 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
         String superName = reader.getClassName().equals("java/lang/ClassLoader") ? reader.getClassName() : reader.getSuperName();
         if (observedClassLoaders.containsKey(superName) ||
                 classloadersToInclude.contains(reader.getClassName()) || classloadersToInclude.contains(superName)) {
-            return transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, null, null);
+            byte[] finalClassBytes = transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, null, null);
+            //WeaveUtils.createReadableClassFileFromByteArray(finalClassBytes, true, className, "ClassLoader", "/Users/katherineanderson/Downloads");
+            return finalClassBytes;
         }
         return null;
     }
@@ -322,6 +324,12 @@ public class ClassLoaderClassTransformer implements ClassMatchVisitorFactory, Co
             // This ClassCache will only consult the map of the observedClassLoaders that we pass in, so
             // we don't need to worry about it possibly using findResource() when we call validate(cache).
             ClassCache cache = new ClassCache(new ClassLoaderClassFinder(observedClassLoaders));
+
+            //DEBUG TIME: how does the base classloader fare???
+            if(className.equals("java/lang/ClassLoader")){
+                WeaveUtils.forceVisitationOfClassFile(classfileBuffer, cache);
+            }
+
             PackageValidationResult result;
             if (className.equals("java/lang/ClassLoader")) {
                 // For "java.lang.ClassLoader" we only want to instrument one of the loadClass() methods
