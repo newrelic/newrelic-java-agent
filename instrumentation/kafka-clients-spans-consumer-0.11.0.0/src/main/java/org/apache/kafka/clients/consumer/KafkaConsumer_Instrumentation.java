@@ -27,11 +27,8 @@ public class KafkaConsumer_Instrumentation<K, V> {
     }
 
     private void nrAcceptDtHeaders(ConsumerRecords<K, V> records) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "nrAcceptDtHeaders");
         if (AgentBridge.getAgent().getTransaction(false) != null) {
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "nrAcceptDtHeaders getTransaction exists");
             for (ConsumerRecord<?, ?> record : records) {
-                AgentBridge.getAgent().getLogger().log(Level.INFO, "nrAcceptDtHeaders acceptDistributedTraceHeaders");
                 Headers dtHeaders = new HeadersWrapper(record.headers());
                 NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(TransportType.Kafka, dtHeaders);
                 break;
