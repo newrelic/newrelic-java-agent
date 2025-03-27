@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package org.apache.kafka.clients.consumer;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -9,7 +16,6 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.HeadersWrapper;
 
 import java.time.Duration;
-import java.util.logging.Level;
 
 @Weave(originalName = "org.apache.kafka.clients.consumer.KafkaConsumer")
 public class KafkaConsumer_Instrumentation<K, V> {
