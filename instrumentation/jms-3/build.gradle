@@ -14,13 +14,6 @@ verifyInstrumentation {
     passesOnly 'jakarta.jms:jakarta.jms-api:[3.0.0-RC1,)'
 }
 
-test {
-    // ActiveMQ calls javax.security.auth.Subject.getSubject. Java 23 added logic that will
-    // throw an exception if security manager is not enabled.
-    // They have a ticket regarding this: https://issues.apache.org/jira/browse/ARTEMIS-4975
-    // but it is unlikely the fix can be used here because it will likely not be Java 8 compatible.
-}
-
 site {
     title 'JMS'
     type 'Messaging'
