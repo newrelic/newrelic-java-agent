@@ -317,15 +317,24 @@ public class Transaction {
 
     public boolean acceptDistributedTracePayload(DistributedTracePayload payload, W3CTraceParent parent) {
         DistributedTracingConfig dtConfig = getAgentConfig().getDistributedTracingConfig();
+        Agent.LOG.info("EBSCOW3C - acceptDistributedTracePayload - dtConfig.isEnabled: "+dtConfig.isEnabled()+
+                "; dtConfig.remoteParentSampled: "+dtConfig.getRemoteParentSampled()+
+                "; dtConfig.remoteParentNotSampled: "+dtConfig.getRemoteParentNotSampled()+
+                "; parent: "+parent+
+                "; parent.traceId: "+parent.getTraceId()+
+                "; parent.parentId: "+parent.getParentId()+
+                "; parent.sampled: "+(parent == null ? "null" : parent.sampled()));
         if (dtConfig.isEnabled()) {
             long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(
                     System.nanoTime() - this.getTransactionTimer().getStartTimeInNanos());
             long txnStartTimeSinceEpochInMillis = System.currentTimeMillis() - elapsedMillis;
             spanProxy.get().setTimestamp(txnStartTimeSinceEpochInMillis);
             boolean accepted = spanProxy.get().acceptDistributedTracePayload(payload);
+            Agent.LOG.info("EBSCOW3C - acceptDistributedTracePayload - accepted: "+accepted);
             if (accepted) {
                 this.transportDurationInMillis = spanProxy.get().getTransportDurationInMillis();
                 if (parent != null) {
+                    Agent.LOG.info("EBSCOW3C - acceptDistributedTracePayload - parent.sampled: "+parent.sampled());
                     if (parent.sampled()) { // traceparent exists and sampled is 1
                         if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentSampled())) {
                             this.setPriorityIfNotNull(2.0f);
@@ -1360,6 +1369,7 @@ public class Transaction {
                         requestHeaders = (providedHeaders == null) ? null : providedHeaders;
                     } else {
                         Agent.LOG.log(Level.FINEST, "Using request headers in transaction {0}", this);
+                        Agent.LOG.info("EBSCOW3C - getInboundHeaderState - requestHeaders: "+requestHeaders);
                     }
                     try {
                         inboundHeaderState = new InboundHeaderState(this, requestHeaders);
