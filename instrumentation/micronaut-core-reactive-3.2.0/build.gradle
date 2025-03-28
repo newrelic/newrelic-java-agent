@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.micronaut:micronaut-core-reactive:3.2.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-core-reactive-3.2.0',
+            'Implementation-Title-Alias': 'micronaut-core-reactive' }
+}
+
+verifyInstrumentation {
+    passesOnly('io.micronaut:micronaut-core-reactive:[3.2.0,)')
+    excludeRegex 'io.micronaut:micronaut-core-reactive:.*(RC|M)[0-9]*$'
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
+}
