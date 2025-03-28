@@ -13,7 +13,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.test.marker.IBMJ9IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java21IncompatibleTest;
-import com.newrelic.test.marker.Java23IncompatibleTest;
+import com.newrelic.test.marker.Java24IncompatibleTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -69,7 +69,7 @@ public class ClassLoaderTest {
 
     // Java 12 no longer lets us access the declared field
     @Test
-    @Category({ IBMJ9IncompatibleTest.class, Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java23IncompatibleTest.class })
+    @Category({ IBMJ9IncompatibleTest.class, Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java24IncompatibleTest.class })
     public void testSetSystemClassLoader() throws Exception {
 
         final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();

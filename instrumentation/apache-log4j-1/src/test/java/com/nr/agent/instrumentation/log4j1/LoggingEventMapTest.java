@@ -10,7 +10,7 @@ package com.nr.agent.instrumentation.log4j1;
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
-import com.newrelic.test.marker.Java23IncompatibleTest;
+import com.newrelic.test.marker.Java24IncompatibleTest;
 import org.apache.log4j.Category;
 import org.apache.log4j.MDC;
 import org.apache.log4j.Priority;
@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 // Log4J1 has a quirk with Java 23(.0.0), maybe this will work when 23.0.1 is released
-@org.junit.experimental.categories.Category({ Java23IncompatibleTest.class })
+@org.junit.experimental.categories.Category({ Java24IncompatibleTest.class })
 public class LoggingEventMapTest {
 
     private static Stream<Arguments> providerParamsForLoggingEventMapTest() {

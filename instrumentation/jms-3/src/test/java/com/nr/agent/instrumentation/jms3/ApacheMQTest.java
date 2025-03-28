@@ -9,6 +9,7 @@ package com.nr.agent.instrumentation.jms3;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
+import com.newrelic.test.marker.Java24IncompatibleTest;
 import com.nr.agent.instrumentation.jms3.integration.JmsProviderTest;
 import com.nr.agent.instrumentation.jms3.integration.JmsTestFixture;
 import jakarta.jms.ConnectionFactory;
@@ -18,12 +19,20 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 /**
  * Run the standard JMS instrumentation test suite against the ApacheMQ JMS provider.
+ *
+ * This test is disabled for Java 24+ due to ActiveMQ making an API call to the Java Security Manager,
+ * which was removed in Java 24.
+ *
+ * Higher versions of ActiveMQ might remove this call, so this test may be re-enabled in the future
+ * (once the agent project is migrated off Java 8).
  */
 @RunWith(InstrumentationTestRunner.class)
+@Category({ Java24IncompatibleTest.class })
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.jms3" })
 public class ApacheMQTest implements JmsProviderTest {
     private static final String MESSAGE_BROKER_URL = "vm://localhost?create=false";

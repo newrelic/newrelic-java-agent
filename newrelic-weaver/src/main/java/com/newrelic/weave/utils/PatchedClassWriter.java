@@ -21,6 +21,8 @@ import org.objectweb.asm.ClassWriter;
  * the class structure without actually loading any classes.
  */
 class PatchedClassWriter extends ClassWriter {
+    private static final String JAVA_LANG_THROWABLE = "java/lang/Throwable";
+    private static final String JAVA_LANG_EXCEPTION = "java/lang/Exception";
     private final ClassInformationFinder classInfoFinder;
 
     PatchedClassWriter(int flags, ClassInformationFinder classInfoFinder) {
@@ -105,9 +107,27 @@ class PatchedClassWriter extends ClassWriter {
         }
 
         if (null == commonSuperType) {
+            //Required since Java 24
+            if (areThrowableAndException(type1, type2)) {
+                return JAVA_LANG_THROWABLE;
+            }
             return WeaveUtils.JAVA_LANG_OBJECT_NAME;
         }
 
         return commonSuperType;
+    }
+
+    /**
+     * getCommonSuperClass may have problematic behavior during the weaving of ClassLoaders.
+     * It designates Object as the common supertype of all types, because we're actively hijacking the ClassLoaders at this time and the full class hierarchy may not be available.
+     *
+     * Starting in Java 24, a new class cast was introduced in ClassLoader.initSystemClassLoader that added a type check between Throwable and Exception. Because of the behavior
+     * described above, the common supertype of Throwable and Exception was designated Object by the agent. This led to a VerifyError.
+     *
+     * This method specifically handles that edge case to prevent the VerifyError for JDK24+.
+     */
+    private static boolean areThrowableAndException(String type1, String type2){
+        return (type1.equals(JAVA_LANG_THROWABLE) && type2.equals(JAVA_LANG_EXCEPTION)) || (type2.equals(JAVA_LANG_THROWABLE) && type1.equals(
+                JAVA_LANG_EXCEPTION));
     }
 }
