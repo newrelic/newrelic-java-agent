@@ -39,7 +39,6 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
 
     public AgentImpl(Logger logger) {
         this.logger = logger;
-        Agent.LOG.info("JGB registering with CRaC");
         Core.getGlobalContext().register(this);
     }
 
