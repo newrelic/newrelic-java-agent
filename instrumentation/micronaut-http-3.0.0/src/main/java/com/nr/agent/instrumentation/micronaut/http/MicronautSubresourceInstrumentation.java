@@ -135,14 +135,17 @@ public class MicronautSubresourceInstrumentation {
                 }
             }
 
-            StringBuffer sb = new StringBuffer(methodName);
-            sb.append(" - ");
+            StringBuilder sb = new StringBuilder();
+
             if (controllerValue != null) {
                 sb.append(controllerValue);
             }
+
             if (value != null) {
                 sb.append(value);
             }
+
+            sb.append(" (").append(methodName).append(") ");
             NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "MicronautController", sb.toString());
         }
     }
