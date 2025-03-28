@@ -24,7 +24,14 @@ public class CachingDatabaseStatementParserTest {
         DatabaseStatementParser mockParser = mock(DatabaseStatementParser.class);
         CachingDatabaseStatementParser cache = new CachingDatabaseStatementParser(mockParser);
 
+        when(mockParser.getParsedDatabaseStatement(any(), eq("sql"), any())).thenReturn(new ParsedDatabaseStatement("tablename", "select", true));
+
+        // Initial call will cache the result
         ParsedDatabaseStatement statement = cache.getParsedDatabaseStatement(mock(DatabaseVendor.class), "sql", mock(ResultSetMetaData.class));
+        verify(mockParser, times(1)).getParsedDatabaseStatement(any(), eq("sql"), any());
+
+        // Subsequent calls will retrieve the value from the cache and not call the databaseStatementParser again
+        assertEquals(statement, cache.getParsedDatabaseStatement(mock(DatabaseVendor.class), "sql", mock(ResultSetMetaData.class)));
         verify(mockParser, times(1)).getParsedDatabaseStatement(any(), eq("sql"), any());
     }
 
