@@ -431,6 +431,9 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         return expirationService;
     }
 
+    @Override
+    public void refreshDataForCRaCRestore() {}
+
     private AgentConfig createAgentConfig(Map<String, Object> settings, Map<String, Object> serverData) {
         settings = new HashMap<>(settings);
         serverData = new HashMap<>(serverData);

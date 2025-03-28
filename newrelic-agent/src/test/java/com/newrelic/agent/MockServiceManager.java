@@ -673,6 +673,9 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         return expirationService;
     }
 
+    @Override
+    public void refreshDataForCRaCRestore() {}
+
     public void setSourceLanguageService(SourceLanguageService sourceLanguageService) {
         this.sourceLanguageService = sourceLanguageService;
     }
