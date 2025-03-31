@@ -262,6 +262,10 @@ public class HeadersUtil {
         }
         if (traceParent != null && !traceParent.isEmpty()) {
             List<String> traceState = HeadersUtil.getTraceStateHeader(inboundHeaders);
+            Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - traceState: "+traceState);
+            for (String s : traceState) {
+                Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - ts: "+s);
+            }
             W3CTracePayload w3CTracePayload = W3CTracePayload.parseHeaders(tx, traceParent, traceState);
             Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload: "+w3CTracePayload);
             if (w3CTracePayload != null) {
