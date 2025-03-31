@@ -256,24 +256,24 @@ public class HeadersUtil {
      */
     public static void parseAndAcceptDistributedTraceHeaders(Transaction tx, InboundHeaders inboundHeaders) {
         List<String> traceParent = HeadersUtil.getTraceParentHeader(inboundHeaders);
-        Agent.LOG.info("EBSCOW3C - parseAndAcceptDistributedTraceHeaders - traceParent: "+traceParent);
+        Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - traceParent: "+traceParent);
         for (String p : traceParent) {
-            Agent.LOG.info("EBSCOW3C - parseAndAcceptDistributedTraceHeaders - tp: "+p);
+            Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - tp: "+p);
         }
         if (traceParent != null && !traceParent.isEmpty()) {
             List<String> traceState = HeadersUtil.getTraceStateHeader(inboundHeaders);
             W3CTracePayload w3CTracePayload = W3CTracePayload.parseHeaders(tx, traceParent, traceState);
-            Agent.LOG.info("EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload: "+w3CTracePayload);
+            Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload: "+w3CTracePayload);
             if (w3CTracePayload != null) {
-                Agent.LOG.info("EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getPayload: "+w3CTracePayload.getPayload());
+                Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getPayload: "+w3CTracePayload.getPayload());
                 if (w3CTracePayload.getPayload() != null) {
                     tx.acceptDistributedTracePayload(w3CTracePayload.getPayload(), w3CTracePayload.getTraceParent());
                 }
-                Agent.LOG.info("EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getTraceParent: "+w3CTracePayload.getTraceParent());
+                Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getTraceParent: "+w3CTracePayload.getTraceParent());
                 if (w3CTracePayload.getTraceParent() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceParent(w3CTracePayload.getTraceParent());
                 }
-                Agent.LOG.info("EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getTraceState: "+w3CTracePayload.getTraceState());
+                Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getTraceState: "+w3CTracePayload.getTraceState());
                 if (w3CTracePayload.getTraceState() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceState(w3CTracePayload.getTraceState());
                 }
@@ -281,7 +281,7 @@ public class HeadersUtil {
         }
         else {
             String tracePayload = HeadersUtil.getNewRelicTraceHeader(inboundHeaders);
-            Agent.LOG.info("EBSCOW3C - parseAndAcceptDistributedTraceHeaders - no traceParent, tracePayload: "+tracePayload);
+            Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - no traceParent, tracePayload: "+tracePayload);
             if (tracePayload != null) {
                 tx.acceptDistributedTracePayload(tracePayload);
             }
