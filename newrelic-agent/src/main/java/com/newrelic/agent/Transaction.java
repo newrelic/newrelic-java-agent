@@ -315,51 +315,51 @@ public class Transaction {
         }
     }
 
-    public boolean acceptDistributedTracePayload(DistributedTracePayload payload, W3CTraceParent parent) {
-        DistributedTracingConfig dtConfig = getAgentConfig().getDistributedTracingConfig();
-        Agent.LOG.log(Level.INFO, "EBSCOW3C - acceptDistributedTracePayload - dtConfig.isEnabled: "+dtConfig.isEnabled()+
-                "; dtConfig.remoteParentSampled: "+dtConfig.getRemoteParentSampled()+
-                "; dtConfig.remoteParentNotSampled: "+dtConfig.getRemoteParentNotSampled()+
-                "; parent: "+parent+
-                "; parent.traceId: "+parent.getTraceId()+
-                "; parent.parentId: "+parent.getParentId()+
-                "; parent.sampled: "+(parent == null ? "null" : parent.sampled()));
-        if (dtConfig.isEnabled()) {
+    public boolean acceptDistributedTracePayload(DistributedTracePayload payload) {
+        if (getAgentConfig().getDistributedTracingConfig().isEnabled()) {
             long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(
                     System.nanoTime() - this.getTransactionTimer().getStartTimeInNanos());
             long txnStartTimeSinceEpochInMillis = System.currentTimeMillis() - elapsedMillis;
             spanProxy.get().setTimestamp(txnStartTimeSinceEpochInMillis);
             boolean accepted = spanProxy.get().acceptDistributedTracePayload(payload);
-            Agent.LOG.log(Level.INFO, "EBSCOW3C - acceptDistributedTracePayload - accepted: "+accepted);
             if (accepted) {
                 this.transportDurationInMillis = spanProxy.get().getTransportDurationInMillis();
-                if (parent != null) {
-                    Agent.LOG.log(Level.INFO, "EBSCOW3C - acceptDistributedTracePayload - parent.sampled: "+parent.sampled());
-                    if (parent.sampled()) { // traceparent exists and sampled is 1
-                        if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentSampled())) {
-                            this.setPriorityIfNotNull(2.0f);
-                        } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentSampled())) {
-                            this.setPriorityIfNotNull(0.0f);
-                        } else {
-                            this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
-                        }
-                    } else { // traceparent exists and sampled is 0
-                        if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentNotSampled())) {
-                            this.setPriorityIfNotNull(2.0f);
-                        } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentNotSampled())) {
-                            this.setPriorityIfNotNull(0.0f);
-                        } else {
-                            this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
-                        }
-                    }
-                } else {
-                    this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
-                }
+                this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
             }
             return accepted;
         } else {
             Agent.LOG.log(Level.FINE, "Not accepting payload, distributed tracing disabled");
             return false;
+        }
+    }
+
+    public void adjustPriorityForTraceParent (W3CTraceParent parent) {
+        Agent.LOG.log(Level.INFO, "EBSCOW3C - adjustPriorityForTraceParent - parent: "+parent);
+        if (parent != null) {
+            DistributedTracingConfig dtConfig = getAgentConfig().getDistributedTracingConfig();
+            Agent.LOG.log(Level.INFO, "EBSCOW3C - acceptDistributedTracePayload - dtConfig.isEnabled: "+dtConfig.isEnabled()+
+                    "; dtConfig.remoteParentSampled: "+dtConfig.getRemoteParentSampled()+
+                    "; dtConfig.remoteParentNotSampled: "+dtConfig.getRemoteParentNotSampled()+
+                    "; parent.traceId: "+parent.getTraceId()+
+                    "; parent.parentId: "+parent.getParentId()+
+                    "; parent.sampled: "+(parent == null ? "null" : parent.sampled()));
+            if (parent.sampled()) { // traceparent exists and sampled is 1
+                if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentSampled())) {
+                    this.setPriorityIfNotNull(2.0f);
+                } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentSampled())) {
+                    this.setPriorityIfNotNull(0.0f);
+                } else {
+                    this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
+                }
+            } else { // traceparent exists and sampled is 0
+                if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentNotSampled())) {
+                    this.setPriorityIfNotNull(2.0f);
+                } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentNotSampled())) {
+                    this.setPriorityIfNotNull(0.0f);
+                } else {
+                    this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
+                }
+            }
         }
     }
 

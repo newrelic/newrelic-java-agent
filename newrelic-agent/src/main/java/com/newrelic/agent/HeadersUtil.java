@@ -271,11 +271,12 @@ public class HeadersUtil {
             if (w3CTracePayload != null) {
                 Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getPayload: "+w3CTracePayload.getPayload());
                 if (w3CTracePayload.getPayload() != null) {
-                    tx.acceptDistributedTracePayload(w3CTracePayload.getPayload(), w3CTracePayload.getTraceParent());
+                    tx.acceptDistributedTracePayload(w3CTracePayload.getPayload());
                 }
                 Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getTraceParent: "+w3CTracePayload.getTraceParent());
                 if (w3CTracePayload.getTraceParent() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceParent(w3CTracePayload.getTraceParent());
+                    tx.adjustPriorityForTraceParent(w3CTracePayload.getTraceParent());
                 }
                 Agent.LOG.log(Level.INFO, "EBSCOW3C - parseAndAcceptDistributedTraceHeaders - w3CTracePayload.getTraceState: "+w3CTracePayload.getTraceState());
                 if (w3CTracePayload.getTraceState() != null) {
