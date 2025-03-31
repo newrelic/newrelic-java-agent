@@ -125,4 +125,6 @@ public interface ServiceManager extends Service {
     SourceLanguageService getSourceLanguageService();
 
     ExpirationService getExpirationService();
+
+    void refreshDataForCRaCRestore();
 }
