@@ -11,10 +11,7 @@ jar {
 }
 
 verifyInstrumentation {
-
-    //passesOnly('io.micronaut:micronaut-router:[1.0.0,)')
     passesOnly('io.micronaut:micronaut-router:[4.0.0,)')
-    //passes('io.micronaut:micronaut-router:[4.0.0,)')
     excludeRegex 'io.micronaut:micronaut-router:.*(RC|M)[0-9]*$'
 }
 
