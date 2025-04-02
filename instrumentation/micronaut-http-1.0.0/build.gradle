@@ -13,7 +13,7 @@ jar {
 
 verifyInstrumentation {
 
-    passesOnly('io.micronaut:micronaut-http:[3.0.0,)') {
+    passesOnly('io.micronaut:micronaut-http:[1.0.0,)') {
         implementation("io.projectreactor:reactor-core:3.4.8")
     }
     excludeRegex 'io.micronaut:micronaut-http:.*(RC|M)[0-9]*$'
