@@ -14,6 +14,7 @@ import com.newrelic.api.agent.TransportType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.HeadersWrapper;
+import com.nr.instrumentation.kafka.Utils;
 
 import java.time.Duration;
 
@@ -33,7 +34,7 @@ public class KafkaConsumer_Instrumentation<K, V> {
     }
 
     private void nrAcceptDtHeaders(ConsumerRecords<K, V> records) {
-        if (AgentBridge.getAgent().getTransaction(false) != null) {
+        if (Utils.DT_CONSUMER_ENABLED && AgentBridge.getAgent().getTransaction(false) != null) {
             for (ConsumerRecord<?, ?> record : records) {
                 Headers dtHeaders = new HeadersWrapper(record.headers());
                 NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(TransportType.Kafka, dtHeaders);
