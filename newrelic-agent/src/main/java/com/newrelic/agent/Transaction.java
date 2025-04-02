@@ -333,32 +333,21 @@ public class Transaction {
         }
     }
 
-    public void adjustPriorityForTraceParent (W3CTraceParent parent) {
-        Agent.LOG.log(Level.INFO, "EBSCOW3C - adjustPriorityForTraceParent - parent: "+parent);
+    public void applyDistributedTracingSamplerConfig(W3CTraceParent parent) {
         if (parent != null) {
             DistributedTracingConfig dtConfig = getAgentConfig().getDistributedTracingConfig();
-            Agent.LOG.log(Level.INFO, "EBSCOW3C - acceptDistributedTracePayload - dtConfig.isEnabled: "+dtConfig.isEnabled()+
-                    "; dtConfig.remoteParentSampled: "+dtConfig.getRemoteParentSampled()+
-                    "; dtConfig.remoteParentNotSampled: "+dtConfig.getRemoteParentNotSampled()+
-                    "; parent.traceId: "+parent.getTraceId()+
-                    "; parent.parentId: "+parent.getParentId()+
-                    "; parent.sampled: "+(parent == null ? "null" : parent.sampled()));
             if (parent.sampled()) { // traceparent exists and sampled is 1
                 if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentSampled())) {
                     this.setPriorityIfNotNull(2.0f);
                 } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentSampled())) {
                     this.setPriorityIfNotNull(0.0f);
-                } else {
-                    this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
-                }
+                } // else leave it as it was
             } else { // traceparent exists and sampled is 0
                 if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentNotSampled())) {
                     this.setPriorityIfNotNull(2.0f);
                 } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentNotSampled())) {
                     this.setPriorityIfNotNull(0.0f);
-                } else {
-                    this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
-                }
+                } // else leave it as it was
             }
         }
     }
@@ -1369,7 +1358,6 @@ public class Transaction {
                         requestHeaders = (providedHeaders == null) ? null : providedHeaders;
                     } else {
                         Agent.LOG.log(Level.FINEST, "Using request headers in transaction {0}", this);
-                        Agent.LOG.log(Level.INFO, "EBSCOW3C - getInboundHeaderState - requestHeaders: "+requestHeaders);
                     }
                     try {
                         inboundHeaderState = new InboundHeaderState(this, requestHeaders);

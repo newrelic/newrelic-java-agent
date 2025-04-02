@@ -47,7 +47,6 @@ public class InboundHeaderState {
     public InboundHeaderState(Transaction tx, InboundHeaders inboundHeaders) {
         this.tx = tx;
         this.inboundHeaders = inboundHeaders;
-        Agent.LOG.log(Level.INFO, "EBSCOW3C - InboundHeaderState - inboundHeaders: " + inboundHeaders);
         if (inboundHeaders == null) {
             this.synState = SyntheticsState.NONE;
             this.synInfoState = SyntheticsInfoState.NONE;
@@ -59,8 +58,6 @@ public class InboundHeaderState {
             } else {
                 this.synInfoState = parseSyntheticsInfoHeader();
             }
-            Agent.LOG.log(Level.INFO, "EBSCOW3C - InboundHeaderState - about to parse: dt.enabled: " + tx.getAgentConfig().getDistributedTracingConfig().isEnabled()
-                        + "; tx.inboundTracePayload: "+tx.getSpanProxy().getInboundDistributedTracePayload());
             if (tx.getAgentConfig().getDistributedTracingConfig().isEnabled() && tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
                 parseDistributedTraceHeaders();
                 this.catState = CatState.NONE;
