@@ -15,24 +15,24 @@ import io.netty.handler.codec.http.HttpRequest;
 @Weave(type = MatchType.Interface, originalName = "io.micronaut.http.server.netty.handler.RequestHandler")
 public abstract class RequestHandler_Instrumentation {
 
-	@Trace
-	public void accept(ChannelHandlerContext ctx, HttpRequest request, ByteBody body, PipeliningServerHandler.OutboundAccess outboundAccess) {
-		
-		if(request != null) {
-			String uri = request.uri();
-			NewRelic.getAgent().getTracedMethod().addCustomAttribute("URI", uri != null ? uri : "null");
-			HttpMethod method = request.method();
-			String methodName = null;
-			if(method != null) {
-				methodName = method.name();
-			}
-			NewRelic.getAgent().getTracedMethod().addCustomAttribute("Method", methodName != null ? methodName : "null");
-			if(uri != null && methodName != null) {
-				NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, "Micronaut-Netty", methodName + " - " + uri);
-			}
-		}
-		
-		Weaver.callOriginal();
-	}
+    @Trace
+    public void accept(ChannelHandlerContext ctx, HttpRequest request, ByteBody body, PipeliningServerHandler.OutboundAccess outboundAccess) {
+        
+        if(request != null) {
+            String uri = request.uri();
+            NewRelic.getAgent().getTracedMethod().addCustomAttribute("URI", uri != null ? uri : "null");
+            HttpMethod method = request.method();
+            String methodName = null;
+            if(method != null) {
+                methodName = method.name();
+            }
+            NewRelic.getAgent().getTracedMethod().addCustomAttribute("Method", methodName != null ? methodName : "null");
+            if(uri != null && methodName != null) {
+                NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, "Micronaut-Netty", methodName + " - " + uri);
+            }
+        }
+        
+        Weaver.callOriginal();
+    }
 
 }

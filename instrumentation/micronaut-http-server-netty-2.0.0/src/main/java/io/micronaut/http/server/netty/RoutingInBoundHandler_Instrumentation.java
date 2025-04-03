@@ -29,23 +29,23 @@ abstract class RoutingInBoundHandler_Instrumentation {
 
     @Trace
     protected void channelRead0(ChannelHandlerContext ctx, io.micronaut.http.HttpRequest<?> request) {
-		if(request != null) {
-			StringBuffer sb = new StringBuffer();
-			HttpMethod method = request.getMethod();
-			if(method != null) {
-				sb.append(method.name());
-			} else {
-				sb.append("UnknownMethod");
-			}
-			sb.append(" - ");
-			URI uri = request.getUri();
-			if(uri != null) {
-				sb.append(uri.toASCIIString());
-			} else {
-				sb.append("UnknownURI");
-			}
-			NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, "Micronaut-Netty", sb.toString());
-		}
+        if(request != null) {
+            StringBuffer sb = new StringBuffer();
+            HttpMethod method = request.getMethod();
+            if(method != null) {
+                sb.append(method.name());
+            } else {
+                sb.append("UnknownMethod");
+            }
+            sb.append(" - ");
+            URI uri = request.getUri();
+            if(uri != null) {
+                sb.append(uri.toASCIIString());
+            } else {
+                sb.append("UnknownURI");
+            }
+            NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, "Micronaut-Netty", sb.toString());
+        }
         Weaver.callOriginal();
     }
 
