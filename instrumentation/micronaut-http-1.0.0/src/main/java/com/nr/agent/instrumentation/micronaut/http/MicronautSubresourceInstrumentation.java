@@ -8,11 +8,11 @@
 package com.nr.agent.instrumentation.micronaut.http;
 
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.TransactionNamePriority;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.api.agent.weaver.WeaveWithAnnotation;
 import com.newrelic.api.agent.weaver.Weaver;
+
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Delete;
 import io.micronaut.http.annotation.Get;
@@ -20,6 +20,7 @@ import io.micronaut.http.annotation.Head;
 import io.micronaut.http.annotation.Patch;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.Put;
+import io.micronaut.http.annotation.Trace;
 
 public class MicronautSubresourceInstrumentation {
 
@@ -139,6 +140,7 @@ public class MicronautSubresourceInstrumentation {
 
             if (controllerValue != null) {
                 sb.append(controllerValue);
+                sb.append('/');
             }
 
             if (value != null) {
