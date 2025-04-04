@@ -238,10 +238,9 @@ class NRSpanBuilder implements SpanBuilder {
                 if (name.isEmpty()) {
                     return Collections.emptyList();
                 }
-                String nameLowerCase = name.toLowerCase();
                 List<String> headers = new ArrayList<>();
 
-                if (W3C_TRACESTATE.equals(nameLowerCase)) {
+                if (W3C_TRACESTATE.equalsIgnoreCase(name)) {
                     Map<String, String> traceState = parentSpanContext.getTraceState().asMap();
                     StringBuilder tracestateStringBuilder = new StringBuilder();
                     // Build full tracestate header incase there are multiple vendors
@@ -255,7 +254,7 @@ class NRSpanBuilder implements SpanBuilder {
                     headers.add(tracestateStringBuilder.toString());
                     return headers;
                 }
-                if (W3C_TRACEPARENT.equals(nameLowerCase)) {
+                if (W3C_TRACEPARENT.equalsIgnoreCase(name)) {
                     String traceParent = W3CTraceParentHeader.create(parentSpanContext);
                     if (!traceParent.isEmpty()) {
                         headers.add(traceParent);
