@@ -17,6 +17,7 @@ import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.TracedMethod;
+import com.nr.agent.instrumentation.header.utils.W3CTraceParentHeader;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -27,12 +28,18 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import static com.nr.agent.instrumentation.header.utils.HeaderType.NEWRELIC;
+import static com.nr.agent.instrumentation.header.utils.HeaderType.W3C_TRACEPARENT;
+import static com.nr.agent.instrumentation.header.utils.HeaderType.W3C_TRACESTATE;
 
 /**
  * New Relic Java agent implementation of an OpenTelemetry SpanBuilder,
@@ -216,10 +223,46 @@ class NRSpanBuilder implements SpanBuilder {
 
             @Override
             public String getHeader(String name) {
-                if ("User-Agent".equals(name)) {
+                if ("User-Agent".equalsIgnoreCase(name)) {
                     return (String) attributes.get("user_agent.original");
                 }
+                // TODO is it possible to get the newrelic DT header from OTel???
+                if (NEWRELIC.equalsIgnoreCase(name)) {
+                    return null;
+                }
                 return null;
+            }
+
+            @Override
+            public List<String> getHeaders(String name) {
+                if (name.isEmpty()) {
+                    return Collections.emptyList();
+                }
+                String nameLowerCase = name.toLowerCase();
+                List<String> headers = new ArrayList<>();
+
+                if (W3C_TRACESTATE.equals(nameLowerCase)) {
+                    Map<String, String> traceState = parentSpanContext.getTraceState().asMap();
+                    StringBuilder tracestateStringBuilder = new StringBuilder();
+                    // Build full tracestate header incase there are multiple vendors
+                    for (Map.Entry<String, String> entry : traceState.entrySet()) {
+                        if (tracestateStringBuilder.length() == 0) {
+                            tracestateStringBuilder.append(entry.toString());
+                        } else {
+                            tracestateStringBuilder.append(",").append(entry.toString());
+                        }
+                    }
+                    headers.add(tracestateStringBuilder.toString());
+                    return headers;
+                }
+                if (W3C_TRACEPARENT.equals(nameLowerCase)) {
+                    String traceParent = W3CTraceParentHeader.create(parentSpanContext);
+                    if (!traceParent.isEmpty()) {
+                        headers.add(traceParent);
+                        return headers;
+                    }
+                }
+                return headers;
             }
 
             @Override
