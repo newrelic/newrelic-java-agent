@@ -311,6 +311,21 @@ common: &default_settings
     # Default is false.
     exclude_newrelic_header: false
 
+    # Agent version 8.20.0+ utilize these settings for controlling how to sample when we have a remote parent
+    # involved. That is, if there is a valid traceparent with a value in the sampled flag on the inbound headers.
+    # If the inbound traceparent is marked as sampled then the remote_parent_sampled setting will be used.
+    # If the inbound traceparent is marked as NOT sampled then the remote_parent_not_sampled setting will be used.
+    # Otherwise New Relic's standard sampling will be used.
+    # Note: Reservoir limits are still in effect on top of these settings, so spans may be dropped even if they
+    # are marked for sampling, if the reservoir reaches its limit (max_samples_stored).
+    # Possible values:
+    #   default: New Relic's standard sampling rules will be used.
+    #   always_on: Always sample spans in this case.
+    #   always_off: Always skip sampling in this case.
+    sampler:
+      remote_parent_sampled: default
+      remote_parent_not_sampled: default
+
   # New Relic's distributed tracing UI uses Span events to display traces across different services.
   # Span events capture attributes that describe execution context and provide linking metadata.
   # Span events require distributed tracing to be enabled.

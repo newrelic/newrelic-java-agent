@@ -1,0 +1,29 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.micronaut:micronaut-http-server-netty:4.6.0")
+    implementation("io.projectreactor:reactor-core:3.5.11")
+
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-http-server-netty-4.6.0',
+                'Implementation-Title-Alias': 'micronaut-http-server-netty'
+    }
+}
+
+verifyInstrumentation {
+
+    passesOnly('io.micronaut:micronaut-http-server-netty:[4.6.0,)')
+    excludeRegex 'io.micronaut:micronaut-http-server-netty:.*(RC|M)[0-9]*$'
+}
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
+}

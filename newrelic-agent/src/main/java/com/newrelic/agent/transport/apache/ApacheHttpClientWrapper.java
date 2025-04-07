@@ -274,7 +274,6 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         Agent.LOG.info("Stopping collector connection for CRaC checkpoint");
-        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_CHECKPOINT);
         connectionManager.close();
         httpClient.close();
     }
@@ -282,7 +281,6 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
         Agent.LOG.info("Restarting collector connection for CRaC restore");
-        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_RESTORE);
         connectionManager = createHttpClientConnectionManager(sslContext);
         httpClient = createHttpClient(defaultTimeoutInMillis);
     }
