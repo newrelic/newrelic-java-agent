@@ -79,4 +79,9 @@ public class SpanEventImpl implements SpanEvent {
     public Map<String, Object> getAgentAttributes() {
         return spanEvent.getAgentAttributes();
     }
+
+    @Override
+    public Map<String, Object> getUserAttributes() {
+        return spanEvent.getUserAttributesCopy();
+    }
 }
