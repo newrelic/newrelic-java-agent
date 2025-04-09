@@ -129,7 +129,7 @@ public class WeaveCoroutineTest {
     @Test
     public void featureFlagNotSetThrowsAIOOBException() throws IOException {
         //This property has to be set at weave time, so it has to be run with a new class.
-        System.clearProperty("newrelic.config.class_transformer.clear_return_stacks");
+        System.setProperty("newrelic.config.class_transformer.clear_return_stacks", "false");
 
         try {
             WeaveTestUtils.weaveAndAddToContextClassloader("com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doExpectedErrorSuspend$1$1",

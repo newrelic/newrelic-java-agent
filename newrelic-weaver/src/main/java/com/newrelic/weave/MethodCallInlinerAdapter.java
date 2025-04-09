@@ -249,7 +249,7 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
      * modify this guard to process additional methods.
      */
     private boolean shouldClearReturnStacks(String name, String desc) {
-        String enabled = System.getProperty("newrelic.config.class_transformer.clear_return_stacks", "false");
+        String enabled = System.getProperty("newrelic.config.class_transformer.clear_return_stacks", "true");
         return enabled.equalsIgnoreCase("true");
     }
 
