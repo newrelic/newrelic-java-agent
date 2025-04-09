@@ -240,27 +240,27 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
     }
 
     /**
-     * Flags method nodes requiring additional return insn processing, which for now is only invokeSuspend.
+     * Flags method nodes requiring additional return insn processing.
+     *
+     * It returns false by default.
+     *
+     * To enable this feature, set -Dnewrelic.config.class_transformer.clear_return_stacks=true
      * For future reference, if other code surfaces a bytecode verification failure (such as an ArrayIndexOutOfBoundsException),
-     * modify this guard to process additional methods beyond invokeSuspend.
+     * modify this guard to process additional methods.
      */
     private boolean shouldClearReturnStacks(String name, String desc) {
-        if (clearReturnStacksDisabled()) {
-            return false;
-        }
-        final String invokeSuspendName = "invokeSuspend";
-        final String invokeSuspendDesc = "(Ljava/lang/Object;)Ljava/lang/Object;";
-        return invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
+        String enabled = System.getProperty("newrelic.config.class_transformer.clear_return_stacks", "false");
+        return enabled.equalsIgnoreCase("true");
     }
 
-    /**
-     * Feature flag to disable return stack processing.
-     * To use this feature flag, set -Dnewrelic.config.class_transformer.clear_return_stacks=false at JVM startup.
-     */
-    private boolean clearReturnStacksDisabled() {
-        String enabled = System.getProperty("newrelic.config.class_transformer.clear_return_stacks", "true");
-        return enabled.equalsIgnoreCase("false");
-    }
+//    /**
+//     * Feature flag to disable return stack processing.
+//     * To use this feature flag, set -Dnewrelic.config.class_transformer.clear_return_stacks=false at JVM startup.
+//     */
+//    private boolean clearReturnStacksDisabled() {
+//        String enabled = System.getProperty("newrelic.config.class_transformer.clear_return_stacks", "true");
+//        return enabled.equalsIgnoreCase("false");
+//    }
 
     /**
      * This adapter checks a method's return instructions, adding additional POPs prior to return instructions
