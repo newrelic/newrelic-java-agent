@@ -133,7 +133,10 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             } else {
                 // Copy the MethodNode before modifying the instructions list (which is not thread safe)
                 MethodNode methodNodeCopy = WeaveUtils.copy(method.method);
-                if (shouldClearReturnStacks(name, desc)) {
+                //Feature flag for method nodes that require additional return insn processing.
+                //Introduced because some Kotlin code throws ArrayIndexOutOfBoundsException when weaved.
+                //To enable this feature, set -Dnewrelic.config.class_transformer.clear_return_stacks=true
+                if (Boolean.getBoolean("newrelic.config.class_transformer.clear_return_stacks")) {
                     MethodNode result = WeaveUtils.newMethodNode(methodNodeCopy);
                     methodNodeCopy.accept(new ClearReturnAdapter(owner, methodNodeCopy, result));
                     methodNodeCopy = result;
@@ -237,29 +240,6 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             // do about the same thing but a little more. anyway, the tests pass..
             return caller.newLocal(type);
         }
-    }
-
-    /**
-     * Flags method nodes requiring additional return insn processing, which for now is only invokeSuspend.
-     * For future reference, if other code surfaces a bytecode verification failure (such as an ArrayIndexOutOfBoundsException),
-     * modify this guard to process additional methods beyond invokeSuspend.
-     */
-    private boolean shouldClearReturnStacks(String name, String desc) {
-        if (clearReturnStacksDisabled()) {
-            return false;
-        }
-        final String invokeSuspendName = "invokeSuspend";
-        final String invokeSuspendDesc = "(Ljava/lang/Object;)Ljava/lang/Object;";
-        return invokeSuspendName.equals(name) && invokeSuspendDesc.equals(desc);
-    }
-
-    /**
-     * Feature flag to disable return stack processing.
-     * To use this feature flag, set -Dnewrelic.config.class_transformer.clear_return_stacks=false at JVM startup.
-     */
-    private boolean clearReturnStacksDisabled() {
-        String enabled = System.getProperty("newrelic.config.class_transformer.clear_return_stacks", "true");
-        return enabled.equalsIgnoreCase("false");
     }
 
     /**
