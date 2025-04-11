@@ -13,25 +13,25 @@ public class GenericMessageListener_Instrumentation<T> {
 
     @Trace(dispatcher = true)
     public void onMessage(T data) {
-        SpringKafkaUtil.processConsume(data);
+        SpringKafkaUtil.processMessageListener(data);
         Weaver.callOriginal();
     }
 
     @Trace(dispatcher = true)
     public void onMessage(T data, Acknowledgment acknowledgment) {
-        SpringKafkaUtil.processConsume(data);
+        SpringKafkaUtil.processMessageListener(data);
         Weaver.callOriginal();
     }
 
     @Trace(dispatcher = true)
     public void onMessage(T data, Consumer<?, ?> consumer) {
-        SpringKafkaUtil.processConsume(data);
+        SpringKafkaUtil.processMessageListener(data);
         Weaver.callOriginal();
     }
 
     @Trace(dispatcher = true)
     public void onMessage(T data, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
-        SpringKafkaUtil.processConsume(data);
+        SpringKafkaUtil.processMessageListener(data);
         Weaver.callOriginal();
     }
 }

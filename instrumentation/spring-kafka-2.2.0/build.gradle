@@ -5,10 +5,10 @@ dependencies {
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-kafka-2.0.0' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-kafka-2.2.0' }
 }
 verifyInstrumentation {
-    passesOnly 'org.springframework.kafka:spring-kafka:[2.0.0.RELEASE,)'
+    passesOnly 'org.springframework.kafka:spring-kafka:[2.2.0.RELEASE,)'
     excludeRegex 'org.springframework.kafka:spring-kafka:.*M[0-9]*$'
 }
 
