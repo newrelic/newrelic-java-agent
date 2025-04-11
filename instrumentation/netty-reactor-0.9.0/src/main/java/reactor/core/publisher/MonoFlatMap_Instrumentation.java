@@ -8,13 +8,15 @@
 package reactor.core.publisher;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.NewRelic;
+import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
+import org.reactivestreams.Subscription;
 
 @Weave(type = MatchType.ExactClass, originalName = "reactor.core.publisher.MonoFlatMap")
 abstract class MonoFlatMap_Instrumentation {
@@ -26,13 +28,20 @@ abstract class MonoFlatMap_Instrumentation {
         private Token token;
 
         @WeaveAllConstructors
-        FlatMapMain_Instrumentation() {
-            if (AgentBridge.getAgent().getTransaction(false) != null && token == null) {
-                Token existingToken = NewRelic.getAgent().getTransaction().getToken();
-                token = (existingToken != null && existingToken.isActive()) ? existingToken : NewRelic.getAgent().getTransaction().getToken();
+        FlatMapMain_Instrumentation() {}
+
+        public void onSubscribe(Subscription s) {
+            Transaction tx = AgentBridge.getAgent().getTransaction(false);
+            if (tx != null && tx.isTransactionNameSet() && token == null) {
+                token = tx.getToken();
+                if (token != null && token.isActive()) {
+                    token.link();
+                }
             }
+            Weaver.callOriginal();
         }
 
+        @Trace(async = true)
         public void onNext(T t) {
             if (token != null && token.isActive()) {
                 token.link();
