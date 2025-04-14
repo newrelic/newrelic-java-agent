@@ -145,8 +145,22 @@ public class BootstrapAgent {
             // Premain start time will be recorded starting from this point
             long startTime = System.currentTimeMillis();
 
+
+            ClassLoader sysClassLoader = ClassLoader.getSystemClassLoader();
+            System.err.println("DUF sysClassLoader: " + sysClassLoader);
+            boolean loadOtelClasses = false;
+            try {
+                Class<?> c =   sysClassLoader.loadClass("io.opentelemetry.api.OpenTelemetry");
+                System.err.println("DUF class: " + c);
+                //loadOtelClasses = true;
+
+            } catch (ClassNotFoundException cnfe) {
+                System.out.println("No OTel API found");
+            }
+
+
             String javaVersion = System.getProperty("java.version", "");
-            BootstrapLoader.load(inst, isJavaSqlLoadedOnPlatformClassLoader(javaVersion));
+            BootstrapLoader.load(inst, isJavaSqlLoadedOnPlatformClassLoader(javaVersion), loadOtelClasses);
 
             ClassLoader agentClassLoaderParent = getPlatformClassLoaderOrNull();
 

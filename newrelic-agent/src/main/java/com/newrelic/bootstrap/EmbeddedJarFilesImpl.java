@@ -21,7 +21,12 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
 
     private static final String[] INTERNAL_JAR_FILE_NAMES = new String[] { BootstrapLoader.AGENT_BRIDGE_JAR_NAME,
-            BootstrapLoader.API_JAR_NAME, BootstrapLoader.WEAVER_API_JAR_NAME,  BootstrapLoader.NEWRELIC_SECURITY_AGENT};
+            BootstrapLoader.API_JAR_NAME, BootstrapLoader.WEAVER_API_JAR_NAME,  BootstrapLoader.NEWRELIC_SECURITY_AGENT,
+            "opentelemetry-sdk-common-1.31.0", "opentelemetry-context-1.31.0", "opentelemetry-exporter-common-1.31.0", "opentelemetry-api-1.31.0",
+            "opentelemetry-exporter-otlp-common-1.31.0", "opentelemetry-exporter-otlp-1.31.0", "opentelemetry-exporter-sender-okhttp-1.31.0",
+            "opentelemetry-extension-incubator-1.31.0-alpha", "opentelemetry-sdk-extension-autoconfigure-spi-1.31.0", "opentelemetry-sdk-1.31.0",
+            "opentelemetry-sdk-extension-autoconfigure-1.31.0", "opentelemetry-sdk-logs-1.31.0", "opentelemetry-sdk-metrics-1.31.0",
+            "opentelemetry-sdk-trace-1.31.0", "micrometer-commons-1.12.1", "micrometer-observation-1.12.1", "okhttp-4.12.0"};
 
     public static final EmbeddedJarFiles INSTANCE = new EmbeddedJarFilesImpl();
 

@@ -21,6 +21,7 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -148,7 +149,7 @@ public class BootstrapLoader {
      *                                             platform class loader. If so, we can't add the datastore jar to the bootstrap because
      *                                             required classes will be loaded by the platform class loader instead.
      */
-    static void load(Instrumentation inst, boolean isJavaSqlLoadedOnPlatformClassLoader) {
+    static void load(Instrumentation inst, boolean isJavaSqlLoadedOnPlatformClassLoader, boolean loadOtelSdk) {
         try {
             if (!isJavaSqlLoadedOnPlatformClassLoader) {
                 addBridgeJarToClassPath(inst, AGENT_BRIDGE_DATASTORE_JAR_NAME);
@@ -159,6 +160,18 @@ public class BootstrapLoader {
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(WEAVER_API_JAR_NAME)));
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_API)));
             addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(NEWRELIC_SECURITY_AGENT)));
+
+            if (loadOtelSdk) {
+                List<String> otelJars = Arrays.asList("opentelemetry-api-1.31.0", "opentelemetry-sdk-common-1.31.0", "opentelemetry-context-1.31.0", "opentelemetry-exporter-common-1.31.0",
+                        "opentelemetry-exporter-otlp-common-1.31.0", "opentelemetry-exporter-otlp-1.31.0", "opentelemetry-exporter-sender-okhttp-1.31.0",
+                        "opentelemetry-extension-incubator-1.31.0-alpha", "opentelemetry-sdk-extension-autoconfigure-spi-1.31.0", "opentelemetry-sdk-1.31.0",
+                        "opentelemetry-sdk-extension-autoconfigure-1.31.0", "opentelemetry-sdk-logs-1.31.0", "opentelemetry-sdk-metrics-1.31.0",
+                        "opentelemetry-sdk-trace-1.31.0", "micrometer-commons-1.12.1", "micrometer-observation-1.12.1", "okhttp-4.12.0");
+                for (String jarName : otelJars) {
+                    System.out.println("Adding -- " + jarName);
+                    addJarToClassPath(inst, new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(jarName)));
+                }
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

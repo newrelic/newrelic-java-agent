@@ -60,6 +60,26 @@ dependencies {
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
 
+    // Otel SDK and auto configure jars we shadow into the agent to support "zero-config"
+    // manual, standalone library and native instrumentation
+    ["opentelemetry-sdk-common:1.31.0", "opentelemetry-context:1.31.0", "opentelemetry-exporter-common:1.31.0",
+     "opentelemetry-exporter-otlp-common:1.31.0", "opentelemetry-exporter-otlp:1.31.0", "opentelemetry-exporter-sender-okhttp:1.31.0",
+     "opentelemetry-extension-incubator:1.31.0-alpha", "opentelemetry-sdk-extension-autoconfigure-spi:1.31.0", "opentelemetry-sdk:1.31.0",
+     "opentelemetry-sdk-extension-autoconfigure:1.31.0", "opentelemetry-sdk-logs:1.31.0", "opentelemetry-sdk-metrics:1.31.0",
+     "opentelemetry-sdk-trace:1.31.0", "opentelemetry-api:1.31.0"].each { jar ->
+        jarIntoJar("io.opentelemetry:${jar}") {
+            exclude group: "io.opentelemetry"
+        }
+    }
+
+    ["micrometer-commons:1.12.1", "micrometer-observation:1.12.1"].each { jar ->
+        jarIntoJar("io.micrometer:${jar}") {
+            exclude group: "io.micrometer"
+        }
+    }
+
+    jarIntoJar("com.squareup.okhttp3:okhttp:4.12.0")
+
     shadowIntoJar( group: 'commons-codec', name: 'commons-codec') {
         version {
             strictly "[1.13]"
