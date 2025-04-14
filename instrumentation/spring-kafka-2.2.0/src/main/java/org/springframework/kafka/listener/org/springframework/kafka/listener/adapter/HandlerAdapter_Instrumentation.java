@@ -1,6 +1,5 @@
 package org.springframework.kafka.listener.org.springframework.kafka.listener.adapter;
 
-import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -21,7 +20,7 @@ public class HandlerAdapter_Instrumentation {
         } else if (delegatingHandler != null) {
             handlerMethod = delegatingHandler.getHandlerForPayload(message.getPayload().getClass());
         }
-        SpringKafkaUtil.nameHandlerTransaction(message, handlerMethod);
+        SpringKafkaUtil.nameTransactionFromAnnotation(message, handlerMethod);
         return Weaver.callOriginal();
     }
 

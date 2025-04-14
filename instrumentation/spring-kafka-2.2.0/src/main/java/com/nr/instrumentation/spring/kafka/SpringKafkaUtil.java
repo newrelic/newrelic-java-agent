@@ -17,7 +17,6 @@ import java.util.Map;
 
 public class SpringKafkaUtil {
 
-    public static Map<Object, Boolean> handlerCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     public static Map<Object, Boolean> listenerCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
     public static String CATEGORY = "Message";
@@ -36,7 +35,7 @@ public class SpringKafkaUtil {
             List<ConsumerRecord<?, ?>> records = Collections.singletonList(record);
             reportExternal(records, false);
             NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH,
-                    false, CATEGORY, "Kafka/Listen/Topic/Named", record.topic());
+                    false, CATEGORY, "Kafka/Topic/Consume/Named", record.topic());
         } else if (data instanceof ConsumerRecords) {
             reportExternal((ConsumerRecords<?, ?>) data, true);
         } else if (data instanceof List) {
@@ -48,19 +47,18 @@ public class SpringKafkaUtil {
 
     // Creates external spans and sets a transaction name based on the method annotation.
     // This is given lower priority over naming a transaction based on a single message listener.
-    public static void nameHandlerTransaction(Message<?> message, InvocableHandlerMethod handlerMethod) {
-        if (AgentBridge.getAgent().getTransaction(false) == null || handlerCache.containsKey(message)) {
+    public static void nameTransactionFromAnnotation(Message<?> message, InvocableHandlerMethod handlerMethod) {
+        if (AgentBridge.getAgent().getTransaction(false) == null) {
             return;
         }
         String transactionName = "Kafka/Listen";
         if (handlerMethod != null) {
             KafkaListener annotation = handlerMethod.getMethod().getAnnotation(KafkaListener.class);
             if (annotation != null) {
-                transactionName = "Kafka/Listen/Topic/Named/" + String.join(",", annotation.topics());
+                transactionName = "Kafka/Topic/Consume/Named/" + String.join(",", annotation.topics());
             }
         }
         NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, CATEGORY, transactionName);
-        handlerCache.put(message, Boolean.TRUE);
     }
 
     private static void reportExternal(Iterable<?> consumerRecords, boolean isBatch) {
