@@ -5,7 +5,7 @@ dependencies {
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-kafka-2.2.0' }
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-kafka-2.2.0', 'Enabled': 'false' }
 }
 verifyInstrumentation {
     passesOnly 'org.springframework.kafka:spring-kafka:[2.2.0.RELEASE,)'
