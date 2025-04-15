@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package org.springframework.kafka.listener;
 
 import com.newrelic.api.agent.Trace;
@@ -8,7 +15,6 @@ import com.nr.instrumentation.spring.kafka.SpringKafkaUtil;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.lang.Nullable;
 
 @Weave(originalName = "org.springframework.kafka.listener.BatchMessageListener", type = MatchType.Interface)
 public class BatchMessageListener_Instrumentation<K,V> {
