@@ -4,6 +4,54 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## Version 8.20.0
+## New features and improvements
+
+- Support for CRaC [2250](https://github.com/newrelic/newrelic-java-agent/pull/2250)
+- Support for JDK24 [2284](https://github.com/newrelic/newrelic-java-agent/pull/2284)
+- Add sampling options when an inbound traceparent exists  [2279](https://github.com/newrelic/newrelic-java-agent/pull/2279)
+  - These options define how the agent should handle sampling of spans, depending on sampling decisions that were made for their parent span by an upstream entity. The configuration options `remote_parent_sampled` and `remote_parent_not_sampled` specify what to do in the case the parent span was sampled or not sampled, respectively. See the [documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#dt-sampler-remote-parent-sampled) for full configuration details.
+- Support for Undertow as a stand-alone module [2269](https://github.com/newrelic/newrelic-java-agent/pull/2269)
+  - This instrumentation is disabled by default to avoid conflicts with existing Wildfly instrumentation. To enable this instrumentation for stand-alone Undertow server apps, use the configuration setting:
+
+  ```yaml
+   class_transformer:
+     com.newrelic.instrumentation.undertow-server-1.1.0:
+       enabled: true
+  ```
+
+- Support for Couchbase Client [2203](https://github.com/newrelic/newrelic-java-agent/pull/2303)
+  - If the [Couchbase Client Experimental Module](https://github.com/newrelic-experimental/newrelic-java-couchbase) is currently in use, remove it from your extensions directory before upgrading to this version of the Java Agent.
+
+## Fixes
+
+- Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274)
+  - This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting:
+
+  ```yaml
+    netty:
+      http2:
+        frame_read_listener:
+          start_transaction: true
+  ```
+
+- Refactor AWS docker id fetch to use 5s timeout [2275](https://github.com/newrelic/newrelic-java-agent/pull/2275)
+- Feature flag to apply Kotlin `ArrayIndexOutOfBoundsException` fix to all methods [2307](https://github.com/newrelic/newrelic-java-agent/pull/2307 )
+  - This fix addresses errors that may be seen when running the Java Agent in an environment where Kotlin suspends functions are used. To use this fix, set the system property `-Dnewrelic.config.class_transformer.clear_return_stacks=true`
+- Prevent cache lock for long DB statement parsing [2294](https://github.com/newrelic/newrelic-java-agent/pull/2294)
+- Add config to specify whether java.sql is loaded by platform classloader [2267](https://github.com/newrelic/newrelic-java-agent/pull/2267)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
 ## Version 8.19.0
 ## New features and improvements
 
