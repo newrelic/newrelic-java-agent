@@ -56,13 +56,10 @@ public class SpringKafkaUtil {
             return;
         }
         if (handlerMethod != null) {
-            KafkaListener annotation = handlerMethod.getMethod().getAnnotation(KafkaListener.class);
             String fullMethodName = handlerMethod.getMethod().getDeclaringClass().getName() + "." + handlerMethod.getMethod().getName();
-            if (annotation != null) {
-                NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true,
-                        CATEGORY, LIBRARY, fullMethodName);
+            NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true,
+                    CATEGORY, LIBRARY, fullMethodName);
 
-            }
         }
     }
 
