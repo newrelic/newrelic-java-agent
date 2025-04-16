@@ -27,7 +27,7 @@ public class HandlerAdapter_Instrumentation {
         } else if (delegatingHandler != null) {
             handlerMethod = delegatingHandler.getHandlerForPayload(message.getPayload().getClass());
         }
-        SpringKafkaUtil.nameTransactionFromAnnotation(message, handlerMethod);
+        SpringKafkaUtil.nameTransactionFromAnnotation(handlerMethod);
         return Weaver.callOriginal();
     }
 

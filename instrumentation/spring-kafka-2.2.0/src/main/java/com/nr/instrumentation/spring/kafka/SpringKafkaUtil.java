@@ -14,8 +14,6 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 
 import java.util.Collections;
@@ -49,13 +47,8 @@ public class SpringKafkaUtil {
         listenerCache.put(data, true);
     }
 
-    // Creates external spans and sets a transaction name based on the method annotation.
-    // This is given lower priority over naming a transaction based on a single message listener.
-    public static void nameTransactionFromAnnotation(Message<?> message, InvocableHandlerMethod handlerMethod) {
-        if (AgentBridge.getAgent().getTransaction(false) == null) {
-            return;
-        }
-        if (handlerMethod != null) {
+    public static void nameTransactionFromAnnotation(InvocableHandlerMethod handlerMethod) {
+        if (AgentBridge.getAgent().getTransaction(false) != null && handlerMethod != null) {
             String fullMethodName = handlerMethod.getMethod().getDeclaringClass().getName() + "." + handlerMethod.getMethod().getName();
             NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true,
                     CATEGORY, LIBRARY, fullMethodName);
