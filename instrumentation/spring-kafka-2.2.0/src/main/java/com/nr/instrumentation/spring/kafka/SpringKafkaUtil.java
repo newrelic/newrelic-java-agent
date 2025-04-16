@@ -27,7 +27,7 @@ public class SpringKafkaUtil {
     public static Map<Object, Boolean> listenerCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
     public static String CATEGORY = "Message";
-    public static String LIBRARY = "Kafka";
+    public static String LIBRARY = "SpringKafka";
 
     private static final boolean DT_CONSUMER_ENABLED = NewRelic.getAgent().getConfig()
             .getValue("kafka.spans.distributed_trace.consume_many.enabled", false);
@@ -38,11 +38,8 @@ public class SpringKafkaUtil {
         }
 
         if (data instanceof ConsumerRecord) {
-            ConsumerRecord<?, ?> record = ((ConsumerRecord<?, ?>) data);
-            List<ConsumerRecord<?, ?>> records = Collections.singletonList(record);
+            List<?> records = Collections.singletonList(data);
             reportExternal(records, false);
-            NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH,
-                    false, CATEGORY, "Kafka/Topic/Consume/Named", record.topic());
         } else if (data instanceof ConsumerRecords) {
             reportExternal((ConsumerRecords<?, ?>) data, true);
         } else if (data instanceof List) {
@@ -60,9 +57,10 @@ public class SpringKafkaUtil {
         }
         if (handlerMethod != null) {
             KafkaListener annotation = handlerMethod.getMethod().getAnnotation(KafkaListener.class);
+            String fullMethodName = handlerMethod.getMethod().getDeclaringClass().getName() + "." + handlerMethod.getMethod().getName();
             if (annotation != null) {
-                String transactionName = "Kafka/Topic/Consume/Named/" + String.join(",", annotation.topics());
-                NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, CATEGORY, transactionName);
+                NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true,
+                        CATEGORY, LIBRARY, fullMethodName);
 
             }
         }
@@ -73,9 +71,10 @@ public class SpringKafkaUtil {
         for (Object object: consumerRecords) {
             ConsumerRecord<?, ?> record = (object instanceof ConsumerRecord) ? (ConsumerRecord<?, ?>) object : null;
             if (record == null) {
-                break;
+                continue;
             }
             HeadersWrapper headers = canAddHeaders ? new HeadersWrapper(record.headers()) : null;
+
             MessageConsumeParameters params = MessageConsumeParameters.library(LIBRARY)
                     .destinationType(DestinationType.NAMED_TOPIC)
                     .destinationName(record.topic())
