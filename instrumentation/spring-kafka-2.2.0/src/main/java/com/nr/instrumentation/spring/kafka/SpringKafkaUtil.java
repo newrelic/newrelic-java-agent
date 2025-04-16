@@ -58,14 +58,14 @@ public class SpringKafkaUtil {
         if (AgentBridge.getAgent().getTransaction(false) == null) {
             return;
         }
-        String transactionName = "Kafka/Listen";
         if (handlerMethod != null) {
             KafkaListener annotation = handlerMethod.getMethod().getAnnotation(KafkaListener.class);
             if (annotation != null) {
-                transactionName = "Kafka/Topic/Consume/Named/" + String.join(",", annotation.topics());
+                String transactionName = "Kafka/Topic/Consume/Named/" + String.join(",", annotation.topics());
+                NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, CATEGORY, transactionName);
+
             }
         }
-        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true, CATEGORY, transactionName);
     }
 
     private static void reportExternal(Iterable<?> consumerRecords, boolean isBatch) {
