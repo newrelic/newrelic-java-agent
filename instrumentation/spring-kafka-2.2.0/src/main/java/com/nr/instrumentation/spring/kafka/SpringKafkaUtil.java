@@ -47,7 +47,7 @@ public class SpringKafkaUtil {
         listenerCache.put(data, true);
     }
 
-    public static void nameTransactionFromAnnotation(InvocableHandlerMethod handlerMethod) {
+    public static void nameTransactionFromMethod(InvocableHandlerMethod handlerMethod) {
         if (AgentBridge.getAgent().getTransaction(false) != null && handlerMethod != null) {
             String fullMethodName = handlerMethod.getMethod().getDeclaringClass().getName() + "." + handlerMethod.getMethod().getName();
             NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true,
