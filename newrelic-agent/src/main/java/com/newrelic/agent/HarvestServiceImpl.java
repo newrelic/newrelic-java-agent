@@ -502,7 +502,9 @@ public class HarvestServiceImpl extends AbstractService implements HarvestServic
             Runnable harvestTask = new Runnable() {
                 @Override
                 public void run() {
-                    getLogger().log(Level.FINER, "Harvestable: {0}/{1} running", harvestable.getAppName(), harvestable.getEndpointMethodName());
+                    if (harvestable.getEndpointMethodName().equals("span_event_data")) {
+                        getLogger().log(Level.FINER, "*SpanEvent*  Harvestable: {0}/{1} running", harvestable.getAppName(), harvestable.getEndpointMethodName());
+                    }
                     harvestable.harvest();
                 }
             };

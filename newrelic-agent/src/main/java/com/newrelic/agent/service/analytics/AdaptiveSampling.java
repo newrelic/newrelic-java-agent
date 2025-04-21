@@ -19,8 +19,10 @@ class AdaptiveSampling {
             return 0;
         }
 
-        Agent.LOG.log(Level.FINER, "Application \"{0}\" decided {1} event(s) for {2}, sampled {3} of them with a target of {4}, decided {5} last time",
-                reservoir.getAppName(), reservoir.getDecided(), reservoir.getServiceName(), reservoir.getSampled(), target, reservoir.getDecidedLast());
+        if (reservoir.getServiceName().equals("Span Event Service")) {
+            Agent.LOG.log(Level.FINER, "*SpanEvent* Application \"{0}\" decided {1} event(s) for {2}, sampled {3} of them with a target of {4}, decided {5} last time",
+                    reservoir.getAppName(), reservoir.getDecided(), reservoir.getServiceName(), reservoir.getSampled(), target, reservoir.getDecidedLast());
+        }
 
         return reservoir.getDecided();
     }
