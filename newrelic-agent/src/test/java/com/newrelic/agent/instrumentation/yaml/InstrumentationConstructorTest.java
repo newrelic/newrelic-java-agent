@@ -11,6 +11,7 @@ import org.junit.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import com.newrelic.agent.instrumentation.classmatchers.AndClassMatcher;
@@ -30,7 +31,7 @@ public class InstrumentationConstructorTest {
 
     @Before
     public void setup() {
-        SafeConstructor constructor = new InstrumentationConstructor();
+        SafeConstructor constructor = new InstrumentationConstructor(new LoaderOptions());
         yaml = new Yaml(constructor);
     }
 

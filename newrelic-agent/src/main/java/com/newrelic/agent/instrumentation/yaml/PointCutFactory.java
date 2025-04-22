@@ -24,6 +24,7 @@ import com.newrelic.agent.tracers.metricname.ClassMethodMetricNameFormat;
 import com.newrelic.agent.tracers.metricname.MetricNameFormat;
 import com.newrelic.agent.util.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.yaml.snakeyaml.LoaderOptions;
 
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -235,7 +236,7 @@ public class PointCutFactory {
     }
 
     public static Collection<ConfigurationConstruct> getConstructs() {
-        return new InstrumentationConstructor().constructs;
+        return new InstrumentationConstructor(new LoaderOptions()).constructs;
     }
 
 }

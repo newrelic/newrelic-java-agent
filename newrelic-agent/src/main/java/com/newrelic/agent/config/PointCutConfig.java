@@ -14,6 +14,7 @@ import com.newrelic.agent.extension.Extension;
 import com.newrelic.agent.instrumentation.custom.ExtensionClassAndMethodMatcher;
 import com.newrelic.agent.instrumentation.yaml.InstrumentationConstructor;
 import com.newrelic.agent.instrumentation.yaml.PointCutFactory;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
@@ -98,7 +99,7 @@ public class PointCutConfig {
     }
 
     private void initYaml() {
-        SafeConstructor constructor = new InstrumentationConstructor();
+        SafeConstructor constructor = new InstrumentationConstructor(new LoaderOptions());
         yaml = new Yaml(constructor);
     }
 

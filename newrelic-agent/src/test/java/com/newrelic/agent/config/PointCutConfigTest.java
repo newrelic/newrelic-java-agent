@@ -28,6 +28,7 @@ import com.newrelic.agent.tracers.Tracer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
@@ -251,7 +252,7 @@ public class PointCutConfigTest {
 
     @Test
     public void yaml() {
-        SafeConstructor constructor = new InstrumentationConstructor();
+        SafeConstructor constructor = new InstrumentationConstructor(new LoaderOptions());
         Yaml yaml = new Yaml(constructor);
 
         Object config = yaml.load("--- !interface_matcher 'org/apache/solr/request/SolrRequestHandler'");

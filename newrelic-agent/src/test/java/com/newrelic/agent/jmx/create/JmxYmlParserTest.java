@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import com.newrelic.agent.config.BaseConfig;
@@ -182,7 +183,7 @@ public class JmxYmlParserTest {
     }
 
     protected static BaseConfig readYml(File file) throws Exception {
-        Yaml yaml = new Yaml(new SafeConstructor());
+        Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
         try (Reader reader = new FileReader(file)) {
             Map output = (Map) yaml.load(reader);
             return new BaseConfig(output);

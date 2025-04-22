@@ -16,6 +16,7 @@ import java.util.Map;
 
 
 import com.newrelic.agent.extension.dom.ExtensionDomParser;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.Tag;
@@ -25,7 +26,7 @@ public class ExtensionParsers {
     private final ExtensionParser xmlParser;
 
     public ExtensionParsers(final List<ConfigurationConstruct> constructs) {
-        SafeConstructor constructor = new SafeConstructor() {
+        SafeConstructor constructor = new SafeConstructor(new LoaderOptions()) {
             {
                 for (ConfigurationConstruct construct : constructs) {
                     this.yamlConstructors.put(new Tag(construct.getName()), construct);
