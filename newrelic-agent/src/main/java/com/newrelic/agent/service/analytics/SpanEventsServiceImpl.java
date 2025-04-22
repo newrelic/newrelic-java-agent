@@ -71,8 +71,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 transactionData.getTransaction().toString(), isSpanEventsEnabled());
         // If this transaction is sampled and span events are enabled we should generate all of the transaction segment events
         if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* decided to create span events");
-            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* should create {0} spans", transactionData.getTracers().size() + 1);
+            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* dispatcherTransactionFinished - decided to create span events, " +
+                    "Should create {0} spans (includes root tracer)", transactionData.getTracers().size() + 1);
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
             Tracer rootTracer = transactionData.getRootTracer();
             storeSafely(transactionData, rootTracer, true, transactionStats);
@@ -83,6 +83,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                     storeSafely(transactionData, tracer, false, transactionStats);
                 }
             }
+            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* dispatcherTransactionFinished - Finished span creation for txn- {0}",
+                    transactionData.getTransaction().toString());
         }
     }
 
@@ -96,18 +98,20 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
 
     private void createAndStoreSpanEvent(Tracer tracer, TransactionData transactionData, boolean isRoot,
             TransactionStats transactionStats) {
-        NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* createAndStoreSpanEvent for txn- " + transactionData.getTransaction().toString());
+        NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* createAndStoreSpanEvent - for txn- " + transactionData.getTransaction().toString());
         boolean crossProcessOnly = spanEventsConfig.isCrossProcessOnly();
         if (crossProcessOnly && !isCrossProcessTracer(tracer)) {
             // We are in "cross_process_only" mode and we have a non datastore/external tracer. Return before we create anything.
-            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* Skipping span creation because crossProcessOnly flag");
+            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* createAndStoreSpanEvent -  Skipping span creation because crossProcessOnly flag is {0}, " +
+                    "!isCrossProcessTracer(tracer) is {1}", crossProcessOnly, !isCrossProcessTracer(tracer));
             return;
         }
 
         String appName = transactionData.getApplicationName();
         SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir(appName);
         if (reservoir.isFull() && reservoir.getMinPriority() >= transactionData.getPriority()) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* Skipping span creation because: isFull? {0}  priority gate? {1}",
+            NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* createAndStoreSpanEvent - Skipping span creation because: isFull? {0}  " +
+                            "failed priority check? {1}",
                     reservoir.isFull(), reservoir.getMinPriority() >= transactionData.getPriority());
             // The reservoir is full and this event wouldn't make it in, so lets prevent some object allocations
             reservoir.incrementNumberOfTries();
@@ -115,9 +119,9 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         }
 
         SpanEvent spanEvent = tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* Created spanEvent: " + spanEvent.toString());
+        NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* createAndStoreSpanEvent - Created spanEvent: {0}", spanEvent.toString());
         storeEvent(spanEvent);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* Stored spanEvent");
+        NewRelic.getAgent().getLogger().log(Level.INFO, "*SpanEvent* createAndStoreSpanEvent - Stored spanEvent: {0}", spanEvent.toString());
     }
 
     private boolean isCrossProcessTracer(Tracer tracer) {
