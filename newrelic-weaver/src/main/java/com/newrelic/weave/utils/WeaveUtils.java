@@ -178,10 +178,14 @@ public final class WeaveUtils {
     public static final int JAVA_6_CLASS_VERSION = 50;
 
     /**
-     * Whether Scala 2.12 was detected on the classpath.
-     * This is used in updateClassVersion to prevent IllegalAccessErrors.
+     * Whether to apply the IllegalAccessError fix.
+     *
+     * This is applied automatically if Scala 2.12 is detected in the System Class Loader.
+     * It can also be enabled via system property by setting -Dnewrelic.config.class_transformer.illegal_access_fix=true. Default is false.
+     *
+     * sbt users encountering the IllegalAccessError will need to use the feature flag, as sbt loads Scala classes with a custom loader.
      */
-    public static final boolean IS_SCALA_212 = scala212Present();
+    public static final boolean SHOULD_USE_IAE_FIX = Boolean.getBoolean("newrelic.config.class_transformer.illegal_access_fix") || scala212Present();
 
     public static final Set<MethodKey> METHODS_WE_NEVER_INSTRUMENT = ImmutableSet.of(new MethodKey("equals",
                     "(Ljava/lang/Object;)Z"), new MethodKey("toString", "()Ljava/lang/String;"), new MethodKey("finalize", "()V"),
@@ -779,10 +783,10 @@ public final class WeaveUtils {
     }
 
     /**
-     * Update class versions to the max supported runtime class version.
+     * Update class versions to the max supported runtime class version, unless they were flagged to keep
+     * the class file version the same as the original class.
      *
-     * However, for Scala 2.12 applications, assign the same class version as the target node.
-     * This is necessary to resolve IllegalAccessErrors that may occur when the agent is run on a Scala 2.12 + Java 11+ application.
+     * This fix is applied to resolve IllegalAccessErrors that may occur when the agent is run on a Scala 2.12 + Java 11+ application.
      *
      * Background: Scala 2.12 always emits Java 8-level bytecode (i.e., Scala 2.12 apps secretly compile to Java 8 even if they are built and run with higher versions of Java).
      * This bytecode is exempt from a restriction imposed by the JVM for Java 9 and higher, which prohibits the assignment of final fields outside of constructors. Scala 2.12 deliberately exploits this loophole,
@@ -792,13 +796,13 @@ public final class WeaveUtils {
      *
      * However, if a user runs Scala 2.12 + Java 11 + New Relic Java Agent:
      *   - Scala compiles classes to Java 8
-     *   - The agent updates classfiles to the runtime version (Java 11)
+     *   - The agent updates classfiles to the runtime version (Java 11) in updateClassVersion
      *   - The Java 11 class files are subject to the JVM's final field assignment restriction, and an IllegalAccessError is thrown.
      *
      *  To fix this, we need to keep the original class version for Scala 2.12 classes.
      */
     public static void updateClassVersion(ClassNode node, ClassNode target) {
-        if (IS_SCALA_212 && target != null){
+        if (SHOULD_USE_IAE_FIX && target != null){
             node.version = target.version;
         } else if (node.version < RUNTIME_MAX_SUPPORTED_CLASS_VERSION) {
             node.version = RUNTIME_MAX_SUPPORTED_CLASS_VERSION;
