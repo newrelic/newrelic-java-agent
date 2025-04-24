@@ -14,7 +14,7 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
+import org.springframework.messaging.handler.HandlerMethod;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +27,7 @@ public class SpringKafkaUtil {
     public static String CATEGORY = "Message";
     public static String LIBRARY = "SpringKafka";
 
-    private static final boolean DT_CONSUMER_ENABLED = NewRelic.getAgent().getConfig()
+    public static final boolean DT_CONSUMER_BATCH_ENABLED = NewRelic.getAgent().getConfig()
             .getValue("kafka.spans.distributed_trace.consume_many.enabled", false);
 
     public static <T> void processMessageListener(T data) {
@@ -47,7 +47,7 @@ public class SpringKafkaUtil {
         listenerCache.put(data, true);
     }
 
-    public static void nameTransactionFromMethod(InvocableHandlerMethod handlerMethod) {
+    public static void nameTransactionFromMethod(HandlerMethod handlerMethod) {
         if (AgentBridge.getAgent().getTransaction(false) != null && handlerMethod != null) {
             String fullMethodName = handlerMethod.getMethod().getDeclaringClass().getName() + "." + handlerMethod.getMethod().getName();
             NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, true,
@@ -57,7 +57,7 @@ public class SpringKafkaUtil {
     }
 
     private static void reportExternal(Iterable<?> consumerRecords, boolean isBatch) {
-        boolean canAddHeaders = !isBatch || DT_CONSUMER_ENABLED;
+        boolean canAddHeaders = !isBatch || DT_CONSUMER_BATCH_ENABLED;
         for (Object object: consumerRecords) {
             ConsumerRecord<?, ?> record = (object instanceof ConsumerRecord) ? (ConsumerRecord<?, ?>) object : null;
             if (record == null) {
