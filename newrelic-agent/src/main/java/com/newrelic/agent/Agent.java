@@ -35,6 +35,7 @@ import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
+import com.newrelic.agent.stats.TransactionStats;
 import org.objectweb.asm.ClassReader;
 
 import java.io.ByteArrayOutputStream;
@@ -267,6 +268,22 @@ public final class Agent {
                     public void disconnected(IRPMService rpmService) {
                         LOG.log(Level.INFO, "Deactivating New Relic Security module");
                         NewRelicSecurity.getAgent().deactivateSecurity();
+                    }
+                });
+                ServiceFactory.getTransactionService().addTransactionListener(new ExtendedTransactionListener() {
+                    @Override
+                    public void dispatcherTransactionStarted(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionStarted();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionCancelled(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionCancelled();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionFinished();
                     }
                 });
             } catch (Throwable t2) {
