@@ -10,6 +10,8 @@ package com.newrelic.agent.introspec;
 import java.util.Map;
 
 public interface SpanEvent {
+    String getGuid();
+
     String getName();
 
     float duration();
