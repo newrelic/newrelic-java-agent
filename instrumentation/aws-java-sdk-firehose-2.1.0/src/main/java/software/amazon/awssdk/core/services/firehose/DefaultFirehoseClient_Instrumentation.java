@@ -37,84 +37,84 @@ class DefaultFirehoseClient_Instrumentation {
 
     private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
 
-    @Trace(leaf=true)
+    @Trace
     public CreateDeliveryStreamResponse createDeliveryStream(CreateDeliveryStreamRequest request) {
         FirehoseUtil.setTraceDetails("createDeliveryStream",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public DeleteDeliveryStreamResponse deleteDeliveryStream(DeleteDeliveryStreamRequest request) {
         FirehoseUtil.setTraceDetails("deleteDeliveryStream",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public DescribeDeliveryStreamResponse describeDeliveryStream(DescribeDeliveryStreamRequest request) {
         FirehoseUtil.setTraceDetails("describeDeliveryStream",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public ListDeliveryStreamsResponse listDeliveryStreams(ListDeliveryStreamsRequest request) {
         FirehoseUtil.setTraceDetails("listDeliveryStreams",
                 new DeliveryStreamRawData(null, this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public ListTagsForDeliveryStreamResponse listTagsForDeliveryStream(ListTagsForDeliveryStreamRequest request) {
         FirehoseUtil.setTraceDetails("listTagsForDeliveryStream",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public PutRecordResponse putRecord(PutRecordRequest request) {
         FirehoseUtil.setTraceDetails("putRecord",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public PutRecordBatchResponse putRecordBatch(PutRecordBatchRequest request) {
         FirehoseUtil.setTraceDetails("putRecordBatch",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public StartDeliveryStreamEncryptionResponse startDeliveryStreamEncryption(StartDeliveryStreamEncryptionRequest request) {
         FirehoseUtil.setTraceDetails("startDeliveryStreamEncryption",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public StopDeliveryStreamEncryptionResponse stopDeliveryStreamEncryption(StopDeliveryStreamEncryptionRequest request) {
         FirehoseUtil.setTraceDetails("stopDeliveryStreamEncryption",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public TagDeliveryStreamResponse tagDeliveryStream(TagDeliveryStreamRequest request) {
         FirehoseUtil.setTraceDetails("tagDeliveryStream",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public UntagDeliveryStreamResponse untagDeliveryStream(UntagDeliveryStreamRequest request) {
         FirehoseUtil.setTraceDetails("untagDeliveryStream",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));
         return Weaver.callOriginal();
     }
 
-    @Trace(leaf=true)
+    @Trace
     public UpdateDestinationResponse updateDestination(UpdateDestinationRequest request) {
         FirehoseUtil.setTraceDetails("updateDestination",
                 new DeliveryStreamRawData(request.deliveryStreamName(), this, clientConfiguration));

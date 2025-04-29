@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.micronaut:micronaut-http-netty:2.0.0")
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-http-netty-2.0.0',
+                'Implementation-Title-Alias': 'micronaut-http-netty'
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.micronaut:micronaut-http-netty:[1.0.0,4.1.0)'
+    excludeRegex 'io.micronaut:micronaut-http-netty:.*(RC|M)[0-9]*$'
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
+}

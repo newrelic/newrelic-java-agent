@@ -1,24 +1,33 @@
-package com.nr.instrumentation.kafka;
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+package com.nr.instrumentation.kafka;
 
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import org.apache.kafka.common.Node;
+import org.apache.kafka.common.metrics.KafkaMetric;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.apache.kafka.common.metrics.KafkaMetric;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * These are not unit tests but a functionality test for the whole class.
@@ -62,7 +71,9 @@ public class NewRelicMetricsReporterTest {
         NewRelicMetricsReporter reporter = initMetricsReporter(Collections.emptyList(), otherMetrics);
 
         Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
-        assertEquals(0, unscopedMetrics.size());
+        assertEquals(1, unscopedMetrics.size());
+        TracedMetricData nodeMetric = unscopedMetrics.get("MessageBroker/Kafka/Nodes/localhost:42");
+        assertEquals(1.0f, nodeMetric.getTotalTimeInSec(), 0.1f);
 
         forceHarvest(reporter);
 
@@ -77,27 +88,55 @@ public class NewRelicMetricsReporterTest {
 
     @Test
     public void removeMetric() throws Exception {
-        List<KafkaMetric> otherMetrics = Arrays.asList(METRIC1, METRIC2);
+        List<KafkaMetric> initialMetrics = Arrays.asList(METRIC1, METRIC2);
 
-        NewRelicMetricsReporter reporter = initMetricsReporter(otherMetrics, Collections.emptyList());
+        NewRelicMetricsReporter reporter = initMetricsReporter(initialMetrics, Collections.emptyList());
 
         Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
-        assertEquals(2, unscopedMetrics.size());
+        assertEquals(3, unscopedMetrics.size()); // metric1, metric2 and node metric
 
         introspector.clear();
         reporter.metricRemoval(METRIC2);
         forceHarvest(reporter);
 
         unscopedMetrics = introspector.getUnscopedMetrics();
-        assertEquals(1, unscopedMetrics.size());
+        assertEquals(2, unscopedMetrics.size());
         TracedMetricData metric1 = unscopedMetrics.get("MessageBroker/Kafka/Internal/group/metric1");
         assertEquals(42.0f, metric1.getTotalTimeInSec(), 0.1f);
+        TracedMetricData nodeMetric = unscopedMetrics.get("MessageBroker/Kafka/Nodes/localhost:42");
+        assertEquals(1.0f, nodeMetric.getTotalTimeInSec(), 0.1f);
+
+        reporter.close();
+    }
+
+    @Test
+    public void nodeTopicMetrics() throws InterruptedException{
+        KafkaMetric metricWithTopic = getMetricMock("topicMetric", 20.0f);
+        when(metricWithTopic.metricName().tags().get("topic")).thenReturn("hhgg");
+        List<KafkaMetric> initialMetrics = Arrays.asList(metricWithTopic);
+
+        NewRelicMetricsReporter reporter = initMetricsReporter(initialMetrics, Collections.emptyList());
+
+        Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
+        assertEquals(3, unscopedMetrics.size());
+
+        TracedMetricData metric1 = unscopedMetrics.get("MessageBroker/Kafka/Internal/group/topicMetric");
+        assertEquals(20.0f, metric1.getTotalTimeInSec(), 0.1f);
+        TracedMetricData nodeMetric = unscopedMetrics.get("MessageBroker/Kafka/Nodes/localhost:42");
+        assertEquals(1.0f, nodeMetric.getTotalTimeInSec(), 0.1f);
+        TracedMetricData nodeTopicMetric = unscopedMetrics.get("MessageBroker/Kafka/Nodes/localhost:42/Consume/hhgg");
+        assertEquals(1.0f, nodeTopicMetric.getTotalTimeInSec(), 0.1f);
 
         reporter.close();
     }
 
     protected static NewRelicMetricsReporter initMetricsReporter(List<KafkaMetric> initMetrics, Collection<KafkaMetric> otherMetrics) throws InterruptedException {
-        NewRelicMetricsReporter metricsReporter = new NewRelicMetricsReporter();
+        Node node = mock(Node.class);
+        when(node.host())
+                .thenReturn("localhost");
+        when(node.port())
+                .thenReturn(42);
+        NewRelicMetricsReporter metricsReporter = new NewRelicMetricsReporter(ClientType.CONSUMER, Collections.singleton(node));
         metricsReporter.init(initMetrics);
         // init triggers the first harvest that happens in a different thread. Sleeping to let it finish.
         Thread.sleep(100L);

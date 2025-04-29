@@ -19,6 +19,7 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -35,14 +36,19 @@ import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.util.Textifier;
+import org.objectweb.asm.util.TraceMethodVisitor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -214,7 +220,7 @@ public final class WeaveUtils {
      * Find a method by name and desc in the specified collection.
      *
      * @param methodNodes collection to search
-     * @param queryNode MethodNode with name and desc to search for
+     * @param queryNode   MethodNode with name and desc to search for
      * @return matched method or <code>null</code> if there was no match
      */
     public static MethodNode findMatch(Collection<MethodNode> methodNodes, MethodNode queryNode) {
@@ -236,8 +242,8 @@ public final class WeaveUtils {
      * Find a method by name and desc in the specified collection.
      *
      * @param methodNodes collection to search
-     * @param name method name to search for
-     * @param desc method desc to search for
+     * @param name        method name to search for
+     * @param desc        method desc to search for
      * @return matched method or <code>null</code> if there was no match
      */
     public static MethodNode findMatch(Collection<MethodNode> methodNodes, String name, String desc) {
@@ -253,7 +259,7 @@ public final class WeaveUtils {
      * Find a field by name and desc in the specified collection.
      *
      * @param fieldNodes collection to search
-     * @param name name to search for
+     * @param name       name to search for
      * @return matched field or <code>null</code> if there was no match
      */
     public static FieldNode findMatch(Collection<FieldNode> fieldNodes, String name) {
@@ -269,7 +275,7 @@ public final class WeaveUtils {
      * Find a required field by name and desc in the specified collection.
      *
      * @param fieldNodes collection to search
-     * @param name name to search for
+     * @param name       name to search for
      * @return matched field
      * @throws IllegalArgumentException if there was no match
      */
@@ -286,8 +292,8 @@ public final class WeaveUtils {
      * Tests whether the specified method invocation is to code>Weaver.callOriginal()</code>.
      *
      * @param owner method owner
-     * @param name method name
-     * @param desc method desc
+     * @param name  method name
+     * @param desc  method desc
      * @return <code>true</code> if owner, name, and desc correspond to <code>Weaver.callOriginal()</code>
      */
     public static boolean isOriginalMethodInvocation(String owner, String name, String desc) {
@@ -299,8 +305,8 @@ public final class WeaveUtils {
      * Tests whether the specified method invocation is to code>Weaver.getClassAnnotation()</code>.
      *
      * @param owner method owner
-     * @param name method name
-     * @param desc method desc
+     * @param name  method name
+     * @param desc  method desc
      * @return <code>true</code> if owner, name, and desc correspond to <code>Weaver.getClassAnnotation()</code>
      */
     public static boolean isClassAnnotationGetter(String owner, String name, String desc) {
@@ -312,8 +318,8 @@ public final class WeaveUtils {
      * Tests whether the specified method invocation is to <code>Weaver.getMethodAnnotation()</code>.
      *
      * @param owner method owner
-     * @param name method name
-     * @param desc method desc
+     * @param name  method name
+     * @param desc  method desc
      * @return <code>true</code> if owner, name, and desc correspond to <code>Weaver.getMethodAnnotation()</code>
      */
     public static boolean isMethodAnnotationGetter(String owner, String name, String desc) {
@@ -466,7 +472,7 @@ public final class WeaveUtils {
     /**
      * Returns a copy of the specified ClassNode with all references to the "oldName" parameter renamed to the value
      * of the "newName" parameter.
-     *
+     * <p>
      * This method is best used when a template ClassNode is available and you want to make a new copy of it every time
      * it needs to be used so it can have a unique name.
      *
@@ -539,9 +545,42 @@ public final class WeaveUtils {
     }
 
     /**
+     * Utility method to print human-readable bytecode instructions of a MethodNode.
+     *
+     * @param mn the node to print
+     */
+    public static void printAllInstructions(MethodNode mn) {
+        for (AbstractInsnNode insn : mn.instructions) {
+            System.out.println(stringifyInstruction(insn));
+        }
+    }
+
+    public static String stringifyInstruction(AbstractInsnNode node) {
+        Textifier p = new Textifier(WeaveUtils.ASM_API_LEVEL) {
+            @Override
+            protected void appendLabel(Label l) {
+                if (labelNames == null) {
+                    labelNames = new HashMap<>();
+                }
+                String name = labelNames.get(l);
+                if (name == null) {
+                    name = l.toString();
+                    labelNames.put(l, name);
+                }
+                stringBuilder.append(name);
+            }
+        };
+        TraceMethodVisitor mv = new TraceMethodVisitor(p);
+        node.accept(mv);
+        StringWriter sw = new StringWriter();
+        p.print(new PrintWriter(sw));
+        return sw.toString().replace('\n', ' ');
+    }
+
+    /**
      * Converts an ASM {@link ClassNode} to a byte array.
      *
-     * @param classNode class node to convert
+     * @param classNode       class node to convert
      * @param classInfoFinder the classloader used to create the {@link PatchedClassWriter}
      * @return byte array representing the specified class node
      */
@@ -556,7 +595,7 @@ public final class WeaveUtils {
      * found.
      *
      * @param classname internal class name
-     * @param finder {@link ClassFinder} implementation to get bytes from
+     * @param finder    {@link ClassFinder} implementation to get bytes from
      * @return class bytes, or <code>null</code> if the class could not be found
      * @throws IOException
      */
@@ -573,7 +612,7 @@ public final class WeaveUtils {
     /**
      * Read a ClassLoader's resource into a byte array.
      *
-     * @param classname Internal or Fully qualified name of the class
+     * @param classname   Internal or Fully qualified name of the class
      * @param classloader the classloader to read the resource from
      * @return the resource bytes (class bytes) or null if no resource was found.
      * @throws IOException
@@ -977,7 +1016,7 @@ public final class WeaveUtils {
     /**
      * Check if method has at least one of the provided required method annotations.
      *
-     * @param originalMethod the method to check
+     * @param originalMethod                     the method to check
      * @param requiredMethodAnnotationClassNames the Set of required annotation class names
      * @return true if method has at least one of the required method annotations, false otherwise.
      */

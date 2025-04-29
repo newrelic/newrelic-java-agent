@@ -228,6 +228,8 @@ public class MetricNames {
     public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_ENABLED = "Supportability/Logging/Labels/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_DISABLED = "Supportability/Logging/Labels/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED = "Supportability/Logging/LocalDecorating/Java/disabled";
 
@@ -413,6 +415,9 @@ public class MetricNames {
     public static final String SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES = "Supportability/Java/{0}/{1}/Output/Bytes";
 
     public static final String SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS = "Supportability/Agent/Collector/Connect/BackoffAttempts";
+
+    public static final String SUPPORTABILITY_AGENT_CRAC_CHECKPOINT = "Supportability/Agent/CracCheckpoint";
+    public static final String SUPPORTABILITY_AGENT_CRAC_RESTORE = "Supportability/Agent/CracRestore";
 
     // expected errors
     public static final String SUPPORTABILITY_API_EXPECTED_ERROR_API_MESSAGE = "ExpectedError/Api/Message";

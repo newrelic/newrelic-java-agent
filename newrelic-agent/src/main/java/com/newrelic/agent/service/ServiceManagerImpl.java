@@ -94,6 +94,7 @@ import com.newrelic.api.agent.NewRelic;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -359,7 +360,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
         AgentControlIntegrationHealthClient healthClient = null;
 
-        if (config.getAgentControlIntegrationConfig() != null && StringUtils.isNotEmpty(config.getAgentControlIntegrationConfig().getFleetId())) {
+        if (config.getAgentControlIntegrationConfig() != null && config.getAgentControlIntegrationConfig().isEnabled()) {
             healthClient = AgentControlIntegrationClientFactory.createHealthClient(config.getAgentControlIntegrationConfig());
 
             healthDataProducers.add(circuitBreakerService);
@@ -684,6 +685,28 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public ExpirationService getExpirationService() {
         return expirationService;
+    }
+
+    @Override
+    public synchronized void refreshDataForCRaCRestore() {
+        environmentService = new EnvironmentServiceImpl();
+
+        boolean realAgent = coreService.getInstrumentation() != null;
+        if (realAgent) {
+            try {
+                utilizationService.stop();
+            } catch (Exception e) {
+                Agent.LOG.warning(MessageFormat.format("Error stopping UtilizationService during CRaC Restore: ",e.getMessage()));
+            }
+        }
+        utilizationService = new UtilizationService();
+        if (realAgent) {
+            try {
+                utilizationService.start();
+            } catch (Exception e) {
+                Agent.LOG.warning(MessageFormat.format("Error starting UtilizationService during CRaC Restore: ",e.getMessage()));
+            }
+        }
     }
 
     private class InitialStatsService extends AbstractService implements StatsService {
