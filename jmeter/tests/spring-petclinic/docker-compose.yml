@@ -1,0 +1,31 @@
+services:
+  petclinic-default:
+    image: jmeter/spring-petclinic
+    ports:
+      - "8080:8080"
+      - "1234:1234"
+    volumes:
+      - "./test_cases/default/newrelic.yml:/app/newrelic.yml"
+      - "./results/currentRun/default:/app/results"
+      - "./logs/currentRun/default:/app/logs"
+      - "../../deps:/app/deps"
+    environment:
+      - "NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}"
+      - "CUSTOM_VM_ARGS=${CUSTOM_VM_ARGS}"
+      - "AGENT_BUILD=${AGENT_BUILD}"
+      - "COMMON_VM_ARGS=${COMMON_VM_ARGS}"
+  petclinic-lite-mode:
+    image: jmeter/spring-petclinic
+    ports:
+      - "8080:8080"
+      - "1234:1234"
+    volumes:
+      - "./test_cases/lite-mode/newrelic.yml:/app/newrelic.yml"
+      - "./results/currentRun/lite-mode:/app/results"
+      - "./logs/currentRun/lite-mode:/app/logs"
+      - "../../deps/agents:/app/agents"
+    environment:
+      - "NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}"
+      - "CUSTOM_VM_ARGS=${CUSTOM_VM_ARGS}"
+      - "AGENT_BUILD=${AGENT_BUILD}"
+      - "COMMON_VM_ARGS=${COMMON_VM_ARGS}"
