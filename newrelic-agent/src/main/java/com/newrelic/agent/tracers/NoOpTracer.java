@@ -257,6 +257,9 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
+    public void excludeLeaf(){}
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
     }
 

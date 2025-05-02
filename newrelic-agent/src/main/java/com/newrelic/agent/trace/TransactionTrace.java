@@ -177,7 +177,9 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
                 kids = new ArrayList<>(parentTracer == null ? 1 : Math.max(1, parentTracer.getChildCount()));
                 children.put(parentTracer, kids);
             }
-            kids.add(tracer);
+            if (tracer.isTransactionSegment()){
+                kids.add(tracer);
+            }
         }
         return children;
     }

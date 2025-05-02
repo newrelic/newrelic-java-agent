@@ -82,6 +82,8 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
 
     public boolean isTrackCallbackRunnable();
 
+    void excludeLeaf();
+
     /**
      * Do not use. Use
      * {@link com.newrelic.api.agent.TracedMethod#addOutboundRequestHeaders(OutboundHeaders)} instead.
@@ -121,5 +123,4 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
      */
     @Deprecated
     void reportAsExternal(com.newrelic.agent.bridge.external.ExternalParameters externalParameters);
-
 }

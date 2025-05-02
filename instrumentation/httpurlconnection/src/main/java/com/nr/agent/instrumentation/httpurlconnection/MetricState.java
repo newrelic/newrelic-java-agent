@@ -14,6 +14,7 @@ import com.newrelic.agent.bridge.external.URISupport;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 
 import java.lang.ref.WeakReference;
@@ -44,6 +45,7 @@ import java.net.UnknownHostException;
  *
  */
 public class MetricState {
+    private static final boolean VERBOSE = NewRelic.getAgent().getConfig().getValue("http_url_connection.verbose", true);
     private static final String LIBRARY = "HttpURLConnection";
     private static final URI UNKNOWN_HOST = URI.create("UnknownHost");
 
@@ -82,11 +84,13 @@ public class MetricState {
     public void inboundPreamble(boolean isConnected, HttpURLConnection connection, TracedMethod tracer) {
         if (externalReported || getExternalTracer() != null) {
             // another method already ran the preamble
+            if (!VERBOSE) {
+                tracer.excludeLeaf();
+            }
             return;
         }
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         setExternalTracer(tracer);
-
         if (!isConnected && tracer.isMetricProducer() && tx != null) {
             addOutboundHeadersIfNotAdded(connection);
         }

@@ -167,6 +167,13 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     @Override
+    public void excludeLeaf() {
+        if (isLeaf()){
+            this.tracerFlags = (byte) TracerFlags.clearSegment(this.tracerFlags);
+        }
+    }
+
+    @Override
     public String getGuid() {
         if (this.guid == null) {
             this.guid = TransactionGuidFactory.generate16CharGuid();
