@@ -177,6 +177,8 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
                 kids = new ArrayList<>(parentTracer == null ? 1 : Math.max(1, parentTracer.getChildCount()));
                 children.put(parentTracer, kids);
             }
+            //This check was added to allow leaves to be marked as excluded after they are constructed and added to the tracer list.
+            //It should have no effect on traces that are marked as excluded the normal way, via annotation.
             if (tracer.isTransactionSegment()){
                 kids.add(tracer);
             }
