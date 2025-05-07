@@ -12,6 +12,15 @@ import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Assert;
 import org.junit.Test;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.newrelic.utils.SqsV2Util.PRE_DT_HEADERS_MAX_MESSAGE_SIZE;
 
 public class SqsV2UtilTest {
 
@@ -101,5 +110,109 @@ public class SqsV2UtilTest {
         Assert.assertNull(messageProduceParameters.getCloudAccountId());
         Assert.assertNull(messageProduceParameters.getCloudRegion());
         Assert.assertEquals(DestinationType.NAMED_QUEUE, messageProduceParameters.getDestinationType());
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageRequest_EmptyRequest_ReturnTrue() {
+        SendMessageRequest sendMessageRequest = SendMessageRequest.builder().build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertTrue(result);
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageRequest_8AttributesWithBody_ReturnTrue() {
+        Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
+        for (int i = 0; i < 8; i++) {
+            attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
+        }
+        SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
+                .messageBody("Some body")
+                .messageAttributes(attributeValues)
+                .build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertTrue(result);
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageRequest_9Attributes_ReturnFalse() {
+        Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
+        for (int i = 0; i < 9; i++) {
+            attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
+        }
+        SendMessageRequest sendMessageRequest = SendMessageRequest.builder().messageAttributes(attributeValues).build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertFalse(result);
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageRequest_8AttributesBigBody_ReturnFalse() {
+        Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
+        for (int i = 0; i < 9; i++) {
+            attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
+        }
+        int MESSAGE_BODY_SIZE = PRE_DT_HEADERS_MAX_MESSAGE_SIZE - 17;
+
+        char[] charArray = new char[MESSAGE_BODY_SIZE];
+        Arrays.fill(charArray, 'a');
+        String messageBody = new String(charArray);
+        SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
+                .messageBody(messageBody)
+                .messageAttributes(attributeValues)
+                .build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertFalse(result);
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_Empty_ReturnTrue() {
+        SendMessageBatchRequestEntry sendMessageRequest = SendMessageBatchRequestEntry.builder().build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertTrue(result);
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_8AttributesWithBody_ReturnTrue() {
+        Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
+        for (int i = 0; i < 8; i++) {
+            attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
+        }
+        SendMessageBatchRequestEntry sendMessageRequest = SendMessageBatchRequestEntry.builder()
+                .messageBody("Some body")
+                .messageAttributes(attributeValues)
+                .build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertTrue(result);
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_9Attributes_ReturnFalse() {
+        Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
+        for (int i = 0; i < 9; i++) {
+            attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
+        }
+        SendMessageBatchRequestEntry sendMessageRequest = SendMessageBatchRequestEntry.builder()
+                .messageAttributes(attributeValues)
+                .build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertFalse(result);
+    }
+
+    @Test
+    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_8AttributesBigBody_ReturnFalse() {
+        Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
+        for (int i = 0; i < 9; i++) {
+            attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
+        }
+        int MESSAGE_BODY_SIZE = PRE_DT_HEADERS_MAX_MESSAGE_SIZE - 17;
+
+        char[] charArray = new char[MESSAGE_BODY_SIZE];
+        Arrays.fill(charArray, 'a');
+        String messageBody = new String(charArray);
+        SendMessageBatchRequestEntry sendMessageRequest = SendMessageBatchRequestEntry.builder()
+                .messageBody(messageBody)
+                .messageAttributes(attributeValues)
+                .build();
+        boolean result = SqsV2Util.canAddDtHeaders(sendMessageRequest);
+        Assert.assertFalse(result);
     }
 }
