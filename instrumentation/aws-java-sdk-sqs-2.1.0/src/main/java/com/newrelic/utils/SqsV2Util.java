@@ -27,9 +27,14 @@ public class SqsV2Util {
     public static final String LIBRARY = "SQS";
     public static final String OTEL_LIBRARY = "aws_sqs";
     public static final String[] DT_HEADERS = new String[] {"newrelic","NEWRELIC","NewRelic","tracestate","TraceState","TRACESTATE"};
-    public static int NR_HEADERS_SIZE = 5000; // 5 KB
-    public static int SDK_MAX_MESSAGE_SIZE = 262144; // 262144 bytes
-    public static int PRE_DT_HEADERS_MAX_MESSAGE_SIZE = SDK_MAX_MESSAGE_SIZE - NR_HEADERS_SIZE;
+
+    /*
+    5000 bytes is larger than the actual size of new relic headers but this just makes it so exceptionally large messages will not have distributed tracing
+    */
+    public static int NR_HEADERS_BYTES_SIZE = 5000;
+
+    public static int SDK_MAX_MESSAGE_BYTES_SIZE = 262144; // 262144 bytes
+    public static int DT_MAX_MESSAGE_BYTES_SIZE = SDK_MAX_MESSAGE_BYTES_SIZE - NR_HEADERS_BYTES_SIZE;
 
     public static MessageProduceParameters generateExternalProduceMetrics(String queueUrl) {
         DestinationData destinationData = DestinationData.parse(queueUrl);
@@ -74,7 +79,7 @@ public class SqsV2Util {
         }
         int attributesBytesSize = attributesBytesSize(message.messageAttributes().entrySet());
         int messageBytesSize = bodySize + attributesBytesSize;
-        return messageBytesSize < PRE_DT_HEADERS_MAX_MESSAGE_SIZE;
+        return messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
     }
 
     public static boolean canAddDtHeaders(SendMessageBatchRequestEntry message) {
@@ -84,7 +89,7 @@ public class SqsV2Util {
         }
         int attributesBytesSize = attributesBytesSize(message.messageAttributes().entrySet());
         int messageBytesSize = bodyBytesSize + attributesBytesSize;
-        return messageBytesSize < PRE_DT_HEADERS_MAX_MESSAGE_SIZE;
+        return messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
     }
 
     public static int attributesBytesSize(Set<Map.Entry<String, MessageAttributeValue>> attributes) {

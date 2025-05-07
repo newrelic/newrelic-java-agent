@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.newrelic.utils.SqsV2Util.PRE_DT_HEADERS_MAX_MESSAGE_SIZE;
+import static com.newrelic.utils.SqsV2Util.DT_MAX_MESSAGE_BYTES_SIZE;
 
 public class SqsV2UtilTest {
 
@@ -150,7 +150,7 @@ public class SqsV2UtilTest {
         for (int i = 0; i < 9; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
-        int MESSAGE_BODY_SIZE = PRE_DT_HEADERS_MAX_MESSAGE_SIZE - 17;
+        int MESSAGE_BODY_SIZE = DT_MAX_MESSAGE_BYTES_SIZE - 17;
 
         char[] charArray = new char[MESSAGE_BODY_SIZE];
         Arrays.fill(charArray, 'a');
@@ -203,7 +203,7 @@ public class SqsV2UtilTest {
         for (int i = 0; i < 9; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
-        int MESSAGE_BODY_SIZE = PRE_DT_HEADERS_MAX_MESSAGE_SIZE - 17;
+        int MESSAGE_BODY_SIZE = DT_MAX_MESSAGE_BYTES_SIZE - 17;
 
         char[] charArray = new char[MESSAGE_BODY_SIZE];
         Arrays.fill(charArray, 'a');
