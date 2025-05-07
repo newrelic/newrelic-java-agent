@@ -29,7 +29,8 @@ public class SqsV2Util {
     public static final String[] DT_HEADERS = new String[] {"newrelic","NEWRELIC","NewRelic","tracestate","TraceState","TRACESTATE"};
 
     /*
-    5000 bytes is larger than the actual size of new relic headers but this just makes it so exceptionally large messages will not have distributed tracing
+    5000 bytes is larger than the actual size of new relic headers but setting it to that value
+    makes it so exceptionally large messages will not have distributed tracing
     */
     public static int NR_HEADERS_BYTES_SIZE = 5000;
 
