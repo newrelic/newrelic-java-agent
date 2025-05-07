@@ -98,7 +98,7 @@ public class SqsV2Util {
         if(!messageWithinSizeLimits) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
                     "SQS message is too large for distributed tracing. The message body has {0} bytes. " +
-                            "The total number of bytes added to attributes is {1} bytes. Total of both is {2} bytes.",
+                            "The total number of bytes within attributes is {1} bytes. Total of both is {2} bytes.",
                     bodyBytesSize, attributesBytesSize, messageBytesSize);
 
         }
