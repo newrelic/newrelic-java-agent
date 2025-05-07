@@ -94,15 +94,15 @@ public class SqsV2Util {
         }
         int attributesBytesSize = attributesBytesSize(message.messageAttributes().entrySet());
         int messageBytesSize = bodyBytesSize + attributesBytesSize;
-        boolean messageTooBig = messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
-        if(messageTooBig) {
+        boolean messageWithinSizeLimits = messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
+        if(!messageWithinSizeLimits) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
                     "SQS message is too large for distributed tracing. The message body has {0} bytes. " +
                             "The total number of bytes added to attributes is {1} bytes. Total of both is {2}",
                     bodyBytesSize, attributesBytesSize, messageBytesSize);
 
         }
-        return messageTooBig;
+        return messageWithinSizeLimits;
     }
 
     public static int attributesBytesSize(Set<Map.Entry<String, MessageAttributeValue>> attributes) {
