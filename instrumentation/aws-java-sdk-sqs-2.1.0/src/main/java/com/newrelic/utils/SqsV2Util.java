@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class SqsV2Util {
 
@@ -85,12 +86,23 @@ public class SqsV2Util {
 
     public static boolean canAddDtHeaders(SendMessageBatchRequestEntry message) {
         int bodyBytesSize = message.messageBody() != null ? message.messageBody().getBytes().length : 0;
-        if (message.messageAttributes().size() > 8) {
+        int messageAttributesCount = message.messageAttributes().size();
+        if (messageAttributesCount > 8) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, "SQS message has too many attributes for distributed tracing. " +
+                    "The maximum limit is 8 and the message has {0} attributes.", messageAttributesCount);
             return false;
         }
         int attributesBytesSize = attributesBytesSize(message.messageAttributes().entrySet());
         int messageBytesSize = bodyBytesSize + attributesBytesSize;
-        return messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
+        boolean messageTooBig = messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
+        if(messageTooBig) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST,
+                    "SQS message is too large for distributed tracing. The message body has {0} bytes. " +
+                            "The total number of bytes added to attributes is {1} bytes. Total of both is {2}",
+                    bodyBytesSize, attributesBytesSize, messageBytesSize);
+
+        }
+        return messageTooBig;
     }
 
     public static int attributesBytesSize(Set<Map.Entry<String, MessageAttributeValue>> attributes) {
