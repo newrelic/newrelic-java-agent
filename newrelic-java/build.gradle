@@ -8,7 +8,7 @@ plugins {
 
 evaluationDependsOn(":newrelic-agent")
 
-group = "com.newrelic.agent.java"
+group = "io.github.kanderson250.agent.java"
 
 task dist(type: Zip, dependsOn: [
     project(":newrelic-agent").newrelicVersionedAgentJar,
