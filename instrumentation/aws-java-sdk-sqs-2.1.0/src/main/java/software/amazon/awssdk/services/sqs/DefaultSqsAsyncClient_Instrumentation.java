@@ -36,9 +36,11 @@ class DefaultSqsAsyncClient_Instrumentation {
     public CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest sendMessageRequest) {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment(SqsV2Util.LIBRARY, "sendMessage");
 
-        SQSRequestHeaders headers = new SQSRequestHeaders(sendMessageRequest);
-        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
-        sendMessageRequest = headers.getUpdatedRequest();
+        if (SqsV2Util.canAddDtHeaders(sendMessageRequest)) {
+            SQSRequestHeaders headers = new SQSRequestHeaders(sendMessageRequest);
+            NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
+            sendMessageRequest = headers.getUpdatedRequest();
+        }
 
         segment.reportAsExternal(SqsV2Util.generateExternalProduceMetrics(sendMessageRequest.queueUrl()));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
@@ -58,13 +60,18 @@ class DefaultSqsAsyncClient_Instrumentation {
     public CompletableFuture<SendMessageBatchResponse> sendMessageBatch(SendMessageBatchRequest sendMessageBatchRequest) {
         Segment segment = NewRelic.getAgent().getTransaction().startSegment(SqsV2Util.LIBRARY, "sendMessageBatch");
 
-        List<SendMessageBatchRequestEntry> updatedEntries = new ArrayList<>();
+        List<SendMessageBatchRequestEntry> processedEntries = new ArrayList<>();
         for (SendMessageBatchRequestEntry entry : sendMessageBatchRequest.entries()) {
-            SQSBatchRequestHeaders headers = new SQSBatchRequestHeaders(entry);
-            NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
-            updatedEntries.add(headers.updatedEntry());
+            if (SqsV2Util.canAddDtHeaders(entry)) {
+                SQSBatchRequestHeaders headers = new SQSBatchRequestHeaders(entry);
+                NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
+                processedEntries.add(headers.updatedEntry());
+            } else {
+                processedEntries.add(entry);
+            }
+
         }
-        sendMessageBatchRequest = sendMessageBatchRequest.toBuilder().entries(updatedEntries).build();
+        sendMessageBatchRequest = sendMessageBatchRequest.toBuilder().entries(processedEntries).build();
 
         segment.reportAsExternal(SqsV2Util.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl()));
         AgentBridge.getAgent().getTracedMethod().setTrackChildThreads(false);
