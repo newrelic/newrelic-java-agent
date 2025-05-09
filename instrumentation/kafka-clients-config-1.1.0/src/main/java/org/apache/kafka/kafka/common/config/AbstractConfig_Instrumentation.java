@@ -5,9 +5,6 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.config.ConfigEmitter;
 import org.apache.kafka.clients.CommonClientConfigs;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 
@@ -43,9 +40,17 @@ public class AbstractConfig_Instrumentation {
     @NewField
     private static final Map<String, String> clientClassesToClientTypes = new HashMap<>();
     static {
-        clientClassesToClientTypes.put(KafkaProducer.class.getName(), "producer");
-        clientClassesToClientTypes.put(KafkaConsumer.class.getName(), "consumer");
-        clientClassesToClientTypes.put(KafkaAdminClient.class.getName(), "admin");
+        clientClassesToClientTypes.put("org.apache.kafka.clients.producer.KafkaProducer", "producer");
+
+        final String consumer = "consumer";
+        clientClassesToClientTypes.put("org.apache.kafka.clients.consumer.KafkaConsumer", consumer); // 0.9 (maybe?) -> 3.6.2
+        // 3.7+ introduced a delegated consumer model, with the delegate class constructors
+        // now being the ones calling logUnused()
+        clientClassesToClientTypes.put("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer", consumer); // 3.7 - 3.8
+        clientClassesToClientTypes.put("org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer", consumer); // 3.9
+        clientClassesToClientTypes.put("org.apache.kafka.clients.consumer.internals.AsyncKafkaConsumer", consumer); // 3.7+
+
+        clientClassesToClientTypes.put("org.apache.kafka.clients.admin.AdminClient", "admin");
     }
 
     private final Map<String, ?> originals = Weaver.callOriginal();
