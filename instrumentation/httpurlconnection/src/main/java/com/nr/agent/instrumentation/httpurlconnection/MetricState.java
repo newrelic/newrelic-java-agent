@@ -45,7 +45,7 @@ import java.net.UnknownHostException;
  *
  */
 public class MetricState {
-    private static final boolean VERBOSE = NewRelic.getAgent().getConfig().getValue("http_url_connection.verbose", true);
+    private static final boolean VERBOSE = HttpURLConnectionConfig.getVerbose();
     private static final String LIBRARY = "HttpURLConnection";
     private static final URI UNKNOWN_HOST = URI.create("UnknownHost");
 
