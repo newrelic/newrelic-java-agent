@@ -313,6 +313,11 @@ jobs:
       - name: AIT Debugging
         run: |
           sudo netstat -tulpn 
+          echo "Old /etc/hosts/ file"
+          cat /etc/hosts
+          echo "Overwriting /etc/hosts file"
+          sudo echo "127.0.0.1 localhost" > /etc/hosts
+          echo "New /etc/hosts file"
           cat /etc/hosts
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
