@@ -317,8 +317,7 @@ jobs:
           cat /etc/hosts
           echo "Overwriting /etc/hosts file"
           sudo echo "127.0.0.1 localhost" | sudo tee /etc/hosts
-          sudo echo "127.0.0.1 " | sudo tee -a /etc/hosts
-          sudo echo $HOSTNAME | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 $HOSTNAME" | sudo tee -a /etc/hosts
           echo "New /etc/hosts file"
           cat /etc/hosts
 
