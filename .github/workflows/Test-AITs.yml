@@ -310,9 +310,10 @@ jobs:
           TEST_NAME=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
           echo "TEST_NAME="${TEST_NAME}"" >> $GITHUB_ENV
 
-      - name: Look for running instances on 4848
+      - name: AIT Debugging
         run: |
-          netstat -tulpn | grep :4848
+          sudo netstat -tulpn 
+          cat /etc/hosts
 
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
