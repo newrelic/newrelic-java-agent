@@ -55,6 +55,15 @@ jobs:
       - name: Build newrelicJar
         run: ./gradlew $GRADLE_OPTIONS clean jar --parallel
 
+      - name: Fix the /etc/hosts/ file (since it's been messed up before)
+        run: |
+          echo "Old /etc/hosts/ file"
+          cat /etc/hosts
+          echo "Overwriting /etc/hosts file"
+          sudo echo "127.0.0.1 localhost $HOSTNAME" | sudo tee /etc/hosts
+          echo "New /etc/hosts file"
+          cat /etc/hosts
+
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} and scala ${{ matrix.scala }} (attempt 1)
         id: run_tests_1
         continue-on-error: true

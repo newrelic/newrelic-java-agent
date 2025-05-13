@@ -310,9 +310,8 @@ jobs:
           TEST_NAME=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
           echo "TEST_NAME="${TEST_NAME}"" >> $GITHUB_ENV
 
-      - name: AIT Debugging
+      - name: Fix the /etc/hosts/ file (since it's been messed up before)
         run: |
-          sudo netstat -tulpn 
           echo "Old /etc/hosts/ file"
           cat /etc/hosts
           echo "Overwriting /etc/hosts file"
