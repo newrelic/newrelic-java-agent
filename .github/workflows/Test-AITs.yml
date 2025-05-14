@@ -310,6 +310,15 @@ jobs:
           TEST_NAME=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
           echo "TEST_NAME="${TEST_NAME}"" >> $GITHUB_ENV
 
+      - name: Fix the /etc/hosts/ file (since it's been messed up before)
+        run: |
+          echo "Old /etc/hosts/ file"
+          cat /etc/hosts
+          echo "Overwriting /etc/hosts file"
+          sudo echo "127.0.0.1 localhost $HOSTNAME" | sudo tee /etc/hosts
+          echo "New /etc/hosts file"
+          cat /etc/hosts
+
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run ${{ matrix.tests }}
