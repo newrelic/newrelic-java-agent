@@ -44,7 +44,7 @@ public class DistributedTracingConfig extends BaseConfig {
         this.primaryApplicationId = getProperty(PRIMARY_APPLICATION_ID);
         this.includeNewRelicHeader = !getProperty(EXCLUDE_NEWRELIC_HEADER, false);
 
-        BaseConfig samplerConfig = new BaseConfig(nestedProps(SAMPLER), SYSTEM_PROPERTY_ROOT+"."+SAMPLER);
+        BaseConfig samplerConfig = new BaseConfig(nestedProps(SAMPLER), SYSTEM_PROPERTY_ROOT+SAMPLER+".");
         this.remoteParentSampled = samplerConfig.getProperty(REMOTE_PARENT_SAMPLED, SAMPLE_DEFAULT);
         this.remoteParentNotSampled = samplerConfig.getProperty(REMOTE_PARENT_NOT_SAMPLED, SAMPLE_DEFAULT);
     }
