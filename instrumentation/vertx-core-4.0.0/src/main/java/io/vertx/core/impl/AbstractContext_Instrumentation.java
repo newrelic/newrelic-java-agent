@@ -19,9 +19,11 @@ import io.vertx.core.Handler;
 @Weave(originalName = "io.vertx.core.impl.AbstractContext")
 abstract class AbstractContext_Instrumentation {
     private static <T> void setResultHandler(ContextInternal ctx, Future<T> fut, Handler<AsyncResult<T>> resultHandler) {
-        Transaction txn = AgentBridge.getAgent().getTransaction(false);
-        if (txn != null) {
-            resultHandler = new AsyncHandlerWrapper<>(resultHandler, NewRelic.getAgent().getTransaction().getToken());
+        if (resultHandler != null){
+            Transaction txn = AgentBridge.getAgent().getTransaction(false);
+            if (txn != null) {
+                resultHandler = new AsyncHandlerWrapper<>(resultHandler, NewRelic.getAgent().getTransaction().getToken());
+            }
         }
         Weaver.callOriginal();
     }
