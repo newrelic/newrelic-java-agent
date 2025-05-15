@@ -1,0 +1,14 @@
+services:
+  petclinic:
+    build:
+      dockerfile: ./DOCKERFILE
+    image: jmeter/petclinic
+    ports:
+      - "8080:8080"
+      - "1234:1234"
+    volumes:
+      - "./results:/app/results"
+      - "./logs:/app/logs"
+    environment:
+      - "NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}"
+      - "JVM_ARGS=${JVM_ARGS}"

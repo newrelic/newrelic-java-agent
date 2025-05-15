@@ -1,0 +1,21 @@
+FROM eclipse-temurin:17.0.15_6-jdk-ubi9-minimal
+
+RUN microdnf install -y unzip findutils
+
+WORKDIR /app
+
+COPY install-dependencies.sh test.jmx ./
+RUN sh install-dependencies.sh
+
+# Build the app
+COPY spring-petclinic/gradle/ gradle
+COPY spring-petclinic/gradlew spring-petclinic/build.gradle spring-petclinic/settings.gradle ./
+COPY spring-petclinic/src ./src
+
+RUN ./gradlew bootJar
+
+# Set entrypoint
+
+COPY entrypoint.sh ./
+
+CMD ["sh", "/app/entrypoint.sh"]
