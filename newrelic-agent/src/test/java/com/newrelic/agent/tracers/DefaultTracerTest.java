@@ -494,6 +494,70 @@ public class DefaultTracerTest {
     }
 
     @Test
+    public void testExcludeLeafForLeaf(){
+        Transaction tx = Transaction.getTransaction();
+
+        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
+        DefaultTracer parentTracer = new OtherRootTracer(tx, sig, this, new SimpleMetricNameFormat("test"));
+        tx.getTransactionActivity().tracerStarted(parentTracer);
+
+        DefaultTracer kid = new DefaultTracer(tx, sig, this, new SimpleMetricNameFormat("child"), forceLeafFlags(DefaultTracer.DEFAULT_TRACER_FLAGS));
+        tx.getTransactionActivity().tracerStarted(kid);
+        Assert.assertTrue(kid.isTransactionSegment());
+
+        //now force excludes the tracer and check it has no effect on the parent
+        kid.excludeLeaf();
+        Assert.assertFalse(kid.isTransactionSegment());
+        Assert.assertTrue(parentTracer.isTransactionSegment());
+
+        kid.finish(Opcodes.RETURN, null);
+        parentTracer.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
+    public void testExcludeLeafIsNoOpForNonLeaf(){
+        Transaction tx = Transaction.getTransaction();
+
+        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
+        DefaultTracer kid = new DefaultTracer(tx, sig, this, new SimpleMetricNameFormat("child"), DefaultTracer.DEFAULT_TRACER_FLAGS);
+        tx.getTransactionActivity().tracerStarted(kid);
+        Assert.assertFalse(kid.isLeaf());
+        Assert.assertTrue(kid.isTransactionSegment());
+
+        //force excludes should do nothing on a non-leaf
+        kid.excludeLeaf();
+        Assert.assertTrue(kid.isTransactionSegment());
+
+        kid.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
+    public void testExcludeLeafIsNoOpForRoots(){
+        Transaction tx = Transaction.getTransaction();
+
+        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
+        OtherRootTracer root1 = new OtherRootTracer(tx.getTransactionActivity(), sig, this, new SimpleMetricNameFormat("test"), forceLeafFlags(DefaultTracer.DEFAULT_TRACER_FLAGS));
+        tx.getTransactionActivity().tracerStarted(root1);
+        Assert.assertTrue(root1.isLeaf());
+        Assert.assertTrue(root1.isTransactionSegment());
+
+        //force excludes should do nothing on a root
+        root1.excludeLeaf();
+        Assert.assertTrue(root1.isTransactionSegment());
+        root1.finish(Opcodes.RETURN, null);
+
+        OtherRootSqlTracer root2 = new OtherRootSqlTracer(tx.getTransactionActivity(), sig, this, new SimpleMetricNameFormat("test"), forceLeafFlags(DefaultTracer.DEFAULT_TRACER_FLAGS));
+        tx.getTransactionActivity().tracerStarted(root2);
+        Assert.assertTrue(root2.isLeaf());
+        Assert.assertTrue(root2.isTransactionSegment());
+
+        //force excludes should do nothing on an sql root
+        root2.excludeLeaf();
+        Assert.assertTrue(root2.isTransactionSegment());
+        root2.finish(Opcodes.RETURN, null);
+    }
+
+    @Test
     public void testExternalParametersNullHost() {
         DefaultTracer tracer = prepareTracer();
         TransactionStats stats = tracer.getTransactionActivity().getTransactionStats();
@@ -1092,6 +1156,10 @@ public class DefaultTracerTest {
         tx.getTransactionActivity().tracerStarted(tracer);
 
         return tracer;
+    }
+
+    private int forceLeafFlags(int flags) {
+        return flags | TracerFlags.LEAF;
     }
 
     private static void assertClmAbsent(Tracer tracer) {
