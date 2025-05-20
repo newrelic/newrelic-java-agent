@@ -14,7 +14,6 @@ import com.newrelic.agent.bridge.external.URISupport;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.OutboundHeaders;
 
 import java.lang.ref.WeakReference;

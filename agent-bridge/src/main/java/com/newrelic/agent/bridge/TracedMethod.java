@@ -82,6 +82,9 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
 
     public boolean isTrackCallbackRunnable();
 
+    /**
+     * Mark a leaf tracer as excluded, similar to how excludeFromTransactionTrace works.
+     */
     void excludeLeaf();
 
     /**
