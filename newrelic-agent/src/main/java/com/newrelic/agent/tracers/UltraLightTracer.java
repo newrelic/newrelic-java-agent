@@ -157,6 +157,9 @@ public class UltraLightTracer implements Tracer {
     /////////////////////////////////////////////
 
     @Override
+    public void excludeLeaf(){}
+
+    @Override
     public void addCustomAttribute(String key, Number value) {
     }
 
