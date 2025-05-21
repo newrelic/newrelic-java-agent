@@ -53,3 +53,28 @@ jobs:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew $GRADLE_OPTIONS :newrelic-opentelemetry-agent-extension:publish -Prelease=true
+
+      - name: Upload staged artifacts to Central Sonatype
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: |
+          # token is a b64-encoded string of username:password, used in auth header of API call
+          SONATYPE_TOKEN=$(printf "$SONATYPE_USERNAME:$SONATYPE_PASSWORD" | base64)
+          PUBLISH_NAMESPACE="io.github.kanderson250"
+          # makes a curl request to ossrh-staging-api to upload everything to Central Sonatype
+          echo "Uploading artifacts from OSSRH-Staging to Central Sonatype..."
+          # captures response code and body of curl request
+          RESPONSE=$(curl -s -w "%{http_code}" -o response_body.txt -X POST \
+            -H "Authorization: Bearer $SONATYPE_TOKEN" \
+            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$PUBLISH_NAMESPACE?publishing_type=user_managed")
+          # job fails if we got anything back but a 200
+          if [ "$RESPONSE" -ne 200 ]; then
+            echo "Failed to upload artifacts to Central Sonatype. Response code: $RESPONSE. Response body: "
+            cat response_body.txt
+            echo "Visit https://central.sonatype.com/publishing/deployments for more information."
+            exit 1
+          else
+            echo "Artifacts were uploaded successfully to Central Sonatype."
+            echo "Visit https://central.sonatype.com/publishing/deployments to view your artifacts."
+          fi
