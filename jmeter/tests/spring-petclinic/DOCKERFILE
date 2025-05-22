@@ -4,7 +4,7 @@ RUN microdnf install -y unzip findutils
 
 WORKDIR /app
 
-COPY deps ./
+COPY ./deps deps
 
 COPY ./tests/spring-petclinic/test.jmx ./
 

@@ -9,12 +9,12 @@ cd deps
 # Install the java agents
 
 mkdir agents
-cat ../config.json | jq .agentJars[] -c | while read -r agentJarInfo
+cat ../config.json | jq .agents[] -c | while read -r agent
 do
-  agentPath=$(echo "${agentJarInfo}" | jq .path -r)
-  isPathUrl=$(echo "${agentJarInfo}" | jq .isPathUrl -r)
-  agentBuild=$(echo "${agentJarInfo}" | jq .name -r)
-  mkdir agents/${agentBuild}
+  agentPath=$(echo "${agent}" | jq .path -r)
+  isPathUrl=$(echo "${agent}" | jq .isPathUrl -r)
+  agentBuild=$(echo "${agent}" | jq .name -r)
+  mkdir agents/"${agentBuild}"
 
   if [[ "$isPathUrl" == "true" ]];
   then
