@@ -23,13 +23,17 @@ for agentPath in ../../deps/agents/*; do
 
   echo "running tests for agent build ${AGENT_BUILD}"
 
+  mkdir ./results/"${AGENT_BUILD}"
+
   for testCase in test_cases/*; do
-    export NEW_RELIC_CONFIG_PATH=./test_cases/"$(basename "${testCase}")"/newrelic.yml
+    TEST_CASE=$(basename "${testCase}")
+    export NEW_RELIC_CONFIG_PATH=./test_cases/"${TEST_CASE}"/newrelic.yml
     echo "running test case ${testCase}"
     docker compose up
     docker compose rm -f
+    mkdir ./results/"${AGENT_BUILD}"/"${TEST_CASE}"
+    mv ./results/currentRun/results.csv ./results/"${AGENT_BUILD}"/"${TEST_CASE}"
+    rm -rf ./results/currentRun
   done
-
-  mv ./results/currentRun ./results/"${AGENT_BUILD}"
 done
 docker image rm jmeter/"${TEST_DIR}":latest
