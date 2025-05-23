@@ -1,16 +1,13 @@
 FROM eclipse-temurin:17.0.15_6-jdk-ubi9-minimal
 
+WORKDIR /app
+
+# Set parent directories to reduce boilerplate
 ARG TEST_DIRECTORY=./tests/spring-petclinic
 ARG PET_CLINIC_DIRECTORY=${TEST_DIRECTORY}/petclinic
 
+# Install dependencies for gradle
 RUN microdnf install -y unzip findutils
-
-WORKDIR /app
-
-COPY ./deps deps
-COPY ${TEST_DIRECTORY}/test_cases test_cases
-
-COPY ${TEST_DIRECTORY}/test.jmx ./
 
 # Build the app
 COPY ${PET_CLINIC_DIRECTORY}/gradle/ gradle
@@ -22,7 +19,25 @@ COPY ${PET_CLINIC_DIRECTORY}/src ./src
 
 RUN ./gradlew bootJar
 
-# Set entrypoint
+# Everything else below is boilerplate needed to run
 
-COPY ${TEST_DIRECTORY}/entrypoint.sh ./
+# Copy dependencies (i.e. Java Agent and Jmeter)
+COPY ./deps deps
+
+# Copy test cases file (these contain different agent configurations)
+COPY ${TEST_DIRECTORY}/test_cases test_cases
+
+# Copy test cases file (these contain different agent configurations)
+
+# Copy jmeter test plan file (these configure the load size and what performance data to gather like request throughput and JMX metrics)
+COPY ${TEST_DIRECTORY}/jmeter.jmx ./
+
+# COPY start.sh script which starts up your app
+COPY ${TEST_DIRECTORY}/start.sh ./
+
+# COPY config.sh script which contains various configurations in the form of environment variables.
+COPY ${TEST_DIRECTORY}/config.sh ./
+
+# Copy entrypoint.sh which will start the app by executing start.sh, load configs from config.sh, and finally runs Jmeter
+COPY ./entrypoint.sh ./
 CMD ["sh", "/app/entrypoint.sh"]

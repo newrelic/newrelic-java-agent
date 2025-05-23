@@ -1,0 +1,2 @@
+export DOCKER_IMAGE_NAME="jmeter/petclinic:latest" # Use the same docker image name in docker-compose.yml
+export JMETER_DELAY=20 # Time delay from when we start the Java app till we start Jmeter. This is for apps that take time to startup

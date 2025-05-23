@@ -7,6 +7,9 @@
 # This section is for settings common to all environments.
 # Do not add anything above this next line.
 common: &default_settings
+
+  lite_mode: true
+
   # Agent enabled
   # Use this setting to disable the agent instead of removing it from the startup command.
   # Default is true.
@@ -51,7 +54,7 @@ common: &default_settings
   # The levels in increasing order of verboseness are:
   #   off, severe, warning, info, fine, finer, finest
   # Default is info.
-  log_level: finest
+  log_level: info
 
   # Log all data sent to and from New Relic in plain text.
   # This setting is dynamic, so changes do not require restarting your application.

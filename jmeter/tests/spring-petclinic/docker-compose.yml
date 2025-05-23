@@ -1,16 +1,14 @@
 services:
   petclinic:
-    image: jmeter/spring-petclinic:latest
+    image: jmeter/petclinic:latest # Name of the docker image set in config.sh
 #    ports:
 #      - "8080:8080"
 #      - "1234:1234"
     volumes:
+      # Mounts the results files generated via Jmeter into a temporary results directory that will be moved to a location corresponding to the test case.
       - "./results/currentRun:/app/results"
+      # Mounts logs into a temporary results directory that will be moved to a location corresponding to the test case.
       - "./logs/currentRun:/app/logs"
     environment:
-      - "NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}"
-      - "AGENT_JAR_PATH=${AGENT_JAR_PATH}"
-      - "NEW_RELIC_CONFIG_PATH=${NEW_RELIC_CONFIG_PATH}"
-      - "JMX_JVM_ARGS=${JMX_JVM_ARGS}"
-      - "CUSTOM_JVM_ARGS=${CUSTOM_JVM_ARGS}"
-
+      - "NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}" # New relic license key
+      - "JAVA_OPTS=${JVM_ARGS}" # JVM arguments (containing JMX values, agent configs, agent jar, etc) that is passed onto the app when running it.

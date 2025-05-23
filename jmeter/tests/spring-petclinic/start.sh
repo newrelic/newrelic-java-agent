@@ -1,0 +1,1 @@
+java -jar ${JAVA_OPTS} build/libs/spring-petclinic-3.4.0.jar
