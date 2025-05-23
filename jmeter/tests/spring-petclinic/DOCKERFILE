@@ -1,26 +1,28 @@
 FROM eclipse-temurin:17.0.15_6-jdk-ubi9-minimal
 
+ARG TEST_DIRECTORY=./tests/spring-petclinic
+ARG PET_CLINIC_DIRECTORY=${TEST_DIRECTORY}/petclinic
+
 RUN microdnf install -y unzip findutils
 
 WORKDIR /app
 
 COPY ./deps deps
+COPY ${TEST_DIRECTORY}/test_cases test_cases
 
-COPY ./tests/spring-petclinic/test.jmx ./
+COPY ${TEST_DIRECTORY}/test.jmx ./
 
 # Build the app
-COPY ./tests/spring-petclinic/petclinic/gradle/ gradle
+COPY ${PET_CLINIC_DIRECTORY}/gradle/ gradle
+COPY ${PET_CLINIC_DIRECTORY}/gradlew ./
+COPY ${PET_CLINIC_DIRECTORY}/build.gradle ./
+COPY ${PET_CLINIC_DIRECTORY}/settings.gradle ./
 
-COPY ./tests/spring-petclinic/petclinic/gradlew ./
-COPY ./tests/spring-petclinic/petclinic/build.gradle ./
-COPY ./tests/spring-petclinic/petclinic/settings.gradle ./
-
-COPY ./tests/spring-petclinic/petclinic/src ./src
+COPY ${PET_CLINIC_DIRECTORY}/src ./src
 
 RUN ./gradlew bootJar
 
 # Set entrypoint
 
-COPY ./tests/spring-petclinic/entrypoint.sh ./
-
+COPY ${TEST_DIRECTORY}/entrypoint.sh ./
 CMD ["sh", "/app/entrypoint.sh"]

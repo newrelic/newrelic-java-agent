@@ -1,9 +1,10 @@
-set -x
-ls
 DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
-echo "running Spring Pet Clinic with agent build ${AGENT_BUILD}"
-nohup java -javaagent:./deps/agents/"${AGENT_BUILD}"/newrelic.jar \
-           -Dmewrelic.config.file=./newrelic.yml \
+
+echo "running Spring Pet Clinic with agent path: ${AGENT_JAR_PATH}"
+echo "running Spring Pet Clinic with agent config path: ${NEW_RELIC_CONFIG_PATH}"
+
+nohup java -javaagent:"${AGENT_JAR_PATH}" \
+           -Dnewrelic.config.file="${NEW_RELIC_CONFIG_PATH}" \
            -Dnewrelic.logfile=logs/newrelic-"${DATETIME}".log \
            ${CUSTOM_JVM_ARGS} \
            ${JMX_JVM_ARGS} \
