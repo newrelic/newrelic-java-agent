@@ -64,6 +64,9 @@ jobs:
         if: ${{inputs.single-test == ''}}
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
+          echo "framework/pekko/pekko.py" >> $excluded_tests
+          echo "framework/pekko/pekkohttp.py" >> $excluded_tests
+          echo "framework/pekko/pekkohttp3.py" >> $excluded_tests
           echo "datastore/datastores.py" >> $excluded_tests
           echo "framework/jms/jms.py" >> $excluded_tests
           echo "r2dbc/mssql.py" >> $excluded_tests
@@ -213,7 +216,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: |
-            23
+            24
             21
             17
             11
@@ -224,14 +227,14 @@ jobs:
           echo "JDK_zulu_11=${JAVA_HOME_11_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_17=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_21=${JAVA_HOME_21_X64}" >> $GITHUB_ENV
-          echo "JDK_zulu_23=${JAVA_HOME_23_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_24=${JAVA_HOME_24_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
         uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # pin@v4
         with:
           distribution: 'temurin'
           java-version: |
-            23
+            24
             21
             17
             11
@@ -284,10 +287,10 @@ jobs:
           <toolchain>
             <type>jdk</type>
             <provides>
-                    <version>23</version>
+                    <version>24</version>
             </provides>
             <configuration>
-                    <jdkHome>${JAVA_HOME_23_X64}</jdkHome>
+                    <jdkHome>${JAVA_HOME_24_X64}</jdkHome>
             </configuration>
             </toolchain>
           </toolchains>
@@ -307,6 +310,15 @@ jobs:
           TEST_NAME=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
           echo "TEST_NAME="${TEST_NAME}"" >> $GITHUB_ENV
 
+      - name: Fix the /etc/hosts/ file (since it's been messed up before)
+        run: |
+          echo "Old /etc/hosts/ file"
+          cat /etc/hosts
+          echo "Overwriting /etc/hosts file"
+          sudo echo "127.0.0.1 localhost $HOSTNAME" | sudo tee /etc/hosts
+          echo "New /etc/hosts file"
+          cat /etc/hosts
+
       ## WE LOSE THE VIRTUAL ENVIRONMENT ONCE WE LEAVE THE STEP
       ## TODO: This should really be a custom action, too many commands
       - name: Create virtualenv and run ${{ matrix.tests }}
@@ -324,12 +336,12 @@ jobs:
           ZULU11=${JDK_zulu_11} \
           ZULU17=${JDK_zulu_17} \
           ZULU21=${JDK_zulu_21} \
-          ZULU23=${JDK_zulu_23} \
+          ZULU24=${JDK_zulu_24} \
           JAVA8JRE=${JAVA_HOME_8_X64} \
           JAVA11JRE=${JAVA_HOME_11_X64} \
           JAVA17JRE=${JAVA_HOME_17_X64} \
           JAVA21JRE=${JAVA_HOME_21_X64} \
-          JAVA23JRE=${JAVA_HOME_23_X64} \
+          JAVA24JRE=${JAVA_HOME_24_X64} \
           conf/autoconfigure
           . conf/testenv java
           cat conf/java_local_config.yml

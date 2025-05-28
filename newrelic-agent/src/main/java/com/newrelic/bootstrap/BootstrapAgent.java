@@ -41,6 +41,7 @@ public class BootstrapAgent {
     private static final String WS_LOG_MANAGER = "com.ibm.ws.kernel.boot.logging.WsLogManager";
     private static final String AGENT_ENABLED_ENV_VAR = "NEW_RELIC_AGENT_ENABLED";
     private static final String AGENT_ENABLED_SYS_PROP = "newrelic.config.agent_enabled";
+    private static final String SQL_ON_PLATFORM_LOADER_SYS_PROP = "newrelic.config.sql.platformClassloader";
 
     public static URL getAgentJarUrl() {
         return BootstrapAgent.class.getProtectionDomain().getCodeSource().getLocation();
@@ -236,12 +237,17 @@ public class BootstrapAgent {
 
     /**
      * Indicates that java.sql classes are not included on the bootstrap class path
-     * by default.
+     * by default. This usually depends on the JVM version, but some app servers like
+     * to do things differently, and the agent has no way to know that.
      *
      * @param javaVersion the "java.version" system property.
      * @return true if java.sql classes will be loaded by the platform class loader.
      */
     private static boolean isJavaSqlLoadedOnPlatformClassLoader(String javaVersion) {
+        String config = System.getProperty(SQL_ON_PLATFORM_LOADER_SYS_PROP);
+        if (config != null) {
+            return Boolean.parseBoolean(config);
+        }
         return !javaVersion.startsWith("1.");
     }
 

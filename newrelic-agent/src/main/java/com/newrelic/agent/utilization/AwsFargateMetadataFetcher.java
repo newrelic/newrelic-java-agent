@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Thin wrapper class over the JRE URL class to assist in testing
@@ -22,6 +23,10 @@ public class AwsFargateMetadataFetcher {
     }
 
     public InputStream openStream() throws IOException {
-        return (url == null ? null : url.openStream());
+        URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+
+        return connection.getInputStream();
     }
 }

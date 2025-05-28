@@ -19,6 +19,12 @@ import java.util.logging.Level;
 
 public class NettyUtil {
 
+    // This config is added so customers can also start netty transactions at a lower level.
+    // However, this risks netty producing transactions with 'unknown' urls.
+    // Only use it if it provides the coverage you need for your application's use case.
+    public static final Boolean START_HTTP2_FRAME_READ_LISTENER_TXN =
+            NewRelic.getAgent().getConfig().getValue("netty.http2.frame_read_listener.start_transaction", false);
+
     public static String getNettyVersion() {
         return "4.1.16";
     }

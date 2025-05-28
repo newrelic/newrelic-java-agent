@@ -34,13 +34,18 @@ class DefaultSqsClient_Instrumentation {
 
     @Trace
     public SendMessageBatchResponse sendMessageBatch(SendMessageBatchRequest sendMessageBatchRequest) {
-        List<SendMessageBatchRequestEntry> updatedEntries = new ArrayList<>();
+        List<SendMessageBatchRequestEntry> processedEntries = new ArrayList<>();
+
         for (SendMessageBatchRequestEntry entry : sendMessageBatchRequest.entries()) {
-            SQSBatchRequestHeaders headers = new SQSBatchRequestHeaders(entry);
-            NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
-            updatedEntries.add(headers.updatedEntry());
+            if (SqsV2Util.canAddDtHeaders(entry)) {
+                SQSBatchRequestHeaders headers = new SQSBatchRequestHeaders(entry);
+                NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
+                processedEntries.add(headers.updatedEntry());
+            } else {
+                processedEntries.add(entry);
+            }
         }
-        sendMessageBatchRequest = sendMessageBatchRequest.toBuilder().entries(updatedEntries).build();
+        sendMessageBatchRequest = sendMessageBatchRequest.toBuilder().entries(processedEntries).build();
 
         MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics(sendMessageBatchRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);
@@ -50,9 +55,11 @@ class DefaultSqsClient_Instrumentation {
 
     @Trace
     public SendMessageResponse sendMessage(SendMessageRequest sendMessageRequest) {
-        SQSRequestHeaders headers = new SQSRequestHeaders(sendMessageRequest);
-        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
-        sendMessageRequest = headers.getUpdatedRequest();
+        if (SqsV2Util.canAddDtHeaders(sendMessageRequest)) {
+            SQSRequestHeaders headers = new SQSRequestHeaders(sendMessageRequest);
+            NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
+            sendMessageRequest = headers.getUpdatedRequest();
+        }
 
         MessageProduceParameters messageProduceParameters = SqsV2Util.generateExternalProduceMetrics(sendMessageRequest.queueUrl());
         NewRelic.getAgent().getTracedMethod().reportAsExternal(messageProduceParameters);

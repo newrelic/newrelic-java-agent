@@ -265,6 +265,7 @@ public class HeadersUtil {
                 }
                 if (w3CTracePayload.getTraceParent() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceParent(w3CTracePayload.getTraceParent());
+                    tx.applyDistributedTracingSamplerConfig(w3CTracePayload.getTraceParent());
                 }
                 if (w3CTracePayload.getTraceState() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceState(w3CTracePayload.getTraceState());

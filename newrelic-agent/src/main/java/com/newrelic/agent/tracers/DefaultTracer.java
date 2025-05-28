@@ -166,6 +166,23 @@ public class DefaultTracer extends AbstractTracer {
         this.tracerFlags = (byte) TracerFlags.clearSegment(this.tracerFlags);
     }
 
+    /**
+     * This API method allows leaves to be excluded outside the constructor.
+     * Their data will still be collected (ie, they'll still be on the Txa tracer stack and produce metrics),
+     * but they will not be added to Transaction Traces or turned into Spans.
+     *
+     * This is useful for instrumentation in which large numbers of tracers are created that can't
+     * be marked as excluded at the time of creation, for example, HttpUrlConnection.
+     *
+     * Excluding root tracers is (for now) prohibited and this method is overridden in roots.
+     */
+    @Override
+    public void excludeLeaf() {
+        if (isLeaf()){
+            tracerFlags = (byte) TracerFlags.clearSegment(tracerFlags);
+        }
+    }
+
     @Override
     public String getGuid() {
         if (this.guid == null) {

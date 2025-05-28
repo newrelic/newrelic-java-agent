@@ -423,4 +423,8 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     public int getChildCount() {
         return 0;
     }
+
+    @Override
+    public void excludeLeaf(){
+    }
 }

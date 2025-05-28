@@ -352,6 +352,9 @@ public final class NewRelic {
     /**
      * Get the RUM JavaScript footer for the current web transaction.
      *
+     * @deprecated The full browser script is now included when calling {@link NewRelic#getBrowserTimingHeader}
+     * or {@link NewRelic#getBrowserTimingHeader(String)}
+     *
      * @return RUM JavaScript footer for the current web transaction.
      * @since 2.21.0
      */
@@ -361,7 +364,11 @@ public final class NewRelic {
 
     /**
      * Get the RUM JavaScript footer for the current web transaction.
+     *
      * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
+     * @deprecated The full browser script is now included when calling {@link NewRelic#getBrowserTimingHeader}
+     * or {@link NewRelic#getBrowserTimingHeader(String)}
+     *
      * @return RUM JavaScript footer for the current web transaction.
      * @since 7.6.0
      */

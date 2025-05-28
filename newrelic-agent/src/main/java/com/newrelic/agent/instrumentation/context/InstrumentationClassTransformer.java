@@ -149,6 +149,8 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
                                 System.nanoTime() - transformStartTimeInNs), MetricNames.SUPPORTABILITY_CLASSLOADER_TRANSFORM_TIME);
                 return transformation;
             }
+        } catch (ArrayIndexOutOfBoundsException e){
+            Agent.LOG.log(Level.FINE, e, "Unexpected ArrayIndexOutOfBoundsException thrown during class transformation. Try restarting the Java Agent with flag -Dnewrelic.config.class_transformer.clear_return_stacks=true");
         } catch (Throwable t) {
             Agent.LOG.log(Level.FINE, t, "Unexpected exception thrown in class transformer: {0}--{1}", loader, className);
         }
