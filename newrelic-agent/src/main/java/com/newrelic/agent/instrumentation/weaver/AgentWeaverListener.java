@@ -79,7 +79,7 @@ public class AgentWeaverListener implements WeavePackageLifetimeListener {
                 for (Map.Entry<String, MatchType> entry : matchTypes.entrySet()) {
                     if (entry.getValue() != null) {
                         Agent.LOG.log(Level.FINEST, "Bootstrap class {0} : {1}", entry.getKey(),
-                                weavePackage.isBootstrapClassName(Collections.singleton(entry.getKey())));
+                                weavePackage.isBootstrapClassName(Collections.singleton(entry.getKey()))); // FIXME ???
                     }
                 }
             }

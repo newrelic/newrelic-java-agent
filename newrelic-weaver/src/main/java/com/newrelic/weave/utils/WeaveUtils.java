@@ -765,7 +765,7 @@ public final class WeaveUtils {
      * java.lang.Class -> java/lang/Class.class
      */
     public static String getClassResourceName(String binaryName) {
-        if (binaryName.endsWith(".class")) {
+        if (binaryName.endsWith(".class")) { // FIXME can this be modded to work with .classdata files????
             return binaryName;
         } else {
             return binaryName.replace('.', '/') + ".class";

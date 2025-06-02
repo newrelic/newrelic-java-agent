@@ -1,0 +1,61 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package io.opentelemetry.sdk.trace;
+
+import com.newrelic.api.agent.Config;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.weaver.MatchType;
+import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.Weaver;
+//import io.opentelemetry.api.trace.TracerBuilder;
+import io.opentelemetry.javaagent.shaded.io.opentelemetry.api.trace.TracerBuilder;
+
+/**
+ * Weaved to inject a New Relic Java agent implementation of an OpenTelemetry TracerBuilder
+ */
+@Weave(type = MatchType.ExactClass, originalName = "io.opentelemetry.sdk.trace.SdkTracerProvider")
+public final class SdkTracerProvider_Instrumentation {
+    private final TracerSharedState sharedState = Weaver.callOriginal();
+
+//    @WeaveAllConstructors
+//    SdkTracerProvider_Instrumentation() {
+//        Helper.SdkTracerProvider(this);
+//        Helper.TracerSharedState(sharedState);
+////        new TracerSharedStateWrapper(sharedState);
+//    }
+
+    public TracerBuilder tracerBuilder(String instrumentationScopeName) {
+        final TracerBuilder tracerBuilder = Weaver.callOriginal();
+
+//        Helper.TracerBuilder(tracerBuilder);
+//        Helper.TracerSharedState(sharedState);
+//        try {
+////            Class<?> TracerSharedStateClazz = Class.forName("io.opentelemetry.sdk.trace.TracerSharedState");
+////            Helper.clazz(TracerSharedStateClazz);
+//            Field sharedState = this.getClass().getDeclaredField("sharedState");
+//            sharedState.setAccessible(true);
+//            Object o = sharedState.get(this);
+//            Helper.clazz(o);
+//
+//        } catch (NoSuchFieldException e) {
+//            throw new RuntimeException(e);
+//        } catch (IllegalAccessException e) {
+//            throw new RuntimeException(e);
+//        }
+
+//        Helper.SdkTracerProvider(this);
+
+        Config config = NewRelic.getAgent().getConfig();
+//        if (NRSpanBuilder.isSpanBuilderEnabled(config)) {
+             // return our tracer builder instead of the OTel instance
+//            return new NRTracerBuilder(config, instrumentationScopeName, sharedState);
+        return null; // FIXME
+//        }
+//        return tracerBuilder;
+    }
+}

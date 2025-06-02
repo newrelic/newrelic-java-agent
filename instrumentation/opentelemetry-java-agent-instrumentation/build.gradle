@@ -1,0 +1,52 @@
+plugins {
+    id("java")
+}
+
+//repositories {
+//    flatDir {
+//        dirs '../lib'
+//    }
+//}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+//    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.28.0")
+//    implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:2.12.0")
+//    implementation("com.google.code.findbugs:jsr305:3.0.2") // @Nullable
+//    implementation("io.opentelemetry:opentelemetry-api:1.49.0")
+//    implementation("io.opentelemetry:opentelemetry-sdk:1.49.0")
+//    implementation("io.opentelemetry.javaagent:opentelemetry-javaagent:2.12.0")
+    implementation("io.opentelemetry.javaagent:opentelemetry-javaagent:2.15.0")
+
+    implementation files('lib')
+
+//    implementation(fileTree(include: ["*.class"], dir: "../lib"))
+//    implementation name: 'TracerSharedState'
+
+
+
+//    testImplementation("junit:junit:4.12")
+//    testImplementation("io.opentelemetry:opentelemetry-exporter-otlp:1.28.0")
+//    testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.28.0")
+//    testImplementation("com.google.guava:guava:30.1.1-jre")
+}
+
+jar {
+    manifest {
+        attributes "Implementation-Title" : "com.newrelic.instrumentation.opentelemetry-java-agent-instrumentation"
+    }
+}
+
+java {
+}
+
+verifyInstrumentation {
+    passesOnly 'io.opentelemetry.javaagent:opentelemetry-javaagent:[2.15.0,)'
+}
+
+site {
+    title = "OpenTelemetry"
+    type = "Framework"
+}

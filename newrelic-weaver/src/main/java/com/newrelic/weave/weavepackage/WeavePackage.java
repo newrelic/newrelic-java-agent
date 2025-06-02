@@ -182,7 +182,7 @@ public class WeavePackage {
 
         this.packageViolations.addAll(violations);
         if (isBootstrapClassName(this.exactWeaves.keySet()) || isBootstrapClassName(this.baseWeaves.keySet())) {
-            this.weavesBootstrap = true;
+            this.weavesBootstrap = true; // FIXME this isn't getting set
         }
         return violations;
     }
@@ -195,7 +195,7 @@ public class WeavePackage {
     public boolean isBootstrapClassName(Collection<String> names) {
         for (String name : names) {
             if (BootstrapLoader.get().isBootstrapClass(name)) {
-                return true;
+                return true; // FIXME should this return true for Context?
             }
         }
         return false;

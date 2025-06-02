@@ -7,14 +7,14 @@
 
 package com.newrelic.weave.utils;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Set;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Singleton providing the appropriate {@link ClassFinder} implementation for finding class URLs from the bootstrap.
@@ -84,10 +84,9 @@ public abstract class BootstrapLoader implements ClassFinder {
      * @param internalOrClassName The internal or class name of the class.
      * @return true if the given class is a bootstrap class
      */
-
     public boolean isBootstrapClass(String internalOrClassName) {
         URL bootstrapResource = findResource(WeaveUtils.getClassResourceName(internalOrClassName));
-        return bootstrapResource != null;
+        return bootstrapResource != null; // FIXME should bootstrapResource be not null??
     }
 
     @Override

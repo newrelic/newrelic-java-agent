@@ -323,7 +323,7 @@ public class WeavePackageManager {
         }
 
         ClassInformation classInformation = cache.getClassInformation(className);
-        if (classInformation == null) {
+        if (classInformation == null) { // fixme bombing out here
             return null;
         }
 

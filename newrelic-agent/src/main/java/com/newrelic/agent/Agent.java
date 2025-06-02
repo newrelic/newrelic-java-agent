@@ -250,7 +250,7 @@ public final class Agent {
             // OpenTelemetryAgent.premain was bombing out on the installBootstrapJar method
             InstrumentationHolder.setInstrumentation(inst);
             JavaagentFileHolder.setJavaagentFile(otelJarFile);
-            AgentInitializer.initialize(inst, otelJarFile, true);
+            AgentInitializer.initialize(inst, otelJarFile, true, null);
         } catch (Throwable t) {
             System.err.println(MessageFormat.format("Error bootstrapping OTel agent: {0}", t));
         }
@@ -324,7 +324,7 @@ public final class Agent {
             // Now that we know the agent is enabled, add the ApiClassTransformer
             BootstrapLoader.forceCorrectNewRelicApi(inst);
             BootstrapLoader.forceCorrectNewRelicSecurityApi(inst);
-            BootstrapLoader.forceCorrectOpenTelemetryApi(inst);
+//            BootstrapLoader.forceCorrectOpenTelemetryApi(inst);
 
             // init problem classes before class transformer service is active
             InitProblemClasses.loadInitialClasses();

@@ -58,12 +58,12 @@ public class ClassCache implements ClassInformationFinder {
      * @throws IOException
      */
     public byte[] getClassResource(String internalName) throws IOException {
-        byte[] result = classBytesCache.get(internalName);
+        byte[] result = classBytesCache.get(internalName); // FIXME this classBytesCache doesn't contain the Context class
         if (result != null) {
             return result == NO_CLASS_BYTES ? null : result;
         }
 
-        URL resource = classFinder.findResource(internalName);
+        URL resource = classFinder.findResource(internalName); // FIXME fails here?
         if (resource == null) {
             classBytesCache.putIfAbsent(internalName, NO_CLASS_BYTES);
             return null;

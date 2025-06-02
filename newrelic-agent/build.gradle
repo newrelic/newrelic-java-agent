@@ -60,9 +60,9 @@ dependencies {
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-api:${securityAgentVersion}")
     jarIntoJar("com.newrelic.agent.java.security:newrelic-security-agent:${securityAgentVersion}")
 
-//    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:2.12.0-alpha")
-//    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:2.12.0-alpha")
-    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent:2.12.0")
+//    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:2.15.0-alpha")
+//    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:2.15.0-alpha")
+    jarIntoJar("io.opentelemetry.javaagent:opentelemetry-javaagent:2.15.0") // FIXME jarIntoJar or shadowIntoJar???
 
     shadowIntoJar( group: 'commons-codec', name: 'commons-codec') {
         version {
