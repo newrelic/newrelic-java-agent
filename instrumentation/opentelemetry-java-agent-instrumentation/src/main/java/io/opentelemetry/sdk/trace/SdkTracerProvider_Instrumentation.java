@@ -53,8 +53,8 @@ public final class SdkTracerProvider_Instrumentation {
         Config config = NewRelic.getAgent().getConfig();
 //        if (NRSpanBuilder.isSpanBuilderEnabled(config)) {
              // return our tracer builder instead of the OTel instance
-//            return new NRTracerBuilder(config, instrumentationScopeName, sharedState);
-        return null; // FIXME
+            return new NRTracerBuilder(config, instrumentationScopeName, sharedState);
+//        return null; // FIXME
 //        }
 //        return tracerBuilder;
     }
