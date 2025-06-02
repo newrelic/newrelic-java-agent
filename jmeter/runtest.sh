@@ -27,6 +27,50 @@ echo "Making logs and results directories"
 mkdir ./logs
 mkdir ./results
 
+function runTest() {
+  AGENT_BUILD=$1
+  AGENT_JVM_ARG=$2
+  RESULTS_AGENT_BUILD_DIR=$3
+  LOGS_AGENT_BUILD_DIR=$4
+  TEST_CASE=$5
+
+  if [[ "$AGENT_BUILD" == "without-agent" ]]; then
+    echo "Running test without the agent"
+    RESULTS_DIRECTORY="${RESULTS_AGENT_BUILD_DIR}"
+    LOGS_DIRECTORY="${LOGS_AGENT_BUILD_DIR}"
+    NEW_RELIC_CONFIG_JVM_ARG=""
+  else
+    echo "Running test using agent build ${AGENT_BUILD} and test case ${TEST_CASE}"
+    NEW_RELIC_CONFIG_JVM_ARG="-Dnewrelic.config.file=./test_cases/${TEST_CASE}/newrelic.yml"
+    RESULTS_DIRECTORY="${RESULTS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
+    LOGS_DIRECTORY="${LOGS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
+  fi
+
+  export JVM_ARGS="${AGENT_JVM_ARG}
+    ${NEW_RELIC_CONFIG_JVM_ARG}
+    -Dnewrelic.logfile=logs/newrelic-${DATETIME}.log
+    ${CUSTOM_JVM_ARGS}
+    ${JMX_JVM_ARGS}"
+  printf "Set JVM args to be:\n%s" "${JVM_ARGS}"
+
+  echo "Starting up docker compose"
+  docker compose up
+  echo "Removing docker compose images"
+  docker compose rm -f
+
+  RESULTS_CURRENT_RUN_DIR=./results/currentRun
+  echo "Renaming ${RESULTS_CURRENT_RUN_DIR} to ${RESULTS_DIRECTORY}"
+  mv ${RESULTS_CURRENT_RUN_DIR} "${RESULTS_DIRECTORY}"
+
+  LOGS_CURRENT_RUN_DIR=./logs/currentRun
+  echo "Renaming ${LOGS_CURRENT_RUN_DIR} to ${LOGS_DIRECTORY}"
+  mv ${LOGS_CURRENT_RUN_DIR} "${LOGS_DIRECTORY}"
+
+  echo "Removing directories ${RESULTS_CURRENT_RUN_DIR} and ${LOGS_CURRENT_RUN_DIR}"
+  rm -rf ${RESULTS_CURRENT_RUN_DIR}
+  rm -rf ${LOGS_CURRENT_RUN_DIR}
+}
+
 function runPerformanceTest() {
     AGENT_BUILD=$1
     if [[ -n "$AGENT_BUILD" ]]; then
@@ -46,45 +90,13 @@ function runPerformanceTest() {
     mkdir "${LOGS_AGENT_BUILD_DIR}"
     echo "Made directory ${LOGS_AGENT_BUILD_DIR}"
 
-    for testCase in test_cases/*; do
-      TEST_CASE=$(basename "${testCase}")
-
-      if [[ "$AGENT_BUILD" != "without-agent" ]]; then
-        echo "Running test using agent build ${AGENT_BUILD} and test case ${TEST_CASE}"
-      else
-        echo "Running test without the agent and with the test case ${TEST_CASE}"
-      fi
-
-      NEW_RELIC_CONFIG_PATH=./test_cases/"${TEST_CASE}"/newrelic.yml
-
-      export JVM_ARGS="${AGENT_JVM_ARG}
-        -Dnewrelic.config.file=${NEW_RELIC_CONFIG_PATH}
-        -Dnewrelic.logfile=logs/newrelic-${DATETIME}.log
-        ${CUSTOM_JVM_ARGS}
-        ${JMX_JVM_ARGS}"
-      printf "Set JVM args to be:\n%s" "${JVM_ARGS}"
-
-      echo "Starting up docker compose"
-      docker compose up
-      echo "Removing docker compose images"
-      docker compose rm -f
-
-      TEST_CASE_DIRECTORY="${RESULTS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
-      RESULTS_CURRENT_RUN_DIR=./results/currentRun
-
-      echo "Renaming ${RESULTS_CURRENT_RUN_DIR} to ${TEST_CASE_DIRECTORY}"
-      mv ${RESULTS_CURRENT_RUN_DIR} "${TEST_CASE_DIRECTORY}"
-
-      LOGS_DIRECTORY="${LOGS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
-      LOGS_CURRENT_RUN_DIR=./logs/currentRun
-
-      echo "Renaming ${LOGS_CURRENT_RUN_DIR} to ${LOGS_DIRECTORY}"
-      mv ${LOGS_CURRENT_RUN_DIR} "${LOGS_DIRECTORY}"
-
-      echo "Removing directories ${RESULTS_CURRENT_RUN_DIR} and ${LOGS_CURRENT_RUN_DIR}"
-      rm -rf ${RESULTS_CURRENT_RUN_DIR}
-      rm -rf ${LOGS_CURRENT_RUN_DIR}
-    done
+    if [[ "$AGENT_BUILD" == "without-agent" ]]; then
+      runTest ${AGENT_BUILD} "${AGENT_JVM_ARG}" ${RESULTS_AGENT_BUILD_DIR} ${LOGS_AGENT_BUILD_DIR} "without-agent"
+    else
+      for testCase in test_cases/*; do
+        runTest ${AGENT_BUILD} "${AGENT_JVM_ARG}" ${RESULTS_AGENT_BUILD_DIR} ${LOGS_AGENT_BUILD_DIR} "$(basename "${testCase}")"
+      done
+    fi
 }
 
 echo "Running test for control case (no agent)"
