@@ -61,7 +61,7 @@ jobs:
         run: |
           # token is a b64-encoded string of username:password, used in auth header of API call
           SONATYPE_TOKEN=$(printf "$SONATYPE_USERNAME:$SONATYPE_PASSWORD" | base64)
-          PUBLISH_NAMESPACE="io.github.kanderson250"
+          PUBLISH_NAMESPACE="com.newrelic"
           # makes a curl request to ossrh-staging-api to upload everything to Central Sonatype
           echo "Uploading artifacts from OSSRH-Staging to Central Sonatype..."
           # captures response code and body of curl request
