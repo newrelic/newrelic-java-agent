@@ -44,6 +44,7 @@ import java.net.UnknownHostException;
  *
  */
 public class MetricState {
+    private static final boolean VERBOSE = HttpURLConnectionConfig.getVerbose();
     private static final String LIBRARY = "HttpURLConnection";
     private static final URI UNKNOWN_HOST = URI.create("UnknownHost");
 
@@ -82,11 +83,13 @@ public class MetricState {
     public void inboundPreamble(boolean isConnected, HttpURLConnection connection, TracedMethod tracer) {
         if (externalReported || getExternalTracer() != null) {
             // another method already ran the preamble
+            if (!VERBOSE) {
+                tracer.excludeLeaf();
+            }
             return;
         }
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
         setExternalTracer(tracer);
-
         if (!isConnected && tracer.isMetricProducer() && tx != null) {
             addOutboundHeadersIfNotAdded(connection);
         }

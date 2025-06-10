@@ -13,8 +13,43 @@ dependencies {
 
 }
 
+// This long list of "passes" versions is designed to only verify the last revision
+// for each minor version. This was required since some minor versions had hundreds
+// of revisions which was causing the verification task to take hours.
+// The only uncapped verification is the most recent minor version. This may need
+// to be revisited as AWS release more minor versions.
 verifyInstrumentation {
-    passes 'software.amazon.awssdk:s3:[2.1.0,)'
+    passes 'software.amazon.awssdk:s3:2.1.4'
+    passes 'software.amazon.awssdk:s3:2.2.0'
+    passes 'software.amazon.awssdk:s3:2.3.9'
+    passes 'software.amazon.awssdk:s3:2.4.17'
+    passes 'software.amazon.awssdk:s3:2.5.71'
+    passes 'software.amazon.awssdk:s3:2.6.5'
+    passes 'software.amazon.awssdk:s3:2.7.36'
+    passes 'software.amazon.awssdk:s3:2.8.6'
+    passes 'software.amazon.awssdk:s3:2.9.26'
+    passes 'software.amazon.awssdk:s3:2.10.91'
+    passes 'software.amazon.awssdk:s3:2.11.14'
+    passes 'software.amazon.awssdk:s3:2.12.0'
+    passes 'software.amazon.awssdk:s3:2.13.76'
+    passes 'software.amazon.awssdk:s3:2.14.28'
+    passes 'software.amazon.awssdk:s3:2.15.82'
+    passes 'software.amazon.awssdk:s3:2.16.104'
+    passes 'software.amazon.awssdk:s3:2.17.295'
+    passes 'software.amazon.awssdk:s3:2.18.41'
+    passes 'software.amazon.awssdk:s3:2.19.31'
+    passes 'software.amazon.awssdk:s3:2.20.162'
+    passes 'software.amazon.awssdk:s3:2.21.46'
+    passes 'software.amazon.awssdk:s3:2.22.13'
+    passes 'software.amazon.awssdk:s3:2.23.21'
+    passes 'software.amazon.awssdk:s3:2.24.13'
+    passes 'software.amazon.awssdk:s3:2.25.70'
+    passes 'software.amazon.awssdk:s3:2.26.31'
+    passes 'software.amazon.awssdk:s3:2.27.24'
+    passes 'software.amazon.awssdk:s3:2.28.29'
+    passes 'software.amazon.awssdk:s3:2.29.52'
+    passes 'software.amazon.awssdk:s3:2.30.38'
+    passes 'software.amazon.awssdk:s3:[2.31.0,)'
     excludeRegex ".*preview.*"
 }
 

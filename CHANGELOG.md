@@ -4,6 +4,45 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.21.0
+## New features and improvements
+
+- Enhances visibility into Reactor `Mono.flatMap` calls in https://github.com/newrelic/newrelic-java-agent/pull/2308
+- Adds new instrumentation for Spring-Kafka and distributed tracing when using the core Kafka client library in https://github.com/newrelic/newrelic-java-agent/pull/2312
+- Adds a new Kafka instrumentation module named `kafka-clients-spans-consumer-0.11.0.0` that accepts distributed trace headers for consumers in https://github.com/newrelic/newrelic-java-agent/pull/2283
+- Adds `KafkaConsumerConfig` event support for Kafka 3.7+ in https://github.com/newrelic/newrelic-java-agent/pull/2358
+
+## Fixes
+
+- Fixes the `distributed_tracing.sampler` config in https://github.com/newrelic/newrelic-java-agent/pull/2330
+- Fixes an Illegal Access Error that can occur when using Scala 2.12 and JDK 11. In cases where Scala 2.12 is not detectable by the agent (we check the system classloader for this - notably, sbt will load Scala classes into custom Scala loaders), there is also a feature flag to manually enable the fix via system property `-Dnewrelic.config.class_transformer.illegal_access_fix=true` in https://github.com/newrelic/newrelic-java-agent/pull/2334
+- Fixes a logic error with the `netty.http2.frame_read_listener.start_transaction` configuration for the `netty-4.1.16` instrumentation module in https://github.com/newrelic/newrelic-java-agent/pull/2355
+- Adds a restriction on when to add distributed trace headers for SQS messages. This is based on how large the contents of a message is in bytes and the and the size of attributes. Messages with size greater than 251 KB and/or with 9 or more attributes are excluded from getting distributed trace headers added in https://github.com/newrelic/newrelic-java-agent/pull/2353
+- Allows the `org.crac` JAR to be shadowed to prevent conflicts with customer environments. by @jbedell-newrelic in https://github.com/newrelic/newrelic-java-agent/pull/2344
+- Backports changes made in PR #1927 to prevent `NullPointerExceptions` to older versions of the `vertx-core` instrumentation in https://github.com/newrelic/newrelic-java-agent/pull/2327
+- Prevents excessive transaction segments from being created by `HttpUrlConnection` method calls (e.g. `getInputStream`) when they are not associated with an external call. This behavior can be controlled by the following config options: `NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_HTTPURLCONNECTION_VERBOSE=false`, sys prop `-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.verbose=false`, or equivalent stanza in `newrelic.yml`. Default setting is `true` (i.e. non-external `getInputStream` and other response handler methods will be reported as before). in https://github.com/newrelic/newrelic-java-agent/pull/2365
+
+## Security
+
+- Upgrades the `com.newrelic.agent.java:infinite-tracing-protobuf` for better security with infinite tracing in https://github.com/newrelic/newrelic-java-agent/pull/2339
+- Replaces `snakeyaml` with `com.konloch:safeyaml` to address a security vulnerability in https://github.com/newrelic/newrelic-java-agent/pull/2333
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+## IAST
+
+CSEC Version Update to 1.7.0 in https://github.com/newrelic/newrelic-java-agent/pull/2348
+Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.7.0
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.20.0...v8.21.0
 
 ## Version 8.20.0
 ## New features and improvements

@@ -13,14 +13,19 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.logging.Level;
 
 /**
- * Provides some config options for tuning the instrumentation's use of a SegmentCleanupTask runnable.
- * Specifically, thread_pool_size configures the number of threads used by the executor to execute
- * the runnables and delay_ms configures the delay before a scheduled runnable task is executed.
- * <p>
- * See README for config examples.
+ * Provides sconfig options for tuning the HttpUrlConnection instrumentation.
+ * By default, the instrumentation is verbose and captures every response handler method as a segment,
+ * with only the first segment reporting the associated external call.
+ *
+ * To turn off verbose reporting and suppress HTTPUrlConnection segments that don't make external calls, set
+ * -Dnewrelic.config.class_transformer.com.newrelic.instrumentation.htturlconnection.verbose=false
  */
 public class HttpURLConnectionConfig {
     private static final boolean DEFAULT_DISTRIBUTED_TRACING_ENABLED = true;
+
+    private static final String VERBOSE_PREFIX = "class_transformer.com.newrelic.instrumentation.httpurlconnection.verbose";
+
+    private static final boolean DEFAULT_VERBOSE_SETTING = true;
 
     private HttpURLConnectionConfig() {
     }
@@ -33,5 +38,9 @@ public class HttpURLConnectionConfig {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "HttpURLConnection - using default distributed tracing enabled: " + dtEnabled);
         }
         return dtEnabled;
+    }
+
+    public static boolean getVerbose() {
+        return NewRelic.getAgent().getConfig().getValue(VERBOSE_PREFIX, DEFAULT_VERBOSE_SETTING);
     }
 }

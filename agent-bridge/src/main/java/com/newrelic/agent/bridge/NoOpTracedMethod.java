@@ -100,6 +100,9 @@ public final class NoOpTracedMethod implements TracedMethod {
     }
 
     @Override
+    public void excludeLeaf(){}
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
     }
 

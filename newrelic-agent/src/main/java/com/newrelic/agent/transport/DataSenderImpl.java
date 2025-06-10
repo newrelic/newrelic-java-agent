@@ -731,7 +731,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
                 logger.error(msg);
                 // this is a recoverable error. Try again later
             } else {
-                logger.log(Level.INFO, "A socket exception was encountered while sending data to New Relic ({0})."
+                logger.log(Level.SEVERE, "A socket exception was encountered while sending data to New Relic ({0})."
                         + " Please check your network / proxy settings.", e.toString());
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, "Error sending JSON({0}): {1}", method, DataSenderWriter.toJSONString(params));
@@ -744,10 +744,10 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
             throw e;
         } catch (Exception e) {
             if (e instanceof SSLHandshakeException) {
-                logger.log(Level.INFO, "Unable to connect to New Relic due to an SSL error."
+                logger.log(Level.SEVERE, "Unable to connect to New Relic due to an SSL error."
                         + " Consider enabling -Djavax.net.debug=all to debug your SSL configuration such as your trust store.", e);
             }
-            logger.log(Level.INFO, "Remote {0} call failed : {1}.", method, e.toString());
+            logger.log(Level.SEVERE, "Remote {0} call failed : {1}.", method, e.toString());
             if (logger.isLoggable(Level.FINE)) {
                 logger.log(Level.FINE, "Error sending JSON({0}): {1}", method, DataSenderWriter.toJSONString(params));
             }
