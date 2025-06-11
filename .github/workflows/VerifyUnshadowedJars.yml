@@ -2,11 +2,18 @@ name: Verify Shadowed Jars
 on:
   workflow_dispatch:
     inputs:
-      ref:
+      agent-ref:
         required: true
         default: main
         type: string
-        description: 'The ref (branch, SHA, tag) to run the verification on'
+        description: 'The ref (branch, SHA, tag?) to run the verification on'
+  workflow_call:
+    inputs:
+      agent-ref:
+        description: 'The ref (branch, SHA, tag?) to run the tests on'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
   verify-shadowed-jars:
@@ -17,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.agent-ref }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
