@@ -35,5 +35,15 @@ if [[ $? -ne 0 ]]; then
 else
     echo ":white_check_mark: Success: Valid number of jars detected in the root folder of the agent jar." >> "$GITHUB_STEP_SUMMARY"
     rm -f "$EXPECTED_FILES_LIST" "$ACTUAL_FILES_LIST"
-    exit 0
+fi
+
+#Find any packages that aren't properly shadowed
+EXTRA_PACKAGES=$(find . -type d \( -path ./com/newrelic -o -path ./META-INF/versions/9/com/newrelic -o -path ./META-INF/versions/11/com/newrelic \) -prune -o -iname "*.class" -print)
+
+if [ -n "$EXTRA_PACKAGES" ]; then
+    echo ":x: Failure: Non com.newrelic packages found in the agent jar:" >> "$GITHUB_STEP_SUMMARY"
+    echo "$EXTRA_PACKAGES" >> "$GITHUB_STEP_SUMMARY"
+    exit 1
+else
+    echo ":white_check_mark: No additional packages found in the agent jar." >> "$GITHUB_STEP_SUMMARY"
 fi
