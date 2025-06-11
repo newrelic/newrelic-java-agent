@@ -59,7 +59,7 @@ jobs:
     secrets: inherit
 
   verify-unshadowed-jars:
-    uses: ./.github/workflows/VerifyUnshadowedJars.yaml
+    uses: ./.github/workflows/VerifyUnshadowedJars.yml
     with:
       agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
     secrets: inherit
