@@ -14,7 +14,7 @@ newrelic.jar
 EOF
 
 # Expand the agent jar
-unzip -q newrelic.jar
+unzip -q ./newrelic.jar
 
 # Find the jar files in the root folder and dump them to a file to be compared
 # against the expected file list
