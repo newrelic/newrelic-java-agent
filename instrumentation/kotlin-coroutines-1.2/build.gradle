@@ -1,0 +1,25 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-agent"))
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.0'
+
+}
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'com.newrelic.instrumentation.labs.kotlin-coroutines_1.2'
+  }
+}
+
+verifyInstrumentation {
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.2.0,1.4.0)'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.2.0,1.4.0)'
+    excludeRegex '.*SNAPSHOT'
+    excludeRegex '.*alpha'
+    excludeRegex '.*-eap-.*'
+    excludeRegex '.*-native-.*'
+    excludeRegex '.*-M[0-9]'
+    excludeRegex '.*-rc'
+}
