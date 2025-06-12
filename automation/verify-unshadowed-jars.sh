@@ -1,5 +1,10 @@
 #!/bin/bash
 
+TMP_DIR=$(mktemp -d)
+cp ./newrelic-agent/build/newrelicJar/newrelic.jar "$TMP_DIR"
+cd "$TMP_DIR"
+unzip -q ./newrelic.jar
+
 # Create a temp file of the unshadowed jars we expect in the agent jar
 EXPECTED_FILES_LIST="./expected-files.txt"
 cat << EOF > "$EXPECTED_FILES_LIST"
@@ -12,11 +17,6 @@ newrelic-weaver-api.jar
 newrelic-weaver-scala-api.jar
 newrelic.jar
 EOF
-
-TMP_DIR=$(mktemp -d)
-cp ./newrelic-agent/build/newrelicJar/newrelic.jar "$TMP_DIR"
-cd "$TMP_DIR"
-unzip -q ./newrelic.jar
 
 # Find the jar files in the root folder and dump them to a file to be compared
 # against the expected file list
