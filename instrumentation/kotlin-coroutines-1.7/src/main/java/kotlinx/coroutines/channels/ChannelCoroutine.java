@@ -11,25 +11,25 @@ import kotlin.coroutines.Continuation;
 @Weave
 public abstract class ChannelCoroutine<E> {
 
-	@Trace(dispatcher = true)
-	public Object receive(Continuation<? super E> cont) {
-		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"receive");
+        @Trace(dispatcher = true)
+        public Object receive(Continuation<? super E> cont) {
+                NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"receive");
 
-		return Weaver.callOriginal();
-	}
+                return Weaver.callOriginal();
+        }
 
-	@Trace(dispatcher = true)
-	public void cancel(java.util.concurrent.CancellationException ex) {
-		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"Cancel");
+        @Trace(dispatcher = true)
+        public void cancel(java.util.concurrent.CancellationException ex) {
+                NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"Cancel");
 
-		 Weaver.callOriginal();
-	}
-	
-	@Trace(dispatcher = true)
-	public Object send(E e, Continuation<? super Unit> cont) {
-		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"send");
-		return Weaver.callOriginal();
-	}
+                 Weaver.callOriginal();
+        }
+        
+        @Trace(dispatcher = true)
+        public Object send(E e, Continuation<? super Unit> cont) {
+                NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"send");
+                return Weaver.callOriginal();
+        }
 
 
 }
