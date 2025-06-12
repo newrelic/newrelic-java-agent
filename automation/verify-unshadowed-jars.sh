@@ -13,9 +13,9 @@ newrelic-weaver-scala-api.jar
 newrelic.jar
 EOF
 
-# Expand the agent jar
-pwd
-ls ./
+TMP_DIR=$(mktemp -d)
+cp ./newrelic-agent/build/newrelicJar/newrelic.jar "$TMP_DIR"
+cd "$TMP_DIR"
 unzip -q ./newrelic.jar
 
 # Find the jar files in the root folder and dump them to a file to be compared
@@ -43,8 +43,8 @@ fi
 EXTRA_PACKAGES=$(find . -type d \( -path ./com/newrelic -o -path ./META-INF/versions/9/com/newrelic -o -path ./META-INF/versions/11/com/newrelic \) -prune -o -iname "*.class" -print)
 
 if [ -n "$EXTRA_PACKAGES" ]; then
-    echo ":x: Failure: Non com.newrelic packages found in the agent jar:" >> "$GITHUB_STEP_SUMMARY"
-    echo "$EXTRA_PACKAGES" >> "$GITHUB_STEP_SUMMARY"
+    echo ":x: Failure: Non com.newrelic packages found in the agent jar. Check output for list of packages." >> "$GITHUB_STEP_SUMMARY"
+    echo "$EXTRA_PACKAGES"
     exit 1
 else
     echo ":white_check_mark: No additional packages found in the agent jar." >> "$GITHUB_STEP_SUMMARY"
