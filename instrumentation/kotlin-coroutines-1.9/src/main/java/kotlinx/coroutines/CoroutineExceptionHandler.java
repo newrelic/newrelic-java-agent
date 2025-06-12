@@ -9,9 +9,9 @@ import com.newrelic.api.agent.weaver.Weaver;
 @Weave(type = MatchType.Interface)
 public abstract class CoroutineExceptionHandler {
 
-	@Trace
-	public void handleException(kotlin.coroutines.CoroutineContext ctx, java.lang.Throwable t) {
-		NewRelic.noticeError(t);
-		Weaver.callOriginal();
-	}
+        @Trace
+        public void handleException(kotlin.coroutines.CoroutineContext ctx, java.lang.Throwable t) {
+                NewRelic.noticeError(t);
+                Weaver.callOriginal();
+        }
 }
