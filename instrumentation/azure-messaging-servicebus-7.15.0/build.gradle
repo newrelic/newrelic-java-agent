@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("com.azure:azure-messaging-servicebus:7.17.11")
+    implementation("io.projectreactor:reactor-core:3.5.11")
+}
+
+
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.azure-messaging-servicebus-7.15.0',
+            'Implementation-Title-Alias': 'azure-messaging-servicebus-7.15.0'  }
+}
+
+verifyInstrumentation {
+    passes 'com.azure:azure-messaging-servicebus:[7.15.0,)'
+}
+
+site {
+    title 'Azure Service Bus'
+    type 'Messaging'
+}
