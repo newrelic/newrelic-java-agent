@@ -30,8 +30,9 @@ find . -maxdepth 1 -type f -name "*.jar" \
 diff -q "$EXPECTED_FILES_LIST" "$ACTUAL_FILES_LIST"
 
 if [[ $? -ne 0 ]]; then
-    echo ":x: Failure: Extra jars detected in the root folder of the agent jar:" >> "$GITHUB_STEP_SUMMARY"
-    diff "$EXPECTED_FILES_LIST" "$ACTUAL_FILES_LIST" >> "$GITHUB_STEP_SUMMARY"
+    echo ":x: Failure: Extra jars detected in the root folder of the agent jar. Check output for list of jars." >> "$GITHUB_STEP_SUMMARY"
+    echo "Unexpected jars:"
+    diff "$EXPECTED_FILES_LIST" "$ACTUAL_FILES_LIST"
     rm -f "$EXPECTED_FILES_LIST" "$ACTUAL_FILES_LIST"
     exit 1
 else
@@ -44,8 +45,10 @@ EXTRA_PACKAGES=$(find . -type d \( -path ./com/newrelic -o -path ./META-INF/vers
 
 if [ -n "$EXTRA_PACKAGES" ]; then
     echo ":x: Failure: Non com.newrelic packages found in the agent jar. Check output for list of packages." >> "$GITHUB_STEP_SUMMARY"
+    echo "Unexpected packages:"
     echo "$EXTRA_PACKAGES"
     exit 1
 else
     echo ":white_check_mark: No additional packages found in the agent jar." >> "$GITHUB_STEP_SUMMARY"
+    exit 0
 fi
