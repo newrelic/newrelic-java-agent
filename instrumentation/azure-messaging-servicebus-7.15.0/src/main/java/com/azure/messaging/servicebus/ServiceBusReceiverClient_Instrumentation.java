@@ -32,11 +32,8 @@ public class ServiceBusReceiverClient_Instrumentation {
 
     @WeaveAllConstructors
     ServiceBusReceiverClient_Instrumentation() {
-        // do nothing
+        // do nothing, this is just here to get passed the compiler and validator checks
     }
-
-    // this method just calls the one with maxWaitTime, no need to instrument both
-    //public IterableStream<ServiceBusReceivedMessage> receiveMessages(int maxMessages);
 
     @Trace
     public IterableStream<ServiceBusReceivedMessage> receiveMessages(int maxMessages, Duration maxWaitTime) {

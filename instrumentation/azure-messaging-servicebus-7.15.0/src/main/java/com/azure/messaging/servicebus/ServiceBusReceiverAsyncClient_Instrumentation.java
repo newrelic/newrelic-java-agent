@@ -23,7 +23,7 @@ public class ServiceBusReceiverAsyncClient_Instrumentation {
 
     @WeaveAllConstructors
     ServiceBusReceiverAsyncClient_Instrumentation() {
-        // do nothing
+        // do nothing, this is just here to get passed the compiler and validator checks
     }
 
     private ServiceBusAsyncConsumer_Instrumentation getOrCreateConsumer() {

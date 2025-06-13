@@ -39,13 +39,8 @@ public final class ServiceBusSenderAsyncClient_Instrumentation {
 
     @WeaveAllConstructors
     ServiceBusSenderAsyncClient_Instrumentation() {
-        // do nothing
+        // do nothing, this is just here to get passed the compiler and validator checks
     }
-
-    // The iterable versions of sendMessages do not need to be instrumented,
-    // as they end up calling the batch versions (below) anyway
-//    public Mono<Void> sendMessages(Iterable<ServiceBusMessage> messages, ServiceBusTransactionContext transactionContext);
-//    public Mono<Void> sendMessages(Iterable<ServiceBusMessage> messages);
 
     // this is called by the non-async version with the same signature
     @Trace
