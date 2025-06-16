@@ -29,6 +29,7 @@ public class InitProblemClasses {
      */
     public static final void loadInitialClasses() {
         try {
+//            Utils.getClassResourceName(Class.forName("io.opentelemetry.javaagent.shaded.io.opentelemetry.context.Context"));
 
             Utils.getClassResourceName(Class.forName("java.net.URL"));
             UtilityClass.class.getName();

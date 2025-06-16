@@ -100,7 +100,7 @@ public class InstrumentationClassTransformer implements ClassFileTransformer {
             }
 
             InstrumentationContext context = new InstrumentationContext(classfileBuffer, classBeingRedefined, protectionDomain);
-            context.match(loader, classBeingRedefined, reader, manager.getMatchVisitors().keySet());
+            context.match(loader, classBeingRedefined, reader, manager.getMatchVisitors().keySet()); // FIXME is this finding the right ClassVisitor for the Context class???
 
             // Additional proxy detection tests
             if (context.isGenerated()) {

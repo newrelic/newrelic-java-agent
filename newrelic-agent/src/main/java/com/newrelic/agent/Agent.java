@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -241,18 +242,108 @@ public final class Agent {
             instrumentation.started();
         }
         lifecycleObserver.agentStarted();
+        initialiseOTelAgentIfAllowed(inst);
         initialiseNewRelicSecurityIfAllowed(inst);
-        try {
-            File otelJarFile = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.OPENTELEMETRY_JAVAAGENT);
-//            OpenTelemetryAgent.premain("OpenTelemetry", inst);
+    }
 
-            // These three methods are copied from OpenTelemetryAgent.premain because directly calling
-            // OpenTelemetryAgent.premain was bombing out on the installBootstrapJar method
-            InstrumentationHolder.setInstrumentation(inst);
-            JavaagentFileHolder.setJavaagentFile(otelJarFile);
-            AgentInitializer.initialize(inst, otelJarFile, true, null);
-        } catch (Throwable t) {
-            System.err.println(MessageFormat.format("Error bootstrapping OTel agent: {0}", t));
+    private static void initialiseOTelAgentIfAllowed(Instrumentation inst) {
+//        addSecurityAgentConfigSupportabilityMetrics(); // TODO create supportability metrics
+//        if (true) { // TODO add config
+//            try {
+//                LOG.log(Level.INFO, "Initializing OpenTelemetry Java agent");
+//                ServiceFactory.getServiceManager().getRPMServiceManager().addConnectionListener(new ConnectionListener() {
+//                    @Override
+//                    public void connected(IRPMService rpmService, AgentConfig agentConfig) {
+//                        if (true) { // TODO add config
+                            try {
+                                File otelJarFile = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.OPENTELEMETRY_JAVAAGENT);
+
+                                LOG.log(Level.INFO, "Connected to New Relic. Starting OpenTelemetry Java agent");
+
+                                // These three methods are copied from OpenTelemetryAgent.premain because directly calling
+                                // OpenTelemetryAgent.premain was bombing out on the installBootstrapJar method
+//                                OpenTelemetryAgent.premain(null, inst);
+                                inst.appendToBootstrapClassLoaderSearch(new JarFile(otelJarFile));
+//                                File installBootstrapJar = installBootstrapJar(inst);
+                                InstrumentationHolder.setInstrumentation(inst);
+                                JavaagentFileHolder.setJavaagentFile(otelJarFile);
+                                AgentInitializer.initialize(inst, otelJarFile, true, null);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+//                        } else {
+//                            LOG.info("OpenTelemetry Java agent is disabled...");
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void disconnected(IRPMService rpmService) {
+//                        LOG.log(Level.INFO, "Deactivating OpenTelemetry Java agent");
+//                        // TODO anything to do here???
+////                        NewRelicSecurity.getAgent().deactivateSecurity();
+//                    }
+//                });
+//            } catch (Throwable t2) {
+//                LOG.error("license_key is empty in the config. Not starting OpenTelemetry Java agent.");
+//            }
+//        } else {
+//            LOG.info("OpenTelemetry Java agent is completely disabled by...");
+//            // TODO log settings???
+////            SecurityAgentConfig.logSettings(Level.FINE);
+//        }
+
+
+        // TODO try to initialize otel agent sooner??????
+//        try {
+//            File otelJarFile = EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(BootstrapLoader.OPENTELEMETRY_JAVAAGENT);
+////            OpenTelemetryAgent.premain("OpenTelemetry", inst);
+//
+//            // These three methods are copied from OpenTelemetryAgent.premain because directly calling
+//            // OpenTelemetryAgent.premain was bombing out on the installBootstrapJar method
+//            InstrumentationHolder.setInstrumentation(inst);
+//            JavaagentFileHolder.setJavaagentFile(otelJarFile);
+//            AgentInitializer.initialize(inst, otelJarFile, true, null);
+//        } catch (Throwable t) {
+//            System.err.println(MessageFormat.format("Error bootstrapping OTel agent: {0}", t));
+//        }
+    }
+
+    // OTel agent installation helper
+    private static synchronized File installBootstrapJar(Instrumentation inst) throws IOException, URISyntaxException {
+        ClassLoader classLoader = OpenTelemetryAgent.class.getClassLoader();
+        if (classLoader == null) {
+            classLoader = ClassLoader.getSystemClassLoader();
+        }
+
+        URL url = classLoader.getResource(OpenTelemetryAgent.class.getName().replace('.', '/') + ".class");
+        if (url != null && "jar".equals(url.getProtocol())) {
+            String resourcePath = url.toURI().getSchemeSpecificPart();
+            int protocolSeparatorIndex = resourcePath.indexOf(":");
+            int resourceSeparatorIndex = resourcePath.indexOf("!/");
+            if (protocolSeparatorIndex != -1 && resourceSeparatorIndex != -1) {
+                String agentPath = resourcePath.substring(protocolSeparatorIndex + 1, resourceSeparatorIndex);
+                File javaagentFile = new File(agentPath);
+                if (!javaagentFile.isFile()) {
+                    throw new IllegalStateException("agent jar location doesn't appear to be a file: " + javaagentFile.getAbsolutePath());
+                } else {
+                    JarFile agentJar = new JarFile(javaagentFile, false);
+                    verifyJarManifestMainClassIsThis(javaagentFile, agentJar);
+                    inst.appendToBootstrapClassLoaderSearch(agentJar);
+                    return javaagentFile;
+                }
+            } else {
+                throw new IllegalStateException("could not get agent location from url " + url);
+            }
+        } else {
+            throw new IllegalStateException("could not get agent jar location from url " + url);
+        }
+    }
+
+    // OTel agent installation helper
+    private static void verifyJarManifestMainClassIsThis(File jarFile, JarFile agentJar) throws IOException {
+        Manifest manifest = agentJar.getManifest();
+        if (manifest.getMainAttributes().getValue("Premain-Class") == null) {
+            throw new IllegalStateException("The agent was not installed, because the agent was found in '" + jarFile + "', which doesn't contain a Premain-Class manifest attribute. Make sure that you haven't included the agent jar file inside of an application uber jar.");
         }
     }
 
@@ -327,7 +418,7 @@ public final class Agent {
 //            BootstrapLoader.forceCorrectOpenTelemetryApi(inst);
 
             // init problem classes before class transformer service is active
-            InitProblemClasses.loadInitialClasses();
+            InitProblemClasses.loadInitialClasses(); // TODO
         } catch (ForceDisconnectException e) {
             /* Note: Our use of ForceDisconnectException is a bit misleading here as we haven't even tried to connect
              * to RPM at this point (that happens a few lines down when we call serviceManager.start()). This exception

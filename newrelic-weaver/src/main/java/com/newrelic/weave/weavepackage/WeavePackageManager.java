@@ -27,6 +27,7 @@ import org.objectweb.asm.tree.ClassNode;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Manages a group of {@link WeavePackage}s. This class is thread safe.
@@ -232,7 +234,7 @@ public class WeavePackageManager {
      * @return provided classloader instance, or {@link BootstrapLoader#PLACEHOLDER} if <code>null</code>
      */
     private ClassLoader classLoaderSub(ClassLoader classloader) {
-        if (null == classloader) {
+        if (null == classloader) { // TODO check if OTel class and return their bootstrap classloader proxy??
             return BootstrapLoader.PLACEHOLDER;
         } else {
             return classloader;

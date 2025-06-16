@@ -1,4 +1,4 @@
-package io.opentelemetry.javaagent.shaded.io.opentelemetry.context;
+package com.nr.agent.instrumentation.header.utils;
 
 public class LogThis {
     public static void foo(String foo) {

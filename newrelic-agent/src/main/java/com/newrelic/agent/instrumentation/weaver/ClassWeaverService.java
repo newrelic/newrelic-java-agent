@@ -66,6 +66,7 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -77,6 +78,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.jar.JarInputStream;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.newrelic.agent.Agent.LOG;
 import static com.newrelic.agent.config.SecurityAgentConfig.shouldInitializeSecurityAgent;
@@ -478,7 +480,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
             }
         }
     }
-
+    // TODO
     private ClassCache getClassCache(ClassLoader loader) {
         if (null == loader) {
             loader = BootstrapLoader.PLACEHOLDER;
@@ -600,6 +602,18 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
             }
         };
         try {
+            // FIXME this was a gross hack to force the OTel AgentClassLoader to be used for Context (which does end up getting weaved but instrumentation still didn't work)
+//            if (className.equals("io/opentelemetry/javaagent/shaded/io/opentelemetry/context/Context") && loader == null) {
+//                List<Class> filteredSdkTracerProviderClass = Arrays.stream(instrumentation.getAllLoadedClasses())
+//                        .filter(c -> c.getName().equals("io.opentelemetry.sdk.trace.SdkTracerProvider"))
+//                        .collect(Collectors.toList());
+//
+//                ClassLoader sdkTracerProviderLoader = filteredSdkTracerProviderClass.get(0).getClassLoader();
+//                if (sdkTracerProviderLoader != null) {
+//                    loader = sdkTracerProviderLoader;
+//                }
+//            }
+
             return weavePackageManager.weave(loader, getClassCache(loader), className, classfileBuffer,
                     context.getSkipMethods(), classWeavedCallback);
         } catch (IOException ioe) {
