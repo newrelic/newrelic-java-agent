@@ -103,7 +103,8 @@ dependencies {
 
     shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.3')
 
-    shadowIntoJar("org.yaml:snakeyaml:1.33")
+    //shadowIntoJar("org.yaml:snakeyaml:1.33")
+    shadowIntoJar('com.konloch:safeyaml:1.34.1')
 
     shadowIntoJar("org.crac:crac:1.5.0")
 
@@ -177,12 +178,13 @@ task relocatedShadowJar(type: ShadowJar) {
             "com.google", "org.yaml", "org.slf4j", "org.objectweb", "org.json",
             "org.apache.commons", "org.apache.http", "org.apache.logging", "jregex",
             "io.grpc", "com.squareup", "okio", "io.perfmark", "android", "com.github.benmanes",
+            "org.crac",
 
             // The following rules are to prevent these transitive dependencies from breaking anything
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",
             "org.checkerframework", "org.dom4j", "org.zeromq", "org.apache.kafka",
             "com.lmax", "com.conversantmedia", "org.jctools",
-            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource", "kotlin", "org.jetbrains",
+            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource", "kotlin", "org.jetbrains", "org.intellij",
             "okhttp3", "org.bouncycastle", "org.conscrypt", "org.openjsse"
     ].each {
         relocate(it, "com.newrelic.agent.deps.$it")

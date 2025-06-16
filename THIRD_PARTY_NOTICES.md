@@ -32,7 +32,7 @@ can be found at https://github.com/newrelic/.
 * [Okio](#okio)
 * [Protobuf](#protobuf)
 * [SLF4J](#slf4j)
-* [SnakeYAML](#snakeyaml)
+* [SafeYAML](#safeyaml)
 
 ## ASM
 This product includes [ASM](https://asm.ow2.io), which is released under the following license(s):
@@ -858,9 +858,9 @@ This product includes [SLF4J](https://www.slf4j.org/), which is released under t
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-## SnakeYAML
-This product includes [SnakeYAML](https://bitbucket.org/asomov/snakeyaml), which is released under the following license(s):
-    Apache License 2.0 <https://bitbucket.org/asomov/snakeyaml/src/default/LICENSE.txt>
+## SafeYAML
+This product includes [SafeYAML](https://github.com/Konloch/SafeYAML), which is released under the following license(s):
+    Apache License 2.0 <https://github.com/Konloch/SafeYAML/blob/main/LICENSE>
 
 ```
                                  Apache License

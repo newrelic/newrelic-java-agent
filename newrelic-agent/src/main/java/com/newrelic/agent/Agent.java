@@ -376,6 +376,22 @@ public final class Agent {
                         NewRelicSecurity.getAgent().deactivateSecurity();
                     }
                 });
+                ServiceFactory.getTransactionService().addTransactionListener(new ExtendedTransactionListener() {
+                    @Override
+                    public void dispatcherTransactionStarted(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionStarted();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionCancelled(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionCancelled();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionFinished();
+                    }
+                });
             } catch (Throwable t2) {
                 LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
             }
@@ -418,7 +434,7 @@ public final class Agent {
 //            BootstrapLoader.forceCorrectOpenTelemetryApi(inst);
 
             // init problem classes before class transformer service is active
-            InitProblemClasses.loadInitialClasses(); // TODO
+            InitProblemClasses.loadInitialClasses();
         } catch (ForceDisconnectException e) {
             /* Note: Our use of ForceDisconnectException is a bit misleading here as we haven't even tried to connect
              * to RPM at this point (that happens a few lines down when we call serviceManager.start()). This exception

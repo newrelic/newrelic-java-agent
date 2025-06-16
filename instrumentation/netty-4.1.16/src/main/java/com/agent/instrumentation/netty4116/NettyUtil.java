@@ -24,7 +24,6 @@ public class NettyUtil {
     // Only use it if it provides the coverage you need for your application's use case.
     public static final Boolean START_HTTP2_FRAME_READ_LISTENER_TXN =
             NewRelic.getAgent().getConfig().getValue("netty.http2.frame_read_listener.start_transaction", false);
-    public static final Boolean START_HTTP2_FRAME_CODEC_TXN = !START_HTTP2_FRAME_READ_LISTENER_TXN;
 
     public static String getNettyVersion() {
         return "4.1.16";

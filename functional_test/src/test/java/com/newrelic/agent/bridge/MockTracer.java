@@ -129,4 +129,8 @@ public class MockTracer implements ExitTracer {
     @Override
     public void reportAsExternal(com.newrelic.agent.bridge.external.ExternalParameters externalParameters) {
     }
+
+    @Override
+    public void excludeLeaf(){
+    }
 }
