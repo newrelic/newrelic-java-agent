@@ -53,6 +53,7 @@ public class AgentConfigFactory {
     public static final String MAX_ERROR_EVENT_SAMPLES_STORED = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.MAX_EVENT_SAMPLES_STORED;
     public static final String COLLECT_TRACES = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.COLLECT_TRACES;
     public static final String COLLECT_TRANSACTION_EVENTS = TRANSACTION_EVENTS_PREFIX + "collect_analytics_events";
+    public static final String TRANSACTION_TARGET_SAMPLES_STORED = TRANSACTION_EVENTS_PREFIX + "target_samples_stored";
     public static final String COLLECT_SPAN_EVENTS = SPAN_EVENTS_PREFIX + SpanEventsConfig.COLLECT_SPAN_EVENTS;
     public static final String COLLECT_CUSTOM_INSIGHTS_EVENTS = CUSTOM_INSIGHT_EVENTS_PREFIX + InsightsConfigImpl.COLLECT_CUSTOM_EVENTS;
     public static final String RECORD_SQL = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.RECORD_SQL;
@@ -212,6 +213,7 @@ public class AgentConfigFactory {
         // Expected errors server properties
         addServerProp(EXPECTED_CLASSES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_CLASSES), settings);
         addServerProp(EXPECTED_STATUS_CODES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_STATUS_CODES), settings);
+        addServerProp(TRANSACTION_TARGET_SAMPLES_STORED, serverData.get("sampling_target"), settings);
 
         // Adding agent_run_id & account_id to config as required by Security agent
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
