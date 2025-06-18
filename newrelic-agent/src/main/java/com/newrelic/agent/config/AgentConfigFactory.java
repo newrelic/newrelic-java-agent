@@ -213,6 +213,8 @@ public class AgentConfigFactory {
         // Expected errors server properties
         addServerProp(EXPECTED_CLASSES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_CLASSES), settings);
         addServerProp(EXPECTED_STATUS_CODES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_STATUS_CODES), settings);
+
+        // Transaction event properties
         addServerProp(TRANSACTION_TARGET_SAMPLES_STORED, serverData.get("sampling_target"), settings);
 
         // Adding agent_run_id & account_id to config as required by Security agent
