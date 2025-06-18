@@ -1,4 +1,4 @@
-if [ -f ".env" ]
+if [ -f "./.env" ]
 then
     echo "Getting environment variables from .env file"
     source .env
@@ -6,7 +6,10 @@ else
     echo ".env not found, will use the environment variables NEW_RELIC_LICENSE_KEY and CUSTOM_JVM_ARGS from the existing environment"
 fi
 
-export DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
+export DATETIME
+DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
+
+export NEW_RELIC_LICENSE_KEY
 
 TEST_DIR=$1
 echo "Loading environment variables from ${TEST_DIR}/config.sh"
