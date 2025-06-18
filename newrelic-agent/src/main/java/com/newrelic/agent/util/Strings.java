@@ -129,6 +129,19 @@ public class Strings {
         return updated.toString();
     }
 
+    public static String obfuscate(String target) {
+        int MIN_LENGTH = 3;
+        if (target != null) {
+            if (target.length() <= MIN_LENGTH) {
+                return target;
+            }
+
+            return target.charAt(0) + "***" + target.charAt(target.length() - 1);
+        }
+
+        return null;
+    }
+
     private static int findDotOrHyphen(String string, int start) {
         if (string == null) {
             return -1;
