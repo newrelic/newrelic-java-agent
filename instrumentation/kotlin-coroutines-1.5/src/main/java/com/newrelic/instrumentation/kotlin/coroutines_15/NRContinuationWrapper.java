@@ -30,21 +30,21 @@ public class NRContinuationWrapper<T> implements Continuation<T> {
 
     @Override
     @Trace(async=true)
-    public void resumeWith(Object p0) {
+    public void resumeWith(Object result) {
         String contString = Utils.getContinuationString(delegate);
         if(contString != null && !contString.isEmpty()) {
             NewRelic.getAgent().getTracedMethod().setMetricName("Custom","ContinuationWrapper","resumeWith",contString);
         } else if(name != null) {
             NewRelic.getAgent().getTracedMethod().setMetricName("Custom","ContinuationWrapper","resumeWith",name);
         } else {
-            NewRelic.getAgent().getTracedMethod().setMetricName("Custom","ContinuationWrapper","resumeWith",p0.getClass().getName());
+            NewRelic.getAgent().getTracedMethod().setMetricName("Custom","ContinuationWrapper","resumeWith",result.getClass().getName());
         }
         Token t = Utils.getToken(getContext());
         if(t != null) {
             t.link();
         }
         if(delegate != null) {
-            delegate.resumeWith(p0);
+            delegate.resumeWith(result);
         }
     }
 

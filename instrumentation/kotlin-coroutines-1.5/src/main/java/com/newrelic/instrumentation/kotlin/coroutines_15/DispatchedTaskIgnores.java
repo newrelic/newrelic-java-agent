@@ -9,12 +9,12 @@ import com.newrelic.api.agent.NewRelic;
 
 public class DispatchedTaskIgnores {
     
-    private static List<String> ignoredTasks = new ArrayList<>();
-    private static final String DISPATCHEDIGNORECONFIG = "Coroutines.ignores.dispatched";
+    private static final List<String> ignoredTasks = new ArrayList<>();
+    private static final String DISPATCHED_IGNORE_CONFIG = "Coroutines.ignores.dispatched";
     
     static {
         Config config = NewRelic.getAgent().getConfig();
-        String ignores = config.getValue(DISPATCHEDIGNORECONFIG);
+        String ignores = config.getValue(DISPATCHED_IGNORE_CONFIG);
         configure(ignores);
 
     }

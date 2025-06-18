@@ -14,7 +14,7 @@ import com.newrelic.api.agent.Token;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.jvm.internal.BaseContinuationImpl;
-import kotlinx.coroutines.AbstractCoroutine;
+import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
 import kotlinx.coroutines.CoroutineName;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
@@ -23,9 +23,9 @@ public class Utils implements AgentConfigListener {
 
         private static final List<String> ignoredContinuations = new ArrayList<String>();
         private static final List<String> ignoredScopes = new ArrayList<>();
-        private static final String CONTIGNORECONFIG = "Coroutines.ignores.continuations";
-        private static final String SCOPESIGNORECONFIG = "Coroutines.ignores.scopes";
-        private static final String DISPATCHEDIGNORECONFIG = "Coroutines.ignores.dispatched";
+        private static final String CONT_IGNORE_CONFIG = "Coroutines.ignores.continuations";
+        private static final String SCOPES_IGNORE_CONFIG = "Coroutines.ignores.scopes";
+        private static final String DISPATCHED_IGNORE_CONFIG = "Coroutines.ignores.dispatched";
         private static final String DELAYED_ENABLED_CONFIG = "Coroutines.delayed.enabled";
         
         public static final String CREATEMETHOD1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
@@ -45,7 +45,7 @@ public class Utils implements AgentConfigListener {
                         if(value instanceof Boolean) {
                                 DELAYED_ENABLED = (Boolean)value;
                         } else {
-                                DELAYED_ENABLED = Boolean.valueOf(value.toString());
+                                DELAYED_ENABLED = Boolean.parseBoolean(value.toString());
                         }
                 }
                 
@@ -58,12 +58,10 @@ public class Utils implements AgentConfigListener {
                 if(r instanceof DispatchedTask) {
                         DispatchedTask<?> task = (DispatchedTask<?>)r;
                         Continuation<?> cont = task.getDelegate$kotlinx_coroutines_core();
-                        if(cont != null) {
-                                String cont_string = getContinuationString(cont);
-                                if(cont_string != null && DispatchedTaskIgnores.ignoreDispatchedTask(cont_string)) {
-                                        return null;
-                                }
-                        }
+                    String cont_string = getContinuationString(cont);
+                    if(cont_string != null && DispatchedTaskIgnores.ignoreDispatchedTask(cont_string)) {
+                            return null;
+                    }
                 }
                 
                 Token t = NewRelic.getAgent().getTransaction().getToken();
@@ -77,8 +75,8 @@ public class Utils implements AgentConfigListener {
         }
         
         private static void loadConfig(Config config) {
-                String ignores = config.getValue(CONTIGNORECONFIG);
-                NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", CONTIGNORECONFIG, ignores);
+                String ignores = config.getValue(CONT_IGNORE_CONFIG);
+                NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", CONT_IGNORE_CONFIG, ignores);
                 if (ignores != null && !ignores.isEmpty()) {
                         ignoredContinuations.clear();
                         String[] ignoresList = ignores.split(",");
@@ -92,13 +90,13 @@ public class Utils implements AgentConfigListener {
                 } else if(!ignoredContinuations.isEmpty()) {
                         ignoredContinuations.clear();
                 }
-                ignores = config.getValue(DISPATCHEDIGNORECONFIG);
-                NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", DISPATCHEDIGNORECONFIG, ignores);
+                ignores = config.getValue(DISPATCHED_IGNORE_CONFIG);
+                NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", DISPATCHED_IGNORE_CONFIG, ignores);
                 DispatchedTaskIgnores.reset();
                 if (ignores != null && !ignores.isEmpty()) {
                         DispatchedTaskIgnores.configure(ignores);
                 }
-                ignores = config.getValue(SCOPESIGNORECONFIG);
+                ignores = config.getValue(SCOPES_IGNORE_CONFIG);
                 if (ignores != null && !ignores.isEmpty()) {
                         ignoredScopes.clear();
                         String[] ignoresList = ignores.split(",");
@@ -168,8 +166,8 @@ public class Utils implements AgentConfigListener {
         
         @SuppressWarnings("unchecked")
         public static <T> String getCoroutineName(CoroutineContext context, Continuation<T> continuation) {
-                if(continuation instanceof AbstractCoroutine) {
-                        return ((AbstractCoroutine<T>)continuation).nameString$kotlinx_coroutines_core();
+                if(continuation instanceof AbstractCoroutine_Instrumentation) {
+                        return ((AbstractCoroutine_Instrumentation<T>)continuation).nameString$kotlinx_coroutines_core();
                 }
                 if(continuation instanceof BaseContinuationImpl) {
                         return ((BaseContinuationImpl)continuation).toString();
@@ -211,8 +209,8 @@ public class Utils implements AgentConfigListener {
                         return contString;
                 }
                 
-                if(continuation instanceof AbstractCoroutine) {
-                        return ((AbstractCoroutine<?>)continuation).nameString$kotlinx_coroutines_core();
+                if(continuation instanceof AbstractCoroutine_Instrumentation) {
+                        return ((AbstractCoroutine_Instrumentation<?>)continuation).nameString$kotlinx_coroutines_core();
                 }
                 
                 int index = contString.indexOf('@');

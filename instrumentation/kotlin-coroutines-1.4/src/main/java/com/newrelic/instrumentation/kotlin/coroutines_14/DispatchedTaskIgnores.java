@@ -7,14 +7,17 @@ import java.util.logging.Level;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
 
+/*
+* Used to allow the user to ignore desired DispatchedTasks.  
+* */
 public class DispatchedTaskIgnores {
 	
-	private static List<String> ignoredTasks = new ArrayList<>();
-	private static final String DISPATCHEDIGNORECONFIG = "Coroutines.ignores.dispatched";
+	private static final List<String> ignoredTasks = new ArrayList<>();
+	private static final String DISPATCHED_IGNORE_CONFIG = "Coroutines.ignores.dispatched";
 	
 	static {
 		Config config = NewRelic.getAgent().getConfig();
-		String ignores = config.getValue(DISPATCHEDIGNORECONFIG);
+		String ignores = config.getValue(DISPATCHED_IGNORE_CONFIG);
 		configure(ignores);
 
 	}

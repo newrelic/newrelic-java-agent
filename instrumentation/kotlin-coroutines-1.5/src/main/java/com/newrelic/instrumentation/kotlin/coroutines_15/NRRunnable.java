@@ -30,12 +30,10 @@ public class NRRunnable implements Runnable {
         if(delegate != null && delegate instanceof DispatchedTask) {
             DispatchedTask<?> task = (DispatchedTask<?>)delegate;
             Continuation<?> cont_delegate = task.getDelegate$kotlinx_coroutines_core();
-            if(cont_delegate != null) {
-                String cont_string = Utils.getContinuationString(cont_delegate);
-                if(cont_string == null) cont_string = cont_delegate.getClass().getName();
-                NewRelic.getAgent().getTracedMethod().setMetricName("Custom","DispatchedTask",Utils.getContinuationString(cont_delegate));
-                nameSet = true;
-            }
+            String cont_string = Utils.getContinuationString(cont_delegate);
+            if(cont_string == null) cont_string = cont_delegate.getClass().getName();
+            NewRelic.getAgent().getTracedMethod().setMetricName("Custom","DispatchedTask",Utils.getContinuationString(cont_delegate));
+            nameSet = true;
         }
         if(!nameSet) {
             String delegateType = delegate != null ? delegate.getClass().getName() : "null";

@@ -14,7 +14,7 @@ import com.newrelic.api.agent.Token;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.jvm.internal.BaseContinuationImpl;
-import kotlinx.coroutines.AbstractCoroutine;
+import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
 import kotlinx.coroutines.CoroutineName;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
@@ -23,23 +23,24 @@ public class Utils implements AgentConfigListener {
 
 	private static final List<String> ignoredContinuations = new ArrayList<String>();
 	private static final List<String> ignoredScopes = new ArrayList<>();
-	private static final String CONTIGNORECONFIG = "Coroutines.ignores.continuations";
-	private static final String SCOPESIGNORECONFIG = "Coroutines.ignores.scopes";
-	private static final String DISPATCHEDIGNORECONFIG = "Coroutines.ignores.dispatched";
+	private static final String COROUTINES_IGNORES_CONTINUATIONS = "Coroutines.ignores.continuations";
+	private static final String COROUTINES_IGNORES_SCOPES = "Coroutines.ignores.scopes";
+	private static final String COROUTINES_IGNORES_DISPATCHED = "Coroutines.ignores.dispatched";
 	private static final String DELAYED_ENABLED_CONFIG = "Coroutines.delayed.enabled";
 	
-	public static final String CREATEMETHOD1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
-	public static final String CREATEMETHOD2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
+	public static final String CREATEMETHOD_1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
+	public static final String CREATEMETHOD_2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
 	private static final Utils INSTANCE = new Utils();
 	private static final String CONT_LOC = "Continuation at";
+
 	public static boolean DELAYED_ENABLED = true;
 
 	static {
 		ServiceFactory.getConfigService().addIAgentConfigListener(INSTANCE);
 		Config config = NewRelic.getAgent().getConfig();
 		loadConfig(config);
-		ignoredContinuations.add(CREATEMETHOD1);
-		ignoredContinuations.add(CREATEMETHOD2);
+		ignoredContinuations.add(CREATEMETHOD_1);
+		ignoredContinuations.add(CREATEMETHOD_2);
 		Object value = config.getValue(DELAYED_ENABLED_CONFIG);
 		if(value != null) {
 			if(value instanceof Boolean) {
@@ -77,8 +78,8 @@ public class Utils implements AgentConfigListener {
 	}
 	
 	private static void loadConfig(Config config) {
-		String ignores = config.getValue(CONTIGNORECONFIG);
-		NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", CONTIGNORECONFIG, ignores);
+		String ignores = config.getValue(COROUTINES_IGNORES_CONTINUATIONS);
+		NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", COROUTINES_IGNORES_CONTINUATIONS, ignores);
 		if (ignores != null && !ignores.isEmpty()) {
 			ignoredContinuations.clear();
 			String[] ignoresList = ignores.split(",");
@@ -92,13 +93,13 @@ public class Utils implements AgentConfigListener {
 		} else if(!ignoredContinuations.isEmpty()) {
 			ignoredContinuations.clear();
 		}
-		ignores = config.getValue(DISPATCHEDIGNORECONFIG);
-		NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", DISPATCHEDIGNORECONFIG, ignores);
+		ignores = config.getValue(COROUTINES_IGNORES_DISPATCHED);
+		NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", COROUTINES_IGNORES_DISPATCHED, ignores);
 		DispatchedTaskIgnores.reset();
 		if (ignores != null && !ignores.isEmpty()) {
 			DispatchedTaskIgnores.configure(ignores);
 		}
-		ignores = config.getValue(SCOPESIGNORECONFIG);
+		ignores = config.getValue(COROUTINES_IGNORES_SCOPES);
 		if (ignores != null && !ignores.isEmpty()) {
 			ignoredScopes.clear();
 			String[] ignoresList = ignores.split(",");
@@ -168,8 +169,8 @@ public class Utils implements AgentConfigListener {
 	
 	@SuppressWarnings("unchecked")
 	public static <T> String getCoroutineName(CoroutineContext context, Continuation<T> continuation) {
-		if(continuation instanceof AbstractCoroutine) {
-			return ((AbstractCoroutine<T>)continuation).nameString$kotlinx_coroutines_core();
+		if(continuation instanceof AbstractCoroutine_Instrumentation) {
+			return ((AbstractCoroutine_Instrumentation<T>)continuation).nameString$kotlinx_coroutines_core();
 		}
 		if(continuation instanceof BaseContinuationImpl) {
 			return ((BaseContinuationImpl)continuation).toString();
@@ -203,7 +204,7 @@ public class Utils implements AgentConfigListener {
 	public static <T> String getContinuationString(Continuation<T> continuation) {
 		String contString = continuation.toString();
 		
-		if(contString.equals(CREATEMETHOD1) || contString.equals(CREATEMETHOD2)) {
+		if(contString.equals(CREATEMETHOD_1) || contString.equals(CREATEMETHOD_2)) {
 			return sub;
 		}
 		
@@ -211,8 +212,8 @@ public class Utils implements AgentConfigListener {
 			return contString;
 		}
 		
-		if(continuation instanceof AbstractCoroutine) {
-			return ((AbstractCoroutine<?>)continuation).nameString$kotlinx_coroutines_core();
+		if(continuation instanceof AbstractCoroutine_Instrumentation) {
+			return ((AbstractCoroutine_Instrumentation<?>)continuation).nameString$kotlinx_coroutines_core();
 		}
 		
 		int index = contString.indexOf('@');

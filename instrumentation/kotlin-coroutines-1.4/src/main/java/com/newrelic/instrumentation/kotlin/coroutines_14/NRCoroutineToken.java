@@ -5,6 +5,10 @@ import com.newrelic.api.agent.Token;
 import kotlin.coroutines.AbstractCoroutineContextElement;
 import kotlin.coroutines.CoroutineContext;
 
+/*
+*
+* Used to pass the agent async token across the execution of the coroutine
+*/
 public class NRCoroutineToken extends AbstractCoroutineContextElement
  {
 	public static Key key = new Key();
@@ -31,15 +35,10 @@ public class NRCoroutineToken extends AbstractCoroutineContextElement
 
 	@Override
 	public boolean equals(Object obj) {
-		if(this != obj ) {
-			if(obj instanceof NRCoroutineToken) {
-				NRCoroutineToken t = (NRCoroutineToken)obj;
-				return t.token == token;
-			}
-		} else {
-			return true;
-		}
-		return false;
+		if(obj == null) return false;
+		if(!(obj instanceof NRCoroutineToken)) return false;
+		NRCoroutineToken other = (NRCoroutineToken) obj;
+		return token.equals(other.token);
 	}
 
 	@Override
