@@ -39,6 +39,7 @@ import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.util.NoOpQueue;
+import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.Logs;
 
 import java.text.MessageFormat;
@@ -550,11 +551,13 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         for (Map.Entry<LogAttributeKey, ?> entry : attributes.entrySet()) {
             LogAttributeKey logAttrKey = entry.getKey();
             Object value = entry.getValue();
+            String key = logAttrKey.getKey();
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
-            if (logAttrKey == null || logAttrKey.getKey() == null || value == null) {
-                Agent.LOG.log(Level.WARNING, "Log event with invalid attributes key or value of null was reported for a transaction but ignored."
-                        + " Each key should be a String and each value should be a String, Number, or Boolean.");
+            if (key == null || value == null) {
+                Agent.LOG.log(Level.FINEST, "Log event with invalid attributes key or value of null was reported for a transaction but ignored."
+                        + " Each key should be a String and each value should be a String, Number, or Boolean."
+                        + " Key: " + (key == null ? "[null]" : Strings.obfuscate(key)));
                 continue;
             }
 
