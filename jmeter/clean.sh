@@ -1,21 +1,17 @@
-for file in tests/*/logs/*; do
-  if [ -f "$file" ]; then
-    echo "Removing file: $file"
-    rm "$file"
+for file in tests/*/*; do
+  FILE_NAME=$(basename "$file")
+  if [[  "${FILE_NAME}" == "results" ]]; then
+    echo "Removing results"
+    rm -rf "$file"
   fi
-  if [ -d "$file" ]; then
-      echo "Removing directory: $file"
-      rm -rf "$file"
-    fi
-done
 
-for file in tests/*/results/*; do
-  if [ -f "$file" ]; then
-    echo "Removing file: $file"
-    rm "$file"
+  if [[ "${FILE_NAME}" == "logs" ]]; then
+    echo "Removing logs"
+    rm -rf "$file"
   fi
-  if [ -d "$file" ]; then
-      echo "Removing directory: $file"
-      rm -rf "$file"
-    fi
+
+  if [[ "${FILE_NAME}" == "tmp" ]]; then
+    echo "Removing tmp"
+    rm -rf "$file"
+  fi
 done

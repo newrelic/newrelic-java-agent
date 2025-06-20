@@ -6,21 +6,33 @@ else
     echo ".env not found, will use the environment variables NEW_RELIC_LICENSE_KEY and CUSTOM_JVM_ARGS from the existing environment"
 fi
 
+# Set date time
 export DATETIME
 DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
 
+# export new relic license key
 export NEW_RELIC_LICENSE_KEY
 
 TEST_DIR=$1
-echo "Loading environment variables from ${TEST_DIR}/config.sh"
+
+echo "Loading environment variables from /config.sh"
 source "${TEST_DIR}"/config.sh
 
-echo "Building docker image ${DOCKER_IMAGE_NAME}"
+mkdir "${TEST_DIR}/tmp"
+touch ${TEST_DIR}/tmp/base.entrypoint.sh
 
-docker build --no-cache . -f "${TEST_DIR}"/DOCKERFILE -t "${DOCKER_IMAGE_NAME}"
+echo "Copying base.entrypoint.sh into ${TEST_DIR}/tmp/base.entrypoint.sh"
+cp ./base.entrypoint.sh "${TEST_DIR}/tmp/base.entrypoint.sh" || exit 1
 
 cd "${TEST_DIR}" || exit 1
 echo "Changed directory to $(pwd)"
+
+TMP_DIR=tmp
+
+echo "Building docker image ${DOCKER_IMAGE_NAME}"
+
+docker build --no-cache . -f ./DOCKERFILE -t "${DOCKER_IMAGE_NAME}"
+
 
 JMX_JVM_ARGS="-Dcom.sun.management.jmxremote.port=1234
   -Dcom.sun.management.jmxremote.authenticate=false
@@ -35,7 +47,8 @@ function runTest() {
   AGENT_JVM_ARG=$2
   RESULTS_AGENT_BUILD_DIR=$3
   LOGS_AGENT_BUILD_DIR=$4
-  TEST_CASE=$5
+  TMP_DIR=$5
+  TEST_CASE=$6
 
   if [[ "$AGENT_BUILD" == "without-agent" ]]; then
     echo "Running test without the agent"
@@ -54,24 +67,38 @@ function runTest() {
     -Dnewrelic.logfile=logs/newrelic-${DATETIME}.log
     ${CUSTOM_JVM_ARGS}
     ${JMX_JVM_ARGS}"
-  printf "Set JVM args to be:\n%s" "${JVM_ARGS}"
+
+  JVM_ARGS="\"${JVM_ARGS//$'\n'/ }\""
+  printf "Set JVM args to be:%s\n" "${JVM_ARGS}"
+
+  ENTRYPOINT_FILE="${TMP_DIR}/entrypoint.sh"
+  touch "${ENTRYPOINT_FILE}"
+  echo "Copying ${TMP_DIR}/base.entrypoint.sh to ${ENTRYPOINT_FILE}"
+  cp "${TMP_DIR}/base.entrypoint.sh" "${ENTRYPOINT_FILE}"
+
+  sed "s/_NEW_RELIC_LICENSE_KEY_VALUE_/${NEW_RELIC_LICENSE_KEY}/" "${ENTRYPOINT_FILE}" | tee "${ENTRYPOINT_FILE}" > /dev/null
+  sed "s/_JVM_ARGS_ENV_VAR_NAME_/${JVM_ARGS_ENV_VAR_NAME}/" "${ENTRYPOINT_FILE}" |  tee "${ENTRYPOINT_FILE}" > /dev/null
+  sed "s|_JVM_ARGS_ENV_VAR_VALUE_|${JVM_ARGS}|" "${ENTRYPOINT_FILE}" | tee "${ENTRYPOINT_FILE}" > /dev/null
 
   echo "Starting up docker compose"
   docker compose up
   echo "Removing docker compose images"
   docker compose rm -f
 
-  RESULTS_CURRENT_RUN_DIR=./results/currentRun
-  echo "Renaming ${RESULTS_CURRENT_RUN_DIR} to ${RESULTS_DIRECTORY}"
-  mv ${RESULTS_CURRENT_RUN_DIR} "${RESULTS_DIRECTORY}"
+  RESULTS_CURRENT_TMP_DIR=./results/tmp
+  echo "Renaming ${RESULTS_CURRENT_TMP_DIR} to ${RESULTS_DIRECTORY}"
+  mv ${RESULTS_CURRENT_TMP_DIR} "${RESULTS_DIRECTORY}"
 
-  LOGS_CURRENT_RUN_DIR=./logs/currentRun
-  echo "Renaming ${LOGS_CURRENT_RUN_DIR} to ${LOGS_DIRECTORY}"
-  mv ${LOGS_CURRENT_RUN_DIR} "${LOGS_DIRECTORY}"
+  LOGS_CURRENT_TMP_DIR=./logs/tmp
+  echo "Renaming ${LOGS_CURRENT_TMP_DIR} to ${LOGS_DIRECTORY}"
+  mv ${LOGS_CURRENT_TMP_DIR} "${LOGS_DIRECTORY}"
 
-  echo "Removing directories ${RESULTS_CURRENT_RUN_DIR} and ${LOGS_CURRENT_RUN_DIR}"
-  rm -rf ${RESULTS_CURRENT_RUN_DIR}
-  rm -rf ${LOGS_CURRENT_RUN_DIR}
+  echo "Removing temporary directories ${RESULTS_CURRENT_TMP_DIR}, ${LOGS_CURRENT_TMP_DIR}"
+  rm -rf ${RESULTS_CURRENT_TMP_DIR}
+  rm -rf ${LOGS_CURRENT_TMP_DIR}
+
+  echo "Removing ${ENTRYPOINT_FILE}"
+  rm "${ENTRYPOINT_FILE}"
 }
 
 function runPerformanceTest() {
@@ -94,10 +121,10 @@ function runPerformanceTest() {
     echo "Made directory ${LOGS_AGENT_BUILD_DIR}"
 
     if [[ "$AGENT_BUILD" == "without-agent" ]]; then
-      runTest ${AGENT_BUILD} "${AGENT_JVM_ARG}" ${RESULTS_AGENT_BUILD_DIR} ${LOGS_AGENT_BUILD_DIR} "without-agent"
+      runTest ${AGENT_BUILD} "${AGENT_JVM_ARG}" ${RESULTS_AGENT_BUILD_DIR} ${LOGS_AGENT_BUILD_DIR} "${TMP_DIR}" "without-agent"
     else
       for testCase in test_cases/*; do
-        runTest ${AGENT_BUILD} "${AGENT_JVM_ARG}" ${RESULTS_AGENT_BUILD_DIR} ${LOGS_AGENT_BUILD_DIR} "$(basename "${testCase}")"
+        runTest ${AGENT_BUILD} "${AGENT_JVM_ARG}" ${RESULTS_AGENT_BUILD_DIR} ${LOGS_AGENT_BUILD_DIR} "${TMP_DIR}" "$(basename "${testCase}")"
       done
     fi
 }
@@ -112,3 +139,6 @@ done
 
 echo "Removing docker image ${DOCKER_IMAGE_NAME}"
 docker image rm "${DOCKER_IMAGE_NAME}"
+
+echo "Removing temporary directory ${TMP_DIR}"
+rm -rf "${TMP_DIR}"

@@ -1,6 +1,9 @@
+export NEW_RELIC_LICENSE_KEY=_NEW_RELIC_LICENSE_KEY_VALUE_
+export _JVM_ARGS_ENV_VAR_NAME_=_JVM_ARGS_ENV_VAR_VALUE_
+
 mkdir results
 mkdir logs
-export DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
+DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
 
 source ./config.sh
 

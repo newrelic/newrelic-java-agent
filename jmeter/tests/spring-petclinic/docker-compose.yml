@@ -6,9 +6,10 @@ services:
 #      - "1234:1234"
     volumes:
       # Mounts the results files generated via Jmeter into a temporary results directory that will be moved to a location corresponding to the test case.
-      - "./results/currentRun:/app/results"
+      - "./results/tmp:/app/results"
       # Mounts logs into a temporary results directory that will be moved to a location corresponding to the test case.
-      - "./logs/currentRun:/app/logs"
-    environment:
-      - "NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}" # New relic license key
-      - "JAVA_OPTS=${JVM_ARGS}" # JVM arguments (containing JMX values, agent configs, agent jar, etc) that is passed onto the app when running it.
+      - "./logs/tmp:/app/logs"
+      # Mounts the entrypoint file
+      - "./tmp/entrypoint.sh:/app/entrypoint.sh"
+      # Mounts the dependencies directory
+      - "../../deps:/app/deps"
