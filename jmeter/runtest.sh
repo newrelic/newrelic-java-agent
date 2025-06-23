@@ -18,8 +18,10 @@ TEST_DIR=$1
 echo "Loading environment variables from /config.sh"
 source "${TEST_DIR}"/config.sh
 
+echo "Creating entrypoint files"
 mkdir "${TEST_DIR}/tmp"
 touch ${TEST_DIR}/tmp/base.entrypoint.sh
+touch ${TEST_DIR}/tmp/entrypoint.sh
 
 echo "Copying base.entrypoint.sh into ${TEST_DIR}/tmp/base.entrypoint.sh"
 cp ./base.entrypoint.sh "${TEST_DIR}/tmp/base.entrypoint.sh" || exit 1
@@ -52,15 +54,14 @@ function runTest() {
 
   if [[ "$AGENT_BUILD" == "without-agent" ]]; then
     echo "Running test without the agent"
-    RESULTS_DIRECTORY="${RESULTS_AGENT_BUILD_DIR}"
-    LOGS_DIRECTORY="${LOGS_AGENT_BUILD_DIR}"
     NEW_RELIC_CONFIG_JVM_ARG=""
   else
     echo "Running test using agent build ${AGENT_BUILD} and test case ${TEST_CASE}"
     NEW_RELIC_CONFIG_JVM_ARG="-Dnewrelic.config.file=./test_cases/${TEST_CASE}/newrelic.yml"
-    RESULTS_DIRECTORY="${RESULTS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
-    LOGS_DIRECTORY="${LOGS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
   fi
+
+  RESULTS_DIRECTORY="${RESULTS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
+  LOGS_DIRECTORY="${LOGS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
 
   export JVM_ARGS="${AGENT_JVM_ARG}
     ${NEW_RELIC_CONFIG_JVM_ARG}
@@ -71,14 +72,16 @@ function runTest() {
   JVM_ARGS="\"${JVM_ARGS//$'\n'/ }\""
   printf "Set JVM args to be:%s\n" "${JVM_ARGS}"
 
+  BASE_ENTRYPOINT_FILE=${TMP_DIR}/base.entrypoint.sh
   ENTRYPOINT_FILE="${TMP_DIR}/entrypoint.sh"
-  touch "${ENTRYPOINT_FILE}"
-  echo "Copying ${TMP_DIR}/base.entrypoint.sh to ${ENTRYPOINT_FILE}"
-  cp "${TMP_DIR}/base.entrypoint.sh" "${ENTRYPOINT_FILE}"
 
-  sed "s/_NEW_RELIC_LICENSE_KEY_VALUE_/${NEW_RELIC_LICENSE_KEY}/" "${ENTRYPOINT_FILE}" | tee "${ENTRYPOINT_FILE}" > /dev/null
-  sed "s/_JVM_ARGS_ENV_VAR_NAME_/${JVM_ARGS_ENV_VAR_NAME}/" "${ENTRYPOINT_FILE}" |  tee "${ENTRYPOINT_FILE}" > /dev/null
-  sed "s|_JVM_ARGS_ENV_VAR_VALUE_|${JVM_ARGS}|" "${ENTRYPOINT_FILE}" | tee "${ENTRYPOINT_FILE}" > /dev/null
+  printf "\n Generating the contents of the entrypoint file \n"
+
+  sed -e "s/_NEW_RELIC_LICENSE_KEY_VALUE_/${NEW_RELIC_LICENSE_KEY}/ ;
+    s/_JVM_ARGS_ENV_VAR_NAME_/${JVM_ARGS_ENV_VAR_NAME}/ ;
+    s|_JVM_ARGS_ENV_VAR_VALUE_|${JVM_ARGS}|" \
+    "${BASE_ENTRYPOINT_FILE}" \
+    | tee "${ENTRYPOINT_FILE}"
 
   echo "Starting up docker compose"
   docker compose up
@@ -96,9 +99,6 @@ function runTest() {
   echo "Removing temporary directories ${RESULTS_CURRENT_TMP_DIR}, ${LOGS_CURRENT_TMP_DIR}"
   rm -rf ${RESULTS_CURRENT_TMP_DIR}
   rm -rf ${LOGS_CURRENT_TMP_DIR}
-
-  echo "Removing ${ENTRYPOINT_FILE}"
-  rm "${ENTRYPOINT_FILE}"
 }
 
 function runPerformanceTest() {
