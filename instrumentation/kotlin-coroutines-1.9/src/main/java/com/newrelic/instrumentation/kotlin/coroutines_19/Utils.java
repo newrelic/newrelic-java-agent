@@ -140,6 +140,7 @@ public class Utils implements AgentConfigListener {
                         } else if(t != null) {
                                 t.expire();
                                 t = null;
+                                return null;
                         }
                 }
                 return null;
@@ -151,7 +152,6 @@ public class Utils implements AgentConfigListener {
                 if(coroutineToken != null) {
                         token = coroutineToken.getToken();
                 }
-
                 return token;
         }
 

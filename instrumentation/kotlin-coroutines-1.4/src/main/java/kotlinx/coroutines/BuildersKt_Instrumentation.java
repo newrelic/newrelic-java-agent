@@ -47,7 +47,7 @@ public class BuildersKt_Instrumentation {
 
 	@Trace(dispatcher = true)
 	public static <T> Deferred<T> async(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart, Function2<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> block) {
-		if (!Utils.ignoreScope(scope)) {
+		if (Utils.continueWithScope(scope)) {
 			String name = Utils.getCoroutineName(context);
 			if(name == null) {
 				name = Utils.getCoroutineName(scope.getCoroutineContext());
@@ -83,7 +83,7 @@ public class BuildersKt_Instrumentation {
 		if(!(block instanceof NRFunction2Wrapper)) {
             block = (NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object>) new NRFunction2Wrapper(block);
 		}
-		if(!Utils.ignoreContinuation(c.toString())) {
+		if(Utils.continueWithContinuation(c.toString())) {
 			boolean isSuspend = c instanceof SuspendFunction;
 			if(!isSuspend) {
 				String cont_string = Utils.getContinuationString(c);
@@ -95,7 +95,7 @@ public class BuildersKt_Instrumentation {
 
 	@Trace(dispatcher = true)
 	public static kotlinx.coroutines.Job launch(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart, Function2<? super CoroutineScope, ? super Continuation<? super Unit>, ? extends Object> block) {
-		if (!Utils.ignoreScope(scope)) {
+		if (Utils.continueWithScope(scope)) {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
 			
@@ -153,7 +153,7 @@ public class BuildersKt_Instrumentation {
 		if(!(block instanceof NRFunction2Wrapper)) {
             block = (NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object>) new NRFunction2Wrapper(block);
 		}
-		if(completion != null && !Utils.ignoreContinuation(completion.toString())) {
+		if(completion != null && Utils.continueWithContinuation(completion.toString())) {
 			if(!(completion instanceof NRContinuationWrapper)) {
 				String cont_string = Utils.getContinuationString(completion);
                 completion = new NRContinuationWrapper<>(completion, cont_string);

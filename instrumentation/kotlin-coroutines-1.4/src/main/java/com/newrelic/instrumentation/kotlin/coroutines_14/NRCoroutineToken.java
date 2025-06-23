@@ -6,11 +6,11 @@ import kotlin.coroutines.AbstractCoroutineContextElement;
 import kotlin.coroutines.CoroutineContext;
 
 /*
-*
-* Used to pass the agent async token across the execution of the coroutine
-*/
+ *
+ * Used to pass the agent async token across the execution of the coroutine
+ */
 public class NRCoroutineToken extends AbstractCoroutineContextElement
- {
+{
 	public static Key key = new Key();
 
 	public NRCoroutineToken(Token t) {
@@ -23,7 +23,7 @@ public class NRCoroutineToken extends AbstractCoroutineContextElement
 	public static final class Key implements CoroutineContext.Key<NRCoroutineToken> {
 		private Key() {}
 	}
-	
+
 	public Token getToken() {
 		return token;
 	}
@@ -45,6 +45,6 @@ public class NRCoroutineToken extends AbstractCoroutineContextElement
 	public String toString() {
 		return "NRCoroutineToken";
 	}
-	
-	
+
+
 }

@@ -28,8 +28,8 @@ public class Utils implements AgentConfigListener {
     private static final String DISPATCHED_IGNORE_CONFIG = "Coroutines.ignores.dispatched";
     private static final String DELAYED_ENABLED_CONFIG = "Coroutines.delayed.enabled";
     
-    public static final String CREATEMETHOD1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
-    public static final String CREATEMETHOD2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
+    public static final String CREATE_METHOD1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
+    public static final String CREATE_METHOD2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
     private static final Utils INSTANCE = new Utils();
     private static final String CONT_LOC = "Continuation at";
     public static boolean DELAYED_ENABLED = true;
@@ -38,8 +38,8 @@ public class Utils implements AgentConfigListener {
         ServiceFactory.getConfigService().addIAgentConfigListener(INSTANCE);
         Config config = NewRelic.getAgent().getConfig();
         loadConfig(config);
-        ignoredContinuations.add(CREATEMETHOD1);
-        ignoredContinuations.add(CREATEMETHOD2);
+        ignoredContinuations.add(CREATE_METHOD1);
+        ignoredContinuations.add(CREATE_METHOD2);
         Object value = config.getValue(DELAYED_ENABLED_CONFIG);
         if(value != null) {
             if(value instanceof Boolean) {
@@ -140,6 +140,7 @@ public class Utils implements AgentConfigListener {
             } else if(t != null) {
                 t.expire();
                 t = null;
+                return null;
             }
         }
         return null;
@@ -151,7 +152,6 @@ public class Utils implements AgentConfigListener {
         if(coroutineToken != null) {
             token = coroutineToken.getToken();
         }
-
         return token;
     }
 
@@ -201,7 +201,7 @@ public class Utils implements AgentConfigListener {
     public static <T> String getContinuationString(Continuation<T> continuation) {
         String contString = continuation.toString();
         
-        if(contString.equals(CREATEMETHOD1) || contString.equals(CREATEMETHOD2)) {
+        if(contString.equals(CREATE_METHOD1) || contString.equals(CREATE_METHOD2)) {
             return sub;
         }
         
