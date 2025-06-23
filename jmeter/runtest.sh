@@ -1,7 +1,7 @@
 if [ -f "./.env" ]
 then
     echo "Getting environment variables from .env file"
-    source .env
+    source ./.env
 else
     echo ".env not found, will use the environment variables NEW_RELIC_LICENSE_KEY and CUSTOM_JVM_ARGS from the existing environment"
 fi
