@@ -50,7 +50,7 @@ public class BuildersKt_Instrumentation {
         @Trace(dispatcher = true)
         public static <T> Deferred<T> async(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart,
                 Function2<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> block) {
-                if (!Utils.ignoreScope(scope)) {
+                if (Utils.continueScope(scope)) {
                         NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
                         NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
                         String name = Utils.getCoroutineName(context);
@@ -93,7 +93,7 @@ public class BuildersKt_Instrumentation {
                         NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2Wrapper(block);
                         block = wrapper;
                 }
-                if(c != null && !Utils.ignoreContinuation(c.toString())) {
+                if(c != null && Utils.continueContinuation(c.toString())) {
                         boolean isSuspend = c instanceof SuspendFunction;
                         if(!isSuspend) {
                                 String cont_string = Utils.getContinuationString(c);
@@ -107,7 +107,7 @@ public class BuildersKt_Instrumentation {
         @Trace(dispatcher = true)
         public static kotlinx.coroutines.Job launch(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart,
                 Function2<? super CoroutineScope, ? super Continuation<? super Unit>, ? extends Object> block) {
-                if (!Utils.ignoreScope(scope)) {
+                if (Utils.continueScope(scope)) {
                         NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
                         NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
                         
@@ -170,7 +170,7 @@ public class BuildersKt_Instrumentation {
                         NRFunction2Wrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2Wrapper(block);
                         block = wrapper;
                 }
-                if(completion != null && !Utils.ignoreContinuation(completion.toString())) {
+                if(completion != null && Utils.continueContinuation(completion.toString())) {
                         if(!(completion instanceof NRContinuationWrapper)) {
                                 String cont_string = Utils.getContinuationString(completion);
                                 NRContinuationWrapper wrapper = new NRContinuationWrapper<>(completion, cont_string);

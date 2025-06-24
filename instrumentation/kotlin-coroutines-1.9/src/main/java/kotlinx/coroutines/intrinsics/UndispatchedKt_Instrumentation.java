@@ -22,7 +22,7 @@ public class UndispatchedKt_Instrumentation {
                 Continuation<? super T> cont) {
                 String continuationString = Utils.getContinuationString(cont);
                 if(!(cont instanceof SuspendFunction)) {
-                        if(!(cont instanceof NRContinuationWrapper) && !Utils.ignoreContinuation(continuationString)) {
+                        if(!(cont instanceof NRContinuationWrapper) && Utils.continueContinuation(continuationString)) {
                             cont = new NRContinuationWrapper<>(cont, continuationString);
                         }                        
                 }

@@ -2,12 +2,9 @@ package com.newrelic.instrumentation.kotlin.coroutines_17;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentConfigListener;
+import com.newrelic.agent.kotlincoroutines.CoroutineConfigListener;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 
@@ -19,15 +16,11 @@ import kotlinx.coroutines.CoroutineName;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
 
-public class Utils implements AgentConfigListener {
+public class Utils implements CoroutineConfigListener {
 
         private static final List<String> ignoredContinuations = new ArrayList<String>();
         private static final List<String> ignoredScopes = new ArrayList<>();
-        private static final String CONT_IGNORE_CONFIG = "Coroutines.ignores.continuations";
-        private static final String SCOPES_IGNORE_CONFIG = "Coroutines.ignores.scopes";
-        private static final String DISPATCHED_IGNORE_CONFIG = "Coroutines.ignores.dispatched";
-        private static final String DELAYED_ENABLED_CONFIG = "Coroutines.delayed.enabled";
-        
+
         public static final String CREATE_METHOD1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
         public static final String CREATE_METHOD2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
         private static final Utils INSTANCE = new Utils();
@@ -35,20 +28,9 @@ public class Utils implements AgentConfigListener {
         public static boolean DELAYED_ENABLED = true;
 
         static {
-                ServiceFactory.getConfigService().addIAgentConfigListener(INSTANCE);
-                Config config = NewRelic.getAgent().getConfig();
-                loadConfig(config);
                 ignoredContinuations.add(CREATE_METHOD1);
                 ignoredContinuations.add(CREATE_METHOD2);
-                Object value = config.getValue(DELAYED_ENABLED_CONFIG);
-                if(value != null) {
-                        if(value instanceof Boolean) {
-                                DELAYED_ENABLED = (Boolean)value;
-                        } else {
-                                DELAYED_ENABLED = Boolean.parseBoolean(value.toString());
-                        }
-                }
-                
+                ServiceFactory.getKotlinCoroutinesService().addCoroutineConfigListener(INSTANCE);
         }
         
         public static NRRunnable getRunnableWrapper(Runnable r) {
@@ -74,58 +56,19 @@ public class Utils implements AgentConfigListener {
                 return null;
         }
         
-        private static void loadConfig(Config config) {
-                String ignores = config.getValue(CONT_IGNORE_CONFIG);
-                NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", CONT_IGNORE_CONFIG, ignores);
-                if (ignores != null && !ignores.isEmpty()) {
-                        ignoredContinuations.clear();
-                        String[] ignoresList = ignores.split(",");
-                        
-                        for(String ignore : ignoresList) {
-                                if (!ignoredContinuations.contains(ignore)) {
-                                        ignoredContinuations.add(ignore);
-                                        NewRelic.getAgent().getLogger().log(Level.FINE, "Will ignore Continuations named {0}", ignore);
-                                }
-                        }
-                } else if(!ignoredContinuations.isEmpty()) {
-                        ignoredContinuations.clear();
-                }
-                ignores = config.getValue(DISPATCHED_IGNORE_CONFIG);
-                NewRelic.getAgent().getLogger().log(Level.FINE, "Value of {0}: {1}", DISPATCHED_IGNORE_CONFIG, ignores);
-                DispatchedTaskIgnores.reset();
-                if (ignores != null && !ignores.isEmpty()) {
-                        DispatchedTaskIgnores.configure(ignores);
-                }
-                ignores = config.getValue(SCOPES_IGNORE_CONFIG);
-                if (ignores != null && !ignores.isEmpty()) {
-                        ignoredScopes.clear();
-                        String[] ignoresList = ignores.split(",");
-                        
-                        for(String ignore : ignoresList) {
-                                if (!ignoredScopes.contains(ignore)) {
-                                        ignoredScopes.add(ignore);
-                                        NewRelic.getAgent().getLogger().log(Level.FINE, "Will ignore CoroutineScopes named {0}", ignore);
-                                }
-                        }
-                } else if(!ignoredScopes.isEmpty()) {
-                        ignoredScopes.clear();
-                }
-                
-        }
-        
-        public static boolean ignoreScope(CoroutineScope scope) {
+        public static boolean continueScope(CoroutineScope scope) {
                 CoroutineContext ctx = scope.getCoroutineContext();
                 String name = getCoroutineName(ctx);
                 String className = scope.getClass().getName();
-                return ignoreScope(className) || ignoreScope(name);
+                return continueScope(className) && continueScope(name);
         }
         
-        public static boolean ignoreScope(String coroutineScope) {
-                return ignoredScopes.contains(coroutineScope);
+        public static boolean continueScope(String coroutineScope) {
+                return !ignoredScopes.contains(coroutineScope);
         }
         
-        public static boolean ignoreContinuation(String cont_string) {
-                return ignoredContinuations.contains(cont_string);
+        public static boolean continueContinuation(String cont_string) {
+                return !ignoredContinuations.contains(cont_string);
         }
         
         public static String sub = "createCoroutineFromSuspendFunction";
@@ -186,19 +129,6 @@ public class Utils implements AgentConfigListener {
                 return null;
         }
 
-        @Override
-        public void configChanged(String appName, AgentConfig agentConfig) {
-                loadConfig(agentConfig);
-                Object value = agentConfig.getValue(DELAYED_ENABLED_CONFIG);
-                if(value != null) {
-                        if(value instanceof Boolean) {
-                                DELAYED_ENABLED = (Boolean)value;
-                        } else {
-                                DELAYED_ENABLED = Boolean.valueOf(value.toString());
-                        }
-                }
-        }
-        
         public static <T> String getContinuationString(Continuation<T> continuation) {
                 String contString = continuation.toString();
                 
@@ -221,4 +151,44 @@ public class Utils implements AgentConfigListener {
                 
                 return null;
         }
+
+        @Override
+        public void configureContinuationIgnores(String[] ignores) {
+                ignoredContinuations.clear();
+            if (ignores != null) {
+                for (String ignore : ignores) {
+                        if(!ignoredContinuations.contains(ignore)) {
+                                ignoredContinuations.add(ignore);
+                        }
+                }
+            }
+        }
+
+        @Override
+        public void configureScopeIgnores(String[] ignores) {
+                ignoredScopes.clear();
+            if (ignores != null) {
+                for (String ignore : ignores) {
+                        if(!ignoredScopes.contains(ignore)) {
+                                ignoredScopes.add(ignore);
+                        }
+                }
+            }
+        }
+
+        @Override
+        public void configureDispatchedTasksIgnores(String[] ignores) {
+                DispatchedTaskIgnores.reset();
+            if (ignores != null) {
+                for (String ignore : ignores) {
+                        DispatchedTaskIgnores.addIgnore(ignore);
+                }
+            }
+        }
+
+        @Override
+        public void configureDelay(boolean enabled) {
+                DELAYED_ENABLED = enabled;
+        }
+
 }

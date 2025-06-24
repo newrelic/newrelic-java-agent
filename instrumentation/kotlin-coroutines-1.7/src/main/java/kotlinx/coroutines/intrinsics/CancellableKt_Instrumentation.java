@@ -22,7 +22,7 @@ public abstract class CancellableKt_Instrumentation {
         public static <T> void startCoroutineCancellable(Function1<? super Continuation<? super T>, ? extends java.lang.Object> f, Continuation<? super T> cont) {
                 String continuationString = Utils.getContinuationString(cont);
                 if(!(cont instanceof SuspendFunction)) {
-                        if(!(cont instanceof NRContinuationWrapper) && !Utils.ignoreContinuation(continuationString)) {
+                        if(!(cont instanceof NRContinuationWrapper) && Utils.continueContinuation(continuationString)) {
                             cont = new NRContinuationWrapper<>(cont, continuationString);
                         }
                 }
@@ -41,7 +41,7 @@ public abstract class CancellableKt_Instrumentation {
                 String continuationString = Utils.getContinuationString(cont);
                 if(!(cont instanceof SuspendFunction)) {
                         // create continuation wrapper if needed
-                        if(!Utils.ignoreContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
+                        if(Utils.continueContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
                             cont = new NRContinuationWrapper<>(cont, continuationString);
                         }
                 }
@@ -66,14 +66,14 @@ public abstract class CancellableKt_Instrumentation {
                 String completionString = Utils.getContinuationString(completion);
                 if(!(completion instanceof SuspendFunction)) {
                         // create continuation wrapper if needed
-                        if(!Utils.ignoreContinuation(completionString) && !(completion instanceof NRContinuationWrapper)) {
+                        if(Utils.continueContinuation(completionString) && !(completion instanceof NRContinuationWrapper)) {
                             completion = new NRContinuationWrapper<>(completion, completionString);
                         }
                 }
                 String continuationString = Utils.getContinuationString(cont);
                 if(!(cont instanceof SuspendFunction)) {
                         // create continuation wrapper if needed
-                        if(!Utils.ignoreContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
+                        if(Utils.continueContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
                             cont = new NRContinuationWrapper<>(cont, continuationString);
                         }
                 }
