@@ -1,3 +1,9 @@
+# Set date time
+export DATETIME
+DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
+echo "Starting test tun during $DATETIME"
+
+# Load environment variable configs
 if [ -f "./.env" ]
 then
     echo "Getting environment variables from .env file"
@@ -5,10 +11,6 @@ then
 else
     echo ".env not found, will use the environment variables NEW_RELIC_LICENSE_KEY and CUSTOM_JVM_ARGS from the existing environment"
 fi
-
-# Set date time
-export DATETIME
-DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')
 
 # export new relic license key
 export NEW_RELIC_LICENSE_KEY
@@ -63,8 +65,12 @@ function runTest() {
   RESULTS_DIRECTORY="${RESULTS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
   LOGS_DIRECTORY="${LOGS_AGENT_BUILD_DIR}"/"${TEST_CASE}"
 
+  PROCESS_HOST_DISPLAY_NAME="Docker_PerfTest_${AGENT_BUILD}_${TEST_CASE}_${DATETIME}"
+  echo "Using JVM name ${PROCESS_HOST_DISPLAY_NAME}"
+
   export JVM_ARGS="${AGENT_JVM_ARG}
     ${NEW_RELIC_CONFIG_JVM_ARG}
+    -Dnewrelic.config.process_host.display_name=${PROCESS_HOST_DISPLAY_NAME}
     -Dnewrelic.logfile=logs/newrelic-${DATETIME}.log
     ${CUSTOM_JVM_ARGS}
     ${JMX_JVM_ARGS}"
