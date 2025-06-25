@@ -1,9 +1,6 @@
 services:
   petclinic:
     image: jmeter/petclinic:latest # Name of the docker image set in config.sh
-#    ports:
-#      - "8080:8080"
-#      - "1234:1234"
     volumes:
       # Mounts the results files generated via Jmeter into a temporary results directory that will be moved to a location corresponding to the test case.
       - "./results/tmp:/app/results"

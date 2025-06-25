@@ -81,7 +81,7 @@ function runTest() {
     s/_JVM_ARGS_ENV_VAR_NAME_/${JVM_ARGS_ENV_VAR_NAME}/ ;
     s|_JVM_ARGS_ENV_VAR_VALUE_|${JVM_ARGS}|" \
     "${BASE_ENTRYPOINT_FILE}" \
-    | tee "${ENTRYPOINT_FILE}"
+    | tee "${ENTRYPOINT_FILE}" > /dev/null
 
   echo "Starting up docker compose"
   docker compose up
