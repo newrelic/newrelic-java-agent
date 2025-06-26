@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enhances visibility into Reactor `Mono.flatMap` calls in https://github.com/newrelic/newrelic-java-agent/pull/2308
 - Adds new instrumentation for Spring-Kafka and distributed tracing when using the core Kafka client library in https://github.com/newrelic/newrelic-java-agent/pull/2312
-- Adds a new Kafka instrumentation module named `kafka-clients-spans-consumer-0.11.0.0` that accepts distributed trace headers for consumers in https://github.com/newrelic/newrelic-java-agent/pull/2283
 - Adds `KafkaConsumerConfig` event support for Kafka 3.7+ in https://github.com/newrelic/newrelic-java-agent/pull/2358
 
 ## Fixes
