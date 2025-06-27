@@ -18,6 +18,7 @@ import com.newrelic.agent.utilization.AWS.AwsData;
 import com.newrelic.agent.utilization.Azure.AzureData;
 import com.newrelic.agent.utilization.GCP.GcpData;
 import com.newrelic.agent.utilization.PCF.PcfData;
+import com.newrelic.agent.utilization.AzureAppService.AzureAppServiceData;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -76,6 +77,7 @@ public class UtilizationService extends AbstractService {
     private static final PCF pcf = new PCF(cloudUtility);
     private static final GCP gcp = new GCP(cloudUtility);
     private static final Azure azure = new Azure(cloudUtility);
+    private static final AzureAppService azureAppService = new AzureAppService(cloudUtility);
 
     public UtilizationService() {
         super(UtilizationService.class.getSimpleName());
@@ -180,6 +182,10 @@ public class UtilizationService extends AbstractService {
         return azure.getData();
     }
 
+    protected AzureAppService.AzureAppServiceData getAzureAppServiceData() {
+        return azureAppService.getData();
+    }
+
     DockerData getDockerData() {
         return dockerData;
     }
@@ -228,6 +234,11 @@ public class UtilizationService extends AbstractService {
                         AzureData azureData = detectAzure ? getAzureData() : AzureData.EMPTY_DATA;
                         if (azureData != AzureData.EMPTY_DATA) {
                             foundData = azureData;
+                        } else {
+                            AzureAppServiceData azureAppServiceData = detectAzure ? getAzureAppServiceData() : AzureAppServiceData.EMPTY_DATA;
+                            if (azureAppServiceData != AzureAppServiceData.EMPTY_DATA) {
+                                foundData = azureAppServiceData;
+                            }
                         }
                     }
                 }
