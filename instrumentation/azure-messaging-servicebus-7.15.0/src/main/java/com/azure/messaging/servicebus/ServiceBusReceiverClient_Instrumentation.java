@@ -45,7 +45,9 @@ public class ServiceBusReceiverClient_Instrumentation {
         ServiceBusReceivedMessage firstMessage = ServiceBusUtil.getFirstMessage(result);  // can't be done inside the weaved class
         if (firstMessage != null) {
             Headers headers = new HeadersWrapper(firstMessage.getApplicationProperties());
-            NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(TransportType.ServiceBus, headers);
+            if (NewRelic.getAgent().getTransaction() != null) {
+                NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(TransportType.ServiceBus, headers);
+            }
         }
 
         return result;

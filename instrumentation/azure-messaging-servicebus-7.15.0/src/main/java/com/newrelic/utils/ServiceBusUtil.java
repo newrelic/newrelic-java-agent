@@ -60,7 +60,9 @@ public class ServiceBusUtil {
                 .doOnNext(message -> {
                     token.linkAndExpire();
                     Headers headers = new HeadersWrapper(message.getApplicationProperties());
-                    segment.getTransaction().acceptDistributedTraceHeaders(TransportType.ServiceBus, headers);
+                    if (segment.getTransaction() != null) {
+                        segment.getTransaction().acceptDistributedTraceHeaders(TransportType.ServiceBus, headers);
+                    }
                 })
                 .doFinally(signalType -> {
                     segment.end();
