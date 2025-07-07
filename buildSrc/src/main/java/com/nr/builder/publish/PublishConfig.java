@@ -60,7 +60,7 @@ public class PublishConfig {
 
     private static void configureRepo(MavenArtifactRepository repo, String projectVersion) {
         URI releasesRepoUri = URI.create("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/");
-        URI snapshotsRepoUrl = URI.create("https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/");
+        URI snapshotsRepoUrl = URI.create("https://central.sonatype.com/repositories/maven-snapshots/");
         repo.setUrl(
                 projectVersion.endsWith("SNAPSHOT")
                         ? snapshotsRepoUrl
