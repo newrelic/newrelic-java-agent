@@ -34,6 +34,7 @@ import com.newrelic.agent.instrumentation.tracing.TraceDetailsBuilder;
 import com.newrelic.agent.profile.v2.TransactionProfileSession;
 import com.newrelic.agent.reinstrument.PeriodicRetransformer;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.trace.TransactionGuidFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.ClassMethodSignatures;
 import com.newrelic.agent.tracers.DefaultSqlTracer;
@@ -50,6 +51,7 @@ import com.newrelic.api.agent.NewRelic;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
@@ -64,6 +66,7 @@ import java.util.logging.Level;
 
 import static com.newrelic.agent.Transaction.SCALA_API_TRACER_FLAGS;
 import static com.newrelic.agent.Transaction.SCALA_API_TXN_CLASS_SIGNATURE_ID;
+import static com.newrelic.agent.Transaction.GENERIC_TXN_CLASS_SIGNATURE_ID;
 
 public class InstrumentationImpl implements Instrumentation {
 
@@ -135,7 +138,7 @@ public class InstrumentationImpl implements Instrumentation {
      * a Transaction is present on the thread. If present, we do not know if the Transaction has been started.
      */
     @Override
-    public ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
+    public @Nullable ExitTracer createTracer(Object invocationTarget, int signatureId, String metricName, int flags) {
         try {
             if (ServiceFactory.getServiceManager().isStopped()) {
                 return null;
@@ -363,6 +366,11 @@ public class InstrumentationImpl implements Instrumentation {
     @Override
     public ExitTracer createScalaTxnTracer() {
         return createTracer(null, SCALA_API_TXN_CLASS_SIGNATURE_ID, null, SCALA_API_TRACER_FLAGS);
+    }
+
+    @Override
+    public @Nullable ExitTracer createTracer(String metricName, int flags) {
+        return createTracer(null, GENERIC_TXN_CLASS_SIGNATURE_ID, metricName, flags);
     }
 
     private boolean overSegmentLimit(TransactionActivity transactionActivity) {
