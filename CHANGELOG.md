@@ -4,6 +4,30 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.22.0
+## New features and improvements
+
+* Azure ServiceBus 7.15.0 instrumentation by @jbedell-newrelic in [2384](https://github.com/newrelic/newrelic-java-agent/pull/2384)
+* Linking metadata for Azure App services by @jbedell-newrelic in [2399](https://github.com/newrelic/newrelic-java-agent/pull/2399)
+* Connection errors now logged at SEVERE by @jtduffy in [2377](https://github.com/newrelic/newrelic-java-agent/pull/2377)
+* Log and obfuscate invalid keys added as attributes to logs and events by @jtduffy in [2388](https://github.com/newrelic/newrelic-java-agent/pull/2388)
+* Remove MonoFlatMapMain Instrumentation by @deleonenriqueta in [2400](https://github.com/newrelic/newrelic-java-agent/pull/2400)
+
+## Fixes
+
+* Relocate IntelliJ annotations library by @meiao in [2383](https://github.com/newrelic/newrelic-java-agent/pull/2383)
+* Support server side sampling_target configuration by @jtduffy in [2386](https://github.com/newrelic/newrelic-java-agent/pull/2386)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
 ## Version 8.21.0
 ## New features and improvements
 
