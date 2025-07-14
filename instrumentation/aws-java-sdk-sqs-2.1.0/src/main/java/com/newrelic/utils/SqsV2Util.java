@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.Weaver;
 import software.amazon.awssdk.core.SdkBytes;
@@ -75,21 +76,12 @@ public class SqsV2Util {
     }
 
     public static boolean canAddDtHeaders(SendMessageRequest message) {
-        int bodySize = message.messageBody() != null ? message.messageBody().getBytes().length : 0;
-        if (message.messageAttributes().size() > 8) {
-            return false;
-        }
-        int attributesBytesSize = attributesBytesSize(message.messageAttributes().entrySet());
-        int messageBytesSize = bodySize + attributesBytesSize;
-        return messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
-    }
-
-    public static boolean canAddDtHeaders(SendMessageBatchRequestEntry message) {
         int bodyBytesSize = message.messageBody() != null ? message.messageBody().getBytes().length : 0;
         int messageAttributesCount = message.messageAttributes().size();
-        if (messageAttributesCount > 8) {
+        if (messageAttributesCount > 7) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "SQS message has too many attributes for distributed tracing. " +
-                    "The maximum limit is 8 and the message has {0} attributes.", messageAttributesCount);
+                    "The maximum limit is 7 and the message has {0} attributes.", messageAttributesCount);
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/SQS/MessageLimitExceeded");
             return false;
         }
         int attributesBytesSize = attributesBytesSize(message.messageAttributes().entrySet());
@@ -100,7 +92,29 @@ public class SqsV2Util {
                     "SQS message is too large for distributed tracing. The message body has {0} bytes. " +
                             "Message attributes have a total of {1} bytes. Total of both is {2} bytes.",
                     bodyBytesSize, attributesBytesSize, messageBytesSize);
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/SQS/MessageSizeTooBig");
+        }
+        return messageWithinSizeLimits;
+    }
 
+    public static boolean canAddDtHeaders(SendMessageBatchRequestEntry message) {
+        int bodyBytesSize = message.messageBody() != null ? message.messageBody().getBytes().length : 0;
+        int messageAttributesCount = message.messageAttributes().size();
+        if (messageAttributesCount > 7) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, "SQS message has too many attributes for distributed tracing. " +
+                    "The maximum limit is 7 and the message has {0} attributes.", messageAttributesCount);
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/SQS/MessageLimitExceeded");
+            return false;
+        }
+        int attributesBytesSize = attributesBytesSize(message.messageAttributes().entrySet());
+        int messageBytesSize = bodyBytesSize + attributesBytesSize;
+        boolean messageWithinSizeLimits = messageBytesSize < DT_MAX_MESSAGE_BYTES_SIZE;
+        if(!messageWithinSizeLimits) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST,
+                    "SQS message is too large for distributed tracing. The message body has {0} bytes. " +
+                            "Message attributes have a total of {1} bytes. Total of both is {2} bytes.",
+                    bodyBytesSize, attributesBytesSize, messageBytesSize);
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/SQS/MessageSizeTooBig");
         }
         return messageWithinSizeLimits;
     }

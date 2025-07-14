@@ -122,7 +122,7 @@ public class SqsV2UtilTest {
     @Test
     public void testCanAddDtHeaders_SendMessageRequest_8AttributesWithBody_ReturnTrue() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 7; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
         SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
@@ -173,7 +173,7 @@ public class SqsV2UtilTest {
     @Test
     public void testCanAddDtHeaders_SendMessageBatchRequestEntry_8AttributesWithBody_ReturnTrue() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 7; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
         SendMessageBatchRequestEntry sendMessageRequest = SendMessageBatchRequestEntry.builder()
@@ -187,7 +187,7 @@ public class SqsV2UtilTest {
     @Test
     public void testCanAddDtHeaders_SendMessageBatchRequestEntry_9Attributes_ReturnFalse() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 8; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
         SendMessageBatchRequestEntry sendMessageRequest = SendMessageBatchRequestEntry.builder()
@@ -200,7 +200,7 @@ public class SqsV2UtilTest {
     @Test
     public void testCanAddDtHeaders_SendMessageBatchRequestEntry_8AttributesBigBody_ReturnFalse() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 8; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
         int MESSAGE_BODY_SIZE = DT_MAX_MESSAGE_BYTES_SIZE - 17;
