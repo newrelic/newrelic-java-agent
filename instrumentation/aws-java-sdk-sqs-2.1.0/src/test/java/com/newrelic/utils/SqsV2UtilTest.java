@@ -120,7 +120,7 @@ public class SqsV2UtilTest {
     }
 
     @Test
-    public void testCanAddDtHeaders_SendMessageRequest_8AttributesWithBody_ReturnTrue() {
+    public void testCanAddDtHeaders_SendMessageRequest_7AttributesWithBody_ReturnTrue() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
         for (int i = 0; i < 7; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
@@ -145,12 +145,12 @@ public class SqsV2UtilTest {
     }
 
     @Test
-    public void testCanAddDtHeaders_SendMessageRequest_8AttributesBigBody_ReturnFalse() {
+    public void testCanAddDtHeaders_SendMessageRequest_7AttributesBigBody_ReturnFalse() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 7; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
-        int MESSAGE_BODY_SIZE = DT_MAX_MESSAGE_BYTES_SIZE - 17;
+        int MESSAGE_BODY_SIZE = DT_MAX_MESSAGE_BYTES_SIZE - 7;
 
         char[] charArray = new char[MESSAGE_BODY_SIZE];
         Arrays.fill(charArray, 'a');
@@ -171,7 +171,7 @@ public class SqsV2UtilTest {
     }
 
     @Test
-    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_8AttributesWithBody_ReturnTrue() {
+    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_7AttributesWithBody_ReturnTrue() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
         for (int i = 0; i < 7; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
@@ -185,7 +185,7 @@ public class SqsV2UtilTest {
     }
 
     @Test
-    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_9Attributes_ReturnFalse() {
+    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_8Attributes_ReturnFalse() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
         for (int i = 0; i < 8; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
@@ -198,9 +198,9 @@ public class SqsV2UtilTest {
     }
 
     @Test
-    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_8AttributesBigBody_ReturnFalse() {
+    public void testCanAddDtHeaders_SendMessageBatchRequestEntry_9AttributesBigBody_ReturnFalse() {
         Map<String, MessageAttributeValue> attributeValues = new HashMap<>();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 9; i++) {
             attributeValues.put(String.valueOf(i), MessageAttributeValue.builder().stringValue(String.valueOf(i)).build());
         }
         int MESSAGE_BODY_SIZE = DT_MAX_MESSAGE_BYTES_SIZE - 17;
