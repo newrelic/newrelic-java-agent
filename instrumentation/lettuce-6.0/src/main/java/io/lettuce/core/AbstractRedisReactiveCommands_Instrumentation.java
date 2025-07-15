@@ -80,8 +80,8 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
                 params = DatastoreParameters.product("Redis")
                         .collection(collName)
                         .operation(operation)
-                        .instance(uri.getHost(), Integer.valueOf(uri.getPort()))
-                        .noDatabaseName()
+                        .instance(uri.getHost(), uri.getPort())
+                        .databaseName(String.valueOf(uri.getDatabase()))
                         .build();
             } else {
                 params = DatastoreParameters.product("Redis").collection(collName).operation("").noInstance().noDatabaseName().noSlowQuery().build();
