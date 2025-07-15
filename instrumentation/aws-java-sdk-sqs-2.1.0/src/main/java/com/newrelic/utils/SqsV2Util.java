@@ -99,7 +99,7 @@ public class SqsV2Util {
                     "SQS message is too large for distributed tracing. The message body has {0} bytes. " +
                             "Message attributes have a total of {1} bytes. Total of both is {2} bytes.",
                     bodyBytesSize, attributesBytesSize, messageBytesSize);
-            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/SQS/MessageSizeTooBig");
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/Java/SQS/MessageBytesExceeded");
         }
         return messageWithinSizeLimits;
     }
@@ -109,7 +109,7 @@ public class SqsV2Util {
         if (messageAttributesCount > 7) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "SQS message has too many attributes for distributed tracing. " +
                     "The maximum limit is 7 and the message has {0} attributes.", messageAttributesCount);
-            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/SQS/MessageLimitExceeded");
+            NewRelic.getAgent().getMetricAggregator().incrementCounter("Supportability/Java/SQS/AttributeLimitExceeded");
             return true;
         }
         return false;
