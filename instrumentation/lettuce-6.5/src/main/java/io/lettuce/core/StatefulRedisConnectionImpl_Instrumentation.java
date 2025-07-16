@@ -9,8 +9,6 @@ package io.lettuce.core;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import io.lettuce.core.api.StatefulConnection;
-import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.protocol.PushHandler;
 
 import java.time.Duration;
 

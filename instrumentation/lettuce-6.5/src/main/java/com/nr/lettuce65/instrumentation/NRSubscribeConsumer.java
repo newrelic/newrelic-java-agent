@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.lettuce6.instrumentation;
+package com.nr.lettuce65.instrumentation;
 
 import org.reactivestreams.Subscription;
 

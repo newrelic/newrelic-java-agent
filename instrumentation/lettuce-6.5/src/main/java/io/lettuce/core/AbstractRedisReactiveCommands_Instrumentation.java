@@ -9,7 +9,7 @@ package io.lettuce.core;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.lettuce6.instrumentation.*;
+import com.nr.lettuce65.instrumentation.*;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.protocol.ProtocolKeyword;
 import io.lettuce.core.protocol.RedisCommand;

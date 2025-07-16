@@ -4,22 +4,23 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.lettuce6.instrumentation;
+package com.nr.lettuce65.instrumentation;
 
-import reactor.core.publisher.SignalType;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.function.Consumer;
 
-public class NRSignalTypeConsumer implements Consumer<SignalType> {
+public class NRErrorConsumer implements Consumer<Throwable> {
 
     private NRHolder holder = null;
 
-    public NRSignalTypeConsumer(NRHolder h) {
+    public NRErrorConsumer(NRHolder h) {
         holder = h;
     }
 
     @Override
-    public void accept(SignalType t) {
+    public void accept(Throwable t) {
+        NewRelic.noticeError(t);
         if (holder != null && !holder.hasEnded()) {
             holder.end();
         }
