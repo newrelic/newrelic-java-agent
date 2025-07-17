@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2022 New Relic Corporation. All rights reserved.
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = {"io.lettuce.core", "io.lettuce.core.protocol", "io.netty.channel"})
+@InstrumentationTestConfig(includePrefixes = { "io.lettuce.core", "io.lettuce.core.protocol", "io.netty.channel" })
 public class Lettuce65InstrumentationTest {
     private final String BASE_TXN_NAME = "OtherTransaction/Custom/com.nr.lettuce65.instrumentation.helper.RedisDataService";
 
@@ -140,14 +140,14 @@ public class Lettuce65InstrumentationTest {
 
         // then all 'OK'
         assertArrayEquals("All responses should be 'OK'",
-                new String[]{"OK", "OK", "OK"}, ids.toArray());
+                new String[] { "OK", "OK", "OK" }, ids.toArray());
 
         // when reactive 'get' called
         List<String> values = redisDataService
                 .reactiveGet(Flux.just(data1.key, data2.key, data3.key));
 
         // then 3 values returned
-        String[] expectedValues = new String[]{data1.value, data2.value, data3.value};
+        String[] expectedValues = new String[] { data1.value, data2.value, data3.value };
         assertEquals("Get values size did not math the amount set", 3, values.size());
         assertArrayEquals("Values returned should equal sent", expectedValues, values.toArray());
 
