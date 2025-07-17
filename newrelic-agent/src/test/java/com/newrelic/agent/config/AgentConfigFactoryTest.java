@@ -244,6 +244,20 @@ public class AgentConfigFactoryTest {
         Assert.assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
     }
 
+    @Test
+    public void mergeServerData_withServerSideSampledTotals_overridesAgentDefault() {
+        Map<String, Object> localSettings = createMap();
+        Map<String, Object> txnEventsSettings = createMap();
+        Map<String, Object> serverSettings = createMap();
+
+        txnEventsSettings.put("target_samples_stored", 50);
+        localSettings.put(AgentConfigImpl.TRANSACTION_EVENTS, txnEventsSettings);
+        serverSettings.put("sampling_target", 10);
+
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
+        Assert.assertEquals(10, config.getTransactionEventsConfig().getTargetSamplesStored());
+    }
+
     private Map<String, Object> logForwardingSettingsEnabled(boolean enabled) {
         Map<String, Object> localSettings = createMap();
         Map<String, Object> loggingSettings = createMap();

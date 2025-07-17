@@ -179,6 +179,9 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
     }
 
     @Override
+    public void excludeLeaf(){}
+
+    @Override
     public boolean isAsync() {
         return false;
     }

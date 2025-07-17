@@ -8,6 +8,9 @@
 package com.newrelic.weave;
 
 import com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.objectweb.asm.Opcodes;
@@ -34,6 +37,7 @@ public class WeaveCoroutineTest {
 
     @BeforeClass
     public static void before() throws IOException {
+        System.setProperty("newrelic.config.class_transformer.clear_return_stacks", "true");
         original1 = WeaveTestUtils.readClass("com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doOneSuspend$1$1");
         ClassWeave weave1 = WeaveTestUtils.weaveAndAddToContextClassloader("com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doOneSuspend$1$1",
                 "com.newrelic.weave.weavepackage.testclasses.Weave_SampleCoroutine");
@@ -43,6 +47,17 @@ public class WeaveCoroutineTest {
         ClassWeave weave2 = WeaveTestUtils.weaveAndAddToContextClassloader("com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doThreeSuspends$1$1",
                 "com.newrelic.weave.weavepackage.testclasses.Weave_SampleCoroutine");
         composite2 = weave2.getComposite();
+    }
+
+
+    @Before
+    public void beforeEach() {
+        System.setProperty("newrelic.config.class_transformer.clear_return_stacks", "true");
+
+    }
+    @After
+    public void after() {
+        System.clearProperty("newrelic.config.class_transformer.clear_return_stacks");
     }
 
     //This test is the important one.
@@ -112,9 +127,9 @@ public class WeaveCoroutineTest {
     //We added a feature flag to disable the return insn processing.
     //Setting this flag should allow the original error to throw.
     @Test
-    public void featureFlagOnThrowsAIOOBException() throws IOException {
+    public void featureFlagNotSetThrowsAIOOBException() throws IOException {
         //This property has to be set at weave time, so it has to be run with a new class.
-        System.setProperty("newrelic.config.class_transformer.clear_return_stacks", "false");
+        System.clearProperty("newrelic.config.class_transformer.clear_return_stacks");
 
         try {
             WeaveTestUtils.weaveAndAddToContextClassloader("com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doExpectedErrorSuspend$1$1",
@@ -123,7 +138,6 @@ public class WeaveCoroutineTest {
         } catch (ArrayIndexOutOfBoundsException e) {
         }
 
-        System.clearProperty("newrelic.config.class_transformer.clear_return_stacks");
     }
 
     private MethodNode getNodeNamed(List<MethodNode> methods, String targetName) {

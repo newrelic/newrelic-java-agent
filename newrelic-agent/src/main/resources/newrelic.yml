@@ -505,7 +505,7 @@ common: &default_settings
       enabled: false
 
     # This configuration allows users to specify a unique test identifier when running IAST Scan with CI/CD
-    iast_test_identifier: 'run-id'
+    # iast_test_identifier: 'run-id'
 
       # Security controllers
     scan_controllers:
@@ -569,6 +569,8 @@ common: &default_settings
         xpath_injection: false
         ssrf: false
         rxss: false
+        unsafe_deserialization: false
+        unsafe_reflection: false
 
   # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's
   # time exceeds the threshold value (in ms). A transaction will only be reported once and by default, only

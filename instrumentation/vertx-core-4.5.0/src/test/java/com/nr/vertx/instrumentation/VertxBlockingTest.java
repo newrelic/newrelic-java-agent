@@ -44,6 +44,22 @@ public class VertxBlockingTest {
         }
     }
 
+    @Test
+    public void executeBlocking_nullResultHandler() throws InterruptedException {
+        //Vertx allows resultHandler to be null.
+        Vertx vertx = Vertx.vertx();
+        executeBlocking_nullHandler(vertx);
+        String expectedTxnName = "OtherTransaction/Custom/com.nr.vertx.instrumentation.VertxBlockingTest/executeBlocking_nullHandler";
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount(500));
+        assertEquals(1, introspector.getTransactionEvents(expectedTxnName).size());
+        for (TransactionEvent txnEvent: introspector.getTransactionEvents(expectedTxnName)) {
+            Map<String, Object> attributes = txnEvent.getAttributes();
+            assertTrue(attributes.containsKey("InFuture"));
+        }
+        vertx.close();
+    }
+
     @Trace(dispatcher = true)
     void executeBlocking(Vertx vertx) throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -55,5 +71,15 @@ public class VertxBlockingTest {
             countDownLatch.countDown();
         });
         countDownLatch.await();
+    }
+
+    @Trace(dispatcher = true)
+    void executeBlocking_nullHandler(Vertx vertx) throws InterruptedException {
+        vertx.executeBlocking(future -> {
+            NewRelic.addCustomParameter("InFuture", "yes");
+            future.complete();
+        }, null);
+        //give the call to executeBlocking time to complete
+        Thread.sleep(500);
     }
 }
