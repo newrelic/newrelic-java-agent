@@ -16,7 +16,6 @@ import com.newrelic.agent.modules.HttpModuleUtil;
 import com.newrelic.agent.modules.HttpModuleUtilImpl;
 import com.newrelic.agent.modules.ModuleUtil;
 import com.newrelic.agent.modules.ModuleUtilImpl;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -27,8 +26,10 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.zip.InflaterInputStream;
 
 public class BootstrapAgent {
@@ -41,6 +42,7 @@ public class BootstrapAgent {
     private static final String WS_LOG_MANAGER = "com.ibm.ws.kernel.boot.logging.WsLogManager";
     private static final String AGENT_ENABLED_ENV_VAR = "NEW_RELIC_AGENT_ENABLED";
     private static final String AGENT_ENABLED_SYS_PROP = "newrelic.config.agent_enabled";
+    private static final String STARTUP_JAVA_ARTIFACT_SKIPS = "NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS";
     private static final String SQL_ON_PLATFORM_LOADER_SYS_PROP = "newrelic.config.sql.platformClassloader";
 
     public static URL getAgentJarUrl() {
@@ -99,7 +101,6 @@ public class BootstrapAgent {
      * Thanks Mr. Cobb! ;)
      */
     public static void premain(String agentArgs, Instrumentation inst) {
-
         String javaSpecVersion = JavaVersionUtils.getJavaSpecificationVersion();
         if (useExperimentalRuntime()) {
             printExperimentalRuntimeModeInUseMessage(javaSpecVersion);
@@ -110,6 +111,10 @@ public class BootstrapAgent {
         }
         if (agentIsDisabledBySystemPropertyOrEnvVar()) {
             printAgentIsDisabledBySysPropOrEnvVar();
+            return;
+        }
+        if (isAgentDisabledByStartupJavaArtifactSkip(javaSpecVersion)) {
+            printAgentIsDisabledByArtifactSkip();
             return;
         }
 
@@ -265,6 +270,95 @@ public class BootstrapAgent {
         }
     }
 
+    /**
+     * This allows applications to be selectively skipped based on the startup main class or executable
+     * jar file extracted from the command line. This is handy in situations where the "JAVA_TOOL_OPTIONS"
+     * environment variable contains the -javaagent flag but we don't want to apply the instrumentation
+     * to all java apps in the environment.
+     *
+     * @param javaSpecVersion the version String of the JRE in use
+     *
+     * @return true if the agent should not be enabled for this application
+     */
+    private static boolean isAgentDisabledByStartupJavaArtifactSkip(String javaSpecVersion) {
+        String [] javaArtifactSkipList = parseStartupJavaArtifactSkips();
+
+        if (javaArtifactSkipList != null) {
+            String startupJavaArtifact = getStartupJavaArtifact(javaSpecVersion);
+            System.out.println("New Relic Agent: Configured startup Java artifacts skip string: " + String.join(",", javaArtifactSkipList));
+            System.out.println("New Relic Agent: Retrieved current startup command line / main artifact name: " + (startupJavaArtifact == null ? "null" : startupJavaArtifact));
+            if (startupJavaArtifact != null) {
+                for (String skip : javaArtifactSkipList) {
+                    if (startupJavaArtifact.contains(skip)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Extract the startup command line / startup artifact name.<br>
+     * The ProcessHandle method only works on Java 9 and above. Using the ProcessHandle,
+     * attempt to get the command line used to start the current Java process.
+     * Reflection is required since we might be running on Java 8 where these classes
+     * don't exist. The actual code to get this would be:<br>
+     *     Optional<String> commandLine = ProcessHandle.current().info().commandLine();
+     *
+     * @param javaSpecVersion the version String of the running JRE
+     *
+     * @return the startup command line if available
+     */
+    private static String getStartupJavaArtifact(String javaSpecVersion) {
+        if (!javaSpecVersion.equals("1.8")) {
+            try {
+                Class<?> processHandleClass = Class.forName("java.lang.ProcessHandle");
+                Method infoMethod = processHandleClass.getDeclaredMethod("info");
+                Method currentMethod = processHandleClass.getMethod("current");
+
+                Class<?> processHandleInfoClass = Class.forName("java.lang.ProcessHandle$Info");
+                Method commandLineMethod = processHandleInfoClass.getDeclaredMethod("commandLine");
+
+                Object currentObject = currentMethod.invoke(null);
+                Object infoObject =  infoMethod.invoke(currentObject);
+                Object commandLineObject = commandLineMethod.invoke(infoObject);
+
+                if (commandLineObject instanceof Optional) {
+                    Optional optionalInstance = (Optional) commandLineObject;
+                    if (optionalInstance.isPresent()) {
+                        return optionalInstance.get().toString();
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        // Running on Java 1.8
+        // This environment variable MIGHT exist, but it's not a guarantee
+        return System.getProperty("sun.java.command");
+    }
+
+    /**
+     * Extract the defined jars/classes to skip.<br>
+     * The skip list is configured via the `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS` environment variable.
+     * This is a comma separated list of main classes, executable jar files or Java based tools/apps
+     * that the agent should NOT instrument. For example:<br>
+     * export NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS=keytool,myapp.jar,IgnoreThisClass
+     * <br>
+     * @return a String [] of defined skip tokens
+     */
+    private static String [] parseStartupJavaArtifactSkips() {
+        String skipString = System.getenv(STARTUP_JAVA_ARTIFACT_SKIPS);
+
+        if (skipString != null && !skipString.isEmpty()) {
+            return skipString.split(",");
+        }
+
+        return null;
+    }
+
     private static boolean agentIsDisabledBySystemPropertyOrEnvVar() {
         String sysVal = System.getProperty(AGENT_ENABLED_SYS_PROP);
         String envVal = System.getenv(AGENT_ENABLED_ENV_VAR);
@@ -274,6 +368,13 @@ public class BootstrapAgent {
         return (sysVal != null && !Boolean.parseBoolean(sysVal)) ||
                 (envVal != null && !Boolean.parseBoolean(envVal));
     }
+
+    private static void printAgentIsDisabledByArtifactSkip() {
+        System.err.println("----------");
+        System.err.println("New Relic Agent is disabled by startup class/jar skip configuration.");
+        System.err.println("----------");
+    }
+
 
     private static void printAgentIsDisabledBySysPropOrEnvVar() {
         System.err.println("----------");
