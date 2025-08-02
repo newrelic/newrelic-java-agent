@@ -17,6 +17,7 @@ public class AutoConfiguredOpenTelemetrySdk {
             NewRelic.getAgent().getLogger().log(Level.INFO, "Appending OpenTelemetry SDK customizers");
             builder.addPropertiesCustomizer(new PropertiesCustomizer());
             builder.addResourceCustomizer(new ResourceCustomer());
+            builder.addMeterProviderCustomizer(new MeterProviderCustomizer());
         }
         return builder;
     }
