@@ -9,8 +9,6 @@ package com.newrelic.utils;
 
 import com.azure.core.util.IterableStream;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
-import com.azure.messaging.servicebus.ServiceBusReceiverAsyncClient_Instrumentation;
-import com.azure.messaging.servicebus.ServiceBusReceiverClient_Instrumentation;
 import com.azure.messaging.servicebus.ServiceBusSenderAsyncClient_Instrumentation;
 import com.azure.messaging.servicebus.implementation.MessagingEntityType;
 import com.newrelic.api.agent.DestinationType;
@@ -31,7 +29,7 @@ public class ServiceBusUtil {
         MessageProduceParameters params = MessageProduceParameters
                 .library(LIBRARY, OTEL_LIBRARY)
                 .destinationType(transalateMessageEntityTypeToDestinationType(client.nrEntityType))
-                .destinationName(client.nrEntityName)
+                .destinationName(cleanDestinationName(client.nrEntityName))
                 .outboundHeaders(null)
                 .instance(client.nrFullyQualifiedNamespace, null)
                 .build();
@@ -42,7 +40,7 @@ public class ServiceBusUtil {
         MessageConsumeParameters params = MessageConsumeParameters
                 .library(LIBRARY, OTEL_LIBRARY)
                 .destinationType(transalateMessageEntityTypeToDestinationType(entityType))
-                .destinationName(entityPath)
+                .destinationName(cleanDestinationName(entityPath))
                 .inboundHeaders(null)
                 .instance(namespace, null)
                 .build();
@@ -85,4 +83,13 @@ public class ServiceBusUtil {
         return DestinationType.NAMED_QUEUE;
     }
 
+    private static String cleanDestinationName(String entityPath) {
+        if (entityPath == null) return null;
+        int index = entityPath.toLowerCase().indexOf("/subscriptions/");
+        if (index > 0) {
+            return entityPath.substring(0, index);
+        }
+
+        return entityPath;
+    }
 }
