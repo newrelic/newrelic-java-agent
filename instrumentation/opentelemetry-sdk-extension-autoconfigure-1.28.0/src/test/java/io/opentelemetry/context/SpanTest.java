@@ -21,7 +21,7 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import io.opentelemetry.sdk.trace.AttributesHelper;
+import com.nr.agent.instrumentation.utils.AttributesHelper;
 import io.opentelemetry.sdk.trace.ExitTracerSpan;
 import org.junit.Test;
 import org.junit.runner.RunWith;

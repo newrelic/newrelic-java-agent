@@ -9,7 +9,6 @@ package io.opentelemetry.sdk.trace;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Config;
-import com.newrelic.api.agent.NewRelic;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.TracerBuilder;
@@ -44,6 +43,10 @@ class NRTracerBuilder implements TracerBuilder {
         return this;
     }
 
+    /**
+     * Builds a new OpenTelemetry Tracer.
+     * If the instrumentation is disabled in the configuration, returns a noop tracer.
+     */
     @Override
     public Tracer build() {
         Boolean enabled = config.getValue("opentelemetry.instrumentation." + instrumentationScopeName + ".enabled");

@@ -17,7 +17,7 @@ import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.TracedMethod;
-import com.nr.agent.instrumentation.header.utils.W3CTraceParentHeader;
+import com.nr.agent.instrumentation.utils.header.W3CTraceParentHeader;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -37,9 +37,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.nr.agent.instrumentation.header.utils.HeaderType.NEWRELIC;
-import static com.nr.agent.instrumentation.header.utils.HeaderType.W3C_TRACEPARENT;
-import static com.nr.agent.instrumentation.header.utils.HeaderType.W3C_TRACESTATE;
+import static com.nr.agent.instrumentation.utils.header.HeaderType.NEWRELIC;
+import static com.nr.agent.instrumentation.utils.header.HeaderType.W3C_TRACEPARENT;
+import static com.nr.agent.instrumentation.utils.header.HeaderType.W3C_TRACESTATE;
 
 /**
  * New Relic Java agent implementation of an OpenTelemetry SpanBuilder,
