@@ -10,6 +10,7 @@ package com.nr.instrumentation.jersey3;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.test.marker.Java25IncompatibleTest;
 import com.newrelic.test.marker.Java8IncompatibleTest;
 import com.nr.instrumentation.jersey3.resources.AsyncResource;
 import jakarta.ws.rs.core.Application;

@@ -217,7 +217,6 @@ jobs:
           distribution: 'zulu'
           java-version: |
             25
-            24
             21
             17
             11
@@ -228,7 +227,6 @@ jobs:
           echo "JDK_zulu_11=${JAVA_HOME_11_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_17=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_21=${JAVA_HOME_21_X64}" >> $GITHUB_ENV
-          echo "JDK_zulu_24=${JAVA_HOME_24_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_25=${JAVA_HOME_25_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
@@ -237,7 +235,6 @@ jobs:
           distribution: 'temurin'
           java-version: |
             25
-            24
             21
             17
             11
@@ -287,17 +284,7 @@ jobs:
                     <jdkHome>${JAVA_HOME_21_X64}</jdkHome>
             </configuration>
             </toolchain>
-          <toolchain>
-            <type>jdk</type>
-            <provides>
-                    <version>24</version>
-            </provides>
-            <configuration>
-                    <jdkHome>${JAVA_HOME_24_X64}</jdkHome>
-            </configuration>
-            </toolchain>
-          </toolchains>
-          <toolchain>
+            <toolchain>
             <type>jdk</type>
             <provides>
                     <version>25</version>
@@ -306,7 +293,7 @@ jobs:
                     <jdkHome>${JAVA_HOME_25_X64}</jdkHome>
             </configuration>
             </toolchain>
-          </toolchains>
+            </toolchains>
           EOF
 
       ## End JDK Install
@@ -349,13 +336,11 @@ jobs:
           ZULU11=${JDK_zulu_11} \
           ZULU17=${JDK_zulu_17} \
           ZULU21=${JDK_zulu_21} \
-          ZULU24=${JDK_zulu_24} \
           ZULU25=${JDK_zulu_25} \
           JAVA8JRE=${JAVA_HOME_8_X64} \
           JAVA11JRE=${JAVA_HOME_11_X64} \
           JAVA17JRE=${JAVA_HOME_17_X64} \
           JAVA21JRE=${JAVA_HOME_21_X64} \
-          JAVA24JRE=${JAVA_HOME_24_X64} \
           JAVA25JRE=${JAVA_HOME_25_X64} \
           conf/autoconfigure
           . conf/testenv java
