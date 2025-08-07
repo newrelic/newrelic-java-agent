@@ -216,6 +216,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: |
+            25
             24
             21
             17
@@ -228,12 +229,14 @@ jobs:
           echo "JDK_zulu_17=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_21=${JAVA_HOME_21_X64}" >> $GITHUB_ENV
           echo "JDK_zulu_24=${JAVA_HOME_24_X64}" >> $GITHUB_ENV
+          echo "JDK_zulu_25=${JAVA_HOME_25_X64}" >> $GITHUB_ENV
 
       - name: Set up Javas
         uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # pin@v4
         with:
           distribution: 'temurin'
           java-version: |
+            25
             24
             21
             17
@@ -294,6 +297,16 @@ jobs:
             </configuration>
             </toolchain>
           </toolchains>
+          <toolchain>
+            <type>jdk</type>
+            <provides>
+                    <version>25</version>
+            </provides>
+            <configuration>
+                    <jdkHome>${JAVA_HOME_25_X64}</jdkHome>
+            </configuration>
+            </toolchain>
+          </toolchains>
           EOF
 
       ## End JDK Install
@@ -337,11 +350,13 @@ jobs:
           ZULU17=${JDK_zulu_17} \
           ZULU21=${JDK_zulu_21} \
           ZULU24=${JDK_zulu_24} \
+          ZULU25=${JDK_zulu_25} \
           JAVA8JRE=${JAVA_HOME_8_X64} \
           JAVA11JRE=${JAVA_HOME_11_X64} \
           JAVA17JRE=${JAVA_HOME_17_X64} \
           JAVA21JRE=${JAVA_HOME_21_X64} \
           JAVA24JRE=${JAVA_HOME_24_X64} \
+          JAVA25JRE=${JAVA_HOME_25_X64} \
           conf/autoconfigure
           . conf/testenv java
           cat conf/java_local_config.yml
