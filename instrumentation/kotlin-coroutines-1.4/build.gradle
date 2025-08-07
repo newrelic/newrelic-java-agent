@@ -20,10 +20,11 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.4.0,1.5.0)'
-    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.4.0,1.5.0)'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.4.0,1.7.0)'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.4.0,1.7.0)'
     excludeRegex '.*SNAPSHOT'
     excludeRegex '.*alpha'
+    excludeRegex '.*Beta'
     excludeRegex '.*-eap-.*'
     excludeRegex '.*-native-.*'
     excludeRegex '.*-M[0-9]'

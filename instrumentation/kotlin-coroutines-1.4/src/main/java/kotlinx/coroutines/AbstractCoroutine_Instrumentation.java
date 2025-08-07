@@ -7,13 +7,11 @@ import com.newrelic.api.agent.TransactionNamePriority;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.instrumentation.kotlin.coroutines_14.NRFunction1Wrapper;
-import com.newrelic.instrumentation.kotlin.coroutines_14.NRFunction2Wrapper;
+import com.newrelic.instrumentation.kotlin.coroutines_14.NRFunction2SuspendWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_14.Utils;
 
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
-import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 
 @Weave(type=MatchType.BaseClass, originalName = "kotlinx.coroutines.AbstractCoroutine")
@@ -33,35 +31,14 @@ public abstract class AbstractCoroutine_Instrumentation<T> {
 	}
 
 	public void handleOnCompletionException$kotlinx_coroutines_core(Throwable t) {
-		//Utils.expireToken(getContext());
-		Weaver.callOriginal();
-	}
-
-	@Trace
-	public void start(CoroutineStart start, Function1<? super Continuation<? super T>, ? extends Object> block) {
-		if(!(block instanceof NRFunction1Wrapper)) {
-			NRFunction1Wrapper<? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction1Wrapper<>(block);
-			block = wrapper;
-		}
-		String ctxName = Utils.getCoroutineName(getContext());
-		String name = ctxName != null ? ctxName : nameString$kotlinx_coroutines_core();
-		TracedMethod traced = NewRelic.getAgent().getTracedMethod();
-		traced.addCustomAttribute("Coroutine-Name", name);
-		traced.addCustomAttribute("Block", block.toString());
-		if(name != null && !name.isEmpty()) {
-			NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "Coroutine", "Kotlin","Coroutine",name);
-			traced.setMetricName("Custom","Kotlin","Coroutines",getClass().getSimpleName(),"start",name);
-		} else {
-			NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "Coroutine", "Kotlin","Coroutine");
-		}
-
 		Weaver.callOriginal();
 	}
 
 	@Trace
 	public <R> void start(CoroutineStart start, R receiver, Function2<? super R, ? super Continuation<? super T>, ? extends Object> block) {
-		if(!(block instanceof NRFunction2Wrapper)) {
-            block = new NRFunction2Wrapper<>(block);
+		if(!(block instanceof NRFunction2SuspendWrapper)) {
+			NRFunction2SuspendWrapper<? super R, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2SuspendWrapper<>(block);
+			block = wrapper;
 		}
 		String ctxName = Utils.getCoroutineName(getContext());
 		String name = ctxName != null ? ctxName : nameString$kotlinx_coroutines_core();

@@ -13,7 +13,7 @@ abstract class ResumeUndispatchedRunnable_Instrumentation {
 	@NewField
 	private Token token = null;
 
-	public ResumeUndispatchedRunnable_Instrumentation(CoroutineDispatcher dispatcher, CancellableContinuation<? super kotlin.Unit> cont) {
+	public ResumeUndispatchedRunnable_Instrumentation(CoroutineDispatcher_Instrumentation dispatcher, CancellableContinuation<? super kotlin.Unit> cont) {
 		Token t = NewRelic.getAgent().getTransaction().getToken();
 		if(t != null && t.isActive()) {
 			token = t;

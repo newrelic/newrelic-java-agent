@@ -12,7 +12,7 @@ import com.newrelic.instrumentation.kotlin.coroutines_14.Utils;
 @Weave(originalName = "kotlinx.coroutines.EventLoopImplBase")
 public abstract class EventLoopImplBase_Instrumentation {
 
-	@Weave(type = MatchType.BaseClass, originalName = "kotlinx.coroutines.EventLoopImplBase$DelayedTask") 
+	@Weave(type = MatchType.BaseClass, originalName = "kotlinx.coroutines.EventLoopImplBase$DelayedTask")
 	public static abstract class DelayedTask_Instrumentation {
 
 		public DelayedTask_Instrumentation(long nanos) {

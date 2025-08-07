@@ -12,10 +12,11 @@ import kotlin.coroutines.Continuation;
 @Weave(originalName = "kotlinx.coroutines.AwaitAll")
 abstract class AwaitAll_Instrumentation<T> {
 
-        @Trace
-        public Object await(Continuation<? super List<? extends T>> cont) {
-                NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","AwaitAll","await");
-            return Weaver.callOriginal();
-        }
+	@Trace
+	public Object await(Continuation<? super List<? extends T>> cont) {
+		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","AwaitAll","await");
+		Object result = Weaver.callOriginal();
+		return result;
+	}
 
 }
