@@ -6,6 +6,7 @@ import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
+import org.jetbrains.annotations.NotNull;
 
 public class NRContinuationWrapper<T> implements Continuation<T> {
 
@@ -22,6 +23,7 @@ public class NRContinuationWrapper<T> implements Continuation<T> {
 		}
 	}
 
+	@NotNull
 	@Override
 	public CoroutineContext getContext() {
 		return delegate.getContext();
@@ -29,7 +31,7 @@ public class NRContinuationWrapper<T> implements Continuation<T> {
 
 	@Override
 	@Trace(async=true)
-	public void resumeWith(Object p0) {
+	public void resumeWith(@NotNull Object p0) {
 		String contString = Utils.getContinuationString(delegate);
 		if(contString != null && !contString.isEmpty()) {
 			NewRelic.getAgent().getTracedMethod().setMetricName("Custom","ContinuationWrapper","resumeWith",contString);

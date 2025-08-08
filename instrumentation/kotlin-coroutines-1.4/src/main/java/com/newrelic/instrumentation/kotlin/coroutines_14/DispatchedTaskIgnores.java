@@ -4,26 +4,31 @@ import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
 public class DispatchedTaskIgnores {
 	
-	private static List<String> ignoredTasks = new ArrayList<>();
-	private static final String DISPATCHEDIGNORECONFIG = "Coroutines.ignores.dispatched";
+	private static final List<String> ignoredTasks = new ArrayList<>();
+	private static final String DISPATCHED_IGNORE_CONFIG = "Coroutines.ignores.dispatched";
 	
 	static {
 		Config config = NewRelic.getAgent().getConfig();
-		String ignores = config.getValue(DISPATCHEDIGNORECONFIG);
+		String ignores = config.getValue(DISPATCHED_IGNORE_CONFIG);
 		configure(ignores);
 
 	}
 	
 	
-	public static boolean ignoreDispatchedTask(String contString) {
-		return ignoredTasks.contains(contString);
+	public static boolean ignoreDispatchedTask(String dispatchedTask) {
+		return ignoredTasks.contains(dispatchedTask);
 	}
-	
+
+	public static void addIgnoredTasks(Collection<String> toIgnore)  {
+		ignoredTasks.addAll(toIgnore);
+	}
+
 	public static void addIgnore(String ignore) {
 		if(!ignoredTasks.contains(ignore)) {
 			ignoredTasks.add(ignore);

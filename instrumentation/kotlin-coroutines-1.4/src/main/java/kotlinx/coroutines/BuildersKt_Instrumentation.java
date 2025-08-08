@@ -6,7 +6,6 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.instrumentation.kotlin.coroutines_14.NRContinuationWrapper;
-import com.newrelic.instrumentation.kotlin.coroutines_14.NRCoroutineToken;
 import com.newrelic.instrumentation.kotlin.coroutines_14.NRFunction2SuspendWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_14.Utils;
 
@@ -21,15 +20,12 @@ import kotlin.jvm.functions.Function2;
 public class BuildersKt_Instrumentation {
 
 	@Trace(dispatcher = true)
-	public static final <T> T runBlocking(CoroutineContext context, Function2<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> block) {
+	public static <T> T runBlocking(CoroutineContext context, Function2<? super CoroutineScope, ? super Continuation<? super T>, ?> block) {
 		Token token = Utils.getToken(context);
 		if(token != null) {
 			token.link();
 		} else {
-			NRCoroutineToken nrContextToken = Utils.setToken(context);
-			if(nrContextToken != null) {
-				context = context.plus(nrContextToken);
-			}
+			Utils.setToken(context);
 		}
 		String name = Utils.getCoroutineName(context);
 		if(name != null) {
@@ -40,16 +36,15 @@ public class BuildersKt_Instrumentation {
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Block", block.toString());
 
 		if (!(block instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2SuspendWrapper(block);
-			block = wrapper;
-		} 
-		T t = Weaver.callOriginal();
-		return t;
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
+		}
+        return Weaver.callOriginal();
 	}
 
 	@Trace(dispatcher = true)
-	public static final <T> Deferred<T> async(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart, Function2<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> block) {
-		if (!Utils.ignoreScope(scope)) {
+	public static <T> Deferred<T> async(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart,
+            Function2<? super CoroutineScope, ? super Continuation<? super T>, ?> block) {
+		if (Utils.continueWithScope(scope)) {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
 			String name = Utils.getCoroutineName(context);
@@ -68,14 +63,10 @@ public class BuildersKt_Instrumentation {
 			if(token != null) {
 				token.link();
 			} else {
-				NRCoroutineToken nrContextToken = Utils.setToken(context);
-				if(nrContextToken != null) {
-					context = context.plus(nrContextToken);
-				}
+				Utils.setToken(context);
 			}
 			if(!(block instanceof NRFunction2SuspendWrapper)) {
-				NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2SuspendWrapper(block);
-				block = wrapper;
+                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
 			}
 		} else {
 			NewRelic.getAgent().getTransaction().ignore();
@@ -84,28 +75,27 @@ public class BuildersKt_Instrumentation {
 	}
 
 	@Trace(dispatcher = true)
-	public static final <T> Object invoke(CoroutineDispatcher_Instrumentation dispatcher, Function2<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> block, Continuation<? super T> cont) {
+	public static <T> Object invoke(CoroutineDispatcher_Instrumentation dispatcher,
+            Function2<? super CoroutineScope, ? super Continuation<? super T>, ?> block, Continuation<? super T> cont) {
 
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Continuation", cont.toString());
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2SuspendWrapper(block);
-			block = wrapper;
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
 		}
-		if(cont != null && !Utils.ignoreContinuation(cont.toString())) {
+		if(Utils.continueWithContinuation(cont.toString())) {
 			boolean isSuspend = cont instanceof SuspendFunction;
 			if(!isSuspend) {
 				String cont_string = Utils.getContinuationString(cont);
-				NRContinuationWrapper wrapper = new NRContinuationWrapper<>(cont, cont_string);
-				cont = wrapper;
+                cont = new NRContinuationWrapper<>(cont, cont_string);
 			}
 		}
-		Object t = Weaver.callOriginal();
-		return t;
+        return Weaver.callOriginal();
 	}
 
 	@Trace(dispatcher = true)
-	public static final kotlinx.coroutines.Job launch(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart, Function2<? super CoroutineScope, ? super Continuation<? super Unit>, ? extends Object> block) {
-		if (!Utils.ignoreScope(scope)) {
+	public static kotlinx.coroutines.Job launch(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart,
+            Function2<? super CoroutineScope, ? super Continuation<? super Unit>, ?> block) {
+		if (Utils.continueWithScope(scope)) {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
 			
@@ -125,25 +115,21 @@ public class BuildersKt_Instrumentation {
 			if(token != null) {
 				token.link();
 			} else {
-				NRCoroutineToken nrContextToken = Utils.setToken(context);
-				if(nrContextToken != null) {
-					context = context.plus(nrContextToken);
-				}
+				Utils.setToken(context);
 			}
 			if (!(block instanceof NRFunction2SuspendWrapper)) {
-				NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ? extends Object> wrapper = new NRFunction2SuspendWrapper(
-						block);
-				block = wrapper;
+                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ?>) new NRFunction2SuspendWrapper(
+                        block);
 			} 
 		} else {
 			NewRelic.getAgent().getTransaction().ignore();
 		}
-		Job j = Weaver.callOriginal();
-		return j;
+        return Weaver.callOriginal();
 	}
 
 	@Trace(dispatcher = true)
-	public static final <T> Object withContext(CoroutineContext context,Function2<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> block, Continuation<? super T> completion) {
+	public static <T> Object withContext(CoroutineContext context, Function2<? super CoroutineScope, ? super Continuation<? super T>, ?> block,
+            Continuation<? super T> completion) {
 		String name = Utils.getCoroutineName(context,completion);
 		if(name != null) {
 			NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Builders","withContext",name);
@@ -158,20 +144,15 @@ public class BuildersKt_Instrumentation {
 		if(token != null) {
 			token.link();
 		} else {
-			NRCoroutineToken nrContextToken = Utils.setToken(context);
-			if(nrContextToken != null) {
-				context = context.plus(nrContextToken);
-			}
+			Utils.setToken(context);
 		}
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2SuspendWrapper(block);
-			block = wrapper;
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
 		}
-		if(completion != null && !Utils.ignoreContinuation(completion.toString())) {
+		if(completion != null && Utils.continueWithContinuation(completion.toString())) {
 			if(!(completion instanceof NRContinuationWrapper)) {
 				String cont_string = Utils.getContinuationString(completion);
-				NRContinuationWrapper wrapper = new NRContinuationWrapper<>(completion, cont_string);
-				completion = wrapper;
+                completion = new NRContinuationWrapper<>(completion, cont_string);
 			}
 		}
 		return Weaver.callOriginal();
