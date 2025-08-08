@@ -1,6 +1,5 @@
 package com.newrelic.instrumentation.kotlin.coroutines_14
 
-import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import com.newrelic.api.agent.Token
 
