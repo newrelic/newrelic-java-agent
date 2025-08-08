@@ -7,7 +7,6 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.instrumentation.kotlin.coroutines_19.NRContinuationWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.NRFunction1SuspendWrapper;
-import com.newrelic.instrumentation.kotlin.coroutines_19.NRFunction1Wrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.NRFunction2SuspendWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.Utils;
 
@@ -23,7 +22,7 @@ public abstract class CancellableKt_Instrumentation {
 	public static <T> void startCoroutineCancellable(Function1<? super Continuation<? super T>, ? extends java.lang.Object> f, Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
 		if(cont != null && !(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && !Utils.ignoreContinuation(continuationString)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
 				NRContinuationWrapper<? super T> wrapper = new NRContinuationWrapper<>(cont, continuationString);
 				cont = wrapper;
 			}
@@ -44,7 +43,7 @@ public abstract class CancellableKt_Instrumentation {
 		String continuationString = Utils.getContinuationString(cont);
 		if(!(cont instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(cont != null && !Utils.ignoreContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
+			if(cont != null && Utils.continueWithContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
 				NRContinuationWrapper<? super T> wrapper = new NRContinuationWrapper<>(cont, continuationString);
 				cont = wrapper;
 			}
@@ -67,7 +66,7 @@ public abstract class CancellableKt_Instrumentation {
 		String completionString = Utils.getContinuationString(completion);
 		if(completion != null && !(completion instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(!Utils.ignoreContinuation(completionString) && !(completion instanceof NRContinuationWrapper)) {
+			if(Utils.continueWithContinuation(completionString) && !(completion instanceof NRContinuationWrapper)) {
 				NRContinuationWrapper<? super kotlin.Unit> wrapper = new NRContinuationWrapper<>(completion, completionString);
 				completion = wrapper;
 			}
@@ -75,7 +74,7 @@ public abstract class CancellableKt_Instrumentation {
 		String continuationString = Utils.getContinuationString(cont);
 		if(cont != null && !(cont instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(cont != null && !Utils.ignoreContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
+			if(cont != null && Utils.continueWithContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
 				NRContinuationWrapper<?> wrapper = new NRContinuationWrapper<>(cont, continuationString);
 				cont = wrapper;
 			}

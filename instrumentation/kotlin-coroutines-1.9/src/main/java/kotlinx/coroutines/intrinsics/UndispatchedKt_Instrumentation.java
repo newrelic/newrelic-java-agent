@@ -6,7 +6,6 @@ import com.newrelic.api.agent.TracedMethod;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.instrumentation.kotlin.coroutines_19.NRContinuationWrapper;
-import com.newrelic.instrumentation.kotlin.coroutines_19.NRFunction1SuspendWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.NRFunction2SuspendWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.Utils;
 
@@ -23,7 +22,7 @@ public class UndispatchedKt_Instrumentation {
 			Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
 		if(cont != null && !(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && !Utils.ignoreContinuation(continuationString)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
 				NRContinuationWrapper<? super T> wrapper = new NRContinuationWrapper<>(cont, continuationString);
 				cont = wrapper;
 			}

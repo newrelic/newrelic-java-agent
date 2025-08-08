@@ -37,8 +37,7 @@ public abstract class AbstractCoroutine_Instrumentation<T> {
 	@Trace
 	public <R> void start(CoroutineStart start, R receiver, Function2<? super R, ? super Continuation<? super T>, ? extends Object> block) {
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper<? super R, ? super Continuation<? super T>, ? extends Object> wrapper = new NRFunction2SuspendWrapper<>(block);
-			block = wrapper;
+            block = new NRFunction2SuspendWrapper<>(block);
 		}
 		String ctxName = Utils.getCoroutineName(getContext());
 		String name = ctxName != null ? ctxName : nameString$kotlinx_coroutines_core();

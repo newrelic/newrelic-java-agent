@@ -1,6 +1,5 @@
 package com.newrelic.instrumentation.kotlin.coroutines_19;
 
-import com.newrelic.api.agent.weaver.Weaver;
 import kotlin.jvm.functions.Function3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
