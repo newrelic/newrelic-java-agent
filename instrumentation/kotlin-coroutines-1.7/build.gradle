@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'org.jetbrains.kotlin.jvm'
 }
 dependencies {
     implementation(project(":agent-bridge"))
@@ -16,8 +16,8 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.7.0,1.9.0]'
-    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.7.0,1.9.0]'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.7.0,1.9.0)'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.7.0,1.9.0)'
     excludeRegex '.*SNAPSHOT'
     excludeRegex '.*alpha'
     excludeRegex '.*-eap-.*'
