@@ -15,8 +15,7 @@ abstract class AwaitAll_Instrumentation<T> {
 	@Trace
 	public Object await(Continuation<? super List<? extends T>> cont) {
 		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","AwaitAll","await");
-		Object result = Weaver.callOriginal();
-		return result;
+        return Weaver.callOriginal();
 	}
 
 }

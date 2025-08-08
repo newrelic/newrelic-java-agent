@@ -1,7 +1,11 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+}
 dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-agent"))
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
 }
 
@@ -22,4 +26,9 @@ verifyInstrumentation {
     excludeRegex '.*-RC'
     excludeRegex '.*-RC.[0-9]'
     excludeRegex '.*-Beta'
+}
+repositories {
+    mavenCentral()
+}
+compileKotlin {
 }

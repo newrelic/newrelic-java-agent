@@ -19,14 +19,12 @@ import kotlinx.coroutines.internal.ScopeCoroutine;
 @Weave(originalName = "kotlinx.coroutines.intrinsics.UndispatchedKt")
 public class UndispatchedKt_Instrumentation {
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Trace
-	public static final <T> void startCoroutineUnintercepted(Function1<? super Continuation<? super T>, ? extends Object> f, Continuation<? super T> cont) {
+	public static <T> void startCoroutineUnintercepted(Function1<? super Continuation<? super T>, ?> f, Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
-		if(cont != null && !(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && !Utils.ignoreContinuation(continuationString)) {
-				NRContinuationWrapper<? super T> wrapper = new NRContinuationWrapper<>(cont, continuationString);
-				cont = wrapper;
+		if(!(cont instanceof SuspendFunction)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
+                cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}
 		TracedMethod traced = NewRelic.getAgent().getTracedMethod();
@@ -35,20 +33,18 @@ public class UndispatchedKt_Instrumentation {
 			traced.addCustomAttribute("Continuation", continuationString);
 		}
 		if(!(f instanceof NRFunction1SuspendWrapper)) {
-			NRFunction1SuspendWrapper wrapper = new NRFunction1SuspendWrapper<>(f);
-			f = wrapper;
+            f = new NRFunction1SuspendWrapper<>(f);
 		}
 		Weaver.callOriginal();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Trace
-	public static final <R, T> void startCoroutineUndispatched(Function2<? super R, ? super Continuation<? super T>, ? extends Object> f, R receiver, Continuation<? super T> cont) {
+	public static <R, T> void startCoroutineUndispatched(Function2<? super R, ? super Continuation<? super T>, ?> f, R receiver,
+            Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
-		if(cont != null && !(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && !Utils.ignoreContinuation(continuationString)) {
-				NRContinuationWrapper<? super T> wrapper = new NRContinuationWrapper<>(cont, continuationString);
-				cont = wrapper;
+		if(!(cont instanceof SuspendFunction)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
+                cont = new NRContinuationWrapper<>(cont, continuationString);
 			}			
 		}
 		TracedMethod traced = NewRelic.getAgent().getTracedMethod();
@@ -58,34 +54,31 @@ public class UndispatchedKt_Instrumentation {
 		}
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper wrapper = new NRFunction2SuspendWrapper<>(f);
-			f = wrapper;
+            f = new NRFunction2SuspendWrapper<>(f);
 		}
 		Weaver.callOriginal();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Trace
-	public static final <T, R> Object startUndispatchedOrReturn(ScopeCoroutine<? super T> scope, R receiver, Function2<? super R, ? super Continuation<? super T>, ? extends Object> f) {
+	public static <T, R> Object startUndispatchedOrReturn(ScopeCoroutine<? super T> scope, R receiver,
+            Function2<? super R, ? super Continuation<? super T>, ?> f) {
 		TracedMethod traced = NewRelic.getAgent().getTracedMethod();
 		traced.addCustomAttribute("Suspend-Type", "Function2");
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper wrapper = new NRFunction2SuspendWrapper<>(f);
-			f = wrapper;
+            f = new NRFunction2SuspendWrapper<>(f);
 		}
 		return Weaver.callOriginal();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Trace
-	public static final <T, R> Object startUndispatchedOrReturnIgnoreTimeout(ScopeCoroutine<? super T> scope, R receiver, Function2<? super R, ? super Continuation<? super T>, ? extends Object> f) {
+	public static <T, R> Object startUndispatchedOrReturnIgnoreTimeout(ScopeCoroutine<? super T> scope, R receiver,
+            Function2<? super R, ? super Continuation<? super T>, ?> f) {
 		TracedMethod traced = NewRelic.getAgent().getTracedMethod();
 		traced.addCustomAttribute("Suspend-Type", "Function2");
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper wrapper = new NRFunction2SuspendWrapper<>(f);
-			f = wrapper;
+            f = new NRFunction2SuspendWrapper<>(f);
 		}
 		return Weaver.callOriginal();
 	}
