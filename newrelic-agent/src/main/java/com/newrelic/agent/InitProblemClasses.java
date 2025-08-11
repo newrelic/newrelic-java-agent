@@ -30,6 +30,7 @@ public class InitProblemClasses {
     public static final void loadInitialClasses() {
         try {
 
+            Utils.getClassResourceName(Class.forName("com.liferay.portal.osgi.web.servlet.jsp.compiler.internal.JspTagHandlerPool"));
             Utils.getClassResourceName(Class.forName("java.net.URL"));
             UtilityClass.class.getName();
 
