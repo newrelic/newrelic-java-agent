@@ -1,5 +1,8 @@
 package com.newrelic.instrumentation.kotlin.coroutines_19
 
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
+
 import kotlin.coroutines.*
 import com.newrelic.api.agent.Token
 
@@ -18,3 +21,13 @@ fun addTokenContext(context : CoroutineContext, token : Token) : CoroutineContex
     return context + TokenContextElement(tokenContext)
 }
 
+fun removeTokenContext(context : CoroutineContext) : CoroutineContext {
+    val tokenContext = context.getTokenContextOrNull();
+    if (tokenContext != null) {
+        val token = tokenContext.token
+        token.expire()
+
+        return context.minusKey(TokenContextElement.Key)
+    }
+    return context
+}

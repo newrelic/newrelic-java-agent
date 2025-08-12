@@ -37,15 +37,15 @@ public class Delay_Instrumentation {
 
     @Trace
     public DisposableHandle invokeOnTimeout(long timeMills, Runnable r, CoroutineContext context) {
-        if(!(r instanceof NRRunnable)) {
-            Token token = NewRelic.getAgent().getTransaction().getToken();
-            if(token != null && token.isActive()) {
-                r = new NRRunnable(r, token);
-            } else if (token != null) {
-                token.expire();
-                token = null;
-            }
-        }
+//        if(!(r instanceof NRRunnable)) {
+//            Token token = NewRelic.getAgent().getTransaction().getToken();
+//            if(token != null && token.isActive()) {
+//                r = new NRRunnable(r, token);
+//            } else if (token != null) {
+//                token.expire();
+//                token = null;
+//            }
+//        }
         return Weaver.callOriginal();
     }
 }

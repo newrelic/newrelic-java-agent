@@ -82,7 +82,7 @@ public class BuildersKt_Instrumentation {
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
             block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
 		}
-		if(Utils.continueWithContinuation(cont.toString())) {
+		if(Utils.continueWithContinuation(cont)) {
 			boolean isSuspend = cont instanceof SuspendFunction;
 			if(!isSuspend) {
 				String cont_string = Utils.getContinuationString(cont);
@@ -148,7 +148,7 @@ public class BuildersKt_Instrumentation {
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
             block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
 		}
-		if(completion != null && Utils.continueWithContinuation(completion.toString())) {
+		if(completion != null && Utils.continueWithContinuation(completion)) {
 			if(!(completion instanceof NRContinuationWrapper)) {
 				String cont_string = Utils.getContinuationString(completion);
                 completion = new NRContinuationWrapper<>(completion, cont_string);

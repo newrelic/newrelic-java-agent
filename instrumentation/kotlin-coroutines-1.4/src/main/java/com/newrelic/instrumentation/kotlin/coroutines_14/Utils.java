@@ -68,11 +68,14 @@ public class Utils implements CoroutineConfigListener {
 	public static boolean continueWithScope(String coroutineScope) {
 		return !ignoredScopes.contains(coroutineScope);
 	}
-	
-	public static boolean continueWithContinuation(String cont_string) {
+
+	public static boolean continueWithContinuation(Continuation<?> continuation) {
+		String className = continuation.getClass().getName();
+		if(className.startsWith("kotlin")) return false;
+		String cont_string = getContinuationString(continuation);
 		return !ignoredContinuations.contains(cont_string);
 	}
-	
+
 	public static String sub = "createCoroutineFromSuspendFunction";
 
 	public static void setToken(CoroutineContext context) {
@@ -102,6 +105,7 @@ public class Utils implements CoroutineConfigListener {
 		if(tokenContext != null) {
 			Token token = tokenContext.getToken();
             token.expire();
+			NRTokenContextKt.removeTokenContext(context);
         }
 	}
 	

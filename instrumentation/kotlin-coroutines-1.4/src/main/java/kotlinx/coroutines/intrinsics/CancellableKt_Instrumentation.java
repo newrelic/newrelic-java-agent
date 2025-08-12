@@ -23,7 +23,7 @@ public abstract class CancellableKt_Instrumentation {
 	public static <T> void startCoroutineCancellable(Function1<? super Continuation<? super T>, ?> f, Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
 		if(!(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(cont)) {
                 cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}
@@ -42,7 +42,7 @@ public abstract class CancellableKt_Instrumentation {
 		String continuationString = Utils.getContinuationString(cont);
 		if(!(cont instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(Utils.continueWithContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
+			if(Utils.continueWithContinuation(cont) && !(cont instanceof NRContinuationWrapper)) {
                 cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}
@@ -67,14 +67,14 @@ public abstract class CancellableKt_Instrumentation {
 		String completionString = Utils.getContinuationString(completion);
 		if(!(completion instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(Utils.continueWithContinuation(completionString) && !(completion instanceof NRContinuationWrapper)) {
+			if(Utils.continueWithContinuation(completion) && !(completion instanceof NRContinuationWrapper)) {
                 completion = new NRContinuationWrapper<>(completion, completionString);
 			}
 		}
 		String continuationString = Utils.getContinuationString(cont);
 		if(!(cont instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(Utils.continueWithContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
+			if(Utils.continueWithContinuation(cont) && !(cont instanceof NRContinuationWrapper)) {
                 cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}

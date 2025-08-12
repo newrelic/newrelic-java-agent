@@ -18,3 +18,13 @@ fun addTokenContext(context : CoroutineContext, token : Token) : CoroutineContex
     return context + TokenContextElement(tokenContext)
 }
 
+fun removeTokenContext(context : CoroutineContext) : CoroutineContext {
+    val tokenContext = context.getTokenContextOrNull();
+    if (tokenContext != null) {
+        val token = tokenContext.token
+        token.expire()
+
+        return context.minusKey(TokenContextElement.Key)
+        }
+    return context
+}

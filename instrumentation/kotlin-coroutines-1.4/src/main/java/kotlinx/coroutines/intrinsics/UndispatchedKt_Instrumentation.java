@@ -23,7 +23,7 @@ public class UndispatchedKt_Instrumentation {
 	public static <T> void startCoroutineUnintercepted(Function1<? super Continuation<? super T>, ?> f, Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
 		if(!(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(cont)) {
                 cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}
@@ -43,7 +43,7 @@ public class UndispatchedKt_Instrumentation {
             Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
 		if(!(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(cont)) {
                 cont = new NRContinuationWrapper<>(cont, continuationString);
 			}			
 		}

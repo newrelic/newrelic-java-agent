@@ -19,12 +19,11 @@ import kotlin.jvm.functions.Function2;
 public abstract class CancellableKt_Instrumentation {
 
 	@Trace
-	public static <T> void startCoroutineCancellable(Function1<? super Continuation<? super T>, ? extends java.lang.Object> f, Continuation<? super T> cont) {
+	public static <T> void startCoroutineCancellable(Function1<? super Continuation<? super T>, ?> f, Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
-		if(cont != null && !(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(continuationString)) {
-				NRContinuationWrapper<? super T> wrapper = new NRContinuationWrapper<>(cont, continuationString);
-				cont = wrapper;
+		if(!(cont instanceof SuspendFunction)) {
+			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(cont)) {
+                cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}
 		if(continuationString != null) {
@@ -32,20 +31,18 @@ public abstract class CancellableKt_Instrumentation {
 		}
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Suspend-Type", "Function1");
 		if(!(f instanceof NRFunction1SuspendWrapper)) {
-			NRFunction1SuspendWrapper<? super Continuation<? super T>, ? extends java.lang.Object> wrapper = new NRFunction1SuspendWrapper<>(f);
-			f = wrapper;
+            f = new NRFunction1SuspendWrapper<>(f);
 		}
 		Weaver.callOriginal();
 	}
 
 	@Trace
-	public static <R, T> void startCoroutineCancellable(Function2<? super R, ? super Continuation<? super T>, ? extends java.lang.Object> f, R receiver, Continuation<? super T> cont) {
+	public static <R, T> void startCoroutineCancellable(Function2<? super R, ? super Continuation<? super T>, ?> f, R receiver, Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
 		if(!(cont instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(cont != null && Utils.continueWithContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
-				NRContinuationWrapper<? super T> wrapper = new NRContinuationWrapper<>(cont, continuationString);
-				cont = wrapper;
+			if(Utils.continueWithContinuation(cont) && !(cont instanceof NRContinuationWrapper)) {
+                cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}
 		if(continuationString != null) {
@@ -55,8 +52,7 @@ public abstract class CancellableKt_Instrumentation {
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Receiver", receiver.getClass().getName());
 
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-			NRFunction2SuspendWrapper<? super R, ? super Continuation<? super T>, ? extends java.lang.Object> wrapper = new NRFunction2SuspendWrapper<>(f);
-			f = wrapper;
+            f = new NRFunction2SuspendWrapper<>(f);
 		}
 		Weaver.callOriginal();
 	}
@@ -64,19 +60,17 @@ public abstract class CancellableKt_Instrumentation {
 	@Trace
 	public static void startCoroutineCancellable(Continuation<? super kotlin.Unit> completion, Continuation<?> cont) {
 		String completionString = Utils.getContinuationString(completion);
-		if(completion != null && !(completion instanceof SuspendFunction)) {
+		if(!(completion instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(Utils.continueWithContinuation(completionString) && !(completion instanceof NRContinuationWrapper)) {
-				NRContinuationWrapper<? super kotlin.Unit> wrapper = new NRContinuationWrapper<>(completion, completionString);
-				completion = wrapper;
+			if(Utils.continueWithContinuation(completion) && !(completion instanceof NRContinuationWrapper)) {
+                completion = new NRContinuationWrapper<>(completion, completionString);
 			}
 		}
 		String continuationString = Utils.getContinuationString(cont);
-		if(cont != null && !(cont instanceof SuspendFunction)) {
+		if(!(cont instanceof SuspendFunction)) {
 			// create continuation wrapper if needed
-			if(cont != null && Utils.continueWithContinuation(continuationString) && !(cont instanceof NRContinuationWrapper)) {
-				NRContinuationWrapper<?> wrapper = new NRContinuationWrapper<>(cont, continuationString);
-				cont = wrapper;
+			if(Utils.continueWithContinuation(cont) && !(cont instanceof NRContinuationWrapper)) {
+                cont = new NRContinuationWrapper<>(cont, continuationString);
 			}
 		}
 		TracedMethod traced = NewRelic.getAgent().getTracedMethod();
