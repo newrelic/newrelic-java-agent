@@ -77,8 +77,16 @@ class NRSpanBuilder implements SpanBuilder {
         }
     }
 
+    /**
+     * Determines if the SpanBuilder should be enabled based on the configuration.
+     * If auto-configuration is enabled and spans are not explicitly disabled, then
+     * the SpanBuilder is enabled.
+     *
+     * @param config The configuration to check.
+     * @return true if the SpanBuilder should be enabled, false otherwise.
+     */
     static boolean isSpanBuilderEnabled(Config config) {
-        final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled");
+        final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled", false);
         if (autoConfigure == null || autoConfigure) {
             final Boolean spansEnabled = config.getValue("opentelemetry.sdk.spans.enabled");
             return spansEnabled == null || spansEnabled;

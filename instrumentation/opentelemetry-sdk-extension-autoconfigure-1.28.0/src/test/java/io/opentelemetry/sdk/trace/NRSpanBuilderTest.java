@@ -36,7 +36,7 @@ public class NRSpanBuilderTest {
     private Config createConfig(Boolean autoconfigureEnabled, Boolean spansEnabled) {
         Config config = mock(Config.class);
         if (autoconfigureEnabled != null) {
-            when(config.getValue("opentelemetry.sdk.autoconfigure.enabled")).thenReturn(autoconfigureEnabled);
+            when(config.getValue("opentelemetry.sdk.autoconfigure.enabled", false)).thenReturn(autoconfigureEnabled);
         }
         if (spansEnabled != null) {
             when(config.getValue("opentelemetry.sdk.spans.enabled")).thenReturn(spansEnabled);

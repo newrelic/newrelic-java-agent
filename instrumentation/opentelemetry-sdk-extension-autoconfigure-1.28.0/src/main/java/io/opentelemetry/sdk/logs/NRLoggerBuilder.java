@@ -44,7 +44,8 @@ class NRLoggerBuilder implements LoggerBuilder {
 
     @Override
     public Logger build() {
-        Boolean enabled = config.getValue("opentelemetry.instrumentation." + instrumentationScopeName + ".enabled");
+        Boolean enabled = config.getValue(
+                "opentelemetry.instrumentation." + instrumentationScopeName + ".enabled"); // FIXME add default so it doesn't return null or cause an exception
         if (enabled != null && !enabled) {
             /*
              * This will return a no-op Logger, which results in

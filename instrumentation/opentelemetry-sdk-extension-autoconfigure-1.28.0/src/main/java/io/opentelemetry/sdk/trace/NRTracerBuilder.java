@@ -49,7 +49,8 @@ class NRTracerBuilder implements TracerBuilder {
      */
     @Override
     public Tracer build() {
-        Boolean enabled = config.getValue("opentelemetry.instrumentation." + instrumentationScopeName + ".enabled");
+        Boolean enabled = config.getValue(
+                "opentelemetry.instrumentation." + instrumentationScopeName + ".enabled"); // FIXME add default so it doesn't return null or cause an exception
         if (enabled != null && !enabled) {
             return OpenTelemetry.noop().getTracer(instrumentationScopeName);
         } else {

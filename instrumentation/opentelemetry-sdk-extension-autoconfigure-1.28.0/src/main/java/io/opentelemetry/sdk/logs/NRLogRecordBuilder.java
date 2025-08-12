@@ -203,8 +203,16 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
         }
     }
 
+    /**
+     * Determines if the LogRecordBuilder should be enabled based on the configuration.
+     * If auto-configuration is enabled and logs are not explicitly disabled, then
+     * the LogRecordBuilder is enabled.
+     *
+     * @param config the agent configuration
+     * @return true if NRLogRecordBuilder should be used, false otherwise
+     */
     static boolean isLogRecordBuilderEnabled(Config config) {
-        final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled");
+        final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled", false);
         if (autoConfigure == null || autoConfigure) {
             // When opentelemetry.sdk.logs.enabled=false, this
             // setting will prevent NR LogEvents from being created,
