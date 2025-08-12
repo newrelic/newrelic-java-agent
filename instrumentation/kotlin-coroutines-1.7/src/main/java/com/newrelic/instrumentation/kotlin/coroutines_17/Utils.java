@@ -147,19 +147,25 @@ public class Utils implements CoroutineConfigListener {
 	@Override
 	public void configureContinuationIgnores(String[] ignores) {
 		ignoredContinuations.clear();
-		ignoredContinuations.addAll(Arrays.asList(ignores));
+		if(ignores != null) {
+			ignoredContinuations.addAll(Arrays.asList(ignores));
+		}
 	}
 
 	@Override
 	public void configureScopeIgnores(String[] ignores) {
 		ignoredScopes.clear();
-		ignoredScopes.addAll(Arrays.asList(ignores));
+		if(ignores != null) {
+			ignoredScopes.addAll(Arrays.asList(ignores));
+		}
 	}
 
 	@Override
 	public void configureDispatchedTasksIgnores(String[] ignores) {
 		DispatchedTaskIgnores.reset();
-		DispatchedTaskIgnores.addIgnoredTasks(Arrays.asList(ignores));
+		if(ignores != null) {
+			DispatchedTaskIgnores.addIgnoredTasks(Arrays.asList(ignores));
+		}
 	}
 
 	@Override
