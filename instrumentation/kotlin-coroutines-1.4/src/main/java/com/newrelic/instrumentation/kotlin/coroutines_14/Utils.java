@@ -51,7 +51,7 @@ public class Utils implements CoroutineConfigListener {
 			DispatchedTask<?> task = (DispatchedTask<?>)r;
 			Continuation<?> cont = task.getDelegate$kotlinx_coroutines_core();
             String cont_string = getContinuationString(cont);
-            if(cont_string != null && DispatchedTaskIgnores.ignoreDispatchedTask(cont_string)) {
+            if(cont_string == null || DispatchedTaskIgnores.ignoreDispatchedTask(cont_string)) {
                 return null;
             }
         }
@@ -82,6 +82,11 @@ public class Utils implements CoroutineConfigListener {
 	* coroutineScope can be a Coroutine name or CoroutineScope class name
 	*/
 	public static boolean continueWithScope(String coroutineScope) {
+		for(String ignoredScope : ignoredScopes) {
+			if(coroutineScope.matches(ignoredScope)) {
+				return false;
+			}
+		}
 		return !ignoredScopes.contains(coroutineScope);
 	}
 
@@ -96,6 +101,13 @@ public class Utils implements CoroutineConfigListener {
 		* Get the continuation string and check if it should be ignored
 		*/
 		String cont_string = getContinuationString(continuation);
+		if(cont_string == null) { return false; }
+
+		for(String ignored : ignoredContinuations) {
+			if(cont_string.matches(ignored)) {
+				return false;
+			}
+		}
 		return !ignoredContinuations.contains(cont_string);
 	}
 

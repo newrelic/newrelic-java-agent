@@ -40,6 +40,8 @@ public class BuildersKt_Instrumentation {
 		if (Utils.continueWithScope(scope)) {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
+			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-CoroutineName", Utils.getCoroutineName(scope.getCoroutineContext()));
+
 			String name = Utils.getCoroutineName(context);
 			if(name == null) {
 				name = Utils.getCoroutineName(scope.getCoroutineContext());
@@ -85,7 +87,8 @@ public class BuildersKt_Instrumentation {
 		if (Utils.continueWithScope(scope)) {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
-			
+			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-CoroutineName", Utils.getCoroutineName(scope.getCoroutineContext()));
+
 			String name = Utils.getCoroutineName(context);
 			if (name == null) {
 				name = Utils.getCoroutineName(scope.getCoroutineContext());
