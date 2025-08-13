@@ -24,6 +24,7 @@ import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
+import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -86,6 +87,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile SpanEventsService spanEventsService;
     private volatile SourceLanguageService sourceLanguageService;
     private ExpirationService expirationService;
+    private volatile KotlinCoroutinesService kotlinCoroutinesService;
 
     private IntrospectorServiceManager(String name) {
         super(name);
@@ -189,6 +191,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         } catch (Exception e) {
             // fall through
         }
+        kotlinCoroutinesService = new KotlinCoroutinesService();
     }
 
     @Override
@@ -431,6 +434,8 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         return expirationService;
     }
 
+    public KotlinCoroutinesService getKotlinCoroutinesService() { return kotlinCoroutinesService; }
+    
     @Override
     public void refreshDataForCRaCRestore() {}
 

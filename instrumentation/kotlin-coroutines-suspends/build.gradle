@@ -1,0 +1,29 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-agent"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0")
+
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.labs.kotlin-coroutines-suspends'
+    }
+}
+
+verifyInstrumentation {
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.4.0,1.7.0)'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.4.0,1.7.0)'
+    excludeRegex '.*SNAPSHOT'
+    excludeRegex '.*alpha'
+    excludeRegex '.*Beta'
+    excludeRegex '.*-eap-.*'
+    excludeRegex '.*-native-.*'
+    excludeRegex '.*-M[0-9]'
+    excludeRegex '.*-rc'
+    excludeRegex '.*-RC'
+}
