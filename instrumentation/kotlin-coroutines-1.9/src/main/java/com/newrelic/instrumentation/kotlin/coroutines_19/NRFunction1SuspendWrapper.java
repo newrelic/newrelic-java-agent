@@ -6,6 +6,10 @@ import com.newrelic.api.agent.NewRelic;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
 
+/*
+ * Used to wrap a suspend function that was used as an input as a parameter to the
+ * Coroutine functions runBlocking, async, invoke, launch and withContext
+ */
 public class NRFunction1SuspendWrapper<P1, R> implements Function1<P1, R> {
 	
 	private Function1<P1, R> delegate = null;

@@ -8,6 +8,10 @@ import com.newrelic.instrumentation.kotlin.coroutines_17.Utils;
 
 import kotlin.coroutines.CoroutineContext;
 
+/*
+ * Dispatchers are used to dispatch tasks to another thread.  By wrapping the Runable
+ * we can track the Coroutine across threads
+ */
 @Weave(type = MatchType.BaseClass, originalName = "kotlinx.coroutines.CoroutineDispatcher")
 public abstract class CoroutineDispatcher_Instrumentation {
 

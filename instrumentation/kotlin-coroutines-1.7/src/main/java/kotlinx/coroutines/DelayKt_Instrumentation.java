@@ -4,6 +4,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.instrumentation.kotlin.coroutines_17.NRDelayContinuation;
+import com.newrelic.instrumentation.kotlin.coroutines_17.Utils;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 
@@ -12,7 +13,7 @@ public class DelayKt_Instrumentation {
 
     @Trace
     public static Object awaitCancellation(Continuation<?> cont) {
-        if(!(cont instanceof NRDelayContinuation)) {
+        if(Utils.DELAYED_ENABLED && !(cont instanceof NRDelayContinuation)) {
             cont = new NRDelayContinuation<>(cont,"AwaitCancellation");
         }
         return Weaver.callOriginal();
@@ -20,7 +21,7 @@ public class DelayKt_Instrumentation {
 
     @Trace
     public static Object delay(long timeMillis, Continuation<? super Unit> cont) {
-        if(!(cont instanceof NRDelayContinuation)) {
+        if(Utils.DELAYED_ENABLED && !(cont instanceof NRDelayContinuation)) {
             cont = new NRDelayContinuation<>(cont,"Delay");
         }
         return Weaver.callOriginal();

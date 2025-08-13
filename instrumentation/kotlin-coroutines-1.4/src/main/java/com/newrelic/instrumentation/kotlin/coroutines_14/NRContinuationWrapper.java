@@ -8,6 +8,10 @@ import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import org.jetbrains.annotations.NotNull;
 
+/*
+*  Used to wrap a Continuation instance.   Necessary to control which Continuations
+*  are tracked.  Tracking all Continuations can effect performance.
+* */
 public class NRContinuationWrapper<T> implements Continuation<T> {
 
 	private Continuation<T> delegate = null;

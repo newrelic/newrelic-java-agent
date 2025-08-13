@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
+/*
+*  Used to ignore Dispatched Tasks that the user has configured to ignore
+*/
 public class DispatchedTaskIgnores {
 	
 	private static final List<String> ignoredTasks = new ArrayList<>();

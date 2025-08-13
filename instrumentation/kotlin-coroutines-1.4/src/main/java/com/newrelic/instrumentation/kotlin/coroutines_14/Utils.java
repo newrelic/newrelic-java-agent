@@ -28,13 +28,21 @@ public class Utils implements CoroutineConfigListener {
 	public static boolean DELAYED_ENABLED = true;
 
 	static {
+		/*
+		* Register this class with the KotlinCoroutinesService to initialize and update
+		* the ignored items
+		*/
 		KotlinCoroutinesService service = ServiceFactory.getKotlinCoroutinesService();
 		service.addCoroutineConfigListener(INSTANCE);
 		ignoredContinuations.add(CREATE_METHOD_1);
 		ignoredContinuations.add(CREATE_METHOD_2);
 
 	}
-	
+
+	/*
+	 * Returns a Runnable wrapper to track Runnable tasks that
+	 * are being passed to another thread
+	 */
 	public static NRRunnable getRunnableWrapper(Runnable r) {
 		if(r instanceof NRRunnable) {
 			return null;
@@ -57,27 +65,46 @@ public class Utils implements CoroutineConfigListener {
 		}
 		return null;
 	}
-	
+
+	/*
+	 * Allows certain Coroutine scopes to be ignored
+	 * coroutineScope can be a Coroutine name or CoroutineScope class name
+	 */
 	public static boolean continueWithScope(CoroutineScope scope) {
 		CoroutineContext ctx = scope.getCoroutineContext();
 		String name = getCoroutineName(ctx);
 		String className = scope.getClass().getName();
 		return continueWithScope(className) && continueWithScope(name);
 	}
-	
+
+	/*
+	* Allows certain Coroutine scopes to be ignored
+	* coroutineScope can be a Coroutine name or CoroutineScope class name
+	*/
 	public static boolean continueWithScope(String coroutineScope) {
 		return !ignoredScopes.contains(coroutineScope);
 	}
 
 	public static boolean continueWithContinuation(Continuation<?> continuation) {
+		/*
+		 *	Don't trace internal Coroutines Continuations
+		 */
 		String className = continuation.getClass().getName();
 		if(className.startsWith("kotlin")) return false;
+
+		/*
+		* Get the continuation string and check if it should be ignored
+		*/
 		String cont_string = getContinuationString(continuation);
 		return !ignoredContinuations.contains(cont_string);
 	}
 
 	public static String sub = "createCoroutineFromSuspendFunction";
 
+	/*
+	* Set the async token in the CoroutineContext
+	* Used to track the transaction across multiple threads
+	*/
 	public static void setToken(CoroutineContext context) {
 		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
 		if (tokenContext == null) {
@@ -92,6 +119,9 @@ public class Utils implements CoroutineConfigListener {
 
 	}
 
+	/*
+	 * Gets the async token in the CoroutineContext if it is set
+	 */
 	public static Token getToken(CoroutineContext context) {
 		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
 		if(tokenContext != null) {
@@ -100,6 +130,10 @@ public class Utils implements CoroutineConfigListener {
 		return null;
 	}
 
+	/*
+	 * Expires the async token in the CoroutineContext if it is set and
+	 * removes the tokencontext from the CoroutineContext
+	 */
 	public static void expireToken(CoroutineContext context) {
 		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
 		if(tokenContext != null) {

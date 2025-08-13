@@ -8,6 +8,9 @@ import java.util.logging.Level;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
 
+/*
+ *  Used to ignore Dispatched Tasks that the user has configured to ignore
+ */
 public class DispatchedTaskIgnores {
 	
 	private static final List<String> ignoredTasks = new ArrayList<>();

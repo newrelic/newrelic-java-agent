@@ -10,6 +10,10 @@ import kotlinx.coroutines.CoroutineDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/*
+ *  Used to wrap the tracking of a call to the Coroutine delay function if tracking is enabled
+ *  Will report the delay as a segment
+ */
 public class NRDelayCancellableContinuation<T> implements CancellableContinuation<T> {
 
     private final CancellableContinuation<T> delegate;

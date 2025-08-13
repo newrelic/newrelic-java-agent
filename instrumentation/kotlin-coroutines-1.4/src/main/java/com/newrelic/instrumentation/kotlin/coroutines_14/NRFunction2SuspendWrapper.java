@@ -8,6 +8,10 @@ import kotlin.coroutines.CoroutineContext;
 import kotlin.jvm.functions.Function2;
 import kotlinx.coroutines.CoroutineScope;
 
+/*
+ * Used to wrap a suspend function that was used as an input as a parameter to the
+ * Coroutine functions runBlocking, async, invoke, launch and withContext
+ */
 public class NRFunction2SuspendWrapper<S, T, R> implements Function2<S, T, R> {
 
 	private Function2<S, T, R> delegate = null;
