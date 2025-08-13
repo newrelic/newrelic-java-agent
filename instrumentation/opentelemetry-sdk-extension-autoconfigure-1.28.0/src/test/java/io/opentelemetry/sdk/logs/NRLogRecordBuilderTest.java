@@ -35,7 +35,7 @@ public class NRLogRecordBuilderTest extends TestCase {
             when(config.getValue("opentelemetry.sdk.autoconfigure.enabled", false)).thenReturn(autoconfigureEnabled);
         }
         if (logsEnabled != null) {
-            when(config.getValue("opentelemetry.sdk.logs.enabled")).thenReturn(logsEnabled);
+            when(config.getValue("opentelemetry.sdk.logs.enabled", true)).thenReturn(logsEnabled);
         }
         return config;
     }

@@ -88,7 +88,7 @@ class NRSpanBuilder implements SpanBuilder {
     static boolean isSpanBuilderEnabled(Config config) {
         final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled", false);
         if (autoConfigure == null || autoConfigure) {
-            final Boolean spansEnabled = config.getValue("opentelemetry.sdk.spans.enabled");
+            final Boolean spansEnabled = config.getValue("opentelemetry.sdk.spans.enabled", true); // TODO: Verify default value. This is added so it doesn't return null or cause a class cast exception from String to Boolean.
             return spansEnabled == null || spansEnabled;
         }
         return false;

@@ -39,7 +39,7 @@ public class NRSpanBuilderTest {
             when(config.getValue("opentelemetry.sdk.autoconfigure.enabled", false)).thenReturn(autoconfigureEnabled);
         }
         if (spansEnabled != null) {
-            when(config.getValue("opentelemetry.sdk.spans.enabled")).thenReturn(spansEnabled);
+            when(config.getValue("opentelemetry.sdk.spans.enabled", true)).thenReturn(spansEnabled);
         }
         return config;
     }

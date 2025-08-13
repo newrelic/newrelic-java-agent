@@ -34,10 +34,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class NRLogRecordBuilder implements LogRecordBuilder {
     private final Map<String, Object> attributes = new HashMap<>();
-    //    private final AttributesMap attributes;
     private final LoggerSharedState loggerSharedState;
     private final InstrumentationScopeInfo instrumentationScopeInfo;
-//    private LogLimits logLimits; // TODO: is this needed? Looks like it could be used in setAttribute to configure an AttributesMap
 
     private long timestampEpochNanos;
     private long observedTimestampEpochNanos;
@@ -48,25 +46,11 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
 
     public NRLogRecordBuilder(String instrumentationScopeName, String instrumentationScopeVersion, String schemaUrl, LoggerSharedState loggerSharedState) {
         this.loggerSharedState = loggerSharedState;
-
-//        this.logLimits = loggerSharedState.getLogLimits();
-//        if (this.logLimits == null) {
-//            this.logLimits = LogLimits.getDefault();
-//        }
-
         this.instrumentationScopeInfo = InstrumentationScopeInfo
                 .builder(instrumentationScopeName)
                 .setVersion(instrumentationScopeVersion)
                 .setSchemaUrl(schemaUrl)
                 .build();
-
-//        this.attributes = initalizeAttributesMap(this.logLimits);
-//
-//        this.attributes.put(NRLogRecord.OTEL_LIBRARY_NAME, instrumentationScopeName);
-//
-//        if (instrumentationScopeVersion != null) {
-//            this.attributes.put(NRLogRecord.OTEL_LIBRARY_VERSION, instrumentationScopeVersion);
-//        }
 
         attributes.put(NRLogRecord.OTEL_LIBRARY_NAME.getKey(), instrumentationScopeName);
 
@@ -74,14 +58,6 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
             attributes.put(NRLogRecord.OTEL_LIBRARY_VERSION.getKey(), instrumentationScopeVersion);
         }
     }
-
-    // Create an AttributesMap with the limits defined in logLimits
-//    public AttributesMap initalizeAttributesMap(LogLimits logLimits) {
-//        return AttributesMap.create(
-//                logLimits.getMaxNumberOfAttributes(),
-//                logLimits.getMaxAttributeValueLength()
-//        );
-//    }
 
     @Override
     public LogRecordBuilder setTimestamp(long timestamp, TimeUnit unit) {
@@ -133,17 +109,9 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
 
     @Override
     public <T> LogRecordBuilder setAttribute(AttributeKey<T> key, T value) {
-        // TODO implement this properly?
         if (key == null || key.getKey().isEmpty() || value == null) {
             return this;
         }
-//        if (this.attributes == null) {
-//            this.attributes =
-//                    AttributesMap.create(
-//                            logLimits.getMaxNumberOfAttributes(), logLimits.getMaxAttributeValueLength());
-//        }
-//        this.attributes.put(key, value);
-
         this.attributes.put(key.getKey(), value);
         return this;
     }
@@ -175,7 +143,6 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
                 severity,
                 severityText,
                 body,
-//                attributes
                 Collections.unmodifiableMap(new HashMap<>(attributes))
         );
 
@@ -195,10 +162,6 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
             if (AppLoggingUtils.isApplicationLoggingForwardingEnabled()) {
                 // Generate New Relic LogEvents
                 LogEventUtil.recordNewRelicLogEvent(logRecordData);
-
-                System.out.println(); // TODO remove logging
-                System.out.println(logRecordData); // TODO remove logging
-                System.out.println(); // TODO remove logging
             }
         }
     }
@@ -217,7 +180,8 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
             // When opentelemetry.sdk.logs.enabled=false, this
             // setting will prevent NR LogEvents from being created,
             // without preventing OTel LogRecords from being emitted.
-            final Boolean logsEnabled = config.getValue("opentelemetry.sdk.logs.enabled");
+            final Boolean logsEnabled = config.getValue("opentelemetry.sdk.logs.enabled",
+                    true); // TODO: Verify default value. This is added so it doesn't return null or cause a class cast exception from String to Boolean.
             return logsEnabled == null || logsEnabled;
         }
         return false;

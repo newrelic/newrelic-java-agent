@@ -29,7 +29,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
     public static final AttributeKey<String> OTEL_EXCEPTION_TYPE = AttributeKey.stringKey("exception.type");
     public static final AttributeKey<String> OTEL_EXCEPTION_STACKTRACE = AttributeKey.stringKey("exception.stacktrace");
 
-    private final LogLimits logLimits;
+    private final LogLimits logLimits; // LogLimits is not used in this implementation, but kept for compatibility
     private final Resource resource;
     private final InstrumentationScopeInfo instrumentationScopeInfo;
     private final long timestampEpochNanos;
@@ -39,12 +39,10 @@ public class NRLogRecord implements ReadWriteLogRecord {
     private final String severityText;
     private final Body body;
     private final Object lock = new Object();
-    // TODO use Map or AttributesMap? seems to break the weaver, causes instrumentation to not apply
     private final Map<String, Object> attributes;
-//    private AttributesMap attributes;
 
     private NRLogRecord(
-            LogLimits logLimits, // TODO: can we use this without AttributesMap?
+            LogLimits logLimits,
             Resource resource,
             InstrumentationScopeInfo instrumentationScopeInfo,
             long timestampEpochNanos,
@@ -53,7 +51,6 @@ public class NRLogRecord implements ReadWriteLogRecord {
             Severity severity,
             String severityText,
             Body body,
-//            AttributesMap attributes
             Map<String, Object> attributes
     ) {
         this.logLimits = logLimits;
@@ -81,7 +78,6 @@ public class NRLogRecord implements ReadWriteLogRecord {
             Severity severity,
             String severityText,
             Body body,
-//            AttributesMap attributes
             Map<String, Object> attributes) {
         return new NRLogRecord(
                 logLimits,
@@ -102,11 +98,6 @@ public class NRLogRecord implements ReadWriteLogRecord {
             return this;
         }
         synchronized (lock) {
-//            if (attributes == null) {
-//                attributes =
-//                        AttributesMap.create(
-//                                logLimits.getMaxNumberOfAttributes(), logLimits.getMaxAttributeValueLength());
-//            }
             attributes.put(key.getKey(), value);
         }
         return this;
@@ -128,21 +119,10 @@ public class NRLogRecord implements ReadWriteLogRecord {
                     severityText,
                     body,
                     AttributesHelper.toAttributes(attributes),
-//                    getImmutableAttributes(), // FIXME
-                    attributes.size() // FIXME any way to get attributes.getTotalAddedValues() without AttributesMap?
-//                    attributes == null ? 0 : attributes.getTotalAddedValues()
+                    attributes.size()
             );
         }
     }
-
-//    private Attributes getImmutableAttributes() {
-//        synchronized (lock) {
-//            if (attributes == null || attributes.isEmpty()) {
-//                return Attributes.empty();
-//            }
-//            return attributes.immutableCopy();
-//        }
-//    }
 
     public static class BasicLogRecordData implements LogRecordData {
         private final Resource resource;

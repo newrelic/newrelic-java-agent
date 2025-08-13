@@ -31,7 +31,7 @@ public class NRLoggerBuilderTest extends TestCase {
 
     public void testBuildDisabled() {
         Config config = mock(Config.class);
-        when(config.getValue("opentelemetry.instrumentation.test-lib.enabled")).thenReturn(false);
+        when(config.getValue("opentelemetry.instrumentation.test-lib.enabled", true)).thenReturn(false);
         Logger logger = new NRLoggerBuilder(config, "test-lib", LOGGER_SHARED_STATE).build();
         assertSame(OpenTelemetry.noop().getLogsBridge().get("test-lib"), logger);
     }
