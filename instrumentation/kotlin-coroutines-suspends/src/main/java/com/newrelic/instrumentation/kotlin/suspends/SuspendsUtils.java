@@ -7,7 +7,10 @@ import com.newrelic.agent.kotlincoroutines.SuspendsConfigListener;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.*;
 import kotlin.coroutines.Continuation;
+import kotlin.coroutines.CoroutineContext;
 import kotlinx.coroutines.AbstractCoroutine;
+import kotlinx.coroutines.CoroutineExceptionHandler;
+import kotlinx.coroutines.CoroutineExceptionHandler_Instrumentation;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,10 +38,16 @@ public class SuspendsUtils implements SuspendsConfigListener {
     public static ExitTracer getSuspendTracer(Continuation<?> continuation) {
         Class<?> clazz = continuation.getClass();
         String className = clazz.getName();
-        // don't track suspend functions in internal Coroutines classes
+        // don't track suspend functions in internal Coroutines classes (i.e. starts with kotlin or kotlinx)
         if(className.startsWith(KOTLIN_PACKAGE)) { return null; }
         String continuationString = getContinuationString(continuation);
-        if (continuationString == null || continuationString.isEmpty() || ignoredSuspends.contains(continuationString)) {
+        // ignore if can't determine continuation string
+        if(continuationString == null || continuationString.isEmpty()) { return null; }
+
+        for(String ignoredSuspend : ignoredSuspends) {
+            if(continuationString.matches(ignoredSuspend)) { return null; }
+        }
+        if (ignoredSuspends.contains(continuationString)) {
             return null;
         }
         ClassMethodSignature signature = new ClassMethodSignature(clazz.getName(), "invokeSuspend", "(Ljava.lang.Object;)Ljava.lang.Object;");
@@ -49,7 +58,17 @@ public class SuspendsUtils implements SuspendsConfigListener {
 
         if(index >= 0) {
             String metricName = "Custom/Kotlin/Coroutines/SuspendFunction/" + continuationString;
-            return AgentBridge.instrumentation.createTracer(continuation, index, metricName, DefaultTracer.DEFAULT_TRACER_FLAGS);
+            ExitTracer exitTracer = AgentBridge.instrumentation.createTracer(continuation, index, metricName, DefaultTracer.DEFAULT_TRACER_FLAGS);
+            /*
+             * Need to handle the case where an exception handler is defined because execution will not return to the Suspend function so
+             * there is no call to finish the tracer.   When an exception is thrown then finish is handled in the handler.
+             */
+            CoroutineContext coroutineContext = continuation.getContext();
+            CoroutineExceptionHandler exceptionHandler = ExceptionHandlerUtilsKt.getCoroutineExceptionHandler(coroutineContext);
+            if (exceptionHandler != null) {
+                ((CoroutineExceptionHandler_Instrumentation)exceptionHandler).tracer = exitTracer;
+            }
+            return exitTracer;
         }
         return null;
     }

@@ -11,13 +11,13 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'com.newrelic.instrumentation.labs.kotlin-coroutines-suspends'
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.kotlin-coroutines-suspends'
     }
 }
 
 verifyInstrumentation {
-    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.4.0,1.7.0)'
-    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.4.0,1.7.0)'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core:[1.4.0,'
+    passes 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:[1.4.0)'
     excludeRegex '.*SNAPSHOT'
     excludeRegex '.*alpha'
     excludeRegex '.*Beta'

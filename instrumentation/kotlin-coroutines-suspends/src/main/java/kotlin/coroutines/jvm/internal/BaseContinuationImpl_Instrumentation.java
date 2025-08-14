@@ -1,20 +1,14 @@
 package kotlin.coroutines.jvm.internal;
 
 import com.newrelic.agent.bridge.ExitTracer;
-import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.instrumentation.kotlin.suspends.SuspendsUtils;
 import kotlin.coroutines.Continuation;
 
-@Weave(type = MatchType.BaseClass)
-public abstract class BaseContinuationImpl implements Continuation<Object> {
-
-	@Trace
-	public void resumeWith(Object result) {
-		Weaver.callOriginal();
-	}
+@Weave(type = MatchType.BaseClass, originalName = "kotlin.coroutines.jvm.internal.BaseContinuationImpl")
+public abstract class BaseContinuationImpl_Instrumentation implements Continuation<Object> {
 
 	protected Object invokeSuspend(Object result) {
 		ExitTracer tracer = SuspendsUtils.getSuspendTracer(this);
@@ -25,6 +19,4 @@ public abstract class BaseContinuationImpl implements Continuation<Object> {
 		return value;
 	}
 
-	public abstract kotlin.coroutines.jvm.internal.CoroutineStackFrame getCallerFrame();
-	public abstract StackTraceElement getStackTraceElement();
 }
