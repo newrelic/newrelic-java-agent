@@ -28,8 +28,25 @@ public class NRFunction2SuspendWrapper<S, T, R> implements Function2<S, T, R> {
 
 	@Override
 	public R invoke(S s, T t) {
-		
-		if(t instanceof Continuation) {
+		// set name
+		boolean name_set = false;
+		if(s instanceof CoroutineScope) {
+			CoroutineScope scope = (CoroutineScope)s;
+			CoroutineContext ctx = scope.getCoroutineContext();
+			Token token = Utils.getToken(ctx);
+			if(token != null) {
+				token.link();
+			}
+			CoroutineContext context = scope.getCoroutineContext();
+			String coroutineName = Utils.getCoroutineName(context);
+			if(coroutineName != null) {
+				NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Block","SuspendFunction",coroutineName);
+				name_set = true;
+			}
+
+		}
+
+		if(!name_set && t instanceof Continuation) {
 			Continuation<?> cont = (Continuation<?>)t;
 
 			String cont_string = Utils.getContinuationString(cont);
@@ -39,15 +56,6 @@ public class NRFunction2SuspendWrapper<S, T, R> implements Function2<S, T, R> {
 				NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Block","SuspendFunction","UnknownSource");
 
 			}
-		}
-		if(s instanceof CoroutineScope) {
-			CoroutineScope scope = (CoroutineScope)s;
-			CoroutineContext ctx = scope.getCoroutineContext();
-			Token token = Utils.getToken(ctx);
-			if(token != null) {
-				token.link();
-			}
-			
 		}
 		if(delegate != null) {
 			return delegate.invoke(s, t);
