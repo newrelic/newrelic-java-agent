@@ -25,6 +25,7 @@ import com.newrelic.agent.bridge.NoOpToken;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
+import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -111,6 +112,7 @@ public class DefaultTracerTest {
         APP_NAME = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
         SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         eventPool.clear();
+        ServiceFactory.getStatsService().getStatsEngineForHarvest("Unit Test").clear();
     }
 
     @Test
@@ -606,6 +608,24 @@ public class DefaultTracerTest {
                 .build());
         tracer.recordMetrics(stats);
         checkUnknownDatastoreSupportabilityMetrics("Product", 1, 0, 1);
+        assertClmAbsent(tracer);
+    }
+
+    @Test
+    public void testDatastoreParametersNullCollection() {
+        DefaultTracer tracer = prepareTracer();
+        TransactionStats stats = tracer.getTransactionActivity().getTransactionStats();
+
+        tracer.reportAsExternal(DatastoreParameters
+                .product("Product")
+                .collection(null)
+                .operation("operation")
+                .noInstance()
+                .noDatabaseName().slowQuery("SELECT * FROM users", SqlQueryConverter.INSTANCE)
+                .build());
+        tracer.recordMetrics(stats);
+        // verify that collection is parsed from SQL
+        assertEquals("Datastore/statement/Product/users/operation", tracer.getMetricName());
         assertClmAbsent(tracer);
     }
 

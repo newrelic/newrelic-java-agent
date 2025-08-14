@@ -24,9 +24,15 @@ public class FlyweightTraceMethodVisitorTest {
 
     @Test
     public void verifyTracedMethodStitching() {
-        // these methods are overridden in the bridge with a different signature. ignore them
-        Set<Method> excludes = ImmutableSet.of(new Method("getParentTracedMethod",
-                "()Lcom/newrelic/api/agent/TracedMethod;"));
+        Set<Method> excludes = ImmutableSet.of(
+                // this method is overridden in the bridge with a different signature. ignore it
+                new Method("getParentTracedMethod",
+                "()Lcom/newrelic/api/agent/TracedMethod;"),
+                // these methods have default implementations which are fine because flyweight tracers are leaves
+                new Method("getTraceId",
+                        "()Ljava/lang/String;"),
+                new Method("getSpanId",
+                        "()Ljava/lang/String;"));
 
         TraceDetails trace = TraceDetailsBuilder.newBuilder().build();
         FlyweightTraceMethodVisitor mv = new FlyweightTraceMethodVisitor("", null, 0, "go", "()V", trace, null);

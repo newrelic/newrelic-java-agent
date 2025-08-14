@@ -10,6 +10,7 @@ package com.newrelic.agent.service.analytics;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AttributesConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -25,6 +26,7 @@ import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.QueryConverter;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
@@ -486,10 +488,18 @@ public class SpanEventFactory {
         if (config.isHighSecurity() || config.getTransactionTracerConfig().getRecordSql().equals(SqlObfuscator.OFF_SETTING)) {
             return null;
         } else if (config.getTransactionTracerConfig().getRecordSql().equals(SqlObfuscator.RAW_SETTING)) {
-            return slowQueryDatastoreParameters.getQueryConverter().toRawQueryString(slowQueryDatastoreParameters.getRawQuery());
+            return getQueryConverter(slowQueryDatastoreParameters).toRawQueryString(slowQueryDatastoreParameters.getRawQuery());
         } else {
-            return slowQueryDatastoreParameters.getQueryConverter().toObfuscatedQueryString(slowQueryDatastoreParameters.getRawQuery());
+            return getQueryConverter(slowQueryDatastoreParameters).toObfuscatedQueryString(slowQueryDatastoreParameters.getRawQuery());
         }
+    }
+
+    private static <T> QueryConverter<T> getQueryConverter(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
+        final QueryConverter<T> queryConverter = slowQueryDatastoreParameters.getQueryConverter();
+        if (queryConverter == SqlQueryConverter.INSTANCE) {
+            return (QueryConverter<T>) ServiceFactory.getDatabaseService().getDefaultSqlObfuscator().getQueryConverter();
+        }
+        return queryConverter;
     }
 
     public SpanEvent build() {

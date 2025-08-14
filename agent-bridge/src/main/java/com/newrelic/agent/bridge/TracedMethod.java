@@ -16,6 +16,12 @@ import com.newrelic.api.agent.OutboundHeaders;
  */
 public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
 
+    default String getTraceId() {
+        return "0000000000000000";
+    }
+    default String getSpanId() {
+        return "0000000000000000";
+    }
     /**
      * Returns the parent of this traced method, or null if this is the root tracer.
      *
