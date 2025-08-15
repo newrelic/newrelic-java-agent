@@ -4,6 +4,31 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.23.0
+## New features and improvements
+- Update to support v24 of graphql by @jtduffy in [2425](https://github.com/newrelic/newrelic-java-agent/pull/2425)
+- Add lettuce 6.5 instrumentation by @kanderson250 in [2430](https://github.com/newrelic/newrelic-java-agent/pull/2430)
+- Bump commons-lang version to 3.18.0 by @jtduffy in [2421](https://github.com/newrelic/newrelic-java-agent/pull/2421)
+- Add lettuce dbName to datastore params where available by @kanderson250 in [2423](https://github.com/newrelic/newrelic-java-agent/pull/2423)
+- Add an environment variable to skip implementing certain applications. The environment variable name is  `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS`. The value of it is a comma separated list of main classes, executable jar files or Java based tools/apps that the agent should NOT instrument (e.g. `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS=keytool,myapp.jar,IgnoreThisClass`) by @jtduffy in [2433](https://github.com/newrelic/newrelic-java-agent/pull/2433)
+
+## Fixes
+
+- Fix a bug where SQS messages with 8 attributes are not sent to AWS. SQS messages need less then 8 attributes to pass distributed trace headers by @obenkenobi in [2422](https://github.com/newrelic/newrelic-java-agent/pull/2422)
+- Trim the "Subscriptions" bit off the end of the topic name in azure service bus client by @jbedell-newrelic in [2440](https://github.com/newrelic/newrelic-java-agent/pull/2440)
+- Fix AutoConfiguredOpenTelemetrySdk config by @jasonjkeller in [2451](https://github.com/newrelic/newrelic-java-agent/pull/2451)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+
 ## Version 8.22.0
 ## New features and improvements
 

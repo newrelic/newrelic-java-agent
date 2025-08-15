@@ -5,12 +5,12 @@
  *
  */
 
-package com.nr.agent.instrumentation.header.utils;
+package com.nr.agent.instrumentation.utils.header;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.nr.agent.instrumentation.header.utils.W3CTraceParentHeader.W3C_VERSION;
+import static com.nr.agent.instrumentation.utils.header.W3CTraceParentHeader.W3C_VERSION;
 import static java.util.regex.Pattern.compile;
 
 public class W3CTraceParentValidator {

@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.agent.instrumentation.header.utils;
+package com.nr.agent.instrumentation.utils.header;
 
 import io.opentelemetry.api.trace.SpanContext;
 
