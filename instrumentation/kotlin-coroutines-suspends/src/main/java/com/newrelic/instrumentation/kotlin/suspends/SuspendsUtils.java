@@ -6,14 +6,13 @@ import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.kotlincoroutines.SuspendsConfigListener;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.*;
+import com.newrelic.api.agent.NewRelic;
 import kotlin.coroutines.Continuation;
-import kotlin.coroutines.CoroutineContext;
 import kotlinx.coroutines.AbstractCoroutine;
-import kotlinx.coroutines.CoroutineExceptionHandler;
-import kotlinx.coroutines.CoroutineExceptionHandler_Instrumentation;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.logging.Level;
 
 public class SuspendsUtils implements SuspendsConfigListener {
 
@@ -23,6 +22,7 @@ public class SuspendsUtils implements SuspendsConfigListener {
     private static final String CONT_LOC = "Continuation at";
     public static String sub = "createCoroutineFromSuspendFunction";
     public static final String KOTLIN_PACKAGE = "kotlin";
+    private static final String SUSPEND_FUNCTION_METRIC_NAME_PREFIX = "Custom/Kotlin/Coroutines/SuspendFunction/";
 
     static {
         KotlinCoroutinesService service = ServiceFactory.getKotlinCoroutinesService();
@@ -30,10 +30,6 @@ public class SuspendsUtils implements SuspendsConfigListener {
     }
 
     private SuspendsUtils() {}
-
-    public static void addIgnoredSuspend(String suspendName) {
-        ignoredSuspends.add(suspendName);
-    }
 
     public static ExitTracer getSuspendTracer(Continuation<?> continuation) {
         Class<?> clazz = continuation.getClass();
@@ -45,9 +41,9 @@ public class SuspendsUtils implements SuspendsConfigListener {
         if(continuationString == null || continuationString.isEmpty()) { return null; }
 
         for(String ignoredSuspend : ignoredSuspends) {
-            if(continuationString.matches(ignoredSuspend)) { return null; }
+            if(continuationString.matches(ignoredSuspend) || className.matches(ignoredSuspend)) { return null; }
         }
-        if (ignoredSuspends.contains(continuationString)) {
+        if (ignoredSuspends.contains(continuationString) || ignoredSuspends.contains(className)) {
             return null;
         }
         ClassMethodSignature signature = new ClassMethodSignature(clazz.getName(), "invokeSuspend", "(Ljava.lang.Object;)Ljava.lang.Object;");
@@ -57,18 +53,8 @@ public class SuspendsUtils implements SuspendsConfigListener {
         }
 
         if(index >= 0) {
-            String metricName = "Custom/Kotlin/Coroutines/SuspendFunction/" + continuationString;
-            ExitTracer exitTracer = AgentBridge.instrumentation.createTracer(continuation, index, metricName, DefaultTracer.DEFAULT_TRACER_FLAGS);
-            /*
-             * Need to handle the case where an exception handler is defined because execution will not return to the Suspend function so
-             * there is no call to finish the tracer.   When an exception is thrown then finish is handled in the handler.
-             */
-            CoroutineContext coroutineContext = continuation.getContext();
-            CoroutineExceptionHandler exceptionHandler = ExceptionHandlerUtilsKt.getCoroutineExceptionHandler(coroutineContext);
-            if (exceptionHandler != null) {
-                ((CoroutineExceptionHandler_Instrumentation)exceptionHandler).tracer = exitTracer;
-            }
-            return exitTracer;
+            String metricName = SUSPEND_FUNCTION_METRIC_NAME_PREFIX + continuationString;
+            return AgentBridge.instrumentation.createTracer(continuation, index, metricName, DefaultTracer.DEFAULT_TRACER_FLAGS);
         }
         return null;
     }
@@ -98,6 +84,8 @@ public class SuspendsUtils implements SuspendsConfigListener {
 
     @Override
     public void configureSuspendsIgnores(String[] ignores) {
+        NewRelic.getAgent().getLogger().log(Level.FINE,"Will ignore Suspend Functions matching {0}", Arrays.toString(ignores));
+        ignoredSuspends.clear();
         if(ignores != null) {
             ignoredSuspends.addAll(Arrays.asList(ignores));
         }

@@ -12,8 +12,16 @@ public abstract class BaseContinuationImpl_Instrumentation implements Continuati
 
 	protected Object invokeSuspend(Object result) {
 		ExitTracer tracer = SuspendsUtils.getSuspendTracer(this);
-		Object value = Weaver.callOriginal();
-		if (tracer != null) {
+        Object value = null;
+        try {
+            value = Weaver.callOriginal();
+        } catch (Exception e) {
+			if(tracer != null) {
+				tracer.finish(e);
+			}
+			throw e;
+        }
+        if (tracer != null) {
 			tracer.finish(0, value);
 		}
 		return value;
