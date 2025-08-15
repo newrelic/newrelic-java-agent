@@ -28,7 +28,9 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
     }
 
     public void addSuspendsConfigListener(SuspendsConfigListener listener) {
+
         suspendsConfigListeners.add(listener);
+        listener.configureSuspendsIgnores(ignoredSuspends);
     }
 
     public void addCoroutineConfigListener(CoroutineConfigListener listener) {
