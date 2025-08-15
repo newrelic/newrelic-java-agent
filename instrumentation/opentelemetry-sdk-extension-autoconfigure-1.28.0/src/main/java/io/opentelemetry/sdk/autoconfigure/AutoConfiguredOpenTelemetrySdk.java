@@ -34,8 +34,8 @@ public class AutoConfiguredOpenTelemetrySdk {
         final Boolean autoConfigure = NewRelic.getAgent().getConfig().getValue("opentelemetry.sdk.autoconfigure.enabled", false);
         if (autoConfigure == null || autoConfigure) {
             NewRelic.getAgent().getLogger().log(Level.INFO, "Appending OpenTelemetry SDK customizers");
-            builder.addPropertiesCustomizer(OpenTelemetrySDKCustomizer::applyProperties);
-            builder.addResourceCustomizer(OpenTelemetrySDKCustomizer::applyResources);
+            builder.addPropertiesCustomizer(new PropertiesCustomizer());
+            builder.addResourceCustomizer(new ResourceCustomer());
         }
         return builder;
     }
