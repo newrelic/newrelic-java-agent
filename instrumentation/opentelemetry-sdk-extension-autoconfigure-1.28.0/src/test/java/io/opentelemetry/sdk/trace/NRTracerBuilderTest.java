@@ -34,7 +34,7 @@ public class NRTracerBuilderTest extends TestCase {
 
     public void testBuildDisabled() {
         Config config = mock(Config.class);
-        when(config.getValue("opentelemetry.instrumentation.test-lib.enabled")).thenReturn(false);
+        when(config.getValue("opentelemetry.instrumentation.test-lib.enabled", true)).thenReturn(false);
         Tracer tracer = new NRTracerBuilder(config, "test-lib",
                 TRACER_SHARED_STATE).build();
         assertSame(OpenTelemetry.noop().getTracer("dude"), tracer);

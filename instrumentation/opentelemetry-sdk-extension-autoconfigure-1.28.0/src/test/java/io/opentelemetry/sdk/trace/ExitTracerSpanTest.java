@@ -12,6 +12,7 @@ import com.newrelic.agent.security.deps.com.fasterxml.jackson.databind.ObjectMap
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.nr.agent.instrumentation.utils.AttributesHelper;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;

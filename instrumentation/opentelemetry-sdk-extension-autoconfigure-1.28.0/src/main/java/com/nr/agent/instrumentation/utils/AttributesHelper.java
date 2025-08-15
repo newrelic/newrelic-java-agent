@@ -5,7 +5,7 @@
  *
  */
 
-package io.opentelemetry.sdk.trace;
+package com.nr.agent.instrumentation.utils;
 
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -13,7 +13,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import java.util.Map;
 
 /**
- * Helper class for adding attributes to Spans
+ * Helper class for turning a map of attributes into an OTel Attributes object.
  */
 public class AttributesHelper {
     private AttributesHelper() {
