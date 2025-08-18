@@ -8,16 +8,23 @@
 package io.opentelemetry.sdk.autoconfigure;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.config.OtelConfig;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.metrics.Aggregation;
+import io.opentelemetry.sdk.metrics.InstrumentSelector;
+import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
+import io.opentelemetry.sdk.metrics.View;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -86,5 +93,25 @@ final class OpenTelemetrySDKCustomizer {
             builder.put("entity.guid", entityGuid);
         }
         return builder.build();
+    }
+
+    /**
+     * Read list of excluded meters, and customize the meter provider to drop any with matching names.
+     */
+
+    static SdkMeterProviderBuilder applyMeterExcludes(SdkMeterProviderBuilder sdkMeterProviderBuilder, ConfigProperties configProperties) {
+        return applyMeterExcludes(sdkMeterProviderBuilder, NewRelic.getAgent(), ServiceFactory.getConfigService().getDefaultAgentConfig().getOtelConfig());
+    }
+
+    static SdkMeterProviderBuilder applyMeterExcludes(SdkMeterProviderBuilder sdkMeterProviderBuilder, Agent agent, OtelConfig otelConfig) {
+        final List<String> excludedMeters = otelConfig.getExcludedMeters();
+        agent.getLogger().log(Level.FINE, "Suppressing excluded OpenTelemetry meters: {0}", excludedMeters);
+        for (String meterName : excludedMeters) {
+            sdkMeterProviderBuilder.registerView(
+                    InstrumentSelector.builder().setMeterName(meterName).build(),
+                    View.builder().setAggregation(Aggregation.drop()).build()
+            );
+        }
+        return sdkMeterProviderBuilder;
     }
 }
