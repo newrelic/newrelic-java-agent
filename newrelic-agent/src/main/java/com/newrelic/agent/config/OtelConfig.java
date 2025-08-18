@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class OtelConfig extends BaseConfig{
 
-    public static final String EXCLUDE_METERS = "meters.exclude";
+    public static final String EXCLUDE_METERS = "metrics.exclude";
 
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.opentelemetry.";
 
