@@ -76,7 +76,6 @@ public class NRLogRecordTest extends TestCase {
                 .setAllAttributes(attributes)
                 .setAttribute(AttributeKey.stringKey("foo"), "bar")
                 .setObservedTimestamp(now)
-                .setObservedTimestamp(now.toEpochMilli(), java.util.concurrent.TimeUnit.MILLISECONDS)
                 .setTimestamp(now)
                 .setTimestamp(now.toEpochMilli(), java.util.concurrent.TimeUnit.MILLISECONDS)
 //                .setContext()
