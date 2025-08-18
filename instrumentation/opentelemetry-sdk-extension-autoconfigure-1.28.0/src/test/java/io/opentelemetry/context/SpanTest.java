@@ -60,6 +60,7 @@ public class SpanTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         // no transactions because there was no dispatcher trace around the spans
         assertEquals(0, introspector.getFinishedTransactionCount());
+        introspector.clear();
     }
 
     @Test
@@ -78,6 +79,7 @@ public class SpanTest {
 
         assertEquals(1, metricsForTransaction.size());
         assertTrue(metricsForTransaction.keySet().toString(), metricsForTransaction.containsKey("Span/consume"));
+        introspector.clear();
     }
 
     @Test
@@ -100,6 +102,7 @@ public class SpanTest {
 
         assertEquals(1, metricsForTransaction.size());
         assertTrue(metricsForTransaction.keySet().toString(), metricsForTransaction.containsKey("Span/GET /owners"));
+        introspector.clear();
     }
 
     @Test
@@ -117,6 +120,7 @@ public class SpanTest {
         assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/simpleSpans"));
         assertTrue(metricsForTransaction.containsKey("Span/MyCustomSpan"));
         assertTrue(metricsForTransaction.containsKey("Span/kid"));
+        introspector.clear();
     }
 
     @Test
@@ -137,6 +141,7 @@ public class SpanTest {
             assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/asyncSpans"));
             assertTrue(metricsForTransaction.containsKey("Java/OpenTelemetry/AsyncScope"));
             assertTrue(metricsForTransaction.containsKey("Span/MyCustomAsyncSpan"));
+            introspector.clear();
         } finally {
             executor.shutdown();
         }
@@ -171,6 +176,7 @@ public class SpanTest {
 
             assertEquals(1, metricsForTransaction.size());
             assertTrue(metricsForTransaction.containsKey("Java/io.opentelemetry.context.SpanTest/asyncSpans"));
+            introspector.clear();
         } finally {
             executor.shutdown();
         }
@@ -200,6 +206,7 @@ public class SpanTest {
         Arrays.asList("db.collection", "db.sql.table", "db.system", "db.operation").forEach(key -> {
             assertNull(key, dbSpan.getUserAttributes().get(key));
         });
+        introspector.clear();
     }
 
     @Trace(dispatcher = true)
@@ -241,6 +248,7 @@ public class SpanTest {
         assertEquals(agentAttributes.size(), httpSpan.getAgentAttributes().size());
         agentAttributes.forEach((key, value) -> assertEquals(value, httpSpan.getAgentAttributes().get(key)));
         agentAttributes.forEach((key, value) -> assertNull(key, httpSpan.getUserAttributes().get(key)));
+        introspector.clear();
     }
 
     @Trace(dispatcher = true)
