@@ -25,6 +25,7 @@ Configuration via yaml:
 
 ```yaml
   opentelemetry:
+    # config to enable different types of telemetry from the OpenTelemetry SDK
     sdk:
       autoconfigure:
         enabled: true
@@ -32,11 +33,15 @@ Configuration via yaml:
         enabled: true
       logs:
         enabled: true
+    # instrumentation scope names which are excluded from reporting traces and logs
     instrumentation:
       specific-instrumentation-scope-name-1:
         enabled: true
       specific-instrumentation-scope-name-2:
         enabled: true
+    metrics:
+      # comma-separated list of meter names which are excluded from reporting metrics
+      exclude: foo-module,bar-module
 ```
 
 Configuration via system property:
@@ -46,8 +51,11 @@ Configuration via system property:
 -Dnewrelic.config.opentelemetry.sdk.spans.enabled=true
 -Dnewrelic.config.opentelemetry.sdk.logs.enabled=true
 
-# To disable specific OpenTelemetry instrumentation scopes, use:
+# instrumentation scope names which are excluded from reporting traces and logs
 -Dnewrelic.config.opentelemetry.instrumentation.[SPECIFIC_INSTRUMENTATION_SCOPE_NAME].enabled=true
+
+# comma-separated list of meter names which are excluded from reporting metrics
+-Dnewrelic.config.opentelemetry.metrics.exclude=foo-module,bar-module
 ```
 
 Configuration via environment variable:
@@ -57,8 +65,11 @@ NEW_RELIC_OPENTELEMETRY_SDK_AUTOCONFIGURE_ENABLED=true
 NEW_RELIC_OPENTELEMETRY_SDK_SPANS_ENABLED=true
 NEW_RELIC_OPENTELEMETRY_SDK_LOGS_ENABLED=true
 
-# To disable specific OpenTelemetry instrumentation scopes, use:
+# instrumentation scope names which are excluded from reporting traces and logs
 NEW_RELIC_OPENTELEMETRY_INSTRUMENTATION_[SPECIFIC_INSTRUMENTATION_SCOPE_NAME]_ENABLED=true
+
+# comma-separated list of meter names which are excluded from reporting metrics
+NEW_RELIC_OPENTELEMETRY_METRICS_EXCLUDE=foo-module,bar-module
 ```
 
 ## OpenTelemetry Dimensional Metrics
@@ -69,7 +80,7 @@ by the New Relic Java agent.
 To use this functionality, enable the feature as documented above, add the required `opentelemetry` dependencies to your application:
 
 ```groovy
-    implementation(platform("io.opentelemetry:opentelemetry-bom:1.44.1"))
+implementation(platform("io.opentelemetry:opentelemetry-bom:1.44.1"))
 implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
 implementation("io.opentelemetry:opentelemetry-exporter-otlp")
 ```
