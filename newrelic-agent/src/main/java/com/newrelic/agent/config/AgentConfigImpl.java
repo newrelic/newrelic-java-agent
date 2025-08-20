@@ -120,6 +120,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
+    public static final String OTEL = "opentelemetry";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
@@ -265,6 +266,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
+    private final OtelConfig otelConfig;
     private final ReinstrumentConfig reinstrumentConfig;
     private final TransactionTracerConfigImpl requestTransactionTracerConfig;
     private final SlowTransactionsConfig slowTransactionsConfig;
@@ -375,6 +377,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         normalizationRuleConfig = new NormalizationRuleConfig(props);
         slowTransactionsConfig = initSlowTransactionsConfig();
         obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
+        otelConfig = initOtelConfig();
         agentControlIntegrationConfig = initAgentControlHealthCheckConfig();
 
         Map<String, Object> flattenedProps = new HashMap<>();
@@ -793,6 +796,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private ObfuscateJvmPropsConfig initObfuscateJvmPropsConfig() {
         Map<String, Object> props = nestedProps(OBFUSCATE_JVM_PROPS);
         return new ObfuscateJvmPropsConfigImpl(props);
+    }
+
+    private OtelConfig initOtelConfig() {
+        Map<String, Object> props = nestedProps(OTEL);
+        return new OtelConfig(props);
     }
 
     private CircuitBreakerConfig initCircuitBreakerConfig() {
@@ -1253,6 +1261,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig() {
         return obfuscateJvmPropsConfig;
+    }
+
+    @Override
+    public OtelConfig getOtelConfig() {
+        return otelConfig;
     }
 
     @Override
