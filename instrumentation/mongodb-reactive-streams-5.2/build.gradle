@@ -1,0 +1,29 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.mongodb-reactive-streams-5.2'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation 'org.mongodb:mongodb-driver-core:5.2.0'
+    implementation 'io.projectreactor:reactor-core:3.2.22.RELEASE'
+    implementation 'org.mongodb:mongodb-driver-reactivestreams:5.2.0'
+
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.2.2")
+    testImplementation('org.mongodb:mongodb-driver-reactivestreams:5.2.0')
+}
+
+
+verifyInstrumentation {
+    passesOnly 'org.mongodb:mongodb-driver-reactivestreams:[5.2.0,)'
+    excludeRegex 'org.mongodb:mongodb-driver-reactivestreams:.*(alpha|beta|rc|SNAPSHOT).*'
+}
+
+site {
+    title 'MongoDB'
+    type 'Datastore'
+}
