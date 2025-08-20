@@ -58,4 +58,18 @@ public class AttributeMapperTest {
 
         assertEquals("", attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Port, otelKeys));
     }
+
+    @Test
+    public void attributeKeyClass_properlyParsesSemanticConventionField() {
+        AttributeMapper attributeMapper = AttributeMapper.getInstance();
+
+        // Comma delimited list of semantic conventions exist in the SERVER -> Port
+        Map<SpanKind, Map<AttributeType, List<AttributeKey>>> attributes = attributeMapper.getMappings();
+        AttributeKey  attribute = attributes.get(SpanKind.SERVER).get(AttributeType.Port).get(0);
+        assertEquals(2, attribute.getSemanticConventions().length);
+
+        // Only one in SERVER -> Host
+        attribute = attributes.get(SpanKind.SERVER).get(AttributeType.Host).get(0);
+        assertEquals(1, attribute.getSemanticConventions().length);
+    }
 }
