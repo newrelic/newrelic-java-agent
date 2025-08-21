@@ -38,7 +38,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "com.mongodb")
-public class MongoDbAsync480Test {
+public class MongoDbAsync520Test {
 
     private static final String MONGODB_PRODUCT = DatastoreVendor.MongoDB.toString();
     private static final MongodStarter mongodStarter = MongodStarter.getDefaultInstance();
