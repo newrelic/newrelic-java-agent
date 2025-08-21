@@ -15,8 +15,6 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import redis.clients.jedis.JedisSafeAuthenticator;
-
 @SuppressWarnings({ "ResultOfMethodCallIgnored", "unused" })
 @Weave(type = MatchType.ExactClass, originalName = "redis.clients.jedis.JedisPubSubBase")
 public class JedisPubSubBase_Instrumentation {
