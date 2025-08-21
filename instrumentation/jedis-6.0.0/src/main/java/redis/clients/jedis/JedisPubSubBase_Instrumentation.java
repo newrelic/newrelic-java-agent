@@ -72,23 +72,11 @@ public class JedisPubSubBase_Instrumentation {
   }
 
   private void reportMethodAsExternal(String commandName) {
-    Connection client = authenticator.client;
-    DatastoreParameters params;
-    if (client != null) {
-      params = DatastoreParameters
-              .product(DatastoreVendor.Redis.name())
-              .collection(null)
-              .operation(commandName)
-              .instance(authenticator.client.getHostAndPort().getHost(), authenticator.client.getHostAndPort().getPort())
-              .build();
-    } else {
-      params = DatastoreParameters
-              .product(DatastoreVendor.Redis.name())
-              .collection(null)
-              .operation(commandName)
-              .noInstance()
-              .build();
-    }
-    NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
+    NewRelic.getAgent().getTracedMethod().reportAsExternal(DatastoreParameters
+            .product(DatastoreVendor.Redis.name())
+            .collection(null)
+            .operation(commandName)
+            .instance(authenticator.client.getHostAndPort().getHost(), authenticator.client.getHostAndPort().getPort())
+            .build());
   }
 }
