@@ -26,6 +26,7 @@ import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
+import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.profile.ProfilerService;
@@ -214,4 +215,6 @@ public class ServiceFactory {
     public static ExpirationService getExpirationService() {
         return SERVICE_MANAGER.getExpirationService();
     }
+
+    public static KotlinCoroutinesService getKotlinCoroutinesService() { return SERVICE_MANAGER.getKotlinCoroutinesService(); }
 }
