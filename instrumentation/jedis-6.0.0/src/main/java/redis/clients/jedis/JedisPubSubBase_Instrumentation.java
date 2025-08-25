@@ -21,14 +21,6 @@ public class JedisPubSubBase_Instrumentation {
 
   private final JedisSafeAuthenticator authenticator = Weaver.callOriginal();
 
-  public final void proceed(Connection client, Object... channels) {
-    Weaver.callOriginal();
-  }
-
-  public void proceedWithPatterns(Connection client, Object... channels) {
-    Weaver.callOriginal();
-  }
-
   @Trace
   public void onMessage(Object channel, Object message) {
     Weaver.callOriginal();
