@@ -1,0 +1,23 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jedis-6.0.0' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("redis.clients:jedis:6.0.0")
+}
+
+verifyInstrumentation {
+    passesOnly 'redis.clients:jedis:[6.0.0,)'
+    excludeRegex 'redis.clients:jedis:.*-(m|rc|RC|alpha|beta)[0-9]*'
+    exclude 'redis.clients:jedis:3.6.2'
+
+}
+
+site {
+    title 'Jedis'
+    type 'Datastore'
+}
